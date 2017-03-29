@@ -85,7 +85,7 @@
             </li>
           </ul>
         </dd>
-        <div ng-if="!ctrl.isElSeven(loadBalancer) && loadBalancer.elb.dnsname">
+        <div ng-if="!ctrl.isHttpLoadBalancer(loadBalancer) && loadBalancer.elb.dnsname">
           <dt>DNS Name</dt>
           <dd>
             <a target=_blank href="{{loadBalancer.elb.dns.protocol}}//{{loadBalancer.elb.dns.dnsname}}">{{loadBalancer.elb.dns.dnsname}}</a>
@@ -96,7 +96,7 @@
             </copy-to-clipboard>
           </dd>
         </div>
-        <div ng-if="ctrl.isElSeven(loadBalancer)">
+        <div ng-if="ctrl.isHttpLoadBalancer(loadBalancer)">
           <dt>DNS Names</dt>
           <dd>
             <ul>
@@ -111,7 +111,7 @@
             </ul>
           </dd>
         </div>
-        <div ng-if="ctrl.isElSeven(loadBalancer)">
+        <div ng-if="ctrl.isHttpLoadBalancer(loadBalancer)">
           <gce-host-and-path-rules-button default-service="loadBalancer.defaultService"
                                           load-balancer-name="loadBalancer.name"
                                           host-rules="loadBalancer.hostRules">
@@ -125,7 +125,7 @@
     <collapsible-section heading="Listeners">
       <dl>
         <dt>Load Balancer &rarr; Instance
-          <help-field ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.loadBalancerType === 'SSL'"
+          <help-field ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.loadBalancerType === 'SSL'"
                       key="gce.httpLoadBalancer.namedPort"></help-field>
         </dt>
         <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">
@@ -135,7 +135,7 @@
         </dd>
       </dl>
     </collapsible-section>
-    <collapsible-section heading="Backend Services" ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.backendService">
+    <collapsible-section heading="Backend Services" ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.backendService">
       <dl class="horizontal-when-filters-collapsed"
           ng-switch on="loadBalancer.loadBalancerType">
         <div ng-repeat="service in loadBalancer.elb.backendServices" ng-switch-when="HTTP">
@@ -147,7 +147,7 @@
                                      ng-switch-default></gce-backend-service-details>
       </dl>
     </collapsible-section>
-    <collapsible-section ng-if="ctrl.isElSeven(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
+    <collapsible-section ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.healthCheck || loadBalancer.backendService.healthCheck"
                          heading="Health Checks">
       <dl class="horizontal-when-filters-collapsed"
           ng-switch on="loadBalancer.loadBalancerType">

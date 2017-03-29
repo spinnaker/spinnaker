@@ -1,30 +1,22 @@
 'use strict';
 
-import {defaults, uniq} from 'lodash';
+import {defaults} from 'lodash';
+import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [])
-  .factory('gceServerGroupTransformer', function () {
+module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [GCE_HTTP_LOAD_BALANCER_UTILS])
+  .factory('gceServerGroupTransformer', function (gceHttpLoadBalancerUtils) {
 
     function normalizeServerGroup(serverGroup, application) {
       return application.getDataSource('loadBalancers').ready().then(() => {
         if (serverGroup.loadBalancers) {
-          let normalizedServerGroupLoadBalancerNames = [];
           // At this point, the HTTP(S) load balancers have been normalized (listener names mapped to URL map names).
           // Our server groups' lists of load balancer names still need to make this mapping.
-          serverGroup.loadBalancers.forEach(loadBalancerName => {
-            let matchingUrlMap = application.getDataSource('loadBalancers').data.find(loadBalancer => {
-              return serverGroup.account === loadBalancer.account &&
-                loadBalancer.listeners &&
-                loadBalancer.listeners.map(listener => listener.name).includes(loadBalancerName);
-            });
-
-            matchingUrlMap
-              ? normalizedServerGroupLoadBalancerNames.push(matchingUrlMap.name)
-              : normalizedServerGroupLoadBalancerNames.push(loadBalancerName);
-          });
-          serverGroup.loadBalancers = uniq(normalizedServerGroupLoadBalancerNames);
+          serverGroup.loadBalancers = gceHttpLoadBalancerUtils.normalizeLoadBalancerNamesForAccount(
+            serverGroup.loadBalancers,
+            serverGroup.account,
+            application.getDataSource('loadBalancers').data);
         }
         return serverGroup;
       });

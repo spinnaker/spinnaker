@@ -4,11 +4,12 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.loadBalancers.selector.directive', [
     INFRASTRUCTURE_CACHE_SERVICE,
-    require('google/loadBalancer/elSevenUtils.service.js'),
+    GCE_HTTP_LOAD_BALANCER_UTILS,
     require('./elSevenOptions/elSevenOptionsGenerator.component.js'),
     require('../../serverGroupConfiguration.service.js'),
   ])
@@ -23,7 +24,7 @@ module.exports = angular
       controllerAs: 'vm',
       controller: 'gceServerGroupLoadBalancerSelectorCtrl',
     };
-  }).controller('gceServerGroupLoadBalancerSelectorCtrl', function (elSevenUtils,
+  }).controller('gceServerGroupLoadBalancerSelectorCtrl', function (gceHttpLoadBalancerUtils,
                                                                     gceServerGroupConfigurationService,
                                                                     infrastructureCaches) {
     this.getLoadBalancerRefreshTime = () => {
@@ -48,5 +49,5 @@ module.exports = angular
       }
     };
 
-    this.isElSeven = elSevenUtils.isElSeven;
+    this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
   });

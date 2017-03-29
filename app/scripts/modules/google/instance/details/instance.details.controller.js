@@ -7,6 +7,7 @@ import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationMod
 import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
 import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 let angular = require('angular');
 
@@ -20,11 +21,11 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
-  require('../../loadBalancer/elSevenUtils.service.js')
+  GCE_HTTP_LOAD_BALANCER_UTILS,
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, instanceWriter, confirmationModalService,
                                                   recentHistoryService, cloudProviderRegistry, instanceReader, instance,
-                                                  app, $q, elSevenUtils) {
+                                                  app, $q, gceHttpLoadBalancerUtils) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
@@ -132,7 +133,10 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
-          $scope.instance.loadBalancers = loadBalancers;
+          $scope.instance.loadBalancers = gceHttpLoadBalancerUtils.normalizeLoadBalancerNamesForAccount(
+            loadBalancers,
+            account,
+            app.getDataSource('loadBalancers').data);
 
           $scope.instance.internalDnsName = $scope.instance.instanceId;
           $scope.instance.internalIpAddress = $scope.instance.networkInterfaces[0].networkIP;
@@ -226,9 +230,9 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
-      // TODO(dpeach): remove when it's possible to degister from l7 load balancer.
+      // TODO(dpeach): remove when it's possible to degister from an http load balancer.
       var loadBalancerDoesNotSupportDeregister = _.chain(app.loadBalancers.data)
-        .filter((lb) => elSevenUtils.isElSeven(lb) || lb.loadBalancerType === 'INTERNAL')
+        .filter((lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb) || lb.loadBalancerType === 'INTERNAL')
         .map('name')
         .intersection(instance.loadBalancers || [])
         .value()

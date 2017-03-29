@@ -19,7 +19,6 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   TASK_MONITOR_BUILDER,
   require('./commandBuilder.service.js'),
   require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js'),
-  require('../../elSevenUtils.service.js'),
   require('./healthCheck/healthCheck.component.js'),
   require('./hostRule/hostRule.component.js'),
   require('./httpLoadBalancer.write.service.js'),

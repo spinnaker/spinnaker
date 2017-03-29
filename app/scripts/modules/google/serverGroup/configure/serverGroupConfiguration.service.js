@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import {LOAD_BALANCER_SET_TRANSFORMER} from 'google/loadBalancer/loadBalancer.setTransformer';
+import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
@@ -24,14 +25,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../image/image.reader.js'),
   require('../../instance/gceInstanceType.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
-  require('../../loadBalancer/elSevenUtils.service.js'),
+  GCE_HTTP_LOAD_BALANCER_UTILS,
   require('../../httpHealthCheck/httpHealthCheck.reader.js'),
   require('./wizard/securityGroups/tagManager.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
-                                                          gceCustomInstanceBuilderService, elSevenUtils,
+                                                          gceCustomInstanceBuilderService, gceHttpLoadBalancerUtils,
                                                           gceHttpHealthCheckReader, gceTagManager,
                                                           gceLoadBalancerSetTransformer) {
 
@@ -343,23 +344,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return loadBalancer.region === command.region || loadBalancer.region === 'global';
     }
 
-    function mapListenerNameToUrlMapName (loadBalancerNames, newLoadBalancerObjects) {
-      var urlMaps = newLoadBalancerObjects.filter(_.property('listeners'));
-      var byListenerName = urlMaps.reduce((byListenerName, urlMap) => {
-        urlMap.listeners.forEach((listener) => {
-          byListenerName[listener.name] = urlMap;
-        });
-        return byListenerName;
-      }, {});
-
-      return _.chain(loadBalancerNames)
-        .map((lbName) => {
-          return byListenerName[lbName] ? byListenerName[lbName].urlMapName : lbName;
-        })
-        .uniq()
-        .value();
-    }
-
     function configureLoadBalancerOptions(command) {
       var results = { dirty: {} };
       var current = command.loadBalancers;
@@ -368,7 +352,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       command.backingData.filtered.loadBalancers = _.map(newLoadBalancerObjects, 'name');
 
       if (current && command.loadBalancers) {
-        command.loadBalancers = mapListenerNameToUrlMapName(command.loadBalancers, newLoadBalancerObjects);
+        command.loadBalancers = gceHttpLoadBalancerUtils.normalizeLoadBalancerNamesForAccount(
+          command.loadBalancers, command.credentials, newLoadBalancerObjects);
         var matched = _.intersection(command.backingData.filtered.loadBalancers, command.loadBalancers);
         var removed = _.xor(matched, command.loadBalancers);
         command.loadBalancers = matched;
@@ -392,7 +377,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       let lbIndex = command.backingData.filtered.loadBalancerIndex;
 
       let backendServices = command.loadBalancers.reduce((backendServices, lbName) => {
-        if (elSevenUtils.isElSeven(lbIndex[lbName])) {
+        if (gceHttpLoadBalancerUtils.isHttpLoadBalancer(lbIndex[lbName])) {
           backendServices[lbName] = _.intersection(lbIndex[lbName].backendServices, backendsFromMetadata);
         }
         return backendServices;

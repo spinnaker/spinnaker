@@ -1,9 +1,12 @@
 import {cloneDeep, groupBy, map, partition} from 'lodash';
 import {module} from 'angular';
 
+import {GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils} from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import {IGceLoadBalancer, IGceHttpLoadBalancer} from 'google/domain/loadBalancer';
+
 export class GceLoadBalancerSetTransformer {
 
-  private static normalizeElSevenGroup(group: any[]): any[] {
+  private static normalizeHttpLoadBalancerGroup(group: IGceHttpLoadBalancer[]): IGceHttpLoadBalancer {
     let normalized = cloneDeep(group[0]);
 
     normalized.listeners = group.map((loadBalancer) => {
@@ -24,21 +27,21 @@ export class GceLoadBalancerSetTransformer {
   }
 
   static get $inject() {
-    return ['elSevenUtils'];
+    return ['gceHttpLoadBalancerUtils'];
   }
 
-  constructor(private elSevenUtils: any) {}
+  constructor(private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils) {}
 
-  public normalizeLoadBalancerSet = (loadBalancers: any[]): any[] => {
-    let [elSevenLoadBalancers, otherLoadBalancers] = partition(loadBalancers, this.elSevenUtils.isElSeven);
+  public normalizeLoadBalancerSet = (loadBalancers: IGceLoadBalancer[]): IGceLoadBalancer[] => {
+    let [httpLoadBalancers, otherLoadBalancers] = partition(loadBalancers, lb => this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb));
 
-    let groupedByUrlMap = groupBy(elSevenLoadBalancers, 'urlMapName');
-    let normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeElSevenGroup);
+    let groupedByUrlMap = groupBy(httpLoadBalancers, 'urlMapName');
+    let normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeHttpLoadBalancerGroup);
 
-    return normalizedElSevenLoadBalancers.concat(otherLoadBalancers);
+    return (normalizedElSevenLoadBalancers as IGceLoadBalancer[]).concat(otherLoadBalancers);
   }
 }
 
 export const LOAD_BALANCER_SET_TRANSFORMER = 'spinnaker.gce.loadBalancer.setTransformer.service';
-module(LOAD_BALANCER_SET_TRANSFORMER, [require('./elSevenUtils.service.js')])
+module(LOAD_BALANCER_SET_TRANSFORMER, [GCE_HTTP_LOAD_BALANCER_UTILS])
   .service('gceLoadBalancerSetTransformer', GceLoadBalancerSetTransformer);

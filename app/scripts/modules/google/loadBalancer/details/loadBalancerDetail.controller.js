@@ -9,6 +9,7 @@ import {GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT} from '../configure/choice/loa
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
+import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 let angular = require('angular');
 
@@ -20,7 +21,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   require('core/utils/selectOnDblClick.directive.js'),
   require('./hostAndPathRules/hostAndPathRulesButton.component.js'),
   require('./loadBalancerType/loadBalancerType.component.js'),
-  require('../elSevenUtils.service.js'),
+  GCE_HTTP_LOAD_BALANCER_UTILS,
   require('./healthCheck/healthCheck.component.js'),
   GCE_BACKEND_SERVICE_DETAILS_COMPONENT,
   DELETE_MODAL_CONTROLLER,
@@ -28,7 +29,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
 ])
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app,
-                                                      accountService, elSevenUtils,
+                                                      accountService, gceHttpLoadBalancerUtils,
                                                       loadBalancerWriter, loadBalancerReader,
                                                       $q, loadBalancerTypeToWizardMap) {
 
@@ -55,7 +56,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             $scope.loadBalancer.account = loadBalancer.accountId;
 
             accountService.getCredentialsKeyedByAccount('gce').then(function() {
-              if (elSevenUtils.isElSeven($scope.loadBalancer)) {
+              if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
                 $scope.loadBalancer.elb.backendServices = getBackendServices($scope.loadBalancer);
                 $scope.loadBalancer.elb.healthChecks = _.chain($scope.loadBalancer.elb.backendServices)
                   .map('healthCheck')
@@ -94,7 +95,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     }
 
     function createDetailsLoader () {
-      if (elSevenUtils.isElSeven($scope.loadBalancer)) {
+      if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
         var detailsPromises = $scope.loadBalancer.listeners.map((listener) => {
           return loadBalancerReader
             .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, listener.name);
@@ -193,6 +194,6 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
       }
     };
 
-    this.isElSeven = elSevenUtils.isElSeven;
+    this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
   }
 );

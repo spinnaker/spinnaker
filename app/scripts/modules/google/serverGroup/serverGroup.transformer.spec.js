@@ -24,9 +24,9 @@ describe('gceServerGroupTransformer', () => {
           return {
             ready: () => $q.resolve(),
             data: [
-              {name: 'network-load-balancer'},
-              {name: 'internal-load-balancer'},
-              {name: 'url-map-name',
+              {name: 'network-load-balancer', account: 'my-google-account'},
+              {name: 'internal-load-balancer', account: 'my-google-account'},
+              {name: 'url-map-name', provider: 'gce', account: 'my-google-account', region: 'global', loadBalancerType: 'HTTP',
                listeners: [{name: 'http-load-balancer-listener'}, {name: 'https-load-balancer-listener'}]}
             ]
           };
@@ -36,6 +36,7 @@ describe('gceServerGroupTransformer', () => {
 
     it('should map listener names to url map names', function () {
       let serverGroup = {
+        account: 'my-google-account',
         loadBalancers: [
           'network-load-balancer',
           'internal-load-balancer',

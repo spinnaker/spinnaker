@@ -5,6 +5,7 @@ import {
   ILoadBalancerDeleteDescription
 } from 'core/loadBalancer/loadBalancer.write.service';
 import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
+import {GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 class Verification {
   public verified = false;
@@ -29,7 +30,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   static get $inject () {
     return [
       'application',
-      'elSevenUtils',
+      'gceHttpLoadBalancerUtils',
       'gceHttpLoadBalancerWriter',
       'loadBalancer',
       'loadBalancerWriter',
@@ -39,7 +40,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   }
 
   constructor (private application: Application,
-               private elSevenUtils: any,
+               private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,
                private gceHttpLoadBalancerWriter: any,
                private loadBalancer: any,
                private loadBalancerWriter: LoadBalancerWriter,
@@ -70,7 +71,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   }
 
   public hasHealthChecks (): boolean {
-    if (this.elSevenUtils.isElSeven(this.loadBalancer)) {
+    if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return true;
     } else {
       return !!this.loadBalancer.healthCheck;
@@ -78,7 +79,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   }
 
   private getSubmitMethod (): {(): ng.IPromise<any>} {
-    if (this.elSevenUtils.isElSeven(this.loadBalancer)) {
+    if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return () => {
         return this.gceHttpLoadBalancerWriter.deleteLoadBalancers(this.loadBalancer, this.application, this.params);
       };
@@ -105,5 +106,6 @@ module(DELETE_MODAL_CONTROLLER, [
     TASK_MONITOR_BUILDER,
     LOAD_BALANCER_WRITE_SERVICE,
     require('../../configure/http/httpLoadBalancer.write.service.js'),
+    GCE_HTTP_LOAD_BALANCER_UTILS,
   ])
   .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);
