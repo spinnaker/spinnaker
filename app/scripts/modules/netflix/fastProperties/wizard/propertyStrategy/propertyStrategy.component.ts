@@ -75,7 +75,7 @@ export class FastPropertyStrategyComponentController implements IComponentContro
         this.recommendationText = `The "Force Push" strategy is recommended for creating a new Fast Property that only affects ${command.getCombinedInstanceCountsForAllScopes()} running instances`;
       }
       if (command.type === PropertyCommandType.UPDATE) {
-        this.selectAca();
+        this.selectManual();
         this.recommendationText = `The "ACA" strategy is recommended for updating a Fast Property that affects ${command.getCombinedInstanceCountsForAllScopes()} running instances`;
       }
       if (command.type === PropertyCommandType.DELETE) {
