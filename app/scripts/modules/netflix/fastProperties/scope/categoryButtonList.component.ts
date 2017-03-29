@@ -15,7 +15,7 @@ export class CategoryButtonListComponentController implements ng.IComponentContr
     return categoryScope.instanceCounts.up < 1;
   }
 
-  public toggleNoInpactList(categoryName: string) {
+  public toggleNoImpactList(categoryName: string) {
     this.showNoImpactListForCategory[categoryName] = this.showNoImpactListForCategory[categoryName]
       ? !this.showNoImpactListForCategory[categoryName]
       : true;

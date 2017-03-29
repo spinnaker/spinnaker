@@ -28,7 +28,6 @@
     ng-repeat="category in $ctrl.categories | orderBy: 'order' "
     ng-if="!$ctrl.querying && category.scopes.length"
     class="scope-category-container">
-
     <category-button-list-component
       on-select-scope="$ctrl.selectScope(scopeOption)"
       category-name="category.category"

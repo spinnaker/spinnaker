@@ -29,19 +29,6 @@
           </td>
         </tr>
 
-        <tr ng-if="($ctrl.scopeOption | filter: $ctrl.noImpact).length">
-          <td colspan="2">
-            There are <span class="noticeText">{{($ctrl.scopeOption | filter: $ctrl.noImpact).length}}</span>
-            <span><b>{{category.category}}</b></span> scopes that have no impact.
-            <button
-              ng-click="$ctrl.toggleNoInpactList(category.category)"
-              class="btn btn-default btn-xs">
-              <span ng-if="$ctrl.showNoImpactListForCategory[category.category]">Hide</span>
-              <span ng-if="!$ctrl.showNoImpactListForCategory[category.category]">Show</span>
-            </button>
-          </td>
-        </tr >
-
         <tr
           class="scope-row"
           ng-repeat="scopeOption in $ctrl.scopeOptions"
@@ -60,6 +47,19 @@
             <span ng-if="$ctrl.categoryName === 'Global'">All Instances</span>
           </td>
         </tr>
+
+        <tr ng-if="($ctrl.scopeOptions | filter: $ctrl.noImpact).length">
+          <td colspan="2">
+            There are <span class="noticeText">{{($ctrl.scopeOptions | filter: $ctrl.noImpact).length}}</span>
+            <span><b>{{$ctrl.categoryName}}</b></span> scopes that have no impact.
+            <button
+              ng-click="$ctrl.toggleNoImpactList(category.category)"
+              class="btn btn-default btn-xs">
+              <span ng-if="$ctrl.showNoImpactListForCategory[category.category]">Hide</span>
+              <span ng-if="!$ctrl.showNoImpactListForCategory[category.category]">Show</span>
+            </button>
+          </td>
+        </tr >
       </tbody>
     </table>
 
