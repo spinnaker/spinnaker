@@ -7,6 +7,7 @@ set -e
 set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
+VERSION=""
 
 VAULT_VERSION=0.7.0
 VAULT_ARCH=linux_amd64
@@ -62,7 +63,9 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
 
     --repository <url>          Obtain Spinnaker packages from the <url>
                                 rather than the default repository, which is
-                                $REPOSITORY_URL
+                                $REPOSITORY_URL.
+
+    --version <version>         Specify the exact verison of Halyard to install.
 
     --dependencies_only         Do not install any Spinnaker services.
                                 Only install the dependencies. This is intended
@@ -76,7 +79,7 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
                                 install openjdk-8-jdk.
 
     --home_dir                  Override where user home directories reside
-                                example: /export/home vs /home
+                                example: /export/home vs /home.
 EOF
 }
 
@@ -95,6 +98,11 @@ function process_args() {
       --repository)
         echo "repo"
         REPOSITORY_URL="$1"
+        shift
+        ;;
+      --version)
+        echo "version"
+        VERSION="$1"
         shift
         ;;
       --dependencies_only)
@@ -169,15 +177,26 @@ function install_java() {
 }
 
 function install_halyard() {
+  local package installed_package
   package="spinnaker-halyard"
-  apt-get install -y --force-yes --allow-unauthenticated $package
+  installed_package=$package
+  if [ -n "$VERSION" ]; then
+    installed_package="$package=$VERSION"
+  fi
+  apt-get install -y --force-yes --allow-unauthenticated $installed_package
   local apt_status=$?
   if [ $apt_status -ne 0 ]; then
     if [ -n "$DOWNLOAD" ] && [ "$apt_status" -eq "100" ]; then
+      local debfile version
       echo "$(tput bold)Downloading packages for installation by dpkg...$(tput sgr0)"
-      latest=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
-      debfile=`echo $latest | awk -F "/" '{print $NF}'`
-      filelocation=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $latest | awk '{print $2}'`
+      if [ -n "$VERSION" ]; then
+        version="${package}_${VERSION}_all.deb"
+        debfile=$version
+      else 
+        version=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+        debfile=`echo $version | awk -F "/" '{print $NF}'`
+      fi
+      filelocation=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $version | awk '{print $2}'`
       curl -L -o /tmp/$debfile $REPOSITORY_URL/$filelocation
       dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
     else
@@ -255,7 +274,7 @@ EOL
 process_args "$@"
 
 # Only add external apt repositories if we are not --local_install
-if [ -n "$DOWNLOAD"]; then
+if [ -n "$DOWNLOAD" ]; then
   echo "$(tput bold)Configuring external apt repos...$(tput sgr0)"
   add_apt_repositories
 fi
