@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.appengine;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.KeyPair;
@@ -106,9 +107,14 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     }
     
     try {
-      // Location is the only App Engine resource guaranteed to exist. The API only accepts '-' here
-      // rather than project name, because the list of locations is static and not a property of an individual project.
-      credentials.getAppengine().apps().locations().list("-").execute();
+      credentials.getAppengine().apps().get(project).execute();
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() == 404) {
+        p.addProblem(Severity.ERROR, "No appengine application found for project " + project + ".")
+         .setRemediation("Run `gcloud app create --region <region>` to create an appengine application.");
+      } else {
+        p.addProblem(Severity.ERROR, "Failed to connect to appengine Admin API: " + e.getMessage() + ".");
+      }
     } catch (Exception e) {
       p.addProblem(Severity.ERROR, "Failed to connect to appengine Admin API: " + e.getMessage() + ".");
     }
