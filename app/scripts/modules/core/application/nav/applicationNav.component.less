@@ -14,6 +14,11 @@ application-nav, secondary-application-nav, .application-nav {
     background-color: @spinnaker-link-color;
     padding: 3px 6px;
     margin-bottom: 3px;
+    @media (max-width: 1400px) {
+      font-size: 10px;
+      margin-top: -2px;
+      margin-bottom: 2px;
+    }
   }
   a {
     display: inline-block;
@@ -47,7 +52,7 @@ application-nav {
   a {
     font-size: 18px;
     font-weight: 600;
-    @media (max-width: 1200px) {
+    @media (max-width: 1400px) {
       font-size: 14px;
       padding: 15px 10px 13px 10px;
     }
@@ -58,7 +63,7 @@ secondary-application-nav {
   a {
     font-size: 14px;
     padding: 18px 10px 27px;
-    @media (max-width: 1200px) {
+    @media (max-width: 1400px) {
       font-size: 12px;
       padding: 15px 10px 13px 10px;
     }
