@@ -42,10 +42,6 @@ export class StickyHeaderController implements ng.IComponentController {
       return;
     }
 
-    if (!this.notifyOnly) {
-      this.$scrollableContainer.css({position: 'relative'});
-    }
-
     this.addedOffsetHeight = this.$attrs.addedOffsetHeight ? parseInt(this.$attrs.addedOffsetHeight, 10) : 0;
 
     // fun thing about modals is they use a CSS transform, which resets position: fixed element placement -

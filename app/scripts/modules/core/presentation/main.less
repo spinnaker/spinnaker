@@ -1179,7 +1179,10 @@ body, html {
     min-height: 40px;
   }
   .spinnaker-content {
-    flex: 1 1;
+    height: calc(~"100% - 40px");
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     .page-header {
       margin: 0;
       border-bottom: none;

@@ -11,8 +11,8 @@ class BleskService {
     '<script async src="https://blesk.prod.netflix.net/static/js/blesk.js"></script>';
 
   public initialize(): void {
-    if (element('.spinnaker-header').length && !element('#blesk').length) {
-      element('.spinnaker-header').after(BleskService.BLESK_DIV);
+    if (element('.spinnaker-content').length && !element('#blesk').length) {
+      element('.spinnaker-content').prepend(BleskService.BLESK_DIV);
       element('body').append(BleskService.BLESK_SCRIPT);
     }
   }
