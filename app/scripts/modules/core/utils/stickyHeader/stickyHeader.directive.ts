@@ -35,7 +35,7 @@ export class StickyHeaderController implements ng.IComponentController {
     this.$scrollableContainer = this.$element.closest('[sticky-headers]');
     this.isSticky = false;
     this.notifyOnly = this.$attrs.notifyOnly === 'true';
-    this.positionHeader = throttle(this.positionHeader, 50);
+    this.positionHeader = throttle(this.positionHeader, 50, {trailing: true});
 
     if (!this.$scrollableContainer.length) {
       this.$log.warn('No parent container with attribute "sticky-header"; headers will not stick.');
