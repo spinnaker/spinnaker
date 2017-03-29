@@ -1,5 +1,4 @@
 <div class="execution-status-section">
-  <h4 class="execution-name" ng-if="::vm.filter.groupBy !== 'name'">{{::vm.execution.name}}</h4>
   <span class="trigger-type" ng-switch="vm.execution.trigger.type"
         ng-class="::{subheading: vm.filter.groupBy !== 'name'}">
     <h5 class="build-number">

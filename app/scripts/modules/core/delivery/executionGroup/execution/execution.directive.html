@@ -1,5 +1,9 @@
 <div class="execution" id="execution-{{::vm.execution.id}}" ng-class="vm.showDetails() ? 'show-details' : 'details-hidden'">
-  <div class="execution-overview">
+  <div class="execution-overview group-by-{{::vm.filter.groupBy}}">
+    <h4 class="execution-name" ng-if="::vm.filter.groupBy !== 'name'">
+      <account-label-color ng-repeat="account in vm.execution.deploymentTargets" account="{{account}}"></account-label-color>
+      {{::vm.execution.name}}
+    </h4>
     <execution-status execution="::vm.execution"
                       toggle-details="::vm.toggleDetails"
                       showing-details="::vm.showDetails"

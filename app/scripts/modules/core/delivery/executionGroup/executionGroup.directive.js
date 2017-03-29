@@ -67,7 +67,7 @@ module.exports = angular
       poll: null,
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig || this.strategyConfig,
-      showPipelineName: ExecutionFilterModel.sortFilter.groupBy !== 'name',
+      showAccounts: ExecutionFilterModel.sortFilter.groupBy === 'name',
     };
 
     $scope.$on('$destroy', () => {

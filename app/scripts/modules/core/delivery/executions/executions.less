@@ -71,6 +71,15 @@ executions {
       padding: 10px;
       background-color: #ffffff;
       border: 1px solid @mid_light_grey;
+      .execution-name {
+        margin-top: 0;
+        font-weight: 600;
+      }
+      &.group-by-name {
+        .execution-bar {
+          padding-top: 20px;
+        }
+      }
     }
   }
 }
