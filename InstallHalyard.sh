@@ -273,11 +273,8 @@ EOL
 
 process_args "$@"
 
-# Only add external apt repositories if we are not --local_install
-if [ -n "$DOWNLOAD" ]; then
-  echo "$(tput bold)Configuring external apt repos...$(tput sgr0)"
-  add_apt_repositories
-fi
+echo "$(tput bold)Configuring external apt repos...$(tput sgr0)"
+add_apt_repositories
 
 echo "$(tput bold)Installing Java 8...$(tput sgr0)"
 
