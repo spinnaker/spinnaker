@@ -49,10 +49,9 @@ public class LookupService {
   }
 
   /**
-   * If the filter represents a pruned tree, then this
-   * @param node is the node whos children we want to find.
+   * @param node is the node whose children we want to find.
    * @param filter is the filter to lookup by.
-   * @return
+   * @return the children of the input node matching the filter.
    */
   private List<Node> getMatchingNodes(Node node, NodeFilter filter) {
     log.trace("Checking for leaf nodes of node " + node.getNodeName());

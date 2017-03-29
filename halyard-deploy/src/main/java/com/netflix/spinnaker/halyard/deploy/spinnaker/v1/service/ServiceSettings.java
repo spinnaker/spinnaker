@@ -29,7 +29,7 @@ import java.util.Map;
 
 /**
  * These are the attributes of a service that can conceivably change between deployments to the exact same deployment
- * environment. Username & Password are easy examples, since these should be updated with each deployment. Port & Address
+ * environment. Username and Password are easy examples, since these should be updated with each deployment. Port and Address
  * can be changed, so we'll keep these here too. On the other hand, properties like Name, ArtifactType, etc... are all
  * fixed, and can't be changed between deployments. Ideally, if someone supplied ServiceSettings to Halyard, Halyard would
  * have everything it needs to run a deployment.
