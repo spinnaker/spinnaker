@@ -208,7 +208,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           }
         }
 
-        permissionService.loginSAML(username, roles)
+        permissionService.loginWithRoles(username, roles)
 
         new User(email: email,
           firstName: attributes[userAttributeMapping.firstName]?.get(0),

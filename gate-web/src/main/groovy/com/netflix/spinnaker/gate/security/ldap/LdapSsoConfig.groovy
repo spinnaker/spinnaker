@@ -87,7 +87,7 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
     @Override
     UserDetails mapUserFromContext(DirContextOperations ctx, String username, Collection<? extends GrantedAuthority> authorities) {
       def roles = sanitizeRoles(authorities)
-      permissionService.loginSAML(username, roles)
+      permissionService.loginWithRoles(username, roles)
 
       return new User(username: username,
                       email: ctx.getStringAttribute("mail"),

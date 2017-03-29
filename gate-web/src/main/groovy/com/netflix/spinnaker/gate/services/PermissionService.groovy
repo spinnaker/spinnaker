@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
 import com.netflix.spinnaker.gate.security.SpinnakerUser
@@ -38,16 +39,18 @@ class PermissionService {
   @Autowired
   FiatClientConfigurationProperties fiatConfig
 
+  @Autowired
+  FiatPermissionEvaluator permissionEvaluator
+
   void login(String userId) {
     if (fiatConfig.enabled) {
       fiatService.loginUser(userId, "")
     }
   }
 
-  // TODO(ttomsu): Rename to remove SAML prefix
-  void loginSAML(String userId, Collection<String> roles) {
+  void loginWithRoles(String userId, Collection<String> roles) {
     if (fiatConfig.enabled) {
-      fiatService.loginSAMLUser(userId, roles)
+      fiatService.loginWithRoles(userId, roles)
     }
   }
 
@@ -67,7 +70,7 @@ class PermissionService {
     if (!fiatConfig.enabled) {
       return []
     }
-    return fiatService.getUserPermission(userId)?.roles ?: []
+    return permissionEvaluator.getPermission(userId)?.roles ?: []
   }
 
   List<String> getServiceAccounts(@SpinnakerUser User user) {
@@ -84,7 +87,7 @@ class PermissionService {
 
     // TODO(ttomsu): Use Hystrix for this?
     try {
-      UserPermission.View view = fiatService.getUserPermission(user.username)
+      UserPermission.View view = permissionEvaluator.getPermission(user.username)
       return view.getServiceAccounts().collect { it.name }
     } catch (RetrofitError re) {
       throw UpstreamBadRequest.classifyError(re)

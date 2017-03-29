@@ -35,6 +35,7 @@ class CredentialsController {
   @Autowired
   CredentialsService credentialsService
 
+  @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'READ')")
   @RequestMapping(method = RequestMethod.GET)
   List<ClouddriverService.Account> getAccounts(@SpinnakerUser User user) {
