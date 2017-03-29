@@ -20,14 +20,14 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class RedisBootstrapService extends RedisService {
-  String name = "redis-bootstrap";
-  boolean monitoringEnabled = false;
-
-  public RedisBootstrapService() {
-    super();
+@Component
+abstract public class RedisBootstrapService extends RedisService {
+  @Override
+  public Type getType() {
+    return Type.REDIS_BOOTSTRAP;
   }
 }

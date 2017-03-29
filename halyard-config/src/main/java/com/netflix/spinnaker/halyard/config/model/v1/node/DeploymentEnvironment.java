@@ -45,10 +45,10 @@ public class DeploymentEnvironment extends Node {
   }
 
   public enum DeploymentType {
-    Flotilla("Deploy Spinnaker with one server group and load balancer "
+    Distributed("Deploy Spinnaker with one server group and load balancer "
         + "per microservice, and a single instance of Redis acting as "
         + "Spinnaker's cache layer. This requires a cloud provider to deploy to."),
-    LocalhostDebian("Deploy Spinnaker locally (on the machine running the daemon) "
+    LocalDebian("Deploy Spinnaker locally (on the machine running the daemon) "
         + "using `apt-get` to fetch all the service's debian packages.");
 
     @Getter
@@ -88,7 +88,7 @@ public class DeploymentEnvironment extends Node {
   }
 
   private Size size = Size.SMALL;
-  private DeploymentType type = DeploymentType.LocalhostDebian;
+  private DeploymentType type = DeploymentType.LocalDebian;
   private String accountName;
   private Consul consul = new Consul();
   private Vault vault = new Vault();

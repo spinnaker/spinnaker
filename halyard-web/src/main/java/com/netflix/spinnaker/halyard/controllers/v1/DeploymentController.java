@@ -113,11 +113,7 @@ public class DeploymentController {
     StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
-    if (installOnly) {
-      builder.setBuildResponse(() -> deployService.installSpinnaker(deploymentName));
-    } else {
-      builder.setBuildResponse(() -> deployService.deploySpinnaker(deploymentName));
-    }
+    builder.setBuildResponse(() -> deployService.deploy(deploymentName));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
@@ -188,7 +184,7 @@ public class DeploymentController {
     StaticRequestBuilder<RunningServiceDetails> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
-    builder.setBuildResponse(() -> deployService.getRunningServiceDetails(deploymentName, serviceName));
+    // builder.setBuildResponse(() -> deployService.getRunningServiceDetails(deploymentName, serviceName));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

@@ -18,23 +18,28 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.nio.file.Paths;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class GateService extends SpinnakerPublicService<GateService.Gate> {
-  int port = 8084;
-  // Address is how the service is looked up.
-  String address = "localhost";
-  String publicAddress;
-  // Host is what's bound to by the service.
-  String host = "0.0.0.0";
-  String protocol = "http";
-  String httpHealth = null;
-  String name = "gate";
+@Component
+abstract public class GateService extends SpringService<GateService.Gate> {
+  final boolean safeToUpdate = true;
+  final boolean monitored = true;
+
+  @Autowired
+  GateProfileFactory gateProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -42,18 +47,43 @@ public class GateService extends SpinnakerPublicService<GateService.Gate> {
   }
 
   @Override
+  public Type getType() {
+    return Type.GATE;
+  }
+
+  @Override
   public Class<Gate> getEndpointClass() {
     return Gate.class;
+  }
+
+  @Override
+  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
+    String filename = "gate.yml";
+
+    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    Profile profile = gateProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+
+    profiles.add(profile);
+    return profiles;
   }
 
   public GateService() {
     super();
   }
 
-  public GateService(Security security, String domain) {
-    super(security, domain);
-    publicAddress = security.getApiAddress();
-  }
-
   public interface Gate { }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class Settings extends SpringServiceSettings {
+    int port = 8084;
+    String address = "localhost";
+    String host = "0.0.0.0";
+    String scheme = "http";
+    String healthEndpoint = null;
+    boolean enabled = true;
+
+    public Settings() {}
+  }
 }

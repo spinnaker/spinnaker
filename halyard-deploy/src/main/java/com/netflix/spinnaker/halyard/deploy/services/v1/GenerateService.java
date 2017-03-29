@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
@@ -25,10 +24,12 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
-import com.netflix.spinnaker.halyard.deploy.deployment.v1.EndpointFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileConfig;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.ServiceProviderFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -37,23 +38,23 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 @Component
 @Slf4j
 public class GenerateService {
   @Autowired
-  private String spinnakerOutputPath;
-
-  @Autowired
-  private HalconfigParser halconfigParser;
+  private String spinnakerStagingPath;
 
   @Autowired
   private DeploymentService deploymentService;
 
   @Autowired
-  private EndpointFactory endpointFactory;
+  private ServiceProviderFactory serviceProviderFactory;
 
   @Autowired
   private String halconfigPath;
@@ -61,14 +62,11 @@ public class GenerateService {
   @Autowired
   private HalconfigDirectoryStructure halconfigDirectoryStructure;
 
-  @Autowired(required = false)
-  private List<SpinnakerProfile> spinnakerProfiles = new ArrayList<>();
+  @Autowired
+  private List<SpinnakerService> spinnakerServices = new ArrayList<>();
 
   @Autowired
   private ConfigParser configParser;
-
-  @Autowired
-  private ArtifactService artifactService;
 
   /**
    * Generate config for a given deployment.
@@ -83,47 +81,55 @@ public class GenerateService {
    * @param deploymentName is the deployment whose config to generate
    * @return a mapping from components to the profile's required local files.
    */
-  public GenerateResult generateConfig(String deploymentName) {
+  public ResolvedConfiguration generateConfig(String deploymentName) {
+    DaemonTaskHandler.newStage("Generating all Spinnaker profile files and endpoints");
     log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
-    File spinnakerOutput = new File(spinnakerOutputPath);
+    File spinnakerStaging = new File(spinnakerStagingPath);
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
 
-    SpinnakerEndpoints endpoints = endpointFactory.create(deploymentConfiguration);
+    DaemonTaskHandler.log("Building service endpoints");
+    SpinnakerServiceProvider serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings endpoints = serviceProvider.buildEndpoints(deploymentConfiguration);
 
     // Step 1.
     try {
-      FileUtils.deleteDirectory(spinnakerOutput);
+      FileUtils.deleteDirectory(spinnakerStaging);
     } catch (IOException e) {
       throw new HalException(
           new ConfigProblemBuilder(Severity.FATAL, "Unable to clear old spinnaker config: " + e.getMessage() + ".").build());
     }
 
-    if (!spinnakerOutput.mkdirs()) {
+    if (!spinnakerStaging.mkdirs()) {
       throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL, "Unable to create new spinnaker config directory \"" + spinnakerOutputPath + "\".").build());
+          new ConfigProblemBuilder(Severity.FATAL, "Unable to create new spinnaker config directory \"" + spinnakerStagingPath + "\".").build());
     }
 
     // Step 2.
-    DaemonTaskHandler.newStage("Generating all Spinnaker profile files");
-    Map<String, Set<String>> profileRequirements = new HashMap<>();
-    FileSystem defaultFileSystem = FileSystems.getDefault();
-    Path path;
-    for (SpinnakerProfile profile : spinnakerProfiles) {
-      String artifactName = profile.getArtifact().getName();
-
-      ProfileConfig config = profile.getFullConfig(deploymentName, endpoints);
-      for (Map.Entry<String, String> e : config.getConfigContents().entrySet()) {
-        String outputFileName = e.getKey();
-        path = defaultFileSystem.getPath(spinnakerOutputPath, outputFileName);
-        log.info("Writing " + artifactName + " profile to " + path + " with " + config.getRequiredFiles().size() + " required files");
-        DaemonTaskHandler.log("Writing profile " + outputFileName);
-
-        configParser.atomicWrite(path, e.getValue());
+    Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
+    Path stagingPath;
+    for (SpinnakerService service : serviceProvider.getServices()) {
+      ServiceSettings settings = endpoints.getServiceSettings(service);
+      if (settings != null && !settings.isEnabled()) {
+        continue;
       }
 
-      Set<String> currentRequirements = profileRequirements.getOrDefault(artifactName, new HashSet<>());
-      currentRequirements.addAll(config.getRequiredFiles());
-      profileRequirements.put(artifactName, currentRequirements);
+      List<Profile> profiles = service.getProfiles(deploymentConfiguration, endpoints);
+
+      String pluralized = profiles.size() == 1 ? "" : "s";
+      DaemonTaskHandler.log("Generated " + profiles.size() + " profile" + pluralized + " for " + service.getCannonicalName());
+      for (Profile profile : profiles) {
+        stagingPath = Paths.get(profile.getStagedFile(spinnakerStagingPath));
+        log.info("Writing " + profile.getName() + " profile to " + stagingPath + " with " + profile.getRequiredFiles().size() + " required files");
+
+        configParser.atomicWrite(stagingPath, profile.getContents());
+      }
+
+      Map<String, Profile> profileMap = new HashMap<>();
+      for (Profile profile : profiles) {
+        profileMap.put(profile.getName(), profile);
+      }
+
+      serviceProfiles.put(service.getType(), profileMap);
     }
 
     // Step 3.
@@ -139,7 +145,7 @@ public class GenerateService {
       Arrays.stream(files).forEach(f -> {
         try {
           DaemonTaskHandler.log("Copying existing profile " + f.getName());
-          Files.copy(f.toPath(), Paths.get(spinnakerOutput.toString(), f.getName()), StandardCopyOption.REPLACE_EXISTING);
+          Files.copy(f.toPath(), Paths.get(spinnakerStaging.toString(), f.getName()), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
           throw new HalException(
               new ConfigProblemBuilder(Severity.FATAL, "Unable to copy profile \"" + f.getName() + "\": " + e.getMessage() + ".").build()
@@ -149,16 +155,20 @@ public class GenerateService {
     }
 
     // Step 4.
-    GenerateResult result = new GenerateResult()
-        .setProfileRequirements(profileRequirements)
-        .setEndpoints(endpoints);
+    ResolvedConfiguration result = new ResolvedConfiguration()
+        .setServiceProfiles(serviceProfiles)
+        .setRuntimeSettings(endpoints);
 
     return result;
   }
 
   @Data
-  public static class GenerateResult {
-    private Map<String, Set<String>> profileRequirements = new HashMap<>();
-    SpinnakerEndpoints endpoints;
+  public static class ResolvedConfiguration {
+    private Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
+    SpinnakerRuntimeSettings runtimeSettings;
+
+    public ServiceSettings getServiceSettings(SpinnakerService service) {
+      return runtimeSettings.getServiceSettings(service);
+    }
   }
 }

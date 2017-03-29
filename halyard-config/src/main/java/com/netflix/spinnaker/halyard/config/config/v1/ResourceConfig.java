@@ -62,12 +62,12 @@ public class ResourceConfig {
   }
 
   @Bean
-  String spinnakerOutputPath(@Value("${spinnaker.config.output.directory:~/.halyard}") String path) {
+  String spinnakerStagingPath(@Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
     return normalizePath(path);
   }
 
   @Bean
-  String spinnakerOutputDependencyPath(@Value("${spinnaker.config.output.directory:~/.halyard}") String path) {
+  String spinnakerStagingDependencyPath(@Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
     return Paths.get(normalizePath(path), "dependency").toString();
   }
 

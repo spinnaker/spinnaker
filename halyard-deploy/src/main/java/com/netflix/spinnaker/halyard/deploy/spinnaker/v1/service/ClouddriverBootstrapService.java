@@ -18,16 +18,34 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.nio.file.Paths;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ClouddriverBootstrapService extends ClouddriverService {
-  boolean monitoringEnabled = false;
-  String name = "clouddriver-bootstrap";
+abstract public class ClouddriverBootstrapService extends ClouddriverService {
+  final boolean monitored = false;
 
-  public ClouddriverBootstrapService() {
-    profiles.add("bootstrap");
+  @Override
+  public Type getType() {
+    return Type.CLOUDDRIVER_BOOTSTRAP;
+  }
+
+  @Override
+  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
+
+    String filename = "clouddriver-bootstrap.yml";
+    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    Profile profile = clouddriverProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+
+    profiles.add(profile);
+    return profiles;
   }
 }

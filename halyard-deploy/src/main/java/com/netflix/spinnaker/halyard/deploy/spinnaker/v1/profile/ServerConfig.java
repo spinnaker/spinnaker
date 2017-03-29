@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
@@ -27,7 +28,7 @@ public class ServerConfig {
   String port;
   String address;
 
-  ServerConfig(SpinnakerService service) {
+  ServerConfig(ServiceSettings service) {
     port = Integer.toString(service.getPort());
     address = service.getHost();
   }

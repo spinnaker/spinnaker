@@ -32,7 +32,7 @@ public class SecurityValidator extends Validator<Security> {
 
     boolean localhostAccess = n.getApiDomain().equals("localhost") || n.getUiDomain().equals("localhost");
     switch (deploymentConfiguration.getDeploymentEnvironment().getType()) {
-      case Flotilla:
+      case Distributed:
         if (localhostAccess) {
           p.addProblem(Problem.Severity.WARNING, "Your UI or API domain is set to \"localhost\", "
               + "even though your Spinnaker deployment is a Flotilla deployment on a remote cloud provider. "
@@ -42,7 +42,7 @@ public class SecurityValidator extends Validator<Security> {
                   + "that your publicly facing services will be using."); // TODO(lwander) point to a guide here
         }
         break;
-      case LocalhostDebian:
+      case LocalDebian:
         break;
     }
   }

@@ -18,24 +18,30 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Front50ProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
+import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class Front50Service extends SpinnakerService<Front50Service.Front50> {
-  int port = 8080;
-  // Address is how the service is looked up.
-  String address = "localhost";
-  // Host is what's bound to by the service.
-  String host = "0.0.0.0";
-  String protocol = "http";
-  String httpHealth = "/health";
-  String name = "front50";
+@Component
+abstract public class Front50Service extends SpringService<Front50Service.Front50> {
+  final boolean safeToUpdate = true;
+  final boolean monitored = true;
+
+  @Autowired
+  Front50ProfileFactory front50ProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -43,8 +49,25 @@ public class Front50Service extends SpinnakerService<Front50Service.Front50> {
   }
 
   @Override
+  public Type getType() {
+    return Type.FRONT50;
+  }
+
+  @Override
   public Class<Front50> getEndpointClass() {
     return Front50.class;
+  }
+
+  @Override
+  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
+    String filename = "front50.yml";
+
+    String path = Paths.get(OUTPUT_PATH, filename).toString();
+    Profile profile = front50ProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+
+    profiles.add(profile);
+    return profiles;
   }
 
   public interface Front50 {
@@ -53,5 +76,20 @@ public class Front50Service extends SpinnakerService<Front50Service.Front50> {
 
     @GET("/health")
     SpringHealth health();
+  }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class Settings extends SpringServiceSettings {
+    int port = 8080;
+    // Address is how the service is looked up.
+    String address = "localhost";
+    // Host is what's bound to by the service.
+    String host = "0.0.0.0";
+    String scheme = "http";
+    String healthEndpoint = "/health";
+    boolean enabled = true;
+
+    public Settings() {}
   }
 }

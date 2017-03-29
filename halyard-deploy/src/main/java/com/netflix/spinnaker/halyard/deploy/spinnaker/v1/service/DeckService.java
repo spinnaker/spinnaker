@@ -18,23 +18,42 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ApachePortsProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ApacheSpinnakerProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.DeckProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class DeckService extends SpinnakerPublicService<DeckService.Deck> {
-  int port = 9000;
-  // Address is how the service is looked up.
-  String address = "localhost";
-  String publicAddress;
-  // Host is what's bound to by the service.
-  String host = "0.0.0.0";
-  String protocol = "http";
-  String httpHealth = null;
-  String name = "deck";
+@Component
+abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
+  final boolean safeToUpdate = true;
+  final boolean monitored = true;
+
+  @Autowired
+  DeckProfileFactory deckProfileFactory;
+
+  @Autowired
+  ApachePortsProfileFactory apachePortsProfileFactory;
+
+  @Autowired
+  ApacheSpinnakerProfileFactory apacheSpinnakerProfileFactory;
+
+  @Override
+  public Class<Deck> getEndpointClass() {
+    return Deck.class;
+  }
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -42,18 +61,45 @@ public class DeckService extends SpinnakerPublicService<DeckService.Deck> {
   }
 
   @Override
-  public Class<Deck> getEndpointClass() {
-    return Deck.class;
+  public Type getType() {
+    return Type.DECK;
   }
 
-  public DeckService() {
+  @Override
+  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    List<Profile> result = new ArrayList<>();
+    String htmlPath = "/opt/deck/html/";
+    String portsPath = "/etc/apache2/";
+    String sitePath = "/etc/apache2/sites-available/";
+    String filename = "settings.js";
+    String path = Paths.get(htmlPath, filename).toString();
+    result.add(deckProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
+    filename = "ports.conf";
+    path = Paths.get(portsPath, filename).toString();
+    result.add(apachePortsProfileFactory.getProfile("apache2/" + filename, path, deploymentConfiguration, endpoints));
+    filename = "spinnaker.conf";
+    path = Paths.get(sitePath, filename).toString();
+    result.add(apacheSpinnakerProfileFactory.getProfile("apache2/" + filename, path, deploymentConfiguration, endpoints));
+
+    return result;
+  }
+
+  protected DeckService() {
     super();
   }
 
-  public DeckService(Security security, String domain) {
-    super(security, domain);
-    publicAddress = security.getUiAddress();
-  }
-
   public interface Deck { }
+
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class Settings extends ServiceSettings {
+    int port = 9000;
+    String address = "localhost";
+    String host = "0.0.0.0";
+    String scheme = "http";
+    String healthEndpoint = null;
+    boolean enabled = true;
+
+    public Settings() {}
+  }
 }

@@ -7,7 +7,7 @@ stop on shutdown
 
 pre-start script
 
-  for i in {%spinnaker-artifacts%}
+  for i in {%services%}
   do
     if [ ! -d "/var/log/spinnaker/\$i" ]; then
       echo "/var/log/spinnaker/\$i does not exist. Creating it..."

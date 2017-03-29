@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.config.v1;
 
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
@@ -26,5 +27,14 @@ public class DeployConfig {
   @Bean
   JobExecutor jobExecutor() {
     return new JobExecutorLocal();
+  }
+
+  @Bean
+  String dockerRegistry(@Value("${spinnaker.artifacts.dockerRegistry:gcr.io/spinnaker-marketplace}") String dockerRegistry) {
+    return dockerRegistry;
+  }
+  @Bean
+  String debianRepository(@Value("${spinnaker.artifacts.debianRepository:https://dl.bintray.com/spinnaker-team/spinnakerbuild}") String debianRepository) {
+    return debianRepository;
   }
 }

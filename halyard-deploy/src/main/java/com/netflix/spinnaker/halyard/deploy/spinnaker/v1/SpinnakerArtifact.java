@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerProfile;
 import lombok.Getter;
 
 import java.io.File;
@@ -29,44 +28,29 @@ import java.util.stream.Collectors;
 /**
  * An artifact is something deployed as a part of Spinnaker. It can be run with a number
  * of Profiles, but ultimately refers to a compiled/distributable binary of some format.
- *
- * @see SpinnakerProfile
  */
 public enum SpinnakerArtifact {
-  CLOUDDRIVER("clouddriver", new String[]{"spinnaker\\.yml",  "clouddriver.*\\.yml"}, true),
-  DECK("deck", new String[]{"settings\\.js", "apache2/*"}, true),
-  ECHO("echo", new String[]{"spinnaker\\.yml", "echo.*\\.yml"}, true),
-  FIAT("fiat", new String[]{"spinnaker\\.yml", "fiat.*\\.yml"}, true),
-  FRONT50("front50", new String[]{"spinnaker\\.yml", "front50.*\\.yml"}, true),
-  GATE("gate", new String[]{"spinnaker\\.yml", "gate.*\\.yml"}, true),
-  IGOR("igor", new String[]{"spinnaker\\.yml", "igor.*\\.yml"}, true),
-  ORCA("orca", new String[]{"spinnaker\\.yml", "orca.*\\.yml"}, true),
-  ROSCO("rosco", new String[]{"spinnaker\\.yml", "rosco.*\\.yml"}, true),
-  SPINNAKER_MONITORING_DAEMON("monitoring-daemon", new String[]{}, true),
-  SPINNAKER_MONITORING_THIRD_PARTY("monitoring-third-party", new String[]{}, false),
+  CLOUDDRIVER("clouddriver", true),
+  DECK("deck", true),
+  ECHO("echo", true),
+  FIAT("fiat", true),
+  FRONT50("front50", true),
+  GATE("gate", true),
+  IGOR("igor", true),
+  ORCA("orca", true),
+  ROSCO("rosco", true),
+  SPINNAKER("spinnaker", true),
+  SPINNAKER_MONITORING_DAEMON("monitoring-daemon", true),
+  SPINNAKER_MONITORING_THIRD_PARTY("monitoring-third-party", true),
   // Non-spinnaker
-  REDIS("redis", new String[]{}, false);
+  REDIS("redis", false);
 
   @Getter final String name;
-  @Getter final List<Pattern> profilePatterns;
   @Getter final boolean spinnakerInternal;
 
-  SpinnakerArtifact(String name, String[] profilePatterns, boolean spinnakerInternal) {
+  SpinnakerArtifact(String name, boolean spinnakerInternal) {
     this.name = name;
-    this.profilePatterns = Arrays.stream(profilePatterns)
-        .map(Pattern::compile)
-        .collect(Collectors.toList());
     this.spinnakerInternal = spinnakerInternal;
-  }
-
-  public Set<String> profilePaths(File[] allProfiles) {
-    return Arrays.stream(allProfiles)
-        .filter(f -> profilePatterns
-            .stream()
-            .filter(p -> p.matcher(f.getName()).find()).count() > 0)
-        .filter(File::isFile)
-        .map(File::getAbsolutePath)
-        .collect(Collectors.toSet());
   }
 
   public static SpinnakerArtifact fromString(String name) {

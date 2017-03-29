@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.core.error.v1;
 
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.Getter;
 
@@ -36,6 +37,16 @@ public class HalException extends RuntimeException {
   @Getter
   private int responseCode = HttpServletResponse.SC_CONFLICT;
 
+  @Override
+  public String getMessage() {
+    List<Problem> suppliedProblems = problems.getProblems();
+    if (suppliedProblems.size() > 0) {
+      return suppliedProblems.get(0).getMessage();
+    } else {
+      return "No problem set supplied.";
+    }
+  }
+
   public HalException() {
     super();
   }
@@ -48,5 +59,9 @@ public class HalException extends RuntimeException {
   public HalException(List<Problem> problems) {
     super();
     this.problems = new ProblemSet(problems);
+  }
+
+  public HalException(Problem.Severity severity, String message) {
+    this(new ProblemBuilder(severity, message).build());
   }
 }

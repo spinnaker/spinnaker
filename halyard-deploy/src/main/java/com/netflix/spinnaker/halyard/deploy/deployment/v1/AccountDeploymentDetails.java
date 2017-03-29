@@ -24,12 +24,4 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class AccountDeploymentDetails<T extends Account> extends DeploymentDetails {
   T account;
-
-  public AccountDeploymentDetails(DeploymentDetails details) {
-    super();
-    setDeploymentConfiguration(details.getDeploymentConfiguration());
-    setDeploymentName(details.getDeploymentName());
-    setGenerateResult(details.getGenerateResult());
-    setBillOfMaterials(details.getBillOfMaterials());
-  }
 }

@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerPublicService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -28,20 +26,22 @@ import java.util.Map;
 @Data
 public class RunningServiceDetails {
   int healthy;
+  LoadBalancer loadBalancer;
   String version;
   String artifactId;
   String internalEndpoint;
   String externalEndpoint;
-  // Map of location/region/zone/namespace -> instances
-  Map<String, List<String>> instances = new HashMap<>();
+  // Map of server group version (vXXX) -> instance set
+  Map<String, List<Instance>> instances = new HashMap<>();
 
-  public RunningServiceDetails setService(SpinnakerService service) {
-    internalEndpoint = service.getBaseUrl();
-    return this;
+  @Data
+  public static class Instance {
+    String id;
+    String location;
   }
 
-  public RunningServiceDetails setPublicService(SpinnakerPublicService service) {
-    this.externalEndpoint = service.getPublicEndpoint();
-    return setService(service);
+  @Data
+  public static class LoadBalancer {
+    boolean exists;
   }
 }

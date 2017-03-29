@@ -18,18 +18,15 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.GenerateResult;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerEndpoints;
 import lombok.Data;
 
 @Data
 public class DeploymentDetails {
   String deploymentName;
   DeploymentConfiguration deploymentConfiguration;
-  GenerateResult generateResult;
   BillOfMaterials billOfMaterials;
 
-  public SpinnakerEndpoints getEndpoints() {
-    return generateResult.getEndpoints();
+  public String getArtifactVersion(String artifactName) {
+    return billOfMaterials.getArtifactVersion(artifactName);
   }
 }

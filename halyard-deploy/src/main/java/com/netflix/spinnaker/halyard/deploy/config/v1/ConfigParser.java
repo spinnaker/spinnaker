@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.config.v1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.config.config.v1.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.core.AtomicFileWriter;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;

@@ -5,16 +5,20 @@
 set -e
 set -o pipefail
 
+# install redis as a local service
 INSTALL_REDIS="{%install-redis%}"
-INSTALL_JAVA="{%install-java%}"
-INSTALL_SPINNAKER="{%install-spinnaker%}"
-SPINNAKER_ARTIFACTS=({%spinnaker-artifacts%})
-CONFIG_DIR="{%config-dir%}"
 
+# install dependencies required on images running a distributed spinnaker
+INSTALL_REMOTE_DEPENDENCIES="{%install-remote-dependencies%}"
+
+# install first-time spinnaker dependencies (java, setup apt repos)
+PREPARE_ENVIRONMENT="{%prepare-environment%}"
+
+# TODO(lwander/jtk54) move these versions to the BOM
 CONSUL_VERSION=0.7.5
 VAULT_VERSION=0.7.0
 
-REPOSITORY_URL="{%debian-repo%}"
+REPOSITORY_URL="{%debian-repository%}"
 
 ## check that the user is root
 if [[ `/usr/bin/id -u` -ne 0 ]]; then
@@ -107,17 +111,7 @@ function install_redis_server() {
   fi
 }
 
-function configure_apache2() {
-  service apache2 stop
-  mkdir -p /etc/apache2/sites-available
-  cp ${CONFIG_DIR}/apache2/spinnaker.conf /etc/apache2/sites-available
-  cp ${CONFIG_DIR}/apache2/ports.conf /etc/apache2
-  cp ${CONFIG_DIR}/settings.js /opt/deck/html/settings.js
-
-  a2ensite spinnaker
-}
-
-function install_dependencies() {
+function install_remote_dependencies() {
   apt-get install unzip
   TEMPDIR=$(mktemp -d installspinnaker.XXXX)
 
@@ -142,9 +136,10 @@ if [ -n "$INSTALL_REDIS" ]; then
   add_redis_apt_repository
 fi
 
-if [ -n "$INSTALL_SPINNAKER" ]; then
+if [ -n "$PREPARE_ENVIRONMENT" ]; then
   add_java_apt_repository
   add_spinnaker_apt_repository
+  {%upstart-init%}
 fi
 
 apt-get update ||:
@@ -155,34 +150,15 @@ if [ -n "$INSTALL_REDIS" ]; then
   install_redis_server
 fi
 
-if [ -n "$INSTALL_JAVA" ]; then
+if [ -n "$PREPARE_ENVIRONMENT" ]; then
   install_java
 fi
 
-if [ -n "$INSTALL_SPINNAKER" ]; then
-  install_java
-  install_dependencies
-
-  rm -f /etc/apt/preferences.d/pin-spin-*
-  {%pin-files%}
-
-  {%etc-init%}
-
-  for package in ${SPINNAKER_ARTIFACTS[@]}; do
-    apt-get install -y --force-yes --allow-unauthenticated spinnaker-${package}
-  done
+if [ -n "$INSTALL_REMOTE_DEPENDENCIES" ]; then
+  install_remote_dependencies
 fi
 
-
-if [ -n "$CONFIG_DIR" ]; then
-  if contains "deck" "${SPINNAKER_ARTIFACTS[@]}"; then
-    configure_apache2
-  fi
-
-  mkdir -p /opt/spinnaker/config/
-  chown spinnaker /opt/spinnaker/config/
-  cp ${CONFIG_DIR}/*.yml /opt/spinnaker/config/
-fi
+{%install-commands%}
 
 # so this script can be used for updates
 set +e
