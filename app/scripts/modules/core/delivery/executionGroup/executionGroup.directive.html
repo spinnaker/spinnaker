@@ -13,7 +13,9 @@
             ng-class="{'glyphicon-chevron-right': !vm.viewState.open, 'glyphicon-chevron-down': vm.viewState.open}">
       </span>
       <div class="shadowed">
-        <account-label-color ng-repeat="account in vm.deploymentAccounts" account="{{account}}"></account-label-color>
+        <account-label-color ng-if="vm.viewState.showAccounts"
+                             ng-repeat="account in vm.deploymentAccounts"
+                             account="{{account}}"></account-label-color>
         <h4 class="execution-group-title">
           {{ vm.group.heading }}
           <span ng-if="vm.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ vm.pipelineConfig.description }}"></span>

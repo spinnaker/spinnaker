@@ -37,6 +37,8 @@ module.exports = angular
 
     this.pipelinesUrl = [SETTINGS.gateUrl, 'pipelines/'].join('/');
 
+    this.filter = ExecutionFilterModel.sortFilter;
+
     this.showDetails = () => {
       return this.standalone === true || ( this.execution.id === $stateParams.executionId &&
         $state.includes('**.execution.**') );
@@ -91,7 +93,6 @@ module.exports = angular
       executionId: this.execution.id,
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig,
-      showPipelineName: ExecutionFilterModel.sortFilter.groupBy !== 'name',
       showStageDuration: ExecutionFilterModel.sortFilter.showStageDuration,
     };
 
