@@ -1,74 +1,73 @@
-<div class="panel panel-default">
-  <div class="panel-body form-inline">
-    <div class="row">
-      <div class="col-md-12">
-        <p>Traffic Guards allow you to specify critical clusters that should always have active instances. If a user
-          or process tries to delete, disable, or resize the server group, Spinnaker will verify the operation will not
-          leave the cluster with no active instances, and fail the operation if it would.</p>
-      </div>
-    </div>
-    <div class="row" ng-if="$ctrl.initializing">
-      <h4 class="text-center"><span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span></h4>
-    </div>
-    <div class="row" ng-if="!$ctrl.initializing">
-      <div class="col-md-10 col-md-offset-1">
-        <table class="table table-condensed">
-          <thead>
-            <tr>
-              <th>Account</th>
-              <th>Region <help-field key="trafficGuard.region"></help-field></th>
-              <th>Stack <help-field key="trafficGuard.stack"></help-field></th>
-              <th>Detail <help-field key="trafficGuard.detail"></help-field></th>
-              <th>Matched clusters</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-          <tr ng-repeat="guard in $ctrl.config">
-            <td>
-              <account-select-field
-                component="guard"
-                field="account"
-                provider="'aws'"
-                accounts="$ctrl.accounts"
-                on-change="$ctrl.configChanged()"></account-select-field>
-            </td>
-            <td>
-              <span ng-if="!guard.account">(select account)</span>
-              <select class="form-control input-sm"
-                      ng-model="guard.location"
-                      ng-change="$ctrl.configChanged()"
-                      required
-                      ng-if="guard.account">
-                <option ng-repeat="region in $ctrl.regionsByAccount[guard.account]" value="{{region}}">{{region}}</option>
-              </select>
-            </td>
-            <td>
-              <input type="text" class="form-control input-sm"
-                     ng-model="guard.stack"
-                     ng-change="$ctrl.configChanged()"/>
-            </td>
-            <td>
-              <input type="text" class="form-control input-sm"
-                     ng-model="guard.detail"
-                     ng-change="$ctrl.configChanged()"/>
-            </td>
-            <td>
-              <cluster-matches matches="$ctrl.clusterMatches" index="$index"></cluster-matches>
-            </td>
-            <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
-          </tr>
-          </tbody>
-        </table>
-        <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addGuard()">
-          <span class="glyphicon glyphicon-plus-sign"></span> Add Traffic Guard
-        </button>
-      </div>
-    </div>
-    <div class="row">
-      <config-section-footer application="$ctrl.application"
-                             config="$ctrl.config"
-                             view-state="$ctrl.viewState"
-                             config-field="trafficGuards"></config-section-footer>
+<div>
+  <div class="row">
+    <div class="col-md-12">
+      <p>Traffic Guards allow you to specify critical clusters that should always have active instances. If a user
+        or process tries to delete, disable, or resize the server group, Spinnaker will verify the operation will not
+        leave the cluster with no active instances, and fail the operation if it would.</p>
     </div>
   </div>
+  <div class="row" ng-if="$ctrl.initializing">
+    <h4 class="text-center"><span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span></h4>
+  </div>
+  <div class="row" ng-if="!$ctrl.initializing">
+    <div class="col-md-10 col-md-offset-1">
+      <table class="table table-condensed">
+        <thead>
+          <tr>
+            <th>Account</th>
+            <th>Region <help-field key="trafficGuard.region"></help-field></th>
+            <th>Stack <help-field key="trafficGuard.stack"></help-field></th>
+            <th>Detail <help-field key="trafficGuard.detail"></help-field></th>
+            <th>Matched clusters</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="guard in $ctrl.config">
+          <td>
+            <account-select-field
+              component="guard"
+              field="account"
+              provider="'aws'"
+              accounts="$ctrl.accounts"
+              on-change="$ctrl.configChanged()"></account-select-field>
+          </td>
+          <td>
+            <span ng-if="!guard.account">(select account)</span>
+            <select class="form-control input-sm"
+                    ng-model="guard.location"
+                    ng-change="$ctrl.configChanged()"
+                    required
+                    ng-if="guard.account">
+              <option ng-repeat="region in $ctrl.regionsByAccount[guard.account]" value="{{region}}">{{region}}</option>
+            </select>
+          </td>
+          <td>
+            <input type="text" class="form-control input-sm"
+                   ng-model="guard.stack"
+                   ng-change="$ctrl.configChanged()"/>
+          </td>
+          <td>
+            <input type="text" class="form-control input-sm"
+                   ng-model="guard.detail"
+                   ng-change="$ctrl.configChanged()"/>
+          </td>
+          <td>
+            <cluster-matches matches="$ctrl.clusterMatches" index="$index"></cluster-matches>
+          </td>
+          <td><a href ng-click="$ctrl.removeGuard($index)"><span class="glyphicon glyphicon-trash" uib-tooltip="Remove guard"></span></a></td>
+        </tr>
+        </tbody>
+      </table>
+      <button class="btn btn-block btn-add-trigger add-new" ng-click="$ctrl.addGuard()">
+        <span class="glyphicon glyphicon-plus-sign"></span> Add Traffic Guard
+      </button>
+    </div>
+  </div>
+  <div class="row">
+    <config-section-footer application="$ctrl.application"
+                           config="$ctrl.config"
+                           view-state="$ctrl.viewState"
+                           config-field="trafficGuards"></config-section-footer>
+  </div>
+</div>

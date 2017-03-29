@@ -7,7 +7,6 @@ import './modalWizard.less';
 export class V2ModalWizard implements ng.IComponentController {
 
   public wizard: any;
-  public notReallyModal: boolean;
   public heading: string;
   public taskMonitor: any;
   public dismiss: () => any;
@@ -37,7 +36,6 @@ export class V2ModalWizard implements ng.IComponentController {
 class V2ModalWizardComponent implements ng.IComponentOptions {
   public bindings: any = {
     heading: '@',
-    notReallyModal: '<',
     taskMonitor: '<',
     dismiss: '&',
   };

@@ -5,9 +5,14 @@
   margin-bottom: 0;
   display: flex;
   flex: 0 0 auto;
+  align-items: stretch;
+  flex-wrap: wrap;
   padding: 15px 15px 0;
   z-index: 5;
   border: 0;
+  @media (max-width: 1400px) {
+    padding: 0 10px;
+  }
   .header-right {
     flex: 1 1 auto;
     text-align: right;
@@ -18,7 +23,7 @@
   .page-button {
     display: inline-block;
     margin-top: 15px;
-    @media (min-width: 708px) and (max-width: 1200px) {
+    @media (min-width: 708px) and (max-width: 1400px) {
       margin-top: 16px;
     }
     .btn-danger {
@@ -28,11 +33,16 @@
       font-size: 14px;
     }
   }
+  .application-navigation {
+    display: flex;
+    flex: 1 0 auto;
+  }
   h2 {
     min-width: 200px;
     margin-right: 50px;
     font-weight: 700;
     display: flex;
+    flex: 0 0 auto;
     .fa {
       .encircled;
       margin-right: 5px;
@@ -42,7 +52,7 @@
       font-size: 16px;
       margin-left: 0;
     }
-    @media (min-width: 708px) and (max-width: 1200px) {
+    @media (min-width: 708px) and (max-width: 1400px) {
       float: left;
       font-size: 160%;
       min-width: 120px;

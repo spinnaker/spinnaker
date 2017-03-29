@@ -1,31 +1,31 @@
 <div class="container" sticky-headers>
-  <v2-modal-wizard not-really-modal="true">
-    <v2-wizard-page key="location" label="Application Attributes" done="true">
+  <page-navigator scrollable-container="[sticky-headers]">
+    <page-section key="location" label="Application Attributes">
       <application-attributes application="config.application"></application-attributes>
-    </v2-wizard-page>
-    <v2-wizard-page key="notifications" label="Notifications" done="true">
+    </page-section>
+    <page-section key="notifications" label="Notifications">
       <application-notifications application="config.application" notifications="config.notifications"></application-notifications>
-    </v2-wizard-page>
-    <v2-wizard-page key="features" label="Features" done="true">
+    </page-section>
+    <page-section key="features" label="Features">
       <application-data-source-editor application="config.application"></application-data-source-editor>
-    </v2-wizard-page>
-    <v2-wizard-page key="links" label="Links" done="true">
+    </page-section>
+    <page-section key="links" label="Links">
       <application-links application="config.application"></application-links>
-    </v2-wizard-page>
-    <v2-wizard-page key="cache" label="Cache Management" done="true">
+    </page-section>
+    <page-section key="cache" label="Cache Management">
       <application-cache-management application="config.application"></application-cache-management>
-    </v2-wizard-page>
-    <v2-wizard-page key="titus" label="Titus Container Migration" done="true" render="config.application.attributes.cloudProviders.includes('titus')">
+    </page-section>
+    <page-section key="titus" label="Titus Container Migration" render="config.application.attributes.cloudProviders.includes('titus')">
       <titus-migration-config application="config.application"></titus-migration-config>
-    </v2-wizard-page>
-    <v2-wizard-page key="chaos" label="Chaos Monkey" done="true">
+    </page-section>
+    <page-section key="chaos" label="Chaos Monkey">
       <chaos-monkey-config application="config.application"></chaos-monkey-config>
-    </v2-wizard-page>
-    <v2-wizard-page key="traffic-guards" label="Traffic Guards" done="true">
+    </page-section>
+    <page-section key="traffic-guards" label="Traffic Guards">
       <traffic-guard-config application="config.application"></traffic-guard-config>
-    </v2-wizard-page>
-    <v2-wizard-page key="delete" label="Delete Application" done="true">
+    </page-section>
+    <page-section key="delete" label="Delete Application">
       <delete-application-section application="config.application"></delete-application-section>
-    </v2-wizard-page>
-  </v2-modal-wizard>
+    </page-section>
+  </page-navigator>
 </div>

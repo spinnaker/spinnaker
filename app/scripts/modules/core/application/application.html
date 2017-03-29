@@ -12,15 +12,17 @@
                              template-url="refreshTooltipTemplate"
                              refresh="application.refresh(true)"></component-refresher>
       </h2>
-      <application-nav application="application"></application-nav>
-      <div class="header-right">
-        <secondary-application-nav application="application"></secondary-application-nav>
-        <div class="page-button" ng-if="application.attributes.pdApiKey">
-          <button class="btn btn-xs btn-danger btn-page-owner"
-                  ng-click="ctrl.pageApplicationOwner()"
-                  uib-tooltip="Page application owner">
-            <i class="fa fa-phone"></i>
-          </button>
+      <div class="application-navigation">
+        <application-nav application="application"></application-nav>
+        <div class="header-right">
+          <secondary-application-nav application="application"></secondary-application-nav>
+          <div class="page-button" ng-if="application.attributes.pdApiKey">
+            <button class="btn btn-xs btn-danger btn-page-owner"
+                    ng-click="ctrl.pageApplicationOwner()"
+                    uib-tooltip="Page application owner">
+              <i class="fa fa-phone"></i>
+            </button>
+          </div>
         </div>
       </div>
     </div>
