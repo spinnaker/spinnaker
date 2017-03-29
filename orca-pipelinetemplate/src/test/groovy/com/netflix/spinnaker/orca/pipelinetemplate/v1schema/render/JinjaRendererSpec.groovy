@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
+import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -25,8 +26,10 @@ class JinjaRendererSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
 
+  RenderedValueConverter renderedValueConverter = new YamlRenderedValueConverter(new Yaml())
+
   @Subject
-  Renderer subject = new JinjaRenderer(objectMapper)
+  Renderer subject = new JinjaRenderer(renderedValueConverter, objectMapper)
 
   @Unroll
   def 'should render and return correct java type'() {
@@ -66,5 +69,12 @@ class JinjaRendererSpec extends Specification {
 {% endfor %}
 ]
 '''                   || List         | ['key1:value1', 'key2:value2']
+    '''
+{% for region in regions %}
+- {{ region }}
+{% endfor %}
+'''                   || List         | ['us-east-1', 'us-west-2']
   }
+
+
 }

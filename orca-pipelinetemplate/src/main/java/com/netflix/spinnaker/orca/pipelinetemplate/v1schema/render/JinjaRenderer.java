@@ -67,7 +67,7 @@ public class JinjaRenderer implements Renderer {
       );
     }
 
-    rendered = rendered.trim().replaceAll("\n", "");
+    rendered = rendered.trim();
 
     if (!template.equals(rendered)) {
       log.debug("rendered '" + template + "' -> '" + rendered + "'");

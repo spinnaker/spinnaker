@@ -20,11 +20,16 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateModule;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.*;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.HandlebarsRenderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderedValueConverter;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.yaml.snakeyaml.Yaml;
 
 @ConditionalOnProperty("pipelineTemplate.enabled")
 @ComponentScan(basePackageClasses = PipelineTemplateModule.class)
@@ -38,8 +43,8 @@ public class PipelineTemplateConfiguration {
   }
 
   @Bean
-  RenderedValueConverter jsonRenderedValueConverter(ObjectMapper pipelineTemplateObjectMapper) {
-    return new JsonRenderedValueConverter(pipelineTemplateObjectMapper);
+  RenderedValueConverter yamlRenderedValueConverter() {
+    return new YamlRenderedValueConverter(new Yaml());
   }
 
   @Bean
