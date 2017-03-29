@@ -222,7 +222,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     # Spinnaker determines the group name created,
     # which will be the following:
     group_name = frigga.Naming.server_group(
-        app=self.TEST_APP, 
+        app=self.TEST_APP,
         stack=bindings['TEST_STACK'],
         version='v000')
 
@@ -245,7 +245,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
                 'limits': {'memory':None, 'cpu':None},
                 'ports':[{'name':'http', 'containerPort':80,
                           'protocol':'TCP', 'hostPort':None, 'hostIp':None}]
-            }, 
+            },
             {
                 'name': 'broken',
                 'imageDescription': {
@@ -286,8 +286,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       'refId': 'FINDIMAGE',
       'type': 'findImage',
       'name': 'Find Valid Image',
-      'cloudProviderType': 'kubernetes', 
-      'namespaces': ['default'], 
+      'cloudProviderType': 'kubernetes',
+      'namespaces': ['default'],
       'cloudProvider': 'kubernetes',
       'selectionStrategy': 'NEWEST',
       'onlyEnabled': True,
@@ -295,7 +295,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       'cluster': frigga.Naming.cluster(
           app=self.TEST_APP, stack=self.bindings['TEST_STACK']),
       'imageNamePattern': self.__desired_image_pattern
-    } 
+    }
 
     result.update(kwargs)
     return result
@@ -303,7 +303,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
   def make_deploy_stage(self, imageSource=None, requisiteStages=[], **kwargs):
     bindings = self.bindings
     cluster = frigga.Naming.cluster(
-        app=self.TEST_APP, 
+        app=self.TEST_APP,
         stack=self.bindings['TEST_STACK'])
     result = {
       'requisiteStageRefIds': requisiteStages,
@@ -312,7 +312,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       'name': 'Deploy Validated Image',
       'clusters': [
         {
-          'account': 'my-kubernetes-account',
+          'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
           'application': self.TEST_APP,
           'stack': bindings['TEST_STACK'],
           'loadBalancers': [self.__lb_name],
@@ -326,7 +326,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
               'imageDescription': {
                 'repository': 'Find Image',
                 'imageId':'{0} {1}'.format(
-                    cluster, 
+                    cluster,
                     self.__desired_image_pattern),
                 'fromContext': True,
                 'cluster': cluster,
@@ -359,7 +359,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     self.pipeline_id = name
     smoke_stage = self.make_smoke_stage()
     deploy_stage = self.make_deploy_stage(
-        imageSource='FINDIMAGE', 
+        imageSource='FINDIMAGE',
         requisiteStages=['FINDIMAGE'])
 
     pipeline_spec = dict(
@@ -432,7 +432,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     path = 'pipelines/{0}/{1}'.format(self.TEST_APP, self.pipeline_id)
     bindings = self.bindings
     group_name = frigga.Naming.server_group(
-        app=self.TEST_APP, 
+        app=self.TEST_APP,
         stack=bindings['TEST_STACK'],
         version='v001')
 
@@ -445,7 +445,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=15)
      .get_resources('rs', extra_args=[group_name])
      .contains_path_eq(
-         'spec/template/spec/containers/image', 
+         'spec/template/spec/containers/image',
          self.__desired_image_id))
 
     return st.OperationContract(
