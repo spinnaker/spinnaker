@@ -6,6 +6,7 @@
     "baseUrl": "app/scripts/modules",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "jsx": "react",
     "lib": [
       "es2016",
       "dom"

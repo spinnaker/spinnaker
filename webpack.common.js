@@ -23,7 +23,7 @@ function configure(IS_TEST) {
         moduleExtensions: ['-loader']
       },
     resolve: {
-      extensions: ['.json', '.js', '.ts', '.css', '.less', '.html'],
+      extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],
       modules: [
         NODE_MODULE_PATH,
         path.join(__dirname, 'app', 'scripts', 'modules'),
@@ -31,10 +31,10 @@ function configure(IS_TEST) {
     },
     module: {
       rules: [
-        {enforce: 'pre', test: /\.(spec\.)?ts$/, use: 'tslint-loader'},
+        {enforce: 'pre', test: /\.(spec\.)?tsx?$/, use: 'tslint-loader'},
         {enforce: 'pre', test: /\.(spec\.)?js$/, loader: 'eslint-loader'},
         {test: /\.json$/, loader: 'json-loader'},
-        {test: /\.ts$/, use: 'awesome-typescript-loader', exclude: /node_modules/},
+        {test: /\.tsx?$/, use: 'awesome-typescript-loader', exclude: /node_modules/},
         {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
         {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
         {

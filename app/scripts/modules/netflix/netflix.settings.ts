@@ -8,6 +8,12 @@ interface INetflixFeatures extends IFeatures {
   vpcMigrator?: boolean;
 }
 
+export interface ISlackConfig {
+  team: string;
+  teamName: string;
+  helpChannel: string;
+  helpChannelName: string;
+}
 export interface INetflixSettings extends ISpinnakerSettings {
   chap?: {
     canaryReportBaseUrl: string;
@@ -15,12 +21,7 @@ export interface INetflixSettings extends ISpinnakerSettings {
     fitBaseUrl: string;
   };
   feedback?: {
-    slack?: {
-      team: string;
-      teamName: string;
-      helpChannel: string;
-      helpChannelName: string;
-    }
+    slack?: ISlackConfig;
   };
   feedbackUrl?: string;
   tableau?: {

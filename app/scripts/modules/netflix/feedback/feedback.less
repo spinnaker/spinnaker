@@ -1,3 +1,46 @@
 .feedback-nav .dropdown-menu {
   z-index: 10000;
 }
+/* Extract all the bootstrap navbar styles and add 'feedback' in the middle so it works with the feedback component */
+.navbar-nav {
+  & > feedback {
+    & > li {
+      float: left;
+      position: relative;
+      display: block;
+
+      & > .dropdown-menu {
+        margin-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        right: 0;
+        left: auto;
+      }
+
+      & > a {
+        line-height: 20px;
+        position: relative;
+        display: block;
+        padding: 10px 15px;
+        color: #fff;
+        font-weight: 200;
+        margin: 0 10px;
+        border: 0;
+        cursor: pointer;
+
+        &:focus, &:hover {
+          border-top-color: #eeeeee;
+          background-color: #82a1ba;
+          transition: border-top-color 0.2s, background-color 0.2s;
+          text-decoration: none;
+        }
+      }
+    }
+    & > .open {
+      & > a, & > a:hover, & > a:focus {
+        color: #fff;
+        background-color: #080808;
+      }
+    }
+  }
+}
