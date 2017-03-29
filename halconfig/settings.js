@@ -9,6 +9,7 @@ var chaosEnabled = {%features.chaos%};
 var fiatEnabled = {%features.fiat%};
 var jobsEnabled = {%features.jobs%};
 var timezone = '{%timezone%}';
+var version = '{%version%}';
 var gce = {
   defaults: {
     account: '{%google.default.account%}',
@@ -39,6 +40,7 @@ var entityTagsEnabled = false;
 var netflixMode = false;
 
 window.spinnakerSettings = {
+  version: version,
   checkForUpdates: false,
   defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack'],
   feedbackUrl: feedbackUrl,
