@@ -21,10 +21,10 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions
       $scope.state = 'submitting';
       var targetUrl = [SETTINGS.gateUrl, 'canaries', canaryId, 'generateCanaryResult'].join('/');
       $http.post(targetUrl, $scope.command)
-        .success(function() {
+        .then(function onSuccess() {
           $scope.state = 'success';
         })
-        .error(function() {
+        .catch(function onError() {
           $scope.state = 'error';
         });
     };

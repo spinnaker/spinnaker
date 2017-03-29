@@ -20,8 +20,8 @@ module.exports = angular
         }
 
         $http.get(url)
-          .success(function (data) {
-            $scope.gist = extractFileContent(data, $attrs.fileName);
+          .then(function (response) {
+            $scope.gist = extractFileContent(response.data, $attrs.fileName);
           });
 
       }

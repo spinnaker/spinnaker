@@ -10,6 +10,12 @@ describe('Validator: cronExpression', function () {
     )
   );
 
+  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
+  beforeEach(
+    window.module(($qProvider) => {
+      $qProvider.errorOnUnhandledRejections(false);
+  }));
+
   beforeEach(window.inject(function ($rootScope, _$compile_, _cronValidationService_, _$q_) {
     scope = $rootScope.$new();
     $compile = _$compile_;

@@ -1,4 +1,4 @@
-import {mock} from 'angular';
+import {IQProvider, mock} from 'angular';
 
 import {Application} from '../application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
@@ -26,6 +26,12 @@ describe('Delivery Data Source', function () {
       APPLICATION_DATA_SOURCE_REGISTRY,
       APPLICATION_MODEL_BUILDER
   ));
+
+  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
+  beforeEach(
+    mock.module(($qProvider: IQProvider) => {
+      $qProvider.errorOnUnhandledRejections(false);
+  }));
 
   beforeEach(
     mock.inject(function (_executionService_: any, _pipelineConfigService_: PipelineConfigService, _$q_: ng.IQService,
