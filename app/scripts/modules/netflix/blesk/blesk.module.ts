@@ -1,12 +1,12 @@
 import {ITimeoutService, element, module} from 'angular';
 import {NetflixSettings} from '../netflix.settings';
 
-require('./bleskOverrides.css');
+require('./blesk.less');
 
 class BleskService {
 
   private static BLESK_DIV =
-    '<div id="blesk" class="container" data-appid="spinnaker" style="flex: 0 0 auto; padding: 0;"></div>';
+    '<div class="blesk-wrapper"><div id="blesk" class="container" data-appid="spinnaker"></div></div>';
   private static BLESK_SCRIPT =
     '<script async src="https://blesk.prod.netflix.net/static/js/blesk.js"></script>';
 
