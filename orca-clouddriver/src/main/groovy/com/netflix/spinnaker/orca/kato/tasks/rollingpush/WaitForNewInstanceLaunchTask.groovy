@@ -18,12 +18,11 @@ package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -55,8 +54,8 @@ class WaitForNewInstanceLaunchTask implements RetryableTask {
     int expectedNewInstances = (stage.context.instanceIds as List).size()
     if (newLaunches.size() >= expectedNewInstances) {
       knownInstanceIds.addAll(currentIds)
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [instanceIds: newLaunches.toList(), knownInstanceIds: knownInstanceIds.toList()])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [instanceIds: newLaunches.toList(), knownInstanceIds: knownInstanceIds.toList()])
     }
-    return new DefaultTaskResult(ExecutionStatus.RUNNING)
+    return new TaskResult(ExecutionStatus.RUNNING)
   }
 }

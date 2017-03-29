@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -34,7 +33,7 @@ class UpsertLoadBalancerResultObjectExtrapolationTask implements Task {
     def lastKatoTask = katoTasks.find { it.id.toString() == lastTaskId.id }
 
     if (!lastKatoTask) {
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+      return new TaskResult(ExecutionStatus.TERMINAL)
     }
 
     def resultObjects = lastKatoTask.resultObjects as List<Map>
@@ -48,7 +47,7 @@ class UpsertLoadBalancerResultObjectExtrapolationTask implements Task {
       }
     }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
 }

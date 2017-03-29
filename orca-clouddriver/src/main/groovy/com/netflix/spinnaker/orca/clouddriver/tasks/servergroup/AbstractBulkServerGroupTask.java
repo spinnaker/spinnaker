@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -31,13 +32,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractBulkServerGroupTask.class);
@@ -125,7 +119,7 @@ public abstract class AbstractBulkServerGroupTask extends AbstractCloudProviderA
       .collect(Collectors.toList()));
 
     result.put("deploy.server.groups", regionToServerGroupNames);
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, result);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, result);
   }
 
   protected Location getLocation(Map operation) {

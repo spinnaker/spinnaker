@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -46,6 +45,6 @@ class DeleteSecurityGroupForceRefreshTask extends AbstractCloudProviderAwareTask
       def model = [securityGroupName: name, vpcId: vpcId, region: region, account: account, evict: true]
       cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
     }
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    new TaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

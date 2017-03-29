@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -56,24 +55,24 @@ abstract class AbstractWaitForAppEngineServerGroupStopStartTask extends Abstract
       def serverGroup = cluster.serverGroups.find { it.name == serverGroupName }
       if (!serverGroup) {
         log.info("${serverGroupName}: not found.")
-        return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+        return new TaskResult(ExecutionStatus.TERMINAL)
       }
 
       def desiredServingStatus = start ? "SERVING" : "STOPPED"
       if (serverGroup.servingStatus == desiredServingStatus) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        return new TaskResult(ExecutionStatus.SUCCEEDED)
       } else {
         log.info("${serverGroupName}: not yet ${start ? "started" : "stopped"}.")
-        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        return new TaskResult(ExecutionStatus.RUNNING)
       }
 
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
       if (e.response.status == 404) {
-        return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+        return new TaskResult(ExecutionStatus.TERMINAL)
       } else if (e.response.status >= 500) {
         log.error("Unexpected retrofit error (${retrofitErrorResponse})")
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
+        return new TaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
       }
 
       throw e

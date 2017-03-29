@@ -16,22 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.entitytags;
 
-import com.netflix.spinnaker.orca.DefaultTaskResult;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
-import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class UpsertEntityTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -50,7 +47,7 @@ public class UpsertEntityTagsTask extends AbstractCloudProviderAwareTask impleme
       }})
     ).toBlocking().first();
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {{
+    return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {{
       put("notification.type", "upsertentitytags");
       put("kato.last.task.id", taskId);
     }});

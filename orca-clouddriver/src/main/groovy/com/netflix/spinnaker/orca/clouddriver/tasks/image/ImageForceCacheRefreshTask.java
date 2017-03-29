@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
+import java.util.concurrent.TimeUnit;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -26,8 +26,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -51,7 +49,7 @@ public class ImageForceCacheRefreshTask extends AbstractCloudProviderAwareTask i
 //      )
 //    }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
+    return new TaskResult(ExecutionStatus.SUCCEEDED);
   }
 
   @Override

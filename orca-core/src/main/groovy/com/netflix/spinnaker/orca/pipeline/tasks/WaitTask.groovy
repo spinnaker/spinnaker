@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks
 
-import groovy.transform.CompileStatic
 import java.util.concurrent.TimeUnit
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
@@ -42,13 +41,13 @@ class WaitTask implements RetryableTask {
     def now = timeProvider.millis
 
     if (!stage.context.containsKey("waitTaskState") || !stage.context.waitTaskState instanceof Map) {
-      new DefaultTaskResult(RUNNING, [waitTaskState: [startTime: now]])
+      new TaskResult(RUNNING, [waitTaskState: [startTime: now]])
     } else if (now - ((Long) ((Map) stage.context.waitTaskState).startTime) > waitTimeMs) {
-      new DefaultTaskResult(SUCCEEDED)
+      new TaskResult(SUCCEEDED)
     } else if (stage.context.skipRemainingWait) {
-      new DefaultTaskResult(SUCCEEDED)
+      new TaskResult(SUCCEEDED)
     } else {
-      new DefaultTaskResult(RUNNING)
+      new TaskResult(RUNNING)
     }
   }
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.stereotype.Component
@@ -28,6 +27,6 @@ class NoopPreconditionTask implements PreconditionTask {
 
   @Override
   TaskResult execute(Stage stage) {
-    DefaultTaskResult.SUCCEEDED
+    TaskResult.SUCCEEDED
   }
 }

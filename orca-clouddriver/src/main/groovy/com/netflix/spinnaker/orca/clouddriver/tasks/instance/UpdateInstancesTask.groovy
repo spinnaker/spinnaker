@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -41,7 +40,7 @@ class UpdateInstancesTask extends AbstractCloudProviderAwareTask implements Task
     TaskId taskId = kato.requestOperations(cloudProvider, [[updateInstances: stage.context]])
       .toBlocking()
       .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"  : "updateinstances",
       "update.account.name": account,
       "update.region"      : stage.context.region,

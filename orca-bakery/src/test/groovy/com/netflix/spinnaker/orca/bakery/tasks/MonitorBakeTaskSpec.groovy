@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -77,7 +77,7 @@ class MonitorBakeTaskSpec extends Specification {
       )
     }
     task.createBakeTask = Mock(CreateBakeTask) {
-      1 * execute(_) >> { return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [stage: 1], [global: 2]) }
+      1 * execute(_) >> { return new TaskResult(ExecutionStatus.SUCCEEDED, [stage: 1], [global: 2]) }
     }
 
     when:

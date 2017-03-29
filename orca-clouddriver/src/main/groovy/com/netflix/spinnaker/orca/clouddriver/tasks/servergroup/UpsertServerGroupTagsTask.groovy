@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -49,7 +48,7 @@ class UpsertServerGroupTagsTask extends AbstractCloudProviderAwareTask implement
       }
     }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"   : "upsertservergrouptags",
         "deploy.account.name" : getCredentials(stage),
         "kato.last.task.id"   : taskId,

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks;
 
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -27,6 +26,6 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED;
 public class NoOpTask implements Task {
   @Override
   public TaskResult execute(Stage ignored) {
-    return new DefaultTaskResult(SUCCEEDED);
+    return new TaskResult(SUCCEEDED);
   }
 }

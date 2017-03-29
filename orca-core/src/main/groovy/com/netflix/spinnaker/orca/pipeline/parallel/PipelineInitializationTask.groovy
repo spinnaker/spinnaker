@@ -16,13 +16,11 @@
 
 package com.netflix.spinnaker.orca.pipeline.parallel
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
-
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 @Component
@@ -30,7 +28,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 class PipelineInitializationTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
-    return new DefaultTaskResult(SUCCEEDED)
+    return new TaskResult(SUCCEEDED)
   }
 }
 

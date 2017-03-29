@@ -16,11 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import groovy.transform.Canonical
-import groovy.transform.ToString
-import groovy.util.logging.Slf4j
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -28,6 +24,9 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
+import groovy.transform.ToString
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
@@ -99,7 +98,7 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
     }
 
     if (!remainingDeployServerGroups) {
-      return DefaultTaskResult.SUCCEEDED
+      return TaskResult.SUCCEEDED
     }
 
     def names = Names.parseName(clusterSelection.cluster)
@@ -122,10 +121,10 @@ abstract class AbstractWaitForClusterWideClouddriverTask extends AbstractCloudPr
 
     if (stillRemaining) {
       log.info "Pipeline ${stage.execution?.id} still has ${stillRemaining.collect { it.region + "->" + it.name }}"
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, [remainingDeployServerGroups: stillRemaining])
+      return new TaskResult(ExecutionStatus.RUNNING, [remainingDeployServerGroups: stillRemaining])
     }
 
     log.info "Pipeline ${stage.execution?.id} no server groups remain"
-    return DefaultTaskResult.SUCCEEDED
+    return TaskResult.SUCCEEDED
   }
 }

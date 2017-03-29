@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -48,7 +47,7 @@ class CaptureInstanceUptimeTask extends AbstractCloudProviderAwareTask implement
   @Override
   TaskResult execute(Stage stage) {
     if (!instanceUptimeCommand) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [instanceUptimes: [:]])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [instanceUptimes: [:]])
     }
 
     def cloudProvider = getCloudProvider(stage)
@@ -66,7 +65,7 @@ class CaptureInstanceUptimeTask extends AbstractCloudProviderAwareTask implement
       return accumulator
     }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
       "instanceUptimes": instanceUptimes
     ])
   }

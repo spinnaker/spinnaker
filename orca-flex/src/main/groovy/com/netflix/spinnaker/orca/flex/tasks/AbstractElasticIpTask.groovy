@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.flex.tasks
 
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -44,7 +43,7 @@ abstract class AbstractElasticIpTask implements Task {
       "elastic.ip.assignment": performRequest(stage.mapTo(StageData))
     ]
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   static class StageData {

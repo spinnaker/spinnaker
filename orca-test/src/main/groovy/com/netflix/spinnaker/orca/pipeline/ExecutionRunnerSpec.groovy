@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.pipeline
 
 import java.util.function.BiFunction
 import java.util.function.Consumer
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.listeners.ExecutionListener
 import com.netflix.spinnaker.orca.listeners.StageListener
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -259,7 +259,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    1 * testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * testTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     where:
     parallel | description
@@ -311,7 +311,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     def executedStageTypes = []
     testTask.execute(_) >> { Stage stage ->
       executedStageTypes << stage.type
-      new DefaultTaskResult(SUCCEEDED)
+      new TaskResult(SUCCEEDED)
     }
 
     when:
@@ -366,7 +366,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     def executedStageTypes = []
     testTask.execute(_) >> { Stage stage ->
       executedStageTypes << stage.type
-      new DefaultTaskResult(SUCCEEDED)
+      new TaskResult(SUCCEEDED)
     }
 
     when:
@@ -425,7 +425,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     def executedStageTypes = []
     testTask.execute(_) >> { Stage stage ->
       executedStageTypes << stage.type
-      new DefaultTaskResult(SUCCEEDED)
+      new TaskResult(SUCCEEDED)
     }
 
     when:
@@ -480,7 +480,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     def executedStageTypes = []
     testTask.execute(_) >> { Stage stage ->
       executedStageTypes << stage.type
-      new DefaultTaskResult(SUCCEEDED)
+      new TaskResult(SUCCEEDED)
     }
 
     when:
@@ -518,10 +518,10 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    1 * preLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    3 * startLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    3 * endLoopTask.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
-    1 * postLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * preLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
+    3 * startLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
+    3 * endLoopTask.execute(_) >> new TaskResult(REDIRECT) >> new TaskResult(REDIRECT) >> new TaskResult(SUCCEEDED)
+    1 * postLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     where:
     execution = Pipeline.builder().withId("1").withParallel(true).build()
@@ -549,16 +549,16 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
 
     and:
     def next = 1
-    preLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    preLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
     startLoopTask.execute(_) >> { Stage<?> s ->
       def values = s.context.values
       if (values == null) values = []
       values += next
       next++
-      new DefaultTaskResult(SUCCEEDED, [values: values])
+      new TaskResult(SUCCEEDED, [values: values])
     }
-    endLoopTask.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
-    postLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    endLoopTask.execute(_) >> new TaskResult(REDIRECT) >> new TaskResult(REDIRECT) >> new TaskResult(SUCCEEDED)
+    postLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     when:
     runner.start(execution)
@@ -591,10 +591,10 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Subject runner = create(stageDefinitionBuilder)
 
     and:
-    preLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    startLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    endLoopTask.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
-    postLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    preLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
+    startLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
+    endLoopTask.execute(_) >> new TaskResult(REDIRECT) >> new TaskResult(REDIRECT) >> new TaskResult(SUCCEEDED)
+    postLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     when:
     runner.start(execution)
@@ -633,13 +633,13 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    1 * startLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * startLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     then:
-    2 * testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    2 * testTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     then:
-    1 * endLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * endLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     where:
     execution = Pipeline.builder().withId("1").withParallel(true).build()
@@ -707,9 +707,9 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Subject runner = create(stageDefinitionBuilder)
 
     and:
-    startLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    endLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    startLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
+    testTask.execute(_) >> new TaskResult(SUCCEEDED)
+    endLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     when:
     runner.start(execution)
@@ -739,7 +739,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Subject runner = create(stageDefinitionBuilder)
 
     and:
-    testTask.execute(_) >> new DefaultTaskResult(TERMINAL)
+    testTask.execute(_) >> new TaskResult(TERMINAL)
 
     when:
     runner.start(execution)
@@ -772,8 +772,8 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Subject runner = create(stageDefinitionBuilder)
 
     and:
-    startLoopTask.execute(_) >> new DefaultTaskResult(TERMINAL)
-    endLoopTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    startLoopTask.execute(_) >> new TaskResult(TERMINAL)
+    endLoopTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     when:
     runner.start(execution)
@@ -798,7 +798,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     executionRepository.retrievePipeline(execution.id) >> execution
 
     and:
-    testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    testTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     and:
     def stageDefinitionBuilder = stageDefinition("branching", contexts, noOp(), { builder ->
@@ -839,7 +839,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Subject runner = create(stageDefinitionBuilder)
 
     and:
-    testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    testTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     when:
     runner.start(execution)
@@ -874,7 +874,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Subject runner = create(stageDefinitionBuilder)
 
     and:
-    testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    testTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     when:
     runner.start(execution)
@@ -926,7 +926,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    1 * testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * testTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     where:
     stageType = "noop"
@@ -976,7 +976,7 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     runner.start(execution)
 
     then:
-    1 * testTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * testTask.execute(_) >> new TaskResult(SUCCEEDED)
     1 * executionListener.afterExecution(_, execution, SUCCEEDED, true)
 
     where:

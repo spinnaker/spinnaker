@@ -17,12 +17,10 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
-import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -39,7 +37,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
   @Override
   TaskResult execute(Stage stage) {
     if (stage.context.interestingHealthProviderNames != null && ((List)stage.context.interestingHealthProviderNames).isEmpty()) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      return new TaskResult(ExecutionStatus.SUCCEEDED)
     }
 
     String region = stage.context.region as String
@@ -48,7 +46,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
 
     def instanceIds = getInstanceIds(stage)
     if (!instanceIds) {
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL)
+      return new TaskResult(ExecutionStatus.TERMINAL)
     }
 
     def stillRunning = instanceIds.find {
@@ -56,7 +54,7 @@ abstract class AbstractWaitForInstanceHealthChangeTask implements RetryableTask 
       return !hasSucceeded(instance, healthProviderTypesToCheck)
     }
 
-    return new DefaultTaskResult(stillRunning ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED)
+    return new TaskResult(stillRunning ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED)
   }
 
   protected List<String> getInstanceIds(Stage stage) {

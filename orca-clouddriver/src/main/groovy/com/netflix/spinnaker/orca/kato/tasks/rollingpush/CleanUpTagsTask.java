@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush;
 
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
@@ -30,15 +33,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -80,7 +74,7 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
 
       log.info("found tags to delete {}", tagsToDelete);
       if (tagsToDelete.isEmpty()) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
+        return new TaskResult(ExecutionStatus.SUCCEEDED);
       }
 
       TaskId taskId = katoService.requestOperations(
@@ -88,14 +82,14 @@ public class CleanUpTagsTask extends AbstractCloudProviderAwareTask implements R
         operations(serverGroupName, tagsToDelete)
       ).toBlocking().first();
 
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {{
+      return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {{
         put("notification.type", "deleteentitytags");
         put("kato.last.task.id", taskId);
       }});
 
     } catch (Exception e) {
       log.error("Failed to clean up tags for stage {} ",stage, e);
-      return new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE);
+      return new TaskResult(ExecutionStatus.FAILED_CONTINUE);
     }
 
   }

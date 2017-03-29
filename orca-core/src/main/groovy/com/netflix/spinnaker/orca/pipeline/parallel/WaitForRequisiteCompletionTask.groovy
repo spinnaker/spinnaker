@@ -17,14 +17,13 @@
 package com.netflix.spinnaker.orca.pipeline.parallel
 
 import java.util.concurrent.TimeUnit
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
@@ -78,9 +77,9 @@ class WaitForRequisiteCompletionTask implements RetryableTask {
     // we don't want to fail this join point on a STOPPED upstream until all upstreams are in a completed state.
     //  STOPPED shouldn't fail execution of the pipeline
     if (allRequisiteStagesAreComplete && stoppedStageNames) {
-      return new DefaultTaskResult(STOPPED)
+      return new TaskResult(STOPPED)
     }
 
-    return new DefaultTaskResult(allRequisiteStagesAreComplete ? SUCCEEDED : RUNNING)
+    return new TaskResult(allRequisiteStagesAreComplete ? SUCCEEDED : RUNNING)
   }
 }

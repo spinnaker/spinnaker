@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.loadbalancer
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -79,6 +78,6 @@ class UpsertLoadBalancerTask extends AbstractCloudProviderAwareTask implements R
       }
     ]
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws.scalingprocess
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -90,7 +89,7 @@ abstract class AbstractAwsScalingProcessTask extends AbstractCloudProviderAwareT
       stageOutputs."kato.last.task.id" = taskId
     }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
+    return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
       ("scalingProcesses.${asgName}" as String): stageContext.processes
     ])
   }

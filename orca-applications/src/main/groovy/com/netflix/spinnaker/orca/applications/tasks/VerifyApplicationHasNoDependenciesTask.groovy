@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.orca.applications.tasks
 
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
@@ -75,15 +74,15 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
         } catch (ignored) {
         }
 
-        return new DefaultTaskResult(ExecutionStatus.TERMINAL, [exception: exception])
+        return new TaskResult(ExecutionStatus.TERMINAL, [exception: exception])
       }
     }
 
     if (!existingDependencyTypes) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      return new TaskResult(ExecutionStatus.SUCCEEDED)
     }
 
-    return new DefaultTaskResult(ExecutionStatus.TERMINAL, [exception: [
+    return new TaskResult(ExecutionStatus.TERMINAL, [exception: [
         details: [
             error: "Application has outstanding dependencies",
             errors: existingDependencyTypes.collect {

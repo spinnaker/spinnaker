@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.orca.applications.pipelines
 
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -69,7 +68,7 @@ class UpsertProjectStage implements StageDefinitionBuilder {
         "notification.type": "upsertproject"
       ]
 
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
     }
   }
 }

@@ -100,7 +100,7 @@ class TaskTaskletSpec extends Specification {
     tasklet.execute(stepContribution, chunkContext)
 
     then:
-    1 * task.execute(*_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * task.execute(*_) >> new TaskResult(SUCCEEDED)
   }
 
   @Unroll
@@ -144,7 +144,7 @@ class TaskTaskletSpec extends Specification {
     Stage stageArgument = null
     task.execute(_ as Stage) >> {
       stageArgument = it[0]
-      return new DefaultTaskResult(SUCCEEDED)
+      return new TaskResult(SUCCEEDED)
     }
 
     when:
@@ -158,7 +158,7 @@ class TaskTaskletSpec extends Specification {
   @Unroll("should convert a result of #taskResultStatus to repeat status #repeatStatus and exitStatus #exitStatus")
   def "should convert task result status to equivalent batch status"() {
     given:
-    task.execute(*_) >> new DefaultTaskResult(taskResultStatus)
+    task.execute(*_) >> new TaskResult(taskResultStatus)
 
     expect:
     tasklet.execute(stepContribution, chunkContext) == repeatStatus
@@ -179,7 +179,7 @@ class TaskTaskletSpec extends Specification {
   @Unroll
   def "should attach the task result of #taskResultStatus status to the execution context"() {
     given:
-    task.execute(*_) >> new DefaultTaskResult(taskResultStatus)
+    task.execute(*_) >> new TaskResult(taskResultStatus)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -197,7 +197,7 @@ class TaskTaskletSpec extends Specification {
   @Unroll
   def "should write any task outputs to the stage context if the task status is #taskStatus"() {
     given:
-    task.execute(*_) >> new DefaultTaskResult(taskStatus, outputs)
+    task.execute(*_) >> new TaskResult(taskStatus, outputs)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -220,7 +220,7 @@ class TaskTaskletSpec extends Specification {
     stage.context[key] = value
 
     and:
-    task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [(key): value.reverse()])
+    task.execute(*_) >> new TaskResult(SUCCEEDED, [(key): value.reverse()])
 
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -237,7 +237,7 @@ class TaskTaskletSpec extends Specification {
 
   def "should write values in the job execution context if a task returns them as global outputs"() {
     given:
-    task.execute(*_) >> new DefaultTaskResult(SUCCEEDED, [:], outputs)
+    task.execute(*_) >> new TaskResult(SUCCEEDED, [:], outputs)
 
     when:
     tasklet.execute(stepContribution, chunkContext)
@@ -279,7 +279,7 @@ class TaskTaskletSpec extends Specification {
     when:
     def result = TaskTasklet.applyStageStatusOverrides(
       stage,
-      new DefaultTaskResult(originalStatus, ["stage": 1], ["global": 2])
+      new TaskResult(originalStatus, ["stage": 1], ["global": 2])
     )
 
     then:
@@ -306,7 +306,7 @@ class TaskTaskletSpec extends Specification {
     }
 
     and:
-    task.execute(_) >> new DefaultTaskResult(status)
+    task.execute(_) >> new TaskResult(status)
 
     when:
     tasklet.execute(stepContribution, chunkContext)

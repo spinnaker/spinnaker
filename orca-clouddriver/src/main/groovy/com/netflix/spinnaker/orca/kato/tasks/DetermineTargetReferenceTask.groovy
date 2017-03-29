@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -34,7 +33,7 @@ class DetermineTargetReferenceTask implements Task {
 
   @Override
   TaskResult execute(Stage stage) {
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
       targetReferences: targetReferenceSupport.getTargetAsgReferences(stage)
     ])
   }

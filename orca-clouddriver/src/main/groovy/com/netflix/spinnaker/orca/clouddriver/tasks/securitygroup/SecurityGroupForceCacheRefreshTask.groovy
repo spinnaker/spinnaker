@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -43,6 +42,6 @@ public class SecurityGroupForceCacheRefreshTask extends AbstractCloudProviderAwa
       )
     }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    new TaskResult(ExecutionStatus.SUCCEEDED)
   }
 }

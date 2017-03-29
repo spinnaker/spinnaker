@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -31,9 +30,9 @@ class CheckForRemainingTerminationsTask implements Task {
     def remainingTerminations = stage.context.terminationInstanceIds as List<String>
 
     if (!remainingTerminations) {
-      return DefaultTaskResult.SUCCEEDED
+      return TaskResult.SUCCEEDED
     }
 
-    return new DefaultTaskResult(ExecutionStatus.REDIRECT, [skipRemainingWait: false])
+    return new TaskResult(ExecutionStatus.REDIRECT, [skipRemainingWait: false])
   }
 }

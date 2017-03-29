@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline.strategy
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -27,8 +27,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-
-import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
@@ -69,7 +67,7 @@ class DetermineSourceServerGroupTask implements RetryableTask {
           useSourceCapacity: useSourceCapacity
         ]
       }
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
     } catch (ex) {
       log.warn("${getClass().simpleName} failed with $ex.message on attempt ${stage.context.attempt ?: 1}")
       lastException = ex
@@ -90,11 +88,11 @@ class DetermineSourceServerGroupTask implements RetryableTask {
 
     if (ctx.consecutiveNotFound >= MIN_CONSECUTIVE_404 && !useSourceCapacity) {
       //we aren't asking to use the source capacity for sizing and have got some repeated 404s on the cluster - assume that is a legit
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ctx)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, ctx)
     }
 
     if (ctx.attempt <= MAX_ATTEMPTS) {
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, ctx)
+      return new TaskResult(ExecutionStatus.RUNNING, ctx)
     }
 
     throw new IllegalStateException(lastException.getMessage(), lastException)

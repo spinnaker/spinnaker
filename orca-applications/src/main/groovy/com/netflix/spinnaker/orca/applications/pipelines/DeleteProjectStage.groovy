@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.applications.pipelines
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -56,7 +55,7 @@ class DeleteProjectStage implements StageDefinitionBuilder {
         "notification.type": "deleteproject"
       ]
 
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
     }
   }
 }

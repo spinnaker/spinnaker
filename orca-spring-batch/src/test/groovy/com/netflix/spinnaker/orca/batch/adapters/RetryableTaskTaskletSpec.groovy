@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.batch.adapters
 import java.time.Clock
 import java.time.Instant
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.RetryableTaskTasklet
 import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
@@ -119,7 +119,7 @@ class RetryableTaskTaskletSpec extends Specification {
     taskResult = tasklet.doExecuteTask(stage, chunkContext)
 
     then:
-    1 * task.execute(_) >> { DefaultTaskResult.SUCCEEDED }
+    1 * task.execute(_) >> { TaskResult.SUCCEEDED }
     taskResult.status == SUCCEEDED
     stage.status == RUNNING
     stage.tasks*.status == [SUCCEEDED, RUNNING]

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.snapshot
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -47,7 +46,7 @@ class RestoreSnapshotTask extends AbstractCloudProviderAwareTask implements Task
       "restore.snapshot"    : stage.context.snapshotTimestamp,
       "restore.account.name": account
     ]
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
 }

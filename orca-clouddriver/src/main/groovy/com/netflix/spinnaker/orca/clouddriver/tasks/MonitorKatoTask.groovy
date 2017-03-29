@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -44,7 +43,7 @@ class MonitorKatoTask implements RetryableTask {
   TaskResult execute(Stage stage) {
     TaskId taskId = stage.context."kato.last.task.id" as TaskId
     if (!taskId) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      return new TaskResult(ExecutionStatus.SUCCEEDED)
     }
 
     Task katoTask = kato.lookupTask(taskId.id).toBlocking().first()
@@ -88,7 +87,7 @@ class MonitorKatoTask implements RetryableTask {
 
     }
 
-    new DefaultTaskResult(status, outputs)
+    new TaskResult(status, outputs)
   }
 
   private static ExecutionStatus katoStatusToTaskStatus(Task katoTask, boolean katoResultExpected) {

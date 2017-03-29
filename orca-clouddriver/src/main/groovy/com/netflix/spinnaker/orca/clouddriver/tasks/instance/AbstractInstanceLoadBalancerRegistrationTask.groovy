@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -39,7 +38,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationTask extends AbstractClou
     def taskId = kato.requestOperations(getCloudProvider(stage), [[(getAction()): stage.context]])
         .toBlocking()
         .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"           : getAction().toLowerCase(),
         "kato.last.task.id"           : taskId,
         interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["LoadBalancer"])

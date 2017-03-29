@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.bakery.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -92,7 +91,7 @@ class CreateBakeTask implements RetryableTask {
         }
       }
 
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
+      new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs)
     } catch (RetrofitError e) {
       if (e.response?.status && e.response.status == 404) {
         try {
@@ -105,7 +104,7 @@ class CreateBakeTask implements RetryableTask {
           // do nothing
         }
 
-        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        return new TaskResult(ExecutionStatus.RUNNING)
       }
       throw e
     }

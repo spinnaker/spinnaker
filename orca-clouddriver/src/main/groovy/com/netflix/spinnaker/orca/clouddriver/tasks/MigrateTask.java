@@ -16,20 +16,17 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
-import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.KatoService;
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public abstract class MigrateTask extends AbstractCloudProviderAwareTask {
 
@@ -61,6 +58,6 @@ public abstract class MigrateTask extends AbstractCloudProviderAwareTask {
     outputs.put("kato.last.task.id", taskId);
     outputs.put("account.name", target.get("credentials"));
     outputs.put("region", target.get("region"));
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 }

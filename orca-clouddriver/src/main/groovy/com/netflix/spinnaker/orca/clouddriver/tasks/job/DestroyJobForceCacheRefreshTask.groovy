@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -43,7 +42,7 @@ class DestroyJobForceCacheRefreshTask extends AbstractCloudProviderAwareTask imp
 
     def model = [jobName: name, region: region, account: account, evict: true]
     cacheService.forceCacheUpdate(cloudProvider, REFRESH_TYPE, model)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    new TaskResult(ExecutionStatus.SUCCEEDED)
   }
 }
 

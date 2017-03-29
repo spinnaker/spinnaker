@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -26,12 +25,12 @@ import org.springframework.stereotype.Component
 class WaitForClusterShrinkTask extends AbstractWaitForClusterWideClouddriverTask {
   @Override
   protected TaskResult missingClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection) {
-    DefaultTaskResult.SUCCEEDED
+    TaskResult.SUCCEEDED
   }
 
   @Override
   protected TaskResult emptyClusterResult(Stage stage, AbstractClusterWideClouddriverTask.ClusterSelection clusterSelection, Map cluster) {
-    DefaultTaskResult.SUCCEEDED
+    TaskResult.SUCCEEDED
   }
 
   @Override

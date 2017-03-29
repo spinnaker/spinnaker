@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -79,7 +78,7 @@ class CloneServerGroupTask extends AbstractCloudProviderAwareTask implements Tas
       }
     }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   private List<Map<String, Object>> getDescriptions(Map operation) {

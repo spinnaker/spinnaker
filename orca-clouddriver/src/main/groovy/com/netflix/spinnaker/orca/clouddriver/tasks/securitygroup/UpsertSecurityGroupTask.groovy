@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
@@ -50,6 +49,6 @@ class UpsertSecurityGroupTask extends AbstractCloudProviderAwareTask {
         "kato.last.task.id"   : taskId,
     ] + result.extraOutput
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

@@ -15,7 +15,7 @@
  */
 
 package com.netflix.spinnaker.orca.bakery.tasks
-import com.netflix.spinnaker.orca.DefaultTaskResult
+
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -49,6 +49,6 @@ class CompletedBakeTask implements Task {
     if (bake.imageName || bake.amiName) {
       results.imageName = bake.imageName ?: bake.amiName
     }
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results)
+    new TaskResult(ExecutionStatus.SUCCEEDED, results)
   }
 }

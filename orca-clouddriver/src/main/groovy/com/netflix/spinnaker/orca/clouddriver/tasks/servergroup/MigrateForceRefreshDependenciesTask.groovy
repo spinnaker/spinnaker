@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -55,7 +54,7 @@ class MigrateForceRefreshDependenciesTask extends AbstractCloudProviderAwareTask
       }
     }
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    new TaskResult(ExecutionStatus.SUCCEEDED)
   }
 
   private void migrateSecurityGroups(Map migratedGroup, String cloudProvider, String region, String targetCredentials) {

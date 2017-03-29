@@ -16,19 +16,19 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import groovy.util.logging.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -53,7 +53,7 @@ public class FindImageFromTagsTask extends AbstractCloudProviderAwareTask implem
       throw new IllegalStateException("Could not find tagged image for package: " + stageData.packageName + " and tags: " + stageData.tags);
     }
 
-    return new DefaultTaskResult(
+    return new TaskResult(
       ExecutionStatus.SUCCEEDED,
       Collections.singletonMap("amiDetails", imageDetails),
       Collections.singletonMap("deploymentDetails", imageDetails)

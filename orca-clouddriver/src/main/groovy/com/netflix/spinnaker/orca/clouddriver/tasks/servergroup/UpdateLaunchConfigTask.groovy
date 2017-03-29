@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -56,7 +55,7 @@ class UpdateLaunchConfigTask implements Task, DeploymentDetailsAware, CloudProvi
     def taskId = kato.requestOperations(cloudProvider, ops)
         .toBlocking()
         .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"                        : "modifyasglaunchconfiguration",
         "modifyasglaunchconfiguration.account.name": getCredentials(stage),
         "modifyasglaunchconfiguration.region"      : stage.context.region,

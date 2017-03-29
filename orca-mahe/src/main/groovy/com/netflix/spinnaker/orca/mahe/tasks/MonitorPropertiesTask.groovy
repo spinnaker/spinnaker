@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.mahe.tasks
 
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.apache.http.HttpStatus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -60,16 +59,16 @@ class MonitorPropertiesTask implements Task{
 
       } catch (RetrofitError e ){
         log.error("Exception occurred while getting persisted property with id ${id} from mahe service", e)
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+        return new TaskResult(ExecutionStatus.RUNNING, outputs)
       }
     }
 
 
     if(outputs.persistedProperties.size() == propertyIds.size()) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
     }
 
     log.info("create persited properties in progress: ${outputs}")
-    return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+    return new TaskResult(ExecutionStatus.RUNNING, outputs)
   }
 }

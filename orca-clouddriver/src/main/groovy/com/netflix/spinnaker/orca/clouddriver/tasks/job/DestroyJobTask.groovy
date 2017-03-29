@@ -15,8 +15,6 @@
  */
 package com.netflix.spinnaker.orca.clouddriver.tasks.job
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
-
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -47,6 +45,6 @@ class DestroyJobTask extends AbstractCloudProviderAwareTask implements Task {
         "delete.region"      : stage.context.region,
         "delete.account.name": account
     ]
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

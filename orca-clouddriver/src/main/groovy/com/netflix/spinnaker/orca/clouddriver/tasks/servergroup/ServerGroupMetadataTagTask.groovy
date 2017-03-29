@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -30,8 +30,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
@@ -46,7 +44,7 @@ class ServerGroupMetadataTagTask extends AbstractCloudProviderAwareTask implemen
   TaskResult execute(Stage stage) {
     try {
       TaskId taskId = kato.requestOperations(buildTagOperations(stage)).toBlocking().first()
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {
+      return new TaskResult(ExecutionStatus.SUCCEEDED, new HashMap<String, Object>() {
         {
           put("notification.type", "upsertentitytags")
           put("kato.last.task.id", taskId)
@@ -54,7 +52,7 @@ class ServerGroupMetadataTagTask extends AbstractCloudProviderAwareTask implemen
       })
     } catch (Exception e) {
       log.error("Failed to tag deployed server groups (stageId: ${stage.id}, executionId: ${stage.execution.id})", e)
-      return new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE)
+      return new TaskResult(ExecutionStatus.FAILED_CONTINUE)
     }
   }
 

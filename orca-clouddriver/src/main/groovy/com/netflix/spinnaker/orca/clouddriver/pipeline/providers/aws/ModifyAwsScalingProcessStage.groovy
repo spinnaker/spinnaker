@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -99,7 +98,7 @@ class ModifyAwsScalingProcessStage extends TargetServerGroupLinearStageSupport {
         isComplete = suspendedProcesses?.intersect(stageData.processes) == stageData.processes
       }
 
-      return isComplete ? new DefaultTaskResult(ExecutionStatus.SUCCEEDED) : new DefaultTaskResult(ExecutionStatus.RUNNING)
+      return isComplete ? new TaskResult(ExecutionStatus.SUCCEEDED) : new TaskResult(ExecutionStatus.RUNNING)
     }
 
     @CompileDynamic

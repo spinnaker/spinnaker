@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -25,6 +23,7 @@ import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.loadbalancer.UpsertLoadBalancerStage
 import com.netflix.spinnaker.orca.kato.pipeline.UpsertAmazonLoadBalancerStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -55,6 +54,6 @@ class UpsertAmazonDNSTask implements Task {
         "kato.last.task.id": taskId
     ]
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.clouddriver.FeaturesService
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CleanUpTagsTask
 import com.netflix.spinnaker.config.SpringBatchConfiguration
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.FeaturesService
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
@@ -34,10 +33,7 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
+import com.netflix.spinnaker.orca.kato.tasks.rollingpush.*
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
@@ -58,7 +54,6 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Shared
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.REDIRECT
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.kato.pipeline.RollingPushStage.PushCompleteTask
 
 @ContextConfiguration(classes = [EmbeddedRedisConfiguration, JesqueConfiguration,
@@ -104,8 +99,8 @@ class RollingPushStageSpec extends Specification {
 
   @Autowired @Qualifier("featuresService") FeaturesService featuresService
 
-  private static final SUCCESS = new DefaultTaskResult(SUCCEEDED)
-  private static final REDIR = new DefaultTaskResult(REDIRECT)
+  private static final SUCCESS =  TaskResult.SUCCEEDED
+  private static final REDIR = new TaskResult(REDIRECT)
 
   def "rolling push loops until completion"() {
     given: "everything in the rolling push loop will succeed"

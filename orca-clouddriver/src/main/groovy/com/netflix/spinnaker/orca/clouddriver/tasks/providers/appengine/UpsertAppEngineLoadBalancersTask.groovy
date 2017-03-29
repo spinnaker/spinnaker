@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.appengine
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -88,7 +87,7 @@ class UpsertAppEngineLoadBalancersTask extends AbstractCloudProviderAwareTask im
         ]
       }
     ]
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   String resolveTargetServerGroupName(Map loadBalancer, Map allocationDescription) {

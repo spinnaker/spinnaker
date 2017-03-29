@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -32,10 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -62,25 +60,25 @@ public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAw
       );
 
       if (response.getStatus() != 200) {
-        return new DefaultTaskResult(ExecutionStatus.RUNNING);
+        return new TaskResult(ExecutionStatus.RUNNING);
       }
 
       Map cluster = objectMapper.readValue(response.getBody().in(), Map.class);
       Map<String, Object> output = new HashMap<>();
       output.put("remainingInstances", Collections.emptyList());
       if (cluster == null || cluster.get("serverGroups") == null) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, output);
+        return new TaskResult(ExecutionStatus.SUCCEEDED, output);
       }
 
       List<Map<String, Object>> serverGroups = getServerGroups(region, cluster, serverGroupNames);
       if (serverGroups.isEmpty()) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, output);
+        return new TaskResult(ExecutionStatus.SUCCEEDED, output);
       }
 
       List<Map<String, Object>> instances = getInstances(serverGroups);
       LOGGER.info("{} not destroyed, found instances {}", serverGroupNames, instances);
       output.put("remainingInstances", instances);
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, output);
+      return new TaskResult(ExecutionStatus.RUNNING, output);
     } catch (RetrofitError e) {
       return handleRetrofitError(stage, e);
     } catch (IOException e) {
@@ -91,12 +89,12 @@ public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAw
   private TaskResult handleRetrofitError(Stage stage, RetrofitError e) {
     switch (e.getResponse().getStatus()) {
       case 404:
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
+        return new TaskResult(ExecutionStatus.SUCCEEDED);
       case 500:
         Map<String, Object> error = new HashMap<>();
         error.put("lastRetrofitException", new RetrofitExceptionHandler().handle(stage.getName(), e));
         LOGGER.error("Unexpected retrofit error {}", error.get("lastRetrofitException"), e);
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, error);
+        return new TaskResult(ExecutionStatus.RUNNING, error);
       default:
         throw e;
     }

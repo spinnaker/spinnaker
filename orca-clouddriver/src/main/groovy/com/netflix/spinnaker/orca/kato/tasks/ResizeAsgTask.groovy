@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -47,7 +46,7 @@ class ResizeAsgTask implements Task {
     def taskId = kato.requestOperations([[resizeAsgDescription: operation]])
                      .toBlocking()
                      .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"   : "resizeasg",
         "deploy.account.name" : operation.credentials,
         "kato.last.task.id"   : taskId,

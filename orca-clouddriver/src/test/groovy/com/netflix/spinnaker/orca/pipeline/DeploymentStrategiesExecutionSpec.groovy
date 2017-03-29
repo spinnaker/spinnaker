@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -54,7 +54,6 @@ import org.springframework.test.context.ContextConfiguration
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
-import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD
@@ -74,7 +73,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 abstract class DeploymentStrategiesExecutionSpec<R extends ExecutionRunner> extends Specification {
 
   private static
-  final DefaultTaskResult SUCCESS = new DefaultTaskResult(SUCCEEDED)
+  final TaskResult SUCCESS = TaskResult.SUCCEEDED
 
   abstract R create(StageDefinitionBuilder... stageDefBuilders)
 

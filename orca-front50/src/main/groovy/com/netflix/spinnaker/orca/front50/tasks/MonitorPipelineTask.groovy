@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.front50.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -26,8 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -45,14 +43,14 @@ class MonitorPipelineTask implements RetryableTask {
     Execution childPipeline = executionRepository.retrievePipeline(pipelineId)
 
     if (childPipeline.status == ExecutionStatus.SUCCEEDED) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [status: childPipeline.status])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [status: childPipeline.status])
     }
 
     if (childPipeline.status.halt) {
       // indicates a failure of some sort
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL, [status: childPipeline.status])
+      return new TaskResult(ExecutionStatus.TERMINAL, [status: childPipeline.status])
     }
 
-    return new DefaultTaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
+    return new TaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
   }
 }

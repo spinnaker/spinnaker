@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -41,7 +40,7 @@ class ExpressionPreconditionTask implements PreconditionTask {
     }
 
     def status = Boolean.valueOf(expression) ? ExecutionStatus.SUCCEEDED : ExecutionStatus.TERMINAL
-    return new DefaultTaskResult(status, [
+    return new TaskResult(status, [
       context: new HashMap(stage.context.context as Map) + [
           expressionResult: expression
       ]
