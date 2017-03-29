@@ -1,11 +1,12 @@
-import { module } from 'angular';
+import { module, IComponentController, IComponentOptions } from 'angular';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Property} from '../../domain/property.domain';
 import {AUTHENTICATION_SERVICE, AuthenticationService, IUser} from 'core/authentication/authentication.service';
 
-export class FastPropertyDetailsComponentController implements ng.IComponentController {
+export class FastPropertyDetailsComponentController implements IComponentController {
   public isEditing: boolean;
   public isDeleting: boolean;
+  public disableAll: boolean;
   public command: PropertyCommand;
 
   public getValueRowCount(inputValue: string): number {
@@ -26,13 +27,14 @@ export class FastPropertyDetailsComponentController implements ng.IComponentCont
   }
 }
 
-class FastPropertyDetailsComponent implements ng.IComponentOptions {
+class FastPropertyDetailsComponent implements IComponentOptions {
   public templateUrl: string = require('./propertyDetails.component.html');
   public controller: any = FastPropertyDetailsComponentController;
   public bindings: any = {
     command: '=',
     isEditing: '=',
     isDeleting: '=',
+    disableAll: '='
   };
 }
 

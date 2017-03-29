@@ -39,19 +39,21 @@
       <div class="col-md-5" ng-if="$ctrl.command.scopes">
         <div class="row"  ng-repeat="scope in $ctrl.command.scopes track by $index">
           <div class="panel panel-default">
-            <div class="panel-heading">
-              <h4 class="panel-title" style="display: inline-block;">
+            <div class="panel-heading" style="padding-bottom: 0px; border-bottom: 2px solid #ddd;">
+              <h3 class="panel-title" style="display: inline-block;">
                 Scope #{{$index + 1}}
-              </h4>
+              </h3>
                 <a
                   href
                   class="btn btn-link btn-sm"
                   ng-if="!scope.isEditing"
+                  uib-tooltip="Edit Scope"
                   ng-click="$ctrl.toggleEditScope($index)">
                   <i class="fa fa-edit"></i>
                 </a>
                 <a
                   href
+                  uib-tooltip="Remove Scope"
                   class="btn btn-link btn-sm pull-right"
                   ng-click="$ctrl.removeScope($index)">
                   <i class="fa fa-trash-o"></i>
@@ -59,14 +61,16 @@
             </div>
             <div class="panel-body">
 
-              <table class="table table-hover" style="margin-bottom: 5px" >
+              <table class="table table-condensed" style="margin-bottom: 5px" >
+                <thead>
+                  <tr ng-if="scope.instanceCounts">
+                    <th><b>Impact Count</b></th>
+                    <th>
+                      <span class="attention">{{scope.instanceCounts.up}}</span>
+                    </th>
+                  </tr>
+                </thead>
                 <tbody>
-                <tr ng-if="scope.instanceCounts">
-                  <td><b>Impact Count</b></td>
-                  <td>
-                    <span class="attention">{{scope.instanceCounts.up}}</span>
-                  </td>
-                </tr>
                 <tr ng-if="scope.env">
                   <td><b>Env</b></td>
                   <td> {{scope.env}} </td>

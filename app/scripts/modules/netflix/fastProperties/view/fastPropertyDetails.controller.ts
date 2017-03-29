@@ -2,6 +2,7 @@ import {module} from 'angular';
 
 import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/updateFastPropertyWizard.controller';
 import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../wizard/deleteFastPropertyWizard.controller';
+import { CLONE_FAST_PROPERTY_TO_NEW_SCOPE_WIZARD_CONTROLLER } from '../wizard/cloneFastPropertyToNewScopeWizard.controller';
 import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 import {Application} from 'core/application/application.model';
 import {Property} from '../domain/property.domain';
@@ -54,14 +55,12 @@ export class FastPropertyDetailsController {
       resolve: {
         title: () => 'Update Fast Property',
         property: () => property,
-        applicationName: () => {
-          return this.app ? this.app.name : 'spinnakerfp';
-        }
+        applicationName: () => this.app ? this.app.name : 'spinnakerfp'
       }
     });
   };
 
-  public delete(property: Property) {
+  public delete(property: Property): void {
     this.$uibModal.open({
       templateUrl: require('../wizard/deleteFastPropertyWizard.html'),
       controller: 'deleteFastPropertyWizardController',
@@ -74,6 +73,20 @@ export class FastPropertyDetailsController {
       }
     });
   };
+
+  public cloneToNewScope(property: Property): void {
+    this.$uibModal.open({
+      templateUrl: require('../wizard/cloneFastPropertyToNewScopeWizard.html'),
+      controller: 'cloneFastPropertyToNewScopeWizardController',
+      controllerAs: 'ctrl',
+      size: 'lg',
+      resolve: {
+        title: () => 'Clone with new scope',
+        property: () => property,
+        applicationName: () => this.app ? this.app.name : 'spinnakerfp'
+      }
+    });
+  }
 }
 
 export const FAST_PROPERTY_DETAILS_CONTROLLER = 'spinnaker.netflix.globalFastProperties.details.controller';
@@ -83,7 +96,8 @@ module(FAST_PROPERTY_DETAILS_CONTROLLER, [
   FAST_PROPERTY_READ_SERVICE,
   require('../fastProperty.write.service'),
   UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER,
-  DELETE_FAST_PROPERTY_WIZARD_CONTROLLER
+  DELETE_FAST_PROPERTY_WIZARD_CONTROLLER,
+  CLONE_FAST_PROPERTY_TO_NEW_SCOPE_WIZARD_CONTROLLER
 ])
   .controller('FastPropertiesDetailsController', FastPropertyDetailsController);
 

@@ -13,7 +13,7 @@
             name="env"
             class="form-control input-sm"
             ng-model="$ctrl.command.property.env"
-            ng-disabled="$ctrl.isEditing || $ctrl.isDeleting"
+            ng-disabled="$ctrl.isEditing || $ctrl.isDeleting || $ctrl.disableAll"
             required
             ng-options="env for env in ['prod', 'test']">
           </select>
@@ -29,7 +29,7 @@
           <input type="text"
                  name="name"
                  required
-                 ng-disabled="$ctrl.isEditing || $ctrl.isDeleting"
+                 ng-disabled="$ctrl.isEditing || $ctrl.isDeleting || $ctrl.disableAll"
                  ng-pattern="/^[a-zA-Z_0-9._-]*$/"
                  class="form-control input-sm"
                  data-purpose="fastProperty-key"
@@ -48,7 +48,7 @@
           style="resize: vertical;"
           rows="{{$ctrl.getValueRowCount($ctrl.command.property.value)}}"
           required
-          ng-disabled="$ctrl.isDeleting"
+          ng-disabled="$ctrl.isDeleting || $ctrl.disableAll"
           ng-model="$ctrl.command.property.value"
           class="form-control input-sm">
         </textarea>
@@ -64,7 +64,7 @@
         <div class="col-sm-9">
           <constraints-selector
             model="$ctrl.command.property.constraints"
-            is-disabled="$ctrl.isDeleting"
+            is-disabled="$ctrl.isDeleting || $ctrl.disableAll"
 
           >
           </constraints-selector>
@@ -79,7 +79,7 @@
         <div class="col-sm-9">
           <textarea
             class="form-control input-sm"
-            ng-disabled="$ctrl.isDeleting"
+            ng-disabled="$ctrl.isDeleting || $ctrl.disableAll"
             ng-model="$ctrl.command.property.description"
             placeholder="Enter description"
             name="description">
@@ -99,7 +99,7 @@
             name="email"
             required
             class="form-control input-sm"
-            ng-disabled="$ctrl.isDeleting"
+            ng-disabled="$ctrl.isDeleting || $ctrl.disableAll"
             ng-model="$ctrl.command.property.email"
             placeholder="Enter a notification email"
             data-purpose="fastProperty-description"/>

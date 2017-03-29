@@ -34,10 +34,15 @@ export class PropertyCommand {
     return this.isReadyForStrategy() && !!this.strategy;
   }
 
-  public buildPropertyAndScope(platformProperty: IPlatformProperty) {
+  public buildPropertyAndScope(platformProperty: IPlatformProperty): void {
     this.property = Property.build(platformProperty);
     this.scopes = [Scope.build(platformProperty)];
     this.originalScope = Scope.build(platformProperty);
+  }
+
+  public buildPropertyWithoutId(platformProperty: IPlatformProperty): void {
+    this.property = Property.build(platformProperty);
+    this.property.propertyId = null;
   }
 
   public buildPropertyStages(user: IUser): PropertyPipelineStage[] {

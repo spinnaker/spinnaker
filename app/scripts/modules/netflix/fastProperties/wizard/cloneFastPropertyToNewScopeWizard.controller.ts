@@ -10,17 +10,20 @@ import { PropertyCommandType }from '../domain/propertyCommandType.enum';
 import { PropertyPipeline } from '../domain/propertyPipeline.domain';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { PropertyCommand } from '../domain/propertyCommand.model';
+import { IPlatformProperty } from '../domain/platformProperty.model';
 
-class CreateFastPropertyWizardController {
+class CloneFastPropertyToNewScopeWizardController {
 
   public command: PropertyCommand = new PropertyCommand();
   public loading = false;
   public propertyMonitor: any;
+  public isEditing = true;
 
   static get $inject() { return [
     '$scope',
     '$uibModalInstance',
     'title',
+    'property',
     'applicationName',
     'pipelineConfigService',
     'propertyMonitorService',
@@ -30,14 +33,17 @@ class CreateFastPropertyWizardController {
     public $scope: IScope,
     public $uibModalInstance: IModalServiceInstance,
     public title: string,
+    public property: IPlatformProperty,
     public applicationName: string,
     public pipelineConfigService: any,
     public propertyMonitorService: any
   ) {
+    this.isEditing = true;
     this.command.type = PropertyCommandType.CREATE;
     this.command.applicationName = this.applicationName;
+    this.command.buildPropertyWithoutId(property);
     this.propertyMonitor = propertyMonitorService.buildMonitor({
-      title: 'Creating New Property',
+      title: 'Clone with new scope',
       modalInstance: $uibModalInstance,
       applicationName: this.applicationName ? this.applicationName : 'spinnakerfp'
     });
@@ -52,7 +58,6 @@ class CreateFastPropertyWizardController {
     this.propertyMonitor.submit(submit);
   }
 
-
   public isValid(): boolean {
     return !!this.command.pipeline && !!this.command.property.isValid();
   }
@@ -63,9 +68,9 @@ class CreateFastPropertyWizardController {
 
 }
 
-export const CREATE_FAST_PROPERTY_WIZARD_CONTROLLER = 'spinnaker.netflix.fastProperty.createWizard.controller';
+export const CLONE_FAST_PROPERTY_TO_NEW_SCOPE_WIZARD_CONTROLLER = 'spinnaker.netflix.fastProperty.clonePropertyToNewScope.controller';
 
-module(CREATE_FAST_PROPERTY_WIZARD_CONTROLLER, [
+module(CLONE_FAST_PROPERTY_TO_NEW_SCOPE_WIZARD_CONTROLLER, [
   FAST_PROPERTY_DETAILS_COMPONENT,
   FAST_PROPERTY_SCOPE_COMPONENT,
   FAST_PROPERTY_STRATEGY_COMPONENT,
@@ -73,5 +78,5 @@ module(CREATE_FAST_PROPERTY_WIZARD_CONTROLLER, [
   PIPELINE_CONFIG_SERVICE,
   PROPERTY_MONITOR_SERVICE,
 ])
-  .controller('createFastPropertyWizardController', CreateFastPropertyWizardController);
+  .controller('cloneFastPropertyToNewScopeWizardController', CloneFastPropertyToNewScopeWizardController);
 
