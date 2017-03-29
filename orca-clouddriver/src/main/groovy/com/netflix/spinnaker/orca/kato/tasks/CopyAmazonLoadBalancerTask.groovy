@@ -17,21 +17,18 @@
 package com.netflix.spinnaker.orca.kato.tasks
 
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
+import com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import com.netflix.spinnaker.orca.clouddriver.MortService.SecurityGroup
 import static MortService.VPC.findForRegionAndAccount
-
 
 @Component
 class CopyAmazonLoadBalancerTask implements Task {
@@ -108,7 +105,7 @@ class CopyAmazonLoadBalancerTask implements Task {
       }
     ]
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   @VisibleForTesting

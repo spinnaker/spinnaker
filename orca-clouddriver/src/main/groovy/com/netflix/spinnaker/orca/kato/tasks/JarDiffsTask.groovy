@@ -18,9 +18,7 @@ package com.netflix.spinnaker.orca.kato.tasks
 
 import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
@@ -33,6 +31,7 @@ import com.netflix.spinnaker.orca.libdiffs.LibraryDiffs
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.squareup.okhttp.OkHttpClient
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -72,7 +71,7 @@ class JarDiffsTask implements DiffTask {
     def retriesRemaining = stage.context.jarDiffsRetriesRemaining != null ? stage.context.jarDiffsRetriesRemaining : MAX_RETRIES
     if (retriesRemaining <= 0) {
       log.info("retries exceeded")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [jarDiffsRetriesRemaining: retriesRemaining])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [jarDiffsRetriesRemaining: retriesRemaining])
     }
 
     try {
@@ -93,7 +92,7 @@ class JarDiffsTask implements DiffTask {
 
       if (!targetInstances || !sourceInstances) {
         log.info("No instances found (targetAsg: ${targetAsg}, sourceAsg: ${sourceAsg})")
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        return new TaskResult(ExecutionStatus.SUCCEEDED)
       }
 
       // get jar json info
@@ -105,11 +104,11 @@ class JarDiffsTask implements DiffTask {
       LibraryDiffs jarDiffs = libraryDiffTool.calculateLibraryDiffs(sourceJarList, targetJarList)
 
       // add the diffs to the context
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [jarDiffs: jarDiffs])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [jarDiffs: jarDiffs])
     } catch (Exception e) {
       // return success so we don't break pipelines
       log.error("error while fetching jar diffs, retrying", e)
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, [jarDiffsRetriesRemaining: --retriesRemaining])
+      return new TaskResult(ExecutionStatus.RUNNING, [jarDiffsRetriesRemaining: --retriesRemaining])
     }
   }
 

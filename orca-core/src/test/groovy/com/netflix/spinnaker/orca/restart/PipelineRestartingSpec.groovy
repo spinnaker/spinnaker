@@ -18,8 +18,8 @@ package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.config.SpringBatchConfiguration
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
@@ -85,7 +85,7 @@ class PipelineRestartingSpec extends Specification {
 
     and:
     0 * task1.execute(_)
-    1 * task2.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    1 * task2.execute(_) >> new TaskResult(SUCCEEDED)
 
     where:
     pipeline = Pipeline

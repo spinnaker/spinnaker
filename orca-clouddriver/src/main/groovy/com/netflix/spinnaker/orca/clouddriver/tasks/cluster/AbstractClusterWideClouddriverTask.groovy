@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import groovy.transform.Canonical
-import groovy.util.logging.Slf4j
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -34,6 +31,8 @@ import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 /**
@@ -93,7 +92,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
                                                   clusterSelection.cloudProvider)
     if (!cluster.isPresent()) {
       if (stage.context.continueIfClusterNotFound) {
-        return DefaultTaskResult.SUCCEEDED;
+        return TaskResult.SUCCEEDED;
       }
       return missingClusterResult(stage, clusterSelection)
     }
@@ -102,7 +101,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
 
     if (!serverGroups) {
       if (stage.context.continueIfClusterNotFound) {
-        return DefaultTaskResult.SUCCEEDED;
+        return TaskResult.SUCCEEDED;
       }
       return emptyClusterResult(stage, clusterSelection, cluster.get())
     }
@@ -137,7 +136,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(clusterSelection)).flatten()
 
     if (!katoOps) {
-      return DefaultTaskResult.SUCCEEDED
+      return TaskResult.SUCCEEDED
     }
 
     // "deploy.server.groups" is keyed by region, and all TSGs will have this value.
@@ -148,7 +147,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     }
 
     def taskId = katoService.requestOperations(clusterSelection.cloudProvider, katoOps).toBlocking().first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"   : getNotificationType(),
       "deploy.account.name" : clusterSelection.credentials,
       "kato.last.task.id"   : taskId,

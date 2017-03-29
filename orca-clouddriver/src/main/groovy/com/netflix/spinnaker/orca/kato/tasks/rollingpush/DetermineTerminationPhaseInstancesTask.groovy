@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -33,6 +32,6 @@ class DetermineTerminationPhaseInstancesTask implements Task {
 
     List<String> instanceIds = terms.take(concurrentRelaunches)
     List<String> terminationInstanceIds = terms.drop(concurrentRelaunches)
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [instanceIds: instanceIds, terminationInstanceIds: terminationInstanceIds])
+    return new TaskResult(ExecutionStatus.SUCCEEDED, [instanceIds: instanceIds, terminationInstanceIds: terminationInstanceIds])
   }
 }

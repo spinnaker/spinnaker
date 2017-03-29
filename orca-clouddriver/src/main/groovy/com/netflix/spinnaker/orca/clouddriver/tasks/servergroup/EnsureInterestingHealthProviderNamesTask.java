@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup;
 
-import com.netflix.spinnaker.orca.DefaultTaskResult;
+import java.util.*;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.Task;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -24,12 +24,6 @@ import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 
 @Component
 public class EnsureInterestingHealthProviderNamesTask implements Task, CloudProviderAware {
@@ -57,10 +51,10 @@ public class EnsureInterestingHealthProviderNamesTask implements Task, CloudProv
         results.put("interestingHealthProviderNames", interestingHealthProviderNames);
       }
 
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, results);
+      return new TaskResult(ExecutionStatus.SUCCEEDED, results);
     }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED);
+    return new TaskResult(ExecutionStatus.SUCCEEDED);
 
   }
 }

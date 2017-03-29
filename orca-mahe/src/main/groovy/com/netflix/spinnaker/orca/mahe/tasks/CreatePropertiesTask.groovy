@@ -16,22 +16,17 @@
 
 package com.netflix.spinnaker.orca.mahe.tasks
 
-import com.netflix.spinnaker.orca.mahe.PropertyAction
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mahe.MaheService
+import com.netflix.spinnaker.orca.mahe.PropertyAction
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import jdk.nashorn.internal.objects.annotations.Property
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-
-
-
 
 @Slf4j
 @Component
@@ -77,7 +72,7 @@ class CreatePropertiesTask implements Task {
       propertyAction: propertyAction,
     ]
 
-    return new DefaultTaskResult(SUCCEEDED, outputs, outputs)
+    return new TaskResult(SUCCEEDED, outputs, outputs)
 
   }
 

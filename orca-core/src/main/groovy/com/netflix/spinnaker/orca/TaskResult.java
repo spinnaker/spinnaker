@@ -1,14 +1,37 @@
 package com.netflix.spinnaker.orca;
 
-import java.io.Serializable;
+import java.util.Map;
 import com.google.common.collect.ImmutableMap;
+import lombok.Value;
+import static java.util.Collections.emptyMap;
 
-public interface TaskResult {
-  ExecutionStatus getStatus();
+@Value
+public final class TaskResult {
+  /**
+   * A useful constant for a success result with no outputs.
+   */
+  public static final TaskResult SUCCEEDED = new TaskResult(ExecutionStatus.SUCCEEDED);
 
-  @Deprecated ImmutableMap<String, Serializable> getOutputs();
+  ExecutionStatus status;
+  ImmutableMap<String, ?> stageOutputs;
+  ImmutableMap<String, ?> globalOutputs;
 
-  ImmutableMap<String, Serializable> getStageOutputs();
+  public TaskResult(ExecutionStatus status) {
+    this(status, emptyMap(), emptyMap());
+  }
 
-  ImmutableMap<String, Serializable> getGlobalOutputs();
+  public TaskResult(ExecutionStatus status, Map<String, ?> stageOutputs, Map<String, ?> globalOutputs) {
+    this.status = status;
+    this.stageOutputs = ImmutableMap.copyOf(stageOutputs);
+    this.globalOutputs = ImmutableMap.copyOf(globalOutputs);
+  }
+
+  public TaskResult(ExecutionStatus status, Map<String, ?> stageOutputs) {
+    this(status, stageOutputs, emptyMap());
+  }
+
+  @Deprecated
+  public ImmutableMap<String, ?> getOutputs() {
+    return stageOutputs;
+  }
 }

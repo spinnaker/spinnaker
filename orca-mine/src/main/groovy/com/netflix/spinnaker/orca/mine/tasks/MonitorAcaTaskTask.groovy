@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
@@ -28,8 +27,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-
-import java.util.concurrent.TimeUnit
 
 @Component
 @Slf4j
@@ -53,15 +50,15 @@ class MonitorAcaTaskTask extends AbstractCloudProviderAwareTask implements Retry
       ]
     } catch (RetrofitError e) {
       log.error("Exception occurred while getting canary with id ${context.canary.id} from mine service", e)
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+      return new TaskResult(ExecutionStatus.RUNNING, outputs)
     }
 
     if (outputs.canary.status?.complete) {
       log.info("Canary $stage.id complete")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs, outputs)
     }
 
     log.info("Canary in progress: ${outputs.canary}")
-    return new DefaultTaskResult(ExecutionStatus.RUNNING, outputs)
+    return new TaskResult(ExecutionStatus.RUNNING, outputs)
   }
 }

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -42,7 +41,7 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
    */
   @Override
   TaskResult execute(Stage stage) {
-    def result = new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+    def result = new TaskResult(ExecutionStatus.SUCCEEDED)
 
     //we skipped instances that were up to date
     if (!stage.context.instances) {
@@ -65,12 +64,12 @@ class MonitorQuipTask extends AbstractQuipTask implements RetryableTask {
         } else if(status == "Failed") {
           throw new RuntimeException("quip task failed for ${hostName} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
         } else if(status == "Running") {
-          result = new DefaultTaskResult(ExecutionStatus.RUNNING)
+          result = new TaskResult(ExecutionStatus.RUNNING)
         } else {
           throw new RuntimeException("quip task failed for ${hostName} with a result of ${status}, see http://${hostName}:5050/tasks/${taskId}")
         }
       } catch(RetrofitError e) {
-        result = new DefaultTaskResult(ExecutionStatus.RUNNING)
+        result = new TaskResult(ExecutionStatus.RUNNING)
       }
     }
     return result

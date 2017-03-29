@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.securitygroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -51,6 +50,6 @@ class WaitForUpsertedSecurityGroupTask implements RetryableTask, CloudProviderAw
       }
     }
 
-    return new DefaultTaskResult(status)
+    return new TaskResult(status)
   }
 }

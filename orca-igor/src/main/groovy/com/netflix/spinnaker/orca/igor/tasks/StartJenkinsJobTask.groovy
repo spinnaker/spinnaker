@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.igor.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -40,6 +39,6 @@ class StartJenkinsJobTask implements Task {
     String master = stage.context.master
     String job = stage.context.job
     String queuedBuild = buildService.build(master, job, stage.context.parameters)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [queuedBuild: queuedBuild] )
+    new TaskResult(ExecutionStatus.SUCCEEDED, [queuedBuild: queuedBuild] )
   }
 }

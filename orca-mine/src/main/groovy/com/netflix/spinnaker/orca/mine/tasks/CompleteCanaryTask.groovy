@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -29,11 +28,11 @@ class CompleteCanaryTask implements Task {
   TaskResult execute(Stage stage) {
     Map canary = stage.context.canary
     if (canary.status?.status == 'CANCELED') {
-      return new DefaultTaskResult(ExecutionStatus.CANCELED)
+      return new TaskResult(ExecutionStatus.CANCELED)
     } else if (canary.canaryResult?.overallResult == 'SUCCESS') {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      return new TaskResult(ExecutionStatus.SUCCEEDED)
     } else if (canary?.health?.health in ["UNHEALTHY", "UNKNOWN"] || canary.canaryResult?.overallResult == 'FAILURE') {
-      return new DefaultTaskResult(
+      return new TaskResult(
         stage.context.continueOnUnhealthy == true
           ? ExecutionStatus.FAILED_CONTINUE
           : ExecutionStatus.TERMINAL

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -64,6 +63,6 @@ class CreateServerGroupTask extends AbstractCloudProviderAwareTask implements Re
       outputs.interestingHealthProviderNames = HealthHelper.getInterestingHealthProviderNames(stage, ["Amazon"])
     }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 }

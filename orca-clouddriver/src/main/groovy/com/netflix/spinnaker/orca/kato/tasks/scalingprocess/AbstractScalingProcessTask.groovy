@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.scalingprocess
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -85,7 +84,7 @@ abstract class AbstractScalingProcessTask implements Task {
       stageOutputs."kato.last.task.id" = taskId
     }
 
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
+    return new TaskResult(ExecutionStatus.SUCCEEDED, stageOutputs, [
       ("scalingProcesses.${asgName}" as String): stageContext.processes
     ])
   }

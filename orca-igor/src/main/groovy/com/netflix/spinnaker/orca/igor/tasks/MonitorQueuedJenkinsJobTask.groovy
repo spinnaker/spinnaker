@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.orca.igor.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import java.util.concurrent.TimeUnit
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -26,8 +26,6 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-
-import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -48,14 +46,14 @@ class MonitorQueuedJenkinsJobTask implements RetryableTask {
     try {
       Map<String, Object> build = buildService.queuedBuild(master, queuedBuild)
       if (build?.number == null) {
-        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        return new TaskResult(ExecutionStatus.RUNNING)
       } else {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [buildNumber: build.number])
       }
     } catch (RetrofitError e) {
       if ([503, 500, 404].contains(e.response?.status)) {
         log.warn("Http ${e.response.status} received from `igor`, retrying...")
-        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        return new TaskResult(ExecutionStatus.RUNNING)
       }
       throw e
     }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.kato.pipeline
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -170,7 +169,7 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
   public static class CompleteParallelDeployTask implements Task {
     TaskResult execute(Stage stage) {
       log.info("Completed Parallel Deploy")
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], [:])
+      new TaskResult(ExecutionStatus.SUCCEEDED, [:], [:])
     }
   }
 }

@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CloneServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.CreateServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
@@ -117,7 +117,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
     then:
     1 * oortHelper.getCluster(_, _, _, _) >> Optional.empty()
-    result == DefaultTaskResult.SUCCEEDED
+    result == TaskResult.SUCCEEDED
 
   }
 
@@ -141,7 +141,7 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
 
     then:
     1 * oortHelper.getCluster(_, _, _, _) >> Optional.of([ serverGroups: [] ])
-    result == DefaultTaskResult.SUCCEEDED
+    result == TaskResult.SUCCEEDED
 
   }
 

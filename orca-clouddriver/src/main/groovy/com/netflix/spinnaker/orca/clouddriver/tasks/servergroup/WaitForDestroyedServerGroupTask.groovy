@@ -15,9 +15,9 @@
  */
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -53,27 +53,27 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
       def response = oortService.getCluster(names.app, account, names.cluster, cloudProvider)
 
       if (response.status != 200) {
-        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        return new TaskResult(ExecutionStatus.RUNNING)
       }
 
       Map cluster = objectMapper.readValue(response.body.in().text, Map)
       if (!cluster || !cluster.serverGroups) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [remainingInstances: []])
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [remainingInstances: []])
       }
       def serverGroup = cluster.serverGroups.find { it.name == serverGroupName && it.region == serverGroupRegion }
       if (!serverGroup) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [remainingInstances: []])
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [remainingInstances: []])
       }
       def instances = serverGroup.instances ?: []
       log.info("${serverGroupName}: not yet destroyed, found instances: ${instances?.join(', ') ?: 'none'}")
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, [remainingInstances: instances.findResults { it.name }])
+      return new TaskResult(ExecutionStatus.RUNNING, [remainingInstances: instances.findResults { it.name }])
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
       if (e.response.status == 404) {
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+        return new TaskResult(ExecutionStatus.SUCCEEDED)
       } else if (e.response.status >= 500) {
         log.error("Unexpected retrofit error (${retrofitErrorResponse})")
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
+        return new TaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
       }
 
       throw e

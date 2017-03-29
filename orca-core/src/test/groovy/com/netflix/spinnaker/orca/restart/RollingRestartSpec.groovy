@@ -17,8 +17,8 @@
 package com.netflix.spinnaker.orca.restart
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -99,9 +99,9 @@ class RollingRestartSpec extends Specification {
     jobCompletionListener.await()
 
     then:
-    2 * endTask.execute(_) >> new DefaultTaskResult(REDIRECT) >> new DefaultTaskResult(SUCCEEDED)
-    1 * startTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
-    1 * finalTask.execute(_) >> new DefaultTaskResult(SUCCEEDED)
+    2 * endTask.execute(_) >> new TaskResult(REDIRECT) >> new TaskResult(SUCCEEDED)
+    1 * startTask.execute(_) >> new TaskResult(SUCCEEDED)
+    1 * finalTask.execute(_) >> new TaskResult(SUCCEEDED)
 
     where:
     pipeline = Pipeline

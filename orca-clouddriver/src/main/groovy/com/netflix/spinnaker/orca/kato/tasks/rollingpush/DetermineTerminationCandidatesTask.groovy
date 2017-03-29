@@ -17,12 +17,11 @@
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.clouddriver.OortService
+import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -50,7 +49,7 @@ class DetermineTerminationCandidatesTask implements Task {
     }
     int totalRelaunches = getNumberOfRelaunches(stage.context.termination, terminationInstancePool.size())
     def terminationInstanceIds = terminationInstancePool.take(totalRelaunches)
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [terminationInstanceIds: terminationInstanceIds, knownInstanceIds: knownInstanceIds, skipRemainingWait: true, waitTime: stage.context.termination?.waitTime ?: 0 ])
+    new TaskResult(ExecutionStatus.SUCCEEDED, [terminationInstanceIds: terminationInstanceIds, knownInstanceIds: knownInstanceIds, skipRemainingWait: true, waitTime: stage.context.termination?.waitTime ?: 0 ])
   }
 
   int getNumberOfRelaunches(Map termination, int totalAsgSize) {

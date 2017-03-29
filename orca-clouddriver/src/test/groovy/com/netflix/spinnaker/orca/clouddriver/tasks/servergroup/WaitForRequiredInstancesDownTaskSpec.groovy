@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
@@ -62,7 +62,7 @@ class WaitForRequiredInstancesDownTaskSpec extends Specification {
       getCluster(*_) >> new Response('oort', 200, 'ok', [], new TypedString(response))
     }
     task.serverGroupCacheForceRefreshTask = Mock(ServerGroupCacheForceRefreshTask) {
-      2 * execute(_) >> new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      2 * execute(_) >> new TaskResult(ExecutionStatus.SUCCEEDED)
       0 * _
     }
     task.oortHelper = Mock(OortHelper) {

@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.mine.tasks
 
-import groovy.util.logging.Slf4j
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.mine.MineService
 import com.netflix.spinnaker.orca.mine.pipeline.DeployCanaryStage
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.client.Response
@@ -61,7 +60,7 @@ class RegisterCanaryTask implements Task {
       stageTimeoutMs      : getMonitorTimeout(canary),
       deployedClusterPairs: deployStage.context.deployedClusterPairs
     ]
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs)
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
   }
 
   Map buildCanary(String app, Stage stage) {

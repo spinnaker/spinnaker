@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -42,8 +41,8 @@ class WaitForTerminatedInstancesTask extends AbstractCloudProviderAwareTask impl
   TaskResult execute(Stage stage) {
     List<TerminatingInstance> remainingInstances = instanceSupport.remainingInstances(stage)
     return remainingInstances ?
-        new DefaultTaskResult(ExecutionStatus.RUNNING,
+        new TaskResult(ExecutionStatus.RUNNING,
                               [(TerminatingInstanceSupport.TERMINATE_REMAINING_INSTANCES): remainingInstances]) :
-        DefaultTaskResult.SUCCEEDED
+      TaskResult.SUCCEEDED
   }
 }

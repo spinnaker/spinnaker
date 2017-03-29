@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -94,7 +93,7 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
       remainingInstances: remainingInstances,
       version: version
     ]
-    return new DefaultTaskResult(remainingInstances ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED, stageOutputs)
+    return new TaskResult(remainingInstances ? ExecutionStatus.RUNNING : ExecutionStatus.SUCCEEDED, stageOutputs)
   }
 
   String getAppVersion(InstanceService instanceService, String packageName) {

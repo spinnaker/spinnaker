@@ -16,23 +16,21 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
 
+import java.time.Clock
+import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheService
+import com.netflix.spinnaker.orca.clouddriver.CloudDriverCacheStatusService
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
-import java.time.Clock
-import java.util.concurrent.TimeUnit
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
+import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
 @Component
 @Slf4j
@@ -64,7 +62,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
        *
        * Under normal operations, this refresh task should complete sub-minute.
        */
-      return new DefaultTaskResult(SUCCEEDED, ["shortCircuit": true])
+      return new TaskResult(SUCCEEDED, ["shortCircuit": true])
     }
 
     def account = getCredentials(stage)
@@ -82,7 +80,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       stageData.reset()
     }
 
-    return new DefaultTaskResult(allAreComplete ? SUCCEEDED : RUNNING, convertAndStripNullValues(stageData))
+    return new TaskResult(allAreComplete ? SUCCEEDED : RUNNING, convertAndStripNullValues(stageData))
   }
 
   /**
@@ -127,7 +125,7 @@ class ServerGroupCacheForceRefreshTask extends AbstractCloudProviderAwareTask im
       }
     }
 
-    return Optional.of(new DefaultTaskResult(status, convertAndStripNullValues(stageData)))
+    return Optional.of(new TaskResult(status, convertAndStripNullValues(stageData)))
   }
 
   /**

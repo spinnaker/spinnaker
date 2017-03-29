@@ -15,23 +15,22 @@
  */
 
 package com.netflix.spinnaker.orca.igor.tasks
+
+import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.model.Application
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.kato.tasks.DiffTask
-import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import retrofit.RetrofitError
-
-import java.util.concurrent.TimeUnit
 
 @Slf4j
 @Component
@@ -59,12 +58,12 @@ class GetCommitsTask implements DiffTask {
     // is igor not configured or have we exceeded configured retries
     if (!buildService || retriesRemaining == 0) {
       log.info("igor is not configured or retries exceeded : buildService : ${buildService}, retries : ${retriesRemaining}")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
     }
 
     if (!front50Service) {
       log.warn("Front50 is not configured. Fix this by setting front50.enabled: true")
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: [], getCommitsRetriesRemaining: retriesRemaining])
     }
 
     Map repoInfo = [:]
@@ -78,7 +77,7 @@ class GetCommitsTask implements DiffTask {
 
       if(!repoInfo?.repoType || !repoInfo?.projectKey || !repoInfo?.repositorySlug) {
         log.info("not enough info to query igor for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug}]")
-        return DefaultTaskResult.SUCCEEDED
+        return TaskResult.SUCCEEDED
       }
 
       String region = stage.context?.source?.region ?: stage.context?.availabilityZones?.findResult { key, value -> key }
@@ -89,7 +88,7 @@ class GetCommitsTask implements DiffTask {
 
       if(!ancestorAmi) {
         log.info "could not determine ancestor ami, this may be a new cluster with no ancestor asg"
-        return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
       }
 
       //figure out the new asg/ami/commit
@@ -107,21 +106,21 @@ class GetCommitsTask implements DiffTask {
       } else {
         log.warn("not enough info to query igor for commits : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
       }
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: commitsList])
     } catch (RetrofitError e) {
         if(e.response?.status == 404) { // just give up on 404
           log.error("got a 404 from igor for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}]")
-          return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
+          return new TaskResult(ExecutionStatus.SUCCEEDED, [commits: []])
         } else { // retry on other status codes
           log.error("retrofit error for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", e)
-          return new DefaultTaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+          return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
         }
     } catch(Exception f) { // retry on everything else
       log.error("unexpected exception for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", f)
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+      return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
     } catch(Throwable g) {
       log.error("unexpected throwable for : [repoType: ${repoInfo?.repoType} projectKey:${repoInfo?.projectKey} repositorySlug:${repoInfo?.repositorySlug} sourceCommit:${sourceCommit} targetCommit: ${targetCommit}], retrying", g)
-      return new DefaultTaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
+      return new TaskResult(ExecutionStatus.RUNNING, [getCommitsRetriesRemaining: retriesRemaining - 1])
     }
   }
 

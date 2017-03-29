@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.bakery.pipeline
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -127,7 +126,7 @@ class BakeStage implements BranchingStageDefinitionBuilder, RestartableStage {
           return deploymentDetails
         }
       ]
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [:], globalContext)
+      new TaskResult(ExecutionStatus.SUCCEEDED, [:], globalContext)
     }
   }
 

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -43,7 +42,7 @@ class RebootInstancesTask extends AbstractCloudProviderAwareTask implements Task
                      .toBlocking()
                      .first()
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"           : "rebootinstances",
       "reboot.account.name"         : account,
       "kato.last.task.id"           : taskId,

@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.batch
 import java.time.Clock
 import java.util.concurrent.TimeUnit
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -77,7 +76,7 @@ class RetryableTaskTasklet extends TaskTasklet {
       stage.tasks.findAll { it.status == ExecutionStatus.RUNNING }.each {
         it.status = ExecutionStatus.PAUSED
       }
-      return new DefaultTaskResult(ExecutionStatus.PAUSED)
+      return new TaskResult(ExecutionStatus.PAUSED)
     } else if (stage.execution.status == ExecutionStatus.RUNNING) {
       // If the pipeline is RUNNING, ensure that the current stage and all paused tasks are RUNNING
       stage.status = ExecutionStatus.RUNNING

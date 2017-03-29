@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -60,7 +59,7 @@ class TerminateInstancesTask extends AbstractCloudProviderAwareTask implements T
     TaskId taskId = kato.requestOperations(cloudProvider, [[terminateInstances: stage.context]])
         .toBlocking()
         .first()
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"                                       : "terminateinstances",
         "terminate.account.name"                                  : account,
         "terminate.region"                                        : stage.context.region,

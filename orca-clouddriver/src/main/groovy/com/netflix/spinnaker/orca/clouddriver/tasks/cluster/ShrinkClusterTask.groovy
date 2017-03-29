@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
@@ -30,7 +29,7 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
   protected TaskResult missingClusterResult(Stage stage, ClusterSelection clusterSelection) {
     def shrinkConfig = stage.mapTo(ShrinkConfig)
     if (shrinkConfig.shrinkToSize == 0) {
-      return DefaultTaskResult.SUCCEEDED
+      return TaskResult.SUCCEEDED
     }
     return super.missingClusterResult(stage, clusterSelection)
   }
@@ -39,7 +38,7 @@ class ShrinkClusterTask extends AbstractClusterWideClouddriverTask {
   protected TaskResult emptyClusterResult(Stage stage, ClusterSelection clusterSelection, Map cluster) {
     def shrinkConfig = stage.mapTo(ShrinkConfig)
     if (shrinkConfig.shrinkToSize == 0) {
-      return DefaultTaskResult.SUCCEEDED
+      return TaskResult.SUCCEEDED
     }
     return super.emptyClusterResult(stage, clusterSelection, cluster)
   }

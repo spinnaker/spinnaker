@@ -17,10 +17,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware
@@ -44,7 +42,7 @@ class DetachInstancesTask implements RetryableTask, CloudProviderAware {
       .toBlocking()
       .first()
 
-    new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [
+    new TaskResult(ExecutionStatus.SUCCEEDED, [
       "notification.type"     : "detachinstances",
       "kato.last.task.id"     : taskId,
       "terminate.instance.ids": stage.context.instanceIds,

@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.echo.spring
 
-import com.netflix.spinnaker.orca.DefaultTaskResult
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
-
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
@@ -83,7 +82,7 @@ abstract class EchoEventIntegrationSpec<R extends ExecutionRunner> extends Speci
     def runner = create(stageDefBuilder)
 
     and:
-    task.execute(_) >> new DefaultTaskResult(taskStatus)
+    task.execute(_) >> new TaskResult(taskStatus)
 
     and:
     def events = []
@@ -134,7 +133,7 @@ abstract class EchoEventIntegrationSpec<R extends ExecutionRunner> extends Speci
     def runner = create(stageDefBuilder)
 
     and:
-    task.execute(_) >> new DefaultTaskResult(TERMINAL)
+    task.execute(_) >> new TaskResult(TERMINAL)
 
     and:
     def events = []

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.kato.tasks.quip
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
@@ -49,7 +48,7 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
     ExecutionStatus executionStatus = ExecutionStatus.SUCCEEDED
     //skipped instances
     if (!instances) {
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED)
+      return new TaskResult(ExecutionStatus.SUCCEEDED)
     }
     // verify instance list, package, and version are in the context
     if(instances) {
@@ -60,7 +59,7 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
           // ask kato for a refreshed version of the instance info
           instances = oortHelper.getInstancesForCluster(stage.context, null, true, false)
           stageOutputs << [instances: instances]
-          return new DefaultTaskResult(ExecutionStatus.RUNNING, stageOutputs)
+          return new TaskResult(ExecutionStatus.RUNNING, stageOutputs)
         }
 
         URL healthCheckUrl = new URL(instance.healthCheckUrl)
@@ -75,6 +74,6 @@ class InstanceHealthCheckTask extends AbstractQuipTask implements RetryableTask 
     } else {
       throw new RuntimeException("one or more required parameters are missing : instances")
     }
-    return new DefaultTaskResult(executionStatus, stageOutputs)
+    return new TaskResult(executionStatus, stageOutputs)
   }
 }

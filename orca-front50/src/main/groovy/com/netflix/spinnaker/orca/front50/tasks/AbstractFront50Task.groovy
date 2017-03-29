@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
@@ -72,7 +71,7 @@ abstract class AbstractFront50Task implements Task {
     def executionStatus = ExecutionStatus.SUCCEEDED
 
     Map<String, Object> results = performRequest(account, application)
-    return new DefaultTaskResult(executionStatus, outputs + (results ?: [:]))
+    return new TaskResult(executionStatus, outputs + (results ?: [:]))
   }
 
   Application fetchApplication(String applicationName) {

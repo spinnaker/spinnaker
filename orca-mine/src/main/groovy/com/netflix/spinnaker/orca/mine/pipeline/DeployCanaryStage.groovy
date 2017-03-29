@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.mine.pipeline
 import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.MortService
@@ -208,7 +207,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       log.info("Completed Canary Deploys")
       Map canary = stage.context.canary
       canary.canaryDeployments = deployedClusterPairs
-      new DefaultTaskResult(ExecutionStatus.SUCCEEDED, [canary: canary, deployedClusterPairs: deployedClusterPairs])
+      new TaskResult(ExecutionStatus.SUCCEEDED, [canary: canary, deployedClusterPairs: deployedClusterPairs])
     }
   }
 

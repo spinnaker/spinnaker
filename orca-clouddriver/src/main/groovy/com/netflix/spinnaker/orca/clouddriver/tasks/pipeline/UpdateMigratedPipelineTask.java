@@ -16,7 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.pipeline;
 
-import com.netflix.spinnaker.orca.DefaultTaskResult;
+import java.util.*;
+import java.util.stream.Collectors;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.TaskResult;
 import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTask;
@@ -25,9 +26,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class UpdateMigratedPipelineTask extends AbstractCloudProviderAwareTask {
@@ -65,10 +63,10 @@ public class UpdateMigratedPipelineTask extends AbstractCloudProviderAwareTask {
     if (!newPipeline.isPresent()) {
       Map<String, Object> outputs = new HashMap<>();
       outputs.put("exception", "Pipeline migration was successful but could not find new pipeline with name " + newName);
-      return new DefaultTaskResult(ExecutionStatus.TERMINAL, outputs);
+      return new TaskResult(ExecutionStatus.TERMINAL, outputs);
     }
     Map<String, Object> outputs = new HashMap<>();
     outputs.put("newPipelineId", newPipeline.get().get("id"));
-    return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 }

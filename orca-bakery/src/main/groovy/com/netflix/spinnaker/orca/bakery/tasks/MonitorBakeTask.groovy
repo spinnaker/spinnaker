@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.bakery.tasks
 
-import groovy.transform.CompileStatic
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.bakery.api.BakeStatus
 import com.netflix.spinnaker.orca.bakery.api.BakeryService
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -53,13 +52,13 @@ class MonitorBakeTask implements RetryableTask {
       if (isCanceled(newStatus.state) && previousStatus.state == BakeStatus.State.PENDING) {
         log.info("Original bake was 'canceled', re-baking (executionId: ${stage.execution.id}, previousStatus: ${previousStatus.state})")
         def rebakeResult = createBakeTask.execute(stage)
-        return new DefaultTaskResult(ExecutionStatus.RUNNING, rebakeResult.stageOutputs, rebakeResult.globalOutputs)
+        return new TaskResult(ExecutionStatus.RUNNING, rebakeResult.stageOutputs, rebakeResult.globalOutputs)
       }
 
-      new DefaultTaskResult(mapStatus(newStatus), [status: newStatus])
+      new TaskResult(mapStatus(newStatus), [status: newStatus])
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        return new DefaultTaskResult(ExecutionStatus.RUNNING)
+        return new TaskResult(ExecutionStatus.RUNNING)
       }
       throw e
     }

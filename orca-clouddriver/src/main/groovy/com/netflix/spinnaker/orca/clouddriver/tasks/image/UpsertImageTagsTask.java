@@ -16,8 +16,9 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import com.google.common.collect.ImmutableMap;
-import com.netflix.spinnaker.orca.DefaultTaskResult;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -29,9 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implements RetryableTask {
@@ -56,7 +54,7 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
       ImageTagger.OperationContext result = tagger.getOperationContext(stage);
       TaskId taskId = kato.requestOperations(cloudProvider, result.operations).toBlocking().first();
 
-      return new DefaultTaskResult(ExecutionStatus.SUCCEEDED, ImmutableMap.<String, Object>builder()
+      return new TaskResult(ExecutionStatus.SUCCEEDED, ImmutableMap.<String, Object>builder()
         .put("notification.type", "upsertimagetags")
         .put("kato.last.task.id", taskId)
         .putAll(result.extraOutput)
@@ -65,7 +63,7 @@ public class UpsertImageTagsTask extends AbstractCloudProviderAwareTask implemen
     } catch (ImageTagger.ImageNotFound e) {
       if (e.shouldRetry) {
         log.error(String.format("Retrying... (reason: %s, executionId: %s, stageId: %s)", e.getMessage(), stage.getExecution().getId(), stage.getId()));
-        return new DefaultTaskResult(ExecutionStatus.RUNNING);
+        return new TaskResult(ExecutionStatus.RUNNING);
       }
 
       throw e;

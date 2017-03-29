@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.cluster
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
-import com.netflix.spinnaker.orca.DefaultTaskResult
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -127,7 +126,7 @@ class ClusterSizePreconditionTask extends AbstractCloudProviderAwareTask impleme
       throw new IllegalStateException("Precondition failed: ${failures.join(',')}")
     }
 
-    return DefaultTaskResult.SUCCEEDED
+    return TaskResult.SUCCEEDED
   }
 
   static enum Operator {

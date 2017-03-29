@@ -115,7 +115,7 @@ class TaskTasklet implements Tasklet {
           stageOutputs.put('batch.task.id.' + taskName(chunkContext), chunkContext.stepContext.stepExecution.id)
         }
 
-        storeExecutionResults(new DefaultTaskResult(result.status, stageOutputs, result.globalOutputs), stage, chunkContext)
+        storeExecutionResults(new TaskResult(result.status, stageOutputs, result.globalOutputs), stage, chunkContext)
 
         return taskToBatchStatus(contribution, chunkContext, result.status)
       }
@@ -141,10 +141,10 @@ class TaskTasklet implements Tasklet {
       def shouldFailPipeline = (stage.context.failPipeline == null ? true : stage.context.failPipeline) as String
       def terminalStatus = Boolean.valueOf(shouldFailPipeline) ? ExecutionStatus.TERMINAL : ExecutionStatus.STOPPED
       def shouldContinuePipeline = stage.context.continuePipeline == null ? false : stage.context.continuePipeline
-      result = new DefaultTaskResult(terminalStatus, result.stageOutputs, result.globalOutputs)
+      result = new TaskResult(terminalStatus, result.stageOutputs, result.globalOutputs)
       if (shouldContinuePipeline) {
         // ignore failure is selected
-        result = new DefaultTaskResult(ExecutionStatus.FAILED_CONTINUE, result.stageOutputs, result.globalOutputs)
+        result = new TaskResult(ExecutionStatus.FAILED_CONTINUE, result.stageOutputs, result.globalOutputs)
       }
     }
 
@@ -194,7 +194,7 @@ class TaskTasklet implements Tasklet {
 
   private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
     if (OptionalStageSupport.isOptional(stage)) {
-      return new DefaultTaskResult(ExecutionStatus.SKIPPED)
+      return new TaskResult(ExecutionStatus.SKIPPED)
     }
 
     try {
@@ -222,7 +222,7 @@ class TaskTasklet implements Tasklet {
       def exceptionDetails = exceptionHandler.handle(taskName, e)
       def isRetryable = exceptionDetails.shouldRetry && task instanceof RetryableTask
 
-      return new DefaultTaskResult(isRetryable ? ExecutionStatus.RUNNING : ExecutionStatus.TERMINAL, [
+      return new TaskResult(isRetryable ? ExecutionStatus.RUNNING : ExecutionStatus.TERMINAL, [
         "exception": exceptionDetails
       ])
     }
@@ -288,7 +288,7 @@ class TaskTasklet implements Tasklet {
     def taskLogger = LoggerFactory.getLogger(task.class)
     if (result.status.complete || taskLogger.isDebugEnabled()) {
       def executionId = stage.execution.id + (stage.refId ? ":${stage.refId}" : "")
-      def outputs = DebugSupport.prettyPrint(result.outputs)
+      def outputs = DebugSupport.prettyPrint(result.stageOutputs)
       def ctx = DebugSupport.prettyPrint(stage.context)
       def message = "${stage.execution.class.simpleName}:${executionId} ${taskName(chunkContext)} ${result.status} -- Batch step id: ${chunkContext.stepContext.stepExecution.id},  Task Outputs: ${outputs},  Stage Context: ${ctx}"
       if (result.status.complete) {
