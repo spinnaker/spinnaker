@@ -34,7 +34,7 @@ describe('Service: instanceTypeService', function () {
     }]
   };
 
-  const t2Cateogry: IInstanceTypeCategory = {
+  const t2Category: IInstanceTypeCategory = {
     type: 'micro',
     families: [{
       type: 't2',
@@ -45,7 +45,15 @@ describe('Service: instanceTypeService', function () {
     }]
   };
 
-  const categories: IInstanceTypeCategory[] = [m3Category, r3Category, t2Cateogry];
+  const gceCustomInstanceCategory: IInstanceTypeCategory = {
+    type: 'buildCustom',
+    families: [{
+      type: 'buildCustom',
+      instanceTypes: [{name: 'buildCustom', nameRegex: /custom-\d{1,2}-\d{4,6}/}]
+    }]
+  };
+
+  const categories: IInstanceTypeCategory[] = [m3Category, r3Category, t2Category, gceCustomInstanceCategory];
 
   beforeEach(
     mock.module(INSTANCE_TYPE_SERVICE)
@@ -91,7 +99,7 @@ describe('Service: instanceTypeService', function () {
       });
     });
 
-    t2Cateogry.families[0].instanceTypes.forEach(function (instanceType) {
+    t2Category.families[0].instanceTypes.forEach(function (instanceType) {
       it('should return "micro" if the ' + instanceType.name + ' is in the "micro" category', function () {
         let result: string = null;
         instanceTypeService.getCategoryForInstanceType('aws', instanceType.name).then(function(category) {
@@ -115,6 +123,17 @@ describe('Service: instanceTypeService', function () {
       });
     });
 
+    const gceBuildCustomTypes = ['custom-1-2816', 'custom-6-9984'];
+    gceBuildCustomTypes.forEach(function(instanceType) {
+      it('should return "buildCustom" for ' + instanceType, function() {
+        let result: string = null;
+        instanceTypeService.getCategoryForInstanceType('gce', instanceType).then(function(category) {
+          result = category;
+        });
+        $scope.$digest();
+        expect(result).toBe('buildCustom');
+      });
+    });
   });
 });
 

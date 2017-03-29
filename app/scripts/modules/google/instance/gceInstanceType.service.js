@@ -176,9 +176,11 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
     };
 
     var customMachine = {
+      type: 'buildCustom',
       instanceTypes : [
         {
           name: 'buildCustom',
+          nameRegex: /custom-\d{1,2}-\d{4,6}/,
           storage: {
             localSSDSupported: true
           }

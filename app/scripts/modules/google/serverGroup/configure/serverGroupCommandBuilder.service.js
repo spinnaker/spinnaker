@@ -412,6 +412,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           useSimpleCapacity: !pipelineCluster.autoscalingPolicy,
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
+          customInstance: asyncData.instanceProfile === 'buildCustom' ? gceCustomInstanceBuilderService.parseInstanceTypeString(pipelineCluster.instanceType) : null,
         };
 
         var viewOverrides = {

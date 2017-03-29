@@ -19,6 +19,7 @@ export interface IInstanceStorage {
 
 export interface IPreferredInstanceType {
   name: string;
+  nameRegex?: RegExp;
   label?: string;
   cpu?: number;
   memory?: number;
@@ -85,7 +86,7 @@ export class InstanceTypeService {
 
   private getInstanceTypeCategory(cloudProvider: string, instanceType: string): ng.IPromise<IInstanceTypeCategory> {
     return this.getCategories(cloudProvider).then((categories: IInstanceTypeCategory[]) => {
-      return (categories || []).find(c => c.families.some(f => f.instanceTypes.some(i => i.name === instanceType)));
+      return (categories || []).find(c => c.families.some(f => f.instanceTypes.some(i => i.name === instanceType || (i.nameRegex && i.nameRegex.test(instanceType)))));
     });
   }
 
