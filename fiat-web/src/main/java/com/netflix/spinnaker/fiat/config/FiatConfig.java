@@ -11,6 +11,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
@@ -37,6 +39,12 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
                                                             pathVarsToTag,
                                                             exclude);
     registry.addInterceptor(interceptor);
+  }
+
+  @Override
+  public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    super.configureContentNegotiation(configurer);
+    configurer.favorPathExtension(false).defaultContentType(MediaType.APPLICATION_JSON);
   }
 
   @Bean
