@@ -18,6 +18,7 @@ package com.netflix.spinnaker.igor.config
 
 import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildMasters
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import groovy.transform.CompileStatic
@@ -46,6 +47,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 class IgorConfig extends WebMvcConfigurerAdapter {
     @Autowired
     Registry registry
+
+    @Autowired(required = false)
+    ArtifactDecorator artifactDecorator
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {

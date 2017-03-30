@@ -16,14 +16,24 @@
 
 package com.netflix.spinnaker.igor.build.model
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import groovy.transform.ToString
+
+@ToString(includeNames = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class GenericArtifact {
     String fileName
     String displayPath
     String relativePath
+    String reference
+    String name
+    String type
+    String version
 
     GenericArtifact(String fileName, String displayPath, String relativePath) {
         this.fileName = fileName
         this.displayPath = displayPath
         this.relativePath = relativePath
     }
+
 }

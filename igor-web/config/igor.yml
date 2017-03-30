@@ -8,6 +8,15 @@ spinnaker:
 
 endpoints.health.sensitive: false
 
+#artifact:
+#  This is a feature toggle for decoration of artifacts.
+#  decorator:
+#    enabled: true
+#    fileDecorators:
+#       - type: mavenUrl
+#         decoratorRegex: /[\/\:.]*\/([a-zA-Z-]+)\-([\d\.]+\-[\d\.]+)[a-z\-\d]+\.[jw]ar$/
+#         identifierRegex: /https?\:\/\/[\/\:.]*\/([a-zA-Z-]+)\-([\d\.]+\-[\d\.]+)[a-z\-\d]+\.[jw]ar$/
+
 #travis:
 #  enabled: true
 #  Repository sync makes a call to travis telling travis to sync repos against github.

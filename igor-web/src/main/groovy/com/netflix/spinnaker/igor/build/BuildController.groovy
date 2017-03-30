@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
+import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
@@ -52,6 +53,9 @@ class BuildController {
     @Autowired
     ObjectMapper objectMapper
 
+    @Autowired(required = false)
+    ArtifactDecorator artifactDecorator
+
     @RequestMapping(value = '/builds/status/{buildNumber}/{master:.+}/**')
     GenericBuild getJobStatus(@PathVariable String master, @PathVariable Integer buildNumber, HttpServletRequest request) {
         def job = (String) request.getAttribute(
@@ -63,6 +67,11 @@ class BuildController {
             } catch (Exception e) {
                 log.error("could not get scm results for $master / $job / $buildNumber")
             }
+
+            if (artifactDecorator) {
+                artifactDecorator.decorate(build)
+            }
+
             return build
         } else {
             throw new MasterNotFoundException("Master '${master}' not found")
