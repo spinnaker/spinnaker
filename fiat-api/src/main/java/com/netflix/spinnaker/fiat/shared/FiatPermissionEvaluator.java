@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -33,9 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
@@ -66,7 +65,8 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
 
   @Override
   public void afterPropertiesSet() throws Exception {
-    permissionsCache = CacheBuilder.newBuilder()
+    permissionsCache = CacheBuilder
+        .newBuilder()
         .maximumSize(configProps.getCache().getMaxEntries())
         .expireAfterWrite(configProps.getCache().getExpiresAfterWriteSeconds(), TimeUnit.SECONDS)
         .recordStats()
@@ -118,7 +118,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
       Object principal = authentication.getPrincipal();
       if (principal instanceof User) {
         username = ((User) principal).getUsername();
-      } else if (StringUtils.isNotEmpty(principal.toString())){
+      } else if (StringUtils.isNotEmpty(principal.toString())) {
         username = principal.toString();
       }
     }
@@ -161,7 +161,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
         return fiatService.getUserPermission(username);
       });
       log.debug("Fiat permission cache hit: " + cacheHit.get());
-    } catch (ExecutionException ee) {
+    } catch (ExecutionException | UncheckedExecutionException ee) {
       String message = String.format("Cannot get whole user permission for user %s. Cause: %s",
                                      username,
                                      ee.getCause().getMessage());
