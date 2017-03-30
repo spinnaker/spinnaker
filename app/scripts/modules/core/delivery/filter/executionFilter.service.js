@@ -7,13 +7,14 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilter.service', [
     require('angular-ui-router'),
-    require('./executionFilter.model.js'),
-    require('../../utils/waypoints/waypoint.service.js'),
-    require('../../filterModel/filter.model.service.js'),
-    require('../../orchestratedItem/timeBoundaries.service.js'),
+    require('./executionFilter.model'),
+    require('core/utils/waypoints/waypoint.service'),
+    require('core/filterModel/filter.model.service'),
+    require('core/orchestratedItem/timeBoundaries.service'),
+    require('core/pipeline/config/pipelineConfigProvider')
   ])
   .factory('executionFilterService', function (ExecutionFilterModel, timeBoundaries, waypointService, $log,
-                                               filterModelService) {
+                                               filterModelService, pipelineConfig) {
 
     var lastApplication = null;
 
@@ -95,12 +96,25 @@ module.exports = angular
         !ExecutionFilterModel.sortFilter.filter) {
         configs
           .filter((config) => !groups[config.name])
-          .forEach((config) => groups.push({heading: config.name, config: config, executions: []}));
+          .forEach((config) => groups.push({heading: config.name, config: config, executions: [], targetAccounts: extractAccounts(config)}));
       } else {
         configs
           .filter((config) => !groups[config.name] && ExecutionFilterModel.sortFilter.pipeline[config.name])
-          .forEach((config) => groups.push({heading: config.name, config: config, executions: []}));
+          .forEach((config) => {
+            groups.push({heading: config.name, config: config, executions: [], targetAccounts: extractAccounts(config)});
+          });
       }
+    }
+
+    function extractAccounts(config) {
+      let configAccounts = [];
+      (config.stages || []).forEach(stage => {
+        const stageConfig = pipelineConfig.getStageConfig(stage);
+        if (stageConfig && stageConfig.configAccountExtractor) {
+          configAccounts.push(...stageConfig.configAccountExtractor(stage));
+        }
+      });
+      return _.uniq(_.flattenDeep(configAccounts)).filter(a => !a.includes('${')); // exclude parameterized accounts
     }
 
     function fixName(execution, application) {

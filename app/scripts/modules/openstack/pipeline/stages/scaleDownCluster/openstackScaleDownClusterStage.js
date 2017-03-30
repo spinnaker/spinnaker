@@ -11,6 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.scaleDo
       cloudProvider: 'openstack',
       templateUrl: require('./scaleDownClusterStage.html'),
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},
