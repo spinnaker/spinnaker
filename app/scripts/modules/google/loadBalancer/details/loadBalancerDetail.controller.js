@@ -60,7 +60,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
                 $scope.loadBalancer.elb.backendServices = getBackendServices($scope.loadBalancer);
                 $scope.loadBalancer.elb.healthChecks = _.chain($scope.loadBalancer.elb.backendServices)
                   .map('healthCheck')
-                  .uniq('name')
+                  .uniqBy('name')
                   .value();
               }
             });
