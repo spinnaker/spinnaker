@@ -15,12 +15,11 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', 
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   require('../../../gceRegionSelectField.directive.js'),
-  require('core/search/search.service.js'),
 ])
   .controller('gceCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                     accountService, gceLoadBalancerTransformer,
                                                     application, loadBalancer, isNew,
-                                                    searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
+                                                    v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
 
     var ctrl = this;
 

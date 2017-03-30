@@ -1,5 +1,5 @@
 import {filter, forOwn, has, uniq} from 'lodash';
-import {module} from 'angular';
+import {module, IPromise, ILogService, IQService} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {NAMING_SERVICE, NamingService, IComponentName} from 'core/naming/naming.service';
@@ -9,6 +9,7 @@ import {ISecurityGroup, ILoadBalancer, ServerGroup, IServerGroupUsage} from 'cor
 import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} from './securityGroupTransformer.service';
 import {ENTITY_TAGS_READ_SERVICE, EntityTagsReader} from 'core/entityTag/entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
+import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
 
 interface IRegionAccount {
   account: string;
@@ -219,7 +220,7 @@ export class SecurityGroupReader {
   }
 
   private clearCacheAndRetryAttachingSecurityGroups(application: Application,
-                                                    nameBasedSecurityGroups: ISecurityGroup[]): ng.IPromise<any[]> {
+                                                    nameBasedSecurityGroups: ISecurityGroup[]): IPromise<any[]> {
 
     this.infrastructureCaches.clearCache('securityGroups');
     return this.loadSecurityGroups().then((refreshedSecurityGroups: IIndexedSecurityGroups) => {
@@ -237,7 +238,7 @@ export class SecurityGroupReader {
 
   private attachSecurityGroups(application: Application,
                                nameBasedSecurityGroups: ISecurityGroup[],
-                               retryIfNotFound: boolean): ng.IPromise<any[]> {
+                               retryIfNotFound: boolean): IPromise<any[]> {
 
     let data: ISecurityGroup[] = [];
     let notFoundCaught = false;
@@ -286,7 +287,7 @@ export class SecurityGroupReader {
     }
   }
 
-  private addEntityTags(securityGroups: ISecurityGroup[]): ng.IPromise<ISecurityGroup[]> {
+  private addEntityTags(securityGroups: ISecurityGroup[]): IPromise<ISecurityGroup[]> {
     if (!SETTINGS.feature.entityTags) {
       return this.$q.when(securityGroups);
     }
@@ -315,9 +316,9 @@ export class SecurityGroupReader {
     ];
   }
 
-  constructor(private $log: ng.ILogService,
-              private $q: ng.IQService,
-              private searchService: any,
+  constructor(private $log: ILogService,
+              private $q: IQService,
+              private searchService: SearchService,
               private namingService: NamingService,
               private API: Api,
               private infrastructureCaches: InfrastructureCacheService,
@@ -326,7 +327,7 @@ export class SecurityGroupReader {
               private entityTagsReader: EntityTagsReader) {
   }
 
-  public getAllSecurityGroups(): ng.IPromise<IGroupsByAccount[]> {
+  public getAllSecurityGroups(): IPromise<IGroupsByAccount[]> {
     return this.API.one('securityGroups').useCache(this.infrastructureCaches.get('securityGroups')).get();
   }
 
@@ -344,7 +345,7 @@ export class SecurityGroupReader {
   }
 
   public getApplicationSecurityGroups(application: Application,
-                                      nameBasedSecurityGroups: ISecurityGroup[]): ng.IPromise<any> {
+                                      nameBasedSecurityGroups: ISecurityGroup[]): IPromise<any> {
     return this.loadSecurityGroups()
       .then((allSecurityGroups: IIndexedSecurityGroups) => {
         application['securityGroupsIndex'] = allSecurityGroups;
@@ -360,7 +361,7 @@ export class SecurityGroupReader {
                                  provider: string,
                                  region: string,
                                  vpcId: string,
-                                 id: string): ng.IPromise<ISecurityGroupDetail> {
+                                 id: string): IPromise<ISecurityGroupDetail> {
 
     return this.API
       .one('securityGroups')
@@ -396,7 +397,7 @@ export class SecurityGroupReader {
       });
   }
 
-  public loadSecurityGroups(): ng.IPromise<IIndexedSecurityGroups> {
+  public loadSecurityGroups(): IPromise<IIndexedSecurityGroups> {
 
     return this.getAllSecurityGroups().then((groupsByAccount: IGroupsByAccount[]) => {
       const securityGroups: IReaderSecurityGroup[] = [];
@@ -416,15 +417,15 @@ export class SecurityGroupReader {
     });
   }
 
-  public loadSecurityGroupsByApplicationName(applicationName: string): any[] {
+  public loadSecurityGroupsByApplicationName(applicationName: string): IPromise<ISecurityGroup[]> {
 
-    return this.searchService.search({
+    return this.searchService.search<ISecurityGroup>({
       q: applicationName,
       type: 'securityGroups',
       pageSize: 1000
-    }).then((searchResults: any) => {
+    }).then((searchResults: ISearchResults<ISecurityGroup>) => {
 
-      let result: any[] = [];
+      let result: ISecurityGroup[] = [];
       if (!searchResults || !searchResults.results) {
         this.$log.warn('WARNING: Gate security group endpoint appears to be down.');
       } else {
@@ -438,7 +439,7 @@ export class SecurityGroupReader {
 
 export const SECURITY_GROUP_READER = 'spinnaker.core.securityGroup.read.service';
 module(SECURITY_GROUP_READER, [
-  require('../search/search.service.js'),
+  SEARCH_SERVICE,
   NAMING_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,

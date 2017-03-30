@@ -13,12 +13,11 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
   require('../loadBalancer.transformer.js'),
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('core/search/search.service.js'),
 ])
   .controller('cfCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
                                                    application, loadBalancer, isNew,
                                                    accountService, cfLoadBalancerTransformer,
-                                                   searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
+                                                   v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
 
     var ctrl = this;
 

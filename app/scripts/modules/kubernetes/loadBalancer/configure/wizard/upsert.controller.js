@@ -13,14 +13,13 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.contro
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
-  require('core/search/search.service.js'),
   require('../../../namespace/selectField.directive.js'),
   require('../../transformer.js'),
 ])
   .controller('kubernetesUpsertLoadBalancerController', function($scope, $uibModalInstance, $state,
                                                                  application, loadBalancer, isNew,
                                                                  accountService, kubernetesLoadBalancerTransformer,
-                                                                 searchService, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
+                                                                 v2modalWizardService, loadBalancerWriter, taskMonitorBuilder) {
     var ctrl = this;
     $scope.isNew = isNew;
 
