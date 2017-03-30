@@ -37,9 +37,7 @@ public interface InstallableService<T> extends HasServiceSettings<T> {
 
   default void stageProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getServiceProfiles().get(getService().getType());
-    if (1 == 1)
-    return;
-
+    
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {
       Profile profile = entry.getValue();
       Path source = Paths.get(profile.getStagedFile(getSpinnakerStagingPath()));
