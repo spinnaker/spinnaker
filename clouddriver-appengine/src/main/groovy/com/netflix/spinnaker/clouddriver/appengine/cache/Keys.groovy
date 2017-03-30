@@ -24,6 +24,7 @@ import groovy.util.logging.Slf4j
 class Keys {
   static enum Namespace {
     APPLICATIONS,
+    PLATFORM_APPLICATIONS,
     CLUSTERS,
     SERVER_GROUPS,
     INSTANCES,
@@ -59,6 +60,9 @@ class Keys {
     switch (result.type) {
       case Namespace.APPLICATIONS.ns:
         result << [application: parts[2]]
+        break
+      case Namespace.PLATFORM_APPLICATIONS.ns:
+        result << [project: parts[2]]
         break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
@@ -108,6 +112,10 @@ class Keys {
 
   static String getApplicationKey(String application) {
     "$AppengineCloudProvider.ID:${Namespace.APPLICATIONS}:${application}"
+  }
+
+  static String getPlatformApplicationKey(String project) {
+    "$AppengineCloudProvider.ID:${Namespace.PLATFORM_APPLICATIONS}:${project}"
   }
 
   static String getClusterKey(String account, String application, String clusterName) {

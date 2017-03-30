@@ -21,9 +21,9 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
-import com.netflix.spinnaker.cats.thread.NamedThreadFactory
 import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.provider.AppengineProvider
+import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppenginePlatformApplicationCachingAgent
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppengineLoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.appengine.provider.agent.AppengineServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.appengine.security.AppengineNamedAccountCredentials
@@ -36,9 +36,6 @@ import org.springframework.context.annotation.DependsOn
 import org.springframework.context.annotation.Scope
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledExecutorService
-import java.util.concurrent.TimeUnit
 
 @Configuration
 class AppengineProviderConfig {
@@ -96,6 +93,10 @@ class AppengineProviderConfig {
                                                                   credentials,
                                                                   objectMapper,
                                                                   registry)
+
+        newlyAddedAgents << new AppenginePlatformApplicationCachingAgent(credentials.name,
+                                                                         credentials,
+                                                                         objectMapper)
       }
     }
 
