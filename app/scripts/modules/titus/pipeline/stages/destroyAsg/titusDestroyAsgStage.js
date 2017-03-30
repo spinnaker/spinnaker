@@ -13,6 +13,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.destroyAsgS
       templateUrl: require('./destroyAsgStage.html'),
       executionDetailsUrl: require('core/pipeline/config/stages/destroyAsg/templates/destroyAsgExecutionDetails.template.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',

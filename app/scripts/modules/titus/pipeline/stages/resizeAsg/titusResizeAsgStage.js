@@ -16,6 +16,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.resizeAsgSt
       templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',

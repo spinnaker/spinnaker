@@ -10,6 +10,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterS
       cloudProvider: 'cf',
       templateUrl: require('./shrinkClusterStage.html'),
       executionDetailsUrl: require('core/pipeline/config/stages/shrinkCluster/templates/shrinkClusterExecutionDetails.template.html'),
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'shrinkToSize', fieldLabel: 'shrink to [X] Server Groups'},

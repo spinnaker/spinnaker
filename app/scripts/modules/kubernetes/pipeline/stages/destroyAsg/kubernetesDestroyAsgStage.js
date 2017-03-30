@@ -11,6 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destro
       templateUrl: require('./destroyAsgStage.html'),
       executionDetailsUrl: require('./destroyAsgExecutionDetails.html'),
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         {
           type: 'targetImpedance',

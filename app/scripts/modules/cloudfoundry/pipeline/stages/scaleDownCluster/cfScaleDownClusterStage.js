@@ -13,6 +13,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.scaleDownClust
       cloudProvider: 'cf',
       templateUrl: require('./scaleDownClusterStage.html'),
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
+      accountExtractor: (stage) => [stage.context.credentials],
+      configAccountExtractor: (stage) => [stage.credentials],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},

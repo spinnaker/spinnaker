@@ -44,7 +44,7 @@
         {{ ::vm.execution.startTime | relativeTime }}
       </li>
     </span>
-    <li ng-repeat="parameter in ::vm.parameters">
+    <li class="break-word" ng-repeat="parameter in ::vm.parameters">
       {{::parameter.key}}: {{::parameter.value}}
     </li>
   </ul>
