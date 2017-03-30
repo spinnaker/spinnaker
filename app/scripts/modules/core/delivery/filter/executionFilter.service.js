@@ -114,7 +114,7 @@ module.exports = angular
           configAccounts.push(...stageConfig.configAccountExtractor(stage));
         }
       });
-      return _.uniq(_.flattenDeep(configAccounts)).filter(a => !a.includes('${')); // exclude parameterized accounts
+      return _.uniq(_.compact(_.flattenDeep(configAccounts))).filter(a => !a.includes('${')); // exclude parameterized accounts
     }
 
     function fixName(execution, application) {
