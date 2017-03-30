@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,7 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
       variableArity = true,
       description = AwsCommandProperties.REGIONS_DESCRIPTION
   )
-  private List<String> regions;
+  private List<String> regions = new ArrayList<>();
 
   @Override
   protected Account buildAccount(String accountName) {
