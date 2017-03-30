@@ -579,8 +579,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
 
       # Produce the list of images that we expect to receive from spinnaker
       # (visible to the primary service account).
-      spinnaker_account = self.agent.deployed_config.get(
-          'providers.google.primaryCredentials.name')
+      spinnaker_account = self.bindings['SPINNAKER_GOOGLE_ACCOUNT']
 
       logger.debug('Configured with Spinnaker account "%s"', spinnaker_account)
       expect_images = [{'account': spinnaker_account, 'imageName': image['name']}

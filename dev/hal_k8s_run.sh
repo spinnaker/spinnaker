@@ -59,8 +59,8 @@ sed "s/^start halyard/exit 0/" -i InstallHalyard.sh
 
 sudo bash InstallHalyard.sh -y
 echo "Starting Halyard..."
-exec sudo /opt/halyard/bin/halyard 2>&1 /var/log/spinnaker/halyard/halyard.log &
-sleep 25
+sudo /opt/halyard/bin/halyard 2>&1 /var/log/spinnaker/halyard/halyard.log &
+sleep 60
 
 echo "Configuring k8s..."
 echo $KUBE_CONF
@@ -86,7 +86,7 @@ hal config provider google account add my-gce-account \
     --json-path /supporting_data/build.json --project $BUILD_PROJECT
 hal config storage edit --account-name my-gce-account
 
-hal config deploy edit --type flotilla --account-name my-k8s-account
+hal config deploy edit --type distributed --account-name my-k8s-account
 hal deploy run
 
 cat ~/.hal/default/install.sh
