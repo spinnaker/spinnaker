@@ -187,18 +187,19 @@ class DevRunner(spinnaker_runner.Runner):
     tail_jobs = []
     for subsystem in self.get_all_subsystem_names():
       path = os.path.join(log_dir, subsystem + '.err')
-      open(path, 'w').close()
+      if not os.path.exists(path):
+        open(path, 'w').close()
       tail_jobs.append(self.start_tail(path))
 
     return tail_jobs
 
   def get_deck_pid(self):
     """Return the process id for deck, or None."""
-    program='node ./node_modules/webpack-dev-server/bin/webpack-dev-server.js'
+    program='deck/node_modules/.bin/webpack-dev-server'
     stdout, stderr = subprocess.Popen(
         'ps -fwwwC node', stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         shell=True, close_fds=True).communicate()
-    match = re.search('(?m)^[^ ]+ +([0-9]+) .* {program}'.format(
+    match = re.search('(?m)^[^ ]+ +([0-9]+) .*/{program}'.format(
         program=program), stdout)
     return int(match.group(1)) if match else None
 
@@ -219,6 +220,8 @@ class DevRunner(spinnaker_runner.Runner):
     if pid:
       print 'Terminating deck in pid={pid}'.format(pid=pid)
       os.kill(pid, signal.SIGTERM)
+    else:
+      print 'deck was not running'
 
   def start_all(self, options):
     """Starts all the components then logs stderr to the console forever.
