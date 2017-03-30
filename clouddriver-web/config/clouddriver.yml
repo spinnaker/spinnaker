@@ -266,6 +266,9 @@ cf:
       artifactUsername: ${cf.repo.username}
       artifactPassword: ${cf.repo.password}
 
+oraclebmcs:
+  enabled: ${ORACLEBMCS_ENABLED:false}
+
 spring:
   jackson:
     mapper:

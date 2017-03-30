@@ -1,0 +1,59 @@
+// Oracle BMCS SDK isn't published to any maven repo (yet!), so we manually download, unpack and add to compile/runtime deps
+def bmcsSDK = project.file('bmcs-sdk/lib/oracle-bmc-java-sdk-full-1.2.2.jar')
+def sdkDest = "bmcs-sdk"
+
+if (bmcsSDK.exists() == false) {
+  def sdkArchive = File.createTempFile("bmcsSDK","archive.zip")
+  sdkArchive << new URL("https://github.com/oracle/bmcs-java-sdk/releases/download/v1.2.2/oracle-bmcs-java-sdk.zip").openStream()
+
+  copy {
+    from zipTree(sdkArchive)
+    into sdkDest
+    include "**/*.jar"
+    exclude "**/*-sources.jar"
+    exclude "**/*-javadoc.jar"
+
+    // Scary but works. I think clouddriver deps in general need cleaning at some point
+    // Even without the oracle bmc sdk 3rd party deps there's still multiple javax.inject and commons-X JARs
+    exclude "**/*jackson*.jar"
+    exclude "**/*jersey*.jar"
+    exclude "**/hk2*.jar"
+    exclude "**/*guava*.jar"
+    exclude "**/commons*.jar"
+    exclude "**/javax*.jar"
+    exclude "**/aopalliance*.jar"
+    exclude "**/javassist*.jar"
+    exclude "**/slf*.jar"
+    exclude "**/osgi*.jar"
+    exclude "**/validation*.jar"
+    exclude "**/jsr305*.jar"
+    exclude "**/bcprov*.jar"
+
+  }
+}
+
+def bmcsSDKDeps = project.fileTree('bmcs-sdk/third-party/lib')
+
+task cleanSDK << {
+  project.file(sdkDest).deleteDir()
+}
+clean.dependsOn cleanSDK
+
+
+
+dependencies {
+  compile project(":clouddriver-core")
+  compile spinnaker.dependency('frigga')
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+  compile files(bmcsSDK)
+  runtime files(bmcsSDKDeps)
+}
+
+
+license {
+  header project.file('oracle-source-header')
+  includes(["**/*.groovy", "**/*.java", "**/*.properties"])
+  strictCheck true
+  skipExistingHeaders false
+}

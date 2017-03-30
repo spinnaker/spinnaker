@@ -12,3 +12,4 @@ application.yml
 README.html
 *~
 es-tmp/
+clouddriver-oracle-bmcs/bmcs-sdk

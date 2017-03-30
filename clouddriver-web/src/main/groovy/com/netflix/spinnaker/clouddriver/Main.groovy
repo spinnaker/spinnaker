@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleConfiguration
 import com.netflix.spinnaker.clouddriver.jobs.config.LocalJobConfig
 import com.netflix.spinnaker.clouddriver.kubernetes.KubernetesConfiguration
 import com.netflix.spinnaker.clouddriver.openstack.OpenstackConfiguration
+import com.netflix.spinnaker.clouddriver.oraclebmcs.OracleBMCSConfiguration
 import com.netflix.spinnaker.clouddriver.security.config.SecurityConfig
 import com.netflix.spinnaker.clouddriver.titus.TitusConfiguration
 import com.netflix.spinnaker.config.ErrorConfiguration
@@ -56,6 +57,7 @@ import java.security.Security
   TitusConfiguration,
   AppengineConfiguration,
   GoogleConfiguration,
+  OracleBMCSConfiguration,
   KubernetesConfiguration,
   OpenstackConfiguration,
   DockerRegistryConfiguration,
