@@ -54,8 +54,8 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
     String packageName = stage.context?.package
     String version = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder ancestorStageBuilder ->
       ancestorStage.id == stage.parentStageId
-    }.getAt(0)?.stage?.context?.version
-    Map<String, Map> skippedInstances = stage.context.skippedInstances ?: [:]
+    }.getAt(0)?.stage?.context?.version ?: stage.context.version
+   Map<String, Map> skippedInstances = stage.context.skippedInstances ?: [:]
     Set<String> patchedInstanceIds = []
     // verify instance list, package, and version are in the context
     if (version && packageName && remainingInstances) {
