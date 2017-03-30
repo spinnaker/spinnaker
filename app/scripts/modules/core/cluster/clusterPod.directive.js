@@ -2,20 +2,20 @@
 
 let angular = require('angular');
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
+import {SERVER_GROUP_COMPONENT} from 'core/serverGroup/serverGroup.component';
 
 module.exports = angular.module('spinnaker.core.cluster.pod.directive', [
-  require('./serverGroup.sequence.filter.js'),
   URL_BUILDER_SERVICE,
-  require('../serverGroup/serverGroup.directive.js'),
+  SERVER_GROUP_COMPONENT,
 ])
   .directive('clusterPod', function(urlBuilderService) {
     return {
       restrict: 'E',
       scope: {
-        grouping: '=',
-        sortFilter: '=',
-        application: '=',
-        parentHeading: '=',
+        grouping: '<',
+        sortFilter: '<',
+        application: '<',
+        parentHeading: '<',
       },
       templateUrl: require('./clusterPod.html'),
       link: function(scope) {
