@@ -79,6 +79,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     self.TEST_APP = bindings['TEST_APP']
     self.TEST_STACK = bindings['TEST_STACK']
     self.TEST_SECURITY_GROUP = 'sec_grp_'+ bindings['TEST_APP']
+    self.TEST_SECURITY_GROUP_RG = self.TEST_APP+ '-' + self.bindings['TEST_AZURE_LOCATION']
 
 
   def create_app(self):
@@ -107,53 +108,42 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     """
     rules = [
         {
-            "fromPort": 80,
-            "toPort": 80,
-            "prevcidr": "0.0.0.0/0",
-            "cidr": "0.0.0.0/0",
-            "ruleType": "TCP",
-            "remoteSecurityGroupId": "",
-            "icmpType": -1,
-            "icmpCode": -1
-        },
-        {
-            "fromPort": 10,
-            "toPort": 65530,
-            "prevcidr": "",
-            "cidr": "",
-            "ruleType": "UDP",
-            "remoteSecurityGroupId": "SELF",
-            "icmpType": -1,
-            "icmpCode": -1
-        },
-        {
-            "fromPort": 1,
-            "toPort": 65535,
-            "prevcidr": "",
-            "cidr": "",
-            "ruleType": "ICMP",
-            "remoteSecurityGroupId": "SELF",
-            "icmpType": 12,
-            "icmpCode": 9}]
+            "access": "Allow",
+            "destinationAddressPrefix": "*",
+            "destinationPortRange": "80-80",
+            "direction": "InBound",
+            "endPort": 80,
+            "name": self.TEST_SECURITY_GROUP,
+            "priority": 100,
+            "protocol": "tcp",
+            "sourceAddressPrefix": "*",
+            "sourcePortRange": "*",
+            "startPort": 80
+        }]
     job = [{
         "provider": "azure",
+        "application": self.TEST_APP,
+        "appName": self.TEST_APP,
         "region": self.bindings['TEST_AZURE_LOCATION'],
         "stack": self.TEST_STACK,
         "description": "Test - create security group for {app}".format(
             app=self.TEST_APP),
         "detail": "",
-        "account": self.bindings['SPINNAKER_AZURE_ACCOUNT'],
+        "credentials": self.bindings['SPINNAKER_AZURE_ACCOUNT'],
         "rules": rules,
         "name": self.TEST_SECURITY_GROUP,
         "securityGroupName": self.TEST_SECURITY_GROUP,
         "cloudProvider": "azure",
         "type": "upsertSecurityGroup",
-        "user": '[anonymous]'
+        "user": "[anonymous]"
     }]
     builder = az.AzContractBuilder(self.az_observer)
     (builder.new_clause_builder(
         'Security Group Created', retryable_for_secs=30)
-     .show_resource('security group', self.TEST_SECURITY_GROUP)
+     .collect_resources(
+         az_resource='group', 
+         command='show', 
+         args=['--name', self.TEST_SECURITY_GROUP_RG])
      .contains_pred_list([
          jp.DICT_MATCHES({
              'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
