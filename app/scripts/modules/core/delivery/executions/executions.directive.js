@@ -1,5 +1,7 @@
 'use strict';
 
+import {EXECUTION_GROUPS_COMPONENT} from '../executionGroup/executionGroups.component';
+
 let angular = require('angular');
 
 require('./executions.less');
@@ -7,7 +9,7 @@ require('./executions.less');
 module.exports = angular
   .module('spinnaker.core.delivery.main.executions.directive', [
     require('../filter/executionFilters.directive.js'),
-    require('../executionGroup/executionGroups.directive.js'),
+    EXECUTION_GROUPS_COMPONENT,
     require('./executions.controller.js'),
   ])
   .directive('executions', function () {
