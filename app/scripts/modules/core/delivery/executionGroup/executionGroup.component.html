@@ -1,0 +1,73 @@
+<div ng-class="$ctrl.isShowingDetails() ? 'showing-details' : 'details-hidden'">
+  <div class="clickable execution-group-header"
+       sticky-header
+       added-offset-height="-3"
+       analytics-on="click"
+       analytics-category="Pipeline"
+       analytics-event="Group {{$ctrl.viewState.open ? 'collapsed' : 'expanded'}}"
+       analytics-label="{{$ctrl.group.heading}}"
+       ng-click="$ctrl.toggle()"
+       ng-if="$ctrl.group.heading">
+    <div class="execution-group-heading" ng-class="$ctrl.viewState.isRetired  || $ctrl.pipelineConfig.disabled ? 'inactive' : 'active'">
+      <span class="glyphicon pipeline-toggle"
+            ng-class="{'glyphicon-chevron-right': !$ctrl.viewState.open, 'glyphicon-chevron-down': $ctrl.viewState.open}">
+      </span>
+      <div class="shadowed">
+        <account-label-color ng-if="$ctrl.viewState.showAccounts"
+                             ng-repeat="account in $ctrl.deploymentAccounts"
+                             account="{{account}}"></account-label-color>
+        <account-label-color ng-repeat="account in $ctrl.group.targetAccounts"
+                             account="{{account}}"></account-label-color>
+        <h4 class="execution-group-title">
+          {{ $ctrl.group.heading }}
+          <span ng-if="$ctrl.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ $ctrl.pipelineConfig.description }}"></span>
+          <span ng-if="$ctrl.pipelineConfig.disabled">(disabled)</span>
+          <span ng-if="$ctrl.group.runningExecutions.length" class="badge">
+            {{$ctrl.group.runningExecutions.length}}
+          </span>
+        </h4>
+        <div class="text-right execution-group-actions" ng-if="$ctrl.viewState.canConfigure">
+          <triggers-tag is-visible="!$ctrl.pipelineConfig.disabled" pipeline="$ctrl.pipelineConfig"></triggers-tag>
+          <next-run-tag ng-if="!$ctrl.pipelineConfig.disabled" pipeline="$ctrl.pipelineConfig"></next-run-tag>
+          <h4>
+            <a href
+               class="btn btn-xs btn-link"
+               analytics-on="click"
+               analytics-category="Pipeline"
+               analytics-event="Configure pipeline button clicked"
+               analytics-label="{{$ctrl.group.heading}}"
+               ng-click="$ctrl.configure($ctrl.group.config.id); $event.stopPropagation();">
+              <span class="glyphicon glyphicon-cog"></span>
+              Configure
+            </a>
+          </h4>
+          <h4 ng-if="$ctrl.viewState.canTriggerPipelineManually" is-visible="!$ctrl.pipelineConfig.disabled">
+            <a href
+               class="btn btn-xs btn-link"
+               analytics-on="click"
+               analytics-category="Pipeline"
+               analytics-event="Trigger pipeline button clicked"
+               analytics-label="{{$ctrl.group.heading}}"
+               ng-click="$ctrl.triggerPipeline(); $event.stopPropagation();">
+              <span ng-if="$ctrl.viewState.triggeringExecution">
+                <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Starting Manual Execution&hellip;
+              </span>
+              <span ng-if="!$ctrl.viewState.triggeringExecution">
+                <span class="glyphicon glyphicon-play"></span> Start Manual Execution
+              </span>
+            </a>
+          </h4>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="execution-groups" ng-if="$ctrl.viewState.open">
+    <div class="execution-group-container">
+      <div ng-if="!$ctrl.group.executions.length" style="padding-bottom: 10px">
+        <em>No executions found matching the selected filters.</em>
+      </div>
+      <execution ng-repeat="execution in $ctrl.group.executions"
+                 execution="execution" application="$ctrl.application"></execution>
+    </div>
+  </div>
+</div>
