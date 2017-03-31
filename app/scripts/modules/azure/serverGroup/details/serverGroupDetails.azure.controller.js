@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
   SERVER_GROUP_WRITER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
 ])
-  .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $compile, app, serverGroup,
+  .controller('azureServerGroupDetailsCtrl', function ($scope, $state, $templateCache, app, serverGroup,
                                                        serverGroupWarningMessageService, serverGroupReader,
                                                        azureServerGroupCommandBuilder, $uibModal,
                                                        confirmationModalService, serverGroupWriter) {

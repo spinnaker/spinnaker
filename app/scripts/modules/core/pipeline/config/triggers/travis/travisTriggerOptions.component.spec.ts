@@ -1,4 +1,4 @@
-import {mock, IScope, IQService, IControllerService, IRootScopeService} from 'angular';
+import {mock, IScope, IQProvider, IQService, IControllerService, IRootScopeService} from 'angular';
 
 import {IgorService} from 'core/ci/igor.service';
 import {IBuild} from 'core/domain/IBuild';
@@ -19,6 +19,12 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     command: ICommand;
 
   beforeEach(mock.module(TRAVIS_TRIGGER_OPTIONS_COMPONENT));
+
+  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
+  beforeEach(
+    mock.module(($qProvider: IQProvider) => {
+      $qProvider.errorOnUnhandledRejections(false);
+  }));
 
   beforeEach(mock.inject(($rootScope: IRootScopeService, _igorService_: IgorService, $controller: IControllerService, _$q_: IQService) => {
     $ctrl = $controller;

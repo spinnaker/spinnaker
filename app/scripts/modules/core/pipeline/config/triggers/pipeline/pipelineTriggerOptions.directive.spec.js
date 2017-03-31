@@ -10,6 +10,12 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
     )
   );
 
+  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
+  beforeEach(
+    window.module(($qProvider) => {
+      $qProvider.errorOnUnhandledRejections(false);
+  }));
+
   beforeEach(window.inject(function($rootScope, _executionService_, $controller, _$q_) {
     $scope = $rootScope.$new();
     executionService = _executionService_;

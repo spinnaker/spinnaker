@@ -15,6 +15,12 @@ describe('Service: executionService', function () {
     )
   );
 
+  // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
+  beforeEach(
+    window.module(($qProvider) => {
+      $qProvider.errorOnUnhandledRejections(false);
+  }));
+
   beforeEach(
     window.inject(function (_executionService_, _$httpBackend_, _$timeout_, _$q_, ExecutionFilterModel) {
       executionService = _executionService_;

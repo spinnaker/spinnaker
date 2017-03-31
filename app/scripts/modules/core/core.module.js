@@ -199,8 +199,21 @@ module.exports = angular
       'Content-Type': 'application/json;charset=utf-8'
     };
   })
+  .config(function($qProvider) {
+    // Angular 1.6 stops suppressing unhandle rejections on promises. This resets it back to 1.5 behavior.
+    // See https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$q
+    $qProvider.errorOnUnhandledRejections(false);
+  })
   .config(function($compileProvider) {
     $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|mailto|hipchat|slack):/);
+    // Angular 1.6 defaults preAssignBindingsEnabled to false, reset to true to mimic 1.5 behavior.
+    // See https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
+    $compileProvider.preAssignBindingsEnabled(true);
+  })
+  .config(function($locationProvider) {
+    // Angular 1.6 sets default hashPrefix to '!', change it back to ''
+    // See https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$location
+    $locationProvider.hashPrefix('');
   })
   .config(require('./forms/uiSelect.decorator.js'))
   .config(function(uiSelectConfig) {
