@@ -1,41 +1,41 @@
 <div class="row rollup-entry sub-group">
   <div sticky-header class="rollup-summary">
     <div class="rollup-title-cell">
-      <account-label-color account="{{parentHeading}}"></account-label-color>
+      <account-label-color account="{{$ctrl.parentHeading}}"></account-label-color>
       <div class="pod-center">
         <div>
           <span class="glyphicon glyphicon-th"></span>
-          {{grouping.heading}}
+          {{$ctrl.grouping.heading}}
         </div>
-        <entity-ui-tags component="grouping"
-                        application="application"
+        <entity-ui-tags component="$ctrl.grouping"
+                        application="$ctrl.application"
                         entity-type="cluster"
                         page-location="pod"
                         class="inverse"
-                        on-update="application.serverGroups.refresh()"></entity-ui-tags>
+                        on-update="$ctrl.application.serverGroups.refresh()"></entity-ui-tags>
       </div>
-      <health-counts container="grouping.cluster.instanceCounts"></health-counts>
+      <health-counts container="$ctrl.grouping.cluster.instanceCounts"></health-counts>
     </div>
   </div>
   <div class="rollup-details">
-    <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
+    <div class="pod-subgroup" ng-repeat="subgroup in $ctrl.grouping.subgroups">
       <h6 class="subgroup-title"
           sticky-header added-offset-height="36">
         {{subgroup.heading}}
         <entity-ui-tags component="subgroup"
-                        application="application"
+                        application="$ctrl.application"
                         entity-type="cluster"
                         page-location="pod"
-                        on-update="application.serverGroups.refresh()"></entity-ui-tags>
+                        on-update="$ctrl.application.serverGroups.refresh()"></entity-ui-tags>
       </h6>
       <server-group
         ng-repeat="serverGroup in subgroup.serverGroups | orderBy:'-name'"
-        ng-if="grouping.cluster.category === 'serverGroup'"
+        ng-if="$ctrl.grouping.cluster.category === 'serverGroup'"
         server-group="serverGroup"
         cluster="serverGroup.cluster"
-        application="application"
-        has-discovery="grouping.hasDiscovery"
-        has-load-balancers="grouping.hasLoadBalancers"
+        application="$ctrl.application"
+        has-discovery="$ctrl.grouping.hasDiscovery"
+        has-load-balancers="$ctrl.grouping.hasLoadBalancers"
         parent-heading="subgroup.heading"></server-group>
     </div>
   </div>
