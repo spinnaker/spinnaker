@@ -14,3 +14,6 @@ packer/example_output.txt
 *.deb
 consul/hello-consul/target
 .vscode/
+testing/citest/.env
+testing/citest/*.journal
+testing/citest/*.log

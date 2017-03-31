@@ -185,7 +185,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       defaults: [dict] Default binding value overrides.
          This is used to initialize the default commandline parameters.
     """
-
+    parser.add_argument(
+        '--azure_subscription_name', dest='spinnaker_azure_account',
+        help='The name of your subscriptoin.')
     parser.add_argument(
         '--azure_subscription_id', dest='spinnaker_azure_subscription_id',
         help='The subscription id of your subscriptoin.')
@@ -200,6 +202,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         help='The service principal secret.')
     parser.add_argument(
         '--azure_location', dest='spinnaker_azure_location',
+        help='The azure location to be used.')
+    parser.add_argument(
+        '--test_azure_location', default = defaults.get('TEST_AZURE_LOCATION', 'westus'),
         help='The azure location to be used.')
     parser.add_argument(
         '--azure_account_name', dest='spinnaker_azure_account_name',
@@ -536,13 +541,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
 
   def __init_azure_bindings(self):
-    bindings=self.bindings  # base class made a copy
+    bindings = self.bindings  # base class made a copy
     if not bindings.get('TEST_AZURE_LOCATION'):
-      bindings['TEST_AZURE_LOCATION']=bindings['SPINNAKER_AZURE_LOCATION']
+      bindings['TEST_AZURE_LOCATION'] = bindings['TEST_AZURE_LOCATION']
+      self.__az_observer = az.AzAgent()
     else:
-      self.__azure_observer=az.AzAgent(
-        bindings['TEST_AZURE_LOCATION']
-      )
+      self.__az_observer = az.AzAgent()
 
 
   def __init_google_bindings(self):
@@ -619,10 +623,10 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         pass
       self.bindings[key] = value
     
-    if not self.bindings['SPINNAKER_AZURE_ACCOUNT_NAME']:
-      self.bindings['SPINNAKER_AZURE_ACCOUNT_NAME'] = (
+    if not self.bindings['SPINNAKER_AZURE_ACCOUNT']:
+      self.bindings['SPINNAKER_AZURE_ACCOUNT'] = (
         self.agent.deployed_config.get(
-          'providers.azure.primaryCredentials.name', None)) 
+          'providers.azure.primaryCredentials.name', None))
 
     if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
       self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (
