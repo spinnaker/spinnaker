@@ -128,11 +128,6 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     bindings = self.bindings
     context = citest.base.ExecutionContext()
 
-    # We're assuming that the given region has 'A' and 'B' availability
-    # zones. This seems conservative but might be brittle since we permit
-    # any region.
-    region = bindings['TEST_AWS_REGION']
-    avail_zones = [region + 'a', region + 'b']
     load_balancer_name = self.lb_name
 
     if use_vpc:
@@ -145,6 +140,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       # brittle. Ideally we only need to know the vpc_id and can figure the
       # rest out based on what we have available.
       subnet_type = 'internal (defaultvpc)'
+
       vpc_id = bindings['TEST_AWS_VPC_ID']
 
       # Not really sure how to determine this value in general.
@@ -160,17 +156,25 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
           aws_module='ec2',
           args=['--filters',
                 'Name=vpc-id,Values={vpc_id}'
-                ',Name=tag:Name,Values=defaultvpc.internal.{region}'
-                .format(vpc_id=vpc_id, region=region)])
+                .format(vpc_id=vpc_id)])
       try:
-        expect_avail_zones = [subnet_details[0]['AvailabilityZone']]
+        avail_zones = [detail['AvailabilityZone'] for detail in subnet_details]
+        region = avail_zones[0][:-1]
+        if len(avail_zones) > 2:
+          avail_zones = [avail_zones[0], avail_zones[-1]]  # just keep two
+
       except KeyError:
         raise ValueError('vpc_id={0} appears to be unknown'.format(vpc_id))
     else:
+      # We're assuming that the given region has 'A' and 'B' availability
+      # zones. This seems conservative but might be brittle since we permit
+      # any region.
+      region = bindings['TEST_AWS_REGION']
+      avail_zones = [region + 'a', region + 'b']
+
       subnet_type = ""
       vpc_id = None
       security_groups = None
-      expect_avail_zones = avail_zones
 
       # This will be a second load balancer not used in other tests.
       # Decorate the name so as not to confuse it.
@@ -242,7 +246,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
         'LoadBalancerDescriptions',
         {'HealthCheck': jp.DICT_MATCHES({
               key: jp.EQUIVALENT(value) for key, value in health_check.items()}),
-         'AvailabilityZones': jp.LIST_SIMILAR(expect_avail_zones),
+         'AvailabilityZones': jp.LIST_SIMILAR(avail_zones),
          'ListenerDescriptions/Listener':
              jp.DICT_MATCHES({key: jp.NUM_EQ(value)
                               for key, value in listener['Listener'].items()})
@@ -320,6 +324,8 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     region = bindings['TEST_AWS_REGION']
     avail_zones = [region + 'a', region + 'b']
 
+    test_security_group_id = bindings['TEST_AWS_SECURITY_GROUP_ID']
+
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'type': 'createServerGroup',
@@ -348,7 +354,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             # spinnaker.io tutorial. But using the default vpc would probably
             # be more adaptive to the particular deployment.
             'subnetType': 'internal (defaultvpc)',
-            'securityGroups': [bindings['TEST_AWS_SECURITY_GROUP_ID']],
+            'securityGroups': [test_security_group_id],
             'virtualizationType': 'paravirtual',
             'stack': bindings['TEST_STACK'],
             'freeFormDetails': '',
