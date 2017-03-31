@@ -401,7 +401,7 @@ rejected with an error message describing why.
 
 ## 2. Deploying and Updating Spinnaker
 
-TODO
+See [this document](./deploys.md)
 
 # Non Goals
 
