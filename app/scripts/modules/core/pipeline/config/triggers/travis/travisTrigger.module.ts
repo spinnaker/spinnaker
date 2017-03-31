@@ -121,6 +121,6 @@ module(TRAVIS_TRIGGER, [
     formatLabel: (trigger: IBuildTrigger) => {
       return $q.when(`(Travis) ${trigger.master}: ${trigger.job}`);
     },
-    selectorTemplate: '<travis-trigger-options command="vm.command"></travis-trigger-options>',
+    selectorTemplate: require('./selectorTemplate.html'),
   };
 }).controller('TravisTriggerCtrl', TravisTrigger);

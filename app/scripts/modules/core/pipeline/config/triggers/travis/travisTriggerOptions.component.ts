@@ -1,4 +1,4 @@
-import {module, IScope} from 'angular';
+import {module, IScope, IComponentOptions} from 'angular';
 
 import {IGOR_SERVICE, IgorService} from 'core/ci/igor.service';
 import {IBuild} from 'core/domain/IBuild';
@@ -9,7 +9,7 @@ interface IViewState {
   selectedBuild: IBuild;
 }
 
-export class TravisTriggerOptions {
+export class TravisTriggerOptionsController {
   public viewState: IViewState;
   public command: any;
   public builds: IBuild[];
@@ -65,17 +65,16 @@ export class TravisTriggerOptions {
   };
 }
 
+class TravisTriggerOptionsComponent implements IComponentOptions {
+  public bindings: any = {
+    command: '='
+  };
+  public templateUrl = require('./travisTriggerOptions.component.html');
+  public controller: any = TravisTriggerOptionsController;
+}
+
 export const TRAVIS_TRIGGER_OPTIONS_COMPONENT = 'spinnaker.core.pipeline.config.triggers.travis.options.component';
+
 module(TRAVIS_TRIGGER_OPTIONS_COMPONENT, [
   IGOR_SERVICE
-]).component('travisTriggerOptions', () => {
-  return {
-    restrict: 'E',
-    templateUrl: require('./travisTriggerOptions.component.html'),
-    bindToController: {
-      command: '=',
-    },
-    controller: 'TravisTriggerOptionsCtrl',
-    scope: {}
-  };
-}).controller('TravisTriggerOptionsCtrl', TravisTriggerOptions);
+]).component('travisTriggerOptions', new TravisTriggerOptionsComponent());

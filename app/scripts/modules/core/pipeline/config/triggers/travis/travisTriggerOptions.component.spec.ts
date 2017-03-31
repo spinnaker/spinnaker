@@ -3,7 +3,7 @@ import {mock, IScope, IQProvider, IQService, IControllerService, IRootScopeServi
 import {IgorService} from 'core/ci/igor.service';
 import {IBuild} from 'core/domain/IBuild';
 import {IBuildTrigger} from 'core/domain/ITrigger';
-import {TRAVIS_TRIGGER_OPTIONS_COMPONENT, TravisTriggerOptions} from './travisTriggerOptions.component';
+import {TRAVIS_TRIGGER_OPTIONS_COMPONENT, TravisTriggerOptionsController} from './travisTriggerOptions.component';
 
 interface ICommand {
   trigger: IBuildTrigger;
@@ -42,7 +42,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   }));
 
   const initialize = () => {
-    return $ctrl(TravisTriggerOptions, {
+    return $ctrl(TravisTriggerOptionsController, {
       igorService: igorService,
       $scope: $scope,
     }, {command: command});
