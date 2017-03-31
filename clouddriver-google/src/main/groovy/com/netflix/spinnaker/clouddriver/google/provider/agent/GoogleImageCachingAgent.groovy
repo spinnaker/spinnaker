@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.batch.BatchRequest
 import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.http.HttpHeaders
+import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.ImageList
 import com.netflix.servo.util.VisibleForTesting
@@ -72,19 +73,33 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
 
   List<Image> loadImages() {
     List<Image> imageList = []
+    List<String> allImageProjects = [project] + imageProjects + baseImageProjects - null
 
-    BatchRequest imageRequest = buildBatchRequest()
+    // We want predictable iteration order that matches the order of insertion.
+    LinkedHashMap<String, String> imageProjectToNextPageTokenMap = new LinkedHashMap<>()
 
-    compute.images().list(project).queue(imageRequest, new AllImagesCallback(imageList: imageList))
-    imageProjects.each {
-      compute.images().list(it).queue(imageRequest, new AllImagesCallback(imageList: imageList))
+    // This will ensure that each image project is queried.
+    allImageProjects.each { imageProjectToNextPageTokenMap[it] = null }
+
+    while (imageProjectToNextPageTokenMap) {
+      BatchRequest imageListBatch = buildBatchRequest()
+      AllImagesCallback<ImageList> imageListCallback =
+        new AllImagesCallback(imageProjectToNextPageTokenMap: imageProjectToNextPageTokenMap, imageList: imageList)
+
+      imageProjectToNextPageTokenMap.each { imageProject, pageToken ->
+        Compute.Images.List imagesList = compute.images().list(imageProject)
+
+        if (pageToken) {
+          imagesList = imagesList.setPageToken(pageToken)
+        }
+
+        imagesList.queue(imageListBatch, imageListCallback)
+      }
+
+      executeIfRequestsAreQueued(imageListBatch, "ImageCaching.image")
     }
-    baseImageProjects.each {
-      compute.images().list(it).queue(imageRequest, new AllImagesCallback<ImageList>(imageList: imageList))
-    }
-    executeIfRequestsAreQueued(imageRequest, "ImageCaching.image")
 
-    imageList
+    return imageList
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Image> imageList) {
@@ -113,6 +128,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
 
   class AllImagesCallback<ImageList> extends JsonBatchCallback<ImageList> implements FailureLogger {
 
+    LinkedHashMap<String, String> imageProjectToNextPageTokenMap
     List<Image> imageList
 
     @Override
@@ -120,6 +136,16 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
       def nonDeprecatedImages = filterDeprecatedImages(imageListResult)
       if (nonDeprecatedImages) {
         imageList.addAll(nonDeprecatedImages)
+      }
+
+      // selfLinks look like this: https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images
+      def selfLinkTokens = imageListResult.getSelfLink().tokenize("/")
+      def imageProject = selfLinkTokens[selfLinkTokens.size() - 3]
+
+      if (imageListResult.nextPageToken) {
+        imageProjectToNextPageTokenMap[imageProject] = imageListResult.nextPageToken
+      } else {
+        imageProjectToNextPageTokenMap.remove(imageProject)
       }
     }
   }

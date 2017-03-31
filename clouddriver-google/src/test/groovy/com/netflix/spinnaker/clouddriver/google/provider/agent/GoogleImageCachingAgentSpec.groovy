@@ -28,16 +28,18 @@ class GoogleImageCachingAgentSpec extends Specification {
     setup:
       def imageList = new ArrayList<String>()
       def imagesCallback1 = new GoogleImageCachingAgent.AllImagesCallback(new GoogleImageCachingAgent())
+      imagesCallback1.imageProjectToNextPageTokenMap = [:]
       imagesCallback1.imageList = imageList
-      def imageListResult1 = new ImageList()
+      def imageListResult1 = new ImageList(selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images")
       imageListResult1.setItems([new Image(name: "backports-debian-7-wheezy-v20141108"),
                                  new Image(name: "debian-7-wheezy-v20141108"),
                                  new Image(name: "someos-8-something-v20141108"),
                                  new Image(name: "otheros-9-something-v20141108")])
 
       def imagesCallback2 = new GoogleImageCachingAgent.AllImagesCallback(new GoogleImageCachingAgent())
+      imagesCallback2.imageProjectToNextPageTokenMap = [:]
       imagesCallback2.imageList = imageList
-      def imageListResult2 = new ImageList()
+      def imageListResult2 = new ImageList(selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images")
       imageListResult2.setItems([new Image(name: "ubuntu-1404-trusty-v20141028"),
                                  buildImage("ubuntu-1404-trusty-v20141029", true),
                                  new Image(name: "ubuntu-1404-trusty-v20141031a")])
@@ -59,8 +61,9 @@ class GoogleImageCachingAgentSpec extends Specification {
     setup:
       def imageList = new ArrayList<String>()
       def imagesCallback = new GoogleImageCachingAgent.AllImagesCallback(new GoogleImageCachingAgent())
+      imagesCallback.imageProjectToNextPageTokenMap = [:]
       imagesCallback.imageList = imageList
-      def imageListResult = new ImageList()
+      def imageListResult = new ImageList(selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images")
       imageListResult.setItems([buildImage("my-image-1", false),
                                 buildImage("my-image-2", true),
                                 buildImage("my-image-3", false),

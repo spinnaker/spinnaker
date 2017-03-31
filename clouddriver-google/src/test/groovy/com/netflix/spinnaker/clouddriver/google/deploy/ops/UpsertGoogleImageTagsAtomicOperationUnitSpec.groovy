@@ -82,8 +82,10 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
 
       batchMock.demand.size { return 1 }
       batchMock.demand.execute {
-        def imageList = new ImageList()
-        imageList.setItems([new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK)])
+        def imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          items: [new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK)]
+        )
         callback.onSuccess(imageList, null)
       }
 
@@ -152,8 +154,10 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
 
       batchMock.demand.size { return 1 }
       batchMock.demand.execute {
-        def imageList = new ImageList()
-        imageList.setItems([new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK, labels: LABELS)])
+        def imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          items: [new Image(name: IMAGE_NAME, selfLink: IMAGE_SELF_LINK, labels: LABELS)]
+        )
         callback.onSuccess(imageList, null)
       }
 
@@ -219,8 +223,20 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
       }
 
       batchMock.demand.execute {
-        def imageList = new ImageList()
-        imageList.setItems([new Image(name: IMAGE_NAME + "-WRONG")])
+        def imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          items: [new Image(name: IMAGE_NAME + "-WRONG")]
+        )
+        callback.onSuccess(imageList, null)
+        imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/centos-cloud/global/images",
+          items: [new Image(name: IMAGE_NAME + "-WRONG")]
+        )
+        callback.onSuccess(imageList, null)
+        imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images",
+          items: [new Image(name: IMAGE_NAME + "-WRONG")]
+        )
         callback.onSuccess(imageList, null)
       }
 

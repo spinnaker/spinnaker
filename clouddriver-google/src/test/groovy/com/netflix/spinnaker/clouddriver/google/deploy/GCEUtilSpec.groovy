@@ -100,8 +100,10 @@ class GCEUtilSpec extends Specification {
 
       batchMock.demand.size { return 1 }
       batchMock.demand.execute {
-        def imageList = new ImageList()
-        imageList.setItems([soughtImage])
+        def imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          items: [soughtImage]
+        )
         callback.onSuccess(imageList, null)
       }
 
@@ -152,8 +154,10 @@ class GCEUtilSpec extends Specification {
 
       batchMock.demand.size { return 1 }
       batchMock.demand.execute {
-        def imageList = new ImageList()
-        imageList.setItems([soughtImage])
+        def imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          items: [soughtImage]
+        )
         callback.onSuccess(imageList, null)
       }
 
@@ -202,8 +206,20 @@ class GCEUtilSpec extends Specification {
 
       batchMock.demand.size { return 1 }
       batchMock.demand.execute {
-        def imageList = new ImageList()
-        imageList.setItems([new Image(name: IMAGE_NAME + "-WRONG")])
+        def imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+          items: [new Image(name: IMAGE_NAME + "-WRONG")]
+        )
+        callback.onSuccess(imageList, null)
+        imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/centos-cloud/global/images",
+          items: [new Image(name: IMAGE_NAME + "-WRONG")]
+        )
+        callback.onSuccess(imageList, null)
+        imageList = new ImageList(
+          selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images",
+          items: [new Image(name: IMAGE_NAME + "-WRONG")]
+        )
         callback.onSuccess(imageList, null)
       }
 
