@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 
+import {get, set} from 'lodash';
 import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
@@ -15,6 +16,7 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
                                                                 application, serverGroup, kubernetesAutoscalerWriter) {
     $scope.serverGroup = serverGroup;
     $scope.currentSize = { desired: serverGroup.replicas };
+    let hasAutoscaler = !!$scope.serverGroup.autoscalerStatus;
 
     $scope.command = {
       capacity: {
@@ -22,10 +24,11 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       },
     };
 
-    if ($scope.serverGroup.autoscalerStatus) {
+    if (hasAutoscaler) {
       $scope.command.capacity.min = $scope.serverGroup.deployDescription.capacity.min;
       $scope.command.capacity.max = $scope.serverGroup.deployDescription.capacity.max;
-      $scope.command.scalingPolicy = { cpuUtilization: { target: null, }, };
+      let cpuUtilizationTarget = get($scope.serverGroup, 'deployDescription.scalingPolicy.cpuUtilization.target', null);
+      set($scope.command, 'scalingPolicy.cpuUtilization.target', cpuUtilizationTarget);
     }
 
     $scope.verification = {};
@@ -55,11 +58,21 @@ module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize
       if (!this.isValid()) {
         return;
       }
-      var capacity = $scope.command.capacity;
+      let capacity;
+      if (hasAutoscaler) {
+        capacity = $scope.command.capacity;
+      } else {
+        capacity = {
+          min: $scope.command.capacity.desired,
+          max: $scope.command.capacity.desired,
+          desired: $scope.command.capacity.desired,
+        };
+      }
 
       var submitMethod = function() {
         var payload = {
           capacity: capacity,
+          scalingPolicy: hasAutoscaler ? $scope.command.scalingPolicy : null,
           serverGroupName: serverGroup.name,
           credentials: serverGroup.account,
           account: serverGroup.account,
