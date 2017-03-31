@@ -442,7 +442,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
     void registerMetrics(AmazonReservationReport reservationReport) {
       reservationReport.reservations.each { OverallReservationDetail overallReservationDetail ->
         def baseTags = [
-          availabilityZone: overallReservationDetail.availabilityZone,
+          availabilityZone: overallReservationDetail.availabilityZone ?: "n/a",
           instanceType    : overallReservationDetail.instanceType,
           os              : overallReservationDetail.os.name
         ] as Map<String, String>
