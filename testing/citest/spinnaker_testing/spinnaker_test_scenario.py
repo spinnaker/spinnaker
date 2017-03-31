@@ -185,7 +185,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       defaults: [dict] Default binding value overrides.
          This is used to initialize the default commandline parameters.
     """
-
+    parser.add_argument(
+        '--azure_subscription_name', dest='spinnaker_azure_account',
+        help='The name of your subscriptoin.')
     parser.add_argument(
         '--azure_subscription_id', dest='spinnaker_azure_subscription_id',
         help='The subscription id of your subscriptoin.')
@@ -619,8 +621,8 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         pass
       self.bindings[key] = value
     
-    if not self.bindings['SPINNAKER_AZURE_ACCOUNT_NAME']:
-      self.bindings['SPINNAKER_AZURE_ACCOUNT_NAME'] = (
+    if not self.bindings['SPINNAKER_AZURE_ACCOUNT']:
+      self.bindings['SPINNAKER_AZURE_ACCOUNT'] = (
         self.agent.deployed_config.get(
           'providers.azure.primaryCredentials.name', None)) 
 
