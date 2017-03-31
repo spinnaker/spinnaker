@@ -51,6 +51,7 @@ import com.netflix.spinnaker.clouddriver.model.NoopSubnetProvider
 import com.netflix.spinnaker.clouddriver.model.ReservationReportProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.search.ApplicationSearchProvider
 import com.netflix.spinnaker.clouddriver.search.NoopSearchProvider
 import com.netflix.spinnaker.clouddriver.search.ProjectSearchProvider
@@ -224,5 +225,11 @@ class CloudDriverConfig {
     return new CoreProvider([
       new CleanupPendingOnDemandCachesAgent(jedisSource, applicationContext)
     ])
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(AtomicOperationConverter)
+  AtomicOperationConverter atomicOperationConverter() {
+    new NoopAtomicOperationConverter()
   }
 }
