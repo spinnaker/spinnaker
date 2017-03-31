@@ -16,11 +16,16 @@
 
 package com.netflix.spinnaker.gate.security
 
+import com.netflix.discovery.converters.Auto
+import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
+import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
+import com.netflix.spinnaker.gate.filters.FiatSessionFilter
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
+import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
@@ -33,6 +38,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
+import org.springframework.security.web.session.ConcurrentSessionFilter
 import org.springframework.stereotype.Component
 
 import javax.servlet.ServletException
@@ -48,6 +54,12 @@ class AuthConfig {
 
   @Autowired
   SecurityProperties securityProperties
+
+  @Autowired
+  FiatClientConfigurationProperties configProps
+
+  @Autowired
+  FiatPermissionEvaluator permissionEvaluator
 
   @Bean
   @ConditionalOnMissingBean(UserRolesProvider)
@@ -76,6 +88,7 @@ class AuthConfig {
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
         .and()
+      .addFilterAfter(new FiatSessionFilter(configProps, permissionEvaluator), ConcurrentSessionFilter.class)
       .logout()
         .logoutUrl("/auth/logout")
         .logoutSuccessHandler(permissionRevokingLogoutSuccessHandler)
