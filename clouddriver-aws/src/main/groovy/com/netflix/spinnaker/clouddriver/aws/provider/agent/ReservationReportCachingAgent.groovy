@@ -268,7 +268,7 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
               ["Heavy Utilization", "Partial Upfront", "All Upfront", "No Upfront"].contains(it.offeringType)
           }.each {
             def osType = operatingSystemType(it.productDescription)
-            def reservation = getReservation(it.region, it.availabilityZone, osType.name, it.instanceType)
+            def reservation = getReservation(region.name, it.availabilityZone, osType.name, it.instanceType)
             reservation.totalReserved.addAndGet(it.instanceCount)
 
             if (osType.isVpc || vpcOnlyAccounts.contains(credentials.name)) {
