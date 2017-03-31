@@ -204,6 +204,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         '--azure_location', dest='spinnaker_azure_location',
         help='The azure location to be used.')
     parser.add_argument(
+        '--test_azure_location', default = defaults.get('TEST_AZURE_LOCATION', 'westus'),
+        help='The azure location to be used.')
+    parser.add_argument(
         '--azure_account_name', dest='spinnaker_azure_account_name',
         help='The name of the account in spinnaker.')
     parser.add_argument(
@@ -538,13 +541,12 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
 
   def __init_azure_bindings(self):
-    bindings=self.bindings  # base class made a copy
+    bindings = self.bindings  # base class made a copy
     if not bindings.get('TEST_AZURE_LOCATION'):
-      bindings['TEST_AZURE_LOCATION']=bindings['SPINNAKER_AZURE_LOCATION']
+      bindings['TEST_AZURE_LOCATION'] = bindings['TEST_AZURE_LOCATION']
+      self.__az_observer = az.AzAgent()
     else:
-      self.__azure_observer=az.AzAgent(
-        bindings['TEST_AZURE_LOCATION']
-      )
+      self.__az_observer = az.AzAgent()
 
 
   def __init_google_bindings(self):
@@ -624,7 +626,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     if not self.bindings['SPINNAKER_AZURE_ACCOUNT']:
       self.bindings['SPINNAKER_AZURE_ACCOUNT'] = (
         self.agent.deployed_config.get(
-          'providers.azure.primaryCredentials.name', None)) 
+          'providers.azure.primaryCredentials.name', None))
 
     if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
       self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (

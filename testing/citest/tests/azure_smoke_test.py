@@ -78,6 +78,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
     self.TEST_STACK = bindings['TEST_STACK']
+    self.TEST_SECURITY_GROUP = 'sec_grp_'+ bindings['TEST_APP']
 
 
   def create_app(self):
@@ -104,9 +105,39 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     To verify the operation, we just check that the spinnaker security group
     for the given application was created.
     """
+    rules = [
+        {
+            "fromPort": 80,
+            "toPort": 80,
+            "prevcidr": "0.0.0.0/0",
+            "cidr": "0.0.0.0/0",
+            "ruleType": "TCP",
+            "remoteSecurityGroupId": "",
+            "icmpType": -1,
+            "icmpCode": -1
+        },
+        {
+            "fromPort": 10,
+            "toPort": 65530,
+            "prevcidr": "",
+            "cidr": "",
+            "ruleType": "UDP",
+            "remoteSecurityGroupId": "SELF",
+            "icmpType": -1,
+            "icmpCode": -1
+        },
+        {
+            "fromPort": 1,
+            "toPort": 65535,
+            "prevcidr": "",
+            "cidr": "",
+            "ruleType": "ICMP",
+            "remoteSecurityGroupId": "SELF",
+            "icmpType": 12,
+            "icmpCode": 9}]
     job = [{
         "provider": "azure",
-        "region": self.bindings['AZURE_REGION_NAME'],
+        "region": self.bindings['TEST_AZURE_LOCATION'],
         "stack": self.TEST_STACK,
         "description": "Test - create security group for {app}".format(
             app=self.TEST_APP),
@@ -117,7 +148,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
         "securityGroupName": self.TEST_SECURITY_GROUP,
         "cloudProvider": "azure",
         "type": "upsertSecurityGroup",
-        "user": self.bindings['TEST_AZURE_USERNAME']
+        "user": '[anonymous]'
     }]
     builder = az.AzContractBuilder(self.az_observer)
     (builder.new_clause_builder(
