@@ -5,6 +5,7 @@ let angular = require('angular');
 import {BUILD_DISPLAY_NAME_FILTER} from './executionBuild/buildDisplayName.filter';
 import {STAGE_FAILURE_MESSAGE_COMPONENT} from './stageFailureMessage/stageFailureMessage.component';
 import {DELIVERY_STATES} from './delivery.states';
+import {EXECUTION_STATUS_COMPONENT} from './status/executionStatus.component';
 
 module.exports = angular.module('spinnaker.delivery', [
 
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.delivery', [
   require('./manualExecution/manualPipelineExecution.controller.js'),
 
   STAGE_FAILURE_MESSAGE_COMPONENT,
-  require('./status/executionStatus.directive.js'),
+  EXECUTION_STATUS_COMPONENT,
 
   require('../utils/appendTransform.js'),
   require('../utils/moment.js'),
