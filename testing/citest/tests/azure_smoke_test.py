@@ -130,7 +130,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
             app=self.TEST_APP),
         "detail": "",
         "credentials": self.bindings['SPINNAKER_AZURE_ACCOUNT'],
-        "rules": rules,
+        "securityRules": rules,
         "name": self.TEST_SECURITY_GROUP,
         "securityGroupName": self.TEST_SECURITY_GROUP,
         "cloudProvider": "azure",
@@ -141,23 +141,16 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(
         'Security Group Created', retryable_for_secs=30)
      .collect_resources(
-         az_resource='group', 
-         command='show', 
-         args=['--name', self.TEST_SECURITY_GROUP_RG])
+         az_resource='network',
+         command='nsg',
+         args=['show', '--name', self.TEST_SECURITY_GROUP, '--resource-group', self.TEST_SECURITY_GROUP_RG])
      .contains_pred_list([
          jp.DICT_MATCHES({
-             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
-             'rules': jp.STR_SUBSTR("protocol='tcp'")
-                      and jp.STR_SUBSTR("port_range_min='80'")
-                      and jp.STR_SUBSTR("port_range_max='80'")}),
-         jp.DICT_MATCHES({
-             'rules': jp.STR_SUBSTR("protocol='udp'")
-                      and jp.STR_SUBSTR("port_range_min='10'")
-                      and jp.STR_SUBSTR("port_range_max='65530'")}),
-         jp.DICT_MATCHES({
-             'rules': jp.STR_SUBSTR("protocol='icmp'")
-                      and jp.STR_SUBSTR("port_range_min='12'")
-                      and jp.STR_SUBSTR("port_range_max='9'")})]))
+             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP)#,
+            #  'securityRules': jp.STR_SUBSTR("protocol='tcp'")
+            #           and jp.STR_SUBSTR("priority=100")
+            #           and jp.STR_SUBSTR("destinationPortRange='80-80'")})
+         })]))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=' Test - create security group for {app}'.format(
@@ -177,7 +170,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     for the given application was deleted.
     """
     #Get ID of the created security group
-    az_agent = az.AsAgent(None)
+    az_agent = az.AzAgent(None)
     data = az_agent.get_resource('security group', self.TEST_SECURITY_GROUP)
     security_group_id = data['id']
 
