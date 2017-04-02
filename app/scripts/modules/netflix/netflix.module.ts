@@ -19,7 +19,7 @@ templates.keys().forEach(function (key) {
 });
 
 export const NETFLIX_MODULE = 'spinnaker.netflix';
-module('spinnaker.netflix', [
+module(NETFLIX_MODULE, [
   APPLICATION_DATA_SOURCE_REGISTRY,
   AVAILABILITY_DIRECTIVE,
   BLESK_MODULE,
