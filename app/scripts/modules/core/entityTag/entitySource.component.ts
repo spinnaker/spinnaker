@@ -1,6 +1,8 @@
 import {module} from 'angular';
+
 import {ICreationMetadataTag} from 'core/domain/IEntityTags';
 import {IExecution} from '../domain/IExecution';
+import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
 
 class EntitySourceCtrl implements ng.IComponentController {
   public relativePath = '^.^.^';
@@ -12,7 +14,7 @@ class EntitySourceCtrl implements ng.IComponentController {
 
   static get $inject() { return ['executionService']; }
 
-  constructor(private executionService: any) {}
+  constructor(private executionService: ExecutionService) {}
 
   public $onInit(): void {
     this.executionType = 'Task';
@@ -45,7 +47,7 @@ class EntitySourceComponent implements ng.IComponentOptions {
               popover-placement="left"
               popover-trigger="mouseenter">
           <span ng-if="$ctrl.executionNotFound">pipeline (not found)</span>
-          <a ng-if="!$ctrl.executionNotFound && $ctrl.metadata.value.executionType === 'pipeline'" 
+          <a ng-if="!$ctrl.executionNotFound && $ctrl.metadata.value.executionType === 'pipeline'"
              ui-sref="{{$ctrl.relativePath}}.pipelines.executionDetails.execution({application: $ctrl.metadata.value.application, executionId: $ctrl.metadata.value.executionId, stageId: $ctrl.metadata.value.stageId})">
             pipeline
           </a>
@@ -60,4 +62,6 @@ class EntitySourceComponent implements ng.IComponentOptions {
 }
 
 export const ENTITY_SOURCE_COMPONENT = 'spinnaker.core.entityTag.entitySource.component';
-module(ENTITY_SOURCE_COMPONENT, []).component('entitySource', new EntitySourceComponent());
+module(ENTITY_SOURCE_COMPONENT, [
+  EXECUTION_SERVICE
+]).component('entitySource', new EntitySourceComponent());

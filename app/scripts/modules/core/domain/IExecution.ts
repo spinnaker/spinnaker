@@ -10,4 +10,6 @@ export interface IExecution extends IOrchestratedItem {
   user: string;
   stageSummaries?: IStageSummary[];
   isStrategy?: boolean;
+  name?: string;
+  executionEngine?: string;
 }

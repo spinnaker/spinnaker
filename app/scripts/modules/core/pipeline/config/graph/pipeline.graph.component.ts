@@ -11,7 +11,7 @@ export class PipelineGraphController implements ng.IComponentController {
   public pipeline: IPipeline;
   public execution: IExecution;
   public viewState: IExecutionViewState;
-  public onNodeClick: (node: IPipelineNode) => void;
+  public onNodeClick: (node: any) => void;
   public shouldValidate: boolean;
   private pipelineValidations: IPipelineValidationResults = { pipeline: [], stages: [] };
   private minLabelWidth = 100;
@@ -323,7 +323,7 @@ export class PipelineGraphController implements ng.IComponentController {
     const graphId = this.pipeline ? this.pipeline.id : this.execution.id;
 
     this.$scope.nodeClicked = (node: IPipelineNode) => {
-      this.onNodeClick(node);
+      this.onNodeClick({ node: node });
     };
 
     this.$scope.highlight = (node: IPipelineNode) => {
@@ -385,7 +385,7 @@ class PipelineGraphComponent implements ng.IComponentOptions {
     pipeline: '=',
     execution: '=',
     viewState: '=',
-    onNodeClick: '=',
+    onNodeClick: '&',
     shouldValidate: '=',
   };
 

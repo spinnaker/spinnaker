@@ -8,7 +8,7 @@ export interface ICancelModalParams {
   cancelButtonText?: string;
   forceable?: boolean;
   header: string;
-  submitMethod: (args: any) => ng.IPromise<any>;
+  submitMethod: (reason: string, force?: boolean) => ng.IPromise<any>;
 }
 
 export class CancelModalService {
