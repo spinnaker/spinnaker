@@ -14,7 +14,7 @@
   &.clickable.heading-sticky {
     box-shadow: none;
     .shadowed {
-      box-shadow: 0px 8px 6px -6px @mid_lighter_grey;
+      box-shadow: 0 8px 6px -6px @mid_lighter_grey;
     }
   }
   .clearfix();
@@ -22,11 +22,12 @@
 
 .execution-group-heading, .execution-name {
   .account-tag {
+    display: flex;
+    min-height: 37px;
+    line-height: 16px;
+    align-items: center;
     flex: 0 0 auto;
     padding: 0 15px;
-    height: 37px;
-    line-height: 37px;
-    display: inline-block;
     border-right: 1px solid @lightest_grey;
     color: #ffffff;
     background-color: #777;
