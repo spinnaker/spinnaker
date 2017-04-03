@@ -469,8 +469,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
       task.updateStatus BASE_PHASE, "Creating global forwarding rule $httpLoadBalancerName..."
       def forwardingRule = new ForwardingRule(
         name: httpLoadBalancerName,
-        iPAddress: httpLoadBalancer.ipAddress,
-        iPProtocol: httpLoadBalancer.ipProtocol,
+        IPAddress: httpLoadBalancer.ipAddress,
+        IPProtocol: httpLoadBalancer.ipProtocol,
         portRange: httpLoadBalancer.certificate ? "443" : httpLoadBalancer.portRange,
         target: targetProxyUrl,
       )
