@@ -84,7 +84,9 @@ hal config provider kubernetes account add my-k8s-account \
 hal config provider google enable
 hal config provider google account add my-gce-account \
     --json-path /supporting_data/build.json --project $BUILD_PROJECT
-hal config storage edit --account-name my-gce-account
+
+# Uses default root-folder 'spinnaker' implicitly.
+hal config storage edit --account-name my-gce-account --bucket $GCS_BUCKET
 
 hal config deploy edit --type distributed --account-name my-k8s-account
 hal deploy run

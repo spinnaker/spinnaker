@@ -49,6 +49,12 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     parser.add_argument(
         '--gcs_json_path', default='',
         help='The path to the Google Cloud Storage service credentials JSON file.')
+    parser.add_argument(
+        '--gcs_bucket', default='',
+        help="The name of the Google Cloud Storage bucket to use, e.g. 'spinnaker-bucket'.")
+    parser.add_argument(
+        '--gcs_base_path', default='',
+        help="The root folder in the specified Google Cloud Storage bucket to place all of Spinnaker's persistent data.")
 
     super(GoogleFront50TestScenario, cls).initArgumentParser(
         parser, defaults=defaults)
@@ -61,8 +67,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     if not enabled:
       raise ValueError('spinnaker.gcs.enabled is not True')
 
-    self.BUCKET = config['spinnaker.gcs.bucket']
-    self.BASE_PATH = config['spinnaker.gcs.rootFolder']
+    self.BUCKET = self.bindings['GCS_BUCKET'] or config['spinnaker.gcs.bucket']
+    self.BASE_PATH = config['spinnaker.gcs.rootFolder'] or self.bindings['GCS_BASE_PATH']
     self.TEST_APP = self.bindings['TEST_APP']
     self.TEST_PIPELINE_NAME = 'My {app} Pipeline'.format(app=self.TEST_APP)
     self.TEST_PIPELINE_ID = '{app}-pipeline-id'.format(app=self.TEST_APP)
