@@ -41,6 +41,8 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
   AppengineTrafficSplit split
   String httpUrl
   String httpsUrl
+  String project
+  List<AppenginePlatformApplication.AppengineDispatchRule> dispatchRules
 
   AppengineLoadBalancer() { }
 
@@ -52,6 +54,8 @@ class AppengineLoadBalancer implements LoadBalancer, Serializable {
     this.split = new ObjectMapper().convertValue(service.getSplit(), AppengineTrafficSplit)
     this.httpUrl = AppengineModelUtil.getHttpUrl(service.getName())
     this.httpsUrl = AppengineModelUtil.getHttpsUrl(service.getName())
+    // Self link has the form apps/{project}/services/{service}.
+    this.project = this.selfLink.split('/').getAt(1)
   }
 
   Void setLoadBalancerServerGroups(Set<AppengineServerGroup> serverGroups) {

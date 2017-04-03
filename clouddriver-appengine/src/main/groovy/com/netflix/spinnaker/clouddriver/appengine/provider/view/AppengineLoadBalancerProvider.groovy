@@ -57,6 +57,9 @@ class AppengineLoadBalancerProvider implements LoadBalancerProvider<AppengineLoa
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  AppenginePlatformApplicationProvider platformApplicationProvider
+
   @Override
   Set<AppengineLoadBalancer> getApplicationLoadBalancers(String applicationName) {
     String applicationKey = Keys.getApplicationKey(applicationName)
@@ -65,12 +68,11 @@ class AppengineLoadBalancerProvider implements LoadBalancerProvider<AppengineLoa
     def applicationLoadBalancers = AppengineProviderUtils.resolveRelationshipData(cacheView,
                                                                                   application,
                                                                                   Namespace.LOAD_BALANCERS.ns)
-    translateLoadBalancers(applicationLoadBalancers)
+    return translateLoadBalancers(applicationLoadBalancers)
   }
 
   Set<AppengineLoadBalancer> translateLoadBalancers(Collection<CacheData> cacheData) {
-    cacheData.collect { loadBalancerData ->
-
+    return cacheData.collect { loadBalancerData ->
       Set<AppengineServerGroup> serverGroups = AppengineProviderUtils
         .resolveRelationshipData(cacheView, loadBalancerData, Namespace.SERVER_GROUPS.ns)
         .collect {
@@ -80,7 +82,11 @@ class AppengineLoadBalancerProvider implements LoadBalancerProvider<AppengineLoa
           AppengineProviderUtils.serverGroupFromCacheData(objectMapper, it, instances)
         }
 
-      AppengineProviderUtils.loadBalancerFromCacheData(objectMapper, loadBalancerData, serverGroups)
+      def loadBalancer = AppengineProviderUtils.loadBalancerFromCacheData(objectMapper, loadBalancerData, serverGroups)
+      def platformApplication = platformApplicationProvider.getPlatformApplication(loadBalancer.project)
+      loadBalancer.dispatchRules = platformApplication?.dispatchRules?.findAll { it.service == loadBalancer.name }
+
+      return loadBalancer
     }
   }
 
@@ -89,6 +95,6 @@ class AppengineLoadBalancerProvider implements LoadBalancerProvider<AppengineLoa
     CacheData loadBalancerData = cacheView.get(Namespace.LOAD_BALANCERS.ns, loadBalancerKey)
     Set<AppengineLoadBalancer> loadBalancerSet = translateLoadBalancers([loadBalancerData] - null)
 
-    loadBalancerSet ? loadBalancerSet.first() : null
+    return loadBalancerSet ? loadBalancerSet.first() : null
   }
 }

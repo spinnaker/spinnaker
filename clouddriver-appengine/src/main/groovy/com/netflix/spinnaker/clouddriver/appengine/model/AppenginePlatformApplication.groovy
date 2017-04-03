@@ -29,6 +29,8 @@ class AppenginePlatformApplication {
   String id
   String locationId
 
+  AppenginePlatformApplication() {}
+
   AppenginePlatformApplication(Application application) {
     this.dispatchRules = application.getDispatchRules()?.collect { rule ->
       new AppengineDispatchRule(rule.getDomain(), rule.getPath(), rule.getService())

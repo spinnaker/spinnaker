@@ -75,14 +75,13 @@ class AppengineModelUtil {
   private static final String baseUrl = ".appspot.com"
 
   /*
-    Self link has form apps/myapp/services/myservice/versions/myversion
+    Self link has the form apps/{project}/services/{service}/versions/{version}.
     HTTPS: myversion-dot-myservice-dot-myapp.appspot.com
     HTTP: myversion.myservice.myapp.appspot.com
 
     This should work for services and versions, and for
     the default service and its versions ("default" can be omitted from their URLs).
   */
-
   @VisibleForTesting
   static String getUrl(String selfLink, String delimiter) {
     def parts = selfLink.split("/").reverse()
