@@ -19,50 +19,33 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
-import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Component
-public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory {
-  private static String SPINNAKER_TEMPLATE = String.join("\n",
-      "<VirtualHost {%deck-host%}:{%deck-port%}>",
-      "  SSLEngine {%ssl-engine%}",
-      "  SSLCertificateFile \"{%cert-file%}\"",
-      "  SSLCertificateKeyFile \"{%key-file%}\"",
-      "",
-      "  DocumentRoot /opt/deck/html",
-      "",
-      "  <Directory \"/opt/deck/html/\">",
-      "     Require all granted",
-      "  </Directory>",
-      "</VirtualHost>");
+public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory {
+  private static String PASSPHRASE_TEMPLATE = "#!/usr/bin/env bash\n"
+      + "echo {%passphrase%}\n";
 
   @Override
   protected String getTemplate() {
-    return SPINNAKER_TEMPLATE;
+    return PASSPHRASE_TEMPLATE;
   }
 
   @Override
-  protected List<String> requiredFiles(DeploymentConfiguration deploymentConfiguration) {
-   return processRequiredFiles(deploymentConfiguration.getSecurity().getUiSecurity());
+  protected boolean showEditWarning() {
+    return false;
   }
 
   @Override
   protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, String> bindings = new HashMap<>();
-    UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
-    ApacheSsl ssl = uiSecurity.getSsl();
-    bindings.put("ssl-engine", ssl.isEnabled() ? "on" : "off");
-    bindings.put("cert-file", ssl.getSslCertificateFile());
-    bindings.put("key-file", ssl.getSslCertificateKeyFile());
-    bindings.put("deck-host", endpoints.getServices().getDeck().getHost());
-    bindings.put("deck-port", endpoints.getServices().getDeck().getPort() + "");
+    ApacheSsl ssl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
+    bindings.put("passphrase", ssl.getSslCertificatePassphrase());
     return bindings;
   }
 

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.GateProfileFactory;
@@ -85,5 +86,11 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     boolean enabled = true;
 
     public Settings() {}
+
+    public Settings(ApiSecurity apiSecurity) {
+      if (apiSecurity.getSsl().isEnabled()) {
+        scheme = "https";
+      }
+    }
   }
 }

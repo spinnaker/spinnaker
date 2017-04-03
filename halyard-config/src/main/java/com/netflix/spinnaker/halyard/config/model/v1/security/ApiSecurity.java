@@ -15,22 +15,28 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.config.model.v1.security;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class ServerConfig {
-  SpringSsl ssl = new SpringSsl();
+public class ApiSecurity extends PublicService<SpringSsl> {
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
+  }
 
-  String port;
-  String address;
+  @Override
+  public String getNodeName() {
+    return "apiSecurity";
+  }
 
-  ServerConfig(ServiceSettings service) {
-    port = Integer.toString(service.getPort());
-    address = service.getHost();
+  @Override
+  SpringSsl baseSsl() {
+    return new SpringSsl();
   }
 }

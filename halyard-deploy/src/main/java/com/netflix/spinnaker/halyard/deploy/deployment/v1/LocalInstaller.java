@@ -33,13 +33,12 @@ public class LocalInstaller {
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
         .collect(Collectors.toList());
 
-    enabledServices.forEach(i -> i.stageProfiles(resolvedConfiguration));
     List<String> installCommands = enabledServices
         .stream()
-        .map(i -> i.installArtifactCommand(deploymentDetails))
+        .map(i -> String.join("\n", i.installArtifactCommand(deploymentDetails), i.stageProfilesCommand(resolvedConfiguration)))
         .collect(Collectors.toList());
 
-    String installCommand = serviceProvider.getInstallCommand(installCommands);
+    String installCommand = serviceProvider.getInstallCommand(resolvedConfiguration, installCommands);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);

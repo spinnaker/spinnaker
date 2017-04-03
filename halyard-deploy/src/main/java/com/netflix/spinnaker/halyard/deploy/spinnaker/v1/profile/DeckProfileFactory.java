@@ -54,18 +54,9 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     StringResource configTemplate = new StringResource(profile.getBaseContents());
 
-    /*
-    // Configure apache2
-    JarResource spinnakerConfTemplate = new JarResource("/apache2/spinnaker.conf");
-
-    config.extendConfig("apache2/spinnaker.conf", spinnakerConfTemplate.setBindings(bindings).toString());
-    config.extendConfig("apache2/ports.conf", portsConfTemplate.setBindings(bindings).toString());
-    */
-
     Features features = deploymentConfiguration.getFeatures();
     Map<String, String> bindings = new HashMap<>();
 
-    bindings = new HashMap<>();
     // Configure global settings
     bindings.put("gate.baseUrl", endpoints.getServices().getGate().getBaseUrl());
     bindings.put("timezone", deploymentConfiguration.getTimezone());

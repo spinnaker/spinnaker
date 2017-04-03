@@ -19,12 +19,10 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ApachePortsProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ApacheSpinnakerProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.DeckProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +41,9 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
 
   @Autowired
   DeckProfileFactory deckProfileFactory;
+
+  @Autowired
+  ApachePassphraseProfileFactory apachePassphraseProfileFactory;
 
   @Autowired
   ApachePortsProfileFactory apachePortsProfileFactory;
@@ -69,14 +70,20 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
     String htmlPath = "/opt/deck/html/";
-    String portsPath = "/etc/apache2/";
+    String apache2Path = "/etc/apache2/";
     String sitePath = "/etc/apache2/sites-available/";
     String filename = "settings.js";
     String path = Paths.get(htmlPath, filename).toString();
     result.add(deckProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
+
+    filename = "passphrase";
+    path = Paths.get(apache2Path, filename).toString();
+    result.add(apachePassphraseProfileFactory.getProfile("apache2/" + filename, path, deploymentConfiguration, endpoints).setExecutable(true));
+
     filename = "ports.conf";
-    path = Paths.get(portsPath, filename).toString();
+    path = Paths.get(apache2Path, filename).toString();
     result.add(apachePortsProfileFactory.getProfile("apache2/" + filename, path, deploymentConfiguration, endpoints));
+
     filename = "spinnaker.conf";
     path = Paths.get(sitePath, filename).toString();
     result.add(apacheSpinnakerProfileFactory.getProfile("apache2/" + filename, path, deploymentConfiguration, endpoints));
@@ -101,5 +108,11 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
     boolean enabled = true;
 
     public Settings() {}
+
+    public Settings(UiSecurity uiSecurity) {
+      if (uiSecurity.getSsl().isEnabled()) {
+        scheme = "https";
+      }
+    }
   }
 }

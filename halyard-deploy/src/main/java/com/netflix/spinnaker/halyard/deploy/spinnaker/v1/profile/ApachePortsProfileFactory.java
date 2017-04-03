@@ -27,15 +27,17 @@ import java.util.Map;
 
 @Component
 public class ApachePortsProfileFactory extends TemplateBackedProfileFactory {
-  private static String PORTS_TEMPLATE = "Listen {%deck-host%}:{%deck-port%}\n"
-      + "\n"
-      + "<IfModule ssl_module>\n"
-      + "  Listen 443\n"
-      + "</IfModule>\n"
-      + "\n"
-      + "<IfModule mod_gnutls.c>\n"
-      + "  Listen 443\n"
-      + "</IfModule>\n";
+  private static String PORTS_TEMPLATE = String.join("\n",
+      "Listen {%deck-host%}:{%deck-port%}",
+      "",
+      "<IfModule ssl_module>",
+      "  Listen 443",
+      "  SSLPassPhraseDialog exec:/etc/apache2/passphrase",
+      "</IfModule>",
+      "",
+      "<IfModule mod_gnutls.c>",
+      "  Listen 443",
+      "</IfModule>");
 
   @Override
   protected String getTemplate() {

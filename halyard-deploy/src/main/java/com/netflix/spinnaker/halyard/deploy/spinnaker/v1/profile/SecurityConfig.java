@@ -17,20 +17,34 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 
 @Data
-public class ServerConfig {
-  SpringSsl ssl = new SpringSsl();
+public class SecurityConfig {
+  BasicSecurity basic = new BasicSecurity();
+  User user = new User();
 
-  String port;
-  String address;
+  SecurityConfig(ServiceSettings settings) {
+    if (settings.isBasicAuthEnabled()) {
+      String username = settings.getUsername();
+      String password = settings.getPassword();
+      assert(username != null && password != null);
 
-  ServerConfig(ServiceSettings service) {
-    port = Integer.toString(service.getPort());
-    address = service.getHost();
+      basic.setEnabled(true);
+      user.setName(username);
+      user.setPassword(password);
+    }
+  }
+
+  @Data
+  public static class BasicSecurity {
+    boolean enabled = false;
+  }
+
+  @Data
+  public static class User {
+    String name;
+    String password;
   }
 }

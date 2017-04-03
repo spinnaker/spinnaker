@@ -37,6 +37,8 @@ import java.util.Map;
 @Data
 abstract public class ServiceSettings {
   int port;
+  // A port open only to the internal network
+  Integer internalPort;
   String address;
   String host;
   String scheme;
@@ -48,6 +50,7 @@ abstract public class ServiceSettings {
   Map<String, String> env = new HashMap<>();
   String artifactId;
   boolean enabled;
+  boolean basicAuthEnabled;
   int targetSize;
 
   public ServiceSettings() {}

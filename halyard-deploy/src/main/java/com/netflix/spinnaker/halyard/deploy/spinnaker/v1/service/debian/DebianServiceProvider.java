@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.debian;
 
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.InstallableServiceProvider;
 import io.fabric8.utils.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,18 +63,21 @@ public class DebianServiceProvider extends InstallableServiceProvider {
   DebianOrcaService orcaService;
 
   @Autowired
+  DebianRedisService redisService;
+
+  @Autowired
   DebianRoscoService roscoService;
 
   @Override
-  public String getInstallCommand(List<String> serviceInstalls) {
-
+  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, List<String> serviceInstalls) {
     Map<String, String> bindings = new HashMap<>();
     List<String> upstartNames = getInstallableServices()
         .stream()
+        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
         .map(i -> ((DebianInstallableService) i).getUpstartServiceName())
         .collect(Collectors.toList());
     TemplatedResource resource = new JarResource("/debian/init.sh");
-    bindings.put("services", Strings.join(" ", upstartNames));
+    bindings.put("services", Strings.join(upstartNames, " "));
     String upstartInit = resource.setBindings(bindings).toString();
 
     resource = new JarResource("/debian/install.sh");

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -40,5 +41,11 @@ abstract public class SpringServiceSettings extends ServiceSettings {
 
   SpringServiceSettings(List<String> profiles) {
     setProfiles(profiles);
+  }
+
+  public void enableAuth() {
+    setBasicAuthEnabled(true);
+    setUsername(RandomStringUtils.random(10));
+    setPassword(RandomStringUtils.random(10));
   }
 }

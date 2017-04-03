@@ -17,13 +17,21 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.halyard.core.AtomicFileWriter;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.method.P;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@Slf4j
 public class Profile {
   @JsonIgnore
   private String contents = "";
@@ -37,9 +45,30 @@ public class Profile {
   final private String baseContents;
   // Where does Spinnaker expect to find this profile
   final private String outputFile;
+  boolean executable = false;
 
   public String getStagedFile(String stagingPath) {
     return Paths.get(stagingPath, name).toString();
+  }
+
+  public void writeStagedFile(String stagingPath) {
+    AtomicFileWriter writer = null;
+    Path path = Paths.get(stagingPath, name);
+    log.info("Writing profile to " + path.toString() + " with " + requiredFiles.size() + " required files");
+    try {
+      writer = new AtomicFileWriter(path);
+      writer.write(contents);
+      writer.commit();
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+      throw new HalException(Problem.Severity.FATAL,
+              "Failed to write config for profile " + path.toFile().getName() + ": " + ioe.getMessage()
+      );
+    } finally {
+      if (writer != null) {
+        writer.close();
+      }
+    }
   }
 
   public Profile(String name, String version, String outputFile, String baseContents) {

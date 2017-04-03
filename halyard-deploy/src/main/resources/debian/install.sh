@@ -158,6 +158,15 @@ if [ -n "$INSTALL_REMOTE_DEPENDENCIES" ]; then
   install_remote_dependencies
 fi
 
+mkdir -p /opt/spinnaker/config
+chown spinnaker /opt/spinnaker/config
+
+mkdir -p /opt/spinnaker-monitoring/config
+chown spinnaker /opt/spinnaker-monitoring/config
+
+mkdir -p /opt/spinnaker-monitoring/registry
+chown spinnaker /opt/spinnaker-monitoring/registry
+
 {%install-commands%}
 
 # so this script can be used for updates

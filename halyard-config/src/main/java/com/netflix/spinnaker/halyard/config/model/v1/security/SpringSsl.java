@@ -15,19 +15,37 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.config.model.v1.security;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
+@EqualsAndHashCode(callSuper = false)
 @Data
-public class SslConfig {
+public class SpringSsl extends Node {
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
+  }
+
+  @Getter
+  private final String nodeName = "springSsl";
+
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeEmptyIterator();
+  }
+
   boolean enabled = false;
   String keyAlias;
-  String keyStore;
+  @LocalFile String keyStore;
   String keyStoreType;
   String keyStorePassword;
-  String trustStore;
+  @LocalFile String trustStore;
   String trustStoreType;
   String trustStorePassword;
-  String clientAuth = "need";
+  String clientAuth;
 }

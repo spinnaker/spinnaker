@@ -37,7 +37,8 @@ public class DebianGateService extends GateService implements DebianInstallableS
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings(deploymentConfiguration.getSecurity().getApiSecurity())
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(true);
   }
 

@@ -58,7 +58,7 @@ public class KubernetesDeckService extends DeckService implements KubernetesDepl
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    Settings settings = new Settings();
+    Settings settings = new Settings(deploymentConfiguration.getSecurity().getUiSecurity());
     settings.setAddress(buildAddress())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setDomain(deploymentConfiguration.getSecurity().getUiDomain())

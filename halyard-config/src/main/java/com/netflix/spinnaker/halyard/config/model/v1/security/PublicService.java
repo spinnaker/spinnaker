@@ -17,35 +17,25 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class Ssl extends Node {
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
-  }
-
-  @Getter
-  private String nodeName = "ssl";
-
+abstract public class PublicService<T extends Node> extends Node {
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeEmptyIterator();
+    return NodeIteratorFactory.makeSingletonIterator(ssl);
   }
 
-  private boolean enabled = false;
+  // Used for constructing empty ssl objects
+  abstract T baseSsl();
 
-  @LocalFile private String serverKeyPath;
-  @LocalFile private String caKeyPath;
-
-  @LocalFile private String keystorePath;
-  private String keyAlias;
-  private String keyStoreType;
-  private String keyStorePassword;
+  T ssl = baseSsl();
+  String domain;
+  String address = "localhost";
+  String overrideBaseUrl;
 }

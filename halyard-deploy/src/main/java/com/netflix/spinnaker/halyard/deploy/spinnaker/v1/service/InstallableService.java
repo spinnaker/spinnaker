@@ -17,37 +17,34 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import io.fabric8.utils.Strings;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public interface InstallableService<T> extends HasServiceSettings<T> {
   String getSpinnakerStagingPath();
   String installArtifactCommand(DeploymentDetails deploymentDetails);
 
-  default void stageProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration) {
+  default String stageProfilesCommand(GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getServiceProfiles().get(getService().getType());
-    
+
+    List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {
       Profile profile = entry.getValue();
-      Path source = Paths.get(profile.getStagedFile(getSpinnakerStagingPath()));
-      Path dest = Paths.get(profile.getOutputFile());
-      dest.toFile().getParentFile().mkdirs();
-      try {
-        Files.copy(source, dest, REPLACE_EXISTING);
-      } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Failed to copy required profile: " + e.getMessage());
+      String source = profile.getStagedFile(getSpinnakerStagingPath());
+      String dest = profile.getOutputFile();
+      allCommands.add(String.format("cp -p %s %s", source, dest));
+
+      if (profile.isExecutable()) {
+        allCommands.add(String.format("chmod +x %s", dest));
       }
     }
+
+    return Strings.join(allCommands, "\n");
   }
 }

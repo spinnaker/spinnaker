@@ -76,7 +76,6 @@ public class ResourceConfig {
     DumperOptions options = new DumperOptions();
     options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
     options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-
     return new Yaml(options);
   }
 

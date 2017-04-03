@@ -39,14 +39,16 @@ public class DebianDeckService extends DeckService implements DebianInstallableS
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+    return new Settings(deploymentConfiguration.getSecurity().getUiSecurity())
+        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(true);
   }
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     String install = DebianInstallableService.super.installArtifactCommand(deploymentDetails);
-    return Strings.join("\n", install, "service apache2 stop", "a2ensite spinnaker");
+    String ssl = deploymentDetails.getDeploymentConfiguration().getSecurity().getUiSecurity().getSsl().isEnabled() ? "set +e\na2enmod ssl\nset -e" : "";
+    return Strings.join("\n", install, "service apache2 stop", "a2ensite spinnaker", ssl);
   }
 
   public String getArtifactId(String deploymentName) {

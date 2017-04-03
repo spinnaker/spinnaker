@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -45,7 +46,7 @@ abstract public class InstallableServiceProvider extends SpinnakerServiceProvide
   }
 
   // TODO(lwander) move from string to something like RemoteAction
-  abstract public String getInstallCommand(List<String> serviceInstalls);
+  abstract public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, List<String> serviceInstalls);
 
   /**
    * @return the highest priority services first.

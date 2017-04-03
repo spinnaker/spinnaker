@@ -21,11 +21,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 abstract public class TemplateBackedProfileFactory extends ProfileFactory {
   abstract protected String getTemplate();
   abstract protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
+
+  protected List<String> requiredFiles(DeploymentConfiguration deploymentConfiguration) {
+    return new ArrayList<>();
+  }
 
   @Override
   protected Profile getBaseProfile(String name, String version, String outputFile) {
@@ -35,6 +41,7 @@ abstract public class TemplateBackedProfileFactory extends ProfileFactory {
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     StringResource template = new StringResource(profile.getBaseContents());
+    profile.setRequiredFiles(requiredFiles(deploymentConfiguration));
     Map<String, String> bindings = getBindings(deploymentConfiguration, endpoints);
     profile.setContents(template.setBindings(bindings).toString());
   }

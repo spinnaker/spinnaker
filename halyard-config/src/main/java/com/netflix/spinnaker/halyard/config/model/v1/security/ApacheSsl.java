@@ -17,10 +17,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -28,35 +25,22 @@ import lombok.Getter;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
-public class Security extends Node {
+public class ApacheSsl extends Node {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
 
   @Getter
-  private String nodeName = "security";
+  private final String nodeName = "apacheSsl";
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
+    return NodeIteratorFactory.makeEmptyIterator();
   }
 
-  private String apiAddress = "localhost";
-  private String apiDomain;
-  private String uiAddress = "localhost";
-  private String uiDomain;
-
-  private ApiSecurity apiSecurity = new ApiSecurity();
-  private UiSecurity uiSecurity = new UiSecurity();
-  private Authn authn = new Authn();
-  private Authz authz = new Authz();
-
-  public String getApiDomain() {
-    return apiSecurity.getDomain() != null ? apiSecurity.getDomain() : apiSecurity.getAddress();
-  }
-
-  public String getUiDomain() {
-    return uiSecurity.getDomain() != null ? uiSecurity.getDomain() : uiSecurity.getAddress();
-  }
+  boolean enabled = false;
+  @LocalFile String sslCertificateFile;
+  @LocalFile String sslCertificateKeyFile;
+  String sslCertificatePassphrase;
 }

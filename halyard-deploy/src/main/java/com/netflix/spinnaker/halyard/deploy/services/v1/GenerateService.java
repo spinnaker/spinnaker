@@ -106,7 +106,6 @@ public class GenerateService {
 
     // Step 2.
     Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
-    Path stagingPath;
     for (SpinnakerService service : serviceProvider.getServices()) {
       ServiceSettings settings = endpoints.getServiceSettings(service);
       if (settings != null && !settings.isEnabled()) {
@@ -118,10 +117,7 @@ public class GenerateService {
       String pluralized = profiles.size() == 1 ? "" : "s";
       DaemonTaskHandler.log("Generated " + profiles.size() + " profile" + pluralized + " for " + service.getCannonicalName());
       for (Profile profile : profiles) {
-        stagingPath = Paths.get(profile.getStagedFile(spinnakerStagingPath));
-        log.info("Writing " + profile.getName() + " profile to " + stagingPath + " with " + profile.getRequiredFiles().size() + " required files");
-
-        configParser.atomicWrite(stagingPath, profile.getContents());
+        profile.writeStagedFile(spinnakerStagingPath);
       }
 
       Map<String, Profile> profileMap = new HashMap<>();

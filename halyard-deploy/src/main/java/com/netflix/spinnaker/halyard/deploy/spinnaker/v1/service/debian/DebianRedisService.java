@@ -12,20 +12,25 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.config.v1;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.debian;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+@EqualsAndHashCode(callSuper = true)
+@Data
 @Component
-public class StrictObjectMapper extends ObjectMapper {
-  StrictObjectMapper() {
-    super();
-    this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
-    this.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+public class DebianRedisService extends RedisService {
+  @Override
+  public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    return new Settings().setArtifactId("redis")
+        .setEnabled(true);
   }
 }

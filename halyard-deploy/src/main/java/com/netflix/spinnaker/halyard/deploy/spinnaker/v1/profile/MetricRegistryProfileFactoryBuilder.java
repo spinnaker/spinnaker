@@ -60,11 +60,7 @@ public class MetricRegistryProfileFactoryBuilder {
         ServiceSettings settings = endpoints.getServiceSettings(service);
         URI uri;
         try {
-          uri = new URIBuilder()
-              .setHost(settings.getHost())
-              .setPath("/spectator/metrics")
-              .setPort(settings.getPort())
-              .setScheme(settings.getScheme()).build();
+          uri = new URIBuilder(settings.getAuthBaseUrl()).setPath("/spectator/metrics").build();
         } catch (URISyntaxException e) {
           throw new HalException(Problem.Severity.FATAL, "Unable to build service URL: " + e.getMessage());
         }

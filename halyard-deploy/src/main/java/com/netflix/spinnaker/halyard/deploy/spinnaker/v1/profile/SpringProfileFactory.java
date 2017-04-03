@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
@@ -64,9 +65,12 @@ public class SpringProfileFactory extends RegistryBackedProfileFactory {
   static class SpringProfileConfig {
     ServerConfig server;
     SpringConfig spring;
+    SecurityConfig security;
 
-    SpringProfileConfig(ServiceSettings settings) {
-      server = new ServerConfig(settings);
+    SpringProfileConfig(ServiceSettings settings, Security security) {
+      this.server = new ServerConfig(settings);
+      this.spring = new SpringConfig(security);
+      this.security = new SecurityConfig(settings);
     }
   }
 }

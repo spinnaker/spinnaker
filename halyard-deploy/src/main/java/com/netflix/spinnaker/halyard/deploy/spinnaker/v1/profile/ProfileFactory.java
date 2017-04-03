@@ -54,7 +54,11 @@ abstract public class ProfileFactory {
   private Yaml yamlParser;
 
   @Autowired
-  private ObjectMapper objectMapper;
+  private ObjectMapper strictObjectMapper;
+
+  protected boolean showEditWarning() {
+    return true;
+  }
 
   protected ArtifactService getArtifactService() {
     return artifactService;
@@ -65,7 +69,9 @@ abstract public class ProfileFactory {
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     Profile result = getBaseProfile(name, version, outputFile);
     setProfile(result, deploymentConfiguration, endpoints);
-    result.preppendContents(getEditWarning());
+    if (showEditWarning()) {
+      result.preppendContents(getEditWarning());
+    }
     return result;
   }
 
@@ -126,6 +132,6 @@ abstract public class ProfileFactory {
   }
 
   protected  String yamlToString(Object o) {
-    return yamlParser.dump(objectMapper.convertValue(o, Map.class));
+    return yamlParser.dump(strictObjectMapper.convertValue(o, Map.class));
   }
 }

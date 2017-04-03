@@ -25,6 +25,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class GateProfileFactory extends SpringProfileFactory {
   @Override
@@ -35,10 +37,13 @@ public class GateProfileFactory extends SpringProfileFactory {
   @Override
   public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), deploymentConfiguration.getSecurity());
-    gateConfig.getCors().setAllowedOrigins(deploymentConfiguration.getSecurity(), endpoints.getServices().getDeck());
+    Security security = deploymentConfiguration.getSecurity();
+    List<String> requiredFiles = processRequiredFiles(security.getApiSecurity());
+    GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), security);
+    gateConfig.getCors().setAllowedOrigins(endpoints.getServices().getDeck());
     profile.appendContents(yamlToString(gateConfig))
-        .appendContents(profile.getBaseContents());
+        .appendContents(profile.getBaseContents())
+        .setRequiredFiles(requiredFiles);
   }
 
   @EqualsAndHashCode(callSuper = true)
@@ -47,21 +52,17 @@ public class GateProfileFactory extends SpringProfileFactory {
     Cors cors = new Cors();
 
     GateConfig(ServiceSettings gate, Security security) {
-      super(gate);
+      super(gate, security);
       spring = new SpringConfig(security);
+      server.ssl = security.getApiSecurity().getSsl();
     }
 
     @Data
     static class Cors {
       private String allowedOrigins;
 
-      void setAllowedOrigins(Security security, ServiceSettings deck) {
-        boolean ssl = security.getSsl().isEnabled();
-        String protocol = ssl ? "https" : "http";
-        String domain = security.getUiDomain();
-        String port = Integer.toString(deck.getPort());
-
-        allowedOrigins = protocol + "://" + domain + ":" + port;
+      void setAllowedOrigins(ServiceSettings deck) {
+        allowedOrigins = deck.getBaseUrl();
       }
     }
   }
