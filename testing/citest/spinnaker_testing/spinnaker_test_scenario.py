@@ -22,16 +22,27 @@ to make appropriate observations.
 
 import logging
 
-from citest.base import (
-    ExecutionContext,
-    JournalLogger)
+from citest.base import JournalLogger
 
 import citest.service_testing as sk
 import citest.service_testing.http_agent as http_agent
-import citest.aws_testing as aws
-import citest.gcp_testing as gcp
-import citest.kube_testing as kube
-import citest.openstack_testing as os
+
+from spinnaker_testing import aws_scenario_support
+from spinnaker_testing import appengine_scenario_support
+from spinnaker_testing import google_scenario_support
+from spinnaker_testing import kubernetes_scenario_support
+from spinnaker_testing import openstack_scenario_support
+
+PLATFORM_SUPPORT_CLASSES = [
+    aws_scenario_support.AwsScenarioSupport,
+
+    # appengine depends on google so order it after
+    google_scenario_support.GoogleScenarioSupport,
+    appengine_scenario_support.AppEngineScenarioSupport,
+
+    kubernetes_scenario_support.KubernetesScenarioSupport,
+    openstack_scenario_support.OpenStackScenarioSupport
+]
 
 
 class SpinnakerTestScenario(sk.AgentTestScenario):
@@ -40,6 +51,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
   Adds standard command line arguments for locating the deployed system, and
   setting up observers.
   """
+  ENDPOINT_SUBSYSTEM = 'the server to test'
 
   @classmethod
   def new_post_operation(cls, title, data, path, status_class=None):
@@ -110,309 +122,105 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
                                           status_class=status_class)
 
   @classmethod
-  def _initSpinnakerLocationParameters(cls, parser, defaults):
-    """Initialize arguments for locating spinnaker itself.
+  def _init_spinnaker_bindings_builder(cls, builder, defaults):
+    """Initialize bindings for spinnaker itself.
 
-      parser: [argparse.ArgumentParser]
+    Args:
+      builder: [citest.base.ConfigBindingsBuilder]
       defaults: [dict] Default binding value overrides.
          This is used to initialize the default commandline parameters.
     """
-    subsystem_name = 'the server to test'
-
     # This could probably be removed fairly easily.
     # It probably isnt useful anymore.
-    parser.add_argument(
+    builder.add_argument(
         '--host_platform', default=defaults.get('HOST_PLATFORM', None),
         help='Platform running spinnaker (gce, native).'
              ' If this is not explicitly set, then try to'
              ' guess based on other parameters set.')
 
-    parser.add_argument(
+    builder.add_argument(
         '--native_hostname', default=defaults.get('NATIVE_HOSTNAME', None),
         help='Host name that {system} is running on.'
              ' This parameter is only used if the spinnaker host platform'
-             ' is "native".'.format(system=subsystem_name))
-    parser.add_argument(
+             ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
+
+    builder.add_argument(
         '--native_port', default=defaults.get('NATIVE_PORT', None),
         help='Port number that {system} is running on.'
              ' This parameter is only used if the spinnaker host platform'
              ' is "native". It is not needed if the system is using its'
-             ' standard port.'.format(system=subsystem_name))
+             ' standard port.'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
-    parser.add_argument(
-        '--gce_project', default=defaults.get('GCE_PROJECT', None),
-        help='The GCE project that {system} is running within.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.'.format(system=subsystem_name))
-    parser.add_argument(
-        '--gce_zone', default=defaults.get('GCE_ZONE', None),
-        help='The GCE zone that {system} is running within.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.'.format(system=subsystem_name))
-    parser.add_argument(
-        '--gce_instance', default=defaults.get('GCE_INSTANCE', None),
-        help='The GCE instance name that {system} is running on.'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.'.format(system=subsystem_name))
-    parser.add_argument(
-        '--gce_ssh_passphrase_file',
-        default=defaults.get('GCE_SSH_PASSPHRASE_FILE', None),
-        help='Specifying a file containing the SSH passphrase'
-             ' will permit tunneling or the execution of remote'
-             ' commands into the --gce_instance if needed.')
-
-    # TODO(ewiseblatt): 20160923
-    # This is probably obsoleted. It is only used by the gcloud agent,
-    # which is only used to establish a tunnel. I dont think the credentials
-    # are needed there, but your ssh passphrase is (which is unrelated).
-    parser.add_argument(
-        '--gce_service_account',
-        default=defaults.get('GCE_SERVICE_ACCOUNT', None),
-        help='The GCE service account to use when interacting with the'
-             ' gce_instance. The default will be the default configured'
-             ' account on the local machine. To change the default account,'
-             ' use "gcloud config set account". To active service accounts,'
-             ' use "gcloud auth activate-service-account".'
-             ' This parameter is only used if the spinnaker host platform'
-             ' is GCE.')
-
-  @classmethod
-  def _initGoogleOperationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring operations for google.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-
-    parser.add_argument(
-        '--spinnaker_google_account',
-        default=defaults.get('SPINNAKER_GOOGLE_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against GCE.'
-             ' Only used when managing resources on GCE.'
-             ' If left empty then use the configured primary account.')
-    parser.add_argument(
-        '--gce_credentials',
-        dest='spinnaker_google_account',
-        help='DEPRECATED. Replaced by --spinnaker_google_account')
-    parser.add_argument(
-        '--managed_gce_project', dest='google_primary_managed_project_id',
-        help='GCE project to test instances in (when managing GCE).')
-    parser.add_argument(
-        '--test_gce_zone',
-        default=defaults.get('TEST_GCE_ZONE', 'us-central1-f'),
-        help='The GCE zone to test generated instances in (when managing GCE).'
-             ' This implies the GCE region as well.')
-    parser.add_argument(
-        '--test_gce_region',
-        default=defaults.get('TEST_GCE_REGION', ''),
-        help='The GCE region to test generated instances in (when managing'
-             ' GCE). If not specified, then derive it from --test_gce_zone.')
-    parser.add_argument(
-        '--test_gce_image_name',
-        default=defaults.get('TEST_GCE_IMAGE_NAME',
-                             'ubuntu-1404-trusty-v20160919'),
-        help='Default Google Compute Engine image name to use when'
-             ' creating test instances.')
-
-  @classmethod
-  def _initAwsOperationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring operations for aws.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-    # pylint: disable=line-too-long
-    parser.add_argument(
-        '--spinnaker_aws_account',
-        default=defaults.get('SPINNAKER_AWS_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against AWS.'
-             ' Only used when managing resources on AWS.')
-    parser.add_argument(
-        '--aws_credentials',
-        dest='spinnaker_aws_account',
-        help='DEPRECATED. Replaced by --spinnaker_aws_account')
-
-    parser.add_argument(
-        '--aws_iam_role', default=defaults.get('AWS_IAM_ROLE', None),
-        help='Spinnaker IAM role name for test operations.'
-             ' Only used when managing jobs running on AWS.')
-    parser.add_argument(
-        '--test_aws_zone',
-        default=defaults.get('TEST_AWS_ZONE', 'us-east-1c'),
-        help='The AWS zone to test generated instances in (when managing AWS).'
-             ' This implies the AWS region as well.')
-    parser.add_argument(
-        '--test_aws_region',
-        default=defaults.get('TEST_AWS_REGION', ''),
-        help='The GCE region to test generated instances in (when managing'
-             ' AWS). If not specified, then derive it fro --test_aws_zone.')
-    parser.add_argument(
-        '--test_aws_ami',
-        default=defaults.get('TEST_AWS_AMI',
-                             'bitnami-tomcatstack-7.0.63-1-linux-ubuntu-14.04.1-x86_64-ebs'),
-        help='Default Amazon AMI to use when creating test instances.'
-             ' The default image will listen on port 80.')
-    parser.add_argument(
-        '--test_aws_vpc_id',
-        default=defaults.get('TEST_AWS_VPC_ID', None),
-        help='Default AWS VpcId to use when creating test resources.')
-    parser.add_argument(
-        '--test_aws_security_group_id',
-        default=defaults.get('TEST_AWS_SECURITY_GROUP_ID', None),
-        help='Default AWS SecurityGroupId when creating test resources.')
-
-  @classmethod
-  def _initKubeOperationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring operations for kubernetes.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-    parser.add_argument(
-        '--spinnaker_kubernetes_account',
-        default=defaults.get('SPINNAKER_KUBERNETES_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against'
-             ' Kubernetes. Only used when managing jobs running on'
-             ' Kubernetes.')
-
-    parser.add_argument(
-        '--kube_credentials',
-        dest='spinnaker_kubernetes_account',
-        help='DEPRECATED. Replaced by --spinnaker_kubernetes_account')
-
-  @classmethod
-  def _initAppengineOperationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring operations for App Engine.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-    parser.add_argument(
-        '--spinnaker_appengine_account',
-        default=defaults.get('SPINNAKER_APPENGINE_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against'
-             'App Engine. Only used when managing resources on App Engine.')
-
-  @classmethod
-  def _initOpenStackOperationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring operations for OpenStack.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-    # pylint: disable=line-too-long
-    parser.add_argument(
-        '--spinnaker_os_account',
-        default=defaults.get('SPINNAKER_OS_ACCOUNT', None),
-        help='Spinnaker account name to use for test operations against OpenStack.'
-             'Only used when managing resources on OpenStack.')
-    parser.add_argument(
-        '--os_region_name',
-        default=defaults.get('OS_REGION_NAME', None),
-        help='The OpenStack region to test generated instances in (when managing'
-             'OpenStack).')
-    parser.add_argument(
-        '--test_os_username',
-        default=defaults.get('TEST_OS_USERNAME', 'my-openstack-account'),
-        help='The OpenStack authentiaction username for test operations against OpenStack.')
-
-  @classmethod
-  def _initOperationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring operations and resources to create.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-    parser.add_argument(
+    builder.add_argument(
         '--test_stack', default=defaults.get('TEST_STACK', 'test'),
         help='Default Spinnaker stack decorator.')
 
-    parser.add_argument(
+    builder.add_argument(
         '--test_app', default=defaults.get('TEST_APP', cls.__name__.lower()),
         help='Default Spinnaker application name to use with test.')
 
-    cls._initGoogleOperationConfigurationParameters(parser, defaults)
-    cls._initAwsOperationConfigurationParameters(parser, defaults)
-    cls._initKubeOperationConfigurationParameters(parser, defaults)
-    cls._initAppengineOperationConfigurationParameters(parser, defaults)
-    cls._initOpenStackOperationConfigurationParameters(parser, defaults)
-
   @classmethod
-  def _initObservationConfigurationParameters(cls, parser, defaults):
-    """Initialize arguments for configuring observers.
-
-      parser: [argparse.ArgumentParser]
-      defaults: [dict] Default binding value overrides.
-         This is used to initialize the default commandline parameters.
-    """
-    parser.add_argument(
-        '--gce_credentials_path',
-        default=defaults.get('GCE_CREDENTIALS_PATH', None),
-        help='A path to the JSON file with credentials to use for observing'
-             ' tests run against Google Cloud Platform.')
-
-    parser.add_argument(
-        '--aws_profile', default=defaults.get('AWS_PROFILE', None),
-        help='aws command-line tool --profile parameter when observing AWS.')
-
-    parser.add_argument(
-        '--appengine_credentials_path',
-        default=defaults.get('APPENGINE_CREDENTIALS_PATH', None),
-        help='A path to the JSON file with credentials to use for observing'
-             ' tests run against Google App Engine. Defaults to the value set for'
-             '--gce_credentials_path, which defaults to application default credentials.')
-
-    parser.add_argument(
-        '--os_cloud', default=defaults.get('OS_CLOUD', None),
-        help='Cloud name. OpenStack will look for a clouds.yaml file that contains a cloud configuration to use for authentication.')
-
-  @classmethod
-  def initArgumentParser(cls, parser, defaults=None):
-    """Initialize command line argument parser.
+  def init_bindings_builder(cls, builder, defaults=None):
+    """Initialize command line bindings.
 
     Args:
-      parser: [argparse.ArgumentParser]
+      builder: [citest.base.ConfigBindingsBuilder]
       defaults: [dict] Default binding value overrides.
          This is used to initialize the default commandline parameters.
     """
-    super(SpinnakerTestScenario, cls).initArgumentParser(
-        parser, defaults=defaults)
-
     defaults = defaults or {}
-    cls._initSpinnakerLocationParameters(parser, defaults=defaults)
-    cls._initOperationConfigurationParameters(parser, defaults=defaults)
-    cls._initObservationConfigurationParameters(parser, defaults=defaults)
+    for klas in PLATFORM_SUPPORT_CLASSES:
+      klas.add_commandline_parameters(cls, builder, defaults)
+
+    cls._init_spinnaker_bindings_builder(builder, defaults=defaults)
+
+    super(SpinnakerTestScenario, cls).init_bindings_builder(
+        builder, defaults=defaults)
 
   @property
   def gcp_observer(self):
-    """The observer for inspecting GCE platform state, if configured."""
-    return self.__gcp_observer
+    """The observer for inspecting GCE platform stated.
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['google'].observer
 
   @property
   def kube_observer(self):
-    """The observer for inspecting Kubernetes platform state, if configured."""
-    return self.__kube_observer
+    """The observer for inspecting Kubernetes platform state."
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['kubernetes'].observer
 
   @property
   def aws_observer(self):
-    """The observer for inspecting AWS platform state, if configured."""
-    return self.__aws_observer
+    """The observer for inspecting AWS platform state.
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['aws'].observer
 
   @property
   def appengine_observer(self):
-    """The observer for inspecting App Engine platform state, if configured."""
-    return self.__appengine_observer
+    """The observer for inspecting App Engine platform state.
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['appengine'].observer
 
   @property
   def os_observer(self):
-    """The observer for inspecting OpenStack platform state, if configured."""
-    return self.__os_observer
+    """The observer for inspecting OpenStack platform state.
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['openstack'].observer
 
   def __init__(self, bindings, agent=None):
     """Constructor
@@ -424,14 +232,30 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     """
     super(SpinnakerTestScenario, self).__init__(bindings, agent)
     agent = self.agent
-    self.__update_bindings_with_subsystem_configuration(agent)
-    JournalLogger.begin_context('Configure Cloud Bindings')
+    bindings = self.bindings
+
+    # For read-only tests that don't make mutating calls to Spinnaker,
+    # there is nothing to update in the bindings, e.g. GCP quota test.
+    if agent is not None:
+      for key, value in agent.runtime_config.items():
+        try:
+          if bindings[key]:
+            continue  # keep existing value already set within citest
+        except KeyError:
+          pass
+        bindings[key] = value  # use value from agent's configuration
+
+    JournalLogger.begin_context('Configure Scenario Bindings')
+    self.__platform_support = {}
+    for klas in PLATFORM_SUPPORT_CLASSES:
+      try:
+        support = klas(self)
+        self.__platform_support[support.platform_name] = support
+      except:
+        logger = logging.getLogger(__name__)
+        logger.exception('Failed to initialize support class %s', str(klas))
+
     try:
-      self.__init_google_bindings()
-      self.__init_aws_bindings()
-      self.__init_kubernetes_bindings()
-      self.__init_appengine_bindings()
-      self.__init_openstack_bindings()
       self._do_init_bindings()
     except:
       logger = logging.getLogger(__name__)
@@ -441,181 +265,5 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       JournalLogger.end_context()
 
   def _do_init_bindings(self):
+    """Hook for specific tests to add additional bindings."""
     pass
-
-  def __init_aws_bindings(self):
-    context = ExecutionContext()
-    bindings = self.bindings  # base class made a copy
-    if not bindings['TEST_AWS_ZONE']:
-      bindings['TEST_AWS_ZONE'] = bindings['AWS_ZONE']
-    if not bindings.get('TEST_AWS_REGION', ''):
-      bindings['TEST_AWS_REGION'] = bindings['TEST_AWS_ZONE'][:-1]
-
-    if bindings.get('AWS_PROFILE'):
-      self.__aws_observer = aws.AwsAgent(
-          bindings['AWS_PROFILE'], bindings['TEST_AWS_REGION'])
-      if not bindings.get('TEST_AWS_VPC_ID', ''):
-        # We need to figure out a specific aws vpc id to use.
-        logger = logging.getLogger(__name__)
-        logger.info('Determine default AWS VpcId...')
-        vpc_list = self.__aws_observer.get_resource_list(
-            context,
-            root_key='Vpcs',
-            aws_command='describe-vpcs',
-            args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
-            region=bindings['TEST_AWS_REGION'],
-            aws_module='ec2', profile=self.__aws_observer.profile)
-        if not vpc_list:
-          raise ValueError('There is no vpc tagged as "defaultvpc"')
-        bindings['TEST_AWS_VPC_ID'] = vpc_list[0]['VpcId']
-        logger.info('Using discovered default VpcId=%s',
-                    str(bindings['TEST_AWS_VPC_ID']))
-
-      if not bindings.get('TEST_AWS_SECURITY_GROUP', ''):
-        # We need to figure out a specific security group that is compatable
-        # with the VpcId we are using.
-        logger = logging.getLogger(__name__)
-        logger.info('Determine default AWS SecurityGroupId...')
-        sg_list = self.__aws_observer.get_resource_list(
-            context,
-            root_key='SecurityGroups',
-            aws_command='describe-security-groups', args=[],
-            region=bindings['TEST_AWS_REGION'],
-            aws_module='ec2', profile=self.__aws_observer.profile)
-        for entry in sg_list:
-          if entry.get('VpcId', None) == bindings['TEST_AWS_VPC_ID']:
-            bindings['TEST_AWS_SECURITY_GROUP_ID'] = entry['GroupId']
-            break
-        logger.info('Using discovered default SecurityGroupId=%s',
-                    str(bindings['TEST_AWS_SECURITY_GROUP_ID']))
-    else:
-      self.__aws_observer = None
-      logger = logging.getLogger(__name__)
-      logger.warning(
-          '--aws_profile was not set.'
-          ' Therefore, we will not be able to observe Amazon Web Services.')
-
-  def __init_google_bindings(self):
-    bindings = self.bindings  # base class made a copy
-    if not bindings['TEST_GCE_ZONE']:
-      bindings['TEST_GCE_ZONE'] = bindings['GCE_ZONE']
-    if not bindings.get('TEST_GCE_REGION', ''):
-      bindings['TEST_GCE_REGION'] = bindings['TEST_GCE_ZONE'][:-2]
-
-    if bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
-      self.__gcp_observer = gcp.GcpComputeAgent.make_agent(
-          scopes=(gcp.COMPUTE_READ_WRITE_SCOPE
-                  if bindings['GCE_CREDENTIALS_PATH'] else None),
-          credentials_path=bindings['GCE_CREDENTIALS_PATH'],
-          default_variables={
-              'project': bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'],
-              'region': bindings['TEST_GCE_REGION'],
-              'zone': bindings['TEST_GCE_ZONE']
-              })
-    else:
-      self.__gcp_observer = None
-      logger = logging.getLogger(__name__)
-      logger.warning(
-          '--managed_gce_project was not set nor could it be inferred.'
-          'Therefore, we will not be able to observe Google Compute Engine.')
-
-  def __init_kubernetes_bindings(self):
-    bindings = self.bindings  # base class made a copy
-    if bindings.get('SPINNAKER_KUBERNETES_ACCOUNT'):
-      self.__kube_observer = kube.KubeCtlAgent()
-    else:
-      self.__kube_observer = None
-
-  def __init_appengine_bindings(self):
-    bindings = self.bindings
-    if bindings.get('APPENGINE_PRIMARY_MANAGED_PROJECT_ID'):
-      self.__appengine_observer = gcp.GcpAppengineAgent.make_agent(
-          scopes=(gcp.APPENGINE_FULL_SCOPE if bindings['APPENGINE_CREDENTIALS_PATH'] else None),
-          credentials_path=bindings['APPENGINE_CREDENTIALS_PATH'],
-          default_variables={'project': bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID']})
-    else:
-      self.__appengine_observer = None
-
-  def __init_openstack_bindings(self):
-    bindings = self.bindings
-
-    if bindings.get('SPINNAKER_OS_ACCOUNT'):
-      self.__os_observer = os.OsAgent(bindings['OS_CLOUD'])
-    else:
-      self.__os_observer = None
-      logger = logging.getLogger(__name__)
-      logger.warning(
-          '--spinnaker_os_account was not set nor could it be inferred.'
-          'Therefore, we will not be able to observe OpenStack.')
-
-  def __update_bindings_with_subsystem_configuration(self, agent):
-    """Helper function for setting agent bindings from actual configuration.
-
-    This uses the agent's runtime_config, if available, to supply some
-    abstract binding information so that the test can adapt to the deployment
-    it is testing.
-    """
-    # pylint: disable=bad-indentation
-
-    # For read-only tests that don't make mutating calls to Spinnaker,
-    # there is nothing to update in the bindings, e.g. GCP quota test.
-    if agent is None:
-      return
-    for key, value in agent.runtime_config.items():
-      try:
-        if self.bindings[key]:
-          continue
-      except KeyError:
-        pass
-      self.bindings[key] = value
-
-    if not self.bindings['SPINNAKER_GOOGLE_ACCOUNT']:
-      self.bindings['SPINNAKER_GOOGLE_ACCOUNT'] = (
-          self.agent.deployed_config.get(
-              'providers.google.primaryCredentials.name', None))
-
-    if not self.bindings['SPINNAKER_KUBERNETES_ACCOUNT']:
-      self.bindings['SPINNAKER_KUBERNETES_ACCOUNT'] = (
-          self.agent.deployed_config.get(
-              'providers.kubernetes.primaryCredentials.name', None))
-
-    if not self.bindings['SPINNAKER_AWS_ACCOUNT']:
-      self.bindings['SPINNAKER_AWS_ACCOUNT'] = self.agent.deployed_config.get(
-          'providers.aws.primaryCredentials.name', None)
-
-    if not self.bindings['SPINNAKER_APPENGINE_ACCOUNT']:
-      self.bindings['SPINNAKER_APPENGINE_ACCOUNT'] = self.agent.deployed_config.get(
-          'providers.appengine.primaryCredentials.name', None)
-
-    if not self.bindings['SPINNAKER_OS_ACCOUNT']:
-      self.bindings['SPINNAKER_OS_ACCOUNT'] = self.agent.deployed_config.get(
-          'providers.openstack.primaryCredentials.name', None)
-
-    if not self.bindings['OS_REGION_NAME']:
-      self.bindings['OS_REGION_NAME'] = self.agent.deployed_config.get(
-          'providers.openstack.primaryCredentials.regions', None)
-
-    if not self.bindings['AWS_IAM_ROLE']:
-      self.bindings['AWS_IAM_ROLE'] = self.agent.deployed_config.get(
-          'providers.aws.defaultIAMRole', None)
-
-    if not self.bindings.get('GOOGLE_PRIMARY_MANAGED_PROJECT_ID'):
-      # Default to the project we are managing.
-      self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
-          self.agent.deployed_config.get(
-              'providers.google.primaryCredentials.project', None))
-      if not self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID']:
-        # But if that wasnt defined then default to the subsystem's project.
-        self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'] = (
-            self.bindings['GCE_PROJECT'])
-
-    if not self.bindings.get('APPENGINE_PRIMARY_MANAGED_PROJECT_ID'):
-      self.bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID'] = (
-          self.agent.deployed_config.get(
-              'providers.appengine.primaryCredentials.project', None))
-      # Fall back on Google project and credentials.
-      if not self.bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID']:
-        self.bindings['APPENGINE_PRIMARY_MANAGED_PROJECT_ID'] = (
-            self.bindings['GOOGLE_PRIMARY_MANAGED_PROJECT_ID'])
-        self.bindings['APPENGINE_CREDENTIALS_PATH'] = self.bindings['GCE_CREDENTIALS_PATH']
-
