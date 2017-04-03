@@ -146,6 +146,12 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
       AccountDeploymentDetails<KubernetesAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     KubernetesProviderUtils.createNamespace(details, getNamespace());
+    Integer version = getLatestEnabledServiceVersion(details);
+    if (version == null) {
+      version = 0;
+    } else {
+      version++;
+    }
 
     SpinnakerService thisService = getService();
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
@@ -160,7 +166,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
         throw new RuntimeException("Assertion violated: service monitoring enabled but no registry entry generated.");
       }
 
-      String secretName = KubernetesProviderUtils.componentRegistry(name);
+      String secretName = KubernetesProviderUtils.componentRegistry(name, version);
       String mountPoint = Paths.get(profile.getOutputFile()).getParent().toString();
 
       KubernetesProviderUtils.upsertSecret(details,
@@ -175,7 +181,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
         throw new RuntimeException("Assertion violated: service monitoring enabled but no monitoring profile was generated.");
       }
 
-      secretName = KubernetesProviderUtils.componentMonitoring(name);
+      secretName = KubernetesProviderUtils.componentMonitoring(name, version);
       mountPoint = Paths.get(profile.getOutputFile()).getParent().toString();
 
       KubernetesProviderUtils.upsertSecret(details,
@@ -200,7 +206,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
     }
 
     if (!requiredFiles.isEmpty()) {
-      String secretName = KubernetesProviderUtils.componentDependencies(name);
+      String secretName = KubernetesProviderUtils.componentDependencies(name, version);
       String mountPoint = null;
       for (String file : requiredFiles) {
         String nextMountPoint = Paths.get(file).getParent().toString();
@@ -222,7 +228,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
       Set<Profile> profiles = entry.getValue();
       Set<String> files = profiles.stream().map(p -> p.getStagedFile(getSpinnakerStagingPath())).collect(Collectors.toSet());
 
-      String secretName = KubernetesProviderUtils.componentSecret(name + ind);
+      String secretName = KubernetesProviderUtils.componentSecret(name + ind, version);
       ind += 1;
 
       KubernetesProviderUtils.upsertSecret(details, files, secretName, getNamespace());
@@ -533,14 +539,17 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
 
     List<Pod> pods = client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "true").list().getItems();
 
-    Map<String, List<Instance>> instances = res.getInstances();
+    Map<Integer, List<Instance>> instances = res.getInstances();
     for (Pod pod : pods) {
       String serverGroup = pod.getMetadata().getLabels().get("server-group");
       Names parsedName = Names.parseName(serverGroup);
-      String version = parsedName.getPush();
+      Integer version = parsedName.getSequence();
+      if (version == null) {
+        throw new IllegalStateException("Server group for service " + getName() + " has unknown sequence (" + serverGroup + ")");
+      }
+
       String location = pod.getMetadata().getNamespace();
       String id = pod.getMetadata().getName();
-      System.out.println(id + " version = " + version);
 
       Instance instance = new Instance().setId(id).setLocation(location);
       List<Instance> knownInstances = instances.getOrDefault(version, new ArrayList<>());
@@ -577,14 +586,8 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
   default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details);
-    Map<String, List<Instance>> instances = runningServiceDetails.getInstances();
-    List<String> versions = new ArrayList<>(instances.keySet());
-    if (versions.isEmpty()) {
-      throw new HalException(Problem.Severity.FATAL, "No server groups deployed for service " + getName() + " in namespace " + getNamespace());
-    }
-
-    versions.sort(String::compareTo);
-    String latest = versions.get(versions.size() - 1);
+    Map<Integer, List<Instance>> instances = runningServiceDetails.getInstances();
+    Integer latest = getLatestEnabledServiceVersion(details);
 
     List<Instance> latestInstances = instances.get(latest);
     if (latestInstances.isEmpty()) {
@@ -597,8 +600,8 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
         settings.getPort()), " ");
   }
 
-  default void deleteVersion(AccountDeploymentDetails<KubernetesAccount> details, String version) {
-    String name = getName() + "-" + version;
+  default void deleteVersion(AccountDeploymentDetails<KubernetesAccount> details, Integer version) {
+    String name = String.format("%s-v%03d", getName(), version);
     String namespace = getNamespace();
     KubernetesProviderUtils.deleteReplicaSet(details, namespace, name);
   }

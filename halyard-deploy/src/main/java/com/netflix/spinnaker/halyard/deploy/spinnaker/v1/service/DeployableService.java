@@ -20,6 +20,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
@@ -57,10 +59,21 @@ public interface DeployableService<T, A extends Account> extends HasServiceSetti
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
   T connect(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
   String connectCommand(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
-  void deleteVersion(AccountDeploymentDetails<A> details, String version);
+  void deleteVersion(AccountDeploymentDetails<A> details, Integer version);
   boolean isRequiredToBootstrap();
   DeployPriority getDeployPriority();
   SpinnakerService<T> getService();
+
+  default Integer getLatestEnabledServiceVersion(AccountDeploymentDetails<A> details) {
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details);
+    List<Integer> versions = new ArrayList<>(runningServiceDetails.getInstances().keySet());
+    if (versions.isEmpty()) {
+      return null;
+    }
+
+    versions.sort(Integer::compareTo);
+    return versions.get(versions.size() - 1);
+  }
 
   default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details) {
     Map<String, Object> baseDescription = new HashMap<>();

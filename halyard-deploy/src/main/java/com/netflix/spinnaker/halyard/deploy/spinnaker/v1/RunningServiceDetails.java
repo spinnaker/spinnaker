@@ -31,8 +31,8 @@ public class RunningServiceDetails {
   String artifactId;
   String internalEndpoint;
   String externalEndpoint;
-  // Map of server group version (vXXX) -> instance set
-  Map<String, List<Instance>> instances = new HashMap<>();
+  // Map of server group version (N) -> instance set
+  Map<Integer, List<Instance>> instances = new HashMap<>();
 
   @Data
   public static class Instance {

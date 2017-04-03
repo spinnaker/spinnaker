@@ -158,18 +158,18 @@ public class DistributedDeployer {
       executionsByInstance.put(instanceId, e.getCount());
     });
 
-    Map<String, Integer> executionsByServerGroup = new HashMap<>();
+    Map<Integer, Integer> executionsByServerGroupVersion = new HashMap<>();
 
     orcaDetails.getInstances().forEach((s, is) -> {
       int count = is.stream().reduce(0,
           (c, i) -> c + executionsByInstance.getOrDefault(i.getId(), 0),
           (a, b) -> a + b);
-      executionsByServerGroup.put(s, count);
+      executionsByServerGroupVersion.put(s, count);
     });
 
     // Omit the last deployed orcas from being deleted, since they are kept around for rollbacks.
-    List<String> allOrcas = new ArrayList<>(executionsByServerGroup.keySet());
-    allOrcas.sort(String::compareTo);
+    List<Integer> allOrcas = new ArrayList<>(executionsByServerGroupVersion.keySet());
+    allOrcas.sort(Integer::compareTo);
 
     int orcaCount = allOrcas.size();
     if (orcaCount <= MAX_REMAINING_SERVER_GROUPS) {
@@ -177,9 +177,9 @@ public class DistributedDeployer {
     }
 
     allOrcas = allOrcas.subList(0, orcaCount - MAX_REMAINING_SERVER_GROUPS);
-    for (String orcaVersion : allOrcas) {
+    for (Integer orcaVersion : allOrcas) {
       // TODO(lwander) consult clouddriver to ensure this orca isn't enabled
-      if (executionsByServerGroup.get(orcaVersion) == 0) {
+      if (executionsByServerGroupVersion.get(orcaVersion) == 0) {
         DaemonTaskHandler.log("Reaping old orca instance " + orcaVersion);
         orcaService.deleteVersion(details, orcaVersion);
       }
