@@ -143,7 +143,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 0.1.0-SNAPSHOT
+  Version: 0.18.0-SNAPSHOT
 
 If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
 
@@ -635,7 +635,7 @@ hal config webhook jenkins master add MASTER [parameters]
  * `--address`: (*Required*) The address your jenkins master is reachable at.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--options`: Get options for the specified field name.
- * `--password`: The password of the jenkins user to authenticate as.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
  * `--username`: The username of the jenkins user to authenticate as.
 
 ---
@@ -652,7 +652,7 @@ hal config webhook jenkins master edit MASTER [parameters]
  * `--address`: The address your jenkins master is reachable at.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--options`: Get options for the specified field name.
- * `--password`: The password of the jenkins user to authenticate as.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
  * `--username`: The username of the jenkins user to authenticate as.
 
 ---
@@ -790,9 +790,9 @@ hal config provider appengine account add ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--git-https-password`: A password to be used when connecting with a remote git repository server over HTTPS.
+ * `--git-https-password`: (*Sensitive data* - user will be prompted on standard input) A password to be used when connecting with a remote git repository server over HTTPS.
  * `--git-https-username`: A username to be used when connecting with a remote git repository server over HTTPS.
- * `--github-oauth-access-token`: An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
+ * `--github-oauth-access-token`: (*Sensitive data* - user will be prompted on standard input) An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--local-repository-directory`: (*Default*: `/var/tmp/clouddriver`) A local directory to be used to stage source files for App Engine deployments within Spinnaker's Clouddriver microservice.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -800,7 +800,7 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
- * `--ssh-private-key-passphrase`: The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
+ * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
 
 ---
 ## hal config provider appengine account edit
@@ -814,9 +814,9 @@ hal config provider appengine account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
- * `--git-https-password`: A password to be used when connecting with a remote git repository server over HTTPS.
+ * `--git-https-password`: (*Sensitive data* - user will be prompted on standard input) A password to be used when connecting with a remote git repository server over HTTPS.
  * `--git-https-username`: A username to be used when connecting with a remote git repository server over HTTPS.
- * `--github-oauth-access-token`: An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
+ * `--github-oauth-access-token`: (*Sensitive data* - user will be prompted on standard input) An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--local-repository-directory`: A local directory to be used to stage source files for App Engine deployments within Spinnaker's Clouddriver microservice.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -825,7 +825,7 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
- * `--ssh-private-key-passphrase`: The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
+ * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
 
 ---
 ## hal config provider appengine account get
@@ -1110,7 +1110,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--email`: (*Default*: `fake.email@spinnaker.io`) Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--options`: Get options for the specified field name.
- * `--password`: Your docker registry password
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--repositories`: (*Default*: `[]`) An optional list of repositories to cache images from. If not provided, Spinnaker will attempt to read accessible repositories from the registries _catalog endpoint
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
@@ -1139,7 +1139,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--email`: Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--options`: Get options for the specified field name.
- * `--password`: Your docker registry password
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
  * `--password-file`: The path to a file containing your docker password in plaintext (not a docker/config.json file)
  * `--remove-repository`: Remove this repository to the list of repositories to cache images from.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
@@ -1994,7 +1994,7 @@ hal config provider azure account add ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--app-key`: (*Required*) The appKey (password) of your service principal.
+ * `--app-key`: (*Required*) (*Sensitive data* - user will be prompted on standard input) The appKey (password) of your service principal.
  * `--client-id`: (*Required*) The clientId (also called appId) of your service principal.
  * `--default-key-vault`: (*Required*) The name of a KeyVault that contains the default user name and password used to create VMs
  * `--default-resource-group`: (*Required*) The default resource group to contain any non-application specific resources.
@@ -2019,7 +2019,7 @@ hal config provider azure account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
- * `--app-key`: The appKey (password) of your service principal.
+ * `--app-key`: (*Sensitive data* - user will be prompted on standard input) The appKey (password) of your service principal.
  * `--client-id`: The clientId (also called appId) of your service principal.
  * `--default-key-vault`: The name of a KeyVault that contains the default user name and password used to create VMs
  * `--default-resource-group`: The default resource group to contain any non-application specific resources.

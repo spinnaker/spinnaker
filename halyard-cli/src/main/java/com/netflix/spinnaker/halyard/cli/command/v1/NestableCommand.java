@@ -277,6 +277,10 @@ public abstract class NestableCommand {
       result.append("(*Required*) ");
     }
 
+    if (parameterDescription.getParameter().password()) {
+      result.append("(*Sensitive data* - user will be prompted on standard input) ");
+    }
+
     result.append(parameterDescription.getDescription())
         .append("\n");
   }
