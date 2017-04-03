@@ -21,15 +21,6 @@ describe('Controller: ExecutionDetails', function () {
     this.$scope = $rootScope.$new();
     this.$controller = $controller;
     this.pipelineConfig = pipelineConfig;
-
-    this.$scope.execution = {
-      isRunning: false
-    };
-    this.$scope.application = {
-      attributes: {
-        enableRestartRunningExecutions: false
-      }
-    };
   }));
 
   describe('isRestartable', function() {
@@ -37,6 +28,14 @@ describe('Controller: ExecutionDetails', function () {
       this.controller = this.$controller('executionDetails', {
         $scope: this.$scope,
       });
+      this.controller.execution = {
+        isRunning: false
+      };
+      this.controller.application = {
+        attributes: {
+          enableRestartRunningExecutions: false
+        }
+      };
     });
 
     it('returns false when no stage config', function() {
@@ -56,8 +55,8 @@ describe('Controller: ExecutionDetails', function () {
     });
 
     it('returns true when stage is running, is restartable and enableRestartRunningExecutions=true', function() {
-      this.$scope.execution.isRunning = true;
-      this.$scope.application.attributes.enableRestartRunningExecutions = true;
+      this.controller.execution.isRunning = true;
+      this.controller.application.attributes.enableRestartRunningExecutions = true;
       this.$scope.$digest();
       expect(this.controller.isRestartable({restartable: true})).toBe(true);
     });
