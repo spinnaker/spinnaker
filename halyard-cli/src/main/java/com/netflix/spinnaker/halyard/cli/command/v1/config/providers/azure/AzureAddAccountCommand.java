@@ -102,4 +102,9 @@ class AzureAddAccountCommand extends AbstractAddAccountCommand {
         .setPackerResourceGroup(packerResourceGroup)
         .setPackerStorageAccount(packerStorageAccount);
   }
+
+  @Override
+  protected Account emptyAccount() {
+    return new AzureAccount();
+  }
 }

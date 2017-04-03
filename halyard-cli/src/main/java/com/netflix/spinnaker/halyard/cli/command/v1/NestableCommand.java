@@ -44,6 +44,9 @@ public abstract class NestableCommand {
   @Parameter(names = { "-h", "--help" }, help = true, description = "Display help text about this command.")
   private boolean help;
 
+  @Parameter(names = { "--options" }, help = true, description = "Get options for the specified field name.")
+  private String options;
+
   @Parameter(names = {"-d", "--debug"}, description = "Show detailed network traffic with halyard daemon.")
   public void setDebug(boolean debug) {
     GlobalOptions.getGlobalOptions().setDebug(debug);
@@ -85,12 +88,53 @@ public abstract class NestableCommand {
     }
   }
 
+  protected List<String> options(String fieldName) {
+    return new ArrayList<>();
+  }
+
+  protected String translateFieldName(String fieldName) {
+    if (fieldName == null || fieldName.isEmpty()) {
+      throw new IllegalArgumentException("A field name must be supplied to translate.");
+    }
+
+    int i = 0;
+    char c = fieldName.charAt(i);
+    while (c == '-') {
+      i++;
+      c = fieldName.charAt(i);
+    }
+
+    fieldName = fieldName.substring(i);
+    String[] delimited = fieldName.split("-");
+
+    if (delimited.length == 1) {
+      return delimited[0];
+    }
+
+    for (i = 1; i < delimited.length; i++) {
+      String token = delimited[i];
+      if (token.length() == 0) {
+        continue;
+      }
+
+      token = Character.toUpperCase(token.charAt(0)) + token.substring(1);
+      delimited[i] = token;
+    }
+
+    return String.join("", delimited);
+  }
+
   /**
    * Used to consistently format exceptions thrown by connecting to the halyard daemon.
    */
   private void safeExecuteThis() {
     try {
-      executeThis();
+      if (options != null) {
+        List<String> available = options(translateFieldName(options));
+        AnsiUi.raw(String.join(" ", available));
+      } else {
+        executeThis();
+      }
     } catch (RetrofitError e) {
       if (e.getCause() instanceof ConnectException) {
         AnsiUi.error(e.getCause().getMessage());

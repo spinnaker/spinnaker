@@ -69,4 +69,9 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     return account;
   }
+
+  @Override
+  protected Account emptyAccount() {
+    return new KubernetesAccount();
+  }
 }

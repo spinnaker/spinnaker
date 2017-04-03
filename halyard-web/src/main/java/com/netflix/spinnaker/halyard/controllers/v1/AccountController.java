@@ -22,6 +22,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.core.DaemonOptions;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -61,7 +63,7 @@ public class AccountController {
     return TaskRepository.submitTask(builder::build);
   }
 
-  @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.GET)
   DaemonTask<Halconfig, Account> account(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
@@ -79,7 +81,44 @@ public class AccountController {
     return TaskRepository.submitTask(builder::build);
   }
 
-  @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.DELETE)
+  @RequestMapping(value = "/options", method = RequestMethod.POST)
+  DaemonTask<Halconfig, List<String>> newAccountOptions(
+      @PathVariable String deploymentName,
+      @PathVariable String providerName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody DaemonOptions rawAccountOptions) {
+    String fieldName = rawAccountOptions.getField();
+    Account account = objectMapper.convertValue(
+        rawAccountOptions.getResource(),
+        Providers.translateAccountType(providerName)
+    );
+    DaemonResponse.UpdateOptionsRequestBuilder builder = new DaemonResponse.UpdateOptionsRequestBuilder();
+    String accountName = account.getName();
+
+    builder.setUpdate(() -> accountService.addAccount(deploymentName, providerName, account));
+    builder.setFieldOptionsResponse(() -> accountService.getAccountOptions(deploymentName, providerName, accountName, fieldName));
+    builder.setSeverity(severity);
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/account/{accountName:.+}/options", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, List<String>> existingAccountOptions(
+      @PathVariable String deploymentName,
+      @PathVariable String providerName,
+      @PathVariable String accountName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody DaemonOptions rawAccountOptions) {
+    String fieldName = rawAccountOptions.getField();
+    DaemonResponse.StaticOptionsRequestBuilder builder = new DaemonResponse.StaticOptionsRequestBuilder();
+
+    builder.setFieldOptionsResponse(() -> accountService.getAccountOptions(deploymentName, providerName, accountName, fieldName));
+    builder.setSeverity(severity);
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.DELETE)
   DaemonTask<Halconfig, Void> deleteAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,
@@ -103,7 +142,7 @@ public class AccountController {
     return TaskRepository.submitTask(builder::build);
   }
 
-  @RequestMapping(value = "/{accountName:.+}", method = RequestMethod.PUT)
+  @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setAccount(
       @PathVariable String deploymentName,
       @PathVariable String providerName,

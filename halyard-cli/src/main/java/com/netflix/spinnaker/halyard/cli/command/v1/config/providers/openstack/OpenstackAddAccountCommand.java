@@ -110,4 +110,9 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
     return account;
 
   }
+
+  @Override
+  protected Account emptyAccount() {
+    return new OpenstackAccount();
+  }
 }

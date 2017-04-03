@@ -84,4 +84,9 @@ class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
 
     return account;
   }
+
+  @Override
+  protected Account emptyAccount() {
+    return new DockerRegistryAccount();
+  }
 }

@@ -37,6 +37,14 @@ public abstract class AbstractHasAccountCommand extends AbstractProviderCommand 
     return "account";
   }
 
+  public String getAccountName(String defaultName) {
+    try {
+      return getAccountName();
+    } catch (IllegalArgumentException e) {
+      return defaultName;
+    }
+  }
+
   public String getAccountName() {
     switch (accounts.size()) {
       case 0:

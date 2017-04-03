@@ -21,12 +21,14 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.http.*;
 
+import javax.ws.rs.OPTIONS;
 import java.util.List;
 import java.util.Map;
 
@@ -120,14 +122,14 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Account account);
 
-  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
+  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Object> getAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
+  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> setAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
@@ -135,12 +137,25 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body Account account);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/{accountName}/")
+  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/")
   DaemonTask<Halconfig, Void> deleteAccount(
       @Path("deploymentName") String deploymentName,
       @Path("providerName") String providerName,
       @Path("accountName") String accountName,
       @Query("validate") boolean validate);
+
+  @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/options")
+  DaemonTask<Halconfig, List<String>> getNewAccountOptions(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Body DaemonOptions<Account> options);
+
+  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/accounts/account/{accountName}/options")
+  DaemonTask<Halconfig, List<String>> getExistingAccountOptions(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("accountName") String accountName,
+      @Body DaemonOptions<Void> options);
 
   @GET("/v1/config/deployments/{deploymentName}/security/")
   DaemonTask<Halconfig, Security> getSecurity(

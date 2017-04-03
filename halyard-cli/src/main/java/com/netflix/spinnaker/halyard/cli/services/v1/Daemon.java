@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -159,6 +160,20 @@ public class Daemon {
     return () -> {
       ResponseUnwrapper.get(getService().deleteAccount(deploymentName, providerName, accountName, validate));
       return null;
+    };
+  }
+
+  public static Supplier<List<String>> getNewAccountOptions(String deploymentName, String providerName, String fieldName, Account account) {
+    return () -> {
+      DaemonOptions<Account> accountOptions = new DaemonOptions<Account>().setField(fieldName).setResource(account);
+      return ResponseUnwrapper.get(getService().getNewAccountOptions(deploymentName, providerName, accountOptions));
+    };
+  }
+
+  public static Supplier<List<String>> getExistingAccountOptions(String deploymentName, String providerName, String accountName, String fieldName) {
+    return () -> {
+      DaemonOptions<Void> accountOptions = new DaemonOptions<Void>().setField(fieldName);
+      return ResponseUnwrapper.get(getService().getExistingAccountOptions(deploymentName, providerName, accountName, accountOptions));
     };
   }
 

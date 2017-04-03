@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -44,6 +45,9 @@ public class AccountService {
 
   @Autowired
   private ValidateService validateService;
+
+  @Autowired
+  private OptionsService optionsService;
 
   public List<Account> getAllAccounts(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
@@ -123,5 +127,10 @@ public class AccountService {
   public ProblemSet validateAllAccounts(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).withAnyAccount();
     return validateService.validateMatchingFilter(filter);
+  }
+
+  public OptionsService.FieldOptions getAccountOptions(String deploymentName, String providerName, String accountName, String fieldName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName).setAccount(accountName);
+    return optionsService.options(filter, Account.class, fieldName);
   }
 }

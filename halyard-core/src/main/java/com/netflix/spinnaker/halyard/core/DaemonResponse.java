@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -43,6 +44,52 @@ public class DaemonResponse<T> {
   public DaemonResponse(T responseBody, ProblemSet problemSet) {
     this.responseBody = responseBody;
     this.problemSet = problemSet;
+  }
+
+  /**
+   * This asks for options if "hypothetically" the update was applied
+   */
+  @Data
+  public static class UpdateOptionsRequestBuilder {
+    private Runnable update;
+    private Supplier<FieldOptions> fieldOptionsResponse;
+    private Severity severity = Severity.WARNING;
+
+    public DaemonResponse<List<String>> build() {
+      try {
+        update.run();
+        FieldOptions options = fieldOptionsResponse.get();
+        return new DaemonResponse<>(options.getOptions(), options.getProblemSet());
+      } catch (HalException e) {
+        // This is OK, propagate the exception to the HalconfigExceptionHandler
+        throw e;
+      } catch (Exception e) {
+        log.error("Unknown exception encountered: ", e);
+        throw e;
+      }
+    }
+  }
+
+  /**
+   * This asks for options given the current state of the context
+   */
+  @Data
+  public static class StaticOptionsRequestBuilder {
+    private Supplier<FieldOptions> fieldOptionsResponse;
+    private Severity severity = Severity.WARNING;
+
+    public DaemonResponse<List<String>> build() {
+      try {
+        FieldOptions options = fieldOptionsResponse.get();
+        return new DaemonResponse<>(options.getOptions(), options.getProblemSet());
+      } catch (HalException e) {
+        // This is OK, propagate the exception to the HalconfigExceptionHandler
+        throw e;
+      } catch (Exception e) {
+        log.error("Unknown exception encountered: ", e);
+        throw e;
+      }
+    }
   }
 
   @Data
@@ -105,5 +152,10 @@ public class DaemonResponse<T> {
 
       return new DaemonResponse<>(null, result);
     }
+  }
+
+  public interface FieldOptions {
+    List<String> getOptions();
+    ProblemSet getProblemSet();
   }
 }

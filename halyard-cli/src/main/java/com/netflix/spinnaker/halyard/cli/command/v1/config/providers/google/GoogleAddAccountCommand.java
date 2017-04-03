@@ -69,4 +69,9 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
 
     return account;
   }
+
+  @Override
+  protected Account emptyAccount() {
+    return new GoogleAccount();
+  }
 }

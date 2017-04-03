@@ -48,8 +48,23 @@ public abstract class AbstractAddAccountCommand extends AbstractHasAccountComman
 
   protected abstract Account buildAccount(String accountName);
 
+  protected abstract Account emptyAccount();
+
   public String getDescription() {
     return "Add an account to the " + getProviderName() + " provider.";
+  }
+
+  @Override
+  protected List<String> options(String fieldName) {
+    String currentDeployment = getCurrentDeployment();
+    String accountName = getAccountName("hal-default-account");
+    Account account = buildAccount(accountName);
+    String providerName = getProviderName();
+
+    return new OperationHandler<List<String>>()
+        .setFailureMesssage("Failed to get options for field " + fieldName)
+        .setOperation(Daemon.getNewAccountOptions(currentDeployment, providerName, fieldName, account))
+        .get();
   }
 
   @Override

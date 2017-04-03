@@ -65,6 +65,18 @@ public abstract class AbstractEditAccountCommand<T extends Account> extends Abst
   }
 
   @Override
+  protected List<String> options(String fieldName) {
+    String currentDeployment = getCurrentDeployment();
+    String accountName = getAccountName("hal-default-account");
+    String providerName = getProviderName();
+
+    return new OperationHandler<List<String>>()
+        .setFailureMesssage("Failed to get options for field " + fieldName)
+        .setOperation(Daemon.getExistingAccountOptions(currentDeployment, providerName, accountName, fieldName))
+        .get();
+  }
+
+  @Override
   protected void executeThis() {
     String accountName = getAccountName();
     String providerName = getProviderName();
