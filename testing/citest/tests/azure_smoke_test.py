@@ -130,7 +130,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
             app=self.TEST_APP),
         "detail": "",
         "credentials": self.bindings['SPINNAKER_AZURE_ACCOUNT'],
-        "rules": rules,
+        "securityRules": rules,
         "name": self.TEST_SECURITY_GROUP,
         "securityGroupName": self.TEST_SECURITY_GROUP,
         "cloudProvider": "azure",
@@ -141,23 +141,14 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(
         'Security Group Created', retryable_for_secs=30)
      .collect_resources(
-         az_resource='group', 
-         command='show', 
-         args=['--name', self.TEST_SECURITY_GROUP_RG])
+         az_resource='network', 
+         command='nsg', 
+         args=['show', '--name', self.TEST_SECURITY_GROUP, '--resource-group', self.TEST_SECURITY_GROUP_RG])
      .contains_pred_list([
          jp.DICT_MATCHES({
-             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
-             'rules': jp.STR_SUBSTR("protocol='tcp'")
-                      and jp.STR_SUBSTR("port_range_min='80'")
-                      and jp.STR_SUBSTR("port_range_max='80'")}),
-         jp.DICT_MATCHES({
-             'rules': jp.STR_SUBSTR("protocol='udp'")
-                      and jp.STR_SUBSTR("port_range_min='10'")
-                      and jp.STR_SUBSTR("port_range_max='65530'")}),
-         jp.DICT_MATCHES({
-             'rules': jp.STR_SUBSTR("protocol='icmp'")
-                      and jp.STR_SUBSTR("port_range_min='12'")
-                      and jp.STR_SUBSTR("port_range_max='9'")})]))
+             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP)
+             #TO DO Add more rules such as Port open ?
+     })]))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=' Test - create security group for {app}'.format(
@@ -176,33 +167,33 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     To verify the operation, we just check that the spinnaker security group
     for the given application was deleted.
     """
-    #Get ID of the created security group
-    az_agent = az.AsAgent(None)
-    data = az_agent.get_resource('security group', self.TEST_SECURITY_GROUP)
-    security_group_id = data['id']
 
-    payload = self.agent.make_json_payload_from_kwargs(
-        job=[{
-            "Provider": "openstack",
-            "id": security_group_id,
-            "region": self.bindings['AZ_REGION_NAME'],
-            "regions": [self.bindings['AZ_REGION_NAME']],
-            "account": self.bindings['SPINNAKER_AZ_ACCOUNT'],
+    job = [{
+            "Provider": "azure",
+            "appName": self.TEST_APP,
+            "region": self.bindings['TEST_AZURE_LOCATION'],
+            "regions": [self.bindings['TEST_AZURE_LOCATION']],
+            "credentials": self.bindings['SPINNAKER_AZURE_ACCOUNT'],
             "securityGroupName": self.TEST_SECURITY_GROUP,
-            "cloudProvider": "openstack",
+            "cloudProvider": "azure",
             "type": "deleteSecurityGroup",
-            "user": self.bindings['TEST_AZ_USERNAME']
-        }],
-        application=self.TEST_APP,
-        description='Delete Security Group: : ' + self.TEST_SECURITY_GROUP)
+            "user": "[anonymous]"
+        }]
 
     builder = az.AzContractBuilder(self.az_observer)
     (builder.new_clause_builder(
         'Security Group Deleted', retryable_for_secs=30)
-     .show_resource('security group', self.TEST_SECURITY_GROUP,
-                    no_resources_ok=True)
-     .excludes_path_eq('name', self.TEST_SECURITY_GROUP)
-    )
+      .collect_resources(
+         az_resource='network', 
+         command='nsg', 
+         args=['show', '--name', self.TEST_SECURITY_GROUP, '--resource-group', self.TEST_SECURITY_GROUP_RG],
+         no_resources_ok=True)
+     )
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=job, description=' Test - delete security group for {app}'.format(
+            app=self.TEST_APP),
+        application=self.TEST_APP)
+
     return st.OperationContract(
         self.new_post_operation(
             title='delete_security_group', data=payload,
