@@ -63,6 +63,7 @@ Amazon Web Services | awscli | ```sudo apt-get install -y awscli```
 Google Cloud Platform | gcloud | ```curl https://sdk.cloud.google.com | bash```
 Kubernetes | kubectl | [See instructions](http://kubernetes.io/docs/user-guide/prereqs/)
 OpenStack | openstack | [See instructions](https://docs.openstack.org/user-guide/common/cli-install-openstack-command-line-clients.html)
+Microsoft Azure | az cli | [See instructions](http://docs.microsoft.com/cli/azure/get-started-with-azure-cli)
 
 
 ## Defining Environment Variables
@@ -203,6 +204,7 @@ spinnaker_google_credentials | The name of the Spinnaker [clouddriver] account t
 spinnaker_kubernetes_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Kubernetes operations. If not specified, this will use the configured primary account.
 spinnaker_aws_credentials |  The name of the Spinnaker [clouddriver] account that you wish to use for Amazon Web Services operations. If not specified, this will use the configured primary account.
 spinnaker_os_account | The name of the Spinnaker [clouddriver] account that you wish to use for OpenStack operations. If not specified, this will use the configured primary account.
+spinnaker_azure_account | The name of the Spinnaker [clouddriver] account that you wish to use for Microsoft Azure. If not specified, this will use the configured primary account.
 
 
 ## Standard Parameters For Configuring Observers
@@ -255,6 +257,9 @@ things, and lastly, additional "observer" things.
 
 ### OpenStack
         --os_cloud=$OS_CLOUD
+
+### Microsoft Azure
+        You can run the test without any parameters. You have to execute the 'azure login' once before.
 
 # Usage Examples
 
