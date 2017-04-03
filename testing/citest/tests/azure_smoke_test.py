@@ -13,24 +13,22 @@
 # limitations under the License.
 
 """
-Smoke test to see if Spinnaker can interoperate with OpenStack.
+Smoke test to see if Spinnaker can interoperate with Microsoft Azure.
 
 See testable_service/integration_test.py and spinnaker_testing/spinnaker.py
 for more details.
 
-The test will use the spinnaker configuration parameters from the server
+The smoke test will use the spinnaker configuration parameters from the server
 endpoint (gate) to determine the managed project it should verify, and to
 determine the spinnaker account name to use when sending it commands.
 
 Note:
-    This test needs certain environment variables defined in order for the
-    OpenStack client to work. Please refer testing/citest/README.md for more
-    details.
+    This test needs the Azure CLI installed as 'AZ' cmd line installed with a
+    context already loaded (az login)
 
 Sample Usage:
     PYTHONPATH=testing/citest \
-    python tesing/citest/tests/openstack_smoke_test.py \
-    --native_hostname=host-running-smoke-test
+    python tesing/citest/tests/openstack_smoke_test.py
 """
 
 # Standard python modules.
@@ -101,10 +99,11 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
         contract=contract)
 
   def create_a_security_group(self):
-    """Creates OsContract for createServerGroup.
+    """Creates AzContract for createServerGroup.
 
     To verify the operation, we just check that the spinnaker security group
     for the given application was created.
+    This will create a Network Security Group in a Resource Group on your Azure Subscription
     """
     rules = [
         {
@@ -147,7 +146,6 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
      .contains_pred_list([
          jp.DICT_MATCHES({
              'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP)
-             #TO DO Add more rules such as Port open ?
      })]))
 
     payload = self.agent.make_json_payload_from_kwargs(
