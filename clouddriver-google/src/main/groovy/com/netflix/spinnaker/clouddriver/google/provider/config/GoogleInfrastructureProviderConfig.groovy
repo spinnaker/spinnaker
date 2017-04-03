@@ -105,12 +105,22 @@ class GoogleInfrastructureProviderConfig {
                                                           objectMapper,
                                                           registry)
 
+        newlyAddedAgents << new GoogleGlobalAddressCachingAgent(clouddriverUserAgentApplicationName,
+                                                                credentials,
+                                                                objectMapper,
+                                                                registry)
+
         regions.each { String region ->
           newlyAddedAgents << new GoogleSubnetCachingAgent(clouddriverUserAgentApplicationName,
                                                            credentials,
                                                            objectMapper,
                                                            registry,
                                                            region)
+          newlyAddedAgents << new GoogleRegionalAddressCachingAgent(clouddriverUserAgentApplicationName,
+                                                                    credentials,
+                                                                    objectMapper,
+                                                                    registry,
+                                                                    region)
         }
 
         newlyAddedAgents << new GoogleHealthCheckCachingAgent(clouddriverUserAgentApplicationName,

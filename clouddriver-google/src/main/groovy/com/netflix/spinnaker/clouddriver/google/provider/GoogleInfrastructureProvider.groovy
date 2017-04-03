@@ -34,6 +34,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
   final String providerName = GoogleInfrastructureProvider.name
 
   final Set<String> defaultCaches = [
+      ADDRESSES.ns,
       APPLICATIONS.ns,
       BACKEND_SERVICES.ns,
       CLUSTERS.ns,
@@ -55,6 +56,7 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
   ]
 
   final Map<SearchableResource, SearchableProvider.SearchResultHydrator> searchResultHydrators = [
+    (new GoogleSearchableResource(ADDRESSES.ns)): new AddressResultHydrator(),
     (new GoogleSearchableResource(BACKEND_SERVICES.ns)): new BackendServiceResultHydrator(),
     (new GoogleSearchableResource(HEALTH_CHECKS.ns)): new HealthCheckResultHydrator(),
     (new GoogleSearchableResource(HTTP_HEALTH_CHECKS.ns)): new HttpHealthCheckResultHydrator(),
@@ -64,6 +66,17 @@ class GoogleInfrastructureProvider extends AgentSchedulerAware implements Search
   @Override
   Map<String, String> parseKey(String key) {
     return Keys.parse(key)
+  }
+
+  private static class AddressResultHydrator implements SearchableProvider.SearchResultHydrator {
+
+    @Override
+    Map<String, String> hydrateResult(Cache cacheView, Map<String, String> result, String id) {
+      CacheData addressCacheData  = cacheView.get(ADDRESSES.ns, id)
+      return result + [
+          address: JsonOutput.toJson(addressCacheData.attributes.address)
+      ]
+    }
   }
 
   private static class BackendServiceResultHydrator implements SearchableProvider.SearchResultHydrator {

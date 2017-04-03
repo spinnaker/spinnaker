@@ -23,6 +23,7 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class Keys {
   static enum Namespace {
+    ADDRESSES,
     APPLICATIONS,
     BACKEND_SERVICES,
     CLUSTERS,
@@ -66,6 +67,13 @@ class Keys {
     def result = [provider: parts[0], type: parts[1]]
 
     switch (result.type) {
+      case Namespace.ADDRESSES.ns:
+        result << [
+            account: parts[2],
+            region : parts[3],
+            name   : parts[4]
+        ]
+        break
       case Namespace.APPLICATIONS.ns:
         result << [application: parts[2]]
         break
@@ -200,6 +208,12 @@ class Keys {
                                   String kind,
                                   String healthCheckName) {
     "$GoogleCloudProvider.ID:${Namespace.HEALTH_CHECKS}:${account}:${kind}:${healthCheckName}"
+  }
+
+  static String getAddressKey(String account,
+                              String region,
+                              String addressName) {
+    "$GoogleCloudProvider.ID:${Namespace.ADDRESSES}:${account}:${region}:${addressName}"
   }
 
   static String getHttpHealthCheckKey(String account,
