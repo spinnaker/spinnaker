@@ -97,12 +97,13 @@ execution-status {
     .duration {
       font-weight: 600;
       line-height: 20px;
-      display: none;
+      visibility: hidden;
+      display: inline-block;
     }
     &.show-durations {
       .stage {
         .duration {
-          display: inline-block;
+          visibility: visible;
         }
         min-width: 50px;
       }
