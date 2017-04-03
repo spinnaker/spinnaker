@@ -112,11 +112,20 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
-          <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
-            <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
-          </span>
-          <span ng-if="instance.state">{{instance.state | uppercase}}</span>
-          <span ng-if="!instance.state">{{metric.state | robotToHuman}}</span>
+          <div ng-if="metric.type !== 'LoadBalancer'">
+            <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
+              <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
+              {{metric.state | robotToHuman}}
+            </span>
+            <span class="pad-left small">
+              <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
+              <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
+              <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
+            </span>
+          </div>
+          <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
+            <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+          </div>
         </dd>
       </dl>
     </collapsible-section>
