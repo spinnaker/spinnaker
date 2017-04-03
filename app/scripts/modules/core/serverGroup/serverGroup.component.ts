@@ -55,10 +55,10 @@ export class ServerGroupController implements IComponentController {
     this.setViewModel();
 
     this.headerIsSticky = function() {
-      if (!this.$scope.sortFilter.showAllInstances) {
+      if (!this.sortFilter.showAllInstances) {
         return false;
       }
-      if (this.$scope.sortFilter.listInstances) {
+      if (this.sortFilter.listInstances) {
         return this.viewModel.instances.length > 1;
       }
       return this.viewModel.instances.length > 20;
