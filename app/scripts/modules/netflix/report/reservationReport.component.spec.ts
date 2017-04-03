@@ -1,26 +1,38 @@
-'use strict';
+import {ICompileService, IHttpBackendService, IQService, IRootScopeService, mock} from 'angular';
 
 import {matchers} from '../../../../../test/helpers/customMatchers';
 import {SETTINGS} from 'core/config/settings';
+import {RESERVATION_REPORT_COMPONENT} from './reservationReport.component';
+import {ReservationReportReader} from 'netflix/report/reservationReport.read.service';
+import {AccountService} from 'core/account/account.service';
 
 describe('Directives: reservation report', function () {
 
-  require('./reservationReport.directive.html');
-
-  beforeEach(window.module(require('./reservationReport.directive')));
-  beforeEach(function() {
+  require('./reservationReport.component.html');
+  beforeEach(mock.module(RESERVATION_REPORT_COMPONENT));
+  beforeEach(() => {
     jasmine.addMatchers(matchers);
   });
 
-  beforeEach(window.inject(function ($rootScope, $compile, reservationReportReader, $httpBackend, accountService, $q) {
-    this.scope = $rootScope.$new();
-    this.compile = $compile;
-    this.reservationReportReader = reservationReportReader;
-    this.$http = $httpBackend;
+  let http: IHttpBackendService;
+  let scope: IRootScopeService;
+  let compile: ICompileService;
 
+  let reader: ReservationReportReader;
+  beforeEach(mock.inject(($q: IQService,
+                          $httpBackend: IHttpBackendService,
+                          $rootScope: IRootScopeService,
+                          $compile: ICompileService,
+                          accountService: AccountService,
+                          reservationReportReader: ReservationReportReader) => {
+
+    http = $httpBackend;
+    scope = $rootScope.$new();
+    compile = $compile;
+    reader = reservationReportReader;
     spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
 
-    this.$http.expectGET([SETTINGS.gateUrl, 'reports', 'reservation', 'v2'].join('/')).respond(200, {
+    http.expectGET([SETTINGS.gateUrl, 'reports', 'reservation', 'v2'].join('/')).respond(200, {
       reservations: [
         { availabilityZone: 'us-east-1a', instanceType: 'm3.medium', os: 'LINUX', region: 'us-east-1',
           accounts: {
@@ -64,38 +76,32 @@ describe('Directives: reservation report', function () {
   }));
 
   it('displays two rows for report', function () {
-    var scope = this.scope,
-        compile = this.compile;
-
     scope.account = 'prod';
     scope.region = 'us-east-1';
     scope.instanceType = 'm3.medium';
     scope.zones = ['us-east-1a', 'us-east-1c'];
     scope.isVpc = true;
 
-    var report = compile('<reservation-report account="account" region="region" instance-type="instanceType" zones="zones" is-vpc="isVpc"></reservation-report>')(scope);
+    const report = compile('<reservation-report account="account" region="region" instance-type="instanceType" zones="zones" is-vpc="isVpc"></reservation-report>')(scope);
 
     scope.$digest();
-    this.$http.flush();
+    http.flush();
 
     expect(report.find('h4')).textMatch('VPC Reservations for m3.medium in prod');
     expect(report.find('tbody tr').size()).toBe(2);
   });
 
   it('updates report title, rows when account, region, instanceType, zones, vpc flag change', function () {
-    var scope = this.scope,
-        compile = this.compile;
-
     scope.account = 'prod';
     scope.region = 'us-east-1';
     scope.instanceType = 'm3.medium';
     scope.zones = ['us-east-1a', 'us-east-1c'];
     scope.isVpc = false;
 
-    var report = compile('<reservation-report account="account" region="region" instance-type="instanceType" zones="zones" is-vpc="isVpc"></reservation-report>')(scope);
+    const report = compile('<reservation-report account="account" region="region" instance-type="instanceType" zones="zones" is-vpc="isVpc"></reservation-report>')(scope);
 
     scope.$digest();
-    this.$http.flush();
+    http.flush();
 
     expect(report.find('h4')).textMatch('Reservations for m3.medium in prod');
     expect(report.find('tbody tr td:eq(2)')).textMatch('3');
