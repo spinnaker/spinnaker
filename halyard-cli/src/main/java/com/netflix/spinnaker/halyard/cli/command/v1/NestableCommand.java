@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang.NotImplementedException;
 import retrofit.RetrofitError;
 
 import java.net.ConnectException;
@@ -167,7 +168,8 @@ public abstract class NestableCommand {
     story.addNewline();
 
     paragraph = story.addParagraph().setIndentWidth(indentWidth);
-    paragraph.addSnippet(getDescription());
+    String longDescription = getLongDescription() != null ? getLongDescription() : getDescription();
+    paragraph.addSnippet(longDescription);
     story.addNewline();
 
     String usage = fullCommandName;
@@ -249,7 +251,9 @@ public abstract class NestableCommand {
         paragraph.addSnippet(key).addStyle(AnsiStyle.BOLD);
 
         paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
-        paragraph.addSnippet(subcommands.get(key).getDescription());
+        NestableCommand subcommand = subcommands.get(key);
+        String shortDescription = subcommand.getShortDescription() != null ? subcommand.getShortDescription() : subcommand.getDescription();
+        paragraph.addSnippet(shortDescription);
         story.addNewline();
       }
     }
@@ -316,10 +320,11 @@ public abstract class NestableCommand {
       }
     }
 
+    String longDescription = getLongDescription() != null ? getLongDescription() : getDescription();
     result.append("## ")
         .append(fullCommandName)
         .append("\n\n")
-        .append(getDescription())
+        .append(longDescription)
         .append("\n\n")
         .append("#### Usage")
         .append("\n```\n")
@@ -383,12 +388,15 @@ public abstract class NestableCommand {
       keys.sort(String::compareTo);
 
       for (String key : keys) {
+        NestableCommand subcommand = subcommands.get(key);
+        String shortDescription = subcommand.getShortDescription() != null ? subcommand.getShortDescription() : subcommand.getDescription();
+
         result.append(" * ")
             .append("`")
             .append(key)
             .append("`")
             .append(": ")
-            .append(subcommands.get(key).getDescription())
+            .append(shortDescription)
             .append("\n");
       }
     }
@@ -457,9 +465,23 @@ public abstract class NestableCommand {
     return completorCase.setBindings(bindings).toString();
   }
 
-  abstract public String getDescription();
   abstract public String getCommandName();
   abstract protected void executeThis();
+
+  @Deprecated
+  protected String getDescription() {
+    throw new NotImplementedException("Each command must implement a description. Preferably `get[Long/Short]Description()`.");
+  }
+
+  // TODO(lwander) make abstract once `getDescription` is removed.
+  protected String getShortDescription() {
+    return null;
+  }
+
+  // TODO(lwander) make abstract once `getDescription` is removed.
+  protected String getLongDescription() {
+    return null;
+  }
 
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 

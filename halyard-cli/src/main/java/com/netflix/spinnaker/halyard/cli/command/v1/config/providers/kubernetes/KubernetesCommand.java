@@ -28,6 +28,18 @@ public class KubernetesCommand extends AbstractNamedProviderCommand {
     return "kubernetes";
   }
 
+  @Override
+  protected String getLongDescription() {
+    return String.join("",
+        "The Kubernetes provider is used to deploy Kubernetes resources to any number of Kubernetes clusters. ",
+        "Spinnaker assumes you have a Kubernetes cluster already running. If you don't, you must configure one: ",
+        "https://kubernetes.io/docs/getting-started-guides/. \n\nBefore proceeding, please visit ",
+        "https://kubernetes.io/docs/concepts/cluster-administration/authenticate-across-clusters-kubeconfig/",
+        "to make sure you're familiar with the authentication terminology. For more information on how to ",
+        "configure individual accounts, or how to deploy to multiple clusters, please read the documentation ",
+        "under `hal config provider kubernetes account -h`.");
+  }
+
   public KubernetesCommand() {
     super();
     registerSubcommand(new KubernetesAccountCommand());

@@ -29,6 +29,11 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
   }
 
   @Override
+  protected String getShortDescription() {
+    return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider";
+  }
+
+  @Override
   public String getDescription() {
     return "Manage and view Spinnaker configuration for the " + getProviderName() + " provider";
   }
