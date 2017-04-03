@@ -90,4 +90,4 @@ def scrape_spring_config(url):
     raise ValueError('Invalid HTTP={code} from {url}:\n{msg}'.format(
         code=http_code, url=url, msg=content))
   json = JSONDecoder().decode(content)
-  return infer(json)
+  return json

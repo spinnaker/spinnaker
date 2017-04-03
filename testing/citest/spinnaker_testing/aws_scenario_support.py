@@ -123,7 +123,7 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
     bindings.add_lazy_initializer(
         'TEST_AWS_VPC_ID', self.__lazy_binding_initializer)
     bindings.add_lazy_initializer(
-        'TEST_AWS_SECURITY_GROUP', self.__lazy_binding_initializer)
+        'TEST_AWS_SECURITY_GROUP_ID', self.__lazy_binding_initializer)
 
   def __lazy_binding_initializer(self, bindings, key):
     normalized_key = key.upper()
@@ -138,7 +138,7 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
           aws_command='describe-vpcs',
           args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
           region=bindings['TEST_AWS_REGION'],
-          aws_module='ec2', profile=self.__aws_observer.profile)
+          aws_module='ec2', profile=self.observer.profile)
       if not vpc_list:
         raise ValueError('There is no vpc tagged as "defaultvpc"')
 
@@ -146,17 +146,17 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
       logger.info('Using discovered default VpcId=%s', str(found))
       return found
 
-    if normalized_key == 'TEST_AWS_SECURITY_GROUP':
+    if normalized_key == 'TEST_AWS_SECURITY_GROUP_ID':
       # We need to figure out a specific security group that is compatable
       # with the VpcId we are using.
       logger = logging.getLogger(__name__)
       logger.info('Determine default AWS SecurityGroupId...')
-      sg_list = self.__aws_observer.get_resource_list(
+      sg_list = self.observer.get_resource_list(
           ExecutionContext(),
           root_key='SecurityGroups',
           aws_command='describe-security-groups', args=[],
           region=bindings['TEST_AWS_REGION'],
-          aws_module='ec2', profile=self.__aws_observer.profile)
+          aws_module='ec2', profile=self.observer.profile)
 
       found = None
       vpc_id = bindings['TEST_AWS_VPC_ID']
