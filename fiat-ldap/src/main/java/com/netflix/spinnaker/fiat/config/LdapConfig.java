@@ -55,6 +55,8 @@ public class LdapConfig {
 
     String groupSearchBase = "";
     MessageFormat userDnPattern = new MessageFormat("uid={0},ou=users");
+    String userSearchBase = "";
+    String userSearchFilter;
     String groupSearchFilter = "(uniqueMember={0})";
     String groupRoleAttributes = "cn";
   }

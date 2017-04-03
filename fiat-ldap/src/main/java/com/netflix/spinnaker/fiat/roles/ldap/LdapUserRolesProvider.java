@@ -25,6 +25,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
+import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.ldap.core.LdapEncoder;
 import org.springframework.security.ldap.LdapUtils;
@@ -107,8 +109,22 @@ public class LdapUserRolesProvider implements UserRolesProvider {
     log.debug("Root DN: " + root.toString());
 
     String[] formatArgs = new String[]{LdapEncoder.nameEncode(userId)};
-    String formattedUser = configProps.getUserDnPattern().format(formatArgs);
-    DistinguishedName user = new DistinguishedName(formattedUser);
+
+    String partialUserDn;
+    if (!StringUtils.isEmpty(configProps.getUserSearchFilter())) {
+      try {
+        DirContextOperations res = ldapTemplate.searchForSingleEntry(configProps.getUserSearchBase(),
+                configProps.getUserSearchFilter(), formatArgs);
+        partialUserDn = res.getDn().toString();
+      } catch (IncorrectResultSizeDataAccessException e) {
+        log.error("Unable to find a single user entry", e);
+        return null;
+      }
+    } else {
+      partialUserDn = configProps.getUserDnPattern().format(formatArgs);
+    }
+
+    DistinguishedName user = new DistinguishedName(partialUserDn);
     log.debug("User portion: " + user.toString());
 
     try {
