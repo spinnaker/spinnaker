@@ -1,0 +1,60 @@
+<div class="rollup-pod-server-group clickable clickable-row"
+     waypoint="{{$ctrl.viewModel.waypoint}}"
+     analytics-on="click"
+     analytics-category="Cluster Pod"
+     analytics-event="Load Server Group Details"
+     ng-click="$ctrl.loadDetails($event)"
+     ng-class="{
+        disabled: $ctrl.viewModel.serverGroup.isDisabled,
+        active: $ctrl.$rootScope.$state.includes('**.serverGroup', {region: $ctrl.viewModel.serverGroup.region, accountId: $ctrl.viewModel.serverGroup.account, serverGroup: $ctrl.viewModel.serverGroup.name, provider: $ctrl.viewModel.serverGroup.type})
+     }">
+  <div class="cluster-container">
+    <div class="server-group-title" sticky-header added-offset-height="67"
+         sticky-if="$ctrl.headerIsSticky()">
+      <div class="container-fluid no-padding">
+        <div class="row">
+          <div class="col-md-{{ $ctrl.viewModel.images ? 9 : 8 }} col-sm-6 section-title">
+            <input type="checkbox" ng-if="$ctrl.sortFilter.multiselect"
+                   ng-checked="$ctrl.MultiselectModel.serverGroupIsSelected($ctrl.serverGroup)"/>
+            <cloud-provider-logo provider="$ctrl.viewModel.serverGroup.type" height="16px" width="16px"></cloud-provider-logo>
+            <span class="server-group-sequence">{{ $ctrl.viewModel.serverGroupSequence }}</span><span ng-if="$ctrl.viewModel.jenkins || $ctrl.viewModel.images">:</span>
+            <a ng-if="$ctrl.viewModel.jenkins"
+               href="{{$ctrl.viewModel.jenkins.href}}"
+               target="_blank">
+              Build: #{{ $ctrl.viewModel.jenkins.number }}
+            </a>
+            <span ng-if="$ctrl.viewModel.images">
+              {{ $ctrl.viewModel.images }}
+            </span>
+            <entity-ui-tags component="$ctrl.serverGroup"
+                            application="$ctrl.application"
+                            entity-type="$ctrl.serverGroup"
+                            page-location="pod"
+                            on-update="$ctrl.application.serverGroups.refresh()"></entity-ui-tags>
+          </div>
+          <div class="col-md-{{ $ctrl.viewModel.images ? 3 : 4 }} col-sm-6 text-right">
+            <health-counts container="$ctrl.viewModel.serverGroup.instanceCounts"></health-counts>
+            <running-tasks-tag
+                ng-if="$ctrl.viewModel.serverGroup.runningTasks.length || $ctrl.viewModel.serverGroup.runningExecutions.length"
+                application="$ctrl.application" tasks="$ctrl.viewModel.serverGroup.runningTasks" executions="$ctrl.viewModel.serverGroup.runningExecutions"></running-tasks-tag>
+            <load-balancers-tag
+                ng-if="$ctrl.viewModel.serverGroup.loadBalancers.length"
+                server-group="$ctrl.viewModel.serverGroup" application="$ctrl.application"></load-balancers-tag>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="instance-list" ng-if="$ctrl.sortFilter.showAllInstances">
+      <div ng-if="!$ctrl.sortFilter.listInstances">
+        <instances highlight="$ctrl.sortFilter.filter" instances="$ctrl.viewModel.instances"></instances>
+      </div>
+      <div ng-if="$ctrl.sortFilter.listInstances">
+        <instance-list instances="$ctrl.viewModel.instances"
+                       sort-filter="$ctrl.sortFilter"
+                       has-discovery="$ctrl.hasDiscovery"
+                       server-group="$ctrl.viewModel.serverGroup"
+                       has-load-balancers="$ctrl.hasLoadBalancers"></instance-list>
+      </div>
+    </div>
+  </div>
+</div>

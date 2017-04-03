@@ -2,6 +2,7 @@
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+import {CLUSTER_POD_COMPONENT} from 'core/cluster/clusterPod.component';
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 
 let angular = require('angular');
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('../cluster/filter/clusterFilter.model'),
   require('../cluster/filter/multiselect.model'),
   require('./filter/clusterFilter.controller'),
-  require('./clusterPod.directive'),
+  CLUSTER_POD_COMPONENT,
   require('../account/account.module'),
   require('../cloudProvider/providerSelection/providerSelection.service'),
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,

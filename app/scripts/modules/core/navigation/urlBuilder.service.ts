@@ -7,18 +7,18 @@ export interface IUrlBuilderInput {
   account: string;
   application: string;
   cluster: string;
-  detail: string;
-  instanceId: string;
-  loadBalancer: string;
-  name: string;
-  project: string;
-  provider: string;
-  region: string;
-  serverGroup: string;
-  stack: string;
-  taskId: string;
+  detail?: string;
+  instanceId?: string;
+  loadBalancer?: string;
+  name?: string;
+  project?: string;
+  provider?: string;
+  region?: string;
+  serverGroup?: string;
+  stack?: string;
+  taskId?: string;
   type: string;
-  vpcId: string;
+  vpcId?: string;
 }
 
 export interface ITask {

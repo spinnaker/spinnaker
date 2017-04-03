@@ -1,14 +1,14 @@
-<div class="row pipelines executions" ng-class="{'showing-details': vm.showingDetails()}">
-  <div class="row" ng-if="vm.viewState.initializationError">
+<div class="row pipelines executions" ng-class="{'showing-details': $ctrl.showingDetails()}">
+  <div class="row" ng-if="$ctrl.viewState.initializationError">
     <h4 class="text-center">There was a server error loading pipelines. Please try again later.</h4>
   </div>
-  <div ng-if="!vm.groups.length" class="text-center">
+  <div ng-if="!$ctrl.groups.length" class="text-center">
     <h4>No executions match the filters you've selected.</h4>
   </div>
   <div class="execution-groups all-execution-groups" sticky-headers>
-    <div ng-repeat="group in vm.groups">
+    <div ng-repeat="group in $ctrl.groups">
       <execution-group group="group"
-                         application="vm.application">
+                         application="$ctrl.application">
       </execution-group>
     </div>
   </div>

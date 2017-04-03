@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.instance.instances.directive', [
   require('../utils/jQuery.js'),
 ])
-  .directive('instances', function ($timeout, $) {
+  .directive('instances', function ($rootScope, $timeout, $) {
     return {
       restrict: 'E',
       scope: {
@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
         highlight: '=',
       },
       link: function (scope, elem) {
-        var $state = scope.$parent.$state;
+        var $state = $rootScope.$state;
         let tooltipTargets = [];
 
         var base = elem.parent().inheritedData('$uiView').state;

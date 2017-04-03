@@ -58,6 +58,10 @@
   dependencies:
     "@types/jquery" "*"
 
+"@types/clipboard@^1.5.33":
+  version "1.5.33"
+  resolved "https://registry.yarnpkg.com/@types/clipboard/-/clipboard-1.5.33.tgz#add44ab691a2d64c79100c8d29c0bd303828636c"
+
 "@types/d3-array@*":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@types/d3-array/-/d3-array-1.1.1.tgz#11845239ae973849857a031530af77b970b9ff09"
@@ -6114,16 +6118,9 @@ write@^0.2.1:
   dependencies:
     mkdirp "^0.5.1"
 
-ws@1.1.2:
+ws@1.1.2, ws@^1.0.1:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.2.tgz#8a244fa052401e08c9886cf44a85189e1fd4067f"
-  dependencies:
-    options ">=0.0.5"
-    ultron "1.0.x"
-
-ws@^1.0.1:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-1.1.4.tgz#57f40d036832e5f5055662a397c4de76ed66bf61"
   dependencies:
     options ">=0.0.5"
     ultron "1.0.x"
