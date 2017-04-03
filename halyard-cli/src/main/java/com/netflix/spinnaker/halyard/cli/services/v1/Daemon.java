@@ -247,6 +247,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> rollbackDeployment(String deploymentName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().rollbackDeployment(deploymentName, validate, ""));
+      return null;
+    };
+  }
+
   public static Supplier<NodeDiff> configDiff(String deploymentName, boolean validate) {
     return () -> {
       Object rawDiff = ResponseUnwrapper.get(getService().configDiff(deploymentName, validate));

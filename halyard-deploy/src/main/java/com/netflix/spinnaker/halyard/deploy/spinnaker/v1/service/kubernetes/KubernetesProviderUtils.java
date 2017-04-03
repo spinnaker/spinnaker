@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Data;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -168,20 +169,24 @@ class KubernetesProviderUtils {
     getClient(details).extensions().replicaSets().inNamespace(namespace).withName(name).delete();
   }
 
+  private static String randomSecret(String name, String component) {
+    return String.join("-", "hal", name, component, RandomStringUtils.random(5));
+  }
+
   static String componentSecret(String name) {
-    return "hal-" + name + "-config";
+    return randomSecret(name, "profiles");
   }
 
   static String componentMonitoring(String name) {
-    return "hal-" + name + "-monitoring";
+    return randomSecret(name, "monitoring");
   }
 
   static String componentRegistry(String name) {
-    return "hal-" + name + "-registry";
+    return randomSecret(name, "registry");
   }
 
   static String componentDependencies(String name) {
-    return "hal-" + name + "-dependencies";
+    return randomSecret(name, "dependencies");
   }
 
   static List<String> kubectlPortForwardCommand(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String instance, int port) {

@@ -35,6 +35,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails.Instance;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import io.fabric8.kubernetes.api.model.*;
@@ -94,8 +95,24 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
     return availabilityZones;
   }
 
-  default Map<String, Object> getLoadBalancerDescription(AccountDeploymentDetails<KubernetesAccount> details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
+  @Override
+  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details) {
+    Map<String, Object> pipeline = DeployableService.super.buildRollbackPipeline(details);
+
+    List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.get("stages");
+    assert(stages != null && !stages.isEmpty());
+
+    for (Map<String, Object> stage : stages) {
+      stage.put("namespaces", Collections.singletonList(getNamespace()));
+      stage.put("interestingHealthProviders", Collections.singletonList("KubernetesService"));
+      stage.remove("region");
+    }
+
+    return pipeline;
+  }
+
+  default Map<String, Object> getLoadBalancerDescription(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     int port = settings.getPort();
     String accountName = details.getAccount().getName();
 
@@ -217,7 +234,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
 
   default Map<String, Object> getServerGroupDescription(
       AccountDeploymentDetails<KubernetesAccount> details,
-      GenerateService.ResolvedConfiguration resolvedConfiguration,
+      SpinnakerRuntimeSettings runtimeSettings,
       List<ConfigSource> configSources) {
     DeployKubernetesAtomicOperationDescription description = new DeployKubernetesAtomicOperationDescription();
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
@@ -257,13 +274,13 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
     description.setLoadBalancers(loadBalancers);
 
     List<KubernetesContainerDescription> containers = new ArrayList<>();
-    ServiceSettings serviceSettings = resolvedConfiguration.getServiceSettings(getService());
+    ServiceSettings serviceSettings = runtimeSettings.getServiceSettings(getService());
     KubernetesContainerDescription container = buildContainer(name, serviceSettings, configSources, size);
     containers.add(container);
 
-    ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
+    ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
     if (monitoringSettings.isEnabled() && getService().isMonitored()) {
-      serviceSettings = resolvedConfiguration.getServiceSettings(monitoringService);
+      serviceSettings = runtimeSettings.getServiceSettings(monitoringService);
       container = buildContainer(monitoringService.getName(), serviceSettings, configSources, size);
       containers.add(container);
     }
@@ -523,6 +540,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
       String version = parsedName.getPush();
       String location = pod.getMetadata().getNamespace();
       String id = pod.getMetadata().getName();
+      System.out.println(id + " version = " + version);
 
       Instance instance = new Instance().setId(id).setLocation(location);
       List<Instance> knownInstances = instances.getOrDefault(version, new ArrayList<>());
@@ -544,8 +562,8 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
     return res;
   }
 
-  default T connect(AccountDeploymentDetails<KubernetesAccount> details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
+  default T connect(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
 
     KubernetesProviderUtils.Proxy proxy = KubernetesProviderUtils.openProxy(getJobExecutor(), details);
 
@@ -556,8 +574,8 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
     return getServiceInterfaceFactory().createService(endpoint, getService());
   }
 
-  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
+  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details);
     Map<String, List<Instance>> instances = runningServiceDetails.getInstances();
     List<String> versions = new ArrayList<>(instances.keySet());

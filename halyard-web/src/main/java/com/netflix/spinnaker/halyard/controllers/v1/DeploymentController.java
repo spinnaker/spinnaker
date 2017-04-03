@@ -105,6 +105,27 @@ public class DeploymentController {
     return TaskRepository.submitTask(builder::build);
   }
 
+
+  @RequestMapping(value = "/{deploymentName:.+}/rollback/", method = RequestMethod.POST)
+  DaemonTask<Halconfig, Void> rollback(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = "false") boolean installOnly,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
+
+    builder.setBuildResponse(() -> {
+      deployService.rollback(deploymentName);
+      return null;
+    });
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
   DaemonTask<Halconfig, RemoteAction> deploy(@PathVariable String deploymentName,
     @RequestParam(required = false, defaultValue = "false") boolean installOnly,

@@ -29,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.*;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeployableServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.InstallableServiceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -82,6 +83,19 @@ public class DeployService {
     }
   }
 
+  public void rollback(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
+    switch (type) {
+      case LocalDebian:
+        throw new HalException(FATAL, "Rollback for debians has not been implemented yet.");
+      case Distributed:
+        rollbackDistributed(deploymentName);
+      default:
+        throw new IllegalArgumentException("Unrecognized deployment type " + type);
+    }
+  }
+
   public RemoteAction deploy(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
@@ -109,6 +123,29 @@ public class DeployService {
     RemoteAction result = localInstaller.install(deploymentDetails, resolvedConfiguration, serviceProvider);
     result.commitScript(halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
     return result;
+  }
+
+  private void rollbackDistributed(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
+    String accountName = deploymentEnvironment.getAccountName();
+
+    if (accountName == null || accountName.isEmpty()) {
+      throw new HalException(FATAL, "An account name must be "
+          + "specified as the desired place to run your simple clustered deployment.");
+    }
+
+    Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), accountName);
+
+    DeployableServiceProvider serviceProvider = serviceProviderFactory.createDeployableServiceProvider(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildEndpoints(deploymentConfiguration);
+    AccountDeploymentDetails deploymentDetails = (AccountDeploymentDetails) new AccountDeploymentDetails()
+        .setAccount(account)
+        .setDeploymentConfiguration(deploymentConfiguration)
+        .setDeploymentName(deploymentName)
+        .setBillOfMaterials(artifactService.getBillOfMaterials(deploymentName));
+
+    distributedDeployer.rollback(serviceProvider, deploymentDetails, runtimeSettings);
   }
 
   private RemoteAction deploySpinnaker(String deploymentName) {

@@ -135,6 +135,7 @@
  * [**hal config deploy**](#hal-config-deploy)
  * [**hal config deploy edit**](#hal-config-deploy-edit)
  * [**hal deploy**](#hal-deploy)
+ * [**hal deploy rollback**](#hal-deploy-rollback)
  * [**hal deploy run**](#hal-deploy-run)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy details**](#hal-deploy-details)
@@ -2398,7 +2399,21 @@ hal deploy [parameters] [subcommands]
 #### Subcommands
  * `details`: Get details about your currently deployed Spinnaker installation.
  * `diff`: This shows what changes you have made since Spinnaker was last deployed.
+ * `rollback`: Rollback Spinnaker to the prior version on a selected environment.
  * `run`: Deploy the currently configured instance of Spinnaker to a selected environment.
+
+---
+## hal deploy rollback
+
+Rollback Spinnaker to the prior version on a selected environment.
+
+#### Usage
+```
+hal deploy rollback [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--options`: Get options for the specified field name.
 
 ---
 ## hal deploy run

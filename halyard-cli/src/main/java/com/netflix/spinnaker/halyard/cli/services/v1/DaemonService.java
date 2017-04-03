@@ -69,6 +69,12 @@ public interface DaemonService {
       @Query("installOnly") boolean installOnly,
       @Body String _ignore);
 
+  @POST("/v1/config/deployments/{deploymentName}/rollback/")
+  DaemonTask<Halconfig, Object> rollbackDeployment(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body String _ignore);
+
   @GET("/v1/config/deployments/{deploymentName}/configDiff/")
   DaemonTask<Halconfig, NodeDiff> configDiff(
       @Path("deploymentName") String deploymentName,
