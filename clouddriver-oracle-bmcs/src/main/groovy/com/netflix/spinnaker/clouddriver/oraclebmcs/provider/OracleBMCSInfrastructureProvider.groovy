@@ -20,7 +20,8 @@ class OracleBMCSInfrastructureProvider extends AgentSchedulerAware implements Se
   final Collection<Agent> agents
 
   final Set<String> defaultCaches = [
-    Namespace.NETWORKS.ns
+    Namespace.NETWORKS.ns,
+    Namespace.SUBNETS.ns
   ].asImmutable()
 
   final Map<String, String> urlMappingTemplates = [:]

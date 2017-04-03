@@ -16,7 +16,8 @@ class Keys {
 
   static enum Namespace {
 
-    NETWORKS
+    NETWORKS,
+    SUBNETS
 
     static String provider = OracleBMCSCloudProvider.ID
 
@@ -56,6 +57,13 @@ class Keys {
           account: parts[5]
         ]
         break
+      case Namespace.SUBNETS.ns:
+        result << [
+          id     : parts[2],
+          region : parts[3],
+          account: parts[4]
+        ]
+        break
       default:
         return null
         break
@@ -69,6 +77,12 @@ class Keys {
                               String region,
                               String account) {
     "$OracleBMCSCloudProvider.ID:${Namespace.NETWORKS}:${networkName}:${networkId}:${region}:${account}"
+  }
+
+  static String getSubnetKey(String subnetId,
+                             String region,
+                             String account) {
+    "$OracleBMCSCloudProvider.ID:${Namespace.SUBNETS}:${subnetId}:${region}:${account}"
   }
 
 }
