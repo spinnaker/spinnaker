@@ -1,6 +1,7 @@
 'use strict';
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {GCE_ADDRESS_READER} from 'google/address/address.reader';
 import {GCE_HEALTH_CHECK_READER} from '../healthCheck/healthCheck.read.service';
 import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
@@ -12,19 +13,24 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.gce.cache.initializer', [
   require('../backendService/backendService.reader.js'),
   ACCOUNT_SERVICE,
+  GCE_ADDRESS_READER,
+  GCE_HEALTH_CHECK_READER,
   INSTANCE_TYPE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
   SUBNET_READ_SERVICE,
-  GCE_HEALTH_CHECK_READER,
   require('../httpHealthCheck/httpHealthCheck.reader.js'),
 ])
-  .factory('gceCacheConfigurer', function (accountService, gceBackendServiceReader,
+  .factory('gceCacheConfigurer', function (accountService, gceAddressReader, gceBackendServiceReader,
                                            gceCertificateReader, gceHealthCheckReader,
                                            gceHttpHealthCheckReader, instanceTypeService,
                                            loadBalancerReader, networkReader, subnetReader) {
 
     let config = Object.create(null);
+
+    config.addresses = {
+      initializers: [ () => gceAddressReader.listAddresses() ],
+    };
 
     config.backendServices = {
       initializers: [ () => gceBackendServiceReader.listBackendServices() ],

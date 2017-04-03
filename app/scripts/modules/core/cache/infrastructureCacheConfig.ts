@@ -21,6 +21,7 @@ export interface IInfrastructureCacheConfig {
   httpHealthChecks: IVersionConfig;
   certificates: IVersionConfig;
   backendServices: IVersionConfig;
+  addresses: IVersionConfig;
   credentials: any;
   buildMasters: any;
 }
@@ -58,6 +59,9 @@ export const INFRASTRUCTURE_CACHE_CONFIG: IInfrastructureCacheConfig = {
     version: 2
   },
   backendServices: {
+    version: 2
+  },
+  addresses: {
     version: 2
   },
   credentials: {},

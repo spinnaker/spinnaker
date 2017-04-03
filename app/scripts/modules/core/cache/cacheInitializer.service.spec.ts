@@ -92,7 +92,7 @@ describe('Service: cacheInitializer', function () {
     it('should initialize the cache initializer with the initialization values', () => {
       cacheInitializer.initialize().then((result: any[]) => {
 
-        expect(result.length).toBe(13); // from infrastructure cache config
+        expect(result.length).toBe(14); // from infrastructure cache config
         const flattened: string[][] = flatten(result); // only the arrays that actually contain data
         expect (flattened.length).toBe(4); // the four initialized string[] above used for the spyOns.
 
@@ -128,7 +128,7 @@ describe('Service: cacheInitializer', function () {
 
     it('should remove all items from all caches', () => {
       cacheInitializer.refreshCaches().then((result: any[]) => {
-        expect(result.length).toBe(13);
+        expect(result.length).toBe(14);
         result.forEach((item: any) => expect(item).toBeUndefined());
         initialized = true;
       });
