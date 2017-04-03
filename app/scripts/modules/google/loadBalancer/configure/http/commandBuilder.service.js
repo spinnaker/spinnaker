@@ -7,12 +7,13 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {GCEProviderSettings} from '../../../gce.settings';
 import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import {GCE_CERTIFICATE_READER} from 'google/certificate/certificate.reader';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
     require('../../../backendService/backendService.reader.js'),
-    require('../../../certificate/certificate.reader.js'),
+    GCE_CERTIFICATE_READER,
     ACCOUNT_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
@@ -155,8 +156,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     }
 
     function getCertificates () {
-      return gceCertificateReader.listCertificates()
-        .then(([response]) => response.results);
+      return gceCertificateReader.listCertificates();
     }
 
     function getAccounts () {

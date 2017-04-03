@@ -10,6 +10,7 @@ import {SUBNET_READ_SERVICE, SubnetReader, ISubnet} from 'core/subnet/subnet.rea
 import {GCE_HEALTH_CHECK_READER, GceHealthCheckReader} from 'google/healthCheck/healthCheck.read.service';
 import {INetwork} from 'core/network/network.read.service';
 import {IGceHealthCheck} from 'google/domain/healthCheck';
+import {GCE_CERTIFICATE_READER, GceCertificateReader, IGceCertificate} from 'google/certificate/certificate.reader';
 
 export class GceCommonLoadBalancerCommandBuilder {
   private dataFetchers: { [key: string]: Function } = {
@@ -34,7 +35,7 @@ export class GceCommonLoadBalancerCommandBuilder {
     networks: (): IPromise<INetwork[]> => this.networkReader.listNetworksByProvider('gce'),
     subnets: (): IPromise<ISubnet[]> => this.subnetReader.listSubnetsByProvider('gce'),
     healthChecks: (): IPromise<IGceHealthCheck[]> => this.gceHealthCheckReader.listHealthChecks(),
-    certificates: (): IPromise<any[]> => this.gceCertificateReader.listCertificates().then(([response]: any) => response.results),
+    certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
   };
 
   static get $inject() { return ['$q',
@@ -51,7 +52,7 @@ export class GceCommonLoadBalancerCommandBuilder {
               private subnetReader: SubnetReader,
               private gceHealthCheckReader: GceHealthCheckReader,
               private networkReader: any,
-              private gceCertificateReader: any) { }
+              private gceCertificateReader: GceCertificateReader) { }
 
   public getBackingData(dataTypes: string[]): IPromise<any> {
     let promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {
@@ -84,7 +85,7 @@ export const GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER = 'spinnaker.gce.commonLoa
 module(GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER, [
   ACCOUNT_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
-  require('google/certificate/certificate.reader.js'),
+  GCE_CERTIFICATE_READER,
   SUBNET_READ_SERVICE,
   GCE_HEALTH_CHECK_READER,
 ]).service('gceCommonLoadBalancerCommandBuilder', GceCommonLoadBalancerCommandBuilder);

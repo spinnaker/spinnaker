@@ -1,5 +1,6 @@
 import {module, ILogService, IHttpPromiseCallbackArg, IPromise} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
+import {ICache} from 'core/cache/deckCache.service';
 
 export interface ISearchParams {
   pageSize?: number;
@@ -27,12 +28,16 @@ export class SearchService {
 
   constructor(private $log: ILogService, private API: Api) { }
 
-  public search<T>(params: ISearchParams): IPromise<ISearchResults<T>> {
+  public search<T>(params: ISearchParams, cache: ICache = null): IPromise<ISearchResults<T>> {
     const defaultParams: ISearchParams = {
       pageSize: SearchService.defaultPageSize,
     };
 
-    return this.API.one('search').withParams(Object.assign(params, defaultParams)).get()
+    let requestBuilder = this.API.one('search').withParams(Object.assign(params, defaultParams));
+    if (cache) {
+      requestBuilder.useCache(cache);
+    }
+    return requestBuilder.get()
       .then((response: ISearchResults<T>[]) => {
         return response[0] || this.getFallbackResults();
       })
