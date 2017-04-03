@@ -70,6 +70,14 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
     if (ldapConfigProps.userDnPattern) {
       ldapConfigurer.userDnPatterns(ldapConfigProps.userDnPattern)
     }
+
+    if (ldapConfigProps.userSearchBase) {
+      ldapConfigurer.userSearchBase(ldapConfigProps.userSearchBase)
+    }
+
+    if (ldapConfigProps.userSearchFilter) {
+      ldapConfigurer.userSearchFilter(ldapConfigProps.userSearchFilter)
+    }
   }
 
   @Override
@@ -115,5 +123,7 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
     String groupSearchBase
 
     String userDnPattern
+    String userSearchBase
+    String userSearchFilter
   }
 }
