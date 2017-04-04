@@ -49,8 +49,8 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
   @Component
   @VisibleForTesting
   private static class SuspendExecutionDuringTimeWindowTask implements RetryableTask {
-    long backoffPeriod = TimeUnit.MINUTES.toMillis(2)
-    long timeout = TimeUnit.DAYS.toMillis(2)
+    long backoffPeriod = TimeUnit.SECONDS.toMillis(30)
+    long timeout = TimeUnit.DAYS.toMillis(7)
 
     private static final int DAY_START_HOUR = 0
     private static final int DAY_START_MIN = 0
