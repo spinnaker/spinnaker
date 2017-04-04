@@ -17,13 +17,16 @@
 
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
+import com.netflix.spinnaker.cats.cache.Cache
+import com.netflix.spinnaker.clouddriver.aws.controllers.AmazonNamedImageLookupController.InsufficientLookupOptionsException
+import com.netflix.spinnaker.clouddriver.aws.controllers.AmazonNamedImageLookupController.LookupOptions
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import javax.servlet.http.HttpServletRequest
 
 class AmazonNamedImageLookupControllerSpec extends Specification {
-  @Unroll
+
   void "should extract tags from query parameters"() {
     given:
     def httpServletRequest = httpServletRequest(["tag:tag1": "value1", "tag:Tag2": "value2"])
@@ -58,6 +61,36 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
 
     // no tags ... matches all
     controller.filter([namedImage1, namedImage2], [:]) == [namedImage1, namedImage2]
+  }
+
+  @Unroll
+  void "should prevent searches on bad ami-like query: #query"() {
+    given:
+    def controller = new AmazonNamedImageLookupController(null)
+
+    when:
+    controller.validateLookupOptions(new LookupOptions(q: query))
+
+    then:
+    thrown(InsufficientLookupOptionsException)
+
+    where:
+    query << ["ami", "ami-", "ami-1234", "ami-123456789"]
+  }
+
+  @Unroll
+  void "should not throw exception when performing acceptable ami-like query: #query"() {
+    given:
+    def controller = new AmazonNamedImageLookupController(Stub(Cache))
+
+    when:
+    controller.validateLookupOptions(new LookupOptions(q: query))
+
+    then:
+    notThrown(InsufficientLookupOptionsException)
+
+    where:
+    query << ["ami_", "ami-12345678", "sami", "ami_12345678"]
   }
 
   private HttpServletRequest httpServletRequest(Map<String, String> tagFilters) {
