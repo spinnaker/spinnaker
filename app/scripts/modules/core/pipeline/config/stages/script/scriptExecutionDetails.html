@@ -6,7 +6,9 @@
         <h5>Script Stage Configuration</h5>
         <dl class="dl-narrow dl-horizontal">
           <dt ng-if="stage.context.repoUrl">Repository Url</dt>
-          <dd>{{stage.context.repoUrl}}</dd>
+          <dd ng-if="stage.context.repoUrl">{{stage.context.repoUrl}}</dd>
+          <dt ng-if="stage.context.repoBranch">Repository Branch</dt>
+          <dd ng-if="stage.context.repoBranch">{{stage.context.repoBranch}}</dd>
           <dt>Script Path</dt>
           <dd>{{stage.context.scriptPath}}</dd>
           <dt>Command</dt>
