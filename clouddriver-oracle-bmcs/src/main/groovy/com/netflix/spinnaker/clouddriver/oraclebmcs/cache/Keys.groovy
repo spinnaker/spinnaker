@@ -17,7 +17,8 @@ class Keys {
   static enum Namespace {
 
     NETWORKS,
-    SUBNETS
+    SUBNETS,
+    IMAGES
 
     static String provider = OracleBMCSCloudProvider.ID
 
@@ -64,12 +65,23 @@ class Keys {
           account: parts[4]
         ]
         break
+      case Namespace.IMAGES.ns:
+        result << [
+          account: parts[2],
+          region : parts[3],
+          imageId: parts[4]
+        ]
+        break
       default:
         return null
         break
     }
 
     result
+  }
+
+  static String getImageKey(String account, String region, String imageId) {
+    "$OracleBMCSCloudProvider.ID:${Namespace.IMAGES}:${account}:${region}:${imageId}"
   }
 
   static String getNetworkKey(String networkName,
