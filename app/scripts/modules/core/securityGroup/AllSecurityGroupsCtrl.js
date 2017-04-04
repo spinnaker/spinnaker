@@ -72,19 +72,15 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
     this.updateSecurityGroups = _.debounce(updateSecurityGroups, 200);
 
-    function handleRefresh() {
-      if (app.securityGroups.loaded && app.loadBalancers.loaded && app.serverGroups.loaded) {
-        updateSecurityGroups();
-      }
-    }
+    let handleRefresh = () => {
+      this.updateSecurityGroups();
+    };
 
     handleRefresh();
 
     app.activeState = app.securityGroups;
     $scope.$on('$destroy', () => app.activeState = app);
 
-    app.serverGroups.onRefresh($scope, handleRefresh);
-    app.loadBalancers.onRefresh($scope, handleRefresh);
     app.securityGroups.onRefresh($scope, handleRefresh);
   }
 );

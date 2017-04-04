@@ -55,8 +55,6 @@ module.exports = angular.module('securityGroup.filter.controller', [
 
     this.initialize();
 
-    app.serverGroups.onRefresh($scope, this.initialize);
-    app.loadBalancers.onRefresh($scope, this.initialize);
     app.securityGroups.onRefresh($scope, this.initialize);
 
     $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
