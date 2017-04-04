@@ -75,6 +75,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
+        listMock.demand.setFilter { }
         listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
@@ -147,6 +148,7 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
+        listMock.demand.setFilter { }
         listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
@@ -208,6 +210,10 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
         new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
       def images = new Compute.Builder(
         httpTransport, jsonFactory, httpRequestInitializer).setApplicationName("test").build().images()
+      def emptyImageList = new ImageList(
+        selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+        items: []
+      )
 
       batchMock.demand.size { return 1 }
       computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
@@ -217,27 +223,16 @@ class UpsertGoogleImageTagsAtomicOperationUnitSpec extends Specification impleme
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
+        listMock.demand.setFilter { }
         listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }
       }
 
       batchMock.demand.execute {
-        def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
-          items: [new Image(name: IMAGE_NAME + "-WRONG")]
-        )
-        callback.onSuccess(imageList, null)
-        imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/centos-cloud/global/images",
-          items: [new Image(name: IMAGE_NAME + "-WRONG")]
-        )
-        callback.onSuccess(imageList, null)
-        imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images",
-          items: [new Image(name: IMAGE_NAME + "-WRONG")]
-        )
-        callback.onSuccess(imageList, null)
+        callback.onSuccess(emptyImageList, null)
+        callback.onSuccess(emptyImageList, null)
+        callback.onSuccess(emptyImageList, null)
       }
 
     when:

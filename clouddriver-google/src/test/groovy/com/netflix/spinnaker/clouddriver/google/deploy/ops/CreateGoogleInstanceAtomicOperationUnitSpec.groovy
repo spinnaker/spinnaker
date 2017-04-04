@@ -78,6 +78,7 @@ class CreateGoogleInstanceAtomicOperationUnitSpec extends Specification implemen
 
       for (def imageProject : imageProjects) {
         computeMock.demand.images { return images }
+        listMock.demand.setFilter { }
         listMock.demand.queue { imageListBatch, imageListCallback ->
           callback = imageListCallback
         }

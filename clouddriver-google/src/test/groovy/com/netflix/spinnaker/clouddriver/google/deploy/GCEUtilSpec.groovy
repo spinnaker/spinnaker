@@ -73,171 +73,94 @@ class GCEUtilSpec extends Specification {
 
   void "query source images should succeed"() {
     setup:
-      def computeMock = new MockFor(Compute)
-      def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
-      def listMock = new MockFor(Compute.Images.List)
+      def executorMock = Mock(GoogleExecutorTraits)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
       def jsonFactory = JacksonFactory.defaultInstance
       def httpRequestInitializer =
-              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
-      def images = new Compute.Builder(
-              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build().images()
-
-      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
-
-      JsonBatchCallback<ImageList> callback = null
-
-      for (def imageProject : imageProjects) {
-        computeMock.demand.images { return images }
-        listMock.demand.queue { imageListBatch, imageListCallback ->
-          callback = imageListCallback
-        }
-      }
-
+        new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def compute = new Compute.Builder(
+        httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
       def soughtImage = new Image(name: IMAGE_NAME)
-
-      batchMock.demand.size { return 1 }
-      batchMock.demand.execute {
-        def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
-          items: [soughtImage]
-        )
-        callback.onSuccess(imageList, null)
-      }
+      def imageList = new ImageList(
+        selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+        items: [soughtImage]
+      )
 
     when:
-      def sourceImage = null
-
-      batchMock.use {
-        computeMock.use {
-          listMock.use {
-            def compute = new Compute.Builder(
-                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
-
-            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executor)
-          }
-        }
-      }
+      def sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
 
     then:
+      1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
+        BatchRequest batchRequest = it[0]
+        assert batchRequest.requestInfos != null
+        // 1 request for each of the 3 projects (PROJECT_NAME + BASE_IMAGE_PROJECTS)
+        assert batchRequest.requestInfos.size() == 3
+        batchRequest.requestInfos.each { BatchRequest.RequestInfo requestInfo ->
+          requestInfo.callback.onSuccess(imageList, null)
+        }
+      }
       sourceImage == soughtImage
   }
 
   void "query source images should query configured imageProjects and succeed"() {
     setup:
-      def computeMock = new MockFor(Compute)
-      def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + [IMAGE_PROJECT_NAME] + BASE_IMAGE_PROJECTS
-      def listMock = new MockFor(Compute.Images.List)
+      def executorMock = Mock(GoogleExecutorTraits)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
       def jsonFactory = JacksonFactory.defaultInstance
       def httpRequestInitializer =
-              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
-      def images = new Compute.Builder(
-              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build().images()
-
-      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
-
-      JsonBatchCallback<ImageList> callback = null
-
-      for (def imageProject : imageProjects) {
-        computeMock.demand.images { return images }
-        listMock.demand.queue { imageListBatch, imageListCallback ->
-          callback = imageListCallback
-        }
-      }
-
+        new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def compute = new Compute.Builder(
+        httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
+      def credentials = new GoogleNamedAccountCredentials.Builder().compute(compute).imageProjects([IMAGE_PROJECT_NAME]).build()
       def soughtImage = new Image(name: IMAGE_NAME)
-
-      batchMock.demand.size { return 1 }
-      batchMock.demand.execute {
-        def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
-          items: [soughtImage]
-        )
-        callback.onSuccess(imageList, null)
-      }
+      def imageList = new ImageList(
+        selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
+        items: [soughtImage]
+      )
 
     when:
-      def sourceImage = null
-
-      batchMock.use {
-        computeMock.use {
-          listMock.use {
-            def compute = new Compute.Builder(
-                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
-
-            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, CREDENTIALS, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executor)
-          }
-        }
-      }
+      def sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, credentials, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
 
     then:
+      1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
+        BatchRequest batchRequest = it[0]
+        assert batchRequest.requestInfos != null
+        // 1 request for each of the 4 projects (PROJECT_NAME + IMAGE_PROJECT_NAME + BASE_IMAGE_PROJECTS)
+        assert batchRequest.requestInfos.size() == 4
+        batchRequest.requestInfos.each { BatchRequest.RequestInfo requestInfo ->
+          requestInfo.callback.onSuccess(imageList, null)
+        }
+      }
       sourceImage == soughtImage
   }
 
   void "query source images should fail"() {
     setup:
-      def computeMock = new MockFor(Compute)
-      def batchMock = new MockFor(BatchRequest)
-      def imageProjects = [PROJECT_NAME] + BASE_IMAGE_PROJECTS
-      def listMock = new MockFor(Compute.Images.List)
+      def executorMock = Mock(GoogleExecutorTraits)
 
       def httpTransport = GoogleNetHttpTransport.newTrustedTransport()
       def jsonFactory = JacksonFactory.defaultInstance
       def httpRequestInitializer =
-              new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
-      def images = new Compute.Builder(
-              httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build().images()
-
-      computeMock.demand.batch { new BatchRequest(httpTransport, httpRequestInitializer) }
-
-      JsonBatchCallback<ImageList> callback = null
-
-      for (def imageProject : imageProjects) {
-        computeMock.demand.images { return images }
-        listMock.demand.queue { imageListBatch, imageListCallback ->
-          callback = imageListCallback
-        }
-      }
-
-      batchMock.demand.size { return 1 }
-      batchMock.demand.execute {
-        def imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/$PROJECT_NAME/global/images",
-          items: [new Image(name: IMAGE_NAME + "-WRONG")]
-        )
-        callback.onSuccess(imageList, null)
-        imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/centos-cloud/global/images",
-          items: [new Image(name: IMAGE_NAME + "-WRONG")]
-        )
-        callback.onSuccess(imageList, null)
-        imageList = new ImageList(
-          selfLink: "https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images",
-          items: [new Image(name: IMAGE_NAME + "-WRONG")]
-        )
-        callback.onSuccess(imageList, null)
-      }
+        new GoogleCredential.Builder().setTransport(httpTransport).setJsonFactory(jsonFactory).build()
+      def compute = new Compute.Builder(
+        httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
+      def emptyImageList = new ImageList()
 
     when:
-      def sourceImage = null
-
-      batchMock.use {
-        computeMock.use {
-          listMock.use {
-            def compute = new Compute.Builder(
-                    httpTransport, jsonFactory, httpRequestInitializer).setApplicationName(GOOGLE_APPLICATION_NAME).build()
-
-            sourceImage = GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executor)
-          }
-        }
-      }
+      GCEUtil.queryImage(PROJECT_NAME, IMAGE_NAME, null, compute, taskMock, PHASE, GOOGLE_APPLICATION_NAME, BASE_IMAGE_PROJECTS, executorMock)
 
     then:
+      1 * executorMock.timeExecuteBatch(_, "findImage", _) >> {
+        BatchRequest batchRequest = it[0]
+        assert batchRequest.requestInfos != null
+        // 1 request for each of the 3 projects (PROJECT_NAME + IMAGE_PROJECT_NAME + BASE_IMAGE_PROJECTS)
+        assert batchRequest.requestInfos.size() == 3
+        batchRequest.requestInfos.each { BatchRequest.RequestInfo requestInfo ->
+          requestInfo.callback.onSuccess(emptyImageList, null)
+        }
+      }
       thrown GoogleResourceNotFoundException
   }
 

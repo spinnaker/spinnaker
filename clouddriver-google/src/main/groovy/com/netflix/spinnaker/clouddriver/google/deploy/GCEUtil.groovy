@@ -80,53 +80,32 @@ class GCEUtil {
                           GoogleExecutorTraits executor) {
     task.updateStatus phase, "Looking up image $imageName..."
 
+    def filter = "name eq $imageName"
     def imageProjects = [projectName] + credentials?.imageProjects + baseImageProjects - null
     def sourceImage = null
-    // We want predictable iteration order that matches the order of insertion.
-    def imageProjectToNextPageTokenMap = new LinkedHashMap<String, String>()
 
-    // This will ensure that each image project is queried.
-    imageProjects.each { imageProjectToNextPageTokenMap[it] = null }
-
-    while (!sourceImage && imageProjectToNextPageTokenMap) {
-      def imageListBatch = buildBatchRequest(compute, clouddriverUserAgentApplicationName)
-      def imageListCallback = new JsonBatchCallback<ImageList>() {
-        @Override
-        void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
-          updateStatusAndThrowNotFoundException("Error locating $imageName in these projects: $imageProjects: $e.message", task, phase)
-        }
-
-        @Override
-        void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
-          // No need to look through these images if the requested image was already found.
-          if (!sourceImage) {
-            sourceImage = imageList.items.find { it.name == imageName }
-          }
-
-          // selfLinks look like this: https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images
-          def selfLinkTokens = imageList.getSelfLink().tokenize("/")
-          def imageProject = selfLinkTokens[selfLinkTokens.size() - 3]
-
-          if (imageList.nextPageToken) {
-            imageProjectToNextPageTokenMap[imageProject] = imageList.nextPageToken
-          } else {
-            imageProjectToNextPageTokenMap.remove(imageProject)
-          }
-        }
+    def imageListBatch = buildBatchRequest(compute, clouddriverUserAgentApplicationName)
+    def imageListCallback = new JsonBatchCallback<ImageList>() {
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        updateStatusAndThrowNotFoundException("Error locating $imageName in these projects: $imageProjects: $e.message", task, phase)
       }
 
-      imageProjectToNextPageTokenMap.each { imageProject, pageToken ->
-        def imagesList = compute.images().list(imageProject)
-
-        if (pageToken) {
-          imagesList = imagesList.setPageToken(pageToken)
+      @Override
+      void onSuccess(ImageList imageList, HttpHeaders responseHeaders) throws IOException {
+        if (!sourceImage && imageList.items) {
+          sourceImage = imageList.items[0]
         }
-
-        imagesList.queue(imageListBatch, imageListCallback)
       }
-
-      executor.timeExecuteBatch(imageListBatch, "findImage")
     }
+
+    imageProjects.each { imageProject ->
+      def imagesList = compute.images().list(imageProject)
+      imagesList.setFilter(filter)
+      imagesList.queue(imageListBatch, imageListCallback)
+    }
+
+    executor.timeExecuteBatch(imageListBatch, "findImage")
 
     if (sourceImage) {
       return sourceImage
