@@ -55,12 +55,12 @@
           </tr>
         </tbody>
       </table>
-      <uib-pagination ng-if="applicationsLoaded"
-                  items-per-page="pagination.itemsPerPage"
-                  total-items="filteredApplications.length"
-                  max-size="pagination.maxSize"
-                  ng-model="pagination.currentPage"
-        ></uib-pagination>
+      <ul uib-pagination
+          ng-if="applicationsLoaded"
+          items-per-page="pagination.itemsPerPage"
+          total-items="filteredApplications.length"
+          max-size="pagination.maxSize"
+          ng-model="pagination.currentPage"></ul>
     </div>
   </div>
 </div>
