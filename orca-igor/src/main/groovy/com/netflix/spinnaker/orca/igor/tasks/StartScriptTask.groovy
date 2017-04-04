@@ -52,6 +52,7 @@ class StartScriptTask implements Task {
     String cluster = stage.context.cluster
     String cmc = stage.context.cmc
     String repoUrl = stage.context.repoUrl
+    String repoBranch = stage.context.repoBranch
 
     if (stage.execution instanceof Pipeline && stage.execution.trigger.parameters?.strategy == true) {
       Map trigger = ((Pipeline) stage.execution).trigger
@@ -73,6 +74,10 @@ class StartScriptTask implements Task {
 
     if (repoUrl) {
       parameters.REPO_URL = repoUrl
+    }
+
+    if (repoBranch) {
+      parameters.REPO_BRANCH = repoBranch
     }
 
     String queuedBuild = buildService.build(master, job, parameters)
