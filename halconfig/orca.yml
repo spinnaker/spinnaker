@@ -19,9 +19,9 @@ kato:
 
 bakery:
   enabled: true
-  baseUrl: ${services.bakery.baseUrl:http://localhost:8087}
-  extractBuildDetails: ${services.bakery.extractBuildDetails:true}
-  allowMissingPackageInstallation: ${services.bakery.allowMissingPackageInstallation:false}
+  baseUrl: ${services.rosco.baseUrl:http://localhost:8087}
+  extractBuildDetails: ${services.rosco.extractBuildDetails:true}
+  allowMissingPackageInstallation: ${services.rosco.allowMissingPackageInstallation:false}
 
 echo:
   enabled: true
