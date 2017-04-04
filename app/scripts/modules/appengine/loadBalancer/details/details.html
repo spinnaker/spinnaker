@@ -35,11 +35,11 @@
             <li ng-if="ctrl.canDeleteLoadBalancer()">
               <a href ng-click="ctrl.deleteLoadBalancer()">Delete Load Balancer</a>
             </li>
-            <li ng-if="!ctrl.canDeleteLoadBalancer()" 
+            <li ng-if="!ctrl.canDeleteLoadBalancer()"
                 uib-tooltip="You cannot delete a default service."
                 class="disabled">
               <a href>Delete Load Balancer</a>
-            </li>          
+            </li>
           </ul>
         </div>
       </div>
@@ -88,6 +88,11 @@
     <collapsible-section heading="DNS" expanded="true">
       <dl class="dl-narrow">
         <appengine-component-url-details component="ctrl.loadBalancer"></appengine-component-url-details>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Dispatch Rules" expanded="true" ng-if="ctrl.dispatchRules.length > 0">
+      <dl class="dl-horizontal dl-narrow">
+        <span ng-repeat-start="rule in ctrl.dispatchRules">{{rule}}</span><br ng-repeat-end>
       </dl>
     </collapsible-section>
   </div>

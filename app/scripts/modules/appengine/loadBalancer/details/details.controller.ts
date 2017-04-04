@@ -1,4 +1,6 @@
-import {module} from 'angular';
+import {module, IScope} from 'angular';
+import {IModalService} from 'angular-ui-bootstrap';
+import {IStateService} from 'angular-ui-router';
 import {cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
@@ -19,14 +21,15 @@ interface ILoadBalancerFromStateParams {
 class AppengineLoadBalancerDetailsController {
   public state = { loading: true };
   public loadBalancer: IAppengineLoadBalancer;
+  public dispatchRules: string[] = [];
 
   static get $inject() {
     return ['$uibModal', '$state', '$scope', 'loadBalancer', 'app', 'loadBalancerWriter', 'confirmationModalService'];
   }
 
-  constructor(private $uibModal: any,
-              private $state: any,
-              private $scope: any,
+  constructor(private $uibModal: IModalService,
+              private $state: IStateService,
+              private $scope: IScope,
               private loadBalancerFromParams: ILoadBalancerFromStateParams,
               private app: Application,
               private loadBalancerWriter: LoadBalancerWriter,
@@ -87,9 +90,21 @@ class AppengineLoadBalancerDetailsController {
 
     if (this.loadBalancer) {
       this.state.loading = false;
+      this.buildDispatchRules();
       this.app.getDataSource('loadBalancers').onRefresh(this.$scope, () => this.extractLoadBalancer());
     } else {
       this.autoClose();
+    }
+  }
+
+  private buildDispatchRules(): void {
+    this.dispatchRules = [];
+    if (this.loadBalancer && this.loadBalancer.dispatchRules) {
+      this.loadBalancer.dispatchRules.forEach(rule => {
+        if (rule.service === this.loadBalancer.name) {
+          this.dispatchRules.push(rule.domain + rule.path);
+        }
+      });
     }
   }
 
@@ -137,7 +152,6 @@ class AppengineLoadBalancerDetailsController {
 }
 
 export const APPENGINE_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.appengine.loadBalancerDetails.controller';
-
 module(APPENGINE_LOAD_BALANCER_DETAILS_CTRL, [
   LOAD_BALANCER_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
