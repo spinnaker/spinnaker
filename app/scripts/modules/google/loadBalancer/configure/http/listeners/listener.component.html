@@ -70,7 +70,7 @@
         </div>
         <div ng-if="$ctrl.isHttps($ctrl.listener.port)">
           <div class="col-md-2 sm-label-right">Certificate
-            <help-field key="gce.httpLoadBalancer.certificate"></help-field>
+            <help-field key="gce.httpLoadBalancer.certificate" class="help-field-absolute"></help-field>
           </div>
           <div class="col-md-3">
             <ui-select ng-model="$ctrl.listener.certificate"
@@ -84,6 +84,30 @@
               </ui-select-choices>
             </ui-select>
           </div>
+          <div class="col-md-1" style="padding-left: 0; margin-top: 4px;">
+            <gce-cache-refresh cache-key="certificates"
+                               render-compact="true"
+                               on-refresh="$ctrl.command.onCertificateRefresh($ctrl.command)"></gce-cache-refresh>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 sm-label-right">External IP
+          <help-field key="gce.httpLoadBalancer.externalIP" class="help-field-absolute"></help-field>
+        </div>
+        <div class="col-md-5">
+          <gce-address-selector address-list="$ctrl.command.backingData.addresses"
+                                read-only="$ctrl.listener.created"
+                                account="$ctrl.command.loadBalancer.credentials"
+                                initial-ip-address="$ctrl.listener.ipAddress"
+                                on-address-select="$ctrl.onAddressSelect(address)"></gce-address-selector>
+        </div>
+        <div class="col-md-1" style="padding-left: 0; margin-top: 4px;">
+          <gce-cache-refresh ng-if="!$ctrl.listener.created"
+                             cache-key="addresses"
+                             render-compact="true"
+                             on-refresh="$ctrl.command.onAddressRefresh($ctrl.command)"></gce-cache-refresh>
         </div>
       </div>
 

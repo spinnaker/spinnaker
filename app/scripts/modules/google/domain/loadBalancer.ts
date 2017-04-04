@@ -16,6 +16,7 @@ export interface IGceHttpLoadBalancer extends IGceLoadBalancer {
   defaultService: IGceBackendService;
   detail: string;
   hostRules: IGceHostRule;
+  ipAddress: string;
   listeners: IGceListener[];
   loadBalancerType: 'HTTP';
   provider: 'gce';
@@ -41,4 +42,5 @@ export interface IGceListener {
   certificate: string;
   name: string;
   port: string;
+  ipAddress: string;
 }

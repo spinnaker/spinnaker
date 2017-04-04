@@ -8,6 +8,7 @@ import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.se
 import {GCEProviderSettings} from '../../../gce.settings';
 import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import {GCE_CERTIFICATE_READER} from 'google/certificate/certificate.reader';
+import {GCE_ADDRESS_READER} from 'google/address/address.reader';
 
 let angular = require('angular');
 
@@ -17,6 +18,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     ACCOUNT_SERVICE,
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
+    GCE_ADDRESS_READER,
     require('../../../httpHealthCheck/httpHealthCheck.reader.js'),
     require('./transformer.service.js'),
   ])
@@ -26,7 +28,8 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
                                                           gceCertificateReader,
                                                           gceHttpHealthCheckReader,
                                                           gceHttpLoadBalancerTransformer,
-                                                          loadBalancerReader) {
+                                                          loadBalancerReader,
+                                                          gceAddressReader) {
 
     function buildCommand ({ originalLoadBalancer, isNew }) {
       originalLoadBalancer = _.cloneDeep(originalLoadBalancer);
@@ -48,6 +51,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
             removeUnusedBackendServices,
             getUnusedHealthChecks,
             removeUnusedHealthChecks,
+            onAddressRefresh,
           };
         });
     }
@@ -59,6 +63,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
         certificates: getCertificates(),
         loadBalancerMap: getLoadBalancerMap(),
         accounts: getAccounts(),
+        addresses: gceAddressReader.listAddresses('global'),
       }).then((backingData) => {
         let loadBalancer = buildLoadBalancer(isNew, originalLoadBalancer, backingData);
 
@@ -320,6 +325,12 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
       command.loadBalancer.hostRules = [];
       command.loadBalancer.listeners = [new ListenerTemplate()];
       command.loadBalancer.defaultService = null;
+    }
+
+    function onAddressRefresh(command) {
+      gceAddressReader.listAddresses('global').then(addresses => {
+        command.backingData.addresses = addresses;
+      });
     }
 
     return { buildCommand };

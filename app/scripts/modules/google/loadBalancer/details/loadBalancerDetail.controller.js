@@ -114,6 +114,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
               }
               return {dnsname: loadBalancer.dnsname, protocol: protocol};
             });
+            representativeLb.dns = _.uniqBy(representativeLb.dns, 'dnsname');
             representativeLb.listenerDescriptions = _.flatten(loadBalancers.map((lb) => lb.listenerDescriptions));
             return [representativeLb];
           });

@@ -5,6 +5,7 @@ let angular = require('angular');
 import {HealthCheckTemplate, BackendServiceTemplate, HostRuleTemplate, ListenerTemplate} from './templates';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {GCE_CACHE_REFRESH} from 'google/cache/cacheRefresh.component';
 
 require('./httpLoadBalancerWizard.component.less');
 
@@ -13,7 +14,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('angular-ui-router'),
   require('./backendService/backendService.component.js'),
   require('./basicSettings/basicSettings.component.js'),
-  require('google/cache/cacheRefresh.component.js'),
+  GCE_CACHE_REFRESH,
   require('core/modal/wizard/wizardSubFormValidation.service.js'),
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,

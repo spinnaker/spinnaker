@@ -76,6 +76,7 @@ module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer
         command.name = listener.name;
         command.portRange = listener.port;
         command.certificate = listener.certificate || null;
+        command.ipAddress = listener.ipAddress;
 
         return command;
       });

@@ -104,6 +104,17 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     '<li>Trigger</li>' +
     '<li>Context - server groups, bakery results, etc.</li>' +
     '</ul>',
+    'gce.httpLoadBalancer.certificate': 'The name of an SSL certificate. If specified, Spinnaker will create an HTTPS load balancer.',
+    'gce.httpLoadBalancer.defaultService': 'A default service handles any requests that do not match a specified host rule or path matching rule.',
+    'gce.httpLoadBalancer.externalIP': 'The IP address for this listener. If you do not specify an IP, your listener will be assigned an ephemeral IP.',
+    'gce.httpLoadBalancer.hostRule.hostPattern': 'For example, <b>example.com</b>.',
+    'gce.httpLoadBalancer.namedPort': `
+      For HTTP(S) and SSL load balancers,
+      incoming traffic is directed through a named port (for Spinnaker, the named port is <b>http</b>).
+      The mapping from named port to port number is specified per server group
+      and can be configured within the server group creation dialogue under <b>Port Name Mapping</b>.`,
+    'gce.httpLoadBalancer.pathRule.paths': 'For example, <b>/path</b> in <b>example.com/path</b>',
+    'gce.httpLoadBalancer.port': 'HTTP requests can be load balanced based on port 80 or port 8080. HTTPS requests can be load balanced on port 443.',
     'gce.instance.customInstance.cores': '<ul><li>Above 1, vCPU count must be even.</li><li>Zones that support Haswell and Ivy Bridge processors can support custom machine types up to 32 vCPUs.</li><li>Zones that support Sandy Bridge processors can support up to 16 vCPUs.</li></ul>',
     'gce.instance.customInstance.memory': '<ul><li>Memory per vCPU must be between .9 GB and 6.5 GB.</li><li>Total memory must be a multiple of 256 MB.</li></ul>',
     'gce.instance.customMetadata.instance-template': 'The instance template used to configure this instance.',
@@ -118,23 +129,13 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'gce.instance.authScopes': '<p>Service account scopes specify which Google Cloud Platform APIs your instances can authenticate with, and define the level of access that your instances have with those services.</p>',
     'gce.instance.authScopes.cloud-platform': '<p>The instances in this server group have full API access to all Google Cloud services.</p>',
     'gce.instanceType.32core': '<p>32-core machine types are in Beta and are available only in Ivy Bridge and Haswell zones.</p>',
+    'gce.internalLoadBalancer.ports': 'Use a comma to separate up to five TCP ports.',
     'gce.loadBalancer.detail': '<p>(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.</p>',
     'gce.loadBalancer.advancedSettings.healthInterval': '<p>Configures the interval, in seconds, between load balancer health checks.</p><p>Default: <b>10</b></p>',
     'gce.loadBalancer.advancedSettings.healthyThreshold': '<p>Configures the number of healthy observations before reinstituting an instance into the load balancer’s traffic rotation.</p><p>Default: <b>10</b></p>',
     'gce.loadBalancer.advancedSettings.unhealthyThreshold': '<p>Configures the number of unhealthy observations before deservicing an instance from the load balancer.</p><p>Default: <b>2</b></p>',
     'gce.loadBalancer.healthCheck': '(Optional) <b>Health Checks</b> use HTTP requests to determine if a VM instance is healthy.',
     'gce.loadBalancer.portRange': '(Optional) Only packets addressed to ports in the specified <b>Port Range</b> will be forwarded. If left empty, all ports are forwarded. Must be a single port number or two port numbers separated by a dash. Each port number must be between 1 and 65535, inclusive. For example: 5000-5999.',
-    'gce.internalLoadBalancer.ports': 'Use a comma to separate up to five TCP ports.',
-    'gce.httpLoadBalancer.defaultService': 'A default service handles any requests that do not match a specified host rule or path matching rule.',
-    'gce.httpLoadBalancer.hostRule.hostPattern': 'For example, <b>example.com</b>.',
-    'gce.httpLoadBalancer.pathRule.paths': 'For example, <b>/path</b> in <b>example.com/path</b>',
-    'gce.httpLoadBalancer.port': 'HTTP requests can be load balanced based on port 80 or port 8080. HTTPS requests can be load balanced on port 443.',
-    'gce.httpLoadBalancer.certificate': 'The name of an SSL certificate. If specified, Spinnaker will create an HTTPS load balancer.',
-    'gce.httpLoadBalancer.namedPort': `
-      For HTTP(S) and SSL load balancers,
-      incoming traffic is directed through a named port (for Spinnaker, the named port is <b>http</b>).
-      The mapping from named port to port number is specified per server group
-      and can be configured within the server group creation dialogue under <b>Port Name Mapping</b>.`,
     'gce.securityGroup.sourceCIDRs': 'Traffic is only allowed from sources that match one of these CIDR ranges, or one of the source tags above.',
     'gce.securityGroup.sourceTags': 'Traffic is only allowed from sources that match one of these tags, or one of the source CIDR ranges below.',
     'gce.securityGroup.targetTags': 'Traffic is only allowed if the target instance has one of these tags.',

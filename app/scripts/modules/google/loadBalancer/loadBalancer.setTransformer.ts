@@ -15,6 +15,7 @@ export class GceLoadBalancerSetTransformer {
         port,
         name: loadBalancer.name,
         certificate: loadBalancer.certificate,
+        ipAddress: loadBalancer.ipAddress
       };
     });
 
