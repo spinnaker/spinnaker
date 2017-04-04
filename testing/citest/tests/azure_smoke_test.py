@@ -13,24 +13,22 @@
 # limitations under the License.
 
 """
-Smoke test to see if Spinnaker can interoperate with OpenStack.
+Smoke test to see if Spinnaker can interoperate with Microsoft Azure.
 
 See testable_service/integration_test.py and spinnaker_testing/spinnaker.py
 for more details.
 
-The test will use the spinnaker configuration parameters from the server
+The smoke test will use the spinnaker configuration parameters from the server
 endpoint (gate) to determine the managed project it should verify, and to
 determine the spinnaker account name to use when sending it commands.
 
 Note:
-    This test needs certain environment variables defined in order for the
-    OpenStack client to work. Please refer testing/citest/README.md for more
-    details.
+    This test needs the Azure CLI installed as 'AZ' cmd line installed with a
+    context already loaded (az login)
 
 Sample Usage:
     PYTHONPATH=testing/citest \
-    python tesing/citest/tests/openstack_smoke_test.py \
-    --native_hostname=host-running-smoke-test
+    python tesing/citest/tests/openstack_smoke_test.py
 """
 
 # Standard python modules.
@@ -101,10 +99,11 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
         contract=contract)
 
   def create_a_security_group(self):
-    """Creates OsContract for createServerGroup.
+    """Creates AzContract for createServerGroup.
 
     To verify the operation, we just check that the spinnaker security group
     for the given application was created.
+    This will create a Network Security Group in a Resource Group on your Azure Subscription
     """
     rules = [
         {
@@ -141,16 +140,13 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(
         'Security Group Created', retryable_for_secs=30)
      .collect_resources(
-         az_resource='network',
-         command='nsg',
+         az_resource='network', 
+         command='nsg', 
          args=['show', '--name', self.TEST_SECURITY_GROUP, '--resource-group', self.TEST_SECURITY_GROUP_RG])
      .contains_pred_list([
          jp.DICT_MATCHES({
-             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP)#,
-            #  'securityRules': jp.STR_SUBSTR("protocol='tcp'")
-            #           and jp.STR_SUBSTR("priority=100")
-            #           and jp.STR_SUBSTR("destinationPortRange='80-80'")})
-         })]))
+             'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP)
+     })]))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=' Test - create security group for {app}'.format(
@@ -169,33 +165,33 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     To verify the operation, we just check that the spinnaker security group
     for the given application was deleted.
     """
-    #Get ID of the created security group
-    az_agent = az.AzAgent(None)
-    data = az_agent.get_resource('security group', self.TEST_SECURITY_GROUP)
-    security_group_id = data['id']
 
-    payload = self.agent.make_json_payload_from_kwargs(
-        job=[{
-            "Provider": "openstack",
-            "id": security_group_id,
-            "region": self.bindings['AZ_REGION_NAME'],
-            "regions": [self.bindings['AZ_REGION_NAME']],
-            "account": self.bindings['SPINNAKER_AZ_ACCOUNT'],
+    job = [{
+            "Provider": "azure",
+            "appName": self.TEST_APP,
+            "region": self.bindings['TEST_AZURE_LOCATION'],
+            "regions": [self.bindings['TEST_AZURE_LOCATION']],
+            "credentials": self.bindings['SPINNAKER_AZURE_ACCOUNT'],
             "securityGroupName": self.TEST_SECURITY_GROUP,
-            "cloudProvider": "openstack",
+            "cloudProvider": "azure",
             "type": "deleteSecurityGroup",
-            "user": self.bindings['TEST_AZ_USERNAME']
-        }],
-        application=self.TEST_APP,
-        description='Delete Security Group: : ' + self.TEST_SECURITY_GROUP)
+            "user": "[anonymous]"
+        }]
 
     builder = az.AzContractBuilder(self.az_observer)
     (builder.new_clause_builder(
         'Security Group Deleted', retryable_for_secs=30)
-     .show_resource('security group', self.TEST_SECURITY_GROUP,
-                    no_resources_ok=True)
-     .excludes_path_eq('name', self.TEST_SECURITY_GROUP)
-    )
+      .collect_resources(
+         az_resource='network', 
+         command='nsg', 
+         args=['show', '--name', self.TEST_SECURITY_GROUP, '--resource-group', self.TEST_SECURITY_GROUP_RG],
+         no_resources_ok=True)
+     )
+    payload = self.agent.make_json_payload_from_kwargs(
+        job=job, description=' Test - delete security group for {app}'.format(
+            app=self.TEST_APP),
+        application=self.TEST_APP)
+
     return st.OperationContract(
         self.new_post_operation(
             title='delete_security_group', data=payload,

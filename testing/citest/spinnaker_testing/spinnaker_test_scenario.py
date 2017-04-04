@@ -429,7 +429,7 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
 
   @property
   def az_observer(self):
-    """The observer for inspecting Azure platform state, if configured."""
+    """The observer for inspecting Microsoft Azure platform state, if configured."""
     return self.__az_observer
 
   @property
@@ -544,10 +544,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
     bindings = self.bindings  # base class made a copy
     if not bindings.get('TEST_AZURE_LOCATION'):
       bindings['TEST_AZURE_LOCATION'] = bindings['TEST_AZURE_LOCATION']
-      self.__az_observer = az.AzAgent()
+      self.__az_observer = None
     else:
+      logger = logging.getLogger(__name__)
+      logger.warning('TEST_AZURE_LOCATION binding found, Azure CLI could be used')
       self.__az_observer = az.AzAgent()
-
 
   def __init_google_bindings(self):
     bindings = self.bindings  # base class made a copy
