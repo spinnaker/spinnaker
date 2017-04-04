@@ -1,0 +1,3 @@
+<p ng-if="$ctrl.refreshing">{{$ctrl.capitalizedKey}} data is <strong>refreshing</strong></p>
+<p ng-if="!$ctrl.refreshing">(click <span class="small glyphicon glyphicon-refresh"></span> to refresh)</p>
+<p>Last refresh: {{$ctrl.getRefreshTime() | timestamp }}</p>

@@ -1,9 +1,17 @@
-<p>
-  <span ng-if="$ctrl.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
-  {{::$ctrl.capitalizedKey}}
-  <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.getRefreshTime() | timestamp }}</span>
-  <span ng-if="$ctrl.refreshing"> refreshing...</span>
-</p>
-<p>If you're not finding a {{::$ctrl.depluralizedKey}} that was recently added,
-  <a href ng-click="$ctrl.refresh()">click here</a> to refresh the list.
-</p>
+<div ng-if="!$ctrl.renderCompact">
+  <p>
+    <span ng-if="$ctrl.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning" ></span></span>
+    {{::$ctrl.capitalizedKey}}
+    <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.getRefreshTime() | timestamp }}</span>
+    <span ng-if="$ctrl.refreshing"> refreshing...</span>
+  </p>
+  <p>If you're not finding a {{::$ctrl.depluralizedKey}} that was recently added,
+    <a href ng-click="$ctrl.refresh()">click here</a> to refresh the list.
+  </p>
+</div>
+<div ng-if="$ctrl.renderCompact">
+  <a href uib-tooltip-template="$ctrl.tooltipTemplate">
+    <span class="small glyphicon glyphicon-refresh" ng-click="$ctrl.refresh()"
+          ng-class="{'glyphicon-spinning': $ctrl.refreshing}"></span>
+  </a>
+</div>

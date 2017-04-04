@@ -1,9 +1,10 @@
 'use strict';
 
 import * as _ from 'lodash';
+import {GCE_ADDRESS_SELECTOR} from 'google/loadBalancer/configure/common/addressSelector.component';
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.component', [])
+module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.component', [GCE_ADDRESS_SELECTOR])
   .component('gceListener', {
     bindings: {
       command: '=',
@@ -45,5 +46,13 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.co
       if (!this.listener.name) {
         this.updateName(this.listener, this.application.name);
       }
+
+      this.onAddressSelect = (address) => {
+        if (address) {
+          this.listener.ipAddress = address.address;
+        } else {
+          this.listener.ipAddress = null;
+        }
+      };
     }
   });

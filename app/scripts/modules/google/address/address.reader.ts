@@ -12,18 +12,18 @@ interface IAddressSearchResults {
 }
 
 export interface IGceAddress {
-  account: string;
+  account?: string;
   address: string;
-  creationTimestamp: string;
-  description: string;
-  id: number;
-  kind: string;
-  labelFingerprint: string;
-  name: string;
-  networkTier: string;
-  region: string;
-  selfLink: string;
-  status: string;
+  creationTimestamp?: string;
+  description?: string;
+  id?: number;
+  kind?: string;
+  labelFingerprint?: string;
+  name?: string;
+  networkTier?: string;
+  region?: string;
+  selfLink?: string;
+  status?: string;
 }
 
 class GceAddressReader {
@@ -44,8 +44,7 @@ class GceAddressReader {
               .map(result => {
                 let address = JSON.parse(result.address) as IGceAddress;
                 address.account = result.account;
-                // An address's selfLink ends with its region.
-                address.region = address.selfLink.split('/').pop();
+                address.region = result.region;
                 return address;
               });
           } else {
