@@ -1,10 +1,12 @@
 'use strict';
 
+import {EXECUTION_SERVICE} from '../service/execution.service';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.singleExecutionDetails.controller', [
     require('angular-ui-router'),
-    require('../service/execution.service.js'),
+    EXECUTION_SERVICE,
     require('../../scheduler/scheduler.factory.js'),
 
   ])

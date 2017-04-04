@@ -1,5 +1,6 @@
 'use strict';
 
+import {EXECUTION_SERVICE} from './execution.service';
 import {SETTINGS} from 'core/config/settings';
 
 describe('Service: executionService', function () {
@@ -11,7 +12,7 @@ describe('Service: executionService', function () {
 
   beforeEach(
     window.module(
-      require('./execution.service')
+      EXECUTION_SERVICE
     )
   );
 

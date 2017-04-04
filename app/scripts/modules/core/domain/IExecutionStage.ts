@@ -8,6 +8,9 @@ export interface IRestartDetails {
 
 export interface IExecutionContext {
   restartDetails?: IRestartDetails;
+  targetReferences?: any;
+  instances?: any;
+  asg?: string;
 }
 
 export interface IExecutionStage extends IOrchestratedItem {

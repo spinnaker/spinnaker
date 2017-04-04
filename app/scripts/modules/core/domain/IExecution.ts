@@ -12,4 +12,8 @@ export interface IExecution extends IOrchestratedItem {
   isStrategy?: boolean;
   name?: string;
   executionEngine?: string;
+  stringVal?: string;
+  isComplete?: boolean;
+  graphStatusHash?: string;
+  pipelineConfigId?: string;
 }

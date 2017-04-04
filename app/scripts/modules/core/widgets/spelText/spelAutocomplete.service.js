@@ -1,12 +1,13 @@
 'use strict';
 
+import {EXECUTION_SERVICE} from 'core/delivery/service/execution.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.widget.spelAutocomplete', [
     require('./jsonListBuilder'),
-    require('../../delivery/service/execution.service'),
+    EXECUTION_SERVICE,
   ])
   .factory('spelAutocomplete', function($q, jsonListBuilder, executionService) {
     let brackets = [{open: '(', close: ')'}, {open: '[', close: ']'}, ];

@@ -2,10 +2,8 @@ import {IQProvider, mock} from 'angular';
 
 import {Application} from '../application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry
-} from '../application/service/applicationDataSource.registry';
+import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from '../application/service/applicationDataSource.registry';
+import {EXECUTION_SERVICE} from './service/execution.service';
 import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
 
 describe('Delivery Data Source', function () {
@@ -21,7 +19,7 @@ describe('Delivery Data Source', function () {
   beforeEach(
     mock.module(
       require('./delivery.dataSource'),
-      require('./service/execution.service'),
+      EXECUTION_SERVICE,
       PIPELINE_CONFIG_SERVICE,
       APPLICATION_DATA_SOURCE_REGISTRY,
       APPLICATION_MODEL_BUILDER

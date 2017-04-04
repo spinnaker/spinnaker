@@ -4,6 +4,7 @@ import {IModalInstanceService, IModalService} from 'angular-ui-bootstrap';
 import {ICreationMetadata, ICreationMetadataTag} from 'core/domain';
 import {ICommit} from './commitHistory.component';
 import {COMMIT_HISTORY_COMPONENT} from './commitHistory.component';
+import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
 import {JAR_DIFF_COMPONENT, IJarDiff} from './jarDiff.component';
 
 export interface IViewChangesConfig {
@@ -51,7 +52,7 @@ class ViewChangesLinkController implements IComponentController {
   }
 
   constructor(private $uibModal: IModalService,
-              private executionService: any) {}
+              private executionService: ExecutionService) {}
 
   private setJarDiffs(): void {
     this.hasJarChanges =
@@ -135,6 +136,6 @@ export const VIEW_CHANGES_LINK = 'spinnaker.diffs.view.changes.link';
 module(VIEW_CHANGES_LINK, [
   COMMIT_HISTORY_COMPONENT,
   JAR_DIFF_COMPONENT,
-  require('core/delivery/service/execution.service.js')
+  EXECUTION_SERVICE
 ])
   .component('viewChangesLink', new ViewChangesLink());

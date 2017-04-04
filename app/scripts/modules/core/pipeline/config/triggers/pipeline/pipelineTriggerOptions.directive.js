@@ -1,10 +1,12 @@
 'use strict';
 
+import {EXECUTION_SERVICE} from 'core/delivery/service/execution.service';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.triggers.pipeline.options.directive', [
-    require('core/delivery/service/execution.service.js')
+    EXECUTION_SERVICE
   ])
   .directive('pipelineTriggerOptions', function () {
     return {
