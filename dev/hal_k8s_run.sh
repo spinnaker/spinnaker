@@ -37,6 +37,14 @@
 # Kubernetes config in json format so we can pass it to the
 # container an an env variable.
 # KUBE_CONF
+#
+# Name of the GCS bucket used to store Spinnaker's persistent data.
+# GCS_BUCKET
+#
+# Parameters to configure Jenkins to talk to Spinnaker.
+# JENKINS_ADDRESS
+# JENKINS_USERNAME
+# JENKINS_PASSWORD
 
 set -e
 export TERMINFO=/usr/lib/terminfo
@@ -84,6 +92,9 @@ hal config provider kubernetes account add my-k8s-account \
 hal config provider google enable
 hal config provider google account add my-gce-account \
     --json-path /supporting_data/build.json --project $BUILD_PROJECT
+
+hal config webhook jenkins enable
+echo $JENKINS_PASSWORD | hal config webhook jenkins master add jenkins --address $JENKINS_ADDRESS --username $JENKINS_USERNAME --password
 
 # Uses default root-folder 'spinnaker' implicitly.
 hal config storage edit --account-name my-gce-account --bucket $GCS_BUCKET

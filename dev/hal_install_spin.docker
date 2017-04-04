@@ -20,6 +20,14 @@ RUN apt-get install -y curl software-properties-common apt-transport-https wget
 # Kubernetes config in json format so we can pass it to the
 # container an an env variable.
 # KUBE_CONF
+#
+# Name of the GCS bucket used to store Spinnaker's persistent data.
+# GCS_BUCKET
+#
+# Parameters to configure Jenkins to talk to Spinnaker.
+# JENKINS_ADDRESS
+# JENKINS_USERNAME
+# JENKINS_PASSWORD
 
 WORKDIR runscript
 
