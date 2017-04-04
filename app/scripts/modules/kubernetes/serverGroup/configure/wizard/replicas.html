@@ -53,9 +53,9 @@
         </div>
         <div class="col-md-3">
           <div class="input-group">
+            <!-- Current utilization is based on requested CPU: it can be lager than 100% -->
             <input type="number" class="form-control input-sm" name="details" ng-model="command.scalingPolicy.cpuUtilization.target"
-                                                                              min="0"
-                                                                              max="100"/>
+                                                                              min="0" />
             <span class="input-group-addon">%</span>
           </div>
         </div>
