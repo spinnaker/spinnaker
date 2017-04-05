@@ -36,6 +36,7 @@ import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.SecurityBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.core.Authentication
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
 import org.springframework.security.web.session.ConcurrentSessionFilter
@@ -88,7 +89,7 @@ class AuthConfig {
         .antMatchers('/health').permitAll()
         .antMatchers('/**').authenticated()
         .and()
-      .addFilterAfter(new FiatSessionFilter(configProps, permissionEvaluator), ConcurrentSessionFilter.class)
+      .addFilterBefore(new FiatSessionFilter(configProps, permissionEvaluator), AnonymousAuthenticationFilter.class)
       .logout()
         .logoutUrl("/auth/logout")
         .logoutSuccessHandler(permissionRevokingLogoutSuccessHandler)
