@@ -100,6 +100,6 @@ echo $JENKINS_PASSWORD | hal config webhook jenkins master add jenkins --address
 hal config storage edit --account-name my-gce-account --bucket $GCS_BUCKET
 
 hal config deploy edit --type distributed --account-name my-k8s-account
-hal deploy run
+hal deploy actuate
 
 cat ~/.hal/default/install.sh
