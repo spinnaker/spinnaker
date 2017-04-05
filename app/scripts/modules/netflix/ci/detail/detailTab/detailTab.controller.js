@@ -2,13 +2,15 @@
 
 import {Subject} from 'rxjs';
 
+import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
+
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.detail.detailTab.controller', [
     require('angular-ui-router'),
     require('../../build.read.service.js'),
-    require('core/scheduler/scheduler.factory'),
+    SCHEDULER_FACTORY,
   ])
   .controller('CiDetailTabCtrl', function ($scope, $state, $stateParams, buildService, schedulerFactory, app) {
     const dataSource = app.getDataSource('ci');

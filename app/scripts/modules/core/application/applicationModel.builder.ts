@@ -1,6 +1,8 @@
 import {module} from 'angular';
+
 import {ApplicationDataSource, DataSourceConfig} from './service/applicationDataSource';
 import {Application} from './application.model';
+import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
 
 export class ApplicationModelBuilder {
 
@@ -9,7 +11,7 @@ export class ApplicationModelBuilder {
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
               private $filter: any,
-              private schedulerFactory: any) {}
+              private schedulerFactory: SchedulerFactory) {}
 
   /**
    * This is only used in tests
@@ -46,6 +48,6 @@ export class ApplicationModelBuilder {
 export const APPLICATION_MODEL_BUILDER = 'spinnaker.core.application.model.builder';
 module(APPLICATION_MODEL_BUILDER, [
   require('../presentation/robotToHumanFilter/robotToHuman.filter'),
-  require('../scheduler/scheduler.factory'),
+  SCHEDULER_FACTORY,
 ])
   .service('applicationModelBuilder', ApplicationModelBuilder);

@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 import {EXECUTION_SERVICE} from 'core/delivery/service/execution.service';
+import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
 
 let angular = require('angular');
 
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   require('./pipeline/projectPipeline.directive.js'),
   require('../service/project.read.service.js'),
   EXECUTION_SERVICE,
-  require('../../scheduler/scheduler.factory.js'),
+  SCHEDULER_FACTORY,
   RECENT_HISTORY_SERVICE,
   require('../../presentation/refresher/componentRefresher.directive.js'),
   require('./regionFilter/regionFilter.component.js'),

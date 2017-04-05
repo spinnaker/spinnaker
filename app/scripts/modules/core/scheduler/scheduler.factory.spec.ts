@@ -1,19 +1,20 @@
-'use strict';
+import {ITimeoutService, mock} from 'angular';
+import {SCHEDULER_FACTORY, SchedulerFactory} from './scheduler.factory';
 
 describe('scheduler', function() {
   const angular = require('angular');
 
-  var $timeout;
+  let $timeout: ITimeoutService;
 
   beforeEach(function() {
-    var pollSchedule = 25;
-    window.module(
-      require('./scheduler.factory.js')
+    const pollSchedule = 25;
+    mock.module(
+      SCHEDULER_FACTORY
     );
 
     this.pollSchedule = pollSchedule;
 
-    window.inject(function(schedulerFactory, _$timeout_) {
+    mock.inject(function(schedulerFactory: SchedulerFactory, _$timeout_: ITimeoutService) {
       this.scheduler = schedulerFactory.createScheduler();
       $timeout = _$timeout_;
     });
@@ -25,13 +26,13 @@ describe('scheduler', function() {
 
   describe('#scheduleImmediate', function() {
     it('invokes all subscribed callbacks immediately', function() {
-      var numSubscribers = 20;
+      const numSubscribers = 20;
 
       spyOn(this.test, 'call');
-      for(var i = 0; i < numSubscribers; i++) {
+      for(let i = 0; i < numSubscribers; i++) {
         this.scheduler.subscribe(this.test.call);
       }
-      var pre = this.test.call.calls.count();
+      const pre = this.test.call.calls.count();
       this.scheduler.scheduleImmediate();
       expect(this.test.call.calls.count() - pre).toBe(numSubscribers);
     });
@@ -52,5 +53,4 @@ describe('scheduler', function() {
       expect($timeout.flush).toThrow();
     });
   });
-
 });

@@ -10,6 +10,7 @@ import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirm
 import {CANCEL_MODAL_SERVICE, CancelModalService} from 'core/cancelModal/cancelModal.service';
 import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
 import {SETTINGS} from 'core/config/settings';
+import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
 
 import './execution.less';
 
@@ -34,7 +35,7 @@ class ExecutionController implements IComponentController {
               private $location: ILocationService,
               private $stateParams: IExecutionDetailsStateParams,
               private $state: IStateService,
-              private schedulerFactory: any,
+              private schedulerFactory: SchedulerFactory,
               private ExecutionFilterModel: any,
               private executionService: ExecutionService,
               private cancelModalService: CancelModalService,
@@ -199,6 +200,6 @@ module(EXECUTION_COMPONENT, [
     EXECUTION_SERVICE,
     CANCEL_MODAL_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
-    require('core/scheduler/scheduler.factory')
+    SCHEDULER_FACTORY
 ])
   .component('execution', new ExecutionComponent());

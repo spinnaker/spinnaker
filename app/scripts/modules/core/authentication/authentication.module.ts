@@ -2,6 +2,7 @@ import {AUTHENTICATION_INTERCEPTOR_SERVICE} from './authentication.interceptor.s
 import {AUTHENTICATION_INITIALIZER_SERVICE, AuthenticationInitializer} from './authentication.initializer.service';
 import {REDIRECT_SERVICE} from './redirect.service';
 import {AUTHENTICATION_SERVICE} from './authentication.service';
+import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
 import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
@@ -13,7 +14,7 @@ angular.module(AUTHENTICATION, [
   AUTHENTICATION_INITIALIZER_SERVICE,
   AUTHENTICATION_INTERCEPTOR_SERVICE,
   require('./userMenu/userMenu.module.js'),
-  require('../scheduler/scheduler.factory.js')
+  SCHEDULER_FACTORY
 ])
   .config(function ($httpProvider: ng.IHttpProvider) {
     $httpProvider.interceptors.push('gateRequestInterceptor');
@@ -28,7 +29,7 @@ angular.module(AUTHENTICATION, [
       }
     };
   })
-  .run(function (schedulerFactory: any,
+  .run(function (schedulerFactory: SchedulerFactory,
                  authenticationInitializer: AuthenticationInitializer) {
     if (SETTINGS.authEnabled) {
       // schedule deck to re-authenticate every 10 min.

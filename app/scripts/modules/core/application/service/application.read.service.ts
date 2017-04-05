@@ -1,8 +1,10 @@
 import {module} from 'angular';
+
 import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from './applicationDataSource.registry';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {ApplicationDataSource, DataSourceConfig} from '../service/applicationDataSource';
 import {Application} from '../application.model';
+import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
@@ -23,7 +25,7 @@ export class ApplicationReader {
   static get $inject() { return ['$q', '$log', '$filter', 'API', 'schedulerFactory', 'applicationDataSourceRegistry']; }
 
   public constructor(private $q: ng.IQService, private $log: ng.ILogService, private $filter: ng.IFilterService,
-                     private API: Api, private schedulerFactory: any,
+                     private API: Api, private schedulerFactory: SchedulerFactory,
                      private applicationDataSourceRegistry: ApplicationDataSourceRegistry) {}
 
   public listApplications(): ng.IPromise<IApplicationSummary[]> {
@@ -94,7 +96,7 @@ export class ApplicationReader {
 export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service';
 
 module(APPLICATION_READ_SERVICE, [
-  require('../../scheduler/scheduler.factory'),
+  SCHEDULER_FACTORY,
   require('../../presentation/robotToHumanFilter/robotToHuman.filter'),
   API_SERVICE,
   APPLICATION_DATA_SOURCE_REGISTRY,

@@ -4,6 +4,7 @@ import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecora
 import { IAvailabilityData, IAvailabilityWindow, AVAILABILITY_READER_SERVICE, AvailabilityReaderService } from './availability.read.service';
 import { AVAILABILITY_DONUT_COMPONENT } from './availability.donut.component';
 import { AVAILABILITY_TREND_COMPONENT } from './availability.trend.component';
+import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
 
 import './availability.less';
 
@@ -20,7 +21,7 @@ export class AvailabilityController implements ng.IComponentController {
     return ['$scope', 'availabilityReaderService', 'schedulerFactory'];
   }
 
-  public constructor (private $scope: any, private availabilityReaderService: AvailabilityReaderService, private schedulerFactory: any) {}
+  public constructor (private $scope: any, private availabilityReaderService: AvailabilityReaderService, private schedulerFactory: SchedulerFactory) {}
 
   private getWindowScore (window: IAvailabilityWindow): number {
     if (window.nines >= window.target_nines) { return 1; }
@@ -113,5 +114,5 @@ module(AVAILABILITY_DIRECTIVE, [
   AVAILABILITY_READER_SERVICE,
   AVAILABILITY_DONUT_COMPONENT,
   AVAILABILITY_TREND_COMPONENT,
-  require('core/scheduler/scheduler.factory')
+  SCHEDULER_FACTORY
 ]).directive('availability', <any>AvailabilityDirective);
