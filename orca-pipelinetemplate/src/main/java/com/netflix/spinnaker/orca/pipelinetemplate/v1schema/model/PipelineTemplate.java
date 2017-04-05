@@ -68,9 +68,11 @@ public class PipelineTemplate implements VersionedSchema {
 
   public static class Variable implements NamedContent {
     private String name;
+    private String group = "Ungrouped";
     private String description;
     private String type;
     private Object defaultValue;
+    private String example;
 
     @Override
     public String getName() {
@@ -79,6 +81,14 @@ public class PipelineTemplate implements VersionedSchema {
 
     public void setName(String name) {
       this.name = name;
+    }
+
+    public String getGroup() {
+      return group;
+    }
+
+    public void setGroup(String group) {
+      this.group = group;
     }
 
     public String getDescription() {
@@ -107,6 +117,14 @@ public class PipelineTemplate implements VersionedSchema {
 
     public boolean hasDefaultValue() {
       return defaultValue != null;
+    }
+
+    public String getExample() {
+      return example;
+    }
+
+    public void setExample(String example) {
+      this.example = example;
     }
   }
 

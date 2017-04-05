@@ -80,7 +80,11 @@ public class JinjaRenderer implements Renderer {
 
   @Override
   public Object renderGraph(String template, RenderContext context) {
-    return renderedValueConverter.convertRenderedValue(render(template, context));
+    // TODO rz - Need to catch exceptions out of this value converter & give more detailed information if it's a nested
+    // value. For example, if iterating over module output, the line number reported by yamlsnake will be for the final
+    // template, not the input, so it's difficult to correlate what actually is broken.
+    String renderedValue = render(template, context);
+    return renderedValueConverter.convertRenderedValue(renderedValue);
   }
 
   private static class NoopResourceLocator implements ResourceLocator {
