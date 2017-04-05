@@ -165,6 +165,11 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
       }
     }
 
+    def keyCount = keys.size()
+    def be = keyCount == 1 ? "is" : "are"
+    def pluralize = keyCount == 1 ? "" : "s"
+    log.info("There $be $keyCount pending on demand request$pluralize")
+
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
       [
         details  : Keys.parse(it.id),
