@@ -126,7 +126,7 @@ public class AmazonImageFinder implements ImageFinder {
       put("imageName", imageName);
       put("imageId", imageId);
 
-      put("ami", imageName);
+      put("ami", imageId);
       put("amiId", imageId);
 
       put("region", region);
