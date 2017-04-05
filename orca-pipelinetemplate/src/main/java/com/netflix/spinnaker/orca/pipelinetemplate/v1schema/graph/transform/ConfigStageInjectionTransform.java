@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -127,39 +128,43 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, new HashMap<>()));
 
-    return sorted
-      .stream()
-      .collect(Collectors.toList());
+    return new ArrayList<>(sorted);
   }
 
   private static void injectStages(List<StageDefinition> stages, List<StageDefinition> templateStages) {
-    stages.stream()
-      .filter(s -> s.getInject() != null)
-      .forEach(s -> {
-        InjectionRule rule = s.getInject();
+    // Using a stream here can cause a ConcurrentModificationException.
+    for (StageDefinition s : stages) {
+      if (s.getInject() == null) {
+        continue;
+      }
 
-        if (rule.getFirst() != null && rule.getFirst()) {
-          injectFirst(s, templateStages);
-          return;
-        }
+      // De-dupe any stages that are defined by templates that have inject rules.
+      templateStages.removeIf(stage -> stage.getId().equals(s.getId()));
 
-        if (rule.getLast() != null && rule.getLast()) {
-          injectLast(s, templateStages);
-          return;
-        }
+      InjectionRule rule = s.getInject();
 
-        if (rule.getBefore() != null) {
-          injectBefore(s, rule.getBefore(), templateStages);
-          return;
-        }
+      if (rule.getFirst() != null && rule.getFirst()) {
+        injectFirst(s, templateStages);
+        return;
+      }
 
-        if (rule.getAfter() != null) {
-          injectAfter(s, rule.getAfter(), templateStages);
-          return;
-        }
+      if (rule.getLast() != null && rule.getLast()) {
+        injectLast(s, templateStages);
+        return;
+      }
 
-        throw new IllegalTemplateConfigurationException(String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
-      });
+      if (rule.getBefore() != null) {
+        injectBefore(s, rule.getBefore(), templateStages);
+        return;
+      }
+
+      if (rule.getAfter() != null) {
+        injectAfter(s, rule.getAfter(), templateStages);
+        return;
+      }
+
+      throw new IllegalTemplateConfigurationException(String.format("stage did not have any valid injections defined (id: %s)", s.getId()));
+    }
   }
 
   private static void injectFirst(StageDefinition stage, List<StageDefinition> allStages) {

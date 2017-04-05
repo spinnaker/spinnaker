@@ -157,6 +157,22 @@ class ConfigStageInjectionTransformSpec extends Specification {
     requisiteStageIds('injected', template.stages) == ['s2']
   }
 
+  def 'should de-dupe template-injected stages'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(id: 's2', type: 'deploy'),
+        new StageDefinition(id: 's1', inject: [first: true], type: 'findImageFromTags'),
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(new TemplateConfiguration()).visitPipelineTemplate(template)
+
+    then:
+    template.stages*.id == ['s1', 's2']
+  }
+
   static StageDefinition getStageById(String id, List<StageDefinition> allStages) {
     return allStages.find { it.id == id }
   }
