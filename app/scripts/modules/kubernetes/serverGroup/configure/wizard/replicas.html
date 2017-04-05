@@ -6,10 +6,10 @@
         <help-field key="kubernetes.serverGroup.autoscaling.enabled"></help-field>
       </div>
       <div class="col-md-2">
-        <input type="checkbox" name="details" ng-model="command.useAutoscaler"/>
+        <input type="checkbox" name="details" ng-model="command.viewState.useAutoscaler"/>
       </div>
     </div>
-    <div ng-show="!command.useAutoscaler">
+    <div ng-show="!command.viewState.useAutoscaler">
       <div class="form-group">
         <div class="col-md-2 col-md-offset-3"></div>
       </div>
@@ -22,7 +22,7 @@
         </div>
       </div>
     </div>
-    <div ng-show="command.useAutoscaler">
+    <div ng-show="command.viewState.useAutoscaler">
       <div class="form-group">
         <div class="col-md-2 col-md-offset-3">Min</div>
         <div class="col-md-2">Max</div>
@@ -53,7 +53,7 @@
         </div>
         <div class="col-md-3">
           <div class="input-group">
-            <!-- Current utilization is based on requested CPU: it can be lager than 100% -->
+            <!-- Current utilization is based on requested CPU: it can be larger than 100% -->
             <input type="number" class="form-control input-sm" name="details" ng-model="command.scalingPolicy.cpuUtilization.target"
                                                                               min="0" />
             <span class="input-group-addon">%</span>
