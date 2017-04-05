@@ -26,6 +26,7 @@ class OracleBMCSImageLookupControllerSpec extends Specification {
         name: "My Other Image",
         compatibleShapes: ["small"])
     ]
+
     when:
     def results = imageLookupController.getById("DEFAULT", "AD1", "ocid.image.123")
 
@@ -50,6 +51,7 @@ class OracleBMCSImageLookupControllerSpec extends Specification {
         name: "bar 1",
         compatibleShapes: ["small"])
     ]
+
     when:
     def results = imageLookupController.find("DEFAULT", "foo")
 

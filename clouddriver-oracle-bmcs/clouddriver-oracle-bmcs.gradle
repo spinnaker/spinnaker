@@ -51,9 +51,11 @@ dependencies {
 }
 
 
+def allSourceSets = sourceSets
 license {
   header project.file('oracle-source-header')
   includes(["**/*.groovy", "**/*.java", "**/*.properties"])
   strictCheck true
   skipExistingHeaders false
+  sourceSets = allSourceSets
 }

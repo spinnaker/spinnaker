@@ -51,7 +51,6 @@ class OracleBMCSImageLookupController {
         .collect(Collectors.toSet())
         .sort { OracleBMCSImage a, OracleBMCSImage b -> a.name <=> b.name }
 
-
       Pattern pattern = resolveQueryToPattern(q)
       log.info('filtering images using pattern {}', pattern)
       results = results.findAll { pattern.matcher(it.name).matches() }

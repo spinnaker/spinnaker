@@ -8,6 +8,7 @@
  */
 package com.netflix.spinnaker.clouddriver.oraclebmcs.cache
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.oraclebmcs.OracleBMCSCloudProvider
 import groovy.util.logging.Slf4j
 
@@ -18,7 +19,8 @@ class Keys {
 
     NETWORKS,
     SUBNETS,
-    IMAGES
+    IMAGES,
+    SECURITY_GROUPS
 
     static String provider = OracleBMCSCloudProvider.ID
 
@@ -72,12 +74,29 @@ class Keys {
           imageId: parts[4]
         ]
         break
+      case Namespace.SECURITY_GROUPS.ns:
+        def names = Names.parseName(parts[2])
+        result << [
+          application: names.app,
+          name       : parts[2],
+          id         : parts[3],
+          region     : parts[4],
+          account    : parts[5]
+        ]
+        break
       default:
         return null
         break
     }
 
     result
+  }
+
+  static String getSecurityGroupKey(String securityGroupName,
+                                    String securityGroupId,
+                                    String region,
+                                    String account) {
+    "$OracleBMCSCloudProvider.ID:${Namespace.SECURITY_GROUPS}:${securityGroupName}:${securityGroupId}:${region}:${account}"
   }
 
   static String getImageKey(String account, String region, String imageId) {

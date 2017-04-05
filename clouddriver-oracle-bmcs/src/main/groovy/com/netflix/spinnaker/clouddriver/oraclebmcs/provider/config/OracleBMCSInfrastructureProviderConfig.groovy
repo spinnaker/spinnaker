@@ -10,12 +10,14 @@ package com.netflix.spinnaker.clouddriver.oraclebmcs.provider.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.oraclebmcs.OracleBMCSConfiguration
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.OracleBMCSInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSImageCachingAgent
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSNetworkCachingAgent
+import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSSecurityGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSSubnetCachingAgent
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
@@ -35,7 +37,8 @@ class OracleBMCSInfrastructureProviderConfig {
   @DependsOn('oracleBMCSNamedAccountCredentials')
   OracleBMCSInfrastructureProvider oracleBMCSInfrastructureProvider(String clouddriverUserAgentApplicationName,
                                                                     AccountCredentialsRepository accountCredentialsRepository,
-                                                                    ObjectMapper objectMapper) {
+                                                                    ObjectMapper objectMapper,
+                                                                    Registry registry) {
     def oracleBMCSInfrastructureProvider =
       new OracleBMCSInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -43,6 +46,7 @@ class OracleBMCSInfrastructureProviderConfig {
       oracleBMCSInfrastructureProvider,
       accountCredentialsRepository,
       objectMapper,
+      registry
     )
 
     return oracleBMCSInfrastructureProvider
@@ -68,7 +72,8 @@ class OracleBMCSInfrastructureProviderConfig {
     String clouddriverUserAgentApplicationName,
     OracleBMCSInfrastructureProvider oracleBMCSInfrastructureProvider,
     AccountCredentialsRepository accountCredentialsRepository,
-    ObjectMapper objectMapper) {
+    ObjectMapper objectMapper,
+    Registry registry) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(oracleBMCSInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
       OracleBMCSNamedAccountCredentials)
@@ -78,6 +83,11 @@ class OracleBMCSInfrastructureProviderConfig {
     allAccounts.each { OracleBMCSNamedAccountCredentials credentials ->
       if (!scheduledAccounts.contains(credentials.name)) {
         def newlyAddedAgents = []
+
+        newlyAddedAgents << new OracleBMCSSecurityGroupCachingAgent(clouddriverUserAgentApplicationName,
+          credentials,
+          objectMapper,
+          registry)
 
         newlyAddedAgents << new OracleBMCSNetworkCachingAgent(clouddriverUserAgentApplicationName,
           credentials,
