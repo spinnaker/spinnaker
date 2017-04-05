@@ -188,10 +188,16 @@ if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    # Note that this is in this script because the gcloud install method isn't
    # system-wide. The awscli is installed in the install_development.sh script.
    pushd $HOME
+   echo "*** REMOVING pre-installed gcloud..."
+   sudo apt-get remove google-cloud-sdk -y
    echo "*** BEGIN installing gcloud..."
    curl https://sdk.cloud.google.com | bash
-   echo "Restarting shell to pick up path changes."
-   exec $SHELL -l  # so we install kubectl using this gcloud
+
+   if [[ -f $HOME/.bashrc ]]; then
+     echo "Re-sourcing .bashrc to pick up path changes"
+     source $HOME/.bashrc
+   fi
+
    echo "Adding kubectl..."
    gcloud components install kubectl -q || true
 
@@ -239,28 +245,11 @@ echo "{\"interactive\":false}" > ~/.bowerrc
 if [[ -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
   echo "Forcing cassandra off."
   ./spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=false --change_local=true
-else
-  echo "Adding a default spinnaker-local that disables cassandra."
-  mkdir -p $HOME/.spinnaker
-  project=$(curl -L -s -f -H "Metadata-Flavor: Google" \
-            http://169.254.169.254/computeMetadata/v1/project/project-id)
-  cat > $HOME/.spinnaker/spinnaker-local.yml <<EOF
-services:
-  echo:
-    cassandra:
-      enabled: false
-    inMemory:
-      enabled: true
-
-  front50:
-    storage_bucket: spinnaker-${project}
-    bucket_location: \${providers.google.defaultRegion}
-    cassandra:
-      enabled: false
-    gcs:
-      enabled: true
-EOF
   chmod 600 $HOME/.spinnaker/spinnaker-local.yml
+
+  # Note that dev_runner will create a default spinnaker-local and disable cassandra
+  # when first run from source if there is no spinnaker-local.
+  # It does more initialization so we'll defer to that rather than doing it here.
 fi
 
 
