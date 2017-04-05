@@ -167,7 +167,7 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
     if (missingLocations) {
       Set<String> searchNames = extractBaseImageNames(imageNames)
       if (searchNames.size() != 1) {
-        throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${searchNames})")
+        throw new IllegalStateException("Request to resolve images for missing ${config.requiredLocations.first().pluralType()} requires exactly one image. (Found ${searchNames}, missing locations: ${missingLocations*.value.join(',')})")
       }
 
       def deploymentDetailTemplate = imageSummaries.find { k, v -> v != null }.value[0]
