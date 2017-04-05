@@ -57,7 +57,7 @@ class KubernetesLoadBalancer implements LoadBalancer, Serializable, LoadBalancer
     this.namespace = service.metadata.namespace
     this.securityGroups = securityGroups
     this.region = this.namespace
-    this.description = KubernetesApiConverter.fromService(service)
+    this.description = KubernetesApiConverter.fromService(service, accountName)
     this.account = accountName
     this.createdTime = KubernetesModelUtil.translateTime(service.metadata?.creationTimestamp)
     this.yaml = SerializationUtils.dumpWithoutRuntimeStateAsYaml(service)

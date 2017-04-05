@@ -69,13 +69,14 @@ class KubernetesApiConverter {
   }
 
 
-  static KubernetesLoadBalancerDescription fromService(Service service) {
+  static KubernetesLoadBalancerDescription fromService(Service service, String accountName) {
     if (!service) {
       return null
     }
 
     def loadBalancerDescription = new KubernetesLoadBalancerDescription()
 
+    loadBalancerDescription.account = accountName
     loadBalancerDescription.name = service.metadata.name
     def parse = Names.parseName(loadBalancerDescription.name)
     loadBalancerDescription.app = parse.app
