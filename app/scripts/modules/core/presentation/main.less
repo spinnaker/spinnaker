@@ -1397,3 +1397,36 @@ ul.checkmap {
     }
   }
 }
+
+div.modal-header.has-sticky-headers {
+  position: relative;
+  z-index: 5;
+}
+
+.component-heading {
+  padding: 0;
+  margin-bottom: 10px;
+
+  h4 {
+    padding: 10px;
+    margin-bottom: 0;
+    color: @default_link_hover;
+    background-color: @pod_header_blue;
+  }
+}
+
+.component-body {
+  padding: 0 10px;
+
+  table.table th {
+    border-top: none;
+  }
+
+  table.table.no-lines th {
+    border-bottom: 1px solid @table-border-color;
+  }
+
+  table.table.no-lines tr td {
+    border-top: none;
+  }
+}

@@ -83,10 +83,13 @@
         <dt>Created</dt>
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <entity-source metadata="ctrl.serverGroup.entityTags.creationMetadata"></entity-source>
+        <view-changes-link change-config="ctrl.changeConfig"
+                           view-type="description"
+                           link-text="view changes"
+                           name-item="ctrl.serverGroup"></view-changes-link>
         <dt>In</dt>
         <dd>
           <account-tag account="ctrl.serverGroup.account" pad="right"></account-tag>
-
           {{ctrl.serverGroup.region}}
         </dd>
         <dt>VPC</dt>

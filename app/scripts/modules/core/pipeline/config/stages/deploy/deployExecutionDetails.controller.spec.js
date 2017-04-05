@@ -31,9 +31,13 @@ describe('DeployExecutionDetailsCtrl', function() {
   });
 
   describe('deployment results', function() {
-    it('sets empty list when no context or empty context', function() {
+    it('sets empty list when no context or empty context (except for changes config)', function() {
 
       var stage = this.$scope.stage;
+      stage.context = {
+        commits: [],
+        jarDiffs: {}
+      };
 
       this.initializeController();
       expect(this.$scope.deployed.length).toBe(0);

@@ -101,60 +101,9 @@
       <execution-step-details item="stage"></execution-step-details>
     </div>
   </div>
-  <div class="step-section-details" ng-if="detailsSection === 'codeChanges' && stage.context.commits">
-    <table>
-      <tr><th>#</th><th>Date</th><th>Commit</th><th>Message</th><th>Author</th></tr>
-      <tr ng-repeat="commit in stage.context.commits">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{commit.timestamp | date:'MM/dd'}}&nbsp;&nbsp;</td>
-        <td><a target="_blank" href="{{commit.commitUrl}}">{{commit.displayId}}</a>&nbsp;&nbsp;</td>
-        <td>{{commit.message | limitTo: 50}}&nbsp;&nbsp;</td>
-        <td>{{commit.authorDisplayName}}</td>
-      </tr>
-    </table>
-  </div>
-  <div class="step-section-details" ng-if="detailsSection === 'JARChanges' && stage.context.jarDiffs">
-    <table ng-if="stage.context.jarDiffs.added && stage.context.jarDiffs.added.length > 0">
-      <tr><th>Added</th></tr>
-      <tr ng-repeat="jar in stage.context.jarDiffs.added">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{jar.displayDiff}}&nbsp;&nbsp;</td>
-      </tr>
-    </table>
-    <table ng-if="stage.context.jarDiffs.removed && stage.context.jarDiffs.removed.length > 0">
-      <tr><th>Removed</th></tr>
-      <tr ng-repeat="jar in stage.context.jarDiffs.removed">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{jar.displayDiff}}&nbsp;&nbsp;</td>
-      </tr>
-    </table>
-    <table ng-if="stage.context.jarDiffs.upgraded && stage.context.jarDiffs.upgraded.length > 0">
-      <tr><th>Upgraded</th></tr>
-      <tr ng-repeat="jar in stage.context.jarDiffs.upgraded">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{jar.displayDiff}}&nbsp;&nbsp;</td>
-      </tr>
-    </table>
-    <table ng-if="stage.context.jarDiffs.downgraded && stage.context.jarDiffs.downgraded.length > 0">
-      <tr><th>Downgraded</th></tr>
-      <tr ng-repeat="jar in stage.context.jarDiffs.downgraded">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{jar.displayDiff}}&nbsp;&nbsp;</td>
-      </tr>
-    </table>
-    <table ng-if="stage.context.jarDiffs.duplicates && stage.context.jarDiffs.duplicates.length > 0">
-      <tr><th>Duplicates</th></tr>
-      <tr ng-repeat="jar in stage.context.jarDiffs.duplicates">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{jar.displayDiff}}&nbsp;&nbsp;</td>
-      </tr>
-    </table>
-    <table ng-if="stage.context.jarDiffs.unknown && stage.context.jarDiffs.unknown.length > 0">
-      <tr><th>Unknown</th></tr>
-      <tr ng-repeat="jar in stage.context.jarDiffs.unknown">
-        <td><b>{{$index+1}}</b>&nbsp;&nbsp;</td>
-        <td>{{jar.displayDiff}}&nbsp;&nbsp;</td>
-      </tr>
-    </table>
+  <div class="step-section-details" ng-if="detailsSection === 'changes'">
+    <view-changes-link view-type="linkOnly"
+                       change-config="changeConfig"
+                       name-item="stage"></view-changes-link>
   </div>
 </div>

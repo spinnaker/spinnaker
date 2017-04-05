@@ -26,11 +26,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
     $scope.configSections = ['deploymentConfig', 'taskStatus'];
 
     if ($scope.stage.context) {
-      if ($scope.stage.context.commits && $scope.stage.context.commits.length > 0) {
-        $scope.configSections.push('codeChanges');
-      }
-      if (!_.isEmpty($scope.stage.context.jarDiffs)) {
-        $scope.configSections.push('JARChanges');
+      if (($scope.stage.context.commits && $scope.stage.context.commits.length > 0) || !_.isEmpty($scope.stage.context.jarDiffs)) {
+        $scope.configSections.push('changes');
       }
     }
 
@@ -70,6 +67,11 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
       $scope.deployed = results;
       configureWaitingMessages(results);
       $scope.provider = context.cloudProvider || context.providerType || 'aws';
+
+      $scope.changeConfig = {
+        commits: $scope.stage.context.commits,
+        jarDiffs: $scope.stage.context.jarDiffs
+      };
     };
 
     function configureWaitingMessages(deployedArtifacts) {

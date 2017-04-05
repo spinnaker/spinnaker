@@ -1,6 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
+import {chain, filter, find, get, isEmpty} from 'lodash';
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       return app
         .ready()
         .then(() => {
-          var summary = _.find(app.serverGroups.data, (toCheck) => {
+          var summary = find(app.serverGroups.data, (toCheck) => {
             return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
           });
           if (!summary) {
@@ -107,7 +107,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
               this.serverGroup = plainDetails;
               this.applyAccountDetails(this.serverGroup);
 
-              if (!_.isEmpty(this.serverGroup)) {
+              if (!isEmpty(this.serverGroup)) {
 
                 this.image = details.image ? details.image : undefined;
 
@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 if (vpc !== '') {
                   var subnetId = vpc.split(',')[0];
                   subnetReader.listSubnets().then((subnets) => {
-                    var subnet = _.chain(subnets).find({'id': subnetId}).value();
+                    var subnet = chain(subnets).find({'id': subnetId}).value();
                     this.serverGroup.subnetType = subnet.purpose;
                   });
                 }
@@ -139,9 +139,9 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 }
 
                 if (details.launchConfig && details.launchConfig.securityGroups) {
-                  this.securityGroups = _.chain(details.launchConfig.securityGroups).map((id) => {
-                    return _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
-                      _.find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
+                  this.securityGroups = chain(details.launchConfig.securityGroups).map((id) => {
+                    return find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'id': id }) ||
+                      find(app.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': serverGroup.region, 'name': id });
                   }).compact().value();
                 }
 
@@ -156,6 +156,10 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                     .filter(p => !p.enabled)
                     .some(p => ['Launch','Terminate','ScheduledAction'].includes(p.name));
                 configureEntityTagTargets();
+
+                this.changeConfig = {
+                  metadata: this.serverGroup.entityTags.creationMetadata
+                };
               } else {
                 autoClose();
               }
@@ -180,7 +184,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
     this.isEnableLocked = () => {
       if (this.serverGroup.isDisabled) {
         let resizeTasks = (this.serverGroup.runningTasks || [])
-          .filter(task => _.get(task, 'execution.stages', []).some(
+          .filter(task => get(task, 'execution.stages', []).some(
             stage => stage.type === 'resizeServerGroup'));
         if (resizeTasks.length) {
           return true;
@@ -301,8 +305,8 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
         resolve: {
           serverGroup: () => this.serverGroup,
           disabledServerGroups: () => {
-            var cluster = _.find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
-            return _.filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
+            var cluster = find(app.clusters, {name: this.serverGroup.cluster, account: this.serverGroup.account});
+            return filter(cluster.serverGroups, {isDisabled: true, region: this.serverGroup.region});
           },
           allServerGroups: () => app.getDataSource('serverGroups').data.filter(g =>
             g.cluster === this.serverGroup.cluster &&

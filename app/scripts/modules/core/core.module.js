@@ -6,6 +6,7 @@ let angular = require('angular');
 import {AUTHENTICATION} from './authentication/authentication.module';
 import {API_SERVICE} from './api/api.service';
 import {CLOUD_PROVIDER_LOGO} from './cloudProvider/cloudProviderLogo.component';
+import {CORE_DIFF_MODULE} from './diffs';
 import {HELP_FIELD_COMPONENT} from './help/helpField.component';
 import {STATE_CONFIG_PROVIDER} from './navigation/state.provider';
 import {APPLICATIONS_STATE_PROVIDER} from './application/applications.state.provider';
@@ -59,6 +60,7 @@ module.exports = angular
 
     require('./cache/caches.module.js'),
     CLOUD_PROVIDER_LOGO,
+    CORE_DIFF_MODULE,
     require('./cloudProvider/cloudProviderLabel.directive.js'),
     require('./cloudProvider/serviceDelegate.service.js'),
     require('./cluster/cluster.module.js'),

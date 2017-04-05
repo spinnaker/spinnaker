@@ -1,0 +1,27 @@
+<div modal-page>
+  <modal-close (dismiss)="$ctrl.close()"></modal-close>
+  <div class="modal-header has-sticky-headers">
+    <h3>Changes to {{$ctrl.nameItem.name}}</h3>
+  </div>
+  <div class="modal-body" style="max-height: 800px; overflow-y: scroll;" sticky-headers>
+    <div ng-if="$ctrl.commits.length">
+      <div class="component-heading" sticky-header>
+        <h4>Commits</h4>
+      </div>
+      <div class="component-body">
+        <commit-history commits="$ctrl.commits"></commit-history>
+      </div>
+    </div>
+    <div ng-if="$ctrl.hasJarChanges">
+      <div class="component-heading" sticky-header>
+        <h4>JAR Changes</h4>
+      </div>
+      <div class="component-body">
+        <jar-diff jar-diffs="$ctrl.jarDiffs"></jar-diff>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-click="$ctrl.close()">Close</button>
+  </div>
+</div>
