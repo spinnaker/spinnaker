@@ -40,6 +40,8 @@ class AppengineConfigurationProperties {
     String githubOAuthAccessToken
     String sshPrivateKeyFilePath
     String sshPrivateKeyPassphrase
+    String sshKnownHostsFilePath
+    boolean sshTrustUnknownHosts
 
     void initialize(AppengineJobExecutor jobExecutor) {
       if (this.jsonPath) {

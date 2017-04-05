@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.appengine.gitClient
 import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
+import groovy.util.logging.Slf4j
 import org.eclipse.jgit.api.TransportConfigCallback
 import org.eclipse.jgit.transport.JschConfigSessionFactory
 import org.eclipse.jgit.transport.OpenSshConfig
@@ -29,7 +30,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.util.FS
 
 // Taken from http://www.codeaffine.com/2014/12/09/jgit-authentication/
-
+@Slf4j
 class AppengineGitCredentials {
   UsernamePasswordCredentialsProvider httpsUsernamePasswordCredentialsProvider
   UsernamePasswordCredentialsProvider httpsOAuthCredentialsProvider
@@ -41,10 +42,12 @@ class AppengineGitCredentials {
                           String gitHttpsPassword,
                           String githubOAuthAccessToken,
                           String sshPrivateKeyFilePath,
-                          String sshPrivateKeyPassphrase) {
+                          String sshPrivateKeyPassphrase,
+                          String sshKnownHostsFilePath,
+                          boolean sshTrustUnknownHosts) {
     setHttpsUsernamePasswordCredentialsProvider(gitHttpsUsername, gitHttpsPassword)
     setHttpsOAuthCredentialsProvider(githubOAuthAccessToken)
-    setSshPrivateKeyTransportConfigCallback(sshPrivateKeyFilePath, sshPrivateKeyPassphrase)
+    setSshPrivateKeyTransportConfigCallback(sshPrivateKeyFilePath, sshPrivateKeyPassphrase, sshKnownHostsFilePath, sshTrustUnknownHosts)
   }
 
   AppengineGitRepositoryClient buildRepositoryClient(String repositoryUrl,
@@ -83,16 +86,31 @@ class AppengineGitCredentials {
     }
   }
 
-  void setSshPrivateKeyTransportConfigCallback(String sshPrivateKeyFilePath, String sshPrivateKeyPassphrase) {
+  void setSshPrivateKeyTransportConfigCallback(String sshPrivateKeyFilePath,
+                                               String sshPrivateKeyPassphrase,
+                                               String sshKnownHostsFilePath,
+                                               boolean sshTrustUnknownHosts) {
     if (sshPrivateKeyFilePath && sshPrivateKeyPassphrase) {
       SshSessionFactory sshSessionFactory = new JschConfigSessionFactory() {
         @Override
-        protected void configure(OpenSshConfig.Host hc, Session session) { }
+        protected void configure(OpenSshConfig.Host hc, Session session) {
+          if (sshKnownHostsFilePath == null && sshTrustUnknownHosts) {
+            session.setConfig("StrictHostKeyChecking", "no")
+          }
+        }
 
         @Override
         protected JSch createDefaultJSch(FS fs) throws JSchException {
           JSch defaultJSch = super.createDefaultJSch(fs)
           defaultJSch.addIdentity(sshPrivateKeyFilePath, sshPrivateKeyPassphrase)
+
+          if (sshKnownHostsFilePath != null && sshTrustUnknownHosts) {
+            log.warn("SSH known_hosts file path supplied, ignoring 'sshTrustUnknownHosts' option")
+          }
+          if (sshKnownHostsFilePath != null) {
+            defaultJSch.setKnownHosts(sshKnownHostsFilePath)
+          }
+
           return defaultJSch
         }
       }

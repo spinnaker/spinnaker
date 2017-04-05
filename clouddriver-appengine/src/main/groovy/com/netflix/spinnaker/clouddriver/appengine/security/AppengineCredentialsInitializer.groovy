@@ -81,6 +81,8 @@ class AppengineCredentialsInitializer implements CredentialsInitializerSynchroni
           .githubOAuthAccessToken(managedAccount.githubOAuthAccessToken)
           .sshPrivateKeyFilePath(managedAccount.sshPrivateKeyFilePath)
           .sshPrivateKeyPassphrase(managedAccount.sshPrivateKeyPassphrase)
+          .sshKnownHostsFilePath(managedAccount.sshKnownHostsFilePath)
+          .sshTrustUnknownHosts(managedAccount.sshTrustUnknownHosts)
           .build()
 
         accountCredentialsRepository.save(managedAccount.name, appengineAccount)

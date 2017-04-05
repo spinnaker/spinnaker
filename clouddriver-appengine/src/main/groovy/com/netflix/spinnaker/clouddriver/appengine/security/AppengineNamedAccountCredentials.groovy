@@ -69,6 +69,8 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     String githubOAuthAccessToken
     String sshPrivateKeyFilePath
     String sshPrivateKeyPassphrase
+    String sshKnownHostsFilePath
+    boolean sshTrustUnknownHosts
     AppengineGitCredentials gitCredentials
 
     /*
@@ -167,6 +169,16 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
       return this
     }
 
+    Builder sshKnownHostsFilePath(String sshKnownHostsFilePath) {
+      this.sshKnownHostsFilePath = sshKnownHostsFilePath
+      return this
+    }
+
+    Builder sshTrustUnknownHosts(boolean sshTrustUnknownHosts) {
+      this.sshTrustUnknownHosts = sshTrustUnknownHosts
+      return this
+    }
+
     Builder gitCredentials(AppengineGitCredentials gitCredentials) {
       this.gitCredentials = gitCredentials
       return this
@@ -189,7 +201,9 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
         gitHttpsPassword,
         githubOAuthAccessToken,
         sshPrivateKeyFilePath,
-        sshPrivateKeyPassphrase
+        sshPrivateKeyPassphrase,
+        sshKnownHostsFilePath,
+        sshTrustUnknownHosts
       )
 
       return new AppengineNamedAccountCredentials(name,
