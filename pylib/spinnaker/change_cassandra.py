@@ -181,12 +181,14 @@ class CassandraChanger(object):
           pass
 
     if str(self.__options.change_local).lower() == "true":
-        path = '/opt/spinnaker/config/spinnaker-local.yml'
+      for path in ['/opt/spinnaker/config/spinnaker-local.yml',
+                   os.path.join(os.environ.get('HOME'),
+                                '.spinnaker', 'spinnaker-local.yml')]:
         try:
           with open(path, 'r'):
             paths.append(path)
         except IOError:
-          print 'Could not open {path}. Ignoring --change_local.'.format(path=path)
+          print 'Could not open {path} to apply --change_local.'.format(path=path)
 
     for path in paths:
         print 'Updating {path}'.format(path=path)

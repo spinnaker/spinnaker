@@ -190,6 +190,8 @@ if prompt_YN "Y" "Install (or update) Google Cloud Platform SDK?"; then
    pushd $HOME
    echo "*** BEGIN installing gcloud..."
    curl https://sdk.cloud.google.com | bash
+   echo "Restarting shell to pick up path changes."
+   exec $SHELL -l  # so we install kubectl using this gcloud
    echo "Adding kubectl..."
    gcloud components install kubectl -q || true
 
