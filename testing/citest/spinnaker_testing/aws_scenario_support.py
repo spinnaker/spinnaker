@@ -97,7 +97,7 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
     if not profile:
       raise ValueError('An AWS Observer requires an AWS_PROFILE')
 
-    return aws.AwsAgent(profile, bindings['TEST_AWS_REGION'])
+    return aws.AwsPythonAgent(profile)
 
   def __init__(self, scenario):
     """Constructor.
@@ -128,17 +128,19 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
   def __lazy_binding_initializer(self, bindings, key):
     normalized_key = key.upper()
 
+    ec2_client = None
+
     if normalized_key == 'TEST_AWS_VPC_ID':
       # We need to figure out a specific aws vpc id to use.
       logger = logging.getLogger(__name__)
       logger.info('Determine default AWS VpcId...')
-      vpc_list = self.observer.get_resource_list(
+      if not ec2_client:
+        ec2_client = self.observer.make_boto_client('ec2')
+      response = self.observer.call_method(
           ExecutionContext(),
-          root_key='Vpcs',
-          aws_command='describe-vpcs',
-          args=['--filters', 'Name=tag:Name,Values=defaultvpc'],
-          region=bindings['TEST_AWS_REGION'],
-          aws_module='ec2', profile=self.observer.profile)
+          ec2_client.describe_vpcs,
+          Filters=[{'Name': 'tag:Name', 'Values': ['defaultvpc']}])
+      vpc_list = response['Vpcs']
       if not vpc_list:
         raise ValueError('There is no vpc tagged as "defaultvpc"')
 
@@ -151,12 +153,12 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
       # with the VpcId we are using.
       logger = logging.getLogger(__name__)
       logger.info('Determine default AWS SecurityGroupId...')
-      sg_list = self.observer.get_resource_list(
+      if not ec2_client:
+        ec2_client = self.observer.make_boto_client('ec2')
+      response = self.observer.call_method(
           ExecutionContext(),
-          root_key='SecurityGroups',
-          aws_command='describe-security-groups', args=[],
-          region=bindings['TEST_AWS_REGION'],
-          aws_module='ec2', profile=self.observer.profile)
+          ec2_client.describe_security_groups)
+      sg_list = response['SecurityGroups']
 
       found = None
       vpc_id = bindings['TEST_AWS_VPC_ID']
