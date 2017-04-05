@@ -57,8 +57,8 @@ class ApplicationController {
   }
 
   @RequestMapping(value = "/{application:.+}", method = RequestMethod.GET)
-  Map getApplication(@PathVariable("application") String application) {
-    def result = applicationService.getApplication(application)
+  Map getApplication(@PathVariable("application") String application, @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
+    def result = applicationService.getApplication(application, expand)
     if (!result) {
       log.warn("Application ${application} not found")
       throw new ApplicationNotFoundException("Application ${application} not found")

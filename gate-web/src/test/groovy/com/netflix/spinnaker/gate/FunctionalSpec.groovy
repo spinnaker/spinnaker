@@ -112,7 +112,7 @@ class FunctionalSpec extends Specification {
       api.getApplication(name)
 
     then:
-      1 * applicationService.getApplication(name) >> [name: name]
+      1 * applicationService.getApplication(name, true) >> [name: name]
 
     where:
       name = "foo"
@@ -123,7 +123,7 @@ class FunctionalSpec extends Specification {
       api.getApplication(name)
 
     then:
-      1 * applicationService.getApplication(name) >> null
+      1 * applicationService.getApplication(name, true) >> null
 
       RetrofitError exception = thrown()
       exception.response.status == 404
