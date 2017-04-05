@@ -18,7 +18,6 @@ export interface IInfrastructureCacheConfig {
   securityGroups: IVersionConfig;
   instanceTypes: IMaxAgeConfig & IVersionConfig;
   healthChecks: IVersionConfig;
-  httpHealthChecks: IVersionConfig;
   certificates: IVersionConfig;
   backendServices: IVersionConfig;
   addresses: IVersionConfig;
@@ -50,9 +49,6 @@ export const INFRASTRUCTURE_CACHE_CONFIG: IInfrastructureCacheConfig = {
     version: 2
   },
   healthChecks: {
-    version: 2
-  },
-  httpHealthChecks: {
     version: 2
   },
   certificates: {

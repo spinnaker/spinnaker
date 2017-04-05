@@ -10,7 +10,8 @@ import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {GCEProviderSettings} from '../../gce.settings';
+import {GCEProviderSettings} from 'google/gce.settings';
+import {GCE_HEALTH_CHECK_READER} from 'google/healthCheck/healthCheck.read.service';
 
 let angular = require('angular');
 
@@ -26,14 +27,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
   require('../../instance/gceInstanceType.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   GCE_HTTP_LOAD_BALANCER_UTILS,
-  require('../../httpHealthCheck/httpHealthCheck.reader.js'),
+  GCE_HEALTH_CHECK_READER,
   require('./wizard/securityGroups/tagManager.service.js'),
 ])
   .factory('gceServerGroupConfigurationService', function(gceImageReader, accountService, securityGroupReader,
                                                           gceInstanceTypeService, cacheInitializer,
                                                           $q, loadBalancerReader, networkReader, subnetReader,
                                                           gceCustomInstanceBuilderService, gceHttpLoadBalancerUtils,
-                                                          gceHttpHealthCheckReader, gceTagManager,
+                                                          gceHealthCheckReader, gceTagManager,
                                                           gceLoadBalancerSetTransformer) {
 
     var persistentDiskTypes = [
@@ -84,7 +85,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
         authScopes: $q.when(angular.copy(authScopes)),
-        httpHealthChecks: gceHttpHealthCheckReader.listHttpHealthChecks(),
+        httpHealthChecks: gceHealthCheckReader.listHealthChecks('HTTP'),
       }).then(function(backingData) {
         var loadBalancerReloader = $q.when(null);
         var securityGroupReloader = $q.when(null);
@@ -300,8 +301,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function getHttpHealthChecks(command) {
-      return _.chain(command.backingData.httpHealthChecks[0].results)
-        .filter({provider: 'gce', account: command.credentials})
+      return _.chain(command.backingData.httpHealthChecks)
+        .filter({account: command.credentials})
         .map('name')
         .value();
     }
@@ -408,9 +409,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function refreshHttpHealthChecks(command, skipCommandReconfiguration) {
-      return cacheInitializer.refreshCache('httpHealthChecks')
+      return cacheInitializer.refreshCache('healthChecks')
         .then(function() {
-          return gceHttpHealthCheckReader.listHttpHealthChecks();
+          return gceHealthCheckReader.listHealthChecks('HTTP');
         })
         .then(function(httpHealthChecks) {
           command.backingData.httpHealthChecks = httpHealthChecks;

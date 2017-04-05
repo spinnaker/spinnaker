@@ -9,6 +9,7 @@ import {GCEProviderSettings} from '../../../gce.settings';
 import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import {GCE_CERTIFICATE_READER} from 'google/certificate/certificate.reader';
 import {GCE_ADDRESS_READER} from 'google/address/address.reader';
+import {GCE_HEALTH_CHECK_READER} from 'google/healthCheck/healthCheck.read.service';
 
 let angular = require('angular');
 
@@ -19,14 +20,14 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     LOAD_BALANCER_READ_SERVICE,
     GCE_HTTP_LOAD_BALANCER_UTILS,
     GCE_ADDRESS_READER,
-    require('../../../httpHealthCheck/httpHealthCheck.reader.js'),
+    GCE_HEALTH_CHECK_READER,
     require('./transformer.service.js'),
   ])
   .factory('gceHttpLoadBalancerCommandBuilder', function ($q, accountService,
                                                           gceHttpLoadBalancerUtils,
                                                           gceBackendServiceReader,
                                                           gceCertificateReader,
-                                                          gceHttpHealthCheckReader,
+                                                          gceHealthCheckReader,
                                                           gceHttpLoadBalancerTransformer,
                                                           loadBalancerReader,
                                                           gceAddressReader) {
@@ -135,13 +136,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.ser
     }
 
     function getHealthChecks () {
-      return gceHttpHealthCheckReader.listHttpHealthChecks()
-        .then(([response]) => response.results.map((hc) => {
-          let parsed = JSON.parse(hc.httpHealthCheck);
-          parsed.kind = parsed.kind.split('#').pop();
-          parsed.account = hc.account;
-          return parsed;
-        }));
+      return gceHealthCheckReader.listHealthChecks('HTTP');
     }
 
     function getBackendServices () {

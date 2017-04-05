@@ -4,6 +4,7 @@ import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {Application} from 'core/application/application.model';
 import {IGceAutoHealingPolicy, IGceServerGroup} from 'google/domain/index';
 import {TaskMonitorBuilder, TaskMonitor} from 'core/task/monitor/taskMonitor.builder';
+import {GCE_HEALTH_CHECK_READER, GceHealthCheckReader} from 'google/healthCheck/healthCheck.read.service';
 
 import './upsertAutoHealingPolicy.modal.less';
 
@@ -13,16 +14,17 @@ class GceUpsertAutoHealingPolicyModalCtrl {
   public httpHealthChecks: string[];
   public action: 'Edit' | 'New';
   public isNew: boolean;
+  public submitButtonLabel: string;
 
   public static get $inject() {
-    return ['$uibModalInstance', 'application', 'serverGroup', 'gceHttpHealthCheckReader',
+    return ['$uibModalInstance', 'application', 'serverGroup', 'gceHealthCheckReader',
             'taskMonitorBuilder', 'gceAutoscalingPolicyWriter'];
   }
 
   constructor(private $uibModalInstance: IModalServiceInstance,
               private application: Application,
               public serverGroup: IGceServerGroup,
-              private gceHttpHealthCheckReader: any,
+              private gceHealthCheckReader: GceHealthCheckReader,
               private taskMonitorBuilder: TaskMonitorBuilder,
               private gceAutoscalingPolicyWriter: any) {
     this.initialize();
@@ -45,10 +47,10 @@ class GceUpsertAutoHealingPolicyModalCtrl {
   }
 
   public onHealthCheckRefresh(): void {
-    this.gceHttpHealthCheckReader.listHttpHealthChecks()
-      .then((response: any) => {
-        this.httpHealthChecks = chain(response[0].results)
-          .filter({provider: 'gce', account: this.serverGroup.account})
+    this.gceHealthCheckReader.listHealthChecks('HTTP')
+      .then((healthChecks) => {
+        this.httpHealthChecks = chain(healthChecks)
+          .filter({account: this.serverGroup.account})
           .map('name')
           .value() as string[];
       });
@@ -58,6 +60,7 @@ class GceUpsertAutoHealingPolicyModalCtrl {
     this.onHealthCheckRefresh();
     this.action = this.serverGroup.autoHealingPolicy ? 'Edit' : 'New';
     this.isNew = !this.serverGroup.autoHealingPolicy;
+    this.submitButtonLabel = this.isNew ? 'Create' : 'Update';
     if (!this.isNew) {
       this.autoHealingPolicy = cloneDeep(this.serverGroup.autoHealingPolicy);
       if (this.autoHealingPolicy.healthCheck) {
@@ -74,6 +77,6 @@ class GceUpsertAutoHealingPolicyModalCtrl {
 
 export const GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL = 'spinnaker.gce.upsertAutoHealingPolicy.modal.controller';
 module(GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL, [
-  require('google/httpHealthCheck/httpHealthCheck.reader.js'),
+  GCE_HEALTH_CHECK_READER,
   require('google/autoscalingPolicy/autoscalingPolicy.write.service.js'),
 ]).controller('gceUpsertAutoHealingPolicyModalCtrl', GceUpsertAutoHealingPolicyModalCtrl);

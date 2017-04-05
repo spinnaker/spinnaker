@@ -19,12 +19,10 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
   LOAD_BALANCER_READ_SERVICE,
   NETWORK_READ_SERVICE,
   SUBNET_READ_SERVICE,
-  require('../httpHealthCheck/httpHealthCheck.reader.js'),
 ])
   .factory('gceCacheConfigurer', function (accountService, gceAddressReader, gceBackendServiceReader,
                                            gceCertificateReader, gceHealthCheckReader,
-                                           gceHttpHealthCheckReader, instanceTypeService,
-                                           loadBalancerReader, networkReader, subnetReader) {
+                                           instanceTypeService, loadBalancerReader, networkReader, subnetReader) {
 
     let config = Object.create(null);
 
@@ -46,10 +44,6 @@ module.exports = angular.module('spinnaker.gce.cache.initializer', [
 
     config.healthChecks = {
       initializers: [ () => gceHealthCheckReader.listHealthChecks() ],
-    };
-
-    config.httpHealthChecks = {
-      initializers: [ () => gceHttpHealthCheckReader.listHttpHealthChecks() ],
     };
 
     config.instanceTypes = {

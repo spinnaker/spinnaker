@@ -1,4 +1,5 @@
 import {module} from 'angular';
+import {uniqWith} from 'lodash';
 
 interface IHealthCheckSearchResults {
   name: string;
@@ -26,12 +27,16 @@ export class GceHealthCheckReader {
         .search({q: '', type: 'healthChecks'}, this.infrastructureCaches.get('healthChecks'))
         .then((searchResults: ISearchResults<IHealthCheckSearchResults>) => {
           if (searchResults && searchResults.results) {
-            return searchResults.results.filter(result => result.provider === 'gce')
+            let healthChecks = searchResults.results.filter(result => result.provider === 'gce')
               .map(result => {
                 let healthCheck = JSON.parse(result.healthCheck) as IGceHealthCheck;
                 healthCheck.account = result.account;
                 return healthCheck;
               });
+            return uniqWith(healthChecks, (checkA: IGceHealthCheck, checkB: IGceHealthCheck) => {
+              return checkA.name === checkB.name && checkA.healthCheckType === checkB.healthCheckType &&
+                  checkA.account === checkB.account;
+            });
           } else {
             return [];
           }

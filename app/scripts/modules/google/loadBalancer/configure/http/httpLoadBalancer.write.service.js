@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.write.servi
 
       infrastructureCaches.clearCache('loadBalancers');
       infrastructureCaches.clearCache('backendServices');
-      infrastructureCaches.clearCache('httpHealthChecks');
+      infrastructureCaches.clearCache('healthChecks');
 
       return taskExecutor.executeTask({
         job: loadBalancers,
@@ -45,7 +45,7 @@ module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.write.servi
 
       infrastructureCaches.clearCache('loadBalancers');
       infrastructureCaches.clearCache('backendServices');
-      infrastructureCaches.clearCache('httpHealthChecks');
+      infrastructureCaches.clearCache('healthChecks');
 
       return taskExecutor.executeTask({
         job: [job],
