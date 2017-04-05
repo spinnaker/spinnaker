@@ -122,8 +122,8 @@ class ApplicationService {
     return allApplicationsCache.get()
   }
 
-  Map getApplication(String name) {
-    def applicationRetrievers = buildApplicationRetrievers(name)
+  Map getApplication(String name, boolean expand) {
+    def applicationRetrievers = buildApplicationRetrievers(name, expand)
     def futures = executorService.invokeAll(applicationRetrievers)
     List<Map> applications
     try {
@@ -167,11 +167,14 @@ class ApplicationService {
     )] as Collection<Callable<List<Map>>>
   }
 
-  private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName) {
-    return [
-      new Front50ApplicationRetriever(applicationName, front50Service, allApplicationsCache),
-      new ClouddriverApplicationRetriever(applicationName, clouddriverService)
-    ] as Collection<Callable<Map>>
+  private Collection<Callable<Map>> buildApplicationRetrievers(String applicationName, boolean expand) {
+    def retrievers = [
+      new Front50ApplicationRetriever(applicationName, front50Service, allApplicationsCache) as Callable<Map>
+    ]
+    if (expand) {
+      retrievers.add(new ClouddriverApplicationRetriever(applicationName, clouddriverService) as Callable<Map>)
+    }
+    return retrievers
   }
 
   @CompileDynamic

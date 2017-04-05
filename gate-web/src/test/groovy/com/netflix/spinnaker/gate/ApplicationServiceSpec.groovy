@@ -48,7 +48,7 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name, email: email, owner: owner, accounts: account]
 
     when:
-    def app = service.getApplication(name)
+    def app = service.getApplication(name, true)
 
     then:
     1 * clouddriver.getApplication(name) >> clouddriverApp
@@ -84,7 +84,7 @@ class ApplicationServiceSpec extends Specification {
     def front50App = [name: name, email: email, owner: owner, accounts: front50Account]
 
     when:
-    def app = service.getApplication(name)
+    def app = service.getApplication(name, true)
 
     then:
     1 * clouddriver.getApplication(name) >> clouddriverApp
@@ -119,7 +119,7 @@ class ApplicationServiceSpec extends Specification {
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
-    def app = service.getApplication(name)
+    def app = service.getApplication(name, true)
 
     then:
     1 * clouddriver.getApplication(name) >> null
@@ -157,7 +157,7 @@ class ApplicationServiceSpec extends Specification {
     service.executorService = Executors.newFixedThreadPool(1)
 
     when:
-    def app = service.getApplication(name)
+    def app = service.getApplication(name, true)
 
     then:
     1 * clouddriver.getApplication(name) >> null
@@ -203,7 +203,7 @@ class ApplicationServiceSpec extends Specification {
 
     when: "should return last known good values if an exception is thrown"
     def allApps = service.getAllApplications()
-    def singleApp = service.getApplication(name)
+    def singleApp = service.getApplication(name, true)
 
     then:
     1 * front50.getApplication(name) >> { throw new SocketTimeoutException() }
@@ -259,5 +259,28 @@ class ApplicationServiceSpec extends Specification {
     "by-id"   || true
     "by-name" || true
     "not-id"  || false
+  }
+
+  void "should skip clouddriver call if expand set to false"() {
+    setup:
+    HystrixRequestContext.initializeContext()
+
+    def service = new ApplicationService()
+    def front50 = Mock(Front50Service)
+    def clouddriver = Mock(ClouddriverService)
+    def config = new ServiceConfiguration(services: [front50: new Service()])
+    def name = 'myApp'
+
+    service.serviceConfiguration = config
+    service.front50Service = front50
+    service.clouddriverService = clouddriver
+    service.executorService = Executors.newFixedThreadPool(1)
+
+    when:
+    def app = service.getApplication(name, false)
+
+    then:
+    0 * clouddriver.getApplication(name)
+    1 * front50.getApplication(name) >> null
   }
 }
