@@ -52,7 +52,8 @@ class RenderTransformSpec extends Specification {
       schema: '1',
       variables: [
         new Variable(name: 'regions', type: 'list'),
-        new Variable(name: 'slackChannel', type: 'string', defaultValue: '#det')
+        new Variable(name: 'slackChannel', type: 'string', defaultValue: '#spinnaker'),
+        new Variable(name: 'deployStageName', defaultValue: 'Deploy to Env')
       ],
       configuration: new Configuration(
         triggers: [
@@ -93,6 +94,7 @@ class RenderTransformSpec extends Specification {
         new StageDefinition(
           id: 'deploy',
           type: 'deploy',
+          name: '{{deployStageName}}',
           dependsOn: ['manualJudgment'],
           config: [
             clusters: '[{{#each regions}}{{module "deployCluster" region=this}}{{#unless @last}},{{/unless}}{{/each}}]'
@@ -149,6 +151,7 @@ class RenderTransformSpec extends Specification {
         securityGroups: ['gate']
       ]
     ]
+    findStage(template, 'deploy').name == 'Deploy to Env'
   }
 
   StageDefinition findStage(PipelineTemplate template, String id) {

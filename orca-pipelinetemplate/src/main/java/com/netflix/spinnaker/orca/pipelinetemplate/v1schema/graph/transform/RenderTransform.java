@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateCon
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
@@ -64,6 +65,10 @@ public class RenderTransform implements PipelineTemplateVisitor {
   private void render(PipelineTemplate template) {
     RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
 
+    template.getVariables().stream()
+      .filter(Variable::hasDefaultValue)
+      .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
+
     context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
 
     // We only render the stages here, whereas modules will be rendered only if used within stages.
@@ -97,6 +102,26 @@ public class RenderTransform implements PipelineTemplateVisitor {
         );
       }
       stage.setConfig((Map<String, Object>) rendered);
+
+      stage.setName(renderStageProperty(stage.getName(), context, getStagePropertyLocation(locationNamespace, stage.getId(), "name")));
+      stage.setComments(renderStageProperty(stage.getComments(), context, getStagePropertyLocation(locationNamespace, stage.getId(), "comments")));
     }
+  }
+
+  private String renderStageProperty(String input, RenderContext context, String location) {
+    try {
+      String rendered = (String) RenderUtil.deepRender(renderer, input, context);
+      return rendered;
+    } catch (TemplateRenderException e) {
+      throw new TemplateRenderException(new Errors.Error()
+        .withMessage("Failed rendering stage property")
+        .withCause(e.getMessage())
+        .withLocation(location)
+      );
+    }
+  }
+
+  private static String getStagePropertyLocation(String namespace, String stageId, String propertyName) {
+    return String.format("%s:stages.%s.%s", namespace, stageId, propertyName);
   }
 }
