@@ -13,40 +13,38 @@ import java.util.List;
  */
 @Data
 public class DaemonTask<C, T> {
-  List<DaemonStage> stages = new ArrayList<>();
+  List<DaemonEvent> events = new ArrayList<>();
   String uuid;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
   @JsonIgnore C context;
 
-  void finishStage() {
-    DaemonStage lastStage = getLastStage();
-    if (lastStage != null) {
-      lastStage.setState(DaemonStage.State.INACTIVE);
-    }
-  }
+  @JsonIgnore String currentStage;
 
   void newStage(String name) {
-    finishStage();
-    stages.add(new DaemonStage(name));
+    currentStage = name;
   }
 
-  void writeEvent(String message) {
-    DaemonStage lastStage = getLastStage();
-    if (lastStage == null) {
-      throw new RuntimeException("Illegal attempt to write an event when no stage has started");
+  void writeEvent(String message, String detail) {
+    if (currentStage == null) {
+      throw new IllegalStateException("Illegal attempt to write an event when no stage has started");
     }
 
-    stages.get(stages.size() - 1).writeEvent(message);
+    events.add(new DaemonEvent()
+        .setStage(currentStage)
+        .setMessage(message)
+        .setDetail(detail)
+        .setTimestamp(System.currentTimeMillis())
+    );
   }
 
-  private DaemonStage getLastStage() {
-    if (stages.isEmpty()) {
-      return null;
-    } else {
-      return stages.get(stages.size() - 1);
-    }
+  void writeMessage(String message) {
+    writeEvent(message, null);
+  }
+
+  void writeDetail(String detail) {
+    writeEvent(null, detail);
   }
 
   public enum State {

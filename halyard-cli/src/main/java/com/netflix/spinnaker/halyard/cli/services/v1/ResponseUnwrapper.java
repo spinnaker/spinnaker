@@ -22,10 +22,8 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonStage;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonStage.State;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import lombok.Data;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -35,11 +33,11 @@ public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 400L;
 
   public static <C, T> T get(DaemonTask<C, T> task) {
-    PrintCoordinates coords = new PrintCoordinates();
+    int lastEvent = 0;
 
     task = Daemon.getTask(task.getUuid());
     while (!task.getState().isTerminal()) {
-      coords = formatStages(task.getStages(), coords);
+      lastEvent = formatEvents(task.getEvents(), lastEvent);
 
       try {
         Thread.sleep(WAIT_MILLIS);
@@ -49,7 +47,7 @@ public class ResponseUnwrapper {
       task = Daemon.getTask(task.getUuid());
     }
 
-    formatStages(task.getStages(), coords);
+    formatEvents(task.getEvents(), lastEvent);
     AnsiSnippet clear = new AnsiSnippet("").setErase(AnsiErase.ERASE_START_LINE);
     AnsiPrinter.print(clear.toString());
 
@@ -67,40 +65,36 @@ public class ResponseUnwrapper {
     return response.getResponseBody();
   }
 
-  private static PrintCoordinates formatStages(List<DaemonStage> stages, PrintCoordinates coords) {
-    for (DaemonStage stage : stages.subList(coords.getLastStage(), stages.size())) {
-      String stageName = stage.getName();
-      AnsiSnippet snippet = new AnsiSnippet("~ " + stageName)
-          .addStyle(AnsiStyle.BOLD)
-          .setErase(AnsiErase.ERASE_START_LINE);
-      AnsiPrinter.print(snippet.toString());
-
-      coords = formatEvents(stageName, stage.getEvents(), coords);
-
-      if (stage.getState() == State.INACTIVE) {
-        coords.setLastEvent(0);
-        coords.setLastStage(coords.getLastStage() + 1);
-      }
+  private static int formatEvents(List<DaemonEvent> events, int lastEvent) {
+    for (DaemonEvent event : events.subList(lastEvent, events.size())) {
+      formatEvent(event);
     }
 
-    return coords;
+    return events.size();
   }
 
-  private static PrintCoordinates formatEvents(String stageName, List<DaemonEvent> events, PrintCoordinates coords) {
-    for (DaemonEvent event : events.subList(coords.getLastEvent(), events.size())) {
-      AnsiSnippet snippet = new AnsiSnippet("- " + event.getMessage())
-          .setErase(AnsiErase.ERASE_START_LINE);
-      AnsiPrinter.println(snippet.toString());
+  private static void formatEvent(DaemonEvent event) {
+    String stage = event.getStage();
+    String message = event.getMessage();
+    String detail = event.getDetail();
+    AnsiSnippet clear = new AnsiSnippet("").setErase(AnsiErase.ERASE_START_LINE);
+    AnsiPrinter.print(clear.toString());
 
-      snippet = new AnsiSnippet("~ " + stageName)
-          .addStyle(AnsiStyle.BOLD);
-      AnsiPrinter.print(snippet.toString());
+    if (!StringUtils.isEmpty(message)) {
+      AnsiSnippet messageSnippet = new AnsiSnippet("- " + message);
+      AnsiPrinter.println(messageSnippet.toString());
     }
-    coords.setLastEvent(events.size());
-    return coords;
+
+    if (!StringUtils.isEmpty(detail)) {
+      stage = stage + " (" + detail + ")";
+    }
+
+    AnsiSnippet stageSnippet = new AnsiSnippet("~ " + stage)
+        .addStyle(AnsiStyle.BOLD);
+    AnsiPrinter.print(stageSnippet.toString());
   }
 
-  public static void formatProblemSet(ProblemSet problemSet) {
+  private static void formatProblemSet(ProblemSet problemSet) {
     if (problemSet == null) {
       return;
     }
@@ -143,11 +137,5 @@ public class ResponseUnwrapper {
         AnsiUi.raw("");
       }
     }
-  }
-
-  @Data
-  private static class PrintCoordinates {
-    int lastStage = 0;
-    int lastEvent = 0;
   }
 }

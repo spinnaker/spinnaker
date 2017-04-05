@@ -40,7 +40,7 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleBakeryDefaults n) {
-    DaemonTaskHandler.log("Validating " + n.getNodeName() + " with " + GoogleBakeryDefaultsValidator.class.getSimpleName());
+    DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + GoogleBakeryDefaultsValidator.class.getSimpleName());
 
     String zone = n.getZone();
     String network = n.getNetwork();

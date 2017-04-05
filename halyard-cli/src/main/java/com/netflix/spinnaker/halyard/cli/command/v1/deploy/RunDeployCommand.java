@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
-import com.amazonaws.util.StringUtils;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
@@ -33,6 +32,7 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,7 +63,7 @@ public class RunDeployCommand extends AbstractConfigCommand {
     AnsiParagraphBuilder paragraphBuilder = storyBuilder.addParagraph();
     String scriptDescription = result.getScriptDescription();
     String scriptPath = result.getScriptPath();
-    if (!StringUtils.isNullOrEmpty(scriptPath)) {
+    if (!StringUtils.isEmpty(scriptPath)) {
       if (result.isAutoRun()) {
         paragraphBuilder.addSnippet(scriptDescription);
 

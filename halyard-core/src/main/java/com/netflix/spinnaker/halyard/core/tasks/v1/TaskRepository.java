@@ -42,7 +42,6 @@ public class TaskRepository {
         task.setFatalError(e);
       }
       log.info("Task " + uuid + " completed");
-      task.finishStage();
     };
 
     Thread t = new Thread(r);

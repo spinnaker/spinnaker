@@ -86,9 +86,9 @@ class KubernetesProviderUtils {
       if (matcher.find()) {
         proxy.setPort(Integer.valueOf(matcher.group(1)));
         proxyMap.put(details.getDeploymentName(), proxy);
-        DaemonTaskHandler.log("Connected to kubernetes cluster for account "
+        DaemonTaskHandler.message("Connected to kubernetes cluster for account "
             + account.getName() + " on port " + proxy.getPort());
-        DaemonTaskHandler.log("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
+        DaemonTaskHandler.message("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");
       } else {
         throw new HalException(Severity.FATAL,
             "Could not parse connection information from:\n"

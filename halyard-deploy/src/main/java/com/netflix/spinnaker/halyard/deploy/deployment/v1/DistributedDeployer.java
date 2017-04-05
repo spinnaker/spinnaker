@@ -62,7 +62,7 @@ public class DistributedDeployer {
         Orca orca = serviceProvider
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connect(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.log("Rolling back " + deployableService.getName() + " via Spinnaker red/black");
+        DaemonTaskHandler.message("Rolling back " + deployableService.getName() + " via Spinnaker red/black");
         rollbackService(deploymentDetails, orca, deployableService);
       }
     }
@@ -88,14 +88,14 @@ public class DistributedDeployer {
       boolean notDeployed = runningServiceDetails.getInstances().isEmpty() && !runningServiceDetails.getLoadBalancer().isExists();
 
       if (deployableService.isRequiredToBootstrap() || !safeToUpdate || notDeployed) {
-        DaemonTaskHandler.log("Manually deploying " + deployableService.getName());
+        DaemonTaskHandler.message("Manually deploying " + deployableService.getName());
         List<ConfigSource> configs = deployableService.stageProfiles(deploymentDetails, resolvedConfiguration);
         deployableService.ensureRunning(deploymentDetails, resolvedConfiguration, configs, safeToUpdate);
       } else {
         Orca orca = serviceProvider
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connect(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.log("Upgrading " + deployableService.getName() + " via Spinnaker red/black");
+        DaemonTaskHandler.message("Upgrading " + deployableService.getName() + " via Spinnaker red/black");
         deployService(deploymentDetails, resolvedConfiguration, orca, deployableService);
       }
     }
@@ -180,7 +180,7 @@ public class DistributedDeployer {
     for (Integer orcaVersion : allOrcas) {
       // TODO(lwander) consult clouddriver to ensure this orca isn't enabled
       if (executionsByServerGroupVersion.get(orcaVersion) == 0) {
-        DaemonTaskHandler.log("Reaping old orca instance " + orcaVersion);
+        DaemonTaskHandler.message("Reaping old orca instance " + orcaVersion);
         orcaService.deleteVersion(details, orcaVersion);
       }
     }

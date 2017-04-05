@@ -154,7 +154,7 @@ public class OrcaRunner {
         String taskStatus = task.getStatus();
         if (!loggedTasks.contains(fullTaskId) &&
             (taskStatus.equalsIgnoreCase("running") || taskStatus.equalsIgnoreCase("succeeded"))) {
-          DaemonTaskHandler.log(taskName);
+          DaemonTaskHandler.detail(taskName);
           loggedTasks.add(fullTaskId);
         }
       }

@@ -77,7 +77,7 @@ public class ValidatorCollection {
 
     try {
       Method m = validator.getClass().getMethod("validate", ConfigProblemSetBuilder.class, c);
-      DaemonTaskHandler.log("Validating " + node.getNodeName() + " with " + validator.getClass().getSimpleName());
+      DaemonTaskHandler.message("Validating " + node.getNodeName() + " with " + validator.getClass().getSimpleName());
       m.invoke(validator, psBuilder, node);
       result = 1;
     } catch (NoSuchMethodException e) {

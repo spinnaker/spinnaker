@@ -28,9 +28,15 @@ public class DaemonTaskHandler {
     }
   }
 
-  public static void log(String message) {
+  public static void message(String message) {
     if (getTask() != null) {
-      getTask().writeEvent(message);
+      getTask().writeMessage(message);
+    }
+  }
+
+  public static void detail(String detail) {
+    if (getTask() != null) {
+      getTask().writeDetail(detail);
     }
   }
 }

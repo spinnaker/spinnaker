@@ -87,7 +87,7 @@ public class GenerateService {
     File spinnakerStaging = new File(spinnakerStagingPath);
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
 
-    DaemonTaskHandler.log("Building service endpoints");
+    DaemonTaskHandler.message("Building service endpoints");
     SpinnakerServiceProvider serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
     SpinnakerRuntimeSettings endpoints = serviceProvider.buildEndpoints(deploymentConfiguration);
 
@@ -115,7 +115,7 @@ public class GenerateService {
       List<Profile> profiles = service.getProfiles(deploymentConfiguration, endpoints);
 
       String pluralized = profiles.size() == 1 ? "" : "s";
-      DaemonTaskHandler.log("Generated " + profiles.size() + " profile" + pluralized + " for " + service.getCannonicalName());
+      DaemonTaskHandler.message("Generated " + profiles.size() + " profile" + pluralized + " for " + service.getCannonicalName());
       for (Profile profile : profiles) {
         profile.writeStagedFile(spinnakerStagingPath);
       }
@@ -140,7 +140,7 @@ public class GenerateService {
 
       Arrays.stream(files).forEach(f -> {
         try {
-          DaemonTaskHandler.log("Copying existing profile " + f.getName());
+          DaemonTaskHandler.message("Copying existing profile " + f.getName());
           Files.copy(f.toPath(), Paths.get(spinnakerStaging.toString(), f.getName()), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
           throw new HalException(

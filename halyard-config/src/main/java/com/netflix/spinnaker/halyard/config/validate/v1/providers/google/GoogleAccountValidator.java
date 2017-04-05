@@ -41,7 +41,7 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
 
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleAccount n) {
-    DaemonTaskHandler.log("Validating " + n.getNodeName() + " with " + GoogleAccountValidator.class.getSimpleName());
+    DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + GoogleAccountValidator.class.getSimpleName());
 
     String jsonKey = null;
     String jsonPath = n.getJsonPath();
