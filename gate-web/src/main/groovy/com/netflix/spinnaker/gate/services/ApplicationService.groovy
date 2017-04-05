@@ -131,7 +131,12 @@ class ApplicationService {
     } catch (ExecutionException ee) {
       throw ee.cause
     }
-
+    if (expand == false) {
+      def cachedApplication = allApplicationsCache.get().find { name.equalsIgnoreCase(it.name as String) }
+      if (cachedApplication) {
+        applications.add(cachedApplication)
+      }
+    }
     List<Map> mergedApps = mergeApps(applications, serviceConfiguration.getService('front50'))
     return mergedApps ? mergedApps[0] : null
   }
