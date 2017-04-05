@@ -2,12 +2,14 @@
 
 import _ from 'lodash';
 
+import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilter.service', [
     require('angular-ui-router'),
-    require('./executionFilter.model'),
+    EXECUTION_FILTER_MODEL,
     require('core/utils/waypoints/waypoint.service'),
     require('core/filterModel/filter.model.service'),
     require('core/orchestratedItem/timeBoundaries.service'),

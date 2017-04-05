@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 
+import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
 import {EXECUTION_SERVICE} from '../service/execution.service';
 import {INSIGHT_FILTER_STATE_MODEL} from 'core/insight/insightFilterState.model';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   PIPELINE_CONFIG_SERVICE,
   SCROLL_TO_SERVICE,
   INSIGHT_FILTER_STATE_MODEL,
-  require('../filter/executionFilter.model.js'),
+  EXECUTION_FILTER_MODEL,
   require('../filter/executionFilter.service.js'),
   require('../create/create.module.js'),
 ])

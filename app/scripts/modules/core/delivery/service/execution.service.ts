@@ -3,6 +3,7 @@ import {identity, pickBy} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {Application} from 'core/application/application.model';
+import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {IExecution} from 'core/domain/IExecution';
 import {IExecutionStage} from 'core/domain/IExecutionStage';
 import {SETTINGS} from 'core/config/settings';
@@ -11,13 +12,13 @@ export class ExecutionService {
   private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
   private runningLimit = 30;
 
-  static get $inject(): string[] { return ['$http', '$q', '$timeout', 'API', 'ExecutionFilterModel', 'executionsTransformer', 'pipelineConfig']; }
+  static get $inject(): string[] { return ['$http', '$q', '$timeout', 'API', 'executionFilterModel', 'executionsTransformer', 'pipelineConfig']; }
 
   constructor(private $http: IHttpService,
               private $q: IQService,
               private $timeout: ITimeoutService,
               private API: Api,
-              private ExecutionFilterModel: any,
+              private executionFilterModel: ExecutionFilterModel,
               private executionsTransformer: any,
               private pipelineConfig: any) {}
 
@@ -25,7 +26,7 @@ export class ExecutionService {
       return this.getFilteredExecutions(applicationName, {statuses: this.activeStatuses, limit: this.runningLimit});
     }
 
-    private getFilteredExecutions(applicationName: string, {statuses = Object.keys(pickBy(this.ExecutionFilterModel.sortFilter.status || {}, identity)), limit = this.ExecutionFilterModel.sortFilter.count} = {}): IPromise<IExecution[]> {
+    private getFilteredExecutions(applicationName: string, {statuses = Object.keys(pickBy(this.executionFilterModel.sortFilter.status || {}, identity)), limit = this.executionFilterModel.sortFilter.count} = {}): IPromise<IExecution[]> {
       let statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
       return this.API.one('applications', applicationName).all('pipelines').getList({ limit: limit, statuses: statusString})
         .then((data: IExecution[]) => {
@@ -349,7 +350,7 @@ export class ExecutionService {
 
 export const EXECUTION_SERVICE = 'spinnaker.core.delivery.executions.service';
 module(EXECUTION_SERVICE, [
-  require('../filter/executionFilter.model.js'),
+  EXECUTION_FILTER_MODEL,
   require('./executions.transformer.service.js'),
   require('core/pipeline/config/pipelineConfigProvider.js'),
   API_SERVICE

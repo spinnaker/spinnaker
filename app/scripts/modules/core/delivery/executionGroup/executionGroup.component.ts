@@ -152,7 +152,6 @@ export class ExecutionGroupComponent implements IComponentOptions {
 
 export const EXECUTION_GROUP_COMPONENT = 'spinnaker.core.delivery.group.executionGroup.component';
 module(EXECUTION_GROUP_COMPONENT, [
-  require('../filter/executionFilter.model.js'),
   require('../triggers/triggersTag.directive.js'),
   require('../triggers/nextRun.component'),
   EXECUTION_COMPONENT,

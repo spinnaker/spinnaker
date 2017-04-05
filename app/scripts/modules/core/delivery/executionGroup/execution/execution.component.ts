@@ -9,6 +9,7 @@ import {IRestartDetails} from 'core/domain/IExecutionStage';
 import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {CANCEL_MODAL_SERVICE, CancelModalService} from 'core/cancelModal/cancelModal.service';
 import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
+import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {SETTINGS} from 'core/config/settings';
 import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
 
@@ -28,7 +29,7 @@ class ExecutionController implements IComponentController {
   private activeRefresher: any;
 
   static get $inject(): string[] { return ['$scope', '$location', '$stateParams', '$state', 'schedulerFactory',
-                                           'ExecutionFilterModel', 'executionService', 'cancelModalService',
+                                           'executionFilterModel', 'executionService', 'cancelModalService',
                                            'confirmationModalService']; }
 
   constructor(private $scope: IScope,
@@ -36,14 +37,14 @@ class ExecutionController implements IComponentController {
               private $stateParams: IExecutionDetailsStateParams,
               private $state: IStateService,
               private schedulerFactory: SchedulerFactory,
-              private ExecutionFilterModel: any,
+              private executionFilterModel: ExecutionFilterModel,
               private executionService: ExecutionService,
               private cancelModalService: CancelModalService,
               private confirmationModalService: ConfirmationModalService) {}
 
   public $onInit(): void {
     this.pipelinesUrl = [SETTINGS.gateUrl, 'pipelines/'].join('/');
-    this.sortFilter = this.ExecutionFilterModel.sortFilter;
+    this.sortFilter = this.executionFilterModel.sortFilter;
 
     this.$scope.$on('$stateChangeSuccess', () => this.updateViewStateDetails());
 
@@ -52,7 +53,7 @@ class ExecutionController implements IComponentController {
       executionId: this.execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
-      showStageDuration: this.ExecutionFilterModel.sortFilter.showStageDuration,
+      showStageDuration: this.executionFilterModel.sortFilter.showStageDuration,
     };
 
     let restartedStage = this.execution.stages.find(stage => stage.context.restartDetails !== undefined);
@@ -196,8 +197,8 @@ class ExecutionComponent implements IComponentOptions {
 
 export const EXECUTION_COMPONENT = 'spinnaker.core.delivery.group.executionGroup.execution.component';
 module(EXECUTION_COMPONENT, [
-    require('../../filter/executionFilter.model.js'),
     EXECUTION_SERVICE,
+    EXECUTION_FILTER_MODEL,
     CANCEL_MODAL_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     SCHEDULER_FACTORY

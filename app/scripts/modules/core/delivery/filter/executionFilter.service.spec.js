@@ -2,6 +2,8 @@
 
 import _ from 'lodash';
 
+import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
+
 describe('Service: executionFilterService', function () {
 
   var service;
@@ -12,7 +14,7 @@ describe('Service: executionFilterService', function () {
     spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
       require('./executionFilter.service.js'),
-      require('./executionFilter.model.js')
+      EXECUTION_FILTER_MODEL
     );
     window.inject(
       function (_$location_, executionFilterService, _ExecutionFilterModel_, _$timeout_) {

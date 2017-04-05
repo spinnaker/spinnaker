@@ -4,11 +4,12 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.controller', [
   require('./executionFilter.service.js'),
-  require('./executionFilter.model.js'),
+  EXECUTION_FILTER_MODEL,
   require('angulartics'),
   PIPELINE_CONFIG_SERVICE
 ])
