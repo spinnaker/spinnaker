@@ -18,12 +18,12 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeployableServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DistributedServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesServiceProvider extends DeployableServiceProvider<KubernetesAccount> {
+public class KubernetesServiceProvider extends DistributedServiceProvider<KubernetesAccount> {
   @Autowired
   KubernetesClouddriverBootstrapService clouddriverBootstrapService;
 

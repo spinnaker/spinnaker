@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesEchoService extends EchoService implements KubernetesDeployableService<EchoService.Echo> {
+public class KubernetesEchoService extends EchoService implements KubernetesDistributedService<EchoService.Echo> {
   @Autowired
   private String dockerRegistry;
 
@@ -56,7 +56,7 @@ public class KubernetesEchoService extends EchoService implements KubernetesDepl
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(0);

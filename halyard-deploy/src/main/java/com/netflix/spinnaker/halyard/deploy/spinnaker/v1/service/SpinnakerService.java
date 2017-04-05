@@ -47,7 +47,7 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     return getType().toString();
   }
 
-  public String getCannonicalName() {
+  public String getCanonicalName() {
     return getType().getCanonicalName();
   }
 

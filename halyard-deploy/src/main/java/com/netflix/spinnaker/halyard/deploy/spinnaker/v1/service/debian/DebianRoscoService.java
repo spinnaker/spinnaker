@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianRoscoService extends RoscoService implements DebianInstallableService<RoscoService.Rosco> {
+public class DebianRoscoService extends RoscoService implements LocalDebianService<RoscoService.Rosco> {
   final String upstartServiceName = "rosco";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianRoscoService extends RoscoService implements DebianInstallabl
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

@@ -77,7 +77,7 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     List<Profile> results = new ArrayList<>();
     for (SpinnakerService service : services) {
       if (service.isMonitored()) {
-        String profileName = serviceRegistryProfileName(service.getCannonicalName());
+        String profileName = serviceRegistryProfileName(service.getCanonicalName());
         String profilePath = Paths.get(REGISTRY_OUTPUT_PATH, profileName).toString();
         ProfileFactory factory = metricRegistryProfileFactoryBuilder.build(service);
         results.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));

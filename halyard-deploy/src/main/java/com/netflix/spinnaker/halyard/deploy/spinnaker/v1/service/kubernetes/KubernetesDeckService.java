@@ -37,7 +37,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesDeckService extends DeckService implements KubernetesDeployableService<DeckService.Deck> {
+public class KubernetesDeckService extends DeckService implements KubernetesDistributedService<DeckService.Deck> {
   @Autowired
   private String dockerRegistry;
 
@@ -67,7 +67,7 @@ public class KubernetesDeckService extends DeckService implements KubernetesDepl
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   @Override

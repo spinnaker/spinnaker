@@ -24,15 +24,12 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeployableServiceProvider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.InstallableServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.kubernetes.KubernetesServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.debian.DebianServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import static com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.DeploymentType.LocalDebian;
 
 @Component
 public class ServiceProviderFactory {
@@ -58,17 +55,7 @@ public class ServiceProviderFactory {
     }
   }
 
-  public InstallableServiceProvider createInstallableServiceProvider(DeploymentConfiguration deploymentConfiguration) {
-    DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
-    switch (type) {
-      case LocalDebian:
-        return debianServiceProvider;
-      default:
-        throw new IllegalArgumentException("Unrecognized deployment type " + type);
-    }
-  }
-
-  public DeployableServiceProvider createDeployableServiceProvider(DeploymentConfiguration deploymentConfiguration) {
+  private DistributedServiceProvider createDeployableServiceProvider(DeploymentConfiguration deploymentConfiguration) {
     DeploymentEnvironment deploymentEnvironment = deploymentConfiguration.getDeploymentEnvironment();
     String accountName = deploymentEnvironment.getAccountName();
 

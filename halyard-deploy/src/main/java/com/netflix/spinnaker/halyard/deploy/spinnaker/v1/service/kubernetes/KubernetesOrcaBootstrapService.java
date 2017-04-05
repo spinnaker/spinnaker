@@ -34,7 +34,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesOrcaBootstrapService extends OrcaBootstrapService implements KubernetesDeployableService<OrcaService.Orca> {
+public class KubernetesOrcaBootstrapService extends OrcaBootstrapService implements KubernetesDistributedService<OrcaService.Orca> {
   @Autowired
   private String dockerRegistry;
 
@@ -62,7 +62,7 @@ public class KubernetesOrcaBootstrapService extends OrcaBootstrapService impleme
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(10);

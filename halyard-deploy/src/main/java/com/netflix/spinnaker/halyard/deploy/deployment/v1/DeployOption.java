@@ -19,18 +19,27 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum DeployType {
-  FRESH_DEPLOY("fresh-deploy"),
-  UPDATE("update");
+import java.util.Arrays;
+
+public enum DeployOption {
+  OMIT_CONFIG("OMIT_CONFIG");
 
   final String name;
 
-  DeployType(String name) {
+  DeployOption(String name) {
     this.name = name;
   }
 
   @JsonValue
   public String toString() {
     return name;
+  }
+
+  public static DeployOption fromString(String name) {
+    return Arrays.stream(values())
+        .filter(o -> o.toString()
+            .equalsIgnoreCase(name))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("There is no DeployType with name " + name));
   }
 }

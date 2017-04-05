@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesFront50Service extends Front50Service implements KubernetesDeployableService<Front50Service.Front50> {
+public class KubernetesFront50Service extends Front50Service implements KubernetesDistributedService<Front50Service.Front50> {
   @Autowired
   private String dockerRegistry;
 
@@ -56,7 +56,7 @@ public class KubernetesFront50Service extends Front50Service implements Kubernet
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(4);

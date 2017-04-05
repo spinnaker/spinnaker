@@ -136,7 +136,7 @@
  * [**hal config deploy edit**](#hal-config-deploy-edit)
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy rollback**](#hal-deploy-rollback)
- * [**hal deploy run**](#hal-deploy-run)
+ * [**hal deploy actuate**](#hal-deploy-actuate)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy details**](#hal-deploy-details)
 ## hal
@@ -2401,15 +2401,15 @@ hal deploy [parameters] [subcommands]
 #### Parameters
  * `--options`: Get options for the specified field name.
 #### Subcommands
+ * `actuate`: Deploy/update the currently configured instance of Spinnaker to a selected environment.
  * `details`: Get details about your currently deployed Spinnaker installation.
  * `diff`: This shows what changes you have made since Spinnaker was last deployed.
  * `rollback`: Rollback Spinnaker to the prior version on a selected environment.
- * `run`: Deploy the currently configured instance of Spinnaker to a selected environment.
 
 ---
 ## hal deploy rollback
 
-Rollback Spinnaker to the prior version on a selected environment.
+This command attempts to rollback Spinnaker to the prior deployed version, depending on how you've configured your deployment. Local deployments have their prior packages installed and reconfigured, whereas Distributed deployments are rolled back via a headless 'bootstrap' deployment of Spinnaker, and don't suffer downtime.
 
 #### Usage
 ```
@@ -2418,20 +2418,25 @@ hal deploy rollback [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--options`: Get options for the specified field name.
+ * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
 ---
-## hal deploy run
+## hal deploy actuate
 
-Deploy the currently configured instance of Spinnaker to a selected environment.
+This command deploys Spinnaker, depending on how you've configured your deployment. Local deployments are applied to the machine running Halyard, whereas Distributed deployments are applied to a cloud provider. Local deployments are subject to downtime during updates, whereas Distributed deployments are deployed and updated via a headless 'bootstrap' deployment of Spinnaker, and don't suffer downtime.
 
 #### Usage
 ```
-hal deploy run [parameters]
+hal deploy actuate [parameters]
 ```
 #### Parameters
- * `--install-only`: (*Default*: `false`) Download the Spinnaker artifacts without configuring them. This does not work for remote deployments of Spinnaker
+ * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--omit-config`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.
+
+ This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
  * `--options`: Get options for the specified field name.
+ * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
 ---
 ## hal deploy diff

@@ -48,7 +48,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public interface KubernetesDeployableService<T> extends DeployableService<T, KubernetesAccount> {
+public interface KubernetesDistributedService<T> extends DistributedService<T, KubernetesAccount> {
   String getDockerRegistry();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
@@ -97,7 +97,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
 
   @Override
   default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details) {
-    Map<String, Object> pipeline = DeployableService.super.buildRollbackPipeline(details);
+    Map<String, Object> pipeline = DistributedService.super.buildRollbackPipeline(details);
 
     List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.get("stages");
     assert(stages != null && !stages.isEmpty());
@@ -159,7 +159,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
     List<ConfigSource> configSources = new ArrayList<>();
     ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
     if (thisService.isMonitored() && monitoringSettings.isEnabled()) {
-      Map<String, Profile> monitoringProfiles = resolvedConfiguration.getServiceProfiles().get(monitoringService.getType());
+      Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
 
       Profile profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.serviceRegistryProfileName(name));
       if (profile == null) {
@@ -192,7 +192,7 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
 
-    Map<String, Profile> serviceProfiles = resolvedConfiguration.getServiceProfiles().get(thisService.getType());
+    Map<String, Profile> serviceProfiles = resolvedConfiguration.getProfilesForService(thisService.getType());
     Map<String, Set<Profile>> collapseByDirectory = new HashMap<>();
     Set<String> requiredFiles = new HashSet<>();
 
@@ -541,11 +541,12 @@ public interface KubernetesDeployableService<T> extends DeployableService<T, Kub
 
     Map<Integer, List<Instance>> instances = res.getInstances();
     for (Pod pod : pods) {
-      String serverGroup = pod.getMetadata().getLabels().get("server-group");
-      Names parsedName = Names.parseName(serverGroup);
+      String podName = pod.getMetadata().getName();
+      String serverGroupName = podName.substring(0, podName.lastIndexOf("-"));
+      Names parsedName = Names.parseName(serverGroupName);
       Integer version = parsedName.getSequence();
       if (version == null) {
-        throw new IllegalStateException("Server group for service " + getName() + " has unknown sequence (" + serverGroup + ")");
+        throw new IllegalStateException("Server group for service " + getName() + " has unknown sequence (" + serverGroupName + ")");
       }
 
       String location = pod.getMetadata().getNamespace();

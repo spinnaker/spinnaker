@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianIgorService extends IgorService implements DebianInstallableService<IgorService.Igor> {
+public class DebianIgorService extends IgorService implements LocalDebianService<IgorService.Igor> {
   final String upstartServiceName = "igor";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianIgorService extends IgorService implements DebianInstallableS
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

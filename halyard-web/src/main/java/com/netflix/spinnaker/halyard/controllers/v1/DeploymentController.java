@@ -30,12 +30,14 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -89,12 +91,14 @@ public class DeploymentController {
   @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)
   DaemonTask<Halconfig, Void> generateConfig(@PathVariable String deploymentName,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+    @RequestParam(required = false) List<String> serviceNames) {
+    List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> {
-      generateService.generateConfig(deploymentName);
+      generateService.generateConfig(deploymentName, finalServiceNames);
       return null;
     });
 
@@ -108,14 +112,15 @@ public class DeploymentController {
 
   @RequestMapping(value = "/{deploymentName:.+}/rollback/", method = RequestMethod.POST)
   DaemonTask<Halconfig, Void> rollback(@PathVariable String deploymentName,
-      @RequestParam(required = false, defaultValue = "false") boolean installOnly,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false) List<String> serviceNames) {
+    List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> {
-      deployService.rollback(deploymentName);
+      deployService.rollback(deploymentName, finalServiceNames);
       return null;
     });
 
@@ -128,13 +133,16 @@ public class DeploymentController {
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
   DaemonTask<Halconfig, RemoteAction> deploy(@PathVariable String deploymentName,
-    @RequestParam(required = false, defaultValue = "false") boolean installOnly,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+    @RequestParam(required = false) List<DeployOption> deployOptions,
+    @RequestParam(required = false) List<String> serviceNames) {
+    List<DeployOption> finalDeployOptions = deployOptions != null ? deployOptions : Collections.emptyList();
+    List<String> finalServiceNames = serviceNames != null ? serviceNames : Collections.emptyList();
     StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>();
     builder.setSeverity(severity);
 
-    builder.setBuildResponse(() -> deployService.deploy(deploymentName));
+    builder.setBuildResponse(() -> deployService.deploy(deploymentName, finalDeployOptions, finalServiceNames));
 
     if (validate) {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));

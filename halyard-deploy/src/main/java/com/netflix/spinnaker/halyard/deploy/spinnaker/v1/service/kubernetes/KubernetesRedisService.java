@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesRedisService extends RedisService implements KubernetesDeployableService<RedisService.Redis> {
+public class KubernetesRedisService extends RedisService implements KubernetesDistributedService<RedisService.Redis> {
   @Autowired
   private String dockerRegistry;
 

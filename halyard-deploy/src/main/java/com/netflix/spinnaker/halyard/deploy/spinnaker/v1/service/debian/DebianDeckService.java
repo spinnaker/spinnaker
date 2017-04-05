@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianDeckService extends DeckService implements DebianInstallableService<DeckService.Deck> {
+public class DebianDeckService extends DeckService implements LocalDebianService<DeckService.Deck> {
   final String upstartServiceName = "apache2";
 
   @Autowired
@@ -46,12 +46,12 @@ public class DebianDeckService extends DeckService implements DebianInstallableS
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
-    String install = DebianInstallableService.super.installArtifactCommand(deploymentDetails);
+    String install = LocalDebianService.super.installArtifactCommand(deploymentDetails);
     String ssl = deploymentDetails.getDeploymentConfiguration().getSecurity().getUiSecurity().getSsl().isEnabled() ? "set +e\na2enmod ssl\nset -e" : "";
     return Strings.join("\n", install, "service apache2 stop", "a2ensite spinnaker", ssl);
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

@@ -26,12 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public interface InstallableService<T> extends HasServiceSettings<T> {
+public interface LocalService<T> extends HasServiceSettings<T> {
   String getSpinnakerStagingPath();
   String installArtifactCommand(DeploymentDetails deploymentDetails);
 
   default String stageProfilesCommand(GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    Map<String, Profile> profiles = resolvedConfiguration.getServiceProfiles().get(getService().getType());
+    Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
 
     List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {

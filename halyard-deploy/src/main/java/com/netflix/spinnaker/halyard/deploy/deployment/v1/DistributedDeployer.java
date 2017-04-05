@@ -36,67 +36,70 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 @Component
-public class DistributedDeployer {
+public class DistributedDeployer<T extends Account> implements Deployer<DistributedServiceProvider<T>, AccountDeploymentDetails<T>> {
   @Autowired
   OrcaRunner orcaRunner;
 
   @Value("${deploy.maxRemainingServerGroups:2}")
   private Integer MAX_REMAINING_SERVER_GROUPS;
 
-  public <T extends Account> void rollback(DeployableServiceProvider<T> serviceProvider,
+  @Override
+  public void rollback(DistributedServiceProvider<T> serviceProvider,
       AccountDeploymentDetails<T> deploymentDetails,
-      SpinnakerRuntimeSettings runtimeSettings) {
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<String> serviceNames) {
     DaemonTaskHandler.newStage("Rolling back all updatable services");
-    for (DeployableService deployableService : serviceProvider.getPrioritizedDeployableServices()) {
-      SpinnakerService service = deployableService.getService();
+    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceNames)) {
+      SpinnakerService service = distributedService.getService();
       ServiceSettings settings = runtimeSettings.getServiceSettings(service);
       if (!settings.isEnabled()) {
         continue;
       }
 
       boolean safeToUpdate = service.isSafeToUpdate();
-      if (deployableService.isRequiredToBootstrap() || !safeToUpdate) {
+      if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
         // Do nothing, the bootstrapping services should already be running, and the services that can't be updated
         // having nothing to rollback to
       } else {
         Orca orca = serviceProvider
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connect(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.message("Rolling back " + deployableService.getName() + " via Spinnaker red/black");
-        rollbackService(deploymentDetails, orca, deployableService);
+        DaemonTaskHandler.message("Rolling back " + distributedService.getName() + " via Spinnaker red/black");
+        rollbackService(deploymentDetails, orca, distributedService);
       }
     }
   }
 
-
-  public <T extends Account> RemoteAction deploy(DeployableServiceProvider<T> serviceProvider,
+  @Override
+  public RemoteAction deploy(DistributedServiceProvider<T> serviceProvider,
       AccountDeploymentDetails<T> deploymentDetails,
-      ResolvedConfiguration resolvedConfiguration) {
+      ResolvedConfiguration resolvedConfiguration,
+      List<String> serviceNames) {
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
 
     DaemonTaskHandler.newStage("Deploying Spinnaker");
     // First deploy all services not owned by Spinnaker
-    for (DeployableService deployableService : serviceProvider.getPrioritizedDeployableServices()) {
-      SpinnakerService service = deployableService.getService();
+    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceNames)) {
+      SpinnakerService service = distributedService.getService();
       ServiceSettings settings = resolvedConfiguration.getServiceSettings(service);
       if (!settings.isEnabled()) {
         continue;
       }
 
       boolean safeToUpdate = service.isSafeToUpdate();
-      RunningServiceDetails runningServiceDetails = deployableService.getRunningServiceDetails(deploymentDetails);
+      RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails);
       boolean notDeployed = runningServiceDetails.getInstances().isEmpty() && !runningServiceDetails.getLoadBalancer().isExists();
 
-      if (deployableService.isRequiredToBootstrap() || !safeToUpdate || notDeployed) {
-        DaemonTaskHandler.message("Manually deploying " + deployableService.getName());
-        List<ConfigSource> configs = deployableService.stageProfiles(deploymentDetails, resolvedConfiguration);
-        deployableService.ensureRunning(deploymentDetails, resolvedConfiguration, configs, safeToUpdate);
+      if (distributedService.isRequiredToBootstrap() || !safeToUpdate || notDeployed) {
+        DaemonTaskHandler.message("Manually deploying " + distributedService.getName());
+        List<ConfigSource> configs = distributedService.stageProfiles(deploymentDetails, resolvedConfiguration);
+        distributedService.ensureRunning(deploymentDetails, resolvedConfiguration, configs, safeToUpdate);
       } else {
         Orca orca = serviceProvider
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connect(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.message("Upgrading " + deployableService.getName() + " via Spinnaker red/black");
-        deployService(deploymentDetails, resolvedConfiguration, orca, deployableService);
+        DaemonTaskHandler.message("Upgrading " + distributedService.getName() + " via Spinnaker red/black");
+        deployService(deploymentDetails, resolvedConfiguration, orca, distributedService);
       }
     }
 
@@ -118,35 +121,35 @@ public class DistributedDeployer {
   private <T extends Account> void deployService(AccountDeploymentDetails<T> details,
       ResolvedConfiguration resolvedConfiguration,
       Orca orca,
-      DeployableService deployableService) {
-    DaemonTaskHandler.newStage("Deploying " + deployableService.getName());
+      DistributedService distributedService) {
+    DaemonTaskHandler.newStage("Deploying " + distributedService.getName());
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
-    RunningServiceDetails runningServiceDetails = deployableService.getRunningServiceDetails(details);
+    RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details);
     Supplier<String> idSupplier;
     if (!runningServiceDetails.getLoadBalancer().isExists()) {
-      Map<String, Object> task = deployableService.buildUpsertLoadBalancerTask(details, runtimeSettings);
+      Map<String, Object> task = distributedService.buildUpsertLoadBalancerTask(details, runtimeSettings);
       idSupplier = () -> orca.submitTask(task).get("ref");
       orcaRunner.monitorTask(idSupplier, orca);
     }
 
-    List<String> configs = deployableService.stageProfiles(details, resolvedConfiguration);
-    Map<String, Object> pipeline = deployableService.buildDeployServerGroupPipeline(details, runtimeSettings, configs);
+    List<String> configs = distributedService.stageProfiles(details, resolvedConfiguration);
+    Map<String, Object> pipeline = distributedService.buildDeployServerGroupPipeline(details, runtimeSettings, configs);
     idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }
 
   private <T extends Account> void rollbackService(AccountDeploymentDetails<T> details,
       Orca orca,
-      DeployableService deployableService) {
-    DaemonTaskHandler.newStage("Rolling back " + deployableService.getName());
-    Map<String, Object> pipeline = deployableService.buildRollbackPipeline(details);
+      DistributedService distributedService) {
+    DaemonTaskHandler.newStage("Rolling back " + distributedService.getName());
+    Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details);
     Supplier<String> idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }
 
   private <T extends Account> void reapOrcaServerGroups(AccountDeploymentDetails<T> details,
       SpinnakerRuntimeSettings runtimeSettings,
-      DeployableService<Orca, T> orcaService) {
+      DistributedService<Orca, T> orcaService) {
     Orca orca = orcaService.connect(details, runtimeSettings);
     Map<String, ActiveExecutions> executions = orca.getActiveExecutions();
     RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details);

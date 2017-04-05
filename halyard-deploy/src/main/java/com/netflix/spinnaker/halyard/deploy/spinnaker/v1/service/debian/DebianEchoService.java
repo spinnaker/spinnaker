@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianEchoService extends EchoService implements DebianInstallableService<EchoService.Echo> {
+public class DebianEchoService extends EchoService implements LocalDebianService<EchoService.Echo> {
   final String upstartServiceName = "echo";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianEchoService extends EchoService implements DebianInstallableS
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

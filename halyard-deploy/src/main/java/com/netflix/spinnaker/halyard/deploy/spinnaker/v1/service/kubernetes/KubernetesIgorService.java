@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesIgorService extends IgorService implements KubernetesDeployableService<IgorService.Igor> {
+public class KubernetesIgorService extends IgorService implements KubernetesDistributedService<IgorService.Igor> {
   @Autowired
   private String dockerRegistry;
 
@@ -56,7 +56,7 @@ public class KubernetesIgorService extends IgorService implements KubernetesDepl
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(0);

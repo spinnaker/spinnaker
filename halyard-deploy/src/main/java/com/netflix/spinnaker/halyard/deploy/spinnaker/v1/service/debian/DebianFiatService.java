@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianFiatService extends FiatService implements DebianInstallableService<FiatService.Fiat> {
+public class DebianFiatService extends FiatService implements LocalDebianService<FiatService.Fiat> {
   final String upstartServiceName = "fiat";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianFiatService extends FiatService implements DebianInstallableS
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

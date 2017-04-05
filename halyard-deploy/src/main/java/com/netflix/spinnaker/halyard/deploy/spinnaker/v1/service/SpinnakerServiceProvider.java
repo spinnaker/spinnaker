@@ -31,20 +31,21 @@ import java.util.stream.Collectors;
 
 @Slf4j
 abstract public class SpinnakerServiceProvider {
-  public SpinnakerRuntimeSettings buildEndpoints(DeploymentConfiguration deploymentConfiguration) {
+  public SpinnakerRuntimeSettings buildRuntimeSettings(DeploymentConfiguration deploymentConfiguration) {
     SpinnakerRuntimeSettings endpoints = new SpinnakerRuntimeSettings();
     for (SpinnakerService.Type type : SpinnakerService.Type.values()) {
       SpinnakerService service = getSpinnakerService(type);
       if (service != null) {
         log.info("Building service settings entry for " + service.getName());
-        endpoints.setServiceSettings(type, service.buildServiceSettings(deploymentConfiguration));
+        ServiceSettings settings = service.buildServiceSettings(deploymentConfiguration);
+        endpoints.setServiceSettings(type, settings);
       }
     }
     return endpoints;
   }
 
   Field getField(String name) {
-    String reducedName = name.replace("-", "").replace("_", "");
+    String reducedName = reduceFieldName(name);
 
     Optional<Field> matchingField = Arrays.stream(this.getClass().getDeclaredFields())
         .filter(f -> f.getName().equalsIgnoreCase(reducedName))
@@ -84,5 +85,9 @@ abstract public class SpinnakerServiceProvider {
     } finally {
       serviceField.setAccessible(false);
     }
+  }
+
+  private static String reduceFieldName(String name) {
+    return name.replace("-", "").replace("_", "").toLowerCase();
   }
 }

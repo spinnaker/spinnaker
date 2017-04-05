@@ -34,7 +34,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesClouddriverBootstrapService extends ClouddriverBootstrapService implements KubernetesDeployableService<ClouddriverService.Clouddriver> {
+public class KubernetesClouddriverBootstrapService extends ClouddriverBootstrapService implements KubernetesDistributedService<ClouddriverService.Clouddriver> {
   @Autowired
   private String dockerRegistry;
 
@@ -62,7 +62,7 @@ public class KubernetesClouddriverBootstrapService extends ClouddriverBootstrapS
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(10);

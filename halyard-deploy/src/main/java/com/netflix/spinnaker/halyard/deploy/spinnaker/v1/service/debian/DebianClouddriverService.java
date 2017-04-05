@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianClouddriverService extends ClouddriverService implements DebianInstallableService<ClouddriverService.Clouddriver> {
+public class DebianClouddriverService extends ClouddriverService implements LocalDebianService<ClouddriverService.Clouddriver> {
   final String upstartServiceName = "clouddriver";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianClouddriverService extends ClouddriverService implements Debi
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

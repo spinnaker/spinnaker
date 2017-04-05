@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesGateService extends GateService implements KubernetesDeployableService<GateService.Gate> {
+public class KubernetesGateService extends GateService implements KubernetesDistributedService<GateService.Gate> {
   @Autowired
   private String dockerRegistry;
 
@@ -57,7 +57,7 @@ public class KubernetesGateService extends GateService implements KubernetesDepl
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(0);

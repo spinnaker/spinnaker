@@ -59,12 +59,6 @@ else
   exit 1
 fi
 
-function contains() {
-  local e
-  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
-  return 1
-}
-
 function add_redis_apt_repository() {
   add-apt-repository -y ppa:chris-lea/redis-server
 }
@@ -98,17 +92,6 @@ function install_java() {
   # failure in Clouddriver.
   dpkg --purge --force-depends ca-certificates-java
   apt-get install ca-certificates-java
-}
-
-function install_redis_server() {
-  apt-get -q -y --force-yes install redis-server
-  if [[ $? -eq 0 ]]; then
-    return
-  else
-    echo "Error installing redis-server."
-    echo "Cannot continue installation; exiting."
-    exit 1
-  fi
 }
 
 function install_remote_dependencies() {
@@ -145,10 +128,6 @@ fi
 apt-get update ||:
 
 echo "Installing desired components..."
-
-if [ -n "$INSTALL_REDIS" ]; then
-  install_redis_server
-fi
 
 if [ -n "$PREPARE_ENVIRONMENT" ]; then
   install_java

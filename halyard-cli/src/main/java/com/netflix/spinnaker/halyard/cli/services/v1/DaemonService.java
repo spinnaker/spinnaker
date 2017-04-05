@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.http.*;
 
@@ -66,13 +67,15 @@ public interface DaemonService {
   DaemonTask<Halconfig, Object> deployDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
-      @Query("installOnly") boolean installOnly,
+      @Query("deployOptions") List<DeployOption> deployOptions,
+      @Query("serviceNames") List<String> serviceNames,
       @Body String _ignore);
 
   @POST("/v1/config/deployments/{deploymentName}/rollback/")
   DaemonTask<Halconfig, Object> rollbackDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
+      @Query("serviceNames") List<String> serviceNames,
       @Body String _ignore);
 
   @GET("/v1/config/deployments/{deploymentName}/configDiff/")

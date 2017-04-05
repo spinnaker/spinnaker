@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesClouddriverService extends ClouddriverService implements KubernetesDeployableService<ClouddriverService.Clouddriver> {
+public class KubernetesClouddriverService extends ClouddriverService implements KubernetesDistributedService<ClouddriverService.Clouddriver> {
   @Autowired
   private String dockerRegistry;
 
@@ -56,7 +56,7 @@ public class KubernetesClouddriverService extends ClouddriverService implements 
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(4);

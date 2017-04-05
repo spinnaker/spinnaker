@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianGateService extends GateService implements DebianInstallableService<GateService.Gate> {
+public class DebianGateService extends GateService implements LocalDebianService<GateService.Gate> {
   final String upstartServiceName = "gate";
 
   @Autowired
@@ -43,6 +43,6 @@ public class DebianGateService extends GateService implements DebianInstallableS
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

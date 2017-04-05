@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RestAdapter;
@@ -240,16 +241,16 @@ public class Daemon {
     };
   }
 
-  public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, boolean installOnly) {
+  public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, List<DeployOption> deployOptions, List<String> serviceNames) {
     return () -> {
-      Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, installOnly, ""));
+      Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, deployOptions, serviceNames, ""));
       return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
     };
   }
 
-  public static Supplier<Void> rollbackDeployment(String deploymentName, boolean validate) {
+  public static Supplier<Void> rollbackDeployment(String deploymentName, boolean validate, List<String> serviceNames) {
     return () -> {
-      ResponseUnwrapper.get(getService().rollbackDeployment(deploymentName, validate, ""));
+      ResponseUnwrapper.get(getService().rollbackDeployment(deploymentName, validate, serviceNames, ""));
       return null;
     };
   }

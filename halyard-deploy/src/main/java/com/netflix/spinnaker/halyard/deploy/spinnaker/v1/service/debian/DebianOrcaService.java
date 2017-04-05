@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianOrcaService extends OrcaService implements DebianInstallableService<OrcaService.Orca> {
+public class DebianOrcaService extends OrcaService implements LocalDebianService<OrcaService.Orca> {
   final String upstartServiceName = "orca";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianOrcaService extends OrcaService implements DebianInstallableS
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

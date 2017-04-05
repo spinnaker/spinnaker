@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianFront50Service extends Front50Service implements DebianInstallableService<Front50Service.Front50> {
+public class DebianFront50Service extends Front50Service implements LocalDebianService<Front50Service.Front50> {
   final String upstartServiceName = "front50";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianFront50Service extends Front50Service implements DebianInstal
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

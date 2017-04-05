@@ -17,19 +17,20 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.stream.Collectors;
 
-abstract public class InstallableServiceProvider extends SpinnakerServiceProvider {
-  public InstallableService getInstallableService(SpinnakerService.Type type) {
-    return getInstallableService(type, Object.class);
+abstract public class DistributedServiceProvider<T extends Account> extends SpinnakerServiceProvider {
+  public DistributedService getDeployableService(SpinnakerService.Type type) {
+    return getDeployableService(type, Object.class);
   }
 
-  public <S> InstallableService<S> getInstallableService(SpinnakerService.Type type, Class<S> clazz) {
+  public <S> DistributedService<S, T> getDeployableService(SpinnakerService.Type type, Class<S> clazz) {
     Field serviceField = getField(type.getCanonicalName() + "service");
     if (serviceField == null) {
       return null;
@@ -37,7 +38,7 @@ abstract public class InstallableServiceProvider extends SpinnakerServiceProvide
 
     serviceField.setAccessible(true);
     try {
-      return (InstallableService<S>) serviceField.get(this);
+      return (DistributedService<S, T>) serviceField.get(this);
     } catch (IllegalAccessException e) {
       throw new HalException(Problem.Severity.FATAL, "Can't access service field for " + type + ": " + e.getMessage());
     } finally {
@@ -45,14 +46,15 @@ abstract public class InstallableServiceProvider extends SpinnakerServiceProvide
     }
   }
 
-  // TODO(lwander) move from string to something like RemoteAction
-  abstract public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, List<String> serviceInstalls);
-
   /**
    * @return the highest priority services first.
    */
-  public List<InstallableService> getInstallableServices() {
-    return getFieldsOfType(InstallableService.class);
+  public List<DistributedService> getPrioritizedDistributedServices(List<String> serviceNames) {
+    List<DistributedService> result = getFieldsOfType(DistributedService.class).stream()
+        .filter(d -> serviceNames.contains(d.getService().getCanonicalName()))
+        .collect(Collectors.toList());
+
+    result.sort((d1, d2) -> d2.getDeployPriority().compareTo(d1.getDeployPriority()));
+    return result;
   }
 }
-

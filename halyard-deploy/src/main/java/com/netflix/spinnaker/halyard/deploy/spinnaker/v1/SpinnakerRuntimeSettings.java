@@ -18,7 +18,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
@@ -65,7 +64,7 @@ public class SpinnakerRuntimeSettings {
   }
 
   public ServiceSettings getServiceSettings(SpinnakerService service) {
-    return getServiceSettings(service.getCannonicalName());
+    return getServiceSettings(service.getCanonicalName());
   }
 
   private ServiceSettings getServiceSettings(String name) {

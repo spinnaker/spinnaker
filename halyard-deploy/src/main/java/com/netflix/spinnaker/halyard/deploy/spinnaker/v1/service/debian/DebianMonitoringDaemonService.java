@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements DebianInstallableService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
+public class DebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements LocalDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   final String upstartServiceName = "spinnaker-monitoring-daemon";
 
   @Autowired
@@ -42,6 +42,6 @@ public class DebianMonitoringDaemonService extends SpinnakerMonitoringDaemonServ
   }
 
   public String getArtifactId(String deploymentName) {
-    return DebianInstallableService.super.getArtifactId(deploymentName);
+    return LocalDebianService.super.getArtifactId(deploymentName);
   }
 }

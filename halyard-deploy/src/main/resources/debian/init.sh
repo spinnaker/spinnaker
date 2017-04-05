@@ -1,4 +1,3 @@
-
 cat > /etc/init/spinnaker.conf <<EOL
 description "spinnaker"
 
@@ -18,4 +17,3 @@ pre-start script
   done
 end script
 EOL
-

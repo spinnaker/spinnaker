@@ -34,7 +34,7 @@ import java.util.*;
  * @param <T> is the type of the service interface being deployed, e.g ClouddriverService.Clouddriver.
  * @param <A> is the type of an account in this cloud provider.
  */
-public interface DeployableService<T, A extends Account> extends HasServiceSettings<T> {
+public interface DistributedService<T, A extends Account> extends HasServiceSettings<T> {
   String getSpinnakerStagingPath();
 
   Map<String, Object> getLoadBalancerDescription(AccountDeploymentDetails<A> details,
@@ -92,18 +92,28 @@ public interface DeployableService<T, A extends Account> extends HasServiceSetti
     enableDescription.put("target", "ancestor_asg_dynamic");
     enableDescription.put("requisiteStageRefIds", Collections.emptyList());
 
-    Map<String, Object> disableDescription = new HashMap<>();
-    String disableId = "disable";
-    disableDescription.putAll(baseDescription);
-    disableDescription.put("name", "Disable current " + getName());
-    disableDescription.put("type", "disableServerGroup");
-    disableDescription.put("refId", disableId);
-    disableDescription.put("requisiteStageRefIds", Collections.singletonList(enableId));
-    disableDescription.put("target", "current_asg_dynamic");
+    // This is a destroy, rather than destroy because the typical flow will look like this:
+    //
+    // 1. You deploy a new version/config
+    // 2. Something is wrong, so you rollback.
+    // 3. Fixing the bad server group requires redeploying.
+    //
+    // Since you can't fix the newest destroyd server group in place, and you (at least I cant imagine why)
+    // won't want to reenable that server group, there is no point it keeping it around. There's an argument
+    // to be made for keeping it around to debug, but that's far from what the average halyard user will want
+    // to do.
+    Map<String, Object> destroyDescription = new HashMap<>();
+    String destroyId = "destroy";
+    destroyDescription.putAll(baseDescription);
+    destroyDescription.put("name", "Destroy current " + getName());
+    destroyDescription.put("type", "destroyServerGroup");
+    destroyDescription.put("refId", destroyId);
+    destroyDescription.put("requisiteStageRefIds", Collections.singletonList(enableId));
+    destroyDescription.put("target", "current_asg_dynamic");
 
     List<Map<String, Object>> stages = new ArrayList<>();
     stages.add(enableDescription);
-    stages.add(disableDescription);
+    stages.add(destroyDescription);
 
     Map<String, Object> pipeline = new HashMap<>();
     pipeline.put("stages", stages);

@@ -20,18 +20,16 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.debian;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.InstallableServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LocalServiceProvider;
 import io.fabric8.utils.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class DebianServiceProvider extends InstallableServiceProvider {
+public class DebianServiceProvider extends LocalServiceProvider {
   @Autowired
   private String debianRepository;
 
@@ -69,13 +67,19 @@ public class DebianServiceProvider extends InstallableServiceProvider {
   DebianRoscoService roscoService;
 
   @Override
-  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, List<String> serviceInstalls) {
+  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
     Map<String, String> bindings = new HashMap<>();
-    List<String> upstartNames = getInstallableServices()
+    List<String> serviceNames = new ArrayList<>(installCommands.keySet());
+    List<String> upstartNames = getInstallableServices(serviceNames)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
-        .map(i -> ((DebianInstallableService) i).getUpstartServiceName())
+        .map(i -> ((LocalDebianService) i).getUpstartServiceName())
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
+    List<String> serviceInstalls = serviceNames.stream()
+        .map(installCommands::get)
+        .collect(Collectors.toList());
+
     TemplatedResource resource = new JarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     String upstartInit = resource.setBindings(bindings).toString();

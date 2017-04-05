@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.deploy;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -24,20 +25,37 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Parameters()
 public class RollbackDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "rollback";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Rollback Spinnaker to the prior version on a selected environment.";
+  private String shortDescription = "Rollback Spinnaker to the prior version on a selected environment.";
+
+  @Getter(AccessLevel.PUBLIC)
+  private String longDescription = String.join("",
+      "This command attempts to rollback Spinnaker to the prior deployed version, depending on how you've configured your deployment. ",
+      "Local deployments have their prior packages installed and reconfigured, whereas Distributed deployments are rolled back via a headless ",
+      "'bootstrap' deployment of Spinnaker, and don't suffer downtime."
+  );
+
+  @Parameter(
+      names = "--service-names",
+      description = "When supplied, only install or update the specified Spinnaker services.",
+      variableArity = true
+  )
+  List<String> serviceNames = new ArrayList<>();
 
   @Override
   protected void executeThis() {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to rollback Spinnaker.")
         .setSuccessMessage("Successfully rolled back Spinnaker.")
-        .setOperation(Daemon.rollbackDeployment(getCurrentDeployment(), !noValidate))
+        .setOperation(Daemon.rollbackDeployment(getCurrentDeployment(), !noValidate, serviceNames))
         .get();
   }
 }

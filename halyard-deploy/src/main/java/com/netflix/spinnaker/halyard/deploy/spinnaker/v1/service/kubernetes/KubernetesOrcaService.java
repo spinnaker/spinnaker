@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesOrcaService extends OrcaService implements KubernetesDeployableService<OrcaService.Orca> {
+public class KubernetesOrcaService extends OrcaService implements KubernetesDistributedService<OrcaService.Orca> {
   @Autowired
   private String dockerRegistry;
 
@@ -56,7 +56,7 @@ public class KubernetesOrcaService extends OrcaService implements KubernetesDepl
   }
 
   public String getArtifactId(String deploymentName) {
-    return KubernetesDeployableService.super.getArtifactId(deploymentName);
+    return KubernetesDistributedService.super.getArtifactId(deploymentName);
   }
 
   final DeployPriority deployPriority = new DeployPriority(1);
