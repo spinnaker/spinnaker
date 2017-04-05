@@ -434,6 +434,7 @@ d=$(dirname "$0")
 cd "$d"
 LOG_DIR=${{LOG_DIR:-../logs}}
 
+npm install >& "$LOG_DIR/{name}.log"
 bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
  | tee -a '$LOG_DIR/{name}.log' >& '$LOG_DIR/{name}.err' &"
 """.format(name=name))
