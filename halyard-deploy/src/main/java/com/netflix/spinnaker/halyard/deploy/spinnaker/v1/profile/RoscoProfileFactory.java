@@ -17,9 +17,12 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class RoscoProfileFactory extends SpringProfileFactory {
@@ -31,6 +34,10 @@ public class RoscoProfileFactory extends SpringProfileFactory {
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    profile.appendContents(profile.getBaseContents());
+    Providers providers = deploymentConfiguration.getProviders();
+    List<String> files = processRequiredFiles(providers);
+    profile.appendContents(yamlToString(providers))
+        .appendContents(profile.getBaseContents())
+        .setRequiredFiles(files);
   }
 }
