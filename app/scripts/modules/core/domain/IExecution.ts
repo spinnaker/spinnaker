@@ -16,4 +16,6 @@ export interface IExecution extends IOrchestratedItem {
   isComplete?: boolean;
   graphStatusHash?: string;
   pipelineConfigId?: string;
+  searchField?: string;
+  appConfig?: any;
 }

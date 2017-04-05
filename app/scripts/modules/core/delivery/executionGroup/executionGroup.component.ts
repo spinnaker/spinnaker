@@ -7,6 +7,7 @@ import {Application} from 'core/application/application.model';
 import {IExecutionDetailsStateParams} from '../delivery.states';
 import {EXECUTION_COMPONENT} from './execution/execution.component';
 import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
+import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
 
 import './executionGroup.less';
@@ -29,7 +30,7 @@ export class ExecutionGroupController implements IComponentController {
   public pipelineConfig: any;
   public strategyConfig: any;
 
-  static get $inject(): string[] { return ['$scope', '$timeout', '$state', '$stateParams', '$uibModal', 'executionService', 'collapsibleSectionStateCache', 'ExecutionFilterModel', 'pipelineConfigService']; }
+  static get $inject(): string[] { return ['$scope', '$timeout', '$state', '$stateParams', '$uibModal', 'executionService', 'collapsibleSectionStateCache', 'executionFilterModel', 'pipelineConfigService']; }
 
   constructor(public $scope: IScope,
               private $timeout: ITimeoutService,
@@ -38,7 +39,7 @@ export class ExecutionGroupController implements IComponentController {
               private $uibModal: IModalService,
               private executionService: ExecutionService,
               private collapsibleSectionStateCache: any,
-              private ExecutionFilterModel: any,
+              private executionFilterModel: ExecutionFilterModel,
               private pipelineConfigService: PipelineConfigService) {}
 
   public $onInit(): void {
@@ -53,7 +54,7 @@ export class ExecutionGroupController implements IComponentController {
       poll: null,
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig || this.strategyConfig,
-      showAccounts: this.ExecutionFilterModel.sortFilter.groupBy === 'name',
+      showAccounts: this.executionFilterModel.sortFilter.groupBy === 'name',
     };
 
     this.$scope.$on('toggle-expansion', (_event, expanded) => {
@@ -94,7 +95,7 @@ export class ExecutionGroupController implements IComponentController {
   }
 
   private getSectionCacheKey(): string {
-    return this.executionService.getSectionCacheKey(this.ExecutionFilterModel.sortFilter.groupBy, this.application.name, this.group.heading);
+    return this.executionService.getSectionCacheKey(this.executionFilterModel.sortFilter.groupBy, this.application.name, this.group.heading);
   };
 
   public toggle(): void {

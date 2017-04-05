@@ -23,12 +23,12 @@ describe('Service: executionService', function () {
   }));
 
   beforeEach(
-    window.inject(function (_executionService_, _$httpBackend_, _$timeout_, _$q_, ExecutionFilterModel) {
+    window.inject(function (_executionService_, _$httpBackend_, _$timeout_, _$q_, executionFilterModel) {
       executionService = _executionService_;
       $httpBackend = _$httpBackend_;
       timeout = _$timeout_;
       $q = _$q_;
-      ExecutionFilterModel.sortFilter.count = 3;
+      executionFilterModel.sortFilter.count = 3;
     })
   );
 
@@ -389,4 +389,3 @@ describe('Service: executionService', function () {
 
   });
 });
-

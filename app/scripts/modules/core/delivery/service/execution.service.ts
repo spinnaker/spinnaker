@@ -354,5 +354,5 @@ module(EXECUTION_SERVICE, [
   require('./executions.transformer.service.js'),
   require('core/pipeline/config/pipelineConfigProvider.js'),
   API_SERVICE
-]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, ExecutionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
-                                new ExecutionService($http, $q, $timeout, API, ExecutionFilterModel, executionsTransformer, pipelineConfig));
+]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
+                                new ExecutionService($http, $q, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig));

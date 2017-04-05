@@ -15,8 +15,12 @@ export class ExecutionFilterModel {
 
   // TODO: Convert filter.model.service to TS, create an interface, and have this class implement said interface
   private filterModel: any = this;
-  public sortFilter: any; // Gets set in filterModelService.configureFilterModel(this, filterModelConfig);
-  public groups: any; // Gets set in filterModelService.configureFilterModel(this, filterModelConfig);
+  // The following get set in filterModelService.configureFilterModel(this, filterModelConfig);
+  public sortFilter: any;
+  public groups: any;
+  public addTags: () => void;
+  public clearFilters: () => void;
+  public applyParamsToUrl: () => void;
 
   static get $inject(): string[] { return ['$rootScope', 'filterModelService', 'urlParser', 'viewStateCache']; }
 
