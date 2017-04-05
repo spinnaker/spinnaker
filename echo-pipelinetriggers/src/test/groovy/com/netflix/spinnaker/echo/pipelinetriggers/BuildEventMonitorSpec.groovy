@@ -44,9 +44,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     where:
     event                         | trigger               | triggerType
     createBuildEventWith(SUCCESS) | enabledJenkinsTrigger | 'jenkins'
+    createBuildEventWith(SUCCESS) | enabledTravisTrigger | 'travis'
   }
 
-  def "attaches jenkins trigger to the pipeline"() {
+  @Unroll
+  def "attaches #triggerType trigger to the pipeline"() {
     given:
     pipelineCache.getPipelines() >> [pipeline]
 
@@ -62,8 +64,9 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     })
 
     where:
-    event = createBuildEventWith(SUCCESS)
-    pipeline = createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger)
+    event                         | pipeline                                                     | triggerType
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledJenkinsTrigger, nonJenkinsTrigger) | 'jenkins'
+    createBuildEventWith(SUCCESS) | createPipelineWith(enabledTravisTrigger, nonJenkinsTrigger)  | 'travis'
   }
 
   def "an event can trigger multiple pipelines"() {
@@ -124,7 +127,8 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
 
     where:
     trigger                                 | description
-    disabledJenkinsTrigger                  | "disabled"
+    disabledJenkinsTrigger                  | "disabled jenkins"
+    disabledTravisTrigger                   | "disabled travis"
     nonJenkinsTrigger                       | "non-Jenkins"
     enabledStashTrigger                     | "stash"
     enabledBitBucketTrigger                 | "bitbucket"
@@ -136,7 +140,7 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
   }
 
   @Unroll
-  def "does not trigger a pipeline that has an enabled trigger with missing #field"() {
+  def "does not trigger a pipeline that has an enabled #triggerType trigger with missing #field"() {
     given:
     pipelineCache.getPipelines() >> [badPipeline, goodPipeline]
     println objectMapper.writeValueAsString(createBuildEventWith(SUCCESS))
@@ -148,9 +152,11 @@ class BuildEventMonitorSpec extends Specification implements RetrofitStubs {
     1 * subscriber.call({ it.id == goodPipeline.id })
 
     where:
-    trigger                                | field
-    enabledJenkinsTrigger.withMaster(null) | "master"
-    enabledJenkinsTrigger.withJob(null)    | "job"
+    trigger                                | field    | triggerType
+    enabledJenkinsTrigger.withMaster(null) | "master" | "jenkins"
+    enabledJenkinsTrigger.withJob(null)    | "job"    | "jenkins"
+    enabledTravisTrigger.withMaster(null)  | "master" | "travis"
+    enabledTravisTrigger.withJob(null)     | "job"    | "travis"
 
     event = createBuildEventWith(SUCCESS)
     goodPipeline = createPipelineWith(enabledJenkinsTrigger)

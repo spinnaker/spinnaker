@@ -22,6 +22,8 @@ trait RetrofitStubs {
   final String url = "http://echo"
   final Trigger enabledJenkinsTrigger = new Trigger(true, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
   final Trigger disabledJenkinsTrigger = new Trigger(false, null, 'jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
+  final Trigger enabledTravisTrigger = new Trigger(true, null, 'travis', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+  final Trigger disabledTravisTrigger = new Trigger(false, null, 'travis', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
   final Trigger nonJenkinsTrigger = new Trigger(true, null, 'not jenkins', 'master', 'job', null, null, null, null, null, null, null, null, null, null, null, null,null, null, null)
   final Trigger enabledStashTrigger = new Trigger(true, null, 'git', null, null, null, null, null, 'stash', 'project', 'slug', null, null, null, null, null, null,null, null, null)
   final Trigger disabledStashTrigger = new Trigger(false, null, 'git', 'master', 'job', null, null, null, 'stash', 'project', 'slug', null, null, null, null, null, null,null, null, null)

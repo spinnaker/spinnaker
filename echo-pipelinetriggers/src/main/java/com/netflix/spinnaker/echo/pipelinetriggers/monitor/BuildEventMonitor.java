@@ -31,7 +31,7 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import rx.functions.Action1;
 
-import java.util.IllegalFormatCodePointException;
+import java.util.Arrays;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -41,7 +41,7 @@ import java.util.function.Predicate;
 @Component
 public class BuildEventMonitor extends TriggerMonitor {
 
-  public static final String BUILD_TRIGGER_TYPE = "jenkins";
+  public static final String[] BUILD_TRIGGER_TYPES = {"jenkins", "travis"};
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -85,7 +85,7 @@ public class BuildEventMonitor extends TriggerMonitor {
   protected boolean isValidTrigger(final Trigger trigger) {
     return trigger.isEnabled() &&
       (
-        (BUILD_TRIGGER_TYPE.equals(trigger.getType()) &&
+        (isBuildTrigger(trigger) &&
           trigger.getJob() != null &&
           trigger.getMaster() != null)
       );
@@ -96,7 +96,7 @@ public class BuildEventMonitor extends TriggerMonitor {
     BuildEvent buildEvent = (BuildEvent) event;
     String jobName = buildEvent.getContent().getProject().getName();
     String master = buildEvent.getContent().getMaster();
-    return trigger -> trigger.getType().equals(BUILD_TRIGGER_TYPE) && trigger.getJob().equals(jobName) && trigger.getMaster().equals(master);
+    return trigger -> isBuildTrigger(trigger) && trigger.getJob().equals(jobName) && trigger.getMaster().equals(master);
   }
 
   @Override
@@ -105,9 +105,13 @@ public class BuildEventMonitor extends TriggerMonitor {
     val id = registry.createId("pipelines.triggered")
       .withTag("application", pipeline.getApplication())
       .withTag("name", pipeline.getName());
-    if (pipeline.getTrigger().getType().equals(BUILD_TRIGGER_TYPE)) {
+    if (isBuildTrigger(pipeline.getTrigger())) {
       id.withTag("job", pipeline.getTrigger().getJob());
     }
     registry.counter(id).increment();
+  }
+
+  private boolean isBuildTrigger(Trigger trigger) {
+    return Arrays.stream(BUILD_TRIGGER_TYPES).anyMatch(triggerType -> trigger.getType().equals(triggerType));
   }
 }
