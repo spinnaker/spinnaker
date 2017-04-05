@@ -285,27 +285,22 @@ e:
   def test_transform_ok(self):
      bindings = YamlBindings()
      bindings.import_dict({'a': {'b': { 'space': 'WithSpace',
-                                        'nospace': 'WithoutSpace',
                                         'empty': 'Empty'}},
                            'x' : {'unique': True}})
      template = """
 a:
   b:
     space: {space}
-    nospace:{nospace}
     empty:{empty}
 unique:
   b:
      space: A
-     nospace:B
      empty:
 """
-     source = template.format(space='SPACE', nospace='NOSPACE', empty='')
-     expect = template.format(space='WithSpace',
-                              nospace=' WithoutSpace',
-                              empty=' Empty')
+     source = template.format(space='SPACE', empty='')
+     expect = template.format(space='WithSpace', empty=' Empty')
      got = source
-     for key in [ 'a.b.space', 'a.b.nospace', 'a.b.empty' ]:
+     for key in [ 'a.b.space', 'a.b.empty' ]:
        got = bindings.transform_yaml_source(got, key)
 
      self.assertEqual(expect, bindings.transform_yaml_source(expect, 'bogus'))
@@ -321,8 +316,8 @@ a:
   b:
      child: Hello
 """
-     with self.assertRaises(ValueError):
-       bindings.transform_yaml_source(yaml, 'x.unique')
+     with self.assertRaises(KeyError):
+       bindings.transform_yaml_source(yaml, 'x.unique', add_new_nodes=False)
 
   def test_list(self):
      bindings = YamlBindings()
@@ -358,6 +353,21 @@ a:
 
     os.remove(temp_path)
 
+  def test_create_yml_source(self):
+    expect = {
+      'first': { 'child': 'FirstValue' },
+      'second': { 'child': True }
+    }
+    fd, temp_path = tempfile.mkstemp()
+    os.write(fd, "")
+    os.close(fd)
+    YamlBindings.update_yml_source(temp_path, expect)
+
+    comparison_bindings = YamlBindings()
+    comparison_bindings.import_path(temp_path)
+    self.assertEqual(expect, comparison_bindings.map)
+    os.remove(temp_path)
+
   def test_update_yml_source(self):
     yaml = """
 a: A
@@ -378,7 +388,10 @@ e:
       'b': 'Z',
       'd': {
         'child': {
-          'grandchild': 'xy'
+          'grandchild': 'xy',
+          'new_grandchild': {
+             'new_node': 'inserted'
+          }
         }
       },
       'e': 'AA'
@@ -389,10 +402,21 @@ e:
               'c': ['A','B'],
               'd': {
                 'child': {
-                  'grandchild': 'xy'
+                  'grandchild': 'xy',
+                  'new_grandchild': {
+                    'new_node': 'inserted'
+                  }
                 }
               },
               'e': 'AA'}
+
+    with self.assertRaises(KeyError):
+      YamlBindings.update_yml_source(
+          temp_path, update_dict, add_new_nodes=False)
+
+    # Reset the file
+    with open(temp_path, 'w') as fd:
+      fd.write(yaml)
 
     YamlBindings.update_yml_source(temp_path, update_dict)
 
