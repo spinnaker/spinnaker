@@ -29,14 +29,14 @@ class OpenstackImageV1Provider implements OpenstackImageProvider, OpenstackReque
   @Override
   List<Image> listImages(String region, Map<String, String> filters) {
     handleRequest {
-      getRegionClient(region).images().list(filters)
+      getRegionClient(region).images().listAll(filters)
     }
   }
 
   @Override
   List<Image> listImages(String region) {
     handleRequest {
-      getRegionClient(region).images().list(null)
+      getRegionClient(region).images().listAll(null)
     }
   }
 

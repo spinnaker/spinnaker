@@ -36,7 +36,7 @@ class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
 
     then:
     1 * mockClient.images() >> imageService
-    1 * imageService.list(filters) >> images
+    1 * imageService.listAll(filters) >> images
 
     and:
     result == images
@@ -54,7 +54,7 @@ class OpenstackImageV1ClientProviderSpec extends OpenstackClientProviderSpec {
 
     then:
     1 * mockClient.images() >> imageService
-    1 * imageService.list(filters) >> { throw throwable }
+    1 * imageService.listAll(filters) >> { throw throwable }
 
     and:
     OpenstackProviderException openstackProviderException = thrown(OpenstackProviderException)
