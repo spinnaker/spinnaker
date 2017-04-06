@@ -200,7 +200,7 @@ hal [parameters] [subcommands]
 ---
 ## hal versions
 
-List the available Spinnaker versions and their changelogs.
+All Spinnaker releases that have been fully validated are listed here. You can pick one of these releases to deploy using the `hal config version edit` command. There are unlisted, non-supported releases as well, but we advise against running them. For more information, contact the developers at http://join.spinnaker.io.
 
 #### Usage
 ```
@@ -208,22 +208,25 @@ hal versions [subcommands]
 ```
 #### Subcommands
  * `bom`: Get the Bill of Materials (BOM) for the specified version.
- * `latest`: Get the latest released version number of Spinnaker.
+ * `latest`: Get the latest released, validated version number of Spinnaker.
 
 ---
 ## hal versions bom
 
-Get the Bill of Materials (BOM) for the specified version.
+The Bill of Materials (BOM) is the manifest Halyard and Spinnaker use to agree on what subcomponent versions comprise a top-level release of Spinnaker. This command can be used with a main parameter (VERSION) to get the BOM for a given version of Spinnaker, or without a parameter to get the BOM for whatever versin of Spinnaker are currently configuring.
 
 #### Usage
 ```
-hal versions bom VERSION
+hal versions bom VERSION [parameters]
 ```
+#### Parameters
+`VERSION`: The version whose Bill of Materials (BOM) to lookup.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
 ## hal versions latest
 
-Get the latest released version number of Spinnaker.
+Get the latest released, validated version number of Spinnaker.
 
 #### Usage
 ```

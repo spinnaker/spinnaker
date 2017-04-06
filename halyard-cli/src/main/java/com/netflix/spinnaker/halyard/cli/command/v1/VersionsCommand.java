@@ -32,7 +32,15 @@ public class VersionsCommand extends NestableCommand {
   private String commandName = "versions";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "List the available Spinnaker versions and their changelogs.";
+  private String shortDescription = "List the available Spinnaker versions and their changelogs.";
+
+  @Getter(AccessLevel.PUBLIC)
+  private String longDescription = String.join(" ",
+      "All Spinnaker releases that have been fully validated are listed here.",
+      "You can pick one of these releases to deploy using the `hal config version edit`",
+      "command. There are unlisted, non-supported releases as well, but we advise against",
+      "running them. For more information, contact the developers at http://join.spinnaker.io."
+  );
 
   public VersionsCommand() {
     registerSubcommand(new LatestVersionCommand());
@@ -46,7 +54,11 @@ public class VersionsCommand extends NestableCommand {
         .setFailureMesssage("Failed to load available Spinnaker versions.")
         .get();
 
-    AnsiUi.success("The following versions are available: ");
-    versions.getVersions().forEach(v -> AnsiUi.listItem(v.toString()));
+    if (versions.getVersions().isEmpty()) {
+      AnsiUi.success("No stable versions published at this time.");
+    } else {
+      AnsiUi.success("The following versions are available: ");
+      versions.getVersions().forEach(v -> AnsiUi.listItem(v.toString()));
+    }
   }
 }

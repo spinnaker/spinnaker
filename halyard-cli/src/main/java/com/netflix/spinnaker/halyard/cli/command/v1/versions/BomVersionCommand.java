@@ -20,10 +20,13 @@ package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -31,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters()
-public class BomVersionCommand extends NestableCommand {
+public class BomVersionCommand extends AbstractConfigCommand {
   @Parameter(description = "The version whose Bill of Materials (BOM) to lookup.", arity = 1)
   List<String> versions = new ArrayList<>();
 
@@ -39,7 +42,16 @@ public class BomVersionCommand extends NestableCommand {
   private String commandName = "bom";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Get the Bill of Materials (BOM) for the specified version.";
+  private String shortDescription = "Get the Bill of Materials (BOM) for the specified version.";
+
+  @Getter(AccessLevel.PUBLIC)
+  private String longDescription = String.join(" ",
+      "The Bill of Materials (BOM) is the manifest Halyard and Spinnaker use",
+      "to agree on what subcomponent versions comprise a top-level release of",
+      "Spinnaker. This command can be used with a main parameter (VERSION) to",
+      "get the BOM for a given version of Spinnaker, or without a parameter to",
+      "get the BOM for whatever versin of Spinnaker are currently configuring."
+  );
 
   @Override
   public String getMainParameter() {
@@ -49,7 +61,10 @@ public class BomVersionCommand extends NestableCommand {
   public String getVersion() {
     switch (versions.size()) {
       case 0:
-        throw new IllegalArgumentException("No version name supplied");
+        return new OperationHandler<String>()
+            .setOperation(Daemon.getVersion(getCurrentDeployment(), false))
+            .setFailureMesssage("Failed to get version of Spinnaker configured in your halconfig.")
+            .get();
       case 1:
         return versions.get(0);
       default:
