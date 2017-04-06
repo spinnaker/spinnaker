@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
+import org.apache.catalina.Server
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -79,16 +80,20 @@ class ServerGroupController {
       .findResults { ClusterProvider cp -> cp.getClusterDetails(application)?.values() }
       .collectNested { Cluster c ->
       c.serverGroups?.collect {
-        Map sg = objectMapper.convertValue(it, Map)
-        sg.accountName = c.accountName
-        def name = Names.parseName(c.name)
-        sg.cluster = name.cluster
-        sg.application = name.app
-        sg.stack = name.stack
-        sg.freeFormDetail = name.detail
-        return sg
+        expanded(it, c)
       } ?: []
     }.flatten()
+  }
+
+  Map expanded(ServerGroup serverGroup, Cluster cluster) {
+    Map sg = objectMapper.convertValue(serverGroup, Map)
+    sg.accountName = cluster.accountName
+    def name = Names.parseName(cluster.name)
+    sg.cluster = name.cluster
+    sg.application = name.app
+    sg.stack = name.stack
+    sg.freeFormDetail = name.detail
+    return sg
   }
 
   List<ServerGroupViewModel> summaryList(String application, String cloudProvider) {
@@ -114,11 +119,37 @@ class ServerGroupController {
   @RequestMapping(method = RequestMethod.GET)
   List list(@PathVariable String application,
             @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
-            @RequestParam(required = false, value = 'cloudProvider') String cloudProvider) {
-    if (Boolean.valueOf(expand)) {
+            @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
+            @RequestParam(required = false, value = 'clusters') Collection<String> clusters) {
+
+    Boolean isExpanded = Boolean.valueOf(expand)
+    if (clusters) {
+      return buildSubsetForClusters(clusters, application, isExpanded)
+    }
+    if (clusters?.empty) {
+      return []
+    }
+    if (isExpanded) {
       return expandedList(application, cloudProvider)
     }
     return summaryList(application, cloudProvider)
+  }
+
+  private Collection buildSubsetForClusters(Collection<String> clusters, String application, Boolean isExpanded) {
+    Collection<Cluster> matches = clusters.findResults { accountAndName ->
+      def (account, clusterName) = accountAndName.split(':')
+      if (account && clusterName) {
+        return clusterProviders.findResults { clusterProvider ->
+          clusterProvider.getCluster(application, account, clusterName)
+        }
+      }
+      return null
+    }.flatten()
+    return matches.findResults { cluster ->
+      cluster.serverGroups.collect {
+        isExpanded ? expanded(it, cluster) : new ServerGroupViewModel(it, cluster)
+      }
+    }.flatten()
   }
 
   @ExceptionHandler
