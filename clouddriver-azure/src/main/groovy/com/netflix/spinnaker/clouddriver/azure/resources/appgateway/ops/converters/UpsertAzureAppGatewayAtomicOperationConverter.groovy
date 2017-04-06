@@ -30,16 +30,11 @@ import org.springframework.stereotype.Component
 @AzureOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertAzureAppGatewayDescription")
 class UpsertAzureAppGatewayAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  UpsertAzureAppGatewayAtomicOperationConverter() {
-    log.info("Constructor....UpsertAzureAppGatewayAtomicOperationConverter")
-  }
-
   AtomicOperation convertOperation(Map input) {
     new UpsertAzureAppGatewayAtomicOperation(convertDescription(input))
   }
 
   AzureAppGatewayDescription convertDescription(Map input) {
-    AzureAtomicOperationConverterHelper.
-      convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
+    AzureAtomicOperationConverterHelper.convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
   }
 }

@@ -30,23 +30,11 @@ import org.springframework.stereotype.Component
 @AzureOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteAzureAppGatewayDescription")
 class DeleteAzureAppGatewayAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-  DeleteAzureAppGatewayAtomicOperationConverter() {
-    log.info("Constructor....UpsertAzureAppGatewayAtomicOperationConverter")
-  }
-
   AtomicOperation convertOperation(Map input) {
     new DeleteAzureAppGatewayAtomicOperation(convertDescription(input))
   }
 
   AzureAppGatewayDescription convertDescription(Map input) {
-    def description = AzureAtomicOperationConverterHelper.
-      convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
-    // work around the region being passed in an ArrayList
-    if (!description.region) {
-      List<String> regions = input["regions"] as List<String>
-      description.region = regions?.first()
-    }
-
-    description
+    AzureAtomicOperationConverterHelper.convertDescription(input, this, AzureAppGatewayDescription) as AzureAppGatewayDescription
   }
 }
