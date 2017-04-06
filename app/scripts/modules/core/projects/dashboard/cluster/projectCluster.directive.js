@@ -3,6 +3,7 @@
 import _ from 'lodash';
 
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 
 let angular = require('angular');
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   URL_BUILDER_SERVICE,
   require('core/cache/collapsibleSectionStateCache.js'),
   CLUSTER_FILTER_SERVICE,
-  require('core/utils/timeFormatters.js'),
+  TIME_FORMATTERS,
   require('../../../healthCounts/healthCounts.directive.js'),
   require('../regionFilter/regionFilter.service.js'),
 ])

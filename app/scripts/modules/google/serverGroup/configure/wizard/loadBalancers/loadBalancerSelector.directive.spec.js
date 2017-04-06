@@ -3,6 +3,8 @@
 let angular = require('angular');
 
 import {SETTINGS} from 'core/config/settings';
+import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
+
 require('./loadBalancerSelector.directive.html');
 
 describe('Directive: GCE Load Balancers Selector', function() {
@@ -12,7 +14,7 @@ describe('Directive: GCE Load Balancers Selector', function() {
       require('./loadBalancerSelector.directive.js'),
       require('./../../serverGroupConfiguration.service.js'),
       require('exports-loader?"ui.select"!ui-select'),
-      require('core/utils/timeFormatters.js'),
+      TIME_FORMATTERS,
       require('core/utils/moment.js')
     )
   );

@@ -1,17 +1,19 @@
 'use strict';
 
-require('./whatsNew.less');
-
 let angular = require('angular');
+
+import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
 import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 import {WHATS_NEW_READ_SERVICE} from './whatsNew.read.service';
+
+require('./whatsNew.less');
 
 module.exports = angular
   .module('spinnaker.netflix.whatsNew.directive', [
     require('angular-marked'),
     VIEW_STATE_CACHE_SERVICE,
     WHATS_NEW_READ_SERVICE,
-    require('core/utils/timeFormatters.js'),
+    TIME_FORMATTERS,
   ])
   .config(function (markedProvider) {
     markedProvider.setOptions(
