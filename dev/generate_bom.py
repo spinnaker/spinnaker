@@ -24,8 +24,14 @@ import yaml
 from annotate_source import Annotator
 from spinnaker.run import run_quick
 
+DEPENDENCIES = 'dependencies'
 SERVICES = 'services'
 VERSION = 'version'
+
+# Dependency versions.
+CONSUL_VERSION = '0.7.5'
+REDIS_VERSION = '3.2.8'
+VAULT_VERSION = '0.7.0'
 
 GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG = {
   'steps': [
@@ -201,7 +207,12 @@ class BomGenerator(Annotator):
       clog.write('\n'.join(changelog))
 
   def write_bom(self):
-    output_yaml = {SERVICES: {}}
+    output_yaml = {SERVICES: {}, DEPENDENCIES: {}}
+
+    # Dependencies
+    output_yaml[DEPENDENCIES]['consul'] = {VERSION: CONSUL_VERSION}
+    output_yaml[DEPENDENCIES]['redis'] = {VERSION: REDIS_VERSION}
+    output_yaml[DEPENDENCIES]['vault'] = {VERSION: VAULT_VERSION}
 
     for comp in self.__component_versions:
       version_bump = self.__component_versions[comp]
