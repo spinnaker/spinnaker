@@ -50,7 +50,7 @@ public class BomVersionCommand extends AbstractConfigCommand {
       "to agree on what subcomponent versions comprise a top-level release of",
       "Spinnaker. This command can be used with a main parameter (VERSION) to",
       "get the BOM for a given version of Spinnaker, or without a parameter to",
-      "get the BOM for whatever versin of Spinnaker are currently configuring."
+      "get the BOM for whatever version of Spinnaker you are currently configuring."
   );
 
   @Override

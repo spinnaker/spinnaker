@@ -1,8 +1,5 @@
 # Table of Contents
  * [**hal**](#hal)
- * [**hal versions**](#hal-versions)
- * [**hal versions bom**](#hal-versions-bom)
- * [**hal versions latest**](#hal-versions-latest)
  * [**hal admin**](#hal-admin)
  * [**hal admin publish**](#hal-admin-publish)
  * [**hal admin publish bom**](#hal-admin-publish-bom)
@@ -134,6 +131,10 @@
  * [**hal config version edit**](#hal-config-version-edit)
  * [**hal config deploy**](#hal-config-deploy)
  * [**hal config deploy edit**](#hal-config-deploy-edit)
+ * [**hal version**](#hal-version)
+ * [**hal version bom**](#hal-version-bom)
+ * [**hal version list**](#hal-version-list)
+ * [**hal version latest**](#hal-version-latest)
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy rollback**](#hal-deploy-rollback)
  * [**hal deploy actuate**](#hal-deploy-actuate)
@@ -195,43 +196,7 @@ hal [parameters] [subcommands]
  * `admin`: This is meant for users building and publishing their own Spinnaker images and config.
  * `config`: Configure, validate, and view your halconfig.
  * `deploy`: Manage the deployment of Spinnaker. This includes where it's deployed, what the infrastructure footprint looks like, what the currently running deployment looks like, etc...
- * `versions`: List the available Spinnaker versions and their changelogs.
-
----
-## hal versions
-
-All Spinnaker releases that have been fully validated are listed here. You can pick one of these releases to deploy using the `hal config version edit` command. There are unlisted, non-supported releases as well, but we advise against running them. For more information, contact the developers at http://join.spinnaker.io.
-
-#### Usage
-```
-hal versions [subcommands]
-```
-#### Subcommands
- * `bom`: Get the Bill of Materials (BOM) for the specified version.
- * `latest`: Get the latest released, validated version number of Spinnaker.
-
----
-## hal versions bom
-
-The Bill of Materials (BOM) is the manifest Halyard and Spinnaker use to agree on what subcomponent versions comprise a top-level release of Spinnaker. This command can be used with a main parameter (VERSION) to get the BOM for a given version of Spinnaker, or without a parameter to get the BOM for whatever versin of Spinnaker are currently configuring.
-
-#### Usage
-```
-hal versions bom VERSION [parameters]
-```
-#### Parameters
-`VERSION`: The version whose Bill of Materials (BOM) to lookup.
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal versions latest
-
-Get the latest released, validated version number of Spinnaker.
-
-#### Usage
-```
-hal versions latest
-```
+ * `version`: Get information about the available Spinnaker versions.
 
 ---
 ## hal admin
@@ -2248,6 +2213,53 @@ This is only required when Spinnaker is being deployed in non-Kubernetes cluster
 LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
  * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--vault-enabled`: Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.
+
+---
+## hal version
+
+Get information about the available Spinnaker versions.
+
+#### Usage
+```
+hal version [subcommands]
+```
+#### Subcommands
+ * `bom`: Get the Bill of Materials (BOM) for the specified version.
+ * `latest`: Get the latest released, validated version number of Spinnaker.
+ * `list`: List the available Spinnaker versions and their changelogs.
+
+---
+## hal version bom
+
+The Bill of Materials (BOM) is the manifest Halyard and Spinnaker use to agree on what subcomponent versions comprise a top-level release of Spinnaker. This command can be used with a main parameter (VERSION) to get the BOM for a given version of Spinnaker, or without a parameter to get the BOM for whatever version of Spinnaker you are currently configuring.
+
+#### Usage
+```
+hal version bom VERSION [parameters]
+```
+#### Parameters
+`VERSION`: The version whose Bill of Materials (BOM) to lookup.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal version list
+
+All Spinnaker releases that have been fully validated are listed here. You can pick one of these releases to deploy using the `hal config version edit` command. There are unlisted, non-supported releases as well, but we advise against running them. For more information, contact the developers at http://join.spinnaker.io.
+
+#### Usage
+```
+hal version list
+```
+
+---
+## hal version latest
+
+Get the latest released, validated version number of Spinnaker.
+
+#### Usage
+```
+hal version latest
+```
 
 ---
 ## hal deploy

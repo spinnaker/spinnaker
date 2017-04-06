@@ -69,7 +69,7 @@ public class HalCommand extends NestableCommand {
     registerSubcommand(new AdminCommand());
     registerSubcommand(new ConfigCommand());
     registerSubcommand(new DeployCommand());
-    registerSubcommand(new VersionsCommand());
+    registerSubcommand(new VersionCommand());
   }
 
   private String getVersion() {

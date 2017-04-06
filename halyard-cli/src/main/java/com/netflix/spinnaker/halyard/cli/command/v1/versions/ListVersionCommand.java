@@ -12,11 +12,13 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.BomVersionCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.LatestVersionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -27,9 +29,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters()
-public class VersionsCommand extends NestableCommand {
+public class ListVersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "versions";
+  private String commandName = "list";
 
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "List the available Spinnaker versions and their changelogs.";
@@ -41,11 +43,6 @@ public class VersionsCommand extends NestableCommand {
       "command. There are unlisted, non-supported releases as well, but we advise against",
       "running them. For more information, contact the developers at http://join.spinnaker.io."
   );
-
-  public VersionsCommand() {
-    registerSubcommand(new LatestVersionCommand());
-    registerSubcommand(new BomVersionCommand());
-  }
 
   @Override
   protected void executeThis() {
