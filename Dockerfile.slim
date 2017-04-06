@@ -3,7 +3,7 @@ FROM openjdk:8u111-jre-alpine
 MAINTAINER delivery-engineering@netflix.com
 
 COPY ./rosco-web/build/install/rosco /opt/rosco
-COPY ./rosco-web/config /opt/rosco
+COPY ./rosco-web/config/ /opt/rosco
 
 WORKDIR /packer
 
