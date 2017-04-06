@@ -276,7 +276,7 @@ class DevRunner(spinnaker_runner.Runner):
     print """Spinnaker is now ready on port {port}.
 
 You can ^C (ctrl-c) to finish the script, which will stop emitting errors.
-Spinnaker will continue until you run ../spinnaker/dev/stop_dev.sh
+Spinnaker will continue until you run ./spinnaker/dev/stop_dev.sh
 """.format(port=deck_port)
 
     while True:
