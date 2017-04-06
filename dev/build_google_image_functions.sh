@@ -15,6 +15,7 @@
 # limitations under the License.
 
 CLEAN_GOOGLE_IMAGE_SCRIPT="$(dirname $0)/clean_google_image.sh"
+EXTRACT_DISK_TO_GCS_SCRIPT="$(dirname $0)/extract_disk_to_gcs.sh"
 SSH_KEY_FILE=$HOME/.ssh/google_empty
 
 
@@ -30,10 +31,18 @@ function create_empty_ssh_key() {
 
 # Clean PROTOTYPE_DISK by attaching it to an existing WORKER_INSTANCE.
 # This will attach/detach the disk but leave WORKER_INSTANCE running.
-function clean_prototype_disk() {
+function extract_clean_prototype_disk() {
   local prototype_disk="$1"
   local worker_instance="$2"
+  local output_file="$3"
 
+  if [[ $output_file != "" ]]; then
+    if [[ "$output_file" != gs://*.tar.gz ]]; then
+      echo "$output_file is not a gs:// path to a tar.gz file"
+      exit -1
+    fi
+  fi
+  
   echo "`date`: Preparing '$worker_instance'"
   gcloud compute instances add-metadata $worker_instance \
       --project $PROJECT \
@@ -54,6 +63,7 @@ function clean_prototype_disk() {
       --zone $ZONE \
       --ssh-key-file $SSH_KEY_FILE \
       ${CLEAN_GOOGLE_IMAGE_SCRIPT} \
+      ${EXTRACT_DISK_TO_GCS_SCRIPT} \
       ${worker_instance}:.
 
   echo "`date`: Cleaning in '$worker_instance'"
@@ -63,6 +73,16 @@ function clean_prototype_disk() {
       --zone $ZONE \
       --ssh-key-file $SSH_KEY_FILE \
       --command="sudo ./clean_google_image.sh spinnaker"
+
+  if [[ $output_file != "" ]]; then
+    echo "`date`: Extracting disk as tar file '$output_file.'"
+    gcloud compute ssh ${worker_instance} \
+       --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        --ssh-key-file $SSH_KEY_FILE \
+        --command="sudo ./extract_disk_to_gcs.sh spinnaker $output_file"
+  fi
 
   gcloud compute instances detach-disk ${worker_instance} \
       --project $PROJECT \
@@ -80,10 +100,18 @@ function image_from_prototype_disk() {
   local prototype_disk="$2"
 
   echo "`date`: Creating image '$target_image' in project '$PROJECT'"
-  gcloud compute images create $target_image \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --source-disk $prototype_disk \
-      --source-disk-zone $ZONE
+  if [[ $prototype_disk = gs://*.tar.gz ]]; then
+    echo "Creating from URI $prototype_disk"
+    gcloud compute images create $target_image \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --source-uri $prototype_disk
+  else
+    echo "Creating from source-disk $prototype_disk"
+    gcloud compute images create $target_image \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --source-disk $prototype_disk \
+        --source-disk-zone $ZONE
+  fi
 }
-
