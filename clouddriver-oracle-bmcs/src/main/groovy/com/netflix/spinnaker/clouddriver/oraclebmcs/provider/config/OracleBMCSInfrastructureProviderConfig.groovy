@@ -15,10 +15,7 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.oraclebmcs.OracleBMCSConfiguration
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.OracleBMCSInfrastructureProvider
-import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSImageCachingAgent
-import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSNetworkCachingAgent
-import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSSecurityGroupCachingAgent
-import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.OracleBMCSSubnetCachingAgent
+import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.*
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
@@ -88,6 +85,10 @@ class OracleBMCSInfrastructureProviderConfig {
           credentials,
           objectMapper,
           registry)
+
+        newlyAddedAgents << new OracleBMCSInstanceCachingAgent(clouddriverUserAgentApplicationName,
+          credentials,
+          objectMapper)
 
         newlyAddedAgents << new OracleBMCSNetworkCachingAgent(clouddriverUserAgentApplicationName,
           credentials,

@@ -20,7 +20,8 @@ class Keys {
     NETWORKS,
     SUBNETS,
     IMAGES,
-    SECURITY_GROUPS
+    SECURITY_GROUPS,
+    INSTANCES
 
     static String provider = OracleBMCSCloudProvider.ID
 
@@ -52,6 +53,14 @@ class Keys {
     }
 
     switch (result.type) {
+      case Namespace.INSTANCES.ns:
+        result << [
+          account: parts[2],
+          region : parts[3],
+          name   : parts[4],
+          id     : parts[5]
+        ]
+        break
       case Namespace.NETWORKS.ns:
         result << [
           name   : parts[2],
@@ -101,6 +110,13 @@ class Keys {
 
   static String getImageKey(String account, String region, String imageId) {
     "$OracleBMCSCloudProvider.ID:${Namespace.IMAGES}:${account}:${region}:${imageId}"
+  }
+
+  static String getInstanceKey(String account,
+                               String region,
+                               String name,
+                               String id) {
+    "$OracleBMCSCloudProvider.ID:${Namespace.INSTANCES}:${account}:${region}:${name}:${id}"
   }
 
   static String getNetworkKey(String networkName,
