@@ -1,5 +1,6 @@
 import {module} from 'angular';
 
+import {APPENGINE_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
 import {APPENGINE_CACHE_CONFIGURER} from './cache/cacheConfigurer.service';
 import {APPENGINE_CLONE_SERVER_GROUP_CTRL} from './serverGroup/configure/wizard/cloneServerGroup.controller';
 import {APPENGINE_COMPONENT_URL_DETAILS} from './common/componentUrlDetails.component';
@@ -26,6 +27,7 @@ templates.keys().forEach(function(key) {
 export const APPENGINE_MODULE = 'spinnaker.appengine';
 
 module(APPENGINE_MODULE, [
+    APPENGINE_APPLICATION_NAME_VALIDATOR,
     APPENGINE_CACHE_CONFIGURER,
     APPENGINE_CLONE_SERVER_GROUP_CTRL,
     APPENGINE_COMPONENT_URL_DETAILS,
@@ -39,8 +41,8 @@ module(APPENGINE_MODULE, [
     APPENGINE_SERVER_GROUP_COMMAND_BUILDER,
     APPENGINE_SERVER_GROUP_DETAILS_CTRL,
     APPENGINE_SERVER_GROUP_TRANSFORMER,
-    CLOUD_PROVIDER_REGISTRY,
     APPENGINE_SERVER_GROUP_WRITER,
+    CLOUD_PROVIDER_REGISTRY,
   ])
   .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('appengine', {
