@@ -63,12 +63,16 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     """Hook to initialize custom test bindings so journaling is scoped."""
     context = ExecutionContext()
     config = self.agent.deployed_config
-    enabled = config.get('spinnaker.gcs.enabled', False)
-    if not enabled:
+    enabled = config.get('spinnaker.gcs.enabled', None)
+    if enabled == False:
       raise ValueError('spinnaker.gcs.enabled is not True')
+    if not self.bindings['GCS_BUCKET'] and not config['spinnaker.gcs.bucket']:
+      raise ValueError('The GCS bucket name is not specified')
+    if not self.bindings['GCS_BASE_PATH'] and not config['spinnaker.gcs.rootFolder']:
+      raise ValueError('The GCS rootFolder is not specified')
 
     self.BUCKET = self.bindings['GCS_BUCKET'] or config['spinnaker.gcs.bucket']
-    self.BASE_PATH = config['spinnaker.gcs.rootFolder'] or self.bindings['GCS_BASE_PATH']
+    self.BASE_PATH = self.bindings['GCS_BASE_PATH'] or config['spinnaker.gcs.rootFolder']
     self.TEST_APP = self.bindings['TEST_APP']
     self.TEST_PIPELINE_NAME = 'My {app} Pipeline'.format(app=self.TEST_APP)
     self.TEST_PIPELINE_ID = '{app}-pipeline-id'.format(app=self.TEST_APP)
