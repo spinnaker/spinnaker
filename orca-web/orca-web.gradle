@@ -42,6 +42,7 @@ dependencies {
   compile project(":orca-mine")
   compile project(":orca-mahe")
   compile project(":orca-igor")
+  compile project(":orca-webhook")
   compile project(":orca-eureka")
   compile project(":orca-spring-batch")
   compile project(":orca-pipelinetemplate")

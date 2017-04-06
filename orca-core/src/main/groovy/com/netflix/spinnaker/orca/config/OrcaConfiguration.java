@@ -40,6 +40,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 @Configuration
 @ComponentScan({
   "com.netflix.spinnaker.orca.pipeline",
+  "com.netflix.spinnaker.orca.webhook",
   "com.netflix.spinnaker.orca.notifications.scheduling",
   "com.netflix.spinnaker.orca.restart",
   "com.netflix.spinnaker.orca.deprecation"
@@ -99,8 +100,8 @@ public class OrcaConfiguration {
 
   // TODO: this is a weird place to have this, feels like it should be a bean configurer or something
   public static ThreadPoolTaskExecutor applyThreadPoolMetrics(Registry registry,
-                                                       ThreadPoolTaskExecutor executor,
-                                                       String threadPoolName) {
+                                                              ThreadPoolTaskExecutor executor,
+                                                              String threadPoolName) {
     BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGuage =
       (name, valueCallback) -> {
         Id id = registry
