@@ -26,6 +26,8 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 abstract public class RedisBootstrapService extends RedisService {
+  final boolean sidecar = false;
+
   @Override
   public Type getType() {
     return Type.REDIS_BOOTSTRAP;

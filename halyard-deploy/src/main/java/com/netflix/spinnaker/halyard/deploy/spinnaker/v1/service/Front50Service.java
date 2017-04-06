@@ -37,9 +37,6 @@ import java.util.Map;
 @Data
 @Component
 abstract public class Front50Service extends SpringService<Front50Service.Front50> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   Front50ProfileFactory front50ProfileFactory;
 
@@ -89,6 +86,9 @@ abstract public class Front50Service extends SpringService<Front50Service.Front5
     String scheme = "http";
     String healthEndpoint = "/health";
     boolean enabled = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
   }

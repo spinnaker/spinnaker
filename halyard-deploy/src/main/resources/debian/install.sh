@@ -94,25 +94,6 @@ function install_java() {
   apt-get install ca-certificates-java
 }
 
-function install_remote_dependencies() {
-  apt-get install unzip
-  TEMPDIR=$(mktemp -d installspinnaker.XXXX)
-
-  mkdir $TEMPDIR/consul && pushd $TEMPDIR/consul
-  curl -s -L -O https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
-  unzip -u -o -q consul_${CONSUL_VERSION}_linux_amd64.zip -d /usr/bin
-  popd
-  rm -rf $TEMPDIR/consul
-
-  mkdir $TEMPDIR/vault && pushd $TEMPDIR/vault
-  curl -s -L -O https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip
-  unzip -u -o -q vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin
-  popd
-  rm -rf $TEMPDIR/vault
-
-  rm -rf $TEMPDIR
-}
-
 echo "Updating apt package lists..."
 
 if [ -n "$INSTALL_REDIS" ]; then
@@ -135,6 +116,19 @@ fi
 
 if [ -n "$INSTALL_REMOTE_DEPENDENCIES" ]; then
   install_remote_dependencies
+fi
+
+if [ -z "$(getent group spinnaker)" ]; then
+  groupadd spinnaker
+fi
+
+if [ -z "$(getent passwd spinnaker)" ]; then
+  if [ "$homebase" = "" ]; then
+    homebase="/home"
+    echo "Setting spinnaker home to $homebase"
+  fi
+
+  useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
 mkdir -p /opt/spinnaker/config

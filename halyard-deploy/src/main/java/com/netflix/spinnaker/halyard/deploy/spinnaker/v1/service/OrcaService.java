@@ -37,9 +37,6 @@ import java.util.Map;
 @Data
 @Component
 abstract public class OrcaService extends SpringService<OrcaService.Orca> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   OrcaProfileFactory orcaProfileFactory;
 
@@ -108,6 +105,9 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
     String scheme = "http";
     String healthEndpoint = "/health";
     boolean enabled = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
 

@@ -33,9 +33,6 @@ import java.util.List;
 @Data
 @Component
 abstract public class RedisService extends SpinnakerService<RedisService.Redis> {
-  final boolean safeToUpdate = false;
-  final boolean monitored = false;
-
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.REDIS;
@@ -69,6 +66,9 @@ abstract public class RedisService extends SpinnakerService<RedisService.Redis> 
     String scheme = "redis";
     String healthEndpoint = null;
     boolean enabled = true;
+    boolean safeToUpdate = false;
+    boolean monitored = false;
+    boolean sidecar = false;
 
     public Settings() {
       env.put("MASTER", "true");

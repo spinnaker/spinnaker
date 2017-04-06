@@ -31,6 +31,7 @@ import java.util.List;
 @Data
 abstract public class ClouddriverBootstrapService extends ClouddriverService {
   final boolean monitored = false;
+  final boolean sidecar = false;
 
   @Override
   public Type getType() {

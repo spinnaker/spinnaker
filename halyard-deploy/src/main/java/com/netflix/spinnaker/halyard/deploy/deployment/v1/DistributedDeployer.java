@@ -56,7 +56,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         continue;
       }
 
-      boolean safeToUpdate = service.isSafeToUpdate();
+      boolean safeToUpdate = settings.isSafeToUpdate();
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
         // Do nothing, the bootstrapping services should already be running, and the services that can't be updated
         // having nothing to rollback to
@@ -86,7 +86,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         continue;
       }
 
-      boolean safeToUpdate = service.isSafeToUpdate();
+      boolean safeToUpdate = settings.isSafeToUpdate();
       RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails);
       boolean notDeployed = runningServiceDetails.getInstances().isEmpty() && !runningServiceDetails.getLoadBalancer().isExists();
 

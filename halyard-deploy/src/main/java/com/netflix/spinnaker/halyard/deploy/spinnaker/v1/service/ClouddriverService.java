@@ -41,9 +41,6 @@ import java.util.Map;
 @Data
 @Component
 abstract public class ClouddriverService extends SpringService<ClouddriverService.Clouddriver> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   ClouddriverProfileFactory clouddriverProfileFactory;
 
@@ -96,7 +93,9 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
     String scheme = "http";
     String healthEndpoint = "/health";
     boolean enabled = true;
-    boolean monitor = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
 

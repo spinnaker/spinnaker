@@ -26,6 +26,7 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Data
@@ -54,12 +55,11 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
   abstract public Type getType();
   abstract public Class<T> getEndpointClass();
   abstract public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
-  abstract public boolean isSafeToUpdate();
-  abstract public boolean isMonitored();
 
   public enum Type {
     CLOUDDRIVER("spin-clouddriver", "clouddriver"),
     CLOUDDRIVER_BOOTSTRAP("spin-clouddriver-bootstrap", "clouddriver-bootstrap"),
+    CONSUL_CLIENT("spin-consul-client", "consul-client"),
     DECK("spin-deck", "deck"),
     ECHO("spin-echo", "echo"),
     FIAT("spin-fiat", "fiat"),
@@ -85,6 +85,19 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     @Override
     public String toString() {
       return serviceName;
+    }
+
+    private static String reduceName(String name) {
+      return name.replace("-", "").replace("_", "");
+    }
+
+    public static Type fromCanonicalName(String canonicalName) {
+      String finalName = reduceName(canonicalName);
+
+      return Arrays.stream(values())
+          .filter(t -> reduceName(t.getCanonicalName()).equalsIgnoreCase(finalName))
+          .findFirst()
+          .orElseThrow(() -> new IllegalArgumentException("No service with canonical name " + canonicalName + " exists."));
     }
   }
 }

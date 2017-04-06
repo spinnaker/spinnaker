@@ -43,7 +43,6 @@ abstract public class ServiceSettings {
   String host;
   String scheme;
   String healthEndpoint;
-  String name;
   String domain;
   @JsonIgnore String username;
   @JsonIgnore String password;
@@ -51,6 +50,9 @@ abstract public class ServiceSettings {
   String artifactId;
   boolean enabled;
   boolean basicAuthEnabled;
+  boolean monitored;
+  boolean sidecar;
+  boolean safeToUpdate;
   int targetSize;
 
   public ServiceSettings() {}

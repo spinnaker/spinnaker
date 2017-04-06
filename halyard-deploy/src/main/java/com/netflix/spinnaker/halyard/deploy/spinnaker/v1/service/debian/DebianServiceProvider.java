@@ -37,6 +37,9 @@ public class DebianServiceProvider extends LocalServiceProvider {
   DebianClouddriverService clouddriverService;
 
   @Autowired
+  DebianConsulClientService consulClientService;
+
+  @Autowired
   DebianDeckService deckService;
 
   @Autowired

@@ -37,9 +37,6 @@ import java.util.Map;
 @Data
 @Component
 abstract public class IgorService extends SpringService<IgorService.Igor> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   IgorProfileFactory igorProfileFactory;
 
@@ -89,6 +86,9 @@ abstract public class IgorService extends SpringService<IgorService.Igor> {
     String scheme = "http";
     String healthEndpoint = "/health";
     boolean enabled = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
   }

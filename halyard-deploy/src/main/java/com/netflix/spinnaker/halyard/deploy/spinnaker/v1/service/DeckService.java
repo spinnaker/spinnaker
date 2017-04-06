@@ -36,9 +36,6 @@ import java.util.List;
 @Data
 @Component
 abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   DeckProfileFactory deckProfileFactory;
 
@@ -106,6 +103,9 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
     String scheme = "http";
     String healthEndpoint = null;
     boolean enabled = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
 

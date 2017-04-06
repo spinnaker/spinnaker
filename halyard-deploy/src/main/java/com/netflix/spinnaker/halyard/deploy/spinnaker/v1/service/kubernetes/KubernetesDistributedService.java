@@ -154,11 +154,12 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     }
 
     SpinnakerService thisService = getService();
+    ServiceSettings thisServiceSettings = resolvedConfiguration.getServiceSettings(thisService);
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
     String name = getName();
     List<ConfigSource> configSources = new ArrayList<>();
     ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
-    if (thisService.isMonitored() && monitoringSettings.isEnabled()) {
+    if (thisServiceSettings.isMonitored() && monitoringSettings.isEnabled()) {
       Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
 
       Profile profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.serviceRegistryProfileName(name));
@@ -285,7 +286,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     containers.add(container);
 
     ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
-    if (monitoringSettings.isEnabled() && getService().isMonitored()) {
+    if (monitoringSettings.isEnabled() && serviceSettings.isMonitored()) {
       serviceSettings = runtimeSettings.getServiceSettings(monitoringService);
       container = buildContainer(monitoringService.getName(), serviceSettings, configSources, size);
       containers.add(container);

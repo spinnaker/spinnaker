@@ -32,6 +32,9 @@ import java.util.List;
 @Data
 @Component
 abstract public class OrcaBootstrapService extends OrcaService {
+  final boolean monitored = false;
+  final boolean sidecar = false;
+
   @Override
   public Type getType() {
     return Type.ORCA_BOOTSTRAP;

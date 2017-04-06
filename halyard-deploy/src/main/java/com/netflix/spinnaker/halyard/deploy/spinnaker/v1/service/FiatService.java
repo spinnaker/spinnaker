@@ -37,9 +37,6 @@ import java.util.Map;
 @Data
 @Component
 abstract public class FiatService extends SpringService<FiatService.Fiat> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   FiatProfileFactory fiatProfileFactory;
 
@@ -89,6 +86,9 @@ abstract public class FiatService extends SpringService<FiatService.Fiat> {
     String scheme = "http";
     String healthEndpoint = "/health";
     boolean enabled = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
   }

@@ -36,9 +36,6 @@ import java.util.List;
 @Data
 @Component
 abstract public class GateService extends SpringService<GateService.Gate> {
-  final boolean safeToUpdate = true;
-  final boolean monitored = true;
-
   @Autowired
   GateProfileFactory gateProfileFactory;
 
@@ -84,6 +81,9 @@ abstract public class GateService extends SpringService<GateService.Gate> {
     String scheme = "http";
     String healthEndpoint = null;
     boolean enabled = true;
+    boolean safeToUpdate = true;
+    boolean monitored = true;
+    boolean sidecar = false;
 
     public Settings() {}
 

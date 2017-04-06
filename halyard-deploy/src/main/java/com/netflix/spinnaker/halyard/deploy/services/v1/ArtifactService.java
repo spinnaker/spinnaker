@@ -54,7 +54,7 @@ public class ArtifactService {
   @Autowired
   VersionsService versionsService;
 
-  public BillOfMaterials getBillOfMaterials(String deploymentName) {
+  BillOfMaterials getBillOfMaterials(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     String version = deploymentConfiguration.getVersion();
     return versionsService.getBillOfMaterials(version);

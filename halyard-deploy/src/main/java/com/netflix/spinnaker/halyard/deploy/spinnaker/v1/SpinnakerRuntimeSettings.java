@@ -24,6 +24,8 @@ import lombok.Data;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Data
@@ -37,6 +39,7 @@ public class SpinnakerRuntimeSettings {
   public class Services {
     ServiceSettings clouddriver;
     ServiceSettings clouddriverBootstrap;
+    ServiceSettings consulClient;
     ServiceSettings deck;
     ServiceSettings echo;
     ServiceSettings fiat;
@@ -49,6 +52,35 @@ public class SpinnakerRuntimeSettings {
     ServiceSettings redis;
     ServiceSettings redisBootstrap;
     ServiceSettings monitoringDaemon;
+  }
+
+  public Map<SpinnakerService.Type, ServiceSettings> getAllServiceSettings() {
+    return Arrays.stream(Services.class.getDeclaredFields()).reduce(
+        new HashMap<>(),
+        (map, field) -> {
+          if (!ServiceSettings.class.isAssignableFrom(field.getType())) {
+            return map;
+          }
+
+          SpinnakerService.Type type = SpinnakerService.Type.fromCanonicalName(field.getName());
+          ServiceSettings settings;
+          try {
+            settings = (ServiceSettings) field.get(services);
+          } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+          }
+
+          if (settings != null) {
+            map.put(type, settings);
+          }
+
+          return map;
+        },
+        (map1, map2) -> {
+          map1.putAll(map2);
+          return map1;
+        }
+    );
   }
 
   public void setServiceSettings(SpinnakerService.Type type, ServiceSettings settings) {

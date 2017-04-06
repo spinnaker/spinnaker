@@ -17,14 +17,13 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
-
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.MetricRegistryProfileFactoryBuilder;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ConsulClientProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ConsulServiceProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerMonitoringDaemonProfileFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,65 +37,64 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
-  protected final String CONFIG_OUTPUT_PATH = "/opt/spinnaker-monitoring/config/";
-  protected final String REGISTRY_OUTPUT_PATH = "/opt/spinnaker-monitoring/registry/";
+abstract public class ConsulClientService extends SpinnakerService<ConsulClientService.Consul> {
+  protected final String CLIENT_OUTPUT_PATH = "/var/consul.d";
 
   @Autowired
-  SpinnakerMonitoringDaemonProfileFactory spinnakerMonitoringDaemonProfileFactory;
+  ConsulServiceProfileFactoryBuilder consulServiceProfileFactoryBuilder;
 
   @Autowired
-  MetricRegistryProfileFactoryBuilder metricRegistryProfileFactoryBuilder;
-
-  @Autowired
-  List<SpinnakerService> services;
+  ConsulClientProfileFactory consulClientProfileFactory;
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.SPINNAKER_MONITORING_DAEMON;
+    return SpinnakerArtifact.CONSUL;
   }
 
   @Override
   public Type getType() {
-    return Type.MONITORING_DAEMON;
+    return Type.CONSUL_CLIENT;
   }
 
   @Override
-  public Class<SpinnakerMonitoringDaemon> getEndpointClass() {
-    return SpinnakerMonitoringDaemon.class;
+  public Class<Consul> getEndpointClass() {
+    return Consul.class;
   }
 
-  public static String serviceRegistryProfileName(String serviceName) {
-    return "registry/" + serviceName + ".yml";
+  public static String consulClientService(String serviceName) {
+    return "consul/" + serviceName + ".json";
   }
 
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    List<Profile> results = new ArrayList<>();
+    List<Profile> result = new ArrayList<>();
     for (Map.Entry<Type, ServiceSettings> entry : endpoints.getAllServiceSettings().entrySet()) {
       ServiceSettings settings = entry.getValue();
-      if (settings.isMonitored() && settings.isEnabled()) {
-        String profileName = serviceRegistryProfileName(entry.getKey().getCanonicalName());
-        String profilePath = Paths.get(REGISTRY_OUTPUT_PATH, profileName).toString();
-        ProfileFactory factory = metricRegistryProfileFactoryBuilder.build(settings);
-        results.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+      Type type = entry.getKey();
+      if (!settings.isSidecar() && settings.isEnabled()) {
+        String profileName = consulClientService(type.getCanonicalName());
+        String profilePath = Paths.get(CLIENT_OUTPUT_PATH, profileName).toString();
+        ProfileFactory factory = consulServiceProfileFactoryBuilder.build(type, settings);
+        result.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
       }
     }
 
-    String profileName = "spinnaker-monitoring.yml";
-    String profilePath = Paths.get(CONFIG_OUTPUT_PATH, profileName).toString();
+    String profileName = "consul/client.json";
+    String profilePath = Paths.get(CLIENT_OUTPUT_PATH, profileName).toString();
 
-    results.add(spinnakerMonitoringDaemonProfileFactory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
-    return results;
+    result.add(consulClientProfileFactory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+    return result;
   }
 
-  public interface SpinnakerMonitoringDaemon { }
+  public interface Consul { }
 
   @EqualsAndHashCode(callSuper = true)
   @Data
-  public class Settings extends ServiceSettings {
-    int port = 8008;
+  public static class Settings extends ServiceSettings {
+    int port = 8500;
+    // Address is how the service is looked up.
     String address = "localhost";
+    // Host is what's bound to by the service.
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
@@ -104,5 +102,7 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     boolean safeToUpdate = true;
     boolean monitored = false;
     boolean sidecar = true;
+
+    public Settings() { }
   }
 }

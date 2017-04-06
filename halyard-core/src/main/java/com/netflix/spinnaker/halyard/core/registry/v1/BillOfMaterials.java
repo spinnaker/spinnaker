@@ -29,10 +29,22 @@ public class BillOfMaterials {
   String version;
   String timestamp;
   String hostname;
-  Artifacts services;
+  Services services;
+  Dependencies dependencies;
 
   @Data
-  public static class Artifacts {
+  static class Dependencies {
+    Artifact redis;
+    Artifact consul;
+    Artifact vault;
+
+    String getArtifactVersion(String artifactName) {
+      return getFieldVersion(Dependencies.class, this, artifactName);
+    }
+  }
+
+  @Data
+  static class Services {
     Artifact echo;
     Artifact clouddriver;
     Artifact deck;
@@ -48,40 +60,57 @@ public class BillOfMaterials {
     Artifact monitoringDaemon;
     Artifact spinnaker;
 
-    @Data
-    static class Artifact {
-      String version;
-      // TODO(lwander) dependencies will go here.
-    }
-
     String getArtifactVersion(String artifactName) {
-      Optional<Field> field = Arrays.stream(Artifacts.class.getDeclaredFields())
-          .filter(f -> {
-            boolean nameMatches = f.getName().equals(artifactName);
-            boolean propertyMatches = false;
-            JsonProperty property = f.getDeclaredAnnotation(JsonProperty.class);
-            if (property != null) {
-              propertyMatches = property.value().equals(artifactName);
-            }
-            return nameMatches || propertyMatches;
-          })
-          .findFirst();
+      return getFieldVersion(Services.class, this, artifactName);
+    }
+  }
 
-      if (!field.isPresent()) {
-        throw new RuntimeException("No supported spinnaker artifact named " + artifactName);
-      }
+  @Data
+  static class Artifact {
+    String version;
+  }
 
-      try {
-        return ((Artifacts.Artifact) field.get().get(this)).getVersion();
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException(e);
-      } catch (NullPointerException e) {
-        throw new RuntimeException("Spinnaker artifact " + artifactName + " is not listed in the BOM");
-      }
+  static private <T> String getFieldVersion(Class<T> clazz, T obj, String artifactName) {
+    Optional<Field> field = Arrays.stream(clazz.getDeclaredFields())
+        .filter(f -> {
+          boolean nameMatches = f.getName().equals(artifactName);
+          boolean propertyMatches = false;
+          JsonProperty property = f.getDeclaredAnnotation(JsonProperty.class);
+          if (property != null) {
+            propertyMatches = property.value().equals(artifactName);
+          }
+          return nameMatches || propertyMatches;
+        })
+        .findFirst();
+
+    try {
+      return ((Artifact) field
+          .orElseThrow(() -> new NoKnownArtifact(artifactName))
+          .get(obj)).getVersion();
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    } catch (NullPointerException e) {
+      throw new RuntimeException("Versioned artifact " + artifactName + " is not listed in the BOM");
+    }
+  }
+
+  static class NoKnownArtifact extends RuntimeException {
+    NoKnownArtifact(String msg) {
+      super(msg);
     }
   }
 
   public String getArtifactVersion(String artifactName) {
-    return services.getArtifactVersion(artifactName);
+    try {
+      return services.getArtifactVersion(artifactName);
+    } catch (NoKnownArtifact ignored) {
+    }
+
+    try {
+      return dependencies.getArtifactVersion(artifactName);
+    } catch (NoKnownArtifact ignored) {
+    }
+
+    throw new IllegalArgumentException("No artifact with name " + artifactName + " could be found in the BOM");
   }
 }

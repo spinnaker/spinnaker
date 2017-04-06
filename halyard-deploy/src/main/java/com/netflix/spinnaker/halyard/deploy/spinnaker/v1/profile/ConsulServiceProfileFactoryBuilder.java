@@ -17,24 +17,27 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.snakeyaml.Yaml;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import lombok.Data;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.yaml.snakeyaml.Yaml;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Component
-public class MetricRegistryProfileFactoryBuilder {
+@Data
+public class ConsulServiceProfileFactoryBuilder {
   @Autowired
   protected ArtifactService artifactService;
 
@@ -42,12 +45,9 @@ public class MetricRegistryProfileFactoryBuilder {
   protected String spinnakerStagingPath;
 
   @Autowired
-  protected Yaml yamlParser;
-
-  @Autowired
   protected ObjectMapper objectMapper;
 
-  public ProfileFactory build(ServiceSettings settings) {
+  public ProfileFactory build(SpinnakerService.Type type, ServiceSettings settings) {
     return new ProfileFactory() {
       @Override
       protected ArtifactService getArtifactService() {
@@ -56,13 +56,32 @@ public class MetricRegistryProfileFactoryBuilder {
 
       @Override
       protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-        URI uri;
-        try {
-          uri = new URIBuilder(settings.getAuthBaseUrl()).setPath("/spectator/metrics").build();
-        } catch (URISyntaxException e) {
-          throw new HalException(Problem.Severity.FATAL, "Unable to build service URL: " + e.getMessage());
+        ConsulCheck check = new ConsulCheck()
+            .setId("default-hal-check")
+            .setInterval("30s");
+
+        if (settings.getHealthEndpoint() != null) {
+          check.setHttp(new URIBuilder()
+              .setScheme(settings.getScheme())
+              .setHost("localhost")
+              .setPort(settings.getPort())
+              .setPath(settings.getHealthEndpoint())
+              .toString()
+          );
+        } else {
+          check.setTcp("localhost:" + settings.getPort());
         }
-        profile.appendContents("metrics_url: " + uri.toString());
+
+        ConsulService consulService = new ConsulService()
+            .setName(type.getCanonicalName())
+            .setPort(settings.getPort())
+            .setChecks(Collections.singletonList(check));
+
+        try {
+          profile.appendContents(objectMapper.writeValueAsString(consulService));
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException(e);
+        }
       }
 
       @Override
@@ -72,13 +91,33 @@ public class MetricRegistryProfileFactoryBuilder {
 
       @Override
       public SpinnakerArtifact getArtifact() {
-        return SpinnakerArtifact.SPINNAKER_MONITORING_DAEMON;
+        return SpinnakerArtifact.CONSUL;
       }
 
       @Override
       protected String commentPrefix() {
-        return "## ";
+        return "// ";
+      }
+
+      @Override
+      protected boolean showEditWarning() {
+        return false;
       }
     };
+  }
+
+  @Data
+  static class ConsulService {
+    String name;
+    int port;
+    List<ConsulCheck> checks = new ArrayList<>();
+  }
+
+  @Data
+  static class ConsulCheck {
+    String id;
+    String interval;
+    String tcp;
+    String http;
   }
 }

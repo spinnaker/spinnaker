@@ -43,7 +43,9 @@ public enum SpinnakerArtifact {
   SPINNAKER_MONITORING_DAEMON("monitoring-daemon", true),
   SPINNAKER_MONITORING_THIRD_PARTY("monitoring-third-party", true),
   // Non-spinnaker
-  REDIS("redis", false);
+  REDIS("redis", false),
+  CONSUL("consul", false),
+  VAULT("vault", false);
 
   @Getter final String name;
   @Getter final boolean spinnakerInternal;
