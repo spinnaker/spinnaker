@@ -168,7 +168,7 @@ class YamlBindings(object):
 
 
   @staticmethod
-  def update_yml_source(path, update_dict):
+  def update_yml_source(path, update_dict, add_new_nodes=True):
     """Update the yaml source at the path according to the update dict.
 
     All the previous bindings not in the update dict remain unchanged.
@@ -178,6 +178,8 @@ class YamlBindings(object):
       path [string]: Path to a yaml source file.
       update_dict [dict]: Nested dictionary corresponding to
           nested yaml properties, keyed by strings.
+      add_new_nodes [boolean]: If true, add nodes in update_dict that
+          were not in the original. Otherwise raise a KeyError.
     """
     bindings = YamlBindings()
     bindings.import_dict(update_dict)
@@ -186,13 +188,96 @@ class YamlBindings(object):
     with open(path, 'r') as source_file:
       source = source_file.read()
       for prop in updated_keys:
-        source = bindings.transform_yaml_source(source, prop)
+        source = bindings.transform_yaml_source(source, prop,
+                                                add_new_nodes=add_new_nodes)
 
     with open(path, 'w') as source_file:
       source_file.write(source)
 
+  def find_yaml_context(self, source, root_node, full_key, raise_if_not_found):
+    """Given a yaml file and full key, find the span of the value for the key.
 
-  def transform_yaml_source(self, source, key):
+    If the key does not exist, then return how we should modify the file
+    around the insertion point so that the context is there.
+
+    Args:
+      source: [string] The YAML source text.
+      root_node: [yaml.nodes.MappingNode]  The composed yaml tree
+      full_key: [string] Dot-delimited path whose value we're looking for
+      raise_if_not_found: [boolean] Whether to raise a KeyError or return
+         additional context if key isnt found.
+
+    Returns:
+      context, span
+
+      where:
+          context:[string, string)]: Text to append before and after the cut.
+          span: [(int, int)]: The start/end range of source with existing value
+                              to cut.
+    """
+    parts = full_key.split('.')
+    if not isinstance(root_node, yaml.nodes.MappingNode):
+      if not root_node and not raise_if_not_found:
+        return (self._make_missing_key_text('', parts), '\n'), (0, 0)
+      else:
+        raise ValueError(root_node.__class__.__name__ + ' is not a yaml node.')
+
+    closest_node = None
+    for key_index, key in enumerate(parts):
+      found = False
+      for node in root_node.value:
+        if node[0].value == key:
+          closest_node = node
+          found = True
+          break
+      if not found:
+        break
+      root_node = closest_node[1]
+
+    if closest_node is None:
+      if raise_if_not_found:
+        raise KeyError(full_key)
+      # Nothing matches, so stick this at the start of the file.
+      return (self._make_missing_key_text('', parts), '\n'), (0, 0)
+
+    span = (closest_node[1].start_mark.index,
+            closest_node[1].end_mark.index)
+    span_is_empty = span[0] == span[1]
+
+    if found:
+      # value of closest_node is what we are going to replace.
+      # There is still a space between the token and value we write.
+      return (' ' if span_is_empty else '', ''), span
+
+    if raise_if_not_found:
+      raise KeyError('.'.join(parts[0:key_index + 1]))
+
+    # We are going to add a new child. This is going to be indented equal
+    # to the current line if the value isnt empty, otherwise one more level.
+    line_start = closest_node[0].start_mark.index - 1
+    while line_start >= 0 and source[line_start] == ' ':
+      line_start -= 1
+
+    indent = ' ' * (closest_node[0].start_mark.index - line_start + 1)
+    key_text = self._make_missing_key_text(indent, parts[key_index:])
+    if span_is_empty:
+      key_text = '  ' + prefix
+    return (key_text, '\n' + indent), (span[0], span[0])
+
+  def _make_missing_key_text(self, indent, keys):
+    key_context = []
+    sep = ''
+    for depth, key in enumerate(keys):
+      key_context.append('{sep}{extra_indent}{key}:'
+                         .format(sep=sep,
+                                 extra_indent='  ' * depth,
+                                 key=key,
+                                 base_indent=indent))
+      sep = '\n' + indent
+    key_context.append(' ')
+    return ''.join(key_context)
+
+  def transform_yaml_source(self, source, key, add_new_nodes=True):
     """Transform the given yaml source so its value of key matches the binding.
 
     Has no effect if key is not among the bindings.
@@ -201,6 +286,8 @@ class YamlBindings(object):
     Args:
       source [string]: A YAML document
       key [string]: A key into the bindings.
+      add_new_nodes [boolean]: If true, add node for key if not already present.
+           Otherwise raise a KeyError.
 
     Returns:
       Transformed source with value of key replaced to match the bindings.
@@ -210,22 +297,6 @@ class YamlBindings(object):
     except KeyError:
       return source
 
-    parts = key.split('.')
-    offset = 0
-    s = source
-    for attr in parts:
-        match = re.search('^ *{attr}:(.*)'.format(attr=attr), s, re.MULTILINE)
-        if not match:
-            raise ValueError(
-                'Could not find {key}. Failed on {attr} at {offset}'
-                .format(key=key, attr=attr, offset=offset))
-        offset += match.start(0)
-        s = source[offset:]
-
-    offset -= match.start(0)
-    value_start = match.start(1) + offset
-    value_end = match.end(0) + offset
-
     if isinstance(value, basestring) and re.search('{[^}]*{', value):
       # Quote strings with nested {} yaml flows
       value = '"{0}"'.format(value)
@@ -234,10 +305,20 @@ class YamlBindings(object):
     if isinstance(value, bool):
       value = str(value).lower()
 
+    yaml_root = yaml.compose(source)
+    context, span = self.find_yaml_context(
+        source, yaml_root, key, not add_new_nodes)
+
+    text_before = context[0]
+    text_after = context[1]
+    start_cut = span[0]
+    end_cut = span[1]
     return ''.join([
-        source[0:value_start],
-        ' {value}'.format(value=value),
-        source[value_end:]
+        source[0:start_cut],
+        text_before,
+        '{value}'.format(value=value),
+        text_after,
+        source[end_cut:]
     ])
 
 

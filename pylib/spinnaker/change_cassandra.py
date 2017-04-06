@@ -54,10 +54,14 @@ ECHO_CHOICES = ['cassandra', 'inMemory']
 
 FRONT50_CHOICES = ['cassandra', 's3', 'gcs', 'redis', 'azs']
 
-_ECHO_KEYS = ['echo.cassandra.enabled', 'echo.inMemory.enabled']
-_FRONT50_KEYS = ['front50.cassandra.enabled', 'front50.redis.enabled',
-                 'front50.s3.enabled', 'front50.gcs.enabled',
-                 'front50.storage_bucket', 'front50.azs.enabled']
+_ECHO_KEYS = ['services.echo.cassandra.enabled',
+              'services.echo.inMemory.enabled']
+_FRONT50_KEYS = ['services.front50.cassandra.enabled',
+                 'services.front50.redis.enabled',
+                 'services.front50.s3.enabled',
+                 'services.front50.gcs.enabled',
+                 'services.front50.storage_bucket',
+                 'services.front50.azs.enabled']
 
 SPINNAKER_INSTALLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA'
 SPINNAKER_DISABLED_PATH = '/opt/spinnaker/cassandra/SPINNAKER_DISABLED_CASSANDRA'
@@ -115,7 +119,7 @@ class CassandraChanger(object):
                          }}
     if options.bucket:
         config['front50']['storage_bucket'] = options.bucket
-    self.__bindings.import_dict(config)
+    self.__bindings.import_dict({'services': config})
 
   def disable_cassandra(self):
     if os.path.exists(SPINNAKER_INSTALLED_PATH):

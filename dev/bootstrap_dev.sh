@@ -237,6 +237,16 @@ if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" != "none" ]]; then
       --github_user $CONFIRMED_GITHUB_REPOSITORY_OWNER
 fi
 
+# Prepare spinnaker-local.yml
+if [[ ! -f $HOME/.spinnaker/spinnaker-local.yml ]]; then
+    # This has a side effect in which it will produce a spinnaker-local if
+    # it did not already exist. Since there is no "bogus" microservice, this
+    # will not actually do anything other than produce the spinnaker-local.
+    # The default spinnaker-local will be configured for this machine as
+    # a better starting point than otherwise.
+    ./spinnaker/dev/stop_dev.sh bogus >& /dev/null || true
+fi
+
 # Some dependencies of Deck rely on Bower to manage their dependencies. Bower
 # annoyingly prompts the user to collect some stats, so this disables that.
 echo "{\"interactive\":false}" > ~/.bowerrc

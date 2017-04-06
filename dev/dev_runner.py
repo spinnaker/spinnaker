@@ -169,8 +169,9 @@ class DevRunner(spinnaker_runner.Runner):
     change_path = os.path.join(os.path.dirname(os.path.dirname(__file__)),
                                'install', 'change_cassandra.sh')
     got = run_quick(change_path
-              + ' --echo=inMemory --front50=gcs'
-              + ' --change_defaults=false --change_local=true')
+                    + ' --echo=inMemory --front50=gcs'
+                    + ' --change_defaults=false --change_local=true',
+                    echo=False)
 
   def __init__(self, installation_parameters=None):
     self.maybe_generate_clean_user_local()
