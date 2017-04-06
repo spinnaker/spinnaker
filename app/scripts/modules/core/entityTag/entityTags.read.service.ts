@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {get} from 'lodash';
+import {module, IQService, IExceptionHandlerService, IPromise, IDeferred} from 'angular';
+import {get, uniq} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {IEntityTags, IEntityTag, ICreationMetadataTag} from '../domain/IEntityTags';
@@ -11,15 +11,15 @@ export class EntityTagsReader {
   static get $inject() { return ['API', '$q', '$exceptionHandler', 'retryService']; }
 
   constructor(private API: Api,
-              private $q: ng.IQService,
-              private $exceptionHandler: ng.IExceptionHandlerService,
+              private $q: IQService,
+              private $exceptionHandler: IExceptionHandlerService,
               private retryService: RetryService) {}
 
-  public getAllEntityTags(entityType: string, entityIds: string[]): ng.IPromise<IEntityTags[]> {
+  public getAllEntityTags(entityType: string, entityIds: string[]): IPromise<IEntityTags[]> {
     if (!entityIds || !entityIds.length) {
       return this.$q.when([]);
     }
-    const idGroups: string[] = this.collateEntityIds(entityType, entityIds);
+    const idGroups: string[] = this.collateEntityIds(entityType, uniq(entityIds));
     const succeeded = (val: IEntityTags[]) => val !== null;
     const sources = idGroups.map(idGroup => this.retryService.buildRetrySequence<IEntityTags[]>(
       () => this.API.one('tags')
@@ -30,7 +30,7 @@ export class EntityTagsReader {
       succeeded, 1, 0)
     );
 
-    let result: ng.IDeferred<IEntityTags[]> = this.$q.defer();
+    let result: IDeferred<IEntityTags[]> = this.$q.defer();
 
     this.$q.all(sources).then(
       (entityTagGroups: IEntityTags[][]) => {
