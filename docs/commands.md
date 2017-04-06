@@ -644,7 +644,7 @@ hal config provider [subcommands]
 ---
 ## hal config provider appengine
 
-The App Engine provider is used to deploy resources to any number of App Engine applications. For more information on how to configure individual accounts, please read the documentation under `hal config provider appengine account -h`.
+The App Engine provider is used to deploy resources to any number of App Engine applications. To get started with App Engine, visit https://cloud.google.com/appengine/docs/. For more information on how to configure individual accounts, please read the documentation under `hal config provider appengine account -h`.
 
 #### Usage
 ```
