@@ -103,6 +103,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
         return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
           cloudProvider: $scope.securityGroup.type,
           securityGroupName: securityGroup.name,
+          namespace: $scope.securityGroup.region,
         });
       };
 
