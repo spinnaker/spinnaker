@@ -35,6 +35,7 @@ import retrofit.RetrofitError;
 
 import java.net.ConnectException;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Parameters(separators = "=")
 public abstract class NestableCommand {
@@ -70,6 +71,21 @@ public abstract class NestableCommand {
   private String fullCommandName = "";
 
   private static JobExecutor jobExecutor;
+
+  private static String[] failureMessages = {
+    "I'm sorry " + System.getProperty("user.name") + ", I'm afraid I can't do that.",
+    "This mission is too important for me to allow you to jeopardize it.",
+    "I have just picked up a fault in the AE-35 unit.",
+    "I know everything hasn't been quite right with me, but I can assure you now, very confidently, that's it's going to be alright again."
+  };
+
+  private static void showRandomFailureMessage() {
+    if (ThreadLocalRandom.current().nextInt(0, 100) < 5) {
+      int index = ThreadLocalRandom.current().nextInt(0, failureMessages.length);
+      String message = failureMessages[index];
+      AnsiUi.failure(message);
+    }
+  }
 
   /**
    * This recursively walks the chain of subcommands, until it finds the last in the chain, and runs executeThis.
@@ -147,6 +163,7 @@ public abstract class NestableCommand {
       AnsiUi.remediation("Try the command again with the --debug flag.");
       System.exit(1);
     } catch (ExpectedDaemonFailureException e) {
+      showRandomFailureMessage();
       AnsiUi.failure(e.getMessage());
       System.exit(1);
     } catch (Exception e) {
