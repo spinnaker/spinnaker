@@ -30,4 +30,9 @@ public class AppengineCommandProperties {
             + " connecting with a remote git repository over SSH.";
     static final String SSH_PRIVATE_KEY_PASSPHRASE = "The passphrase to an SSH private key to be used"
             + " when connecting with a remote git repository over SSH.";
+    static final String SSH_KNOWN_HOSTS_FILE_PATH = "The path to a known_hosts file to be used when connecting with"
+            + " a remote git repository over SSH.";
+    static final String SSH_TRUST_UNKNOWN_HOSTS = "Enabling this flag will allow Spinnaker to connect" 
+            + " with a remote git repository over SSH without verifying the server's IP address" 
+            + " against a known_hosts file.";
 }

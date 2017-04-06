@@ -82,6 +82,20 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
   )
   private String sshPrivateKeyPassphrase;
 
+  @Parameter(
+      names = "--ssh-known-hosts-file-path",
+      converter = PathExpandingConverter.class,
+      description = AppengineCommandProperties.SSH_KNOWN_HOSTS_FILE_PATH
+  )
+  private String sshKnownHostsFilePath;
+
+  @Parameter(
+      names = "--ssh-trust-unknown-hosts",
+      description = AppengineCommandProperties.SSH_TRUST_UNKNOWN_HOSTS,
+      arity = 1
+  )
+  private Boolean sshTrustUnknownHosts = null;
+
   @Override
   protected Account editAccount(AppengineAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());
@@ -92,6 +106,8 @@ public class AppengineEditAccountCommand extends AbstractEditAccountCommand<Appe
     account.setGithubOAuthAccessToken(isSet(githubOAuthAccessToken) ? githubOAuthAccessToken : account.getGithubOAuthAccessToken());
     account.setSshPrivateKeyFilePath(isSet(sshPrivateKeyFilePath) ? sshPrivateKeyFilePath: account.getSshPrivateKeyFilePath());
     account.setSshPrivateKeyPassphrase(isSet(sshPrivateKeyPassphrase) ? sshPrivateKeyPassphrase: account.getSshPrivateKeyPassphrase());
+    account.setSshKnownHostsFilePath(isSet(sshKnownHostsFilePath) ? sshKnownHostsFilePath : account.getSshKnownHostsFilePath());
+    account.setSshTrustUnknownHosts(sshTrustUnknownHosts != null ? sshTrustUnknownHosts : account.isSshTrustUnknownHosts());
     
     return account;
   }

@@ -644,7 +644,7 @@ hal config provider [subcommands]
 ---
 ## hal config provider appengine
 
-Manage and view Spinnaker configuration for the appengine provider
+The App Engine provider is used to deploy resources to any number of App Engine applications. For more information on how to configure individual accounts, please read the documentation under `hal config provider appengine account -h`.
 
 #### Usage
 ```
@@ -684,7 +684,7 @@ hal config provider appengine enable [parameters]
 ---
 ## hal config provider appengine account
 
-Manage and view Spinnaker configuration for the appengine provider's account
+An account in the App Engine provider refers to a single App Engine application. Spinnaker assumes that your App Engine application already exists. You can create an application in your Google Cloud Platform project by running `gcloud app create --region <region>`.
 
 #### Usage
 ```
@@ -719,8 +719,10 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: (*Required*) The Google Cloud Platform project this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--ssh-known-hosts-file-path`: The path to a known_hosts file to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
+ * `--ssh-trust-unknown-hosts`: (*Default*: `false`) Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
 
 ---
 ## hal config provider appengine account edit
@@ -743,8 +745,10 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--project`: The Google Cloud Platform project this Spinnaker account will manage.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--ssh-known-hosts-file-path`: The path to a known_hosts file to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-file-path`: The path to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
+ * `--ssh-trust-unknown-hosts`: Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
 
 ---
 ## hal config provider appengine account get
@@ -831,7 +835,7 @@ hal config provider kubernetes enable [parameters]
 
 An account in the Kubernetes provider refers to a single Kubernetes context. In Kubernetes, a context is the combination of a Kubernetes cluster and some credentials. If no context is specified, the default context in in your kubeconfig is assumed.
 
-You must also provide a set of Docker Registries for each account.Spinnaker will automatically upload that Registry's credentials to the specified Kubernetes cluster allowing you to deploy those images without further configuration.
+You must also provide a set of Docker Registries for each account. Spinnaker will automatically upload that Registry's credentials to the specified Kubernetes cluster allowing you to deploy those images without further configuration.
 
 #### Usage
 ```

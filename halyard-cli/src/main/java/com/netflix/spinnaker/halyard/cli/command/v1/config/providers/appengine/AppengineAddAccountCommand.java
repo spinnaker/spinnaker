@@ -83,6 +83,20 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
       password = true
   )
   private String sshPrivateKeyPassphrase;
+  
+  @Parameter(
+      names = "--ssh-known-hosts-file-path",
+      converter = PathExpandingConverter.class,
+      description = AppengineCommandProperties.SSH_KNOWN_HOSTS_FILE_PATH
+  )
+  private String sshKnownHostsFilePath;
+
+  @Parameter(
+      names = "--ssh-trust-unknown-hosts",
+      description = AppengineCommandProperties.SSH_TRUST_UNKNOWN_HOSTS,
+      arity = 1
+  )
+  private boolean sshTrustUnknownHosts = false;
 
   @Override
   protected Account buildAccount(String accountName) {
@@ -91,7 +105,8 @@ public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
     
     account.setLocalRepositoryDirectory(localRepositoryDirectory).setGitHttpsUsername(gitHttpsUsername)
             .setGitHttpsPassword(gitHttpsPassword).setGithubOAuthAccessToken(githubOAuthAccessToken)
-            .setSshPrivateKeyFilePath(sshPrivateKeyFilePath).setSshPrivateKeyPassphrase(sshPrivateKeyPassphrase);
+            .setSshPrivateKeyFilePath(sshPrivateKeyFilePath).setSshPrivateKeyPassphrase(sshPrivateKeyPassphrase)
+            .setSshKnownHostsFilePath(sshKnownHostsFilePath).setSshTrustUnknownHosts(sshTrustUnknownHosts);
 
     return account;
   }

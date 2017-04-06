@@ -24,6 +24,15 @@ public class AppengineCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "appengine";
   }
+  
+  @Override
+  protected String getLongDescription() {
+    return String.join("",
+      "The App Engine provider is used to deploy resources to any number of App Engine applications. ",
+      "For more information on how to configure individual accounts, please read the documentation ",
+      "under `hal config provider appengine account -h`."
+    );
+  }
 
   public AppengineCommand() {
     super();

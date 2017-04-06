@@ -25,6 +25,16 @@ public class AppengineAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
     return "appengine";
   }
+  
+  @Override
+  protected String getLongDescription() {
+    return String.join("",
+      "An account in the App Engine provider refers to a single App Engine application. ",
+      "Spinnaker assumes that your App Engine application already exists. ",
+      "You can create an application in your Google Cloud Platform project by running ",
+      "`gcloud app create --region <region>`."
+    );
+  }
 
   public AppengineAccountCommand() {
     super();

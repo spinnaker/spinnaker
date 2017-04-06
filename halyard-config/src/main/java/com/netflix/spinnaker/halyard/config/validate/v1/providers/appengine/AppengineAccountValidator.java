@@ -39,6 +39,7 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
     String jsonKey = null;
     String jsonPath = account.getJsonPath();
     String project = account.getProject();
+    String knownHostsPath = account.getSshKnownHostsFilePath();
     AppengineNamedAccountCredentials credentials = null;
 
     boolean hasPassword = account.getGitHttpsPassword() != null;
@@ -78,14 +79,33 @@ public class AppengineAccountValidator extends Validator<AppengineAccount> {
         }
       }
     }
+    
+    if (knownHostsPath != null && !knownHostsPath.isEmpty()) {
+      String knownHosts = ValidatingFileReader.contents(p, knownHostsPath);
+      if (knownHosts == null) {
+        return;
+      }
+      if (knownHosts.isEmpty()) {
+        p.addProblem(Severity.WARNING, "The supplied known_hosts file is empty.");
+      }
+    }
 
     if (jsonPath != null && !jsonPath.isEmpty()) {
       jsonKey = ValidatingFileReader.contents(p, account.getJsonPath());
       if (jsonKey == null) {
         return;
-      } if (jsonKey.isEmpty()) {
+      } 
+      if (jsonKey.isEmpty()) {
         p.addProblem(Severity.WARNING, "The supplied credentials file is empty.");
       }
+    }
+    
+    if (jsonPath != null && !jsonPath.isEmpty() && account.isSshTrustUnknownHosts()) {
+      p.addProblem(
+        Severity.WARNING,
+        "You have supplied a known_hosts file path and set the `--ssh-trust-unknown-hosts` flag to true."
+        + " Spinnaker will ignore your `--ssh-trust-unknown-hosts` flag.")
+       .setRemediation("Run `--ssh-trust-unknown-hosts false`.");
     }
 
     if (account.getProject() == null || account.getProject().isEmpty()) {

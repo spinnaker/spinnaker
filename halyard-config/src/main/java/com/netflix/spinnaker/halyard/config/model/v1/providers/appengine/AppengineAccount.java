@@ -30,4 +30,6 @@ public class AppengineAccount extends CommonGoogleAccount {
   private String githubOAuthAccessToken;
   @LocalFile private String sshPrivateKeyFilePath;
   private String sshPrivateKeyPassphrase;
+  @LocalFile private String sshKnownHostsFilePath;
+  private boolean sshTrustUnknownHosts;
 }

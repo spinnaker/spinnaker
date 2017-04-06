@@ -34,7 +34,7 @@ public class KubernetesAccountCommand extends AbstractAccountCommand {
     return String.join("",
         "An account in the Kubernetes provider refers to a single Kubernetes context. In Kubernetes, a context ",
         "is the combination of a Kubernetes cluster and some credentials. If no context is specified, the default context in ",
-        "in your kubeconfig is assumed.\n\nYou must also provide a set of Docker Registries for each account.",
+        "in your kubeconfig is assumed.\n\nYou must also provide a set of Docker Registries for each account. ",
         "Spinnaker will automatically upload that Registry's credentials to the specified Kubernetes cluster ",
         "allowing you to deploy those images without further configuration."
     );
