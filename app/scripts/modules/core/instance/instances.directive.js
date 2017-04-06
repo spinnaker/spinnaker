@@ -68,7 +68,9 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
               };
               scope.activeInstance = params;
               // also stolen from uiSref directive
-              $state.go('.instanceDetails', params, {relative: base, inherit: true});
+              if (!$state.includes('**.instanceDetails', params)) {
+                $state.go('.instanceDetails', params, {relative: base, inherit: true});
+              }
               event.target.className += ' active';
               event.preventDefault();
             }

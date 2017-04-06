@@ -130,6 +130,9 @@ module.exports = angular
           job: serverGroup.name,
         };
         if (isClusterChildState()) {
+          if ($state.includes('**.serverGroup', params)) {
+            return;
+          }
           $state.go('^.' + serverGroup.category, params);
         } else {
           $state.go('.' + serverGroup.category, params);
