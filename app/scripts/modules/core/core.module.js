@@ -135,6 +135,7 @@ module.exports = angular
 
     require('./utils/utils.module.js'),
 
+    require('./whatsNew/whatsNew.directive.js'),
     CORE_WIDGETS_MODULE,
     require('./validation/validation.module.js'),
   ])

@@ -31,7 +31,6 @@ module('spinnaker.netflix', [
   TABLEAU_STATES,
   TEMPLATE_OVERRIDES,
 
-  require('./whatsNew/whatsNew.directive.js'),
   require('./fastProperties/fastProperties.module.js'),
   require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
   require('./instance/titus/netflixTitusInstanceDetails.controller.js'),

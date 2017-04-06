@@ -4,12 +4,13 @@ require('./whatsNew.less');
 
 let angular = require('angular');
 import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
+import {WHATS_NEW_READ_SERVICE} from './whatsNew.read.service';
 
 module.exports = angular
   .module('spinnaker.netflix.whatsNew.directive', [
     require('angular-marked'),
     VIEW_STATE_CACHE_SERVICE,
-    require('./whatsNew.read.service.js'),
+    WHATS_NEW_READ_SERVICE,
     require('core/utils/timeFormatters.js'),
   ])
   .config(function (markedProvider) {
