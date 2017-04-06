@@ -76,7 +76,7 @@ public abstract class NestableCommand {
     "I'm sorry " + System.getProperty("user.name") + ", I'm afraid I can't do that.",
     "This mission is too important for me to allow you to jeopardize it.",
     "I have just picked up a fault in the AE-35 unit.",
-    "I know everything hasn't been quite right with me, but I can assure you now, very confidently, that's it's going to be alright again."
+    "I know everything hasn't been quite right with me, but I can assure you now, very confidently, that it's going to be alright again."
   };
 
   private static void showRandomFailureMessage() {

@@ -71,7 +71,8 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     REDIS("spin-redis", "redis"),
     REDIS_BOOTSTRAP("spin-redis-bootstrap", "redis-bootstrap"),
     ROSCO("spin-rosco", "rosco"),
-    MONITORING_DAEMON("spin-monitoring-daemon", "monitoring-daemon");
+    MONITORING_DAEMON("spin-monitoring-daemon", "monitoring-daemon"),
+    VAULT_CLIENT("spin-vault-client", "vault-client");
 
     final String serviceName;
     @Getter

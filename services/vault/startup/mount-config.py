@@ -1,11 +1,16 @@
-#!/bin/python
+#!/usr/bin/env python
 
-import subprocess
+import argparse
+import base64
 import json
 import logging
-import base64
-import argparse
+import subprocess
 import sys
+
+
+def authenticate(token):
+    subprocess.check_call(["vault", "auth", token])
+    log.info("Successfully authenticated against the vault server")
 
 def read_secret(address, name):
     try:
@@ -38,6 +43,12 @@ def main():
             description="Download secrets for Spinnaker stored by Halyard"
     )
 
+    parser.add_argument("--token",
+            type=str,
+            help="Vault token for authentication.",
+            required=True
+    )
+
     parser.add_argument("--address", 
             type=str, 
             help="Vault server's address.",
@@ -52,6 +63,7 @@ def main():
 
     args = parser.parse_args()
 
+    authenticate(args.token)
     config_mount = read_secret(args.address, args.secret)
 
     for config in config_mount["configs"]:

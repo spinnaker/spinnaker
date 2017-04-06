@@ -14,10 +14,6 @@ INSTALL_REMOTE_DEPENDENCIES="{%install-remote-dependencies%}"
 # install first-time spinnaker dependencies (java, setup apt repos)
 PREPARE_ENVIRONMENT="{%prepare-environment%}"
 
-# TODO(lwander/jtk54) move these versions to the BOM
-CONSUL_VERSION=0.7.5
-VAULT_VERSION=0.7.0
-
 REPOSITORY_URL="{%debian-repository%}"
 
 ## check that the user is root

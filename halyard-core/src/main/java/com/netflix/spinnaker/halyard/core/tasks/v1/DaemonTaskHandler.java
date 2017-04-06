@@ -1,8 +1,11 @@
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Holds a thread-local task that can be logged to.
  */
+@Slf4j
 public class DaemonTaskHandler {
   private static ThreadLocal<DaemonTask> localTask = new ThreadLocal<>();
 
@@ -23,20 +26,26 @@ public class DaemonTaskHandler {
   }
 
   public static void newStage(String name) {
-    if (getTask() != null) {
-      getTask().newStage(name);
+    DaemonTask task = getTask();
+    if (task != null) {
+      log.info("Stage change by " + task.getUuid() + ": " + name);
+      task.newStage(name);
     }
   }
 
   public static void message(String message) {
-    if (getTask() != null) {
-      getTask().writeMessage(message);
+    DaemonTask task = getTask();
+    if (task != null) {
+      log.info("Message by " + task.getUuid() + ": " + message);
+      task.writeMessage(message);
     }
   }
 
   public static void detail(String detail) {
-    if (getTask() != null) {
-      getTask().writeDetail(detail);
+    DaemonTask task = getTask();
+    if (task != null) {
+      log.info("Detail update by " + task.getUuid() + ": " + detail);
+      task.writeDetail(detail);
     }
   }
 }

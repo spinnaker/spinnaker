@@ -52,6 +52,7 @@ public class SpinnakerRuntimeSettings {
     ServiceSettings redis;
     ServiceSettings redisBootstrap;
     ServiceSettings monitoringDaemon;
+    ServiceSettings vaultClient;
   }
 
   public Map<SpinnakerService.Type, ServiceSettings> getAllServiceSettings() {

@@ -21,8 +21,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultClientService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,11 +34,11 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianConsulClientService extends ConsulClientService implements LocalDebianService<ConsulClientService.Consul> {
+public class DebianVaultClientService extends VaultClientService implements LocalDebianService<VaultClientService.Vault> {
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings()
-        .setArtifactId("consul")
+        .setArtifactId("vault")
         .setEnabled(true);
   }
 
@@ -49,13 +49,13 @@ public class DebianConsulClientService extends ConsulClientService implements Lo
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     Map<String, String> bindings = new HashMap<>();
     bindings.put("version", deploymentDetails.getArtifactVersion(getArtifact().getName()));
-    return new JarResource("/services/consul/install.sh")
+    return new JarResource("/services/vault/install.sh")
         .setBindings(bindings)
         .toString();
   }
 
   @Override
   public String getUpstartServiceName() {
-    return "consul";
+    return null;
   }
 }

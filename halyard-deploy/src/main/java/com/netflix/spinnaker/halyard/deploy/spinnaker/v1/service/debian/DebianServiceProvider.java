@@ -69,6 +69,9 @@ public class DebianServiceProvider extends LocalServiceProvider {
   @Autowired
   DebianRoscoService roscoService;
 
+  @Autowired
+  DebianVaultClientService vaultClientService;
+
   @Override
   public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
     Map<String, String> bindings = new HashMap<>();
