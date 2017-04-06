@@ -88,6 +88,10 @@
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <render-if-feature feature="entityTags">
           <entity-source metadata="ctrl.serverGroup.entityTags.creationMetadata"></entity-source>
+          <view-changes-link commits="ctrl.commits"
+                             jar-diffs="ctrl.jarDiffs"
+                             link-text="view changes"
+                             name-item="ctrl.serverGroup"></view-changes-link>
         </render-if-feature>
         <dt>In</dt>
         <dd>
@@ -105,7 +109,6 @@
             <li ng-repeat="zone in ctrl.serverGroup.asg.availabilityZones">{{zone}}</li>
           </ul>
         </dd>
-
       </dl>
     </collapsible-section>
     <collapsible-section heading="Capacity" expanded="true">
