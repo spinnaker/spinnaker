@@ -38,8 +38,9 @@ class ServerGroupController {
   @RequestMapping(value = "/applications/{applicationName}/serverGroups", method = RequestMethod.GET)
   List getServerGroups(@PathVariable String applicationName,
                        @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
-                       @RequestParam(required = false, value = 'cloudProvider') String cloudProvider) {
-    serverGroupService.getForApplication(applicationName, expand, cloudProvider)
+                       @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
+                       @RequestParam(required = false, value = 'clusters') String clusters) {
+    serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters)
   }
 
   @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName:.+}", method = RequestMethod.GET)
