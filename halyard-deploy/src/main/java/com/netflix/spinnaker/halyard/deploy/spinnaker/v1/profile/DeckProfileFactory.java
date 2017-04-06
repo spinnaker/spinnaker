@@ -60,6 +60,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     // Configure global settings
     bindings.put("gate.baseUrl", endpoints.getServices().getGate().getBaseUrl());
     bindings.put("timezone", deploymentConfiguration.getTimezone());
+    bindings.put("version", deploymentConfiguration.getVersion());
 
     // Configure feature-flags
     bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
