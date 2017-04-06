@@ -122,12 +122,6 @@ public class KubernetesCredentials {
         SecretBuilder secretBuilder = new SecretBuilder();
         String secretName = registry.getAccountName();
 
-        Secret exists = apiAdaptor.getSecret(namespace, secretName);
-        if (exists != null) {
-          LOG.info("Secret for docker registry " + registry.getAccountName() + " in namespace " + namespace + " is being repopulated.");
-          apiAdaptor.deleteSecret(namespace, secretName);
-        }
-
         secretBuilder = secretBuilder.withNewMetadata().withName(secretName).withNamespace(namespace).endMetadata();
 
         HashMap<String, String> secretData = new HashMap<>(1);
@@ -145,7 +139,17 @@ public class KubernetesCredentials {
 
         secretBuilder = secretBuilder.withData(secretData).withType("kubernetes.io/dockercfg");
         try {
-          apiAdaptor.createSecret(namespace, secretBuilder.build());
+          Secret newSecret = secretBuilder.build();
+          Secret oldSecret = apiAdaptor.getSecret(namespace, secretName);
+          if (oldSecret != null) {
+            if (oldSecret.getData().equals(newSecret.getData())) {
+              LOG.info("Skipping creation of duplicate secret " + secretName + " in namespace " + namespace);
+            } else {
+              apiAdaptor.editSecret(namespace, secretName).addToData(newSecret.getData()).done();
+            }
+          } else {
+            apiAdaptor.createSecret(namespace, secretBuilder.build());
+          }
         } catch (ConstraintViolationException cve) {
           throw new IllegalStateException("Unable to build secret: " + cve.getMessage() +
                                           " due to violations " + cve.getConstraintViolations(),

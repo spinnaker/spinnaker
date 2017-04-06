@@ -361,9 +361,9 @@ class KubernetesApiAdaptor {
     }
   }
 
-  Boolean deleteSecret(String namespace, String secret) {
-    exceptionWrapper("secrets.delete", "Delete Secret $secret", namespace) {
-      client.secrets().inNamespace(namespace).withName(secret).delete()
+  DoneableSecret editSecret(String namespace, String secret) {
+    exceptionWrapper("secrets.edit", "Edit Secret $secret", namespace) {
+      client.secrets().inNamespace(namespace).withName(secret).edit()
     }
   }
 
