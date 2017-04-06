@@ -56,6 +56,10 @@
     <input type="number" class="form-control input-sm" name="runtimeLimitSecs" ng-model="stage.cluster.runtimeLimitSecs" min="1" required/>
   </stage-config-field>
 
+  <stage-config-field label="Retries" help-key="titus.deploy.retries">
+    <input type="number" class="form-control input-sm" name="retries" ng-model="stage.cluster.retries" min="0" required/>
+  </stage-config-field>
+
   <stage-config-field label="Property File" help-key="titus.deploy.propertyFile">
     <input type="text" class="form-control input-sm" name="propertyFile" ng-model="stage.propertyFile"/>
   </stage-config-field>
