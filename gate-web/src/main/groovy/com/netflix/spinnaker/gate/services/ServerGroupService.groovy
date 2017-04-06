@@ -40,10 +40,10 @@ class ServerGroupService {
   @Autowired
   ProviderLookupService providerLookupService
 
-  List getForApplication(String applicationName, String expand, String cloudProvider) {
+  List getForApplication(String applicationName, String expand, String cloudProvider, String clusters) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
-      clouddriverService.getServerGroups(applicationName, expand, cloudProvider)
+      clouddriverService.getServerGroups(applicationName, expand, cloudProvider, clusters)
     } execute()
   }
 
