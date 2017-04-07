@@ -10,4 +10,12 @@ export interface IExecution extends IOrchestratedItem {
   user: string;
   stageSummaries?: IStageSummary[];
   isStrategy?: boolean;
+  name?: string;
+  executionEngine?: string;
+  stringVal?: string;
+  isComplete?: boolean;
+  graphStatusHash?: string;
+  pipelineConfigId?: string;
+  searchField?: string;
+  appConfig?: any;
 }

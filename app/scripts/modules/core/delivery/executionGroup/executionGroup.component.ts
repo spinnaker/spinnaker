@@ -1,10 +1,13 @@
 import {IComponentController, IComponentOptions, IPromise, ITimeoutService, IScope, module} from 'angular';
 import {IModalService} from 'angular-ui-bootstrap';
+import {IStateService} from 'angular-ui-router';
 import {find, flatten, uniq} from 'lodash';
 
 import {Application} from 'core/application/application.model';
 import {IExecutionDetailsStateParams} from '../delivery.states';
-import {IStateService} from 'angular-ui-router';
+import {EXECUTION_COMPONENT} from './execution/execution.component';
+import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
+import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
 
 import './executionGroup.less';
@@ -27,16 +30,16 @@ export class ExecutionGroupController implements IComponentController {
   public pipelineConfig: any;
   public strategyConfig: any;
 
-  static get $inject(): string[] { return ['$scope', '$timeout', '$state', '$stateParams', '$uibModal', 'executionService', 'collapsibleSectionStateCache', 'ExecutionFilterModel', 'pipelineConfigService']; }
+  static get $inject(): string[] { return ['$scope', '$timeout', '$state', '$stateParams', '$uibModal', 'executionService', 'collapsibleSectionStateCache', 'executionFilterModel', 'pipelineConfigService']; }
 
   constructor(public $scope: IScope,
               private $timeout: ITimeoutService,
               private $state: IStateService,
               private $stateParams: IExecutionDetailsStateParams,
               private $uibModal: IModalService,
-              private executionService: any,
+              private executionService: ExecutionService,
               private collapsibleSectionStateCache: any,
-              private ExecutionFilterModel: any,
+              private executionFilterModel: ExecutionFilterModel,
               private pipelineConfigService: PipelineConfigService) {}
 
   public $onInit(): void {
@@ -51,7 +54,7 @@ export class ExecutionGroupController implements IComponentController {
       poll: null,
       canTriggerPipelineManually: this.pipelineConfig,
       canConfigure: this.pipelineConfig || this.strategyConfig,
-      showAccounts: this.ExecutionFilterModel.sortFilter.groupBy === 'name',
+      showAccounts: this.executionFilterModel.sortFilter.groupBy === 'name',
     };
 
     this.$scope.$on('toggle-expansion', (_event, expanded) => {
@@ -92,7 +95,7 @@ export class ExecutionGroupController implements IComponentController {
   }
 
   private getSectionCacheKey(): string {
-    return this.executionService.getSectionCacheKey(this.ExecutionFilterModel.sortFilter.groupBy, this.application.name, this.group.heading);
+    return this.executionService.getSectionCacheKey(this.executionFilterModel.sortFilter.groupBy, this.application.name, this.group.heading);
   };
 
   public toggle(): void {
@@ -150,11 +153,11 @@ export class ExecutionGroupComponent implements IComponentOptions {
 
 export const EXECUTION_GROUP_COMPONENT = 'spinnaker.core.delivery.group.executionGroup.component';
 module(EXECUTION_GROUP_COMPONENT, [
-  require('../filter/executionFilter.service.js'),
-  require('../filter/executionFilter.model.js'),
   require('../triggers/triggersTag.directive.js'),
   require('../triggers/nextRun.component'),
-  require('./execution/execution.directive.js'),
+  EXECUTION_COMPONENT,
+  EXECUTION_FILTER_MODEL,
+  EXECUTION_SERVICE,
   PIPELINE_CONFIG_SERVICE
 ])
 .component('executionGroup', new ExecutionGroupComponent());

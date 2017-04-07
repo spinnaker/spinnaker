@@ -1,0 +1,113 @@
+<div class="execution" id="execution-{{::$ctrl.execution.id}}" ng-class="$ctrl.showingDetails ? 'show-details' : 'details-hidden'">
+  <div class="execution-overview group-by-{{::$ctrl.sortFilter.groupBy}}">
+    <h4 class="execution-name" ng-if="::$ctrl.sortFilter.groupBy !== 'name'">
+      <account-label-color ng-repeat="account in $ctrl.execution.deploymentTargets" account="{{account}}"></account-label-color>
+      {{::$ctrl.execution.name}}
+    </h4>
+    <execution-status execution="::$ctrl.execution"
+                      toggle-details="$ctrl.toggleDetails(node)"
+                      showing-details="$ctrl.showingDetails"
+                      standalone="::$ctrl.standalone">
+    </execution-status>
+    <div class="execution-bar">
+      <div class="stages" ng-class="{'show-durations': $ctrl.sortFilter.showStageDuration}">
+        <div ng-repeat="stage in ::$ctrl.execution.stageSummaries"
+             class="clickable stage execution-marker"
+             ng-style="::{width: 100/$ctrl.execution.stageSummaries.length + '%', 'background-color': stage.color}"
+             ng-class="['stage-type-' + stage.type.toLowerCase(), 'execution-marker-' + stage.status.toLowerCase(), $ctrl.isActive($index) ? 'active' : '', stage.isRunning ? 'glowing' : '']"
+             uib-tooltip-template="::stage.labelTemplateUrl"
+             analytics-on="click"
+             analytics-category="Pipeline"
+             analytics-event="Stage clicked (bar)"
+             ng-click="$ctrl.toggleDetails({executionId: $ctrl.execution.id, index: $index})">
+          <span class="duration">{{stage.runningTimeInMs | duration}}</span>
+        </div>
+        <div ng-if="::!$ctrl.execution.stageSummaries.length" class="text-center">
+          No stages found.
+          <a target="_blank"
+             analytics-on="click"
+             analytics-category="Pipeline"
+             analytics-event="Execution source clicked (no stages found)"
+             ng-href="{{$ctrl.pipelinesUrl + $ctrl.execution.id}}">Source</a>
+        </div>
+      </div>
+      <div class="execution-summary">
+        Status: <span class="status execution-status execution-status-{{::$ctrl.execution.status.toLowerCase()}}">{{::$ctrl.execution.status}}</span>
+        <span ng-if="::$ctrl.execution.cancellationReason" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ ::$ctrl.execution.cancellationReason }}"></span>
+        <span ng-if="::$ctrl.execution.canceledBy">
+          by {{::$ctrl.execution.canceledBy}} &mdash; {{::$ctrl.execution.endTime | timestamp}}
+        </span>
+        <span ng-if="::$ctrl.restartDetails">
+          Restarted by {{::$ctrl.restartDetails.restartedBy}} &mdash; {{::$ctrl.restartDetails.restartTime | timestamp}}
+        </span>
+        <span class="pull-right">Duration: {{$ctrl.execution.runningTimeInMs | duration}}</span>
+      </div>
+    </div>
+    <div class="execution-actions">
+      <a href
+         ng-if="::$ctrl.execution.isRunning"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution pause clicked"
+         ng-click="$ctrl.pauseExecution(); $event.stopPropagation();"
+         uib-tooltip="Pause execution">
+        <span class="glyphicon glyphicon-pause"></span>
+      </a>
+      <a href
+         ng-if="::$ctrl.execution.isPaused"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution resume clicked"
+         ng-click="$ctrl.resumeExecution(); $event.stopPropagation();"
+         uib-tooltip="Resume execution">
+        <span class="glyphicon glyphicon-play"></span>
+      </a>
+      <a href
+         ng-if="::!$ctrl.execution.isActive"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution delete clicked"
+         ng-click="$ctrl.deleteExecution(); $event.stopPropagation();"
+         uib-tooltip="Delete execution">
+        <span class="glyphicon glyphicon-trash"></span>
+      </a>
+      <a href
+         ng-if="::$ctrl.execution.isActive"
+         analytics-on="click"
+         analytics-category="Pipeline"
+         analytics-event="Execution cancel clicked"
+         ng-click="$ctrl.cancelExecution(); $event.stopPropagation();"
+         uib-tooltip="Cancel execution">
+        <span class="glyphicon glyphicon-remove-circle"></span>
+      </a>
+    </div>
+  </div>
+  <div ng-if="$ctrl.showingDetails" class="execution-graph">
+    <pipeline-graph ng-if="$ctrl.execution.parallel"
+                    execution="$ctrl.execution"
+                    on-node-click="$ctrl.toggleDetails(node)"
+                    view-state="$ctrl.viewState">
+
+    </pipeline-graph>
+  </div>
+
+  <div ng-if="$ctrl.showingDetails" class="execution-details-container">
+    <execution-details execution="::$ctrl.execution" application="::$ctrl.application" standalone="::$ctrl.standalone">
+    </execution-details>
+    <div class="permalinks">
+      <div class="permalinks-content">
+        <a target="_blank"
+           analytics-on="click"
+           analytics-category="Pipeline"
+           analytics-event="Execution source clicked"
+           ng-href="{{$ctrl.pipelinesUrl + $ctrl.execution.id}}">Source</a>
+        |
+        <a ng-href="{{$ctrl.getUrl()}}"
+           analytics-on="click"
+           analytics-category="Pipeline"
+           analytics-event="Permalink clicked">Permalink</a>
+        <copy-to-clipboard text="{{$ctrl.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+      </div>
+    </div>
+  </div>
+</div>

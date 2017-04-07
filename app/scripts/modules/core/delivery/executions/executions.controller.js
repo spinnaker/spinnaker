@@ -2,27 +2,30 @@
 
 let angular = require('angular');
 
+import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
+import {EXECUTION_FILTER_SERVICE} from 'core/delivery/filter/executionFilter.service';
+import {EXECUTION_SERVICE} from '../service/execution.service';
 import {INSIGHT_FILTER_STATE_MODEL} from 'core/insight/insightFilterState.model';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 import {SCROLL_TO_SERVICE} from '../../utils/scrollTo/scrollTo.service';
 
 module.exports = angular.module('spinnaker.core.delivery.executions.controller', [
-  require('../service/execution.service.js'),
+  EXECUTION_SERVICE,
   PIPELINE_CONFIG_SERVICE,
   SCROLL_TO_SERVICE,
   INSIGHT_FILTER_STATE_MODEL,
-  require('../filter/executionFilter.model.js'),
-  require('../filter/executionFilter.service.js'),
+  EXECUTION_FILTER_MODEL,
+  EXECUTION_FILTER_SERVICE,
   require('../create/create.module.js'),
 ])
   .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal, $stateParams,
                                          pipelineConfigService, scrollToService, $timeout,
-                                         executionService, ExecutionFilterModel, executionFilterService,
+                                         executionService, executionFilterModel, executionFilterService,
                                          InsightFilterStateModel) {
 
-    if (ExecutionFilterModel.mostRecentApplication !== $scope.application.name) {
-      ExecutionFilterModel.groups = [];
-      ExecutionFilterModel.mostRecentApplication = $scope.application.name;
+    if (executionFilterModel.mostRecentApplication !== $scope.application.name) {
+      executionFilterModel.groups = [];
+      executionFilterModel.mostRecentApplication = $scope.application.name;
     }
 
     let scrollIntoView = (delay = 200) => scrollToService.scrollTo('#execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
@@ -42,7 +45,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     this.InsightFilterStateModel = InsightFilterStateModel;
 
-    this.filter = ExecutionFilterModel.sortFilter;
+    this.filter = executionFilterModel.sortFilter;
 
     this.clearFilters = () => {
       executionFilterService.clearFilters();
@@ -51,13 +54,13 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     this.updateExecutionGroups = (reload) => {
       normalizeExecutionNames();
-      ExecutionFilterModel.applyParamsToUrl();
+      executionFilterModel.applyParamsToUrl();
       if (reload) {
         this.application.executions.refresh(true);
         this.application.executions.reloadingForFilters = true;
       } else {
         executionFilterService.updateExecutionGroups(this.application);
-        this.tags = ExecutionFilterModel.tags;
+        this.tags = executionFilterModel.tags;
         // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flag a bit
         $timeout(() => { this.viewState.loading = false; }, 50);
       }
@@ -163,5 +166,4 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
         scrollIntoView(0);
       }
     });
-
   });

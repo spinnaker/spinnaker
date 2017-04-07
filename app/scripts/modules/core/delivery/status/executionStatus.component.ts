@@ -1,5 +1,6 @@
 import {IComponentController, IComponentOptions, module} from 'angular';
 
+import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {EXECUTION_USER_FILTER} from './executionUser.filter';
 import {IExecution} from 'core/domain/IExecution';
 
@@ -8,17 +9,17 @@ import './executionStatus.less';
 
 export class ExecutionStatusController implements IComponentController {
   public execution: IExecution;
-  public toggleDetails: () => void;
-  public showingDetails: () => boolean;
+  public toggleDetails: (node: {executionId: string, index: number}) => void;
+  public showingDetails: boolean;
   public standalone: boolean;
 
   public filter: any;
   public sortFilter: any;
   public parameters: { key: string, value: any }[];
 
-  static get $inject(): string[] { return ['ExecutionFilterModel']; }
+  static get $inject(): string[] { return ['executionFilterModel']; }
 
-  constructor(private ExecutionFilterModel: any) {}
+  constructor(private executionFilterModel: ExecutionFilterModel) {}
 
   public $onInit(): void {
     // these are internal parameters that are not useful to end users
@@ -30,7 +31,7 @@ export class ExecutionStatusController implements IComponentController {
       'cloudProvider'
     ];
 
-    this.filter = this.ExecutionFilterModel.sortFilter;
+    this.filter = this.executionFilterModel.sortFilter;
 
     if (this.execution.trigger && this.execution.trigger.parameters) {
       this.parameters = Object.keys(this.execution.trigger.parameters).sort()
@@ -45,7 +46,7 @@ export class ExecutionStatusController implements IComponentController {
 export class ExecutionStatusComponent implements IComponentOptions {
   public bindings: any = {
     execution: '<',
-    toggleDetails: '<',
+    toggleDetails: '&',
     showingDetails: '<',
     standalone: '<',
   };
@@ -55,7 +56,7 @@ export class ExecutionStatusComponent implements IComponentOptions {
 
 export const EXECUTION_STATUS_COMPONENT = 'spinnaker.core.delivery.executionStatus.component';
 module(EXECUTION_STATUS_COMPONENT, [
-  require('../filter/executionFilter.model.js'),
+  EXECUTION_FILTER_MODEL,
   EXECUTION_USER_FILTER
 ])
 .component('executionStatus', new ExecutionStatusComponent());

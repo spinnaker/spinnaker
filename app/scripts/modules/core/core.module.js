@@ -3,6 +3,7 @@
 import Spinner from 'spin.js';
 let angular = require('angular');
 
+import {ACCOUNT_LABEL_COLOR_COMPONENT} from './account/accountLabelColor.component';
 import {AUTHENTICATION} from './authentication/authentication.module';
 import {API_SERVICE} from './api/api.service';
 import {CLOUD_PROVIDER_LOGO} from './cloudProvider/cloudProviderLogo.component';
@@ -51,7 +52,7 @@ module.exports = angular
 
     require('./application/application.module.js'),
 
-    require('./account/accountLabelColor.directive.js'),
+    ACCOUNT_LABEL_COLOR_COMPONENT,
     require('./analytics/analytics.service'),
     AUTHENTICATION,
     require('./bootstrap/applicationBootstrap.directive.js'),

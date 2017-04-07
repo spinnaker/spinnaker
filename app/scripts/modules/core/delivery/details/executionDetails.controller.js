@@ -9,10 +9,18 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;
 
-    controller.standalone = $scope.standalone || false;
+    controller.standalone = controller.standalone || false;
+
+    // This is pretty dirty but executionDetails has its dirty tentacles
+    // all over the place. This makes the conversion of the execution directive
+    // to a component safe until we tackle converting all the controllers
+    // TODO: Convert all the execution details controllers to ES6 controllers and remove references to $scope
+    $scope.standalone = controller.standalone;
+    $scope.application = controller.application;
+    $scope.execution = controller.execution;
 
     function getStageParams(stageId) {
-      const summaries = ($scope.execution.stageSummaries || []);
+      const summaries = (controller.execution.stageSummaries || []);
       const stageIndex = summaries.findIndex(s => (s.stages || []).some(s2 => s2.id === stageId));
       if (stageIndex !== -1) {
         const stepIndex = (summaries[stageIndex].stages || []).findIndex(s => s.id === stageId);
@@ -36,7 +44,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
         }
       }
       if ($stateParams.refId) {
-        let stages = $scope.execution.stageSummaries || [];
+        let stages = controller.execution.stageSummaries || [];
         let currentStageIndex = _.findIndex(stages, { refId: $stateParams.refId });
         if (currentStageIndex !== -1) {
           $state.go('.', {
@@ -85,7 +93,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
 
     controller.getDetailsSourceUrl = function() {
       if ($stateParams.step !== undefined) {
-        let stages = $scope.execution.stageSummaries || [];
+        let stages = controller.execution.stageSummaries || [];
         var stageSummary = stages[getCurrentStage()];
         if (stageSummary) {
           var step = stageSummary.stages[getCurrentStep()] || stageSummary.masterStage;
@@ -104,7 +112,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
     controller.getSummarySourceUrl = function() {
       if ($stateParams.stage !== undefined) {
         let currentStage = getCurrentStage();
-        let stages = $scope.execution.stageSummaries || [];
+        let stages = controller.execution.stageSummaries || [];
         let stageSummary = stages.length > currentStage ?
           stages[currentStage] :
           null;
@@ -136,8 +144,8 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
         return false;
       }
 
-      const allowRestart = $scope.application.attributes.enableRestartRunningExecutions || false;
-      if ($scope.execution.isRunning && !allowRestart) {
+      const allowRestart = controller.application.attributes.enableRestartRunningExecutions || false;
+      if (controller.execution.isRunning && !allowRestart) {
         return false;
       }
 

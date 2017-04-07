@@ -4,19 +4,21 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
+import {EXECUTION_FILTER_SERVICE} from 'core/delivery/filter/executionFilter.service';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.controller', [
-  require('./executionFilter.service.js'),
-  require('./executionFilter.model.js'),
+  EXECUTION_FILTER_SERVICE,
+  EXECUTION_FILTER_MODEL,
   require('angulartics'),
   PIPELINE_CONFIG_SERVICE
 ])
   .controller('ExecutionFilterCtrl', function ($scope, $rootScope, $q, pipelineConfigService,
-                                               executionFilterService, ExecutionFilterModel, $analytics) {
+                                               executionFilterService, executionFilterModel, $analytics) {
 
-    this.tags = ExecutionFilterModel.tags;
-    $scope.sortFilter = ExecutionFilterModel.sortFilter;
+    this.tags = executionFilterModel.tags;
+    $scope.sortFilter = executionFilterModel.sortFilter;
 
     this.viewState = {
       pipelineReorderDisabled: true,
@@ -33,7 +35,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
     };
 
     this.updateExecutionGroups = (reload) => {
-      ExecutionFilterModel.applyParamsToUrl();
+      executionFilterModel.applyParamsToUrl();
       if (reload) {
         this.application.executions.reloadingForFilters = true;
         this.application.executions.refresh();
@@ -67,7 +69,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
     this.initialize();
 
     $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
-      ExecutionFilterModel.activate();
+      executionFilterModel.activate();
       executionFilterService.updateExecutionGroups(this.application);
     }));
 
