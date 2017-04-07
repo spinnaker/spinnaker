@@ -1,4 +1,4 @@
-'use strict';
+import {IFilterService, mock} from 'angular';
 
 import {SETTINGS} from 'core/config/settings';
 
@@ -8,20 +8,20 @@ describe('Filter: timeFormatters', function() {
   });
 
   beforeEach(
-    window.module('spinnaker.core.utils.timeFormatters')
+    mock.module('spinnaker.core.utils.timeFormatters')
   );
 
   afterEach(SETTINGS.resetToOriginal);
 
   describe('timePickerTime', function() {
 
-    var filter;
+    let filter: (input?: any) => any;
 
     describe('timePicker', function () {
       beforeEach(
-        window.inject(
-          function($filter) {
-            filter = $filter('timePickerTime');
+        mock.inject(
+          function($filter: IFilterService) {
+            filter = $filter('timePickerTime') as any;
           }
         )
       );
@@ -52,9 +52,9 @@ describe('Filter: timeFormatters', function() {
 
     describe('timestamp', function () {
       beforeEach(
-        window.inject(
-          function($filter) {
-            filter = $filter('timestamp');
+        mock.inject(
+          function($filter: IFilterService) {
+            filter = $filter('timestamp') as any;
           }
         )
       );
@@ -71,9 +71,9 @@ describe('Filter: timeFormatters', function() {
 
     describe('duration', function () {
       beforeEach(
-        window.inject(
-          function($filter) {
-            filter = $filter('duration');
+        mock.inject(
+          function($filter: IFilterService) {
+            filter = $filter('duration') as any;
           }
         )
       );
