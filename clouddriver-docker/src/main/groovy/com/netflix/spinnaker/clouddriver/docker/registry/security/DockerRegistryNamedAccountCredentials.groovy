@@ -39,6 +39,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     long clientTimeoutMillis
     int paginateSize
     boolean trackDigests
+    boolean sortTagsByDate
     List<String> repositories
     List<String> skip
 
@@ -119,6 +120,11 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
       return this
     }
 
+    Builder sortTagsByDate(boolean sortTagsByDate) {
+      this.sortTagsByDate = sortTagsByDate
+      return this
+    }
+
     Builder repositories(List<String> repositories) {
       this.repositories = repositories
       return this
@@ -144,7 +150,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                                        cacheThreads,
                                                        clientTimeoutMillis,
                                                        paginateSize,
-                                                       trackDigests)
+                                                       trackDigests,
+                                                       sortTagsByDate)
     }
   }
 
@@ -162,7 +169,8 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         int cacheThreads,
                                         long clientTimeoutMillis,
                                         int paginateSize,
-                                        boolean trackDigests) {
+                                        boolean trackDigests,
+                                        boolean sortTagsByDate) {
     this(accountName,
          environment,
          accountType,
@@ -178,6 +186,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
          clientTimeoutMillis,
          paginateSize,
          trackDigests,
+         sortTagsByDate,
          null)
   }
 
@@ -196,6 +205,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
                                         long clientTimeoutMillis,
                                         int paginateSize,
                                         boolean trackDigests,
+                                        boolean sortTagsByDate,
                                         List<String> requiredGroupMembership) {
     if (!accountName) {
       throw new IllegalArgumentException("Docker Registry account must be provided with a name.")
@@ -234,6 +244,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
     this.password = password
     this.email = email
     this.trackDigests = trackDigests
+    this.sortTagsByDate = sortTagsByDate
     this.skip = skip ?: []
     this.requiredGroupMembership = requiredGroupMembership == null ? Collections.emptyList() : Collections.unmodifiableList(requiredGroupMembership)
     this.credentials = buildCredentials(repositories)
@@ -252,6 +263,17 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   @JsonIgnore
   String getBasicAuth() {
     return this.credentials?.client?.basicAuth ?: ""
+  }
+
+  @JsonIgnore
+  List<String> getTags(String repository) {
+    def tags = credentials.client.getTags(repository).tags
+    if(sortTagsByDate){
+      tags = tags.sort{ tag ->
+        credentials.client.getCreationDate(repository, tag)
+      }.reverse()
+    }
+    tags
   }
 
   String getV2Endpoint() {
@@ -275,7 +297,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
         .paginateSize(paginateSize)
         .build()
 
-      return new DockerRegistryCredentials(client, repositories, trackDigests, skip)
+      return new DockerRegistryCredentials(client, repositories, trackDigests, skip, sortTagsByDate)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
         throw new DockerRegistryConfigException("No repositories specified for ${name}, and the provided endpoint ${address} does not support /_catalog.")
@@ -298,6 +320,7 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   final File passwordFile
   final String email
   final boolean trackDigests
+  final boolean sortTagsByDate
   final int cacheThreads
   final long clientTimeoutMillis
   final int paginateSize
