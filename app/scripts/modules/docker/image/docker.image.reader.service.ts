@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
-import {IImageReader, IImage, IFindImageParams} from 'core/image/image.reader';
+import {IImageReader, IImage, IFindImageParams, IFindTagsParams} from 'core/image/image.reader';
 
 export interface IDockerImage extends IImage {
   account: string;
@@ -31,6 +31,13 @@ export class DockerImageReaderService implements IImageReader {
       .getList(params), (results: IDockerImage[]) => (results.length > 0), 10, 1000)
       .then((results: IDockerImage[]) => results)
       .catch((): IDockerImage[] => []);
+  }
+
+  public findTags(params: IFindTagsParams): ng.IPromise<string[]> {
+    return this.retryService.buildRetrySequence<String[]>(() => this.API.all('images/tags')
+      .getList(params), (results: string[]) => (results.length > 0), 10, 1000)
+      .then((results: string[]) => results)
+      .catch((): string[] => []);
   }
 }
 

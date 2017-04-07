@@ -1,7 +1,6 @@
 'use strict';
 
 import {Observable, Subject} from 'rxjs';
-import _ from 'lodash';
 
 import {DOCKER_IMAGE_READER} from 'docker/image/docker.image.reader.service';
 
@@ -34,7 +33,7 @@ module.exports = angular
     };
 
     let tagLoadSuccess = (tags) => {
-      this.tags = tags.map((val) => val.tag ).sort();
+      this.tags = tags;
       if (this.tags.length) {
         let defaultSelection = this.tags[0];
         this.viewState.selectedTag = defaultSelection;
@@ -57,13 +56,13 @@ module.exports = angular
       this.searchTags();
     };
 
-    let handleQuery = (q) => {
+    let handleQuery = () => {
       return Observable.fromPromise(
-          dockerImageReader.findImages({
-            provider: 'dockerRegistry',
-            account: this.command.trigger.account,
-            q: ( this.command.trigger.organization ? this.command.trigger.organization + '/' : '' ) + q,
-            count: 50 }));
+        dockerImageReader.findTags({
+          provider: 'dockerRegistry',
+          account: this.command.trigger.account,
+          repository: this.command.trigger.repository,
+        }));
     };
 
     this.updateSelectedTag = (item) => {
@@ -79,16 +78,7 @@ module.exports = angular
 
     this.searchTags = (query = '') => {
       this.tags = [`<span>Finding tags${query && ` matching ${query}`}...</span>`];
-      queryStream.next(formatQuery(query));
-    };
-
-    let formatQuery = (query) => {
-      let repository = _.get(this, 'command.trigger.repository');
-      if (repository) {
-        return `${this.command.trigger.repository.split('/').pop()}:${query}`;
-      } else {
-        return query;
-      }
+      queryStream.next();
     };
 
     $scope.$watch(() => this.command.trigger, initialize);
