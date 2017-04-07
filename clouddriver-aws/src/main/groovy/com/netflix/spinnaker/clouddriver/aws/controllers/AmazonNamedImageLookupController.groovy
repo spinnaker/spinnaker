@@ -24,6 +24,7 @@ import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -68,15 +69,9 @@ class AmazonNamedImageLookupController {
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<NamedImage> list(LookupOptions lookupOptions, HttpServletRequest request) {
-    if (lookupOptions.q == null || lookupOptions.q.length() < MIN_NAME_FILTER) {
-      throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
-    }
-
+    validateLookupOptions(lookupOptions)
     String glob = lookupOptions.q?.trim()
-    def isAmi = glob.startsWith("ami")
-    if (isAmi && glob.length() != 12) {
-      throw new InsufficientLookupOptionsException("Searches by AMI id must be an exact match (ami-xxxxxxxx)")
-    }
+    def isAmi = glob ==~ /^ami-[a-z0-9]{8}$/
 
     // Wrap in '*' if there are no glob-style characters in the query string
     if (!isAmi && !glob.contains('*') && !glob.contains('?') && !glob.contains('[') && !glob.contains('\\')) {
@@ -190,6 +185,18 @@ class AmazonNamedImageLookupController {
     }
   }
 
+  void validateLookupOptions(LookupOptions lookupOptions) {
+    if (lookupOptions.q == null || lookupOptions.q.length() < MIN_NAME_FILTER) {
+      throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
+    }
+
+    String glob = lookupOptions.q?.trim()
+    def isAmi = glob ==~ /^ami-[a-z0-9]{8}$/
+    if (glob == "ami" || (!isAmi && glob.startsWith("ami-"))) {
+      throw new InsufficientLookupOptionsException("Searches by AMI id must be an exact match (ami-xxxxxxxx)")
+    }
+  }
+
   private static Map<String, String> extractTagFilters(HttpServletRequest httpServletRequest) {
     return httpServletRequest.getParameterNames().findAll {
       it.toLowerCase().startsWith("tag:")
@@ -198,9 +205,14 @@ class AmazonNamedImageLookupController {
     } as Map<String, String>
   }
 
-  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+  @ExceptionHandler
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  Map handleInsufficientLookupOptions(InsufficientLookupOptionsException e) {
+    [message: e.message, status: HttpStatus.BAD_REQUEST]
+  }
+
   @InheritConstructors
-  private static class InsufficientLookupOptionsException extends RuntimeException {}
+  static class InsufficientLookupOptionsException extends RuntimeException {}
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = 'Image not found')
   @InheritConstructors
@@ -217,7 +229,7 @@ class AmazonNamedImageLookupController {
     Map<String, String> tags = [:]
   }
 
-  private static class LookupOptions {
+  static class LookupOptions {
     String q
     String account
     String region
