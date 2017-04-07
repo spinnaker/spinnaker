@@ -132,6 +132,24 @@ class StandardAppengineAttributeValidator {
     }
   }
 
+  def validateMaxNotLessThanMin(Integer minValue, Integer maxValue, String minAttribute, String maxAttribute) {
+    if (maxValue < minValue) {
+      errors.rejectValue(maxAttribute, "${context}.${maxAttribute} must not be less than ${context}.${minAttribute}.")
+      return false
+    } else {
+      return true
+    }
+  }
+
+  def validateNonNegative(Integer value, String attribute) {
+    if (value && value < 0) {
+      errors.rejectValue(attribute, "${context}.${attribute}.negative")
+      return false
+    } else {
+      return true
+    }
+  }
+
   def validateAllocations(Map<String, Double> allocations, ShardBy shardBy, String attribute) {
     def decimalPlaces = shardBy == ShardBy.COOKIE ?
       AppengineModelUtil.COOKIE_SPLIT_DECIMAL_PLACES :
@@ -292,7 +310,7 @@ class StandardAppengineAttributeValidator {
 
     if (!(isFlex || usesBasicScaling || usesManualScaling)) {
       errors.rejectValue("${context}.${attribute}",
-                         "${context}.${attribute}.invalid (Only server groups that use the flexible environment," +
+                         "${context}.${attribute}.invalid (Only server groups that use the App Engine flexible environment," +
                          " or use basic or manual scaling can be started or stopped).")
       return false
     } else {
@@ -339,12 +357,40 @@ class StandardAppengineAttributeValidator {
     def serverGroup = clusterProvider.getServerGroup(credentials.name, credentials.region, split.allocations.keySet()[0])
     if (!serverGroup.allowsGradualTrafficMigration) {
       errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid " +
-                                                    "(Cannot gradually migrate traffic to this server group. " +
-                                                    "Gradual migration is allowed only for server groups in the standard " +
-                                                    "environment that use automatic scaling and have warmup requests enabled).")
+                         "(Cannot gradually migrate traffic to this server group. " +
+                         "Gradual migration is allowed only for server groups in the App Engine standard " +
+                         "environment that use automatic scaling and have warmup requests enabled).")
       return false
     }
 
     return true
+  }
+
+  def validateServerGroupSupportsAutoscalingPolicyUpsert(String serverGroupName,
+                                                         AppengineNamedAccountCredentials credentials,
+                                                         AppengineClusterProvider clusterProvider,
+                                                         String attribute) {
+    if (!serverGroupName) {
+      return
+    }
+
+    def serverGroup = clusterProvider.getServerGroup(credentials.name, credentials.region, serverGroupName)
+    if (serverGroup) {
+      // App Engine standard versions don't always have an 'env' property.
+      def isStandard = serverGroup.env != AppengineServerGroup.Environment.FLEXIBLE
+      def usesAutomaticScaling = serverGroup.scalingPolicy?.type == ScalingPolicyType.AUTOMATIC
+      if (isStandard && usesAutomaticScaling) {
+        return true
+      } else {
+        errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.invalid " +
+                           "(Autoscaling policies can only be updated for " +
+                           "server groups in the App Engine standard environment that use automatic scaling).")
+        return false
+      }
+    } else {
+      errors.rejectValue("${context}.${attribute}", "${context}.${attribute}.notFound " +
+                         "(Cannot find server group $serverGroupName.)")
+      return false
+    }
   }
 }

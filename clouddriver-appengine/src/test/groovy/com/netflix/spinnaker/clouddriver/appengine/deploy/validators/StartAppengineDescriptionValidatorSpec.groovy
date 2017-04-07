@@ -102,7 +102,7 @@ class StartAppengineDescriptionValidatorSpec extends Specification {
     then:
       1 * errors.rejectValue('startAppengineAtomicOperationDescription.serverGroupName',
                              'startAppengineAtomicOperationDescription.serverGroupName.invalid ' +
-                             '(Only server groups that use the flexible environment, or use basic ' +
+                             '(Only server groups that use the App Engine flexible environment, or use basic ' +
                              'or manual scaling can be started or stopped).')
 
     where:

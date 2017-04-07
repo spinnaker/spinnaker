@@ -90,8 +90,8 @@ class StartStopAppengineAtomicOperationSpec extends Specification {
       1 * patchMock.execute()
 
     where:
-      start | expectedVersion
-      true  | new Version(servingStatus: "SERVING")
-      false | new Version(servingStatus: "STOPPED")
+      start || expectedVersion
+      true  || new Version(servingStatus: "SERVING")
+      false || new Version(servingStatus: "STOPPED")
   }
 }

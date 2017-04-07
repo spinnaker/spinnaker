@@ -88,9 +88,12 @@ class AppengineServerGroup implements ServerGroup, Serializable {
         * For the flexible environment, a version using automatic scaling can be stopped.
         * A stopped version scales down to zero instances and ignores its scaling policy.
         * */
-        def min = servingStatus == ServingStatus.SERVING ? (scalingPolicy.minTotalInstances ?: 0) : 0
+        def min = servingStatus == ServingStatus.SERVING ?
+          [scalingPolicy.minTotalInstances, scalingPolicy.minIdleInstances].max() : 0
+        def max = servingStatus == ServingStatus.SERVING ?
+          [scalingPolicy.maxTotalInstances, scalingPolicy.maxIdleInstances, instanceCount].max() : instanceCount
         return new ServerGroup.Capacity(min: min,
-                                        max: scalingPolicy.maxTotalInstances ?: instanceCount,
+                                        max: max,
                                         desired: min)
         break
       case ScalingPolicyType.BASIC:

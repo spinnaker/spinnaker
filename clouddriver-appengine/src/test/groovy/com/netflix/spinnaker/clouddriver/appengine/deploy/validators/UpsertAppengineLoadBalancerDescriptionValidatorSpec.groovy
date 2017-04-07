@@ -158,7 +158,7 @@ class UpsertAppengineLoadBalancerDescriptionValidatorSpec extends Specification 
       errorMessage << [
         'upsertAppengineLoadBalancerAtomicOperationDescription.migrateTraffic.invalid (Cannot gradually migrate traffic to multiple server groups).',
         'upsertAppengineLoadBalancerAtomicOperationDescription.migrateTraffic.invalid (Cannot gradually migrate traffic to this server group.'
-          + ' Gradual migration is allowed only for server groups in the standard environment that use automatic scaling and have warmup requests enabled).',
+          + ' Gradual migration is allowed only for server groups in the App Engine standard environment that use automatic scaling and have warmup requests enabled).',
         'upsertAppengineLoadBalancerAtomicOperationDescription.split.allocations.empty'
       ]
   }
