@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.docker.registry.api.v2.client
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerToken
 import com.netflix.spinnaker.clouddriver.docker.registry.api.v2.auth.DockerBearerTokenService
@@ -35,6 +36,7 @@ import retrofit.http.*
 
 import java.net.*
 import java.io.*
+import java.time.Instant
 import java.util.concurrent.TimeUnit
 
 @Slf4j
@@ -184,19 +186,33 @@ class DockerRegistryClient {
   }
 
   public String getDigest(String name, String tag) {
-    def response = request({
+    def response = getManifest(name, tag)
+    def headers = response.headers
+    def digest = headers?.find {
+      it.name == "Docker-Content-Digest"
+    }
+    return digest?.value
+  }
+
+  private Map tagDateCache = [:]
+
+  public Instant getCreationDate(String name, String tag) {
+    String key = "${name}:${tag}"
+    if(tagDateCache.containsKey(key) && tag !='latest'){
+      return tagDateCache[key]
+    }
+    Map manifest = converter.fromBody(getManifest(name, tag).body, Map)
+    Instant dateCreated = Instant.parse(new Gson().fromJson(manifest.history[0].v1Compatibility, Map).created)
+    tagDateCache[key] = dateCreated
+    dateCreated
+  }
+
+  private getManifest(String name, String tag) {
+    request({
       registryService.getManifest(name, tag, tokenService.basicAuthHeader, clouddriverUserAgentApplicationName)
     }, { token ->
       registryService.getManifest(name, tag, token, clouddriverUserAgentApplicationName)
     }, name)
-
-    def headers = response.headers
-
-    def digest = headers?.find {
-      it.name == "Docker-Content-Digest"
-    }
-
-    return digest?.value
   }
 
   private static String parseLink(retrofit.client.Header header) {

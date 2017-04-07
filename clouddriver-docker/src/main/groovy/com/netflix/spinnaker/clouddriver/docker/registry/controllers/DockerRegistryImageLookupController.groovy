@@ -24,8 +24,11 @@ import com.netflix.spinnaker.clouddriver.docker.registry.provider.DockerRegistry
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -36,6 +39,12 @@ class DockerRegistryImageLookupController {
 
   @Autowired
   AccountCredentialsProvider accountCredentialsProvider
+
+  @RequestMapping(value = "/tags", method = RequestMethod.GET)
+  List<String> getTags(@RequestParam('account') String account, @RequestParam('repository') String repository) {
+    def credentials = (DockerRegistryNamedAccountCredentials) accountCredentialsProvider.getCredentials(account)
+    credentials?.getTags(repository)
+  }
 
   @RequestMapping(value = '/find', method = RequestMethod.GET)
   List<Map> find(LookupOptions lookupOptions) {
@@ -83,11 +92,11 @@ class DockerRegistryImageLookupController {
       } else {
         def parse = Keys.parse(it.id)
         return [
-            repository: (String) parse.repository,
-            tag       : (String) parse.tag,
-            account   : it.attributes.account,
-            registry  : credentials.registry,
-            digest    : it.attributes.digest,
+          repository: (String) parse.repository,
+          tag       : (String) parse.tag,
+          account   : it.attributes.account,
+          registry  : credentials.registry,
+          digest    : it.attributes.digest,
         ]
       }
     }

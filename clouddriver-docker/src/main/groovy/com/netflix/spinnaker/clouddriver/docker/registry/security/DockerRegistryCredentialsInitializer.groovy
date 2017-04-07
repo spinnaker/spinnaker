@@ -75,6 +75,7 @@ class DockerRegistryCredentialsInitializer implements CredentialsInitializerSync
           .clientTimeoutMillis(managedAccount.clientTimeoutMillis)
           .paginateSize(managedAccount.paginateSize)
           .trackDigests(managedAccount.trackDigests)
+          .sortTagsByDate(managedAccount.sortTagsByDate)
           .repositories(managedAccount.repositories)
           .skip(managedAccount.skip)
           .build()

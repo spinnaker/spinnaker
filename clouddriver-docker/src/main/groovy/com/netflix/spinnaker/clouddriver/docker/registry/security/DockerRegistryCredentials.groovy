@@ -23,9 +23,10 @@ class DockerRegistryCredentials {
   private List<String> repositories
   private final boolean reloadRepositories
   private final boolean trackDigests
+  private final boolean sortTagsByDate
   private List<String> skip
 
-  DockerRegistryCredentials(DockerRegistryClient client, List<String> repositories, boolean trackDigests, List<String> skip) {
+  DockerRegistryCredentials(DockerRegistryClient client, List<String> repositories, boolean trackDigests, List<String> skip, boolean sortTagsByDate) {
     this.client = client
     this.trackDigests = trackDigests
     this.skip = skip
@@ -36,6 +37,7 @@ class DockerRegistryCredentials {
       this.reloadRepositories = false
       this.repositories = repositories
     }
+    this.sortTagsByDate = sortTagsByDate
   }
 
   DockerRegistryClient getClient() {

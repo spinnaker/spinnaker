@@ -45,6 +45,8 @@ class DockerRegistryConfigurationProperties {
     int paginateSize
     // Track digest changes. This is _not_ recommended as it consumes a high QPM, and most registries are flaky.
     boolean trackDigests
+    // Sort tags by creation date.
+    boolean sortTagsByDate
     // List of all repositories to index. Can be of the form <user>/<repo>,
     // or <library> for repositories like 'ubuntu'.
     List<String> repositories
