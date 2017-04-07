@@ -54,4 +54,11 @@ class ImageController {
     }
     imageService.search(provider, query, region, account, count, additionalFilters)
   }
+
+  @RequestMapping(value = "/tags", method = RequestMethod.GET)
+  List<String> findTags(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+                       @RequestParam(value = "account", required = true) String account,
+                       @RequestParam(value = "repository", required = true) String repository) {
+    imageService.findTags(provider, account, repository)
+  }
 }
