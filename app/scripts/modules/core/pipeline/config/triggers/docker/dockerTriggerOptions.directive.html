@@ -19,7 +19,7 @@
       </ui-select-match>
       <ui-select-choices repeat="tag in vm.tags | filter: $select.search"
                          refresh-delay="0"
-                         refresh="vm.searchTags($select.search)">
+                         >
         <span ng-bind-html="tag | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>

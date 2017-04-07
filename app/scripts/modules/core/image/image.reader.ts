@@ -8,6 +8,12 @@ export interface IFindImageParams {
   count?: number;
 }
 
+export interface IFindTagsParams {
+  provider: string;
+  account: string;
+  repository: string;
+}
+
 // marker interface
 export interface IImage {}
 
