@@ -3,6 +3,7 @@
 import {V2_MODAL_WIZARD_COMPONENT} from './wizard/v2modalWizard.component';
 import {V2_MODAL_WIZARD_SERVICE} from './wizard/v2modalWizard.service';
 import {MODAL_CLOSE_COMPONENT} from './buttons/modalClose.component';
+import {SUBMIT_BUTTON_COMPONENT} from './buttons/submitButton.component';
 
 let angular = require('angular');
 
@@ -13,7 +14,7 @@ module.exports = angular
     require('./modalOverlay.directive.js'),
     require('./modalPage.directive.js'),
     MODAL_CLOSE_COMPONENT,
-    require('./buttons/submitButton.directive.js'),
+    SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_SERVICE,
     V2_MODAL_WIZARD_COMPONENT,
   ]).run(function($rootScope, $uibModalStack) {
