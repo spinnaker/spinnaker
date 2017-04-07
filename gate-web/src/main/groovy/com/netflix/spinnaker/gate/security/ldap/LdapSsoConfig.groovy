@@ -82,8 +82,8 @@ class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
-    authConfig.configure(http)
     http.formLogin()
+    authConfig.configure(http)
   }
 
   @Component
