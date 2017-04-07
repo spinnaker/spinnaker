@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.net.URISyntaxException;
@@ -43,11 +44,11 @@ abstract public class ServiceSettings {
   String host;
   String scheme;
   String healthEndpoint;
-  String domain;
   @JsonIgnore String username;
   @JsonIgnore String password;
   Map<String, String> env = new HashMap<>();
   String artifactId;
+  String overrideBaseUrl;
   boolean enabled;
   boolean basicAuthEnabled;
   boolean monitored;
@@ -58,11 +59,10 @@ abstract public class ServiceSettings {
   public ServiceSettings() {}
 
   private URIBuilder buildBaseUri() {
-    String uriHost = getDomain() != null ? getDomain() : getAddress();
     return new URIBuilder()
         .setScheme(getScheme())
         .setPort(getPort())
-        .setHost(uriHost);
+        .setHost(getAddress());
   }
 
   @JsonIgnore
@@ -73,6 +73,10 @@ abstract public class ServiceSettings {
   }
 
   public String getBaseUrl() {
-    return buildBaseUri().toString();
+    if (StringUtils.isEmpty(overrideBaseUrl)) {
+      return buildBaseUri().toString();
+    } else {
+      return overrideBaseUrl;
+    }
   }
 }

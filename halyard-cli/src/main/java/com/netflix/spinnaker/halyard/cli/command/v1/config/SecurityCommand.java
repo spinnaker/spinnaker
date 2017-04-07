@@ -18,8 +18,10 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.api.ApiSecurityCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.OAuth2Command;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.RolesCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.ui.UiSecurityCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
@@ -36,9 +38,10 @@ public class SecurityCommand extends AbstractConfigCommand {
   private String description = "Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.";
 
   public SecurityCommand() {
+    registerSubcommand(new ApiSecurityCommand());
     registerSubcommand(new OAuth2Command());
     registerSubcommand(new RolesCommand());
-    registerSubcommand(new EditSecurityCommand());
+    registerSubcommand(new UiSecurityCommand());
   }
 
   @Override

@@ -32,8 +32,10 @@ public class ApiSecurity extends PublicService<SpringSsl> {
 
   @Override
   public String getNodeName() {
-    return "apiSecurity";
+    return "api";
   }
+
+  String corsAccessPattern;
 
   @Override
   SpringSsl baseSsl() {

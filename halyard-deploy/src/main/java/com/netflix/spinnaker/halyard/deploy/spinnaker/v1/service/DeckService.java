@@ -110,6 +110,7 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
     public Settings() {}
 
     public Settings(UiSecurity uiSecurity) {
+      setOverrideBaseUrl(uiSecurity.getOverrideBaseUrl());
       if (uiSecurity.getSsl().isEnabled()) {
         scheme = "https";
       }

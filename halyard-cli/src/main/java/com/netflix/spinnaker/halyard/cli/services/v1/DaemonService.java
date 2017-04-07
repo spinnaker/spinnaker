@@ -17,10 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
-import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -29,7 +26,6 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.http.*;
 
-import javax.ws.rs.OPTIONS;
 import java.util.List;
 import java.util.Map;
 
@@ -224,6 +220,62 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Path("serviceName") String serviceName,
       @Query("validate") boolean validate);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/api/")
+  DaemonTask<Halconfig, Object> getApiSecurity(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/api/")
+  DaemonTask<Halconfig, Void> setApiSecurity(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body ApiSecurity apiSecurity);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/api/ssl/")
+  DaemonTask<Halconfig, Object> getSpringSsl(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/api/ssl/")
+  DaemonTask<Halconfig, Void> setSpringSsl(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body SpringSsl springSsl);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/api/ssl/enabled/")
+  DaemonTask<Halconfig, Void> setSpringSslEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/ui/")
+  DaemonTask<Halconfig, Object> getUiSecurity(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/ui/")
+  DaemonTask<Halconfig, Void> setUiSecurity(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body UiSecurity uiSecurity);
+
+  @GET("/v1/config/deployments/{deploymentName}/security/ui/ssl/")
+  DaemonTask<Halconfig, Object> getApacheSsl(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/ui/ssl/")
+  DaemonTask<Halconfig, Void> setApacheSsl(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body ApacheSsl apacheSsl);
+
+  @PUT("/v1/config/deployments/{deploymentName}/security/ui/ssl/enabled/")
+  DaemonTask<Halconfig, Void> setApacheSslEnabled(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body boolean enabled);
 
   @GET("/v1/config/deployments/{deploymentName}/security/authn/{methodName}/")
   DaemonTask<Halconfig, Object> getAuthnMethod(

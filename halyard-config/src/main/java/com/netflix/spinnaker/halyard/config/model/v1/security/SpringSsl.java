@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.springframework.boot.context.embedded.Ssl;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
@@ -32,7 +33,7 @@ public class SpringSsl extends Node {
   }
 
   @Getter
-  private final String nodeName = "springSsl";
+  private final String nodeName = "ssl";
 
   @Override
   public NodeIterator getChildren() {
@@ -47,5 +48,5 @@ public class SpringSsl extends Node {
   @LocalFile String trustStore;
   String trustStoreType;
   String trustStorePassword;
-  String clientAuth;
+  Ssl.ClientAuth clientAuth;
 }

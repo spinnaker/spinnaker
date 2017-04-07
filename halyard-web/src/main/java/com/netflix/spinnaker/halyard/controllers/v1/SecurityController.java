@@ -20,10 +20,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
-import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.config.services.v1.SecurityService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
@@ -58,6 +55,204 @@ public class SecurityController {
     if (validate) {
       builder.setValidateResponse(() -> securityService.validateSecurity(deploymentName));
     }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/ui/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, UiSecurity> getUiSecurity(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<UiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setSeverity(severity);
+    builder.setBuildResponse(() -> securityService.getUiSecurity(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/ui/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setUiSecurity(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawUiSecurity) {
+    UiSecurity uiSecurity = objectMapper.convertValue(rawUiSecurity, UiSecurity.class);
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setUiSecurity(deploymentName, uiSecurity));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateUiSecurity(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/ui/ssl/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, ApacheSsl> getApacheSsl(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<ApacheSsl> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setSeverity(severity);
+    builder.setBuildResponse(() -> securityService.getApacheSsl(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/ui/ssl/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setApacheSSl(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawApacheSsl) {
+    ApacheSsl apacheSsl = objectMapper.convertValue(rawApacheSsl, ApacheSsl.class);
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setApacheSsl(deploymentName, apacheSsl));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateApacheSsl(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/ui/ssl/enabled/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setApacheSSlEnabled(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody boolean enabled) {
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setApacheSslEnabled(deploymentName, enabled));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateApacheSsl(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/api/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, ApiSecurity> getApiSecurity(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<ApiSecurity> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setSeverity(severity);
+    builder.setBuildResponse(() -> securityService.getApiSecurity(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> securityService.validateApiSecurity(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/api/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setApiSecurity(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawApiSecurity) {
+    ApiSecurity apiSecurity = objectMapper.convertValue(rawApiSecurity, ApiSecurity.class);
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setApiSecurity(deploymentName, apiSecurity));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateApiSecurity(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/api/ssl/", method = RequestMethod.GET)
+  DaemonTask<Halconfig, SpringSsl> getSpringSsl(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<SpringSsl> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setSeverity(severity);
+    builder.setBuildResponse(() -> securityService.getSpringSsl(deploymentName));
+
+    if (validate) {
+      builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
+    }
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/api/ssl/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setSpringSSl(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawSpringSsl) {
+    SpringSsl apacheSsl = objectMapper.convertValue(rawSpringSsl, SpringSsl.class);
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setSpringSsl(deploymentName, apacheSsl));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateSpringSsl(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return TaskRepository.submitTask(builder::build);
+  }
+
+  @RequestMapping(value = "/api/ssl/enabled/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setSpringSSlEnabled(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody boolean enabled) {
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> securityService.setSpringSslEnabled(deploymentName, enabled));
+
+    builder.setValidate(ProblemSet::new);
+    if (validate) {
+      builder.setValidate(() -> securityService.validateSpringSsl(deploymentName));
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
 
     return TaskRepository.submitTask(builder::build);
   }

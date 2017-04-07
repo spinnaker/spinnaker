@@ -35,7 +35,5 @@ abstract public class PublicService<T extends Node> extends Node {
   abstract T baseSsl();
 
   T ssl = baseSsl();
-  String domain;
-  String address = "localhost";
   String overrideBaseUrl;
 }

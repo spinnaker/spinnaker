@@ -19,10 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
-import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
@@ -308,6 +305,76 @@ public class Daemon {
   public static Supplier<Void> setSecurity(String deploymentName, boolean validate, Security security) {
     return () -> {
       ResponseUnwrapper.get(getService().setSecurity(deploymentName, validate, security));
+      return null;
+    };
+  }
+
+  public static Supplier<ApiSecurity> getApiSecurity(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawApiSecurity = ResponseUnwrapper.get(getService().getApiSecurity(deploymentName, validate));
+      return getObjectMapper().convertValue(rawApiSecurity, ApiSecurity.class);
+    };
+  }
+
+  public static Supplier<Void> setApiSecurity(String deploymentName, boolean validate, ApiSecurity apiSecurity) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setApiSecurity(deploymentName, validate, apiSecurity));
+      return null;
+    };
+  }
+
+  public static Supplier<SpringSsl> getSpringSsl(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawSpringSsl = ResponseUnwrapper.get(getService().getSpringSsl(deploymentName, validate));
+      return getObjectMapper().convertValue(rawSpringSsl, SpringSsl.class);
+    };
+  }
+
+  public static Supplier<Void> setSpringSsl(String deploymentName, boolean validate, SpringSsl apacheSsl) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setSpringSsl(deploymentName, validate, apacheSsl));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setSpringSslEnabled(String deploymentName, boolean validate, boolean enabled) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setSpringSslEnabled(deploymentName, validate, enabled));
+      return null;
+    };
+  }
+
+  public static Supplier<UiSecurity> getUiSecurity(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawUiSecurity = ResponseUnwrapper.get(getService().getUiSecurity(deploymentName, validate));
+      return getObjectMapper().convertValue(rawUiSecurity, UiSecurity.class);
+    };
+  }
+
+  public static Supplier<Void> setUiSecurity(String deploymentName, boolean validate, UiSecurity uiSecurity) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setUiSecurity(deploymentName, validate, uiSecurity));
+      return null;
+    };
+  }
+
+  public static Supplier<ApacheSsl> getApacheSsl(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawApacheSsl = ResponseUnwrapper.get(getService().getApacheSsl(deploymentName, validate));
+      return getObjectMapper().convertValue(rawApacheSsl, ApacheSsl.class);
+    };
+  }
+
+  public static Supplier<Void> setApacheSsl(String deploymentName, boolean validate, ApacheSsl apacheSsl) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setApacheSsl(deploymentName, validate, apacheSsl));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setApacheSslEnabled(String deploymentName, boolean validate, boolean enabled) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setApacheSslEnabled(deploymentName, validate, enabled));
       return null;
     };
   }

@@ -20,14 +20,9 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 public class SecurityService {
@@ -40,21 +35,77 @@ public class SecurityService {
   @Autowired
   private ValidateService validateService;
 
+  public SpringSsl getSpringSsl(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity().setSpringSsl();
+
+    return lookupService.getSingularNodeOrDefault(filter,
+        SpringSsl.class,
+        SpringSsl::new,
+        n -> setSpringSsl(deploymentName, n));
+  }
+
+  public void setSpringSsl(String deploymentName, SpringSsl apacheSsl) {
+    ApiSecurity uiSecurity = getApiSecurity(deploymentName);
+    uiSecurity.setSsl(apacheSsl);
+  }
+
+  public void setSpringSslEnabled(String deploymentName, boolean enabled) {
+    getSpringSsl(deploymentName).setEnabled(enabled);
+  }
+
+  public ApacheSsl getApacheSsl(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity().setApacheSsl();
+
+    return lookupService.getSingularNodeOrDefault(filter,
+        ApacheSsl.class,
+        ApacheSsl::new,
+        n -> setApacheSsl(deploymentName, n));
+  }
+
+  public void setApacheSsl(String deploymentName, ApacheSsl apacheSsl) {
+    UiSecurity uiSecurity = getUiSecurity(deploymentName);
+    uiSecurity.setSsl(apacheSsl);
+  }
+
+  public void setApacheSslEnabled(String deploymentName, boolean enabled) {
+    getApacheSsl(deploymentName).setEnabled(enabled);
+  }
+
+  public UiSecurity getUiSecurity(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity();
+
+    return lookupService.getSingularNodeOrDefault(filter,
+        UiSecurity.class,
+        UiSecurity::new,
+        n -> setUiSecurity(deploymentName, n));
+  }
+
+  public void setUiSecurity(String deploymentName, UiSecurity apiSecurity) {
+    Security security = getSecurity(deploymentName);
+    security.setUiSecurity(apiSecurity);
+  }
+
+  public ApiSecurity getApiSecurity(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity();
+
+    return lookupService.getSingularNodeOrDefault(filter,
+        ApiSecurity.class,
+        ApiSecurity::new,
+        n -> setApiSecurity(deploymentName, n));
+  }
+
+  public void setApiSecurity(String deploymentName, ApiSecurity apiSecurity) {
+    Security security = getSecurity(deploymentName);
+    security.setApiSecurity(apiSecurity);
+  }
+
   public Security getSecurity(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity();
 
-    List<Security> matching = lookupService.getMatchingNodesOfType(filter, Security.class);
-
-    switch (matching.size()) {
-      case 0:
-        Security security = new Security();
-        setSecurity(deploymentName, security);
-        return security;
-      case 1:
-        return matching.get(0);
-      default:
-        throw new RuntimeException("It shouldn't be possible to have multiple security nodes. This is a bug.");
-    }
+    return lookupService.getSingularNodeOrDefault(filter,
+        Security.class,
+        Security::new,
+        n -> setSecurity(deploymentName, n));
   }
 
   public void setAuthnMethodEnabled(String deploymentName, String methodName, boolean enabled) {
@@ -103,47 +154,31 @@ public class SecurityService {
   public AuthnMethod getAuthnMethod(String deploymentName, String methodName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setAuthnMethod(methodName);
 
-    List<AuthnMethod> matching = lookupService.getMatchingNodesOfType(filter, AuthnMethod.class);
-
-    try {
-      switch (matching.size()) {
-        case 0:
-          AuthnMethod security = AuthnMethod.translateAuthnMethodName(methodName).newInstance();
-          setAuthnMethod(deploymentName, security);
-          return security;
-        case 1:
-          return matching.get(0);
-        default:
-          throw new RuntimeException("It shouldn't be possible to have multiple security nodes. This is a bug.");
-      }
-    } catch (InstantiationException | IllegalAccessException e) {
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Can't create an empty authn node "
-          + "for authn method name \"" + methodName + "\"").build()
-      );
-    }
+    return lookupService.getSingularNodeOrDefault(filter,
+        AuthnMethod.class,
+        () -> {
+          try {
+            return AuthnMethod.translateAuthnMethodName(methodName).newInstance();
+          } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        n -> setAuthnMethod(deploymentName, n));
   }
 
   public RoleProvider getRoleProvider(String deploymentName, String roleProviderName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setRoleProvider(roleProviderName);
 
-    List<RoleProvider> matching = lookupService.getMatchingNodesOfType(filter, RoleProvider.class);
-
-    try {
-      switch (matching.size()) {
-        case 0:
-          RoleProvider roleProvider = GroupMembership.translateRoleProviderType(roleProviderName).newInstance();
-          setRoleProvider(deploymentName, roleProvider);
-          return roleProvider;
-        case 1:
-          return matching.get(0);
-        default:
-          throw new RuntimeException("It shouldn't be possible to have multiple security nodes. This is a bug.");
-      }
-    } catch (InstantiationException | IllegalAccessException e) {
-      throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Can't create an empty authn node "
-          + "for authn role provider name \"" + roleProviderName + "\"").build()
-      );
-    }
+    return lookupService.getSingularNodeOrDefault(filter,
+        RoleProvider.class,
+        () -> {
+          try {
+            return GroupMembership.translateRoleProviderType(roleProviderName).newInstance();
+          } catch (InstantiationException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        n -> setRoleProvider(deploymentName, n));
   }
 
   public void setSecurity(String deploymentName, Security newSecurity) {
@@ -189,6 +224,26 @@ public class SecurityService {
       default:
         throw new RuntimeException("Unknown Role Provider " + roleProvider.getRoleProviderType());
     }
+  }
+
+  public ProblemSet validateApacheSsl(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity().setApacheSsl();
+    return validateService.validateMatchingFilter(filter);
+  }
+
+  public ProblemSet validateSpringSsl(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity().setSpringSsl();
+    return validateService.validateMatchingFilter(filter);
+  }
+
+  public ProblemSet validateUiSecurity(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setUiSecurity();
+    return validateService.validateMatchingFilter(filter);
+  }
+
+  public ProblemSet validateApiSecurity(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setSecurity().setApiSecurity();
+    return validateService.validateMatchingFilter(filter);
   }
 
   public ProblemSet validateSecurity(String deploymentName) {

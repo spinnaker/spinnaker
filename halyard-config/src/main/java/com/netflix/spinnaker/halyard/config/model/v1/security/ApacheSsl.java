@@ -32,7 +32,7 @@ public class ApacheSsl extends Node {
   }
 
   @Getter
-  private final String nodeName = "apacheSsl";
+  private final String nodeName = "ssl";
 
   @Override
   public NodeIterator getChildren() {

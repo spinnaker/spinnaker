@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
@@ -48,10 +49,9 @@ public class KubernetesGateService extends GateService implements KubernetesDist
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    Settings settings = new Settings(deploymentConfiguration.getSecurity().getApiSecurity());
-    settings.setAddress(buildAddress())
-        .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setDomain(deploymentConfiguration.getSecurity().getApiDomain())
+    ApiSecurity apiSecurity = deploymentConfiguration.getSecurity().getApiSecurity();
+    Settings settings = new Settings(apiSecurity);
+    settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(true);
     return settings;
   }

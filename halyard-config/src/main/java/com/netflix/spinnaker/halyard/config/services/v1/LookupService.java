@@ -17,13 +17,18 @@
 package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -70,5 +75,20 @@ public class LookupService {
     result.add(node);
 
     return result;
+  }
+
+  public <T extends Node> T getSingularNodeOrDefault(NodeFilter filter, Class<T> clazz, Supplier<T> defaultNode, Consumer<T> setDefault) {
+    List<T> matching = getMatchingNodesOfType(filter, clazz);
+
+    switch (matching.size()) {
+      case 0:
+        T node = defaultNode.get();
+        setDefault.accept(node);
+        return node;
+      case 1:
+        return matching.get(0);
+      default:
+        throw new RuntimeException("It shouldn't be possible to have multiple " + clazz.getCanonicalName() + " nodes. This is a bug.");
+    }
   }
 }

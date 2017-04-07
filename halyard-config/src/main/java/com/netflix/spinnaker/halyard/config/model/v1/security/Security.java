@@ -42,21 +42,8 @@ public class Security extends Node {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  private String apiAddress = "localhost";
-  private String apiDomain;
-  private String uiAddress = "localhost";
-  private String uiDomain;
-
   private ApiSecurity apiSecurity = new ApiSecurity();
   private UiSecurity uiSecurity = new UiSecurity();
   private Authn authn = new Authn();
   private Authz authz = new Authz();
-
-  public String getApiDomain() {
-    return apiSecurity.getDomain() != null ? apiSecurity.getDomain() : apiSecurity.getAddress();
-  }
-
-  public String getUiDomain() {
-    return uiSecurity.getDomain() != null ? uiSecurity.getDomain() : uiSecurity.getAddress();
-  }
 }

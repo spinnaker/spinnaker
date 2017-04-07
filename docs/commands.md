@@ -8,7 +8,12 @@
  * [**hal config features**](#hal-config-features)
  * [**hal config features edit**](#hal-config-features-edit)
  * [**hal config security**](#hal-config-security)
- * [**hal config security edit**](#hal-config-security-edit)
+ * [**hal config security ui**](#hal-config-security-ui)
+ * [**hal config security ui edit**](#hal-config-security-ui-edit)
+ * [**hal config security ui ssl**](#hal-config-security-ui-ssl)
+ * [**hal config security ui ssl edit**](#hal-config-security-ui-ssl-edit)
+ * [**hal config security ui ssl enable**](#hal-config-security-ui-ssl-enable)
+ * [**hal config security ui ssl disable**](#hal-config-security-ui-ssl-disable)
  * [**hal config security roles**](#hal-config-security-roles)
  * [**hal config security roles provider**](#hal-config-security-roles-provider)
  * [**hal config security roles provider google**](#hal-config-security-roles-provider-google)
@@ -16,6 +21,12 @@
  * [**hal config security roles edit**](#hal-config-security-roles-edit)
  * [**hal config security roles enable**](#hal-config-security-roles-enable)
  * [**hal config security roles disable**](#hal-config-security-roles-disable)
+ * [**hal config security api**](#hal-config-security-api)
+ * [**hal config security api edit**](#hal-config-security-api-edit)
+ * [**hal config security api ssl**](#hal-config-security-api-ssl)
+ * [**hal config security api ssl edit**](#hal-config-security-api-ssl-edit)
+ * [**hal config security api ssl enable**](#hal-config-security-api-ssl-enable)
+ * [**hal config security api ssl disable**](#hal-config-security-api-ssl-disable)
  * [**hal config security oauth2**](#hal-config-security-oauth2)
  * [**hal config security oauth2 edit**](#hal-config-security-oauth2-edit)
  * [**hal config security oauth2 enable**](#hal-config-security-oauth2-enable)
@@ -310,25 +321,93 @@ hal config security [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `edit`: Edit top-level spinnaker security settings.
+ * `api`: Configure and view the API server's addressable URL and CORS policies.
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `roles`: Configure authorization via a roles provider.
+ * `ui`: Configure and view the UI server's addressable URL.
 
 ---
-## hal config security edit
+## hal config security ui
 
-Edit top-level spinnaker security settings.
+Configure and view the UI server's addressable URL.
 
 #### Usage
 ```
-hal config security edit [parameters]
+hal config security ui [parameters] [subcommands]
 ```
 #### Parameters
- * `--api-address`: The IP address the API is to be served from. If this is anything other than localhost it must be provisioned and owned by the cloud provider Spinnaker is being deployed to. The deployment of Spinnaker will automatically provision a load balancer that binds to this address.
- * `--api-domain`: A domain that resolves to the address supplied to --api-address. This is required for generating valid SSL keypairs based on whatever CA you provide Spinnaker.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--ui-address`: The IP address the UI is to be served from. If this is anything other than localhost it must be provisioned and owned by the cloud provider Spinnaker is being deployed to. The deployment of Spinnaker will automatically provision a load balancer that binds to this address.
- * `--ui-domain`: A domain that resolves to the address supplied to --ui-address. This is required for generating valid SSL keypairs based on whatever CA you provide Spinnaker.
+#### Subcommands
+ * `edit`: Configure access policies specific to Spinnaker's UI server.
+ * `ssl`: Configure and view SSL settings for Spinnaker's UI gateway.
+
+---
+## hal config security ui edit
+
+When Spinnaker is deployed to a remote host, the UI server may be configured to do SSL termination, or sit behind an externally configured proxy server or load balancer.
+
+#### Usage
+```
+hal config security ui edit [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--override-base-url`: If you are accessing the UI server remotely, provide the full base URL of whatever proxy or load balancer is fronting the UI requests.
+
+---
+## hal config security ui ssl
+
+If you want the UI server to do SSL termination, it must be enabled and configured here. If you are doing your own SSL termination, leave this disabled.
+
+#### Usage
+```
+hal config security ui ssl [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Disable SSL for the UI gateway.
+ * `edit`: Edit SSL settings for your UI server.
+ * `enable`: Enable SSL for the UI gateway.
+
+---
+## hal config security ui ssl edit
+
+Configure SSL termination to handled by the UI server's Apache server.
+
+#### Usage
+```
+hal config security ui ssl edit [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--ssl-certificate-file`: Path to your .crt file.
+ * `--ssl-certificate-key-file`: Path to your .key file.
+ * `--ssl-certificate-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase needed to unlock your SSL certificate. This will be provided to Apache on startup.
+
+---
+## hal config security ui ssl enable
+
+Enable SSL for the UI gateway.
+
+#### Usage
+```
+hal config security ui ssl enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security ui ssl disable
+
+Disable SSL for the UI gateway.
+
+#### Usage
+```
+hal config security ui ssl disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
 ## hal config security roles
@@ -423,6 +502,95 @@ Set Spinnaker's role-based authorization to disabled
 #### Usage
 ```
 hal config security roles disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security api
+
+Configure and view the API server's addressable URL and CORS policies.
+
+#### Usage
+```
+hal config security api [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `edit`: Configure access policies specific to Spinnaker's API server.
+ * `ssl`: Configure and view SSL settings for Spinnaker's API gateway.
+
+---
+## hal config security api edit
+
+When Spinnaker is deployed to a remote host, the API server may be configured to accept auth requests from alternate sources, do SSL termination, or sit behind an externally configured proxy server or load balancer.
+
+#### Usage
+```
+hal config security api edit [parameters]
+```
+#### Parameters
+ * `--cors-access-pattern`: If you have authentication enabled, are accessing Spinnaker remotely, and are logging in from sources other than the UI, provide a regex matching all URLs authentication redirects may come from.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--override-base-url`: If you are accessing the API server remotely, provide the full base URL of whatever proxy or load balancer is fronting the API requests.
+
+---
+## hal config security api ssl
+
+If you want the API server to do SSL termination, it must be enabled and configured here. If you are doing your own SSL termination, leave this disabled.
+
+#### Usage
+```
+hal config security api ssl [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Disable SSL for the API gateway.
+ * `edit`: Edit SSL settings for your API server.
+ * `enable`: Enable SSL for the API gateway.
+
+---
+## hal config security api ssl edit
+
+Configure SSL termination to handled by the API server's Tomcat server.
+
+#### Usage
+```
+hal config security api ssl edit [parameters]
+```
+#### Parameters
+ * `--client-auth`: (*Sensitive data* - user will be prompted on standard input) Declare 'WANT' when client auth is wanted but not mandatory, or 'NEED', when client auth is mandatory.
+ * `--key-alias`: Name of your keystore entry as generated with your keytool.
+ * `--keystore`: Path to the keystore holding your security certificates.
+ * `--keystore-password`: (*Sensitive data* - user will be prompted on standard input) The password to unlock your keystore. Due to a limitation in Tomcat, this must match your key's password in the keystore.
+ * `--keystore-type`: The type of your keystore. Examples include JKS, and PKCS12.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--truststore`: Path to the truststore holding your trusted certificates.
+ * `--truststore-password`: (*Sensitive data* - user will be prompted on standard input) The password to unlock your truststore.
+ * `--truststore-type`: The type of your truststore. Examples include JKS, and PKCS12.
+
+---
+## hal config security api ssl enable
+
+Enable SSL for the API gateway.
+
+#### Usage
+```
+hal config security api ssl enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security api ssl disable
+
+Disable SSL for the API gateway.
+
+#### Usage
+```
+hal config security api ssl disable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.

@@ -112,6 +112,26 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter setUiSecurity() {
+    matchers.add(Node.thisNodeAcceptor(UiSecurity.class));
+    return this;
+  }
+
+  public NodeFilter setApacheSsl() {
+    matchers.add(Node.thisNodeAcceptor(ApacheSsl.class));
+    return this;
+  }
+
+  public NodeFilter setApiSecurity() {
+    matchers.add(Node.thisNodeAcceptor(ApiSecurity.class));
+    return this;
+  }
+
+  public NodeFilter setSpringSsl() {
+    matchers.add(Node.thisNodeAcceptor(SpringSsl.class));
+    return this;
+  }
+
   public NodeFilter setAuthnMethod(String name) {
     matchers.add(Node.thisNodeAcceptor(Authn.class));
     matchers.add(Node.namedNodeAcceptor(AuthnMethod.class, name));

@@ -32,7 +32,7 @@ public class UiSecurity extends PublicService<ApacheSsl> {
 
   @Override
   public String getNodeName() {
-    return "uiSecurity";
+    return "ui";
   }
 
   @Override
