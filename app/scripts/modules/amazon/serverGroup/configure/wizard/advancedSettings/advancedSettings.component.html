@@ -22,6 +22,23 @@
                                  ng-model="$ctrl.command.cooldown"/></div>&nbsp;seconds
   </div>
   <div class="form-group">
+    <div class="col-md-5 sm-label-right">
+      <b>Enabled Metrics</b>
+      <help-field key="aws.serverGroup.enabledMetrics"></help-field>
+    </div>
+    <div class="col-md-6">
+
+      <ui-select multiple ng-model="$ctrl.command.enabledMetrics" class="form-control input-sm">
+        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-choices repeat="enabledMetric in $ctrl.command.backingData.enabledMetrics | filter: $select.search | orderBy: 'toString()'">
+          <span ng-bind-html="enabledMetric | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+
+    </div>
+  </div>
+
+  <div class="form-group">
     <div class="col-md-5 sm-label-right"><b>Health Check Type</b></div>
     <div class="col-md-6">
 
@@ -87,7 +104,11 @@
                                  ng-model="$ctrl.command.base64UserData"/></div>
   </div>
   <div class="form-group">
-    <div class="col-md-5 sm-label-right"><b>Instance Monitoring</b></div>
+    <div class="col-md-5 sm-label-right">
+      <b>Instance Monitoring</b>
+      <help-field key="aws.serverGroup.instanceMonitoring"></help-field>
+    </div>
+
     <div class="col-md-6 checkbox">
       <label><input type="checkbox" ng-model="$ctrl.command.instanceMonitoring"/> Enable Instance Monitoring </label>
     </div>

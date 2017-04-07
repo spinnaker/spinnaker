@@ -56,6 +56,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             },
             targetHealthyDeployPercentage: 100,
             cooldown: 10,
+            enabledMetrics: [],
             healthCheckType: 'EC2',
             healthCheckGracePeriod: 600,
             instanceMonitoring: false,
@@ -145,6 +146,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           { asgName: serverGroup.name, region: serverGroup.region }
         ],
         cooldown: serverGroup.asg.defaultCooldown,
+        enabledMetrics: angular.copy(serverGroup.asg.enabledMetrics),
         healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
         healthCheckType: serverGroup.asg.healthCheckType,
         terminationPolicies: angular.copy(serverGroup.asg.terminationPolicies),
@@ -190,6 +192,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
           cooldown: serverGroup.asg.defaultCooldown,
+          enabledMetrics: serverGroup.asg.enabledMetrics,
           healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
           healthCheckType: serverGroup.asg.healthCheckType,
           terminationPolicies: serverGroup.asg.terminationPolicies,

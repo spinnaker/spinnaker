@@ -31,11 +31,13 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
                                                           serverGroupCommandRegistry, autoScalingProcessService) {
 
 
-    var healthCheckTypes = ['EC2', 'ELB'],
+    var enabledMetrics = ['GroupMinSize', 'GroupMaxSize', 'GroupDesiredCapacity', 'GroupInServiceInstances', 'GroupPendingInstances', 'GroupStandbyInstances', 'GroupTerminatingInstances', 'GroupTotalInstances'],
+      healthCheckTypes = ['EC2', 'ELB'],
       terminationPolicies = ['OldestInstance', 'NewestInstance', 'OldestLaunchConfiguration', 'ClosestToNextInstanceHour', 'Default'];
 
     function configureUpdateCommand(command) {
       command.backingData = {
+        enabledMetrics: angular.copy(enabledMetrics),
         healthCheckTypes: angular.copy(healthCheckTypes),
         terminationPolicies: angular.copy(terminationPolicies)
       };
@@ -85,6 +87,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         keyPairs: keyPairsReader.listKeyPairs(),
         packageImages: imageLoader,
         instanceTypes: awsInstanceTypeService.getAllTypesByRegion(),
+        enabledMetrics: $q.when(angular.copy(enabledMetrics)),
         healthCheckTypes: $q.when(angular.copy(healthCheckTypes)),
         terminationPolicies: $q.when(angular.copy(terminationPolicies)),
       }).then(function(backingData) {
