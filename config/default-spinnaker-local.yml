@@ -135,6 +135,9 @@ providers:
   openstack:
     # For more information on configuring Openstack clusters, see
     # http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack
+    # To obtain the correct settings log into your OpenStack UI (Horizon), click on "Access and Security" on the left
+    # sidebar, click on the API access tab and finally click on "Download Openstack RC file V3". The rc file
+    # contains the correct settings.
 
     enabled: ${SPINNAKER_OPENSTACK_ENABLED:false}
     primaryCredentials:
@@ -143,7 +146,10 @@ providers:
       username: ${OS_USERNAME}
       password: ${OS_PASSWORD}
       projectName: ${OS_PROJECT_NAME}
+      domainName: ${OS_PROJECT_DOMAIN_NAME}
       regions: ${OS_REGION_NAME:RegionOne}
+      # Enable this if your OpenStack Installation uses a self-signed certificate (use with caution)
+      # insecure: true
 
   appengine:
     enabled: ${SPINNAKER_APPENGINE_ENABLED:false}
