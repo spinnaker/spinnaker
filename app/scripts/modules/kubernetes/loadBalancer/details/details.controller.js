@@ -3,6 +3,7 @@
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
+import {KubernetesProviderSettings} from 'kubernetes/kubernetes.settings';
 
 let angular = require('angular');
 import _ from 'lodash';
@@ -14,7 +15,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
   LOAD_BALANCER_WRITE_SERVICE,
   require('core/utils/selectOnDblClick.directive.js'),
 ])
-  .controller('kubernetesLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
+  .controller('kubernetesLoadBalancerDetailsController', function ($interpolate, $scope, $state, $uibModal, loadBalancer, app,
                                                                    confirmationModalService, accountService, loadBalancerWriter,
                                                                    kubernetesProxyUiService) {
 
@@ -38,6 +39,9 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
             if (_.get($scope.loadBalancer, 'service.spec.ports', []).some(p => p.port === 443)) {
               this.ingressProtocol = 'https:';
             }
+            this.internalDNSName = $interpolate(
+              KubernetesProviderSettings.defaults.internalDNSNameTemplate || '{{name}}.{{namespace}}.svc.cluster.local'
+            )($scope.loadBalancer);
             $scope.state.loading = false;
           } else {
             autoClose();

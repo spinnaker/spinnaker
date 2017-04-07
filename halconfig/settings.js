@@ -21,7 +21,8 @@ var kubernetes = {
   defaults: {
     account: '{%kubernetes.default.account%}',
     namespace: '{%kubernetes.default.namespace%}',
-    proxy: '{%kubernetes.default.proxy%}'
+    proxy: '{%kubernetes.default.proxy%}',
+    internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
   }
 };
 var appengine = {

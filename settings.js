@@ -68,7 +68,8 @@ window.spinnakerSettings = {
       defaults: {
         account: 'my-kubernetes-account',
         namespace: 'default',
-        proxy: 'localhost:8001'
+        proxy: 'localhost:8001',
+        internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
       },
     },
     appengine: {
