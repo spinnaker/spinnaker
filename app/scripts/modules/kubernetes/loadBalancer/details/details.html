@@ -167,8 +167,8 @@
     </collapsible-section>
     <collapsible-section heading="Service Annotations" ng-if="loadBalancer.description.serviceAnnotations">
       <dl class="dl-horizontal dl-flex">
-        <kubernetes-annotation-details annotations="loadBalancer.description.serviceAnnotations">
-        </kubernetes-annotation-details>
+        <kubernetes-key-value-details map="loadBalancer.description.serviceAnnotations">
+        </kubernetes-key-value-details>
       </dl>
     </collapsible-section>
   </div>
