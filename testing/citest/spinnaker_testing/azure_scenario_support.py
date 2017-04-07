@@ -72,7 +72,10 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
         '--azure_storage_account_key', 
         dest='spinnaker_azure_storage_account_key',
         help='The key used to access storage account used by front50.')
-
+    builder.add_argument(
+        '--native_hostname', 
+        dest='HOST_PLATFORM',
+        help='The hostname used to access spinnaker.')
 
   def _make_observer(self):
     """Implements BaseScenarioPlatformSupport interface."""
@@ -92,5 +95,5 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
 
     bindings = scenario.bindings
     if not bindings['SPINNAKER_AZURE_ACCOUNT']:
-      bindings['SPINNAKER_AZURE_ACCOUNT'] = scenario.agent.deployed_config.get(
-          'providers.azure.primaryCredentials.name', None)
+      bindings['SPINNAKER_AZURE_ACCOUNT'] = (scenario.agent.deployed_config.get(
+          'providers.azure.primaryCredentials.name', None))
