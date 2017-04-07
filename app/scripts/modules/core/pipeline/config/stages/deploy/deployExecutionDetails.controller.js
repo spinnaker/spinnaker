@@ -25,8 +25,19 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.co
 
     $scope.configSections = ['deploymentConfig', 'taskStatus'];
 
+    function areJarDiffsEmpty() {
+      let result = true;
+
+      const jarDiffs = $scope.stage.context.jarDiffs;
+      if (!_.isEmpty(jarDiffs)) {
+        result = !Object.keys(jarDiffs).some(key => Array.isArray(jarDiffs[key]) && jarDiffs[key].length);
+      }
+
+      return result;
+    }
+
     if ($scope.stage.context) {
-      if (($scope.stage.context.commits && $scope.stage.context.commits.length > 0) || !_.isEmpty($scope.stage.context.jarDiffs)) {
+      if (($scope.stage.context.commits && $scope.stage.context.commits.length > 0) || !areJarDiffsEmpty($scope.stage.context.jarDiffs)) {
         $scope.configSections.push('changes');
       }
     }

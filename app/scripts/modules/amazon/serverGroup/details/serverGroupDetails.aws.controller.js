@@ -158,7 +158,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
                 configureEntityTagTargets();
 
                 this.changeConfig = {
-                  metadata: this.serverGroup.entityTags.creationMetadata
+                  metadata: get(this.serverGroup.entityTags, 'creationMetadata')
                 };
               } else {
                 autoClose();
