@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo.config
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.echo.EchoService
@@ -45,6 +46,7 @@ class EchoConfiguration {
 
   @Autowired RetrofitClient retrofitClient
   @Autowired RestAdapter.LogLevel retrofitLogLevel
+  @Autowired ObjectMapper objectMapper
 
   @Bean
   Endpoint echoEndpoint(
@@ -71,7 +73,8 @@ class EchoConfiguration {
 
   @Bean
   EchoNotifyingExecutionListener echoNotifyingPipelineExecutionListener(EchoService echoService,
-                                                                        Front50Service front50Service) {
-    new EchoNotifyingExecutionListener(echoService, front50Service)
+                                                                        Front50Service front50Service,
+                                                                        ObjectMapper objectMapper) {
+    new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper)
   }
 }

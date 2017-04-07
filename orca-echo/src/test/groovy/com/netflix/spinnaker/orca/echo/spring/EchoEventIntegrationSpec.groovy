@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.SpringBatchExecutionRunner
 import com.netflix.spinnaker.orca.batch.TaskTaskletAdapterImpl
@@ -196,7 +197,7 @@ abstract class EchoEventIntegrationSpec<R extends ExecutionRunner> extends Speci
 
     @Bean
     EchoNotifyingExecutionListener echoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service) {
-      new EchoNotifyingExecutionListener(echoService, front50Service)
+      new EchoNotifyingExecutionListener(echoService, front50Service, new ObjectMapper())
     }
 
     @Bean

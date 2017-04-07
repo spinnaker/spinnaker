@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -30,9 +31,10 @@ class EchoNotifyingExecutionListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
   def front50Service = Mock(Front50Service)
+  def objectMapper = new ObjectMapper()
 
   @Subject
-  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service)
+  def echoListener = new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper)
 
   @Shared
   ApplicationNotifications notifications = new ApplicationNotifications()

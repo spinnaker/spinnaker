@@ -1,8 +1,10 @@
 package com.netflix.spinnaker.orca.echo.spring
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 
 import com.netflix.spinnaker.orca.front50.model.ApplicationNotifications
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -20,9 +22,12 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
 
   private final Front50Service front50Service
 
-  EchoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service) {
+  private final ObjectMapper objectMapper
+
+  EchoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service, ObjectMapper objectMapper) {
     this.echoService = echoService
     this.front50Service = front50Service
+    this.objectMapper = objectMapper
   }
 
   @Override
@@ -89,6 +94,9 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
 
     if (notifications) {
       notifications.getPipelineNotifications().each { appNotification ->
+        Map executionMap = objectMapper.convertValue(pipeline, Map)
+
+        appNotification = ContextParameterProcessor.process(appNotification, executionMap, false)
 
         Map<String, Object> targetMatch = pipeline.notifications.find { pipelineNotification ->
           pipelineNotification.address == appNotification.address && pipelineNotification.type == appNotification.type
