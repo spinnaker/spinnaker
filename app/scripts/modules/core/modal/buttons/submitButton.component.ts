@@ -2,7 +2,7 @@ import {IComponentOptions, module} from 'angular';
 
 export class SubmitButtonComponent implements IComponentOptions {
   public bindings: any = {
-    onClick: '<',
+    onClick: '&',
     isDisabled: '<',
     isNew: '<',
     submitting: '<',
