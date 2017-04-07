@@ -36,10 +36,10 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
     #
 
     # pylint: disable=line-too-long
-    builder.add_argument(
-        '--azure_subscription_name', 
-        dest='spinnaker_azure_account',
-        help='The name of your subscriptoin.')
+    # builder.add_argument(
+    #     '--azure_subscription_name', 
+    #     dest='spinnaker_azure_account',
+    #     help='The name of your subscriptoin.')
     builder.add_argument(
         '--azure_subscription_id', 
         dest='spinnaker_azure_subscription_id',
@@ -61,29 +61,25 @@ class AzureScenarioSupport(BaseScenarioPlatformSupport):
         dest='spinnaker_azure_location',
         help='The azure location to be used.')
     builder.add_argument(
-        '--test_azure_location', 
-        default = defaults.get('TEST_AZURE_LOCATION', 'westus'),
-        help='The azure location to be used.')
-    builder.add_argument(
-        '--azure_account_name', 
-        dest='spinnaker_azure_account_name',
-        help='The name of the account in spinnaker.')
+        '--test_azure_rg_location', 
+        default = defaults.get('TEST_AZURE_RG_LOCATION', 'westus'),
+        help='The location of the azure resource group where test resources should be created.')
+    # builder.add_argument(
+    #     '--spinnaker_azure_account_name', 
+    #     dest='spinnaker_azure_account_name',
+    #     help='The name of the account in spinnaker.')
     builder.add_argument(
         '--azure_storage_account_key', 
         dest='spinnaker_azure_storage_account_key',
         help='The key used to access storage account used by front50.')
-    builder.add_argument(
-        '--native_hostname', 
-        dest='HOST_PLATFORM',
-        help='The hostname used to access spinnaker.')
 
   def _make_observer(self):
     """Implements BaseScenarioPlatformSupport interface."""
     bindings = self.scenario.bindings 
-    if not bindings.get('TEST_AZURE_LOCATION'):
+    if not bindings.get('TEST_AZURE_RG_LOCATION'):
       raise ValueError('There is no location specified')
 
-    return az.AzAgent(bindings['TEST_AZURE_LOCATION'])
+    return az.AzAgent(bindings['TEST_AZURE_RG_LOCATION'])
 
   def __init__(self, scenario):
     """Constructor.

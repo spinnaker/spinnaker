@@ -64,7 +64,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     self.TEST_APP = bindings['TEST_APP']
     self.TEST_STACK = bindings['TEST_STACK']
     self.TEST_SECURITY_GROUP = 'sec_grp_'+ bindings['TEST_APP']
-    self.TEST_SECURITY_GROUP_RG = self.TEST_APP+ '-' + self.bindings['TEST_AZURE_LOCATION']
+    self.TEST_SECURITY_GROUP_RG = self.TEST_APP+ '-' + self.bindings['TEST_AZURE_RG_LOCATION']
 
 
   def create_app(self):
@@ -109,7 +109,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
         "provider": "azure",
         "application": self.TEST_APP,
         "appName": self.TEST_APP,
-        "region": self.bindings['TEST_AZURE_LOCATION'],
+        "region": self.bindings['TEST_AZURE_RG_LOCATION'],
         "stack": self.TEST_STACK,
         "description": "Test - create security group for {app}".format(
             app=self.TEST_APP),
