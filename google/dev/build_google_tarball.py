@@ -71,6 +71,7 @@ class Builder(object):
     check_run_quick('gcloud {account} compute instances create {name}'
                     ' --zone={zone} --project={project}'
                     ' --image={image} --image-project={image_project}'
+                    ' --metadata block-project-ssh-keys=TRUE'
                     ' --scopes compute-rw,storage-rw'
                     .format(account=self.__gcloud_account_arg,
                             name=instance,
@@ -161,6 +162,11 @@ class Builder(object):
       'sudo mount /dev/disk/by-id/google-snapshot-disk /mnt/snapshotdisk',
       'cd /mnt/snapshotdisk',
       'sudo rm -rf home/*',
+      'sudo rm -rf tmp/*',
+      'if [[ -f root/.ssh/authorized_keys ]]; then'
+      ' sudo cat /dev/null > root/.ssh/authorized_keys'
+      '; fi',
+      'sudo find var/log -type f -exec rm {} \;',
 
       'sudo dd if=/dev/disk/by-id/google-snapshot-disk'
           ' of=/mnt/exportdisk/disk.raw bs=4096',
@@ -200,6 +206,7 @@ class Builder(object):
 
     check_run_quick('gcloud {account} compute disks create '
                     ' {disk_name} --project {project} --zone {zone}'
+                    ' --type pd-ssd'
                     .format(account=self.__gcloud_account_arg,
                             disk_name=disk_name,
                             project=self.__project,
@@ -220,6 +227,7 @@ class Builder(object):
     check_run_quick('gcloud {account} compute disks create '
                     ' {name}-snapshot --source-snapshot {name}-snapshot'
                     ' --project {project} --zone {zone}'
+                    ' --type pd-ssd'
                     .format(account=self.__gcloud_account_arg,
                             name=self.__instance,
                             project=self.__project,
@@ -267,7 +275,12 @@ def init_argument_parser(parser):
         '--instance', default='',
         help='If specified use this instance, otherwise use deploy a new one.')
     parser.add_argument(
-        '--image', default='', help='The image to tar if no --instance.')
+        '--disk', default='',
+        help='If specified, use this disk as the image instead of --image.'
+             ' This disk must be in the --project')
+    parser.add_argument(
+        '--image', default='',
+        help='The image to tar if no --disk or --instance.')
     parser.add_argument(
         '--image_project', default='', help='The project for --image.')
 

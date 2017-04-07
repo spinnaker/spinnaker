@@ -14,7 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Typical uses:
+#
+# Create an image from a debian repo.
+#    build_google_image.sh \
+#        --project_id $PROJECT \
+#        --debian_repo https://dl.bintray.com/$BINTRAY_REPO \
+#        --target_image $IMAGE
+#
+# Create an image from a debian repo, but keep the disk around.
+#    build_google_image.sh \
+#        --project_id $PROJECT \
+#        --debian_repo https://dl.bintray.com/$BINTRAY_REPO \
+#        --target_image $IMAGE \
+#        --target_disk ${IMAGE}-disk
+#
+# Create tarball from a previous run's disk.
+# We could have created this will the image, but it takes a long
+# time and we might want to test the image first.
+#    build_google_image.sh \
+#        --project_id $PROJECT \
+#        --source_disk ${IMAGE}-disk
+#        --gz_uri gs://${BUCKET}/${IMAGE}.tar.gz
+
+
 set -e
+set -x
 
 source $(dirname $0)/build_google_image_functions.sh
 
@@ -28,7 +53,7 @@ INSTALL_SCRIPT=https://dl.bintray.com/spinnaker/scripts/InstallSpinnaker.sh
 
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
 BASE_IMAGE_OR_FAMILY_PROJECT=
-TARGET_IMAGE=${USER}-spinnaker-${TIME_DECORATOR}
+TARGET_IMAGE=
 
 DEFAULT_PROJECT=$(gcloud config list 2>&1 \
                   | grep "project =" | head -1 \
@@ -37,15 +62,29 @@ DEFAULT_ACCOUNT=$(gcloud auth list 2>&1 \
                   | grep ACTIVE | head -1 \
                   | sed "s/.* \(.*\) ACTIVE/\1/")
 
+# The build and prototype instance are aliases of one another.
+# The BUILD_INSTANCE is the logical name
+# The PROTOTYPE_INSTANCE is only set while the instance exists,
+# for purposes of knowing whether or not to delete it.
+BUILD_INSTANCE=
+PROTOTYPE_INSTANCE=
 
-INSTANCE=
-INSTANCE_CLEANER=
+# The cleaner instance is another instance we'll use to clean the
+# disk without it being the boot disk.
+# The pid is so we can start it in the background and wait on it
+# later when we need it.
+CLEANER_INSTANCE=
+CLEANER_INSTANCE_PID=
+
 ACCOUNT=$DEFAULT_ACCOUNT
 PROJECT=$DEFAULT_PROJECT
 ZONE=$(gcloud config list 2>&1 \
            | grep "zone =" | head -1 \
            | sed "s/.* \(.*\)$/\1/")
 
+SOURCE_DISK=""
+TARGET_DISK=""
+GZ_URI=""
 
 
 function fix_defaults() {
@@ -62,10 +101,18 @@ function fix_defaults() {
     BASE_IMAGE_OR_FAMILY_PROJECT=$(echo "$image_entry" | sed "s/[^ ]* *\([^ ]*\)* .*/\1/")
   fi
 
-  if [[ "$INSTANCE" == "" ]]; then
-    INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
+  if [[ "$SOURCE_DISK" != "" ]]; then
+    BUILD_INSTANCE=""  # dont create an instance
+    CLEANER_INSTANCE="clean-${SOURCE_DISK}-${TIME_DECORATOR}"
+  elif [[ "$TARGET_IMAGE" != "" ]]; then
+    if [[ "$BUILD_INSTANCE" == "" ]]; then
+      BUILD_INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
+    fi
+    CLEANER_INSTANCE="clean-${TARGET_IMAGE}-${TIME_DECORATOR}"
+  else
+    >&2 echo "If you do not have a --source_disk then you must create an image."
+    exit -1
   fi
-  INSTANCE_CLEANER="clean-${TARGET_IMAGE}-${TIME_DECORATOR}"
 }
 
 
@@ -102,10 +149,24 @@ Usage:  $0 [options]
        [$BASE_IMAGE_OR_FAMILY]
        Use BASE_IMAGE_OR_FAMILY as the base image.
 
+   --source_disk SOURCE_DISK
+       [$SOURCE_DISK]
+       If not empty, then create the image from this disk.
+
+   --target_disk TARGET_DISK
+       [$TARGET_DISK]
+       If not empty "" then also keep the disk used to create the image.
+       Otherwise, delete the disk when done. If keeping the disk, then give
+       it TARGET_DISK.
+
    --target_image TARGET_IMAGE
        [$TARGET_IMAGE]
-       Produce the given TARGET_IMAGE.
-   
+       Produce the given TARGET_IMAGE. If empty, then do not produce an image.
+       
+   --gz_uri GZ_URI
+       [none]
+       Also extract the image to the specified a gs:// tar.gz URI.
+       If empty then do not produce a disk_file.
 EOF
 }
 
@@ -168,35 +229,64 @@ function process_args() {
             shift
             ;;
 
+        --source_disk)
+            SOURCE_DISK="$1"
+            shift
+            ;;
+
+        --target_disk)
+            TARGET_DISK="$1"
+            BUILD_INSTANCE="$1"
+            shift
+            ;;
+
         --zone)
             ZONE=$1
             shift
             ;;
 
+        --gz_uri)
+            GZ_URI=$1
+            shift
+            ;;
         *)
           show_usage
           >&2 echo "Unrecognized argument '$key'."
           exit -1
     esac
   done
+
+
+  # Are we creating an image from an extracted URI or the disk itself.
+  if [[ "$GZ_URI" != "" ]]; then
+     if [[ "$GZ_URI" != gs://*.tar.gz ]]; then
+       show_usage
+       >&2 echo "$GZ_URI is not a gs:// tar.gz path."
+       exit -1
+     fi
+  fi
 }
 
 
 function delete_build_instance() {
-  echo "`date`: Cleaning up prototype instance '$INSTANCE'"
-  gcloud compute instances delete $INSTANCE \
+  echo "`date`: Cleaning up prototype instance '$PROTOTYPE_INSTANCE'"
+  gcloud compute instances delete $PROTOTYPE_INSTANCE \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --quiet
+  PROTOTYPE_INSTANCE=
 }
 
 
 function cleanup_instances_on_error() {
-  delete_build_instance
+  if [[ "$PROTOTYPE_INSTANCE" != "" ]]; then
+    delete_build_instance
+  fi
 
-  echo "Deleting cleaner instance ${INSTANCE_CLEANER}"
-  gcloud compute instances delete ${INSTANCE_CLEANER} \
+  echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
+  wait $CLEANER_INSTANCE_PID || true
+  gcloud compute instances delete ${CLEANER_INSTANCE} \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
@@ -204,20 +294,46 @@ function cleanup_instances_on_error() {
 }
 
 
-function delete_prototype_disk() {
-  echo "Deleting cleaner instance ${INSTANCE_CLEANER}"
-  gcloud compute instances delete ${INSTANCE_CLEANER} \
+function create_cleaner_instance() {
+  # This instance will be used later to clean the image
+  # we dont need it yet, but will spin it up now to have it ready.
+  # this has a bigger disk so we can store a copy of the original disk on it.
+  # Give this a lot of ram because we're going to tar up and compress the
+  # disk.
+  echo "`date` Warming up '$CLEANER_INSTANCE' for later"
+  gcloud compute instances create ${CLEANER_INSTANCE} \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --machine-type n1-highmem-4 \
+      --scopes storage-rw \
+      --boot-disk-type pd-ssd \
+      --boot-disk-size 20GB \
+      --image $BASE_IMAGE_OR_FAMILY \
+      --image-project $BASE_IMAGE_OR_FAMILY_PROJECT >& /dev/null&
+  CLEANER_INSTANCE_PID=$!
+
+  trap cleanup_instances_on_error EXIT
+}
+
+function delete_cleaner_instance() {
+  echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
+  gcloud compute instances delete ${CLEANER_INSTANCE} \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --quiet || true
-  
-  echo "`date`: Deleting disk '$INSTANCE'"
-  gcloud compute disks delete $INSTANCE \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --quiet || true
+
+  if [[ "$TARGET_DISK" != "" ]]; then
+    echo "`date`: Keeping disk '$TARGET_DISK'"
+  elif [[ "$BUILD_INSTANCE" != "" ]]; then
+    echo "`date`: Deleting disk '$BUILD_INSTANCE'"
+    gcloud compute disks delete $BUILD_INSTANCE \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        --quiet || true
+  fi
 }
 
 
@@ -233,45 +349,36 @@ function create_prototype_disk() {
     chmod +x $install_script_path
   fi
 
-  echo "`date`: Creating prototype instance '$INSTANCE'"
-  gcloud compute instances create $INSTANCE \
+  echo "`date`: Creating prototype instance '$BUILD_INSTANCE'"
+  gcloud compute instances create $BUILD_INSTANCE \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --machine-type n1-standard-1 \
       --boot-disk-type pd-ssd \
+      --boot-disk-size 10GB \
       --image $BASE_IMAGE_OR_FAMILY \
       --image-project $BASE_IMAGE_OR_FAMILY_PROJECT \
       --metadata block-project-ssh-keys=TRUE
 
-  trap cleanup_instances_on_error EXIT
+  # For purposes of cleaning up, remember this name.
+  PROTOTYPE_INSTANCE=$BUILD_INSTANCE
 
-  echo "`date` Adding ssh key to '$INSTANCE'"
-  gcloud compute instances add-metadata $INSTANCE \
+  echo "`date` Adding ssh key to '$PROTOTYPE_INSTANCE'"
+  gcloud compute instances add-metadata $PROTOTYPE_INSTANCE \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub
 
-  # This second instance will be used later to clean the image
-  # we dont need it yet, but will spin it up now to have it ready.
-  echo "`date` Warming up '$INSTANCE_CLEANER' for later"
-  (gcloud compute instances create ${INSTANCE_CLEANER} \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --machine-type n1-standard-1 \
-      --image $BASE_IMAGE_OR_FAMILY \
-      --image-project $BASE_IMAGE_OR_FAMILY_PROJECT >& /dev/null&)
-
-  echo "`date`: Uploading startup script to '$INSTANCE' when ready"
+  echo "`date`: Uploading startup script to '$PROTOTYPE_INSTANCE' when ready"
   gcloud compute copy-files \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --ssh-key-file $SSH_KEY_FILE \
       $install_script_path \
-      $INSTANCE:.
+      $PROTOTYPE_INSTANCE:.
 
   if [[ "$install_script_path" != "$INSTALL_SCRIPT" ]]; then
     rm $install_script_path
@@ -289,8 +396,8 @@ function create_prototype_disk() {
   command="sudo ./install-spinnaker-${TIME_DECORATOR}.sh ${args}"
   command="$command && sudo service spinnaker stop"
 
-  echo "`date`: Installing Spinnaker onto '$INSTANCE'"
-  gcloud compute ssh $INSTANCE \
+  echo "`date`: Installing Spinnaker onto '$PROTOTYPE_INSTANCE'"
+  gcloud compute ssh $PROTOTYPE_INSTANCE \
     --project $PROJECT \
     --account $ACCOUNT \
     --zone $ZONE \
@@ -298,8 +405,8 @@ function create_prototype_disk() {
     --command="$command"
 
   if [[ "$UPDATE_OS" == "true" ]]; then
-    echo "`date`: Updating distribution on '$INSTANCE'"
-    gcloud compute ssh $INSTANCE \
+    echo "`date`: Updating distribution on '$PROTOTYPE_INSTANCE'"
+    gcloud compute ssh $PROTOTYPE_INSTANCE \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
@@ -307,16 +414,16 @@ function create_prototype_disk() {
       --command="sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade && sudo apt-get autoremove -y"
   fi
 
-  echo "`date`: Deleting '$INSTANCE' but keeping disk"
-  gcloud compute instances set-disk-auto-delete $INSTANCE \
+  echo "`date`: Deleting '$PROTOTYPE_INSTANCE' but keeping disk"
+  gcloud compute instances set-disk-auto-delete $PROTOTYPE_INSTANCE \
     --project $PROJECT \
     --account $ACCOUNT \
     --zone $ZONE \
     --no-auto-delete \
-    --disk $INSTANCE
+    --disk $PROTOTYPE_INSTANCE
 
   # This will be on success too
-  trap delete_prototype_disk EXIT
+  trap delete_cleaner_instance EXIT
 
   # Just the builder instance, not the cleanup instance
   delete_build_instance
@@ -327,13 +434,27 @@ process_args "$@"
 fix_defaults
 
 create_empty_ssh_key
-create_prototype_disk
-clean_prototype_disk "$INSTANCE" "$INSTANCE_CLEANER"
-image_from_prototype_disk "$TARGET_IMAGE" "$INSTANCE"
+create_cleaner_instance
+if [[ "$SOURCE_DISK" == "" ]]; then
+  create_prototype_disk
+  SOURCE_DISK=$BUILD_INSTANCE
+fi
+
+if [[ "$GZ_URI" != "" ]]; then
+  IMAGE_SOURCE=$GZ_URI
+else
+  IMAGE_SOURCE=$SOURCE_DISK
+fi
+
+echo "Waiting on ${CLEANER_INSTANCE}...."
+wait $CLEANER_INSTANCE_PID || true
+extract_clean_prototype_disk \
+    "$SOURCE_DISK" "$CLEANER_INSTANCE" "$GZ_URI"
+
+image_from_prototype_disk "$TARGET_IMAGE" "$IMAGE_SOURCE"
 
 trap - EXIT
 
-delete_prototype_disk
+delete_cleaner_instance
 
 echo "`date`: DONE"
-

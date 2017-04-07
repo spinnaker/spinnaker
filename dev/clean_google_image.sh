@@ -29,13 +29,14 @@ disk_id=$1
 mkdir -p /mnt/disks/${disk_id}
 mount -o discard,defaults /dev/disk/by-id/google-${disk_id}-part1 /mnt/disks/${disk_id}
 cd /mnt/disks/${disk_id}
+echo "FYI, disk Usage is `df -kh .`"
 
 
 # Remove user information from etc/ and their home directories.
 # But leave spinnaker.
 etc_files="group gshadow passwd shadow subgid subuid"
 for user in $(ls home); do
-  if [[ "$user" != "spinnaker" ]]; then
+  if [[ "$user" != "spinnaker" && "$user" != "ubuntu" ]]; then
     for file in $etc_files; do
       sed /^$user:.*/d -i etc/${file} || true
       sed /^$user:.*/d -i etc/${file}- || true
@@ -53,3 +54,6 @@ fi
 # Remove tmp and log files
 rm -rf tmp/*
 find var/log -type f -exec rm {} \;
+
+cd /
+umount /mnt/disks/${disk_id}
