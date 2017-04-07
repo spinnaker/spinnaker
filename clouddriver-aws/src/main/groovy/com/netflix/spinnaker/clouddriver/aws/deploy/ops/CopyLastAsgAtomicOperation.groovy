@@ -165,6 +165,7 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.keyPair = description.keyPair ?: (sourceIsTarget ? ancestorLaunchConfiguration.keyName : description.credentials.defaultKeyPair)
         newDescription.associatePublicIpAddress = description.associatePublicIpAddress != null ? description.associatePublicIpAddress : ancestorLaunchConfiguration.associatePublicIpAddress
         newDescription.cooldown = description.cooldown != null ? description.cooldown : ancestorAsg.defaultCooldown
+        newDescription.enabledMetrics = description.enabledMetrics != null ? description.enabledMetrics : ancestorAsg.enabledMetrics*.metric
         newDescription.healthCheckGracePeriod = description.healthCheckGracePeriod != null ? description.healthCheckGracePeriod : ancestorAsg.healthCheckGracePeriod
         newDescription.healthCheckType = description.healthCheckType ?: ancestorAsg.healthCheckType
         newDescription.suspendedProcesses = description.suspendedProcesses != null ? description.suspendedProcesses : ancestorAsg.suspendedProcesses*.processName
