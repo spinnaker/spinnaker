@@ -1,0 +1,110 @@
+<div class="form-horizontal">
+  <stage-config-field label="Webhook URL">
+    <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.url"/>
+  </stage-config-field>
+  <stage-config-field label="Method">
+    <ui-select ng-model="$ctrl.stage.method" class="form-control input-sm">
+      <ui-select-match placeholder="Select a method...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="method in $ctrl.methods | filter: $select.search">
+        <span ng-bind-html="method | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </stage-config-field>
+  <stage-config-field label="Payload"
+                      help-key="pipeline.config.webhook.payload"
+                      ng-if="$ctrl.stage.method !== 'GET' && $ctrl.stage.method !== 'HEAD'">
+    <textarea class="code form-control flex-fill"
+              rows="5"
+              ng-model="$ctrl.command.payloadJSON"
+              ng-change="$ctrl.updatePayload()"/>
+
+    <div class="form-group row slide-in" ng-if="$ctrl.command.invalid">
+      <div class="col-sm-9 col-sm-offset-3 error-message">
+        Error: {{$ctrl.command.errorMessage}}
+      </div>
+    </div>
+  </stage-config-field>
+  <stage-config-field label="Wait for completion" help-key="pipeline.config.webhook.waitForCompletion">
+    <input type="checkbox" class="input-sm" name="waitForCompletion"
+           ng-model="$ctrl.viewState.waitForCompletion"
+           ng-change="$ctrl.waitForCompletionChanged()"/>
+  </stage-config-field>
+  <div ng-class="{collapse: $ctrl.viewState.waitForCompletion !== true, 'collapse.in': !$ctrl.viewState.waitForCompletion === true}">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">Status URL</div>
+      <div class="col-md-9 radio">
+        <label>
+          <input type="radio"
+                 ng-model="$ctrl.viewState.statusUrlResolution"
+                 ng-change="$ctrl.statusUrlResolutionChanged()"
+                 value="getMethod"
+                 id="statusUrlResolutionIsGetMethod"/>
+          GET method against webhook URL
+          <help-field key="pipeline.config.webhook.statusUrlResolutionIsGetMethod"></help-field>
+        </label>
+      </div>
+      <div class="col-md-9 col-md-offset-3 radio">
+        <label>
+          <input type="radio"
+                 ng-model="$ctrl.viewState.statusUrlResolution"
+                 ng-change="$ctrl.statusUrlResolutionChanged()"
+                 value="locationHeader"
+                 id="statusUrlResolutionIsLocationHeader"/>
+          From the Location header
+          <help-field key="pipeline.config.webhook.statusUrlResolutionIsLocationHeader"></help-field>
+        </label>
+      </div>
+      <div class="col-md-9 col-md-offset-3 radio">
+        <label>
+          <input type="radio"
+                 ng-model="$ctrl.viewState.statusUrlResolution"
+                 ng-change="$ctrl.statusUrlResolutionChanged()"
+                 value="webhookResponse"
+                 id="statusUrlResolutionIsWebhookResponse"/>
+          From webhook's response
+          <help-field key="pipeline.config.webhook.useStatusUrlFromLocationHeaderFalse"></help-field>
+        </label>
+      </div>
+      <div class="form-group" ng-if="$ctrl.viewState.statusUrlResolution === 'webhookResponse'">
+        <div class="col-md-offset-3">
+          <stage-config-field label="Status URL path" help-key="pipeline.config.webhook.statusUrlJsonPath">
+            <input type="text"
+                   class="form-control input-sm"
+                   ng-model="$ctrl.stage.statusUrlJsonPath"
+                   required />
+          </stage-config-field>
+        </div>
+      </div>
+    </div>
+    <stage-config-field label="Status JsonPath"
+                        help-key="pipeline.config.webhook.statusJsonPath">
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="$ctrl.stage.statusJsonPath"/>
+    </stage-config-field>
+    <stage-config-field label="Progress location"
+                        help-key="pipeline.config.webhook.progressJsonPath">
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="$ctrl.stage.progressJsonPath"/>
+    </stage-config-field>
+    <stage-config-field label="SUCCESS status mapping"
+                        help-key="pipeline.config.webhook.successStatuses">
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="$ctrl.stage.successStatuses"/>
+    </stage-config-field>
+    <stage-config-field label="CANCELED status mapping"
+                        help-key="pipeline.config.webhook.canceledStatuses">
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="$ctrl.stage.canceledStatuses"/>
+    </stage-config-field>
+    <stage-config-field label="TERMINAL status mapping"
+                        help-key="pipeline.config.webhook.terminalStatuses">
+      <input type="text"
+             class="form-control input-sm"
+             ng-model="$ctrl.stage.terminalStatuses"/>
+    </stage-config-field>
+  </div>
+</div>

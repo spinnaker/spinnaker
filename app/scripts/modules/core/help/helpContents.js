@@ -530,4 +530,15 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'markdown.examples': 'Some examples of markdown syntax: <br/> *<em>emphasis</em>* <br/> **<b>strong</b>** <br/> [link text](http://url-goes-here)',
     'application.enableRestartRunningExecutions': 'When this option is enabled, users will be able to restart pipeline stages while a pipeline is still running. ' +
     'This behavior can have varying unexpected results and is <b>not recommended</b> to enable.',
+    'pipeline.config.webhook.payload': 'JSON payload to be added to the webhook call.',
+    'pipeline.config.webhook.waitForCompletion': 'If not checked, we consider the stage succeeded if the webhook returns an HTTP status code 2xx, otherwise it will be failed. If checked, it will poll a status url (defined below) to determine the progress of the stage.',
+    'pipeline.config.webhook.statusUrlResolutionIsGetMethod': 'Use the webhook\'s URL with GET method as status endpoint.',
+    'pipeline.config.webhook.statusUrlResolutionIsLocationHeader': 'Pick the status url from the Location header of the webhook\'s response call.',
+    'pipeline.config.webhook.statusUrlResolutionIsWebhookResponse': 'Pick the status url from the JSON returned by the webhook\'s response call.',
+    'pipeline.config.webhook.statusUrlJsonPath': 'JSON path to the status url in the webhook\'s response JSON. (i.e. <samp>$.buildInfo.url</samp>)',
+    'pipeline.config.webhook.statusJsonPath': 'JSON path to the status information in the webhook\'s response JSON. (e.g. <samp>$.buildInfo.status</samp>)',
+    'pipeline.config.webhook.progressJsonPath': 'JSON path to a descriptive message about the progress in the webhook\'s response JSON. (e.g. <samp>$.buildInfo.progress</samp>)',
+    'pipeline.config.webhook.successStatuses': 'Comma-separated list of strings that will be considered as SUCCESS status.',
+    'pipeline.config.webhook.canceledStatuses': 'Comma-separated list of strings that will be considered as CANCELED status.',
+    'pipeline.config.webhook.terminalStatuses': 'Comma-separated list of strings that will be considered as TERMINAL status.',
   });
