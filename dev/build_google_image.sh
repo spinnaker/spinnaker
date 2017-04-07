@@ -55,6 +55,11 @@ BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
 BASE_IMAGE_OR_FAMILY_PROJECT=
 TARGET_IMAGE=
 
+# If the source image is provided then do not install spinnaker since
+# it is assumed the source image already has it.
+# If a base image or family is provided, then use that to install spinnaker.
+SOURCE_IMAGE=
+
 DEFAULT_PROJECT=$(gcloud config list 2>&1 \
                   | grep "project =" | head -1 \
                   | sed "s/.* \(.*\)$/\1/")
@@ -96,9 +101,9 @@ function fix_defaults() {
                       | grep $BASE_IMAGE_OR_FAMILY | head -1)
 
   # If this was a family, convert it to a particular image for argument consistency
-  BASE_IMAGE_OR_FAMILY=$(echo "$image_entry" | sed "s/\([^ ]*\) .*/\1/")
   if [[ "$BASE_IMAGE_OR_FAMILY_PROJECT" == "" ]]; then
     BASE_IMAGE_OR_FAMILY_PROJECT=$(echo "$image_entry" | sed "s/[^ ]* *\([^ ]*\)* .*/\1/")
+    BASE_IMAGE=$(echo "$image_entry" | sed "s/\([^ ]*\) .*/\1/")
   fi
 
   if [[ "$SOURCE_DISK" != "" ]]; then
@@ -109,8 +114,10 @@ function fix_defaults() {
       BUILD_INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
     fi
     CLEANER_INSTANCE="clean-${TARGET_IMAGE}-${TIME_DECORATOR}"
+  elif [[ "$SOURCE_IMAGE" != "" ]]; then
+    CLEANER_INSTANCE="clean-${SOURCE_IMAGE}-${TIME_DECORATOR}"
   else
-    >&2 echo "If you do not have a --source_disk then you must create an image."
+    >&2 echo "You must have either --source_disk, --source_image, or create a --target_image."
     exit -1
   fi
 }
@@ -145,9 +152,13 @@ Usage:  $0 [options]
        [$DEBIAN_REPO_URL]
        Use the DEBIAN_REPO_URL to obtain the Spinnaker packages.
 
+   --source_image SOURCE_IMAGE
+       [$SOURCE_IMAGE]
+       Use SOURCE_IMAGE as the starting point. It already has spinnaker on it.
+
    --base_image BASE_IMAGE_OR_FAMILY
        [$BASE_IMAGE_OR_FAMILY]
-       Use BASE_IMAGE_OR_FAMILY as the base image.
+       Use BASE_IMAGE_OR_FAMILY as the base image. Install spinnaker onto it.
 
    --source_disk SOURCE_DISK
        [$SOURCE_DISK]
@@ -226,6 +237,11 @@ function process_args() {
             ;;
         --json_credentials)
             >&2 echo "--json_credentials is no longer used -- ignoring.  Use --account instead"
+            shift
+            ;;
+
+        --source_image)
+            SOURCE_IMAGE=$1
             shift
             ;;
 
@@ -309,7 +325,7 @@ function create_cleaner_instance() {
       --scopes storage-rw \
       --boot-disk-type pd-ssd \
       --boot-disk-size 20GB \
-      --image $BASE_IMAGE_OR_FAMILY \
+      --image $BASE_IMAGE \
       --image-project $BASE_IMAGE_OR_FAMILY_PROJECT >& /dev/null&
   CLEANER_INSTANCE_PID=$!
 
@@ -338,6 +354,21 @@ function delete_cleaner_instance() {
 
 
 function create_prototype_disk() {
+  if [[ "$SOURCE_IMAGE"  != "" ]]; then
+    # This will be on success too
+    trap delete_cleaner_instance EXIT
+
+    echo "`date` Creating disk '$SOURCE_IMAGE' from image '$SOURCE_IMAGE'"
+    gcloud compute disks create "$SOURCE_IMAGE" \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        --image-project $PROJECT \
+        --image $SOURCE_IMAGE \
+        --quiet || true
+    return 0
+  fi
+
   echo "`date`: Fetching install script from $INSTALL_SCRIPT"
   local install_script_path
 
@@ -437,7 +468,11 @@ create_empty_ssh_key
 create_cleaner_instance
 if [[ "$SOURCE_DISK" == "" ]]; then
   create_prototype_disk
-  SOURCE_DISK=$BUILD_INSTANCE
+  if [[ "$SOURCE_IMAGE" != "" ]]; then
+    SOURCE_DISK=$SOURCE_IMAGE
+  else
+    SOURCE_DISK=$BUILD_INSTANCE
+  fi
 fi
 
 if [[ "$GZ_URI" != "" ]]; then
@@ -448,10 +483,13 @@ fi
 
 echo "Waiting on ${CLEANER_INSTANCE}...."
 wait $CLEANER_INSTANCE_PID || true
+
 extract_clean_prototype_disk \
     "$SOURCE_DISK" "$CLEANER_INSTANCE" "$GZ_URI"
 
-image_from_prototype_disk "$TARGET_IMAGE" "$IMAGE_SOURCE"
+if [[ "$TARGET_IMAGE" != "" ]]; then
+  image_from_prototype_disk "$TARGET_IMAGE" "$IMAGE_SOURCE"
+fi
 
 trap - EXIT
 
