@@ -195,6 +195,12 @@ interface ClouddriverService {
                        @QueryMap Map additionalFilters)
 
   @Headers("Accept: application/json")
+  @GET("/{provider}/images/tags")
+  List<String> findTags(@Path("provider") String provider,
+                       @Query("account") String account,
+                       @Query("repository") String repository)
+
+  @Headers("Accept: application/json")
   @GET("/search")
   List<Map> search(@Query("q") String query,
                    @Query("type") String type,

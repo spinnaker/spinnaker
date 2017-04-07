@@ -45,4 +45,10 @@ class ImageService {
       clouddriverService.findImages(provider, query, region, account, count, additionalFilters)
     } execute()
   }
+
+  List<String> findTags(String provider, String account, String repository) {
+    HystrixFactory.newListCommand(GROUP, "getTags-${providerLookupService.providerForAccount(account)}") {
+      clouddriverService.findTags(provider, account, repository)
+    } execute()
+  }
 }
