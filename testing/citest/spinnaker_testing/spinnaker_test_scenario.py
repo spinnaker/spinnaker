@@ -32,6 +32,7 @@ from spinnaker_testing import appengine_scenario_support
 from spinnaker_testing import google_scenario_support
 from spinnaker_testing import kubernetes_scenario_support
 from spinnaker_testing import openstack_scenario_support
+from spinnaker_testing import azure_scenario_support
 
 PLATFORM_SUPPORT_CLASSES = [
     aws_scenario_support.AwsScenarioSupport,
@@ -41,7 +42,8 @@ PLATFORM_SUPPORT_CLASSES = [
     appengine_scenario_support.AppEngineScenarioSupport,
 
     kubernetes_scenario_support.KubernetesScenarioSupport,
-    openstack_scenario_support.OpenStackScenarioSupport
+    openstack_scenario_support.OpenStackScenarioSupport,
+    azure_scenario_support.AzureScenarioSupport
 ]
 
 
@@ -221,6 +223,14 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
       Exception if the observer is not available.
     """
     return self.__platform_support['openstack'].observer
+
+  def az_observer(self):
+    """The observer for inspecting Azure platform state.
+
+    Raises:
+      Exception if the observer is not available.
+    """
+    return self.__platform_support['azure'].observer
 
   def __init__(self, bindings, agent=None):
     """Constructor

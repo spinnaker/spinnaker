@@ -14,12 +14,12 @@
 
 """Azure platform and test support for SpinnakerTestScenario."""
 
-import citest.azure_testing as os
+import citest.azure_testing as az
 from spinnaker_testing.base_scenario_support import BaseScenarioPlatformSupport
 
 
-class AzureStackScenarioSupport(BaseScenarioPlatformSupport):
-  """Provides SpinnakerScenarioSupport for OpenStack."""
+class AzureScenarioSupport(BaseScenarioPlatformSupport):
+  """Provides SpinnakerScenarioSupport for Azure."""
 
   @classmethod
   def add_commandline_parameters(cls, scenario_class, builder, defaults):
@@ -76,14 +76,9 @@ class AzureStackScenarioSupport(BaseScenarioPlatformSupport):
 
   def _make_observer(self):
     """Implements BaseScenarioPlatformSupport interface."""
-    bindings = self.scenario.bindings  # base class made a copy
+    bindings = self.scenario.bindings 
     if not bindings.get('TEST_AZURE_LOCATION'):
-      bindings['TEST_AZURE_LOCATION'] = bindings['TEST_AZURE_LOCATION']
-      self.__az_observer = None
-    else:
-      logger = logging.getLogger(__name__)
-      logger.warning('TEST_AZURE_LOCATION binding found, Azure CLI could be used')
-      self.__az_observer = az.AzAgent()
+      raise ValueError('There is no location specified')
 
     return az.AzAgent(bindings['TEST_AZURE_LOCATION'])
 
@@ -95,7 +90,7 @@ class AzureStackScenarioSupport(BaseScenarioPlatformSupport):
     """
     super(AzureScenarioSupport, self).__init__("azure", scenario)
 
+    bindings = scenario.bindings
     if not bindings['SPINNAKER_AZURE_ACCOUNT']:
-      bindings['SPINNAKER_AZURE_ACCOUNT'] = (
-        scenario.AzAgent.deployed_config.get(
-          'providers.azure.primaryCredentials.name', None))
+      bindings['SPINNAKER_AZURE_ACCOUNT'] = scenario.agent.deployed_config.get(
+          'providers.azure.primaryCredentials.name', None)
