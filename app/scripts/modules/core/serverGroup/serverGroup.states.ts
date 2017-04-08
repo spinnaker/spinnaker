@@ -24,9 +24,7 @@ module(SERVER_GROUP_STATES, [
       url: '/clusters',
       views: {
         'nav': {
-          templateUrl: require('../cluster/filter/filterNav.html'),
-          controller: 'ClusterFilterCtrl',
-          controllerAs: 'clustersFilters'
+          template: '<cluster-filter app="$resolve.app"></cluster-filter>',
         },
         'master': {
           templateUrl: require('../cluster/all.html'),

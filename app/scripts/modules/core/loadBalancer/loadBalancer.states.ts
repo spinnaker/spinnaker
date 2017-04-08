@@ -73,9 +73,7 @@ module(LOAD_BALANCER_STATES, [
       name: 'loadBalancers',
       views: {
         'nav': {
-          templateUrl: require('../loadBalancer/filter/filterNav.html'),
-          controller: 'LoadBalancerFilterCtrl',
-          controllerAs: 'loadBalancerFilters'
+          template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
         },
         'master': {
           templateUrl: require('../loadBalancer/all.html'),

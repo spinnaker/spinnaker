@@ -1,4 +1,3 @@
-'use strict';
 import * as _ from 'lodash';
 import {ITimeoutService, mock} from 'angular';
 

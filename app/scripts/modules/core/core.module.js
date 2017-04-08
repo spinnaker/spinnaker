@@ -17,6 +17,7 @@ import {CORE_WIDGETS_MODULE} from './widgets';
 import {TRAVIS_STAGE_MODULE} from './pipeline/config/stages/travis/travisStage.module';
 import {WEBHOOK_STAGE_MODULE} from './pipeline/config/stages/webhook/webhookStage.module';
 import {SETTINGS} from 'core/config/settings';
+import {INSIGHT_NGMODULE} from './insight/insight.module';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -81,7 +82,7 @@ module.exports = angular
     require('./healthCounts/healthCounts.directive.js'),
     HELP_FIELD_COMPONENT,
 
-    require('./insight/insight.module.js'),
+    INSIGHT_NGMODULE.name,
     require('./instance/instance.module.js'),
 
     require('./loadBalancer/loadBalancer.module.js'),
