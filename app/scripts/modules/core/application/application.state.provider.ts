@@ -19,9 +19,7 @@ export class ApplicationStateProvider implements ng.IServiceProvider {
     abstract: true,
     views: {
       'insight': {
-        templateUrl: require('core/insight/insight.html'),
-        controller: 'InsightCtrl',
-        controllerAs: 'insight'
+        template: '<insight-layout app="$resolve.app"></insight-layout>',
       }
     },
     children: this.insightStates,

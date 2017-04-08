@@ -1,53 +1,55 @@
-<div class="heading">
-  <span class="btn btn-default btn-xs"
-        is-visible="securityGroupFilters.tags.length > 0"
-        ng-click="securityGroupFilters.clearFilters()">Clear All</span>
-  <filter-section heading="Search" expanded="true" help-key="securityGroup.search">
-    <form class="form-horizontal" role="form">
-      <div class="form-group nav-search">
-        <input type="search" class="form-control input-sm" ng-model="sortFilter.filter"
-               ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
-               ng-change="securityGroupFilters.updateSecurityGroups()" style="width: 85%; display: inline-block">
+<insight-filter>
+  <div class="heading">
+    <span class="btn btn-default btn-xs"
+          is-visible="$ctrl.tags.length > 0"
+          ng-click="$ctrl.clearFilters()">Clear All</span>
+    <filter-section heading="Search" expanded="true" help-key="securityGroup.search">
+      <form class="form-horizontal" role="form">
+        <div class="form-group nav-search">
+          <input type="search" class="form-control input-sm" ng-model="$ctrl.sortFilter.filter"
+                 ng-model-options="{ updateOn: 'default blur', debounce: { 'default': 300, 'blur': 0 } }"
+                 ng-change="$ctrl.updateSecurityGroups()" style="width: 85%; display: inline-block">
+        </div>
+      </form>
+    </filter-section>
+  </div>
+  <div class="content" ng-if="$ctrl.app.securityGroups.loaded">
+
+    <filter-section heading="Provider" expanded="true" ng-if="$ctrl.providerTypeHeadings.length > 1">
+      <div class="checkbox" ng-repeat="heading in $ctrl.providerTypeHeadings | orderBy: 'toString()'">
+        <label>
+          <input type="checkbox" ng-model="$ctrl.sortFilter.providerType[heading]"
+                 ng-change="$ctrl.updateSecurityGroups()"/>
+          <cloud-provider-logo provider="heading" height="14px" width="14px"></cloud-provider-logo>
+          <cloud-provider-label provider="heading"></cloud-provider-label>
+        </label>
       </div>
-    </form>
-  </filter-section>
-</div>
-<div class="content" ng-if="application.securityGroups.loaded">
+    </filter-section>
 
-  <filter-section heading="Provider" expanded="true" ng-if="securityGroupFilters.providerTypeHeadings.length > 1">
-    <div class="checkbox" ng-repeat="heading in securityGroupFilters.providerTypeHeadings | orderBy: 'toString()'">
-      <label>
-        <input type="checkbox" ng-model="sortFilter.providerType[heading]"
-               ng-change="securityGroupFilters.updateSecurityGroups()"/>
-        <cloud-provider-logo provider="heading" height="14px" width="14px"></cloud-provider-logo>
-        <cloud-provider-label provider="heading"></cloud-provider-label>
-      </label>
-    </div>
-  </filter-section>
+    <filter-section heading="Account" expanded="true">
+      <div class="checkbox" ng-repeat="heading in $ctrl.accountHeadings | orderBy:'toString()'  ">
+        <label>
+          <input type="checkbox" ng-model="$ctrl.sortFilter.account[heading]"
+                 ng-change="$ctrl.updateSecurityGroups()"/>{{heading}}
+        </label>
+      </div>
+    </filter-section>
 
-  <filter-section heading="Account" expanded="true">
-    <div class="checkbox" ng-repeat="heading in securityGroupFilters.accountHeadings | orderBy:'toString()'  ">
-      <label>
-        <input type="checkbox" ng-model="sortFilter.account[heading]"
-               ng-change="securityGroupFilters.updateSecurityGroups()"/>{{heading}}
-      </label>
-    </div>
-  </filter-section>
+    <filter-section heading="Region" expanded="true">
+      <div class="checkbox" ng-repeat="heading in $ctrl.regionHeadings | orderBy: 'toString()' ">
+        <label>
+          <input type="checkbox" ng-model="$ctrl.sortFilter.region[heading]" ng-change="$ctrl.updateSecurityGroups()"/>{{heading}}
+        </label>
+      </div>
+    </filter-section>
 
-  <filter-section heading="Region" expanded="true">
-    <div class="checkbox" ng-repeat="heading in securityGroupFilters.regionHeadings | orderBy: 'toString()' ">
-      <label>
-        <input type="checkbox" ng-model="sortFilter.region[heading]" ng-change="securityGroupFilters.updateSecurityGroups()"/>{{heading}}
-      </label>
-    </div>
-  </filter-section>
+    <filter-section heading="Stack" expanded="true">
+      <div class="checkbox" ng-repeat="heading in $ctrl.stackHeadings | orderBy: 'toString()' ">
+        <label>
+          <input type="checkbox" ng-model="$ctrl.sortFilter.stack[heading]" ng-change="$ctrl.updateSecurityGroups()"/>{{heading}}
+        </label>
+      </div>
+    </filter-section>
 
-  <filter-section heading="Stack" expanded="true">
-    <div class="checkbox" ng-repeat="heading in securityGroupFilters.stackHeadings | orderBy: 'toString()' ">
-      <label>
-        <input type="checkbox" ng-model="sortFilter.stack[heading]" ng-change="securityGroupFilters.updateSecurityGroups()"/>{{heading}}
-      </label>
-    </div>
-  </filter-section>
-
-</div>
+  </div>
+</insight-filter>

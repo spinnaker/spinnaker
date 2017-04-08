@@ -1,8 +1,15 @@
-'use strict';
+import {module} from 'angular';
 
-let angular = require('angular');
+export const INSIGHT_NGMODULE = module('spinnaker.core.insight', [
+  require('angular-ui-router'),
+  require('core/cache/collapsibleSectionStateCache'),
+]);
 
-module.exports = angular
-  .module('spinnaker.core.insight', [
-    require('./insight.controller.js')
-  ]);
+import './insight.less';
+
+import './insightFilter.component';
+import './insightLayout.component';
+
+import './insightmenu.directive';
+
+import './insightFilterState.model';

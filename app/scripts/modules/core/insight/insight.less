@@ -1,0 +1,17 @@
+insight-layout {
+  display: flex;
+
+  insight-filter, cluster-filter, load-balancer-filter, security-group-filter, .insight-filter-content {
+    display: flex;
+    width: 100%;
+    overflow-x: hidden;
+
+    .content {
+      overflow-y: auto;
+    }
+  }
+
+  insight-filter, .insight-filter-content {
+    flex-direction: column;
+  }
+}

@@ -83,9 +83,7 @@ module(SECURITY_GROUP_STATES, [
     name: 'securityGroups',
     views: {
       'nav': {
-        templateUrl: require('../securityGroup/filter/filterNav.html'),
-        controller: 'SecurityGroupFilterCtrl',
-        controllerAs: 'securityGroupFilters'
+        template: '<security-group-filter app="$resolve.app"></security-group-filter>',
       },
       'master': {
         templateUrl: require('../securityGroup/all.html'),

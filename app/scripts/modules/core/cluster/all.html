@@ -45,10 +45,12 @@
   </div>
   <filter-tags tags="tags" tag-cleared="allClusters.updateClusterGroups()" clear-filters="allClusters.clearFilters()"></filter-tags>
 </div>
-<div class="content"
-     data-scroll-id="clusters-content"
-     sticky-headers
-     waypoint-container
-     waypoint-container-key="{{application.name}}"
-     waypoint-offset="100"
-     ng-include="allClusters.groupingsTemplate"></div>
+
+
+<all-clusters-groupings class="content"
+                        sticky-headers
+                        groups="groups"
+                        sort-filter="sortFilter"
+                        app="allClusters.application"
+                        initialized="allClusters.initialized"
+></all-clusters-groupings>
