@@ -9,7 +9,7 @@ export interface IExecutionViewState {
   showStageDuration: boolean;
   section?: string;
   stageIndex?: number;
-};
+}
 
 export interface IPipelineLink {
   parent: IPipelineNode;
@@ -17,7 +17,7 @@ export interface IPipelineLink {
   line: string;
   isHighlighted?: boolean;
   linkClass?: string; // Added after the fact in PipelineGraphDirective
-};
+}
 
 export interface IPipelineNode {
   id: (string | number);
@@ -36,6 +36,7 @@ export interface IPipelineNode {
   row?: number; // Added after the fact in PipelineGraphDirective
   x?: number; // Added after the fact in PipelineGraphDirective
   y?: number; // Added after the fact in PipelineGraphDirective
+  placeholder?: boolean;
 
   // PipelineGraphDirective conflates the two node types, so adding as optional here
   // Config node parameters

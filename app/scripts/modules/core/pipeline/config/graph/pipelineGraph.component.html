@@ -7,6 +7,7 @@
     </foreignobject>
   </g>
   <g ng-repeat="stage in allNodes"
+     ng-if="!stage.placeholder"
      ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted, warning: stage.hasWarnings}"
      ng-attr-transform="translate({{stage.x}},{{stage.y}})">
 
@@ -53,7 +54,10 @@
     </g>
   </g>
 
-  <g ng-repeat="stage in allNodes" ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}" ng-attr-transform="translate({{::stage.x}},{{::stage.y}})">
+  <g ng-repeat="stage in allNodes"
+     ng-if="!stage.placeholder"
+     ng-class="{'has-status': stage.status, active: stage.isActive, highlighted: stage.isHighlighted}"
+     ng-attr-transform="translate({{::stage.x}},{{::stage.y}})">
     <foreignobject ng-attr-width="{{::maxLabelWidth}}" height="100"
                    ng-attr-transform="translate({{::labelOffsetX}}, {{::stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
       <div class="execution-stage-label clickable {{::stage.status.toLowerCase()}}"

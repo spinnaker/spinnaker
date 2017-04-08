@@ -4,6 +4,7 @@ import {ISCEService, module} from 'angular';
 import { IExecution, IPipeline } from 'core/domain/index';
 import { IPipelineValidationResults, PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from '../validation/pipelineConfig.validator';
 import { IExecutionViewState, IPipelineLink, IPipelineNode, PIPELINE_GRAPH_SERVICE, PipelineGraphService } from './pipelineGraph.service';
+import {UUIDGenerator} from 'core/utils/uuid.service';
 
 require('./pipelineGraph.less');
 
@@ -160,7 +161,44 @@ export class PipelineGraphController implements ng.IComponentController {
         sortedPhase.forEach((node: IPipelineNode, index: number) => { node.row = index; });
         this.$scope.nodes[phase] = sortedPhase;
       });
+      this.fixOverlaps();
     }
+  }
+
+  // if any nodes in the same row as a parent node, but not in the immediately preceding phase, inject placeholder nodes
+  // so there are no overlapping links
+  private fixOverlaps(): void {
+    const allNodes = this.$scope.nodes;
+    allNodes.forEach((column: IPipelineNode[]) => {
+      column.forEach(node => {
+        const nonImmediateChildren = node.children.filter(c => c.phase - node.phase > 1 && c.row === node.row);
+        nonImmediateChildren.forEach(child => {
+          for (let phase = node.phase + 1; phase < child.phase; phase++) {
+            if (allNodes[phase].length >= node.row) {
+              allNodes[phase].splice(node.row, 0, this.createPlaceholderNode(node.row, phase));
+              allNodes[phase].forEach((n: IPipelineNode, index: number) => { n.row = index; });
+            }
+          }
+        });
+      });
+    });
+  }
+
+  private createPlaceholderNode(row: number, phase: number): IPipelineNode {
+    return {
+      placeholder: true,
+      id: UUIDGenerator.generateUuid(),
+      name: '',
+      parents: [],
+      parentIds: [],
+      children: [],
+      parentLinks: [],
+      childLinks: [],
+      isActive: false,
+      isHighlighted: false,
+      row: row,
+      phase: phase,
+    };
   }
 
   /**
@@ -369,8 +407,8 @@ export class PipelineGraphController implements ng.IComponentController {
     if (this.shouldValidate) {
       this.$scope.$watch('$ctrl.pipeline', debounce(() => this.pipelineConfigValidator.validatePipeline(this.pipeline), 300), true);
     }
-    this.$scope.$watch('$ctrl.viewState', () => { this.updateGraph(true); }, true);
-    this.$scope.$watch('$ctrl.execution.graphStatusHash', () => this.updateGraph());
+    this.$scope.$watch('$ctrl.viewState', (_newVal: any, oldVal: any) => { if (oldVal) { this.updateGraph(true); } }, true);
+    this.$scope.$watch('$ctrl.execution.graphStatusHash', (_newVal: any, oldVal: any) => { if (oldVal) { this.updateGraph(); } });
     this.$(this.$window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
     this.$scope.$on('$destroy', () => {
