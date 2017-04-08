@@ -359,13 +359,21 @@ function create_prototype_disk() {
     trap delete_cleaner_instance EXIT
 
     echo "`date` Creating disk '$SOURCE_IMAGE' from image '$SOURCE_IMAGE'"
-    gcloud compute disks create "$SOURCE_IMAGE" \
+    gcloud compute instances create ${SOURCE_IMAGE} \
+        --no-boot-disk-auto-delete \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
         --image-project $PROJECT \
         --image $SOURCE_IMAGE \
-        --quiet || true
+        --quiet
+    echo "`date` Almost there..."
+    gcloud compute instances delete ${SOURCE_IMAGE} \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        --quiet
+    echo "`date` Finished creating disk '$SOURCE_IMAGE'"
     return 0
   fi
 
@@ -388,7 +396,7 @@ function create_prototype_disk() {
       --machine-type n1-standard-1 \
       --boot-disk-type pd-ssd \
       --boot-disk-size 10GB \
-      --image $BASE_IMAGE_OR_FAMILY \
+      --image $BASE_IMAGE \
       --image-project $BASE_IMAGE_OR_FAMILY_PROJECT \
       --metadata block-project-ssh-keys=TRUE
 
@@ -475,12 +483,6 @@ if [[ "$SOURCE_DISK" == "" ]]; then
   fi
 fi
 
-if [[ "$GZ_URI" != "" ]]; then
-  IMAGE_SOURCE=$GZ_URI
-else
-  IMAGE_SOURCE=$SOURCE_DISK
-fi
-
 echo "Waiting on ${CLEANER_INSTANCE}...."
 wait $CLEANER_INSTANCE_PID || true
 
@@ -488,7 +490,7 @@ extract_clean_prototype_disk \
     "$SOURCE_DISK" "$CLEANER_INSTANCE" "$GZ_URI"
 
 if [[ "$TARGET_IMAGE" != "" ]]; then
-  image_from_prototype_disk "$TARGET_IMAGE" "$IMAGE_SOURCE"
+  image_from_prototype_disk "$TARGET_IMAGE" "$SOURCE_DISK"
 fi
 
 trap - EXIT
