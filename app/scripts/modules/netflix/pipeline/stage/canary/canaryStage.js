@@ -36,6 +36,8 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       pipelineConfigProvider.registerStage({
         label: 'Canary',
         description: 'Canary tests new changes against a baseline version',
+        extendedDescription: `<a target="_blank" href="https://confluence.netflix.com/display/ENGTOOLS/Canary+Stage">
+          <span class="small glyphicon glyphicon-file"></span> Documentation</a>`,
         key: 'canary',
         cloudProviders: ['aws', 'titus'],
         templateUrl: require('./canaryStage.html'),
