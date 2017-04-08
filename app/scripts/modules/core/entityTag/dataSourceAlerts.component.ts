@@ -3,7 +3,7 @@ import {IEntityTags} from 'core/domain/IEntityTags';
 
 class DataSourceAlertsCtrl implements ng.IComponentController {
 
-  public alerts: IEntityTags[] = [];
+  public alerts: IEntityTags[];
   public analyticsLabel: string;
   public tabName: string;
   public applicationName: string;

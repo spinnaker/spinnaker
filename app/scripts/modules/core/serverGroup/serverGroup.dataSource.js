@@ -5,12 +5,13 @@ import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
+import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
     ENTITY_TAGS_READ_SERVICE,
-    require('../cluster/cluster.service')
+    CLUSTER_SERVICE,
   ])
   .run(function($q, applicationDataSourceRegistry, clusterService, entityTagsReader, serverGroupTransformer) {
 

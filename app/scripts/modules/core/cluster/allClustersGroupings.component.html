@@ -12,7 +12,7 @@
                    parent-heading="group.heading"
       ></cluster-pod>
     </div>
-    <div ng-if="groups.length === 0">
+    <div ng-if="$ctrl.groups.length === 0 && !$ctrl.app.serverGroups.fetchOnDemand">
       <h4 class="text-center">No server groups match the filters you've selected.</h4>
     </div>
   </div>

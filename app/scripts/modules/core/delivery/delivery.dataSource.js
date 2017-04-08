@@ -3,6 +3,7 @@ import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicati
 import {EXECUTION_SERVICE} from './service/execution.service';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 import {SETTINGS} from 'core/config/settings';
+import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
 
 let angular = require('angular');
 
@@ -11,7 +12,7 @@ module.exports = angular
     APPLICATION_DATA_SOURCE_REGISTRY,
     EXECUTION_SERVICE,
     PIPELINE_CONFIG_SERVICE,
-    require('../cluster/cluster.service')
+    CLUSTER_SERVICE,
   ])
   .run(function($q, applicationDataSourceRegistry, executionService, pipelineConfigService, clusterService) {
 

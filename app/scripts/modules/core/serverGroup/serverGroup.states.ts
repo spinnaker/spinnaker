@@ -6,6 +6,7 @@ import {
   IApplicationStateParams
 } from 'core/application/application.state.provider';
 import {CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
+import {Application} from '../application/application.model';
 
 export interface IServerGroupStateParams extends IApplicationStateParams {
   provider: string;
@@ -29,8 +30,13 @@ module(SERVER_GROUP_STATES, [
         'master': {
           templateUrl: require('../cluster/all.html'),
           controller: 'AllClustersCtrl',
-          controllerAs: 'allClusters'
+          controllerAs: 'ctrl'
         }
+      },
+      resolve: {
+        // prevents flash of filters if fetchOnDemand is enabled; catch any exceptions so the route resolves
+        // and deal with the exception in the AllClustersCtrl
+        ready: (app: Application) => app.getDataSource('serverGroups').ready().catch(() => null),
       },
       data: {
         pageTitleSection: {

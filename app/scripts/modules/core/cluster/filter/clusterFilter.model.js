@@ -9,10 +9,10 @@ module.exports = angular
   ])
   .factory('ClusterFilterModel', function($rootScope, filterModelService, urlParser) {
 
-    var filterModel = this;
-    var mostRecentParams = null;
+    const filterModel = this;
+    let mostRecentParams = null;
 
-    var filterModelConfig = [
+    const filterModelConfig = [
       { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
       { model: 'account', param: 'acct', type: 'object', },
       { model: 'region', param: 'reg', type: 'object', },
@@ -27,7 +27,8 @@ module.exports = angular
       { model: 'showAllInstances', param: 'hideInstances', displayOption: true, type: 'inverse-boolean', },
       { model: 'listInstances', displayOption: true, type: 'boolean', },
       { model: 'instanceSort', displayOption: true, type: 'sortKey', defaultValue: 'launchTime' },
-      { model: 'multiselect', displayOption: true, type: 'boolean', }
+      { model: 'multiselect', displayOption: true, type: 'boolean', },
+      { model: 'clusters', type: 'object'},
     ];
 
     filterModelService.configureFilterModel(this, filterModelConfig);

@@ -15,6 +15,11 @@
                         on-update="$ctrl.application.serverGroups.refresh()"></entity-ui-tags>
       </div>
       <health-counts container="$ctrl.grouping.cluster.instanceCounts"></health-counts>
+      <div class="remove-button" ng-if="$ctrl.showCloseButton">
+        <button class="btn btn-link" ng-click="$ctrl.close()" uib-tooltip="Remove cluster from view">
+          <span class="glyphicon glyphicon-remove"></span>
+        </button>
+      </div>
     </div>
   </div>
   <div class="rollup-details">

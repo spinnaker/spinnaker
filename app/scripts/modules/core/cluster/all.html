@@ -7,7 +7,7 @@
       <div class="form-group">
         <button class="btn btn-xs btn-default" style="margin-left: 20px"
                 ng-class="{active: sortFilter.multiselect}"
-                ng-click="allClusters.toggleMultiselect()">
+                ng-click="ctrl.toggleMultiselect()">
           <span class="glyphicon glyphicon-list visible-lg-inline"></span>
           <span class="glyphicon glyphicon-list visible-md-inline visible-sm-inline" uib-tooltip="Edit multiple"></span>
           <span class="visible-lg-inline">Edit multiple</span>
@@ -19,7 +19,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.showAllInstances"
-                   ng-change="allClusters.updateClusterGroups()"/>
+                   ng-change="ctrl.updateClusterGroups()"/>
             Instances
           </label>
         </div>
@@ -27,7 +27,7 @@
           <label>
             <input type="checkbox"
                    ng-model="sortFilter.listInstances"
-                   ng-change="allClusters.updateClusterGroups()"/>
+                   ng-change="ctrl.updateClusterGroups()"/>
             with details
           </label>
         </div>
@@ -36,21 +36,31 @@
   </div>
   <div class="col-lg-3 col-md-2 col-sm-2">
     <div class="application-actions">
-      <button class="btn btn-sm btn-default" ng-click="allClusters.createServerGroup()">
+      <button class="btn btn-sm btn-default" ng-click="ctrl.createServerGroup()">
         <span class="glyphicon glyphicon-plus-sign visible-lg-inline"></span>
         <span class="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline" uib-tooltip="Create Server Group"></span>
-        <span class="visible-lg-inline">{{allClusters.createLabel}}</span>
+        <span class="visible-lg-inline">{{ctrl.createLabel}}</span>
       </button>
     </div>
   </div>
-  <filter-tags tags="tags" tag-cleared="allClusters.updateClusterGroups()" clear-filters="allClusters.clearFilters()"></filter-tags>
+  <filter-tags ng-if="!ctrl.dataSource.fetchOnDemand"
+               tags="tags"
+               tag-cleared="ctrl.updateClusterGroups()"
+               clear-filters="ctrl.clearFilters()"></filter-tags>
 </div>
 
+<div ng-if="ctrl.dataSource.fetchOnDemand">
+  <on-demand-cluster-picker application="ctrl.application"></on-demand-cluster-picker>
+</div>
+
+<div ng-if="ctrl.loadError">
+  <h4 class="text-center">There was an error loading the clusters for this application. We'll try again shortly.</h4>
+</div>
 
 <all-clusters-groupings class="content"
                         sticky-headers
                         groups="groups"
                         sort-filter="sortFilter"
-                        app="allClusters.application"
-                        initialized="allClusters.initialized"
+                        app="ctrl.application"
+                        initialized="ctrl.initialized"
 ></all-clusters-groupings>
