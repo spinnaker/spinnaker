@@ -295,7 +295,7 @@ export class SecurityGroupReader {
     return this.entityTagsReader.getAllEntityTags('securitygroup', entityIds).then(tags => {
       securityGroups.forEach(securityGroup => {
         securityGroup.entityTags = tags.find(t => t.entityRef.entityId === securityGroup.name &&
-        t.entityRef['account'] === securityGroup.account &&
+        t.entityRef['account'] === securityGroup.accountName &&
         t.entityRef['region'] === securityGroup.region);
       });
       return securityGroups;
@@ -392,7 +392,9 @@ export class SecurityGroupReader {
             }
           });
         }
-
+        if (SETTINGS.feature.entityTags && application.isStandalone) {
+          return this.addEntityTags([details]).then(all => all[0]);
+        }
         return details;
       });
   }
