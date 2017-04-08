@@ -268,10 +268,12 @@ class DockerRegistryNamedAccountCredentials implements AccountCredentials<Docker
   @JsonIgnore
   List<String> getTags(String repository) {
     def tags = credentials.client.getTags(repository).tags
-    if(sortTagsByDate){
-      tags = tags.sort{ tag ->
-        credentials.client.getCreationDate(repository, tag)
-      }.reverse()
+    if (sortTagsByDate) {
+      tags = tags.parallelStream().map({
+        tag -> [date: credentials.client.getCreationDate(repository, tag), tag: tag]
+      }).toArray().sort {
+        it.date
+      }.reverse().tag
     }
     tags
   }
