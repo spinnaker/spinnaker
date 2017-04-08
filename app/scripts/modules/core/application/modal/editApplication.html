@@ -193,15 +193,10 @@
 
     <div class="modal-footer">
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
-      <button type="submit"
-              class="btn btn-primary"
-              data-purpose="submit"
-              ng-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning"
-              ng-click="editApp.submit()">
-        <span class="glyphicon glyphicon-ok-circle" ng-if="!editApp.state.submitting"></span>
-        <button-busy-indicator ng-if="editApp.state.submitting"></button-busy-indicator>
-        Update
-      </button>
+      <submit-button is-new="false"
+                     is-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning"
+                     submitting="editApp.state.submitting"
+                     on-click="editApp.submit()"></submit-button>
     </div>
   </form>
 </div>

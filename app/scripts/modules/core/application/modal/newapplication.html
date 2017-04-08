@@ -211,15 +211,10 @@
 
     <div class="modal-footer">
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
-      <button type="submit"
-              class="btn btn-primary"
-              data-purpose="submit"
-              ng-disabled="newApplicationForm.$invalid || newAppModal.application.accounts.length < 1 || newAppModal.state.submitting || newAppModal.data.showOverrideWarning"
-              ng-click="newAppModal.submit()">
-        <span class="glyphicon glyphicon-ok-circle" ng-if="!newAppModal.state.submitting"></span>
-        <button-busy-indicator ng-if="newAppModal.state.submitting"></button-busy-indicator>
-        Create
-      </button>
+      <submit-button is-new="true"
+                     is-disabled="newApplicationForm.$invalid || newAppModal.application.accounts.length < 1 || newAppModal.state.submitting || newAppModal.data.showOverrideWarning"
+                     submitting="newAppModal.state.submitting"
+                     on-click="newAppModal.submit()"></submit-button>
     </div>
   </form>
 </div>
