@@ -37,4 +37,14 @@ public class DeployConfig {
   String debianRepository(@Value("${spinnaker.artifacts.debianRepository:https://dl.bintray.com/spinnaker-team/spinnakerbuild}") String debianRepository) {
     return debianRepository;
   }
+
+  @Bean
+  String vaultSecretPrefix(@Value("${spinnaker.vault.secretPrefix:secrets/spinnaker/}") String vaultSecretPrefix) {
+    return vaultSecretPrefix;
+  }
+
+  @Bean
+  Integer vaultTimeoutSeconds(@Value("${spinnaker.vault.timeoutSeconds:10}") Integer vaultTimeoutSeconds) {
+    return vaultTimeoutSeconds;
+  }
 }
