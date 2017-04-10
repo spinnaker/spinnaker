@@ -19,12 +19,8 @@ spec:
     spec:
       containers:
         - image: quay.io/spinnaker/deck:master
+          imagePullPolicy: Always
           name: deck
-          command:
-            - /bin/bash
-            - -c
-          args:
-            - "cp /opt/spinnaker/config/settings.js .; /opt/deck/docker/run-apache2.sh"
           env:
             - name: DECK_HOST
               value: 0.0.0.0
