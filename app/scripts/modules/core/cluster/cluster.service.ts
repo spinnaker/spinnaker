@@ -30,6 +30,8 @@ export class ClusterService {
         serverGroupLoader.withParams({
           clusters: this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.clusters).join()
         });
+      } else {
+        this.reconcileClusterDeepLink();
       }
       return serverGroupLoader.getList().then((serverGroups: ServerGroup[]) => {
         serverGroups.forEach(sg => this.addHealthStatusCheck(sg));
@@ -37,6 +39,29 @@ export class ClusterService {
         return this.$q.all(serverGroups.map(sg => this.serverGroupTransformer.normalizeServerGroup(sg, application)));
       });
     });
+  }
+
+  // if the application is deep linked via "clusters:", but the app is not "fetchOnDemand" sized, convert the parameters
+  // to the normal, filterable structure
+  private reconcileClusterDeepLink() {
+    const selectedClusters: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.clusters);
+    if (selectedClusters && selectedClusters.length) {
+      const clusterNames: string[] = [];
+      const accountNames: string[] = [];
+      selectedClusters.forEach(clusterKey => {
+        const [account, cluster] = clusterKey.split(':');
+        accountNames.push(account);
+        if (cluster) {
+          clusterNames.push(cluster);
+        }
+      });
+      if (clusterNames.length) {
+        accountNames.forEach(account => this.ClusterFilterModel.sortFilter.account[account] = true);
+        this.ClusterFilterModel.sortFilter.filter = `clusters:${clusterNames.join()}`;
+        this.ClusterFilterModel.sortFilter.clusters = {};
+        this.ClusterFilterModel.applyParamsToUrl();
+      }
+    }
   }
 
   public addServerGroupsToApplication(application: Application, serverGroups: ServerGroup[] = []): ServerGroup[] {
