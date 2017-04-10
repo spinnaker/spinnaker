@@ -8,9 +8,6 @@ set -o pipefail
 # install redis as a local service
 INSTALL_REDIS="{%install-redis%}"
 
-# install dependencies required on images running a distributed spinnaker
-INSTALL_REMOTE_DEPENDENCIES="{%install-remote-dependencies%}"
-
 # install first-time spinnaker dependencies (java, setup apt repos)
 PREPARE_ENVIRONMENT="{%prepare-environment%}"
 
@@ -108,10 +105,6 @@ echo "Installing desired components..."
 
 if [ -n "$PREPARE_ENVIRONMENT" ]; then
   install_java
-fi
-
-if [ -n "$INSTALL_REMOTE_DEPENDENCIES" ]; then
-  install_remote_dependencies
 fi
 
 if [ -z "$(getent group spinnaker)" ]; then

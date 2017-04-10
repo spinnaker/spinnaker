@@ -94,7 +94,6 @@ public class DebianServiceProvider extends LocalServiceProvider {
     bindings = new HashMap<>();
     bindings.put("prepare-environment", "true");
     bindings.put("install-redis", "true");
-    bindings.put("install-remote-dependencies", "true");
     bindings.put("debian-repository", debianRepository);
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("service-action", "restart");
