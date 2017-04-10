@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProv
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -53,6 +54,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     StringResource configTemplate = new StringResource(profile.getBaseContents());
+    UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
 
     Features features = deploymentConfiguration.getFeatures();
     Map<String, String> bindings = new HashMap<>();
@@ -95,6 +97,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
       bindings.put("openstack.default.region", firstRegion);
     }
 
-    profile.appendContents(configTemplate.setBindings(bindings).toString());
+    profile.appendContents(configTemplate.setBindings(bindings).toString())
+        .setRequiredFiles(processRequiredFiles(uiSecurity));
   }
 }

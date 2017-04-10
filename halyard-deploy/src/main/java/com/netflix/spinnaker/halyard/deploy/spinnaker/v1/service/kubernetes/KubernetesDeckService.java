@@ -21,7 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.DeckProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.DeckDockerProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
@@ -45,7 +45,7 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
   KubernetesMonitoringDaemonService monitoringDaemonService;
 
   @Autowired
-  DeckProfileFactory deckProfileFactory;
+  DeckDockerProfileFactory deckDockerProfileFactory;
 
   @Autowired
   ArtifactService artifactService;
@@ -74,7 +74,7 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
     String settingsPath = "/opt/spinnaker/config";
     String filename = "settings.js";
     String path = Paths.get(settingsPath, filename).toString();
-    result.add(deckProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
+    result.add(deckDockerProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
     return result;
   }
 

@@ -22,13 +22,14 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.method.P;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Slf4j
@@ -36,6 +37,7 @@ public class Profile {
   @JsonIgnore
   private String contents = "";
   private List<String> requiredFiles = new ArrayList<>();
+  private Map<String, String> env = new HashMap<>();
 
   // Name of the profile itself (not the service or artifact)
   final private String name;

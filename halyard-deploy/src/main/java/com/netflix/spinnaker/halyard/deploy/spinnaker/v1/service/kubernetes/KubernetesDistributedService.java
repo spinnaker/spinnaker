@@ -157,40 +157,49 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     ServiceSettings thisServiceSettings = resolvedConfiguration.getServiceSettings(thisService);
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
     String name = getName();
+    Map<String, String> env = new HashMap<>();
     List<ConfigSource> configSources = new ArrayList<>();
     ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
     if (thisServiceSettings.isMonitored() && monitoringSettings.isEnabled()) {
       Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
 
       Profile profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.serviceRegistryProfileName(name));
-      if (profile == null) {
-        throw new RuntimeException("Assertion violated: service monitoring enabled but no registry entry generated.");
-      }
+      assert(profile != null);
 
       String secretName = KubernetesProviderUtils.componentRegistry(name, version);
       String mountPoint = Paths.get(profile.getOutputFile()).getParent().toString();
+      env.clear();
+      env.putAll(profile.getEnv());
 
       KubernetesProviderUtils.upsertSecret(details,
           Collections.singleton(profile.getStagedFile(getSpinnakerStagingPath())),
           secretName,
           getNamespace());
 
-      configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
+      configSources.add(new ConfigSource()
+          .setId(secretName)
+          .setMountPath(mountPoint)
+          .setEnv(env)
+      );
 
       profile = monitoringProfiles.get("monitoring.yml");
-      if (profile == null) {
-        throw new RuntimeException("Assertion violated: service monitoring enabled but no monitoring profile was generated.");
-      }
+      assert(profile != null);
 
       secretName = KubernetesProviderUtils.componentMonitoring(name, version);
       mountPoint = Paths.get(profile.getOutputFile()).getParent().toString();
+      env.clear();
+      env.putAll(profile.getEnv());
 
       KubernetesProviderUtils.upsertSecret(details,
           Collections.singleton(profile.getStagedFile(getSpinnakerStagingPath())),
           secretName,
           getNamespace());
 
-      configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
+      configSources.add(new ConfigSource()
+          .setId(secretName)
+          .setMountPath(mountPoint)
+          .setEnv(env)
+      );
     }
 
     Map<String, Profile> serviceProfiles = resolvedConfiguration.getProfilesForService(thisService.getType());
@@ -213,10 +222,8 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
         String nextMountPoint = Paths.get(file).getParent().toString();
         if (mountPoint == null) {
           mountPoint = nextMountPoint;
-        } else if (!mountPoint.equals(nextMountPoint)) {
-          // Note, Halyard should have put them in the same staging directory - this isn't a user requirement.
-          throw new RuntimeException("Assertion violated: all required files must live in the same directory.");
         }
+        assert(mountPoint.equals(nextMountPoint));
       }
 
       KubernetesProviderUtils.upsertSecret(details, requiredFiles, secretName, getNamespace());
@@ -225,15 +232,34 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
     int ind = 0;
     for (Map.Entry<String, Set<Profile>> entry : collapseByDirectory.entrySet()) {
+      env.clear();
       String mountPoint = entry.getKey();
       Set<Profile> profiles = entry.getValue();
-      Set<String> files = profiles.stream().map(p -> p.getStagedFile(getSpinnakerStagingPath())).collect(Collectors.toSet());
+      env.putAll(profiles.stream().reduce(new HashMap<>(),
+          (acc, profile) -> {
+            acc.putAll(profile.getEnv());
+            return acc;
+          },
+          (a, b) -> {
+            a.putAll(b);
+            return a;
+          }
+      ));
+
+      Set<String> files = profiles
+          .stream()
+          .map(p -> p.getStagedFile(getSpinnakerStagingPath()))
+          .collect(Collectors.toSet());
 
       String secretName = KubernetesProviderUtils.componentSecret(name + ind, version);
       ind += 1;
 
       KubernetesProviderUtils.upsertSecret(details, files, secretName, getNamespace());
-      configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
+      configSources.add(new ConfigSource()
+          .setId(secretName)
+          .setMountPath(mountPoint)
+          .setEnv(env)
+      );
     }
 
     return configSources;
@@ -358,6 +384,16 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       envVars.add(envVar);
     });
 
+    configSources.forEach(c -> {
+      c.getEnv().entrySet().forEach(envEntry -> {
+        KubernetesEnvVar envVar = new KubernetesEnvVar();
+        envVar.setName(envEntry.getKey());
+        envVar.setValue(envEntry.getValue());
+        envVars.add(envVar);
+      });
+    });
+
+
     container.setEnvVars(envVars);
 
     return container;
@@ -419,6 +455,15 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       EnvVarBuilder envVarBuilder = new EnvVarBuilder();
       return envVarBuilder.withName(e.getKey()).withValue(e.getValue()).build();
     }).collect(Collectors.toList());
+
+    configSources.forEach(c -> {
+      c.getEnv().entrySet().forEach(envEntry -> {
+        EnvVarBuilder envVarBuilder = new EnvVarBuilder();
+        envVars.add(envVarBuilder.withName(envEntry.getKey())
+            .withValue(envEntry.getValue())
+            .build());
+      });
+    });
 
     ProbeBuilder probeBuilder = new ProbeBuilder();
 
