@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
@@ -87,21 +88,28 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       }
 
       boolean safeToUpdate = settings.isSafeToUpdate();
-      RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails);
-      boolean notDeployed = runningServiceDetails.getInstances().isEmpty() && !runningServiceDetails.getLoadBalancer().isExists();
 
-      if (distributedService.isRequiredToBootstrap() || !safeToUpdate || notDeployed) {
+      if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
         DaemonTaskHandler.message("Manually deploying " + distributedService.getName());
         List<ConfigSource> configs = distributedService.stageProfiles(deploymentDetails, resolvedConfiguration);
         distributedService.ensureRunning(deploymentDetails, resolvedConfiguration, configs, safeToUpdate);
       } else {
-        Orca orca = serviceProvider
-            .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
-            .connect(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.message("Upgrading " + distributedService.getName() + " via Spinnaker red/black");
-        deployService(deploymentDetails, resolvedConfiguration, orca, distributedService);
+        DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>();
+        builder.setBuildResponse(() -> {
+          Orca orca = serviceProvider
+              .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
+              .connect(deploymentDetails, runtimeSettings);
+          DaemonTaskHandler.newStage("Deploying " + distributedService.getName() + " via red/black");
+          deployService(deploymentDetails, resolvedConfiguration, orca, distributedService);
+
+          return null;
+        });
+        DaemonTaskHandler.submitTask(builder::build, "Deploy " + distributedService.getName());
       }
     }
+
+    DaemonTaskHandler.message("Waiting on red/black pipelines to complete");
+    DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null);
 
     reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
 
@@ -114,6 +122,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         .getDeployableService(SpinnakerService.Type.GATE)
         .connectCommand(deploymentDetails, runtimeSettings);
     result.setScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
+    result.setScriptDescription("The generated script will open connections to the API & UI servers using kubectl");
     result.setAutoRun(false);
     return result;
   }
@@ -122,7 +131,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       ResolvedConfiguration resolvedConfiguration,
       Orca orca,
       DistributedService distributedService) {
-    DaemonTaskHandler.newStage("Deploying " + distributedService.getName());
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
     RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details);
     Supplier<String> idSupplier;
@@ -133,7 +141,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     }
 
     List<String> configs = distributedService.stageProfiles(details, resolvedConfiguration);
-    Map<String, Object> pipeline = distributedService.buildDeployServerGroupPipeline(details, runtimeSettings, configs);
+    Map<String, Object> pipeline = distributedService.buildDeployServerGroupPipeline(details, runtimeSettings, configs, MAX_REMAINING_SERVER_GROUPS);
     idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }

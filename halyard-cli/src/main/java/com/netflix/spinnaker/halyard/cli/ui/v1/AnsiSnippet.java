@@ -26,6 +26,7 @@ public class AnsiSnippet {
   private AnsiForegroundColor foregroundColor;
   private AnsiBackgroundColor backgroundColor;
   private List<AnsiStyle> styles = new ArrayList<>();
+  private List<AnsiMove> moves = new ArrayList<>();
   private AnsiErase erase = null;
   private String message;
 
@@ -45,10 +46,12 @@ public class AnsiSnippet {
       result.append(foregroundColor.format());
     }
 
-    if (styles != null) {
-      for (AnsiStyle style : styles) {
-        result.append(style.format());
-      }
+    for (AnsiStyle style : styles) {
+      result.append(style.format());
+    }
+
+    for (AnsiMove move : moves) {
+      result.append(move.format());
     }
 
     result.append(message);
@@ -56,6 +59,12 @@ public class AnsiSnippet {
     result.append(AnsiSpecial.RESET.format());
 
     return result.toString();
+  }
+
+  public AnsiSnippet addMove(AnsiMove move, int count) {
+    move.setCount(count);
+    moves.add(move);
+    return this;
   }
 
   public AnsiSnippet addStyle(AnsiStyle style) {

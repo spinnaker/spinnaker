@@ -98,8 +98,8 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     // 2. Something is wrong, so you rollback.
     // 3. Fixing the bad server group requires redeploying.
     //
-    // Since you can't fix the newest destroyd server group in place, and you (at least I cant imagine why)
-    // won't want to reenable that server group, there is no point it keeping it around. There's an argument
+    // Since you can't fix the newest destroyed server group in place, and you won't (at least I can't imagine why)
+    // want to reenable that server group, there is no point it keeping it around. There's an argument
     // to be made for keeping it around to debug, but that's far from what the average halyard user will want
     // to do.
     Map<String, Object> destroyDescription = new HashMap<>();
@@ -126,7 +126,8 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
 
   default Map<String, Object> buildDeployServerGroupPipeline(AccountDeploymentDetails<A> details,
       SpinnakerRuntimeSettings runtimeSettings,
-      List<ConfigSource> configSources) {
+      List<ConfigSource> configSources,
+      int maxRemaining) {
     Map<String, Object> deployDescription  = getServerGroupDescription(details, runtimeSettings, configSources);
     deployDescription.put("interestingHealthProviders", getHealthProviders());
     deployDescription.put("type", AtomicOperations.CREATE_SERVER_GROUP);
@@ -134,8 +135,8 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     deployDescription.put("refId", "deployredblack");
     deployDescription.put("region", getRegion());
     deployDescription.put("strategy", "redblack");
-    /* TODO(lwander)
     deployDescription.put("maxRemainingAsgs", maxRemaining + "");
+    /* TODO(lwander)
     deployDescription.put("scaleDown", scaleDown + "");
     */
 

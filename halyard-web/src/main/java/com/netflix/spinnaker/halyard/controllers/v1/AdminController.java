@@ -20,7 +20,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +41,7 @@ public class AdminController {
       return null;
     });
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Publish a BOM");
   }
 
   @RequestMapping(value = "/publishProfile/{artifactName:.+}", method = RequestMethod.PUT)
@@ -56,6 +56,6 @@ public class AdminController {
       return null;
     });
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Publish a " + artifactName + " profile");
   }
 }

@@ -54,6 +54,11 @@ public class AnsiParagraphBuilder {
     }
 
     String body = bodyBuilder.toString();
+
+    if (maxLineWidth < 0) {
+      return body;
+    }
+
     String[] lines = body.split("\n");
 
     StringBuilder lineBuilder = new StringBuilder();

@@ -54,6 +54,11 @@ public abstract class NestableCommand {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
+  @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages.")
+  public void setQuiet(boolean quiet) {
+    GlobalOptions.getGlobalOptions().setQuiet(quiet);
+  }
+
   @Parameter(
       names = {"-l", "--log"},
       converter = LogLevelConverter.class,

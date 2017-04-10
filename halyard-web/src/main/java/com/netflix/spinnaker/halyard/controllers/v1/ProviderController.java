@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,7 +56,7 @@ public class ProviderController {
       builder.setValidateResponse(() -> providerService.validateProvider(deploymentName, providerName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get the " + providerName + " provider");
   }
 
   @RequestMapping(value = "/{providerName:.+}/enabled", method = RequestMethod.PUT)
@@ -80,7 +80,7 @@ public class ProviderController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + providerName + " provider");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
@@ -96,6 +96,6 @@ public class ProviderController {
       builder.setValidateResponse(() -> providerService.validateAllProviders(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get all providers");
   }
 }

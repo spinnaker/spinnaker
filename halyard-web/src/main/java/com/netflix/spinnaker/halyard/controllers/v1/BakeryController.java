@@ -30,7 +30,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,7 +62,7 @@ public class BakeryController {
       builder.setValidateResponse(() -> bakeryService.validateBakeryDefaults(deploymentName, providerName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + providerName + " bakery defaults");
   }
 
   @RequestMapping(value = "/defaults/", method = RequestMethod.PUT)
@@ -90,7 +90,7 @@ public class BakeryController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + providerName + " bakery defaults");
   }
 
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.GET)
@@ -105,7 +105,7 @@ public class BakeryController {
       builder.setValidateResponse(() -> bakeryService.validateAllBaseImages(deploymentName, providerName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + providerName + " base images");
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.GET)
@@ -123,7 +123,7 @@ public class BakeryController {
       builder.setValidateResponse(() -> bakeryService.validateBaseImage(deploymentName, providerName, baseImageId));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + baseImageId + " base image");
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.DELETE)
@@ -147,7 +147,7 @@ public class BakeryController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Delete " + baseImageId + " base image");
   }
 
   @RequestMapping(value = "/defaults/baseImage/{baseImageId:.+}", method = RequestMethod.PUT)
@@ -177,7 +177,7 @@ public class BakeryController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + baseImageId + " base image");
   }
 
   @RequestMapping(value = "/defaults/baseImage/", method = RequestMethod.POST)
@@ -207,6 +207,6 @@ public class BakeryController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Add " + baseImage.getNodeName() + " base image");
   }
 }

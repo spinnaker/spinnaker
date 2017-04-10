@@ -25,27 +25,34 @@ public class TaskRepository {
     return new ArrayList<>(tasks.keySet());
   }
 
-  static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner) {
-    String uuid = UUID.randomUUID().toString();
-    log.info("Scheduling task " + uuid);
-    DaemonTask<C, T> task = new DaemonTask<C, T>().setUuid(uuid);
+  static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner, String name) {
+    DaemonTask<C, T> task = new DaemonTask<C, T>(name);
+    String uuid = task.getUuid();
+    log.info("Scheduling task " + task);
     Runnable r = () -> {
-      log.info("Starting task " + uuid);
+      log.info("Starting task " + task);
       DaemonTaskHandler.setTask(task);
       task.setState(State.RUNNING);
       try {
         task.setResponse(runner.get());
         task.setState(State.SUCCESS);
       } catch (Exception e) {
-        log.info("Task " + uuid + " failed");
-        task.setState(State.FATAL);
+        log.info("Task " + task + " failed");
         task.setFatalError(e);
+        task.setState(State.FATAL);
+      } finally {
+        // Notify after changing state to avoid data-race where threads are notified before thread appears terminal
+        synchronized (task) {
+          task.notifyAll();
+        }
       }
-      log.info("Task " + uuid + " completed");
+      log.info("Task " + task + " completed");
     };
 
     Thread t = new Thread(r);
-    tasks.put(uuid, new DaemonTaskStatus().setRunner(t).setTask(task));
+    tasks.put(uuid, new DaemonTaskStatus()
+        .setRunner(t)
+        .setTask(task));
     t.start();
 
     return task;
@@ -53,10 +60,10 @@ public class TaskRepository {
 
   static public <C, T> DaemonTask<C, T> getTask(String uuid) {
     DaemonTaskStatus status = tasks.get(uuid);
-
     if (status == null) {
       return null;
     }
+
     DaemonTask<C, T> task = status.getTask();
     Exception fatalError = null;
     switch (task.getState()) {
@@ -64,10 +71,10 @@ public class TaskRepository {
       case RUNNING:
         break;
       case FATAL:
-        log.error("Task " + uuid + " encountered a fatal exception");
+        log.error("Task " + task + " encountered a fatal exception");
         fatalError = task.getFatalError();
       case SUCCESS:
-        log.info("Terminating task " + uuid);
+        log.info("Terminating task " + task);
         try {
           status.getRunner().join();
         } catch (InterruptedException ignored) {

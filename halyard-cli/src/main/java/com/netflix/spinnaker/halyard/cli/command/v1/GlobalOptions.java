@@ -34,6 +34,8 @@ public class GlobalOptions {
 
   private boolean help = false;
 
+  private boolean quiet = false;
+
   private String options;
 
   private Level log;

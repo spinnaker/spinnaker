@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.function.Supplier;
 @Slf4j
 public class DaemonResponse<T> {
   @Getter
+  @Setter
   private T responseBody;
 
   @Getter

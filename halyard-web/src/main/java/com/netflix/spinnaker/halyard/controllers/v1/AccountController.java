@@ -29,7 +29,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,7 +60,7 @@ public class AccountController {
       builder.setValidateResponse(() -> accountService.validateAllAccounts(deploymentName, providerName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get all " + providerName + " accounts");
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.GET)
@@ -78,7 +78,7 @@ public class AccountController {
       builder.setValidateResponse(() -> accountService.validateAccount(deploymentName, providerName, accountName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + accountName + " account");
   }
 
   @RequestMapping(value = "/options", method = RequestMethod.POST)
@@ -99,7 +99,7 @@ public class AccountController {
     builder.setFieldOptionsResponse(() -> accountService.getAccountOptions(deploymentName, providerName, accountName, fieldName));
     builder.setSeverity(severity);
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + fieldName + " options");
   }
 
   @RequestMapping(value = "/account/{accountName:.+}/options", method = RequestMethod.PUT)
@@ -115,7 +115,7 @@ public class AccountController {
     builder.setFieldOptionsResponse(() -> accountService.getAccountOptions(deploymentName, providerName, accountName, fieldName));
     builder.setSeverity(severity);
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + fieldName + " options");
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.DELETE)
@@ -139,7 +139,7 @@ public class AccountController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Delete the " + accountName + " account");
   }
 
   @RequestMapping(value = "/account/{accountName:.+}", method = RequestMethod.PUT)
@@ -169,7 +169,7 @@ public class AccountController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + accountName + " account");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -198,6 +198,6 @@ public class AccountController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Add the " + account.getName() + " account");
   }
 }

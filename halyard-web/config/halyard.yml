@@ -19,4 +19,4 @@ endpoints:
     enabled: true
 
 retrofit:
-  logLevel: FULL
+  logLevel: BASIC

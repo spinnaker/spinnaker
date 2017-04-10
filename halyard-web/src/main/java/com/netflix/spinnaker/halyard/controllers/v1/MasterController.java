@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -59,7 +60,7 @@ public class MasterController {
       builder.setValidateResponse(() -> masterService.validateAllMasters(deploymentName, webhookName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get all masters for " + webhookName);
   }
 
   @RequestMapping(value = "/{masterName:.+}", method = RequestMethod.GET)
@@ -77,7 +78,7 @@ public class MasterController {
       builder.setValidateResponse(() -> masterService.validateMaster(deploymentName, webhookName, masterName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get the " + masterName + " master");
   }
 
   @RequestMapping(value = "/{masterName:.+}", method = RequestMethod.DELETE)
@@ -101,7 +102,7 @@ public class MasterController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Delete the " + masterName + " master");
   }
 
   @RequestMapping(value = "/{masterName:.+}", method = RequestMethod.PUT)
@@ -131,7 +132,7 @@ public class MasterController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit the " + masterName + " master");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.POST)
@@ -160,6 +161,6 @@ public class MasterController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Add the " + master.getName() + " master");
   }
 }

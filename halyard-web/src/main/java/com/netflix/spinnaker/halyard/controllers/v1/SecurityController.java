@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,7 +56,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateSecurity(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get all security settings");
   }
 
   @RequestMapping(value = "/ui/", method = RequestMethod.GET)
@@ -72,7 +72,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get UI security settings");
   }
 
   @RequestMapping(value = "/ui/", method = RequestMethod.PUT)
@@ -95,7 +95,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit UI security settings");
   }
 
   @RequestMapping(value = "/ui/ssl/", method = RequestMethod.GET)
@@ -111,7 +111,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get UI SSL settings");
   }
 
   @RequestMapping(value = "/ui/ssl/", method = RequestMethod.PUT)
@@ -134,7 +134,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit UI SSL settings");
   }
 
   @RequestMapping(value = "/ui/ssl/enabled/", method = RequestMethod.PUT)
@@ -155,7 +155,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit UI SSL settings");
   }
 
   @RequestMapping(value = "/api/", method = RequestMethod.GET)
@@ -171,7 +171,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateApiSecurity(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get API security settings");
   }
 
   @RequestMapping(value = "/api/", method = RequestMethod.PUT)
@@ -194,7 +194,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit API security settings");
   }
 
   @RequestMapping(value = "/api/ssl/", method = RequestMethod.GET)
@@ -210,7 +210,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateUiSecurity(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get API SSL settings");
   }
 
   @RequestMapping(value = "/api/ssl/", method = RequestMethod.PUT)
@@ -233,7 +233,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit API SSL settings");
   }
 
   @RequestMapping(value = "/api/ssl/enabled/", method = RequestMethod.PUT)
@@ -254,7 +254,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit API SSL settings");
   }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.PUT)
@@ -277,7 +277,7 @@ public class SecurityController {
       builder.setRevert(() -> halconfigParser.undoChanges());
       builder.setSave(() -> halconfigParser.saveConfig());
 
-      return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit group membership settings");
     }
 
   @RequestMapping(value = "/authz/groupMembership", method = RequestMethod.GET)
@@ -293,7 +293,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateAuthz(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get group membership settings");
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.GET)
@@ -310,7 +310,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateAuthnMethod(deploymentName, methodName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get authentication settings");
   }
 
   @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.GET)
@@ -327,7 +327,7 @@ public class SecurityController {
       builder.setValidateResponse(() -> securityService.validateRoleProvider(deploymentName, roleProviderName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + roleProviderName + " group membership settings");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
@@ -350,7 +350,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit security settings");
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}", method = RequestMethod.PUT)
@@ -377,7 +377,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + methodName + " authentication settings");
   }
 
   @RequestMapping(value = "/authz/groupMembership/{roleProviderName:.+}", method = RequestMethod.PUT)
@@ -404,7 +404,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + roleProviderName + " group membership settings");
   }
 
   @RequestMapping(value = "/authn/{methodName:.+}/enabled/", method = RequestMethod.PUT)
@@ -426,7 +426,7 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + methodName + " authentication settings");
   }
 
   @RequestMapping(value = "/authz/enabled/", method = RequestMethod.PUT)
@@ -447,6 +447,6 @@ public class SecurityController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit authorization settings");
   }
 }

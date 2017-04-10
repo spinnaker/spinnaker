@@ -29,7 +29,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -106,7 +106,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Generate config");
   }
 
 
@@ -128,7 +128,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Rollback Spinnaker");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
@@ -148,7 +148,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Actuate deployment");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/configDiff/", method = RequestMethod.GET)
@@ -164,7 +164,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Determine config diff");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/version/", method = RequestMethod.PUT)
@@ -186,7 +186,7 @@ public class DeploymentController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit Spinnaker version");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/version/", method = RequestMethod.GET)
@@ -202,7 +202,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get Spinnaker version");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/details/{serviceName:.+}/", method = RequestMethod.GET)
@@ -219,6 +219,6 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get running service details");
   }
 }

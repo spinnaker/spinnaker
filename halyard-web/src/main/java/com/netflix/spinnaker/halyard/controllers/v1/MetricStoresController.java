@@ -28,7 +28,7 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,7 +57,7 @@ public class MetricStoresController {
       builder.setValidateResponse(() -> metricStoresService.validateMetricStores(deploymentName));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get all metric stores");
   }
 
   @RequestMapping(value = "/{metricStoreType:.+}", method = RequestMethod.GET)
@@ -74,7 +74,7 @@ public class MetricStoresController {
       builder.setValidateResponse(() -> metricStoresService.validateMetricStore(deploymentName, metricStoreType));
     }
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + metricStoreType + " metric store");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
@@ -97,7 +97,7 @@ public class MetricStoresController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit all metric stores");
   }
 
   @RequestMapping(value = "/{metricStoreType:.+}", method = RequestMethod.PUT)
@@ -124,7 +124,7 @@ public class MetricStoresController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + metricStoreType + " metric store");
   }
 
   @RequestMapping(value = "/{metricStoreType:.+}/enabled/", method = RequestMethod.PUT)
@@ -146,6 +146,6 @@ public class MetricStoresController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return TaskRepository.submitTask(builder::build);
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + metricStoreType + " metric store");
   }
 }
