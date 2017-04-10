@@ -27,7 +27,7 @@ import com.netflix.spinnaker.fiat.permissions.PermissionResolutionException;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
-import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider;
+import com.netflix.spinnaker.fiat.providers.ResourceProvider;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ public class UserRolesSyncer {
 
   @Autowired(required = false)
   @Setter
-  private ServiceAccountProvider serviceAccountProvider;
+  private ResourceProvider<ServiceAccount> serviceAccountProvider;
 
   @Autowired
   @Setter

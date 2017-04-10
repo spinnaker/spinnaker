@@ -26,7 +26,7 @@ import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
-import com.netflix.spinnaker.fiat.providers.ServiceAccountProvider
+import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.boot.actuate.health.Health
@@ -100,7 +100,7 @@ class UserRolesSyncerSpec extends Specification {
         .setId("user2")
         .setAccounts([new Account().setName("account3")] as Set)
 
-    def serviceAccountProvider = Mock(ServiceAccountProvider) {
+    def serviceAccountProvider = Mock(ResourceProvider) {
       getAll() >> [new ServiceAccount().setName("abc"),
                    new ServiceAccount().setName("xyz@domain.com")]
     }

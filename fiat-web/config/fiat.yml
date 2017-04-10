@@ -13,3 +13,10 @@ endpoints:
     sensitive: false
 
 # For options, see com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
+
+fiat:
+  permissions:
+    read:
+      - foo
+    write:
+      - bar

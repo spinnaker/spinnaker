@@ -21,33 +21,21 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
-public class Application implements GroupAccessControlled, Resource, Viewable {
+@EqualsAndHashCode(callSuper = false)
+public class Application extends BaseAccessControlled implements Viewable {
   final ResourceType resourceType = ResourceType.APPLICATION;
 
   private String name;
-  private List<String> requiredGroupMembership = new ArrayList<>();
-
-  // Some application configs were saved with `requiredGroupMembership = null`, so this ugly
-  // workaround is needed.
-  public Application setRequiredGroupMembership(List<String> membership) {
-    if (membership == null) {
-      membership = new ArrayList<>();
-    }
-    requiredGroupMembership = membership.stream().map(String::toLowerCase).collect(Collectors.toList());
-    return this;
-  }
-
+  private Permissions permissions = Permissions.EMPTY;
+  
   @JsonIgnore
-  public View getView() {
-    return new View(this);
+  public View getView(Set<Role> userRoles) {
+    return new View(this, userRoles);
   }
 
   @Data
@@ -57,11 +45,9 @@ public class Application implements GroupAccessControlled, Resource, Viewable {
     String name;
     Set<Authorization> authorizations;
 
-    public View(Application application) {
+    public View(Application application, Set<Role> userRoles) {
       this.name = application.name;
-      this.authorizations = new HashSet<>();
-      this.authorizations.add(Authorization.READ);
-      this.authorizations.add(Authorization.WRITE);
+      this.authorizations = application.permissions.getAuthorizations(userRoles);
     }
   }
 }

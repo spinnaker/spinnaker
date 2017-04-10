@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.fiat.providers
 
+import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.resources.Application
-import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import org.apache.commons.collections4.CollectionUtils
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -29,18 +31,18 @@ class DefaultApplicationProviderSpec extends Specification {
   @Subject DefaultApplicationProvider provider
 
   @Unroll
-  def "should get all applications based on supplied roles"() {
+  def "should prefer front50 applications over clouddriver ones"() {
     setup:
     Front50Service front50Service = Mock(Front50Service) {
       getAllApplicationPermissions() >> [
-          new Application().setName("noReqGroups"),
-          new Application().setName("reqGroup1").setRequiredGroupMembership(["group1"]),
-          new Application().setName("reqGroup1and2").setRequiredGroupMembership(["group1", "group2"])
+          new Application().setName("onlyKnownToFront50"),
+          new Application().setName("app1")
+                           .setPermissions(new Permissions.Builder().add(Authorization.READ, "role").build()),
       ]
     }
     ClouddriverService clouddriverService = Mock(ClouddriverService) {
       getApplications() >> [
-          new Application().setName("reqGroups1"),
+          new Application().setName("app1"),
           new Application().setName("onlyKnownToClouddriver")
       ]
     }
@@ -48,30 +50,12 @@ class DefaultApplicationProviderSpec extends Specification {
     provider = new DefaultApplicationProvider(front50Service, clouddriverService)
 
     when:
-    def result = provider.getAllRestricted(input.collect {new Role(it)})
+    def result = provider.getAll()
+    List<String> accountNames = result*.name
+    List<String> expected = ["onlyKnownToFront50", "app1", "onlyKnownToClouddriver"]
 
     then:
-    result*.name.containsAll(values)
-
-    when:
-    provider.getAllRestricted(null)
-
-    then:
-    thrown IllegalArgumentException
-
-    when:
-    result = provider.getAllUnrestricted()
-
-    then:
-    result*.name.containsAll(["noReqGroups", "onlyKnownToClouddriver"])
-
-    where:
-    input                || values
-    []                   || []
-    ["group1"]           || ["reqGroup1", "reqGroup1and2"]
-    ["group2"]           || ["reqGroup1and2"]
-    ["group1", "group2"] || ["reqGroup1", "reqGroup1and2"]
-    ["group3"]           || []
-    ["group2", "group3"] || ["reqGroup1and2"]
+    CollectionUtils.disjunction(accountNames, expected).isEmpty()
+    result.find { it.name == "app1"}.getPermissions().isRestricted()
   }
 }

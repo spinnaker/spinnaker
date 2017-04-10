@@ -26,12 +26,11 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class DefaultAccountProvider extends BaseProvider implements AccountProvider {
+public class DefaultAccountProvider extends BaseProvider<Account> implements ResourceProvider<Account> {
 
   private final ClouddriverService clouddriverService;
 
@@ -50,22 +49,5 @@ public class DefaultAccountProvider extends BaseProvider implements AccountProvi
       failure();
       throw new ProviderException(re);
     }
-  }
-
-  @Override
-  public Set<Account> getAllRestricted(@NonNull Collection<Role> roles) throws ProviderException {
-    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
-    return getAll()
-        .stream()
-        .filter(account -> !Collections.disjoint(account.getRequiredGroupMembership(), groupNames))
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<Account> getAllUnrestricted() throws ProviderException {
-    return getAll()
-        .stream()
-        .filter(account -> account.getRequiredGroupMembership().isEmpty())
-        .collect(Collectors.toSet());
   }
 }

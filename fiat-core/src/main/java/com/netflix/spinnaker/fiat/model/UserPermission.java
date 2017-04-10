@@ -17,7 +17,12 @@
 package com.netflix.spinnaker.fiat.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.netflix.spinnaker.fiat.model.resources.*;
+import com.netflix.spinnaker.fiat.model.resources.Account;
+import com.netflix.spinnaker.fiat.model.resources.Application;
+import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.Role;
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import com.netflix.spinnaker.fiat.model.resources.Viewable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -25,26 +30,27 @@ import lombok.NoArgsConstructor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Data
-public class UserPermission implements Viewable {
+public class UserPermission {
   private String id;
 
-  private Set<Account> accounts = new HashSet<>();
-  private Set<Application> applications = new HashSet<>();
-  private Set<ServiceAccount> serviceAccounts = new HashSet<>();
-  private Set<Role> roles = new HashSet<>();
+  private Set<Account> accounts = new LinkedHashSet<>();
+  private Set<Application> applications = new LinkedHashSet<>();
+  private Set<ServiceAccount> serviceAccounts = new LinkedHashSet<>();
+  private Set<Role> roles = new LinkedHashSet<>();
 
   public void addResource(Resource resource) {
     addResources(Collections.singleton(resource));
   }
 
-  public void addResources(Collection<Resource> resources) {
+  public UserPermission addResources(Collection<Resource> resources) {
     if (resources == null) {
-      return;
+      return this;
     }
 
     resources.forEach(resource -> {
@@ -60,6 +66,8 @@ public class UserPermission implements Viewable {
         throw new IllegalArgumentException("Cannot add unknown resource " + resource);
       }
     });
+
+    return this;
   }
 
   @JsonIgnore
@@ -90,7 +98,7 @@ public class UserPermission implements Viewable {
   @EqualsAndHashCode(callSuper = false)
   @NoArgsConstructor
   @SuppressWarnings("unchecked")
-  public static class View extends BaseView {
+  public static class View extends Viewable.BaseView {
     String name;
     Set<Account.View> accounts;
     Set<Application.View> applications;
@@ -100,9 +108,9 @@ public class UserPermission implements Viewable {
     public View(UserPermission permission) {
       this.name = permission.id;
 
-      Function<Set<? extends Viewable>, Set<? extends BaseView>> toViews = sourceSet ->
+      Function<Set<? extends Viewable>, Set<? extends Viewable.BaseView>> toViews = sourceSet ->
           sourceSet.stream()
-                   .map(Viewable::getView)
+                   .map(viewable -> viewable.getView(permission.getRoles()))
                    .collect(Collectors.toSet());
 
       this.accounts = (Set<Account.View>) toViews.apply(permission.getAccounts());

@@ -24,10 +24,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Data
+@EqualsAndHashCode(of = "name")
 @NoArgsConstructor
-public class Role implements GroupAccessControlled, Resource, Viewable {
+public class Role implements Resource, Viewable {
 
   private final ResourceType resourceType = ResourceType.ROLE;
   private String name;
@@ -54,12 +56,7 @@ public class Role implements GroupAccessControlled, Resource, Viewable {
   }
 
   @JsonIgnore
-  public List<String> getRequiredGroupMembership() {
-    return Collections.singletonList(name); // duh.
-  }
-
-  @JsonIgnore
-  public View getView() {
+  public View getView(Set<Role> ignored) {
     return new View(this);
   }
 

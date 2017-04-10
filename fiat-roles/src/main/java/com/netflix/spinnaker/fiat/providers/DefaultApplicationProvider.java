@@ -17,17 +17,12 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
-import lombok.NonNull;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +30,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-public class DefaultApplicationProvider extends BaseProvider implements ApplicationProvider {
+public class DefaultApplicationProvider extends BaseProvider<Application> implements ResourceProvider<Application> {
 
   private final Front50Service front50Service;
 
@@ -69,22 +64,5 @@ public class DefaultApplicationProvider extends BaseProvider implements Applicat
       failure();
       throw new ProviderException(re);
     }
-  }
-
-  @Override
-  public Set<Application> getAllRestricted(@NonNull Collection<Role> roles) throws ProviderException {
-    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
-    return getAll()
-        .stream()
-        .filter(application -> !Collections.disjoint(application.getRequiredGroupMembership(), groupNames))
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<Application> getAllUnrestricted() throws ProviderException {
-    return getAll()
-        .stream()
-        .filter(application -> application.getRequiredGroupMembership().isEmpty())
-        .collect(Collectors.toSet());
   }
 }

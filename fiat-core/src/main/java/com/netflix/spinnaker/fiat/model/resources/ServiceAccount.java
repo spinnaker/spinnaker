@@ -27,14 +27,17 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
-public class ServiceAccount implements GroupAccessControlled, Viewable {
+@EqualsAndHashCode(callSuper = false)
+public class ServiceAccount extends BaseAccessControlled implements Viewable {
   private final ResourceType resourceType = ResourceType.SERVICE_ACCOUNT;
 
   private String name;
   private List<String> memberOf = new ArrayList<>();
+  private Permissions permissions = Permissions.EMPTY;
 
   public UserPermission toUserPermission() {
     val roles = memberOf.stream()
@@ -42,7 +45,7 @@ public class ServiceAccount implements GroupAccessControlled, Viewable {
                         .collect(Collectors.toSet());
     return new UserPermission().setId(name).setRoles(roles);
   }
-
+  
   @JsonIgnore
   public List<String> getRequiredGroupMembership() {
     // There is a potential here for a naming collision where service account
@@ -60,7 +63,7 @@ public class ServiceAccount implements GroupAccessControlled, Viewable {
   }
 
   @JsonIgnore
-  public View getView() {
+  public View getView(Set<Role> ignored) {
     return new View(this);
   }
 

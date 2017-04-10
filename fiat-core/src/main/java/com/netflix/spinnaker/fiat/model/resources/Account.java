@@ -21,32 +21,22 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Data
-public class Account implements GroupAccessControlled, Resource, Viewable {
+@EqualsAndHashCode(callSuper = false)
+public class Account extends BaseAccessControlled implements Viewable {
   final ResourceType resourceType = ResourceType.ACCOUNT;
 
   private String name;
   private String cloudProvider;
-  private List<String> requiredGroupMembership = new ArrayList<>();
-
-  public Account setRequiredGroupMembership(List<String> membership) {
-    if (membership == null) {
-      membership = new ArrayList<>();
-    }
-    requiredGroupMembership = membership.stream().map(String::toLowerCase).collect(Collectors.toList());
-    return this;
-  }
+  private Permissions permissions = Permissions.EMPTY;
 
   @JsonIgnore
-  public View getView() {
-    return new View(this);
+  public View getView(Set<Role> userRoles) {
+    return new View(this, userRoles);
   }
 
   @Data
@@ -56,11 +46,9 @@ public class Account implements GroupAccessControlled, Resource, Viewable {
     String name;
     Set<Authorization> authorizations;
 
-    public View(Account account) {
+    public View(Account account, Set<Role> userRoles) {
       this.name = account.name;
-      this.authorizations = new HashSet<>();
-      this.authorizations.add(Authorization.READ);
-      this.authorizations.add(Authorization.WRITE);
+      this.authorizations = account.permissions.getAuthorizations(userRoles);
     }
   }
 }

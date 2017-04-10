@@ -21,7 +21,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
-import com.netflix.spinnaker.fiat.model.resources.GroupAccessControlled;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
@@ -37,7 +36,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +55,11 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Autowired
   @Setter
-  private List<ResourceProvider> resourceProviders;
+  private List<ResourceProvider<? extends Resource.AccessControlled>> resourceProviders;
+
+  @Autowired
+  @Setter
+  private ObjectMapper mapper;
 
   @Override
   public UserPermission resolveUnrestrictedUser() {
@@ -81,7 +83,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
       throw new PermissionResolutionException("Failed to resolve user permission for user " + user.getId(), pe);
     }
     Set<Role> combo = Stream.concat(roles.stream(), user.getExternalRoles().stream())
-                      .collect(Collectors.toSet());
+                            .collect(Collectors.toSet());
 
     return getUserPermission(user.getId(), combo);
   }
@@ -110,27 +112,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     val userToRoles = getAndMergeUserRoles(users);
 
     // This is the reverse index of each resourceProvider's getAllRestricted() call.
-    Multimap<String, Resource> roleToResource = ArrayListMultimap.create();
-
-    for (ResourceProvider provider : resourceProviders) {
-      try {
-        provider
-            .getAll()
-            .forEach(resource -> {
-              if (resource instanceof GroupAccessControlled) {
-                GroupAccessControlled gacResource = (GroupAccessControlled) resource;
-                if (gacResource.getRequiredGroupMembership().isEmpty()) {
-                  return; // Unrestricted resources are added later.
-                }
-
-                gacResource.getRequiredGroupMembership()
-                           .forEach(group -> roleToResource.put(group, gacResource));
-              }
-            });
-      } catch (ProviderException pe) {
-        throw new PermissionResolutionException(pe);
-      }
-    }
+    AccessControlLists acls = buildAcls();
 
     return userToRoles
         .entrySet()
@@ -139,11 +121,25 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
           String username = entry.getKey();
           Set<Role> userRoles = new HashSet<>(entry.getValue());
 
-          UserPermission permission = new UserPermission().setId(username).setRoles(userRoles);
-          userRoles.forEach(userRole -> permission.addResources(roleToResource.get(userRole.getName())));
-          return permission;
+          return new UserPermission().setId(username)
+                                     .setRoles(userRoles)
+                                     .addResources(acls.canAccess(userRoles));
         })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
+  }
+
+  private AccessControlLists buildAcls() {
+    AccessControlLists acls = new AccessControlLists();
+
+    for (ResourceProvider<? extends Resource.AccessControlled> provider : resourceProviders) {
+      try {
+        provider.getAll().forEach(acls::add);
+      } catch (ProviderException pe) {
+        throw new PermissionResolutionException(pe);
+      }
+    }
+
+    return acls;
   }
 
   private Map<String, Collection<Role>> getAndMergeUserRoles(@NonNull Collection<ExternalUser> users) {
@@ -160,9 +156,31 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
     if (log.isDebugEnabled()) {
       try {
-        log.debug("Multi-loaded roles: \n" + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(userToRoles));
-      } catch (Exception e) {}
+        log.debug("Multi-loaded roles: \n" + mapper.writerWithDefaultPrettyPrinter()
+                                                   .writeValueAsString(userToRoles));
+      } catch (Exception e) {
+        log.debug("Exception writing roles", e);
+      }
     }
     return userToRoles;
+  }
+
+  static class AccessControlLists {
+    // This object indexes:
+    // role (group name) -> resources (account, application, etc)
+    Multimap<Role, Resource.AccessControlled> acl = ArrayListMultimap.create();
+
+    void add(Resource.AccessControlled resource) {
+      resource.getPermissions()
+              .allGroups()
+              .forEach(group -> acl.put(new Role(group), resource));
+    }
+
+    Collection<Resource> canAccess(Set<Role> roles) {
+      return roles.stream()
+                  .filter(role -> acl.containsKey(role))
+                  .flatMap(role -> acl.get(role).stream())
+                  .collect(Collectors.toSet());
+    }
   }
 }

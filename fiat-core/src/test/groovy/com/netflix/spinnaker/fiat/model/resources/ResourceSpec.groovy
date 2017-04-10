@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.fiat.model.resources
 
+import com.netflix.spinnaker.fiat.model.Authorization
 import spock.lang.Specification
 
 class ResourceSpec extends Specification {
@@ -48,5 +49,39 @@ class ResourceSpec extends Specification {
     ""          || IllegalArgumentException.class
     "account:"  || IllegalArgumentException.class
     "account:s" || IllegalArgumentException.class
+  }
+
+  def "should compute authorizations correctly"() {
+    setup:
+    def b = new Permissions.Builder().add(Authorization.READ, "role1")
+    def p = b.build()
+
+    expect:
+    p.getAuthorizations([]).isEmpty()
+    p.getAuthorizations(["role1"]) == [Authorization.READ] as Set
+    p.getAuthorizations(["role1", "role2"]) == [Authorization.READ] as Set
+
+    when:
+    b.add(Authorization.WRITE, "role2")
+    p = b.build()
+
+    then:
+    p.getAuthorizations(["role1", "role2"]) == [Authorization.READ, Authorization.WRITE] as Set
+  }
+
+  def "should detect when restricted"() {
+    setup:
+    def b = new Permissions.Builder()
+    def p = b.build()
+
+    expect:
+    !p.isRestricted()
+
+    when:
+    b.add(Authorization.READ, "role1")
+    p = b.build()
+
+    then:
+    p.isRestricted()
   }
 }

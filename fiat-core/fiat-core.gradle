@@ -9,8 +9,12 @@ dependencies {
   compileOnly spinnaker.dependency("lombok")
 
   compile "org.apache.commons:commons-lang3:3.4"
+  compile spinnaker.dependency("slf4jApi")
+  compile spinnaker.dependency("guava")
 
   testCompile spinnaker.dependency("spockSpring")
   testCompile "commons-io:commons-io:2.5"
   testCompile spinnaker.dependency("retrofitJackson")
+  spinnaker.group("test")
+  testCompile spinnaker.dependency("bootAutoConfigure")
 }

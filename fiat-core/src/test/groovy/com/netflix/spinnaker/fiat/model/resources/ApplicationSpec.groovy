@@ -31,6 +31,6 @@ class ApplicationSpec extends Specification {
 
     then:
     result.name == "myapp"
-    result.requiredGroupMembership == []
+    !result.permissions.isRestricted()
   }
 }

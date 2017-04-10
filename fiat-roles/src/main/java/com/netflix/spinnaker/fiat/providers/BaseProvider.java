@@ -16,13 +16,19 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.netflix.spinnaker.fiat.model.resources.Resource;
+import com.netflix.spinnaker.fiat.model.resources.Role;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.Setter;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
-public class BaseProvider {
+public abstract class BaseProvider<R extends Resource.AccessControlled> implements ResourceProvider<R> {
 
   @Value("${unhealthy.threshold:5}")
   @Setter
@@ -55,5 +61,27 @@ public class BaseProvider {
   class HealthView {
     boolean providerHealthy = BaseProvider.this.isProviderHealthy();
     int failureCountSinceLastSuccess = BaseProvider.this.failureCountSinceLastSuccess.get();
+  }
+
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Set<R> getAllRestricted(@NonNull Set<Role> roles) throws ProviderException {
+    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
+    return (Set<R>) getAll()
+        .stream()
+        .filter(resource -> resource.getPermissions().isRestricted())
+        .filter(resource -> resource.getPermissions().isAuthorized(roles))
+        .collect(Collectors.toSet());
+
+  }
+
+  @Override
+  @SuppressWarnings("unchecked")
+  public Set<R> getAllUnrestricted() throws ProviderException {
+    return (Set<R>) getAll()
+        .stream()
+        .filter(resource -> !resource.getPermissions().isRestricted())
+        .collect(Collectors.toSet());
   }
 }

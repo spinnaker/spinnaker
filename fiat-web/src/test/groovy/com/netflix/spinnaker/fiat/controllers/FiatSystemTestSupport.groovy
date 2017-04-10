@@ -17,23 +17,32 @@
 package com.netflix.spinnaker.fiat.controllers
 
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
+import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 
 class FiatSystemTestSupport {
+  private static final Authorization R = Authorization.READ
+  private static final Authorization W = Authorization.WRITE
+
   Role roleA = new Role("roleA")
   Role roleB = new Role("roleB").setSource(Role.Source.EXTERNAL)
 
   Application unrestrictedApp = new Application().setName("unrestrictedApp")
+
   Application restrictedApp = new Application().setName("restrictedApp")
-                                               .setRequiredGroupMembership([roleA.name])
+                                               .setPermissions(new Permissions.Builder().add(R, roleA.name)
+                                                                                        .build())
 
   Account unrestrictedAccount = new Account().setName("unrestrictedAcct")
+
   Account restrictedAccount = new Account().setName("restrictedAcct")
-                                           .setRequiredGroupMembership([roleB.name])
+                                           .setPermissions(new Permissions.Builder().add(R, roleB.name)
+                                                                                    .build())
 
   ServiceAccount serviceAccount = new ServiceAccount().setName("svcAcct@group.com")
   Role roleServiceAccount = new Role(serviceAccount.requiredGroupMembership.first())

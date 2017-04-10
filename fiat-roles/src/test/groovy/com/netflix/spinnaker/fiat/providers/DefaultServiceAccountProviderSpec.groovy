@@ -43,7 +43,7 @@ class DefaultServiceAccountProviderSpec extends Specification {
 
   def "should return all accounts the specified groups has access to"() {
     when:
-    def result = provider.getAllRestricted(input.collect {new Role(it)})
+    def result = provider.getAllRestricted(input.collect {new Role(it)} as Set)
 
     then:
     result.containsAll(values)

@@ -37,4 +37,5 @@ dependencies {
   testCompile spinnaker.dependency("slf4jApi")
   testCompile spinnaker.dependency("frigga")
   testCompile spinnaker.dependency("korkSecurity")
+  testCompile spinnaker.dependency("bootAutoConfigure")
 }
