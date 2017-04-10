@@ -16,7 +16,7 @@ _hal() {
             sublen=$(($COMP_CWORD - 2))
         fi
 
-        options=$( ${COMP_WORDS[@]:0:$sublen} --options $prev --color false )
+        options=$( ${COMP_WORDS[@]:0:$sublen} --options $prev --color false --quiet )
 
         if [ "$?" = "0" ]; then
             COMPREPLY=( $(compgen -W "${options}" -- ${cur}) )
