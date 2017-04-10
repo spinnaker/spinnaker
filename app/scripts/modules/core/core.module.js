@@ -16,6 +16,7 @@ import {VERSION_CHECK_SERVICE} from './config/versionCheck.service';
 import {CORE_WIDGETS_MODULE} from './widgets';
 import {TRAVIS_STAGE_MODULE} from './pipeline/config/stages/travis/travisStage.module';
 import {WEBHOOK_STAGE_MODULE} from './pipeline/config/stages/webhook/webhookStage.module';
+import {UNMATCHED_STAGE_TYPE_STAGE} from './pipeline/config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import {SETTINGS} from 'core/config/settings';
 import {INSIGHT_NGMODULE} from './insight/insight.module';
 
@@ -138,6 +139,8 @@ module.exports = angular
     require('./serverGroup/serverGroup.module.js'),
 
     require('./task/task.module.js'),
+
+    UNMATCHED_STAGE_TYPE_STAGE,
 
     require('./utils/utils.module.js'),
 

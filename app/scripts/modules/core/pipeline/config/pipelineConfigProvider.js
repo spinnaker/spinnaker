@@ -124,20 +124,26 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
       var matches = getStageTypes().filter((stageType) => {
         return stageType.key === stage.type || stageType.provides === stage.type || stageType.alias === stage.type;
       });
-      if (matches.length > 1) {
-        var provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
-        var matchesForStageCloudProvider = matches.filter((stageType) => {
-          return stageType.cloudProvider === provider;
-        });
 
-        if (!matchesForStageCloudProvider.length) {
-          return matches.find((stageType) => {
-            return stageType.cloudProvider || stageType.cloudProviderType;
-          }) || null;
-        }
-        return matchesForStageCloudProvider[0];
+      switch (matches.length) {
+        case 0:
+          return getStageTypes().find(stage => stage.key === 'unmatched') || null;
+        case 1:
+          return matches[0];
+        default:
+          const provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
+          const matchesForStageCloudProvider = matches.filter(stageType => {
+            return stageType.cloudProvider === provider;
+          });
+
+          if (!matchesForStageCloudProvider.length) {
+            return matches.find(stageType => {
+              return stageType.cloudProvider || stageType.cloudProviderType;
+            }) || null;
+          } else {
+            return matchesForStageCloudProvider[0];
+          }
       }
-      return matches.length ? matches[0] : null;
     }, (stage) => [stage ? stage.type : '', stage ? stage.cloudProvider || stage.cloudProviderType || 'aws' : ''].join(':'));
 
     function getTriggerConfig(type) {
