@@ -24,7 +24,7 @@ spec:
             - /bin/bash
             - -c
           args:
-            - "cp /opt/spinnaker/config/settings.js .; npm start"
+            - "cp /opt/spinnaker/config/settings.js .; /opt/deck/docker/run-apache2.sh"
           env:
             - name: DECK_HOST
               value: 0.0.0.0
