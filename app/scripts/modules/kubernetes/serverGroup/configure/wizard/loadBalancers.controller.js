@@ -2,7 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.loadBalancers', [
+module.exports = angular.module('spinnaker.kubernetes.serverGroup.configure.loadBalancers.controller', [
   require('../configuration.service.js')
 ])
   .controller('kubernetesServerGroupLoadBalancersController', function(kubernetesServerGroupConfigurationService, infrastructureCaches, $scope) {
