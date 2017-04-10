@@ -36,6 +36,16 @@ class DisableClusterTask extends AbstractClusterWideClouddriverTask {
     boolean preferLargerOverNewer = false
   }
 
+  public static class DisableOperation {
+    Integer desiredPercentage
+  }
+
+  @Override
+  protected Map buildOperationPayload(Stage stage, TargetServerGroup serverGroup) {
+    DisableOperation disableOperation = stage.mapTo(DisableOperation)
+    return super.buildOperationPayload(stage, serverGroup) + [desiredPercentage: disableOperation.desiredPercentage]
+  }
+
   @Override
   List<TargetServerGroup> filterServerGroups(Stage stage, String account, Location location, List<TargetServerGroup> serverGroups) {
     List<TargetServerGroup> filtered = super.filterServerGroups(stage, account, location, serverGroups)

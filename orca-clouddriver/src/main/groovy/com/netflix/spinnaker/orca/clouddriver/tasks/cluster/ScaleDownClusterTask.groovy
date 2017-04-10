@@ -37,19 +37,21 @@ class ScaleDownClusterTask extends AbstractClusterWideClouddriverTask {
   }
 
   @Override
-  protected Map buildOperationPayload(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
-    return super.buildOperationPayload(clusterSelection, serverGroup) + [capacity: [min: 0, max: 0, desired: 0]]
+  protected Map buildOperationPayload(Stage stage, TargetServerGroup serverGroup) {
+    ClusterSelection clusterSelection = stage.mapTo(ClusterSelection)
+    return super.buildOperationPayload(stage, serverGroup) + [capacity: [min: 0, max: 0, desired: 0]]
   }
 
   @Override
-  protected List<Map> buildOperationPayloads(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+  protected List<Map> buildOperationPayloads(Stage stage, TargetServerGroup serverGroup) {
+    ClusterSelection clusterSelection = stage.mapTo(ClusterSelection)
     List<Map> ops = []
     if (clusterSelection.cloudProvider == 'aws') {
       ops << [resumeAsgProcessesDescription: serverGroup.toClouddriverOperationPayload(clusterSelection.credentials) + [
         processes: ['Terminate']
       ]]
     }
-    ops + super.buildOperationPayloads(clusterSelection, serverGroup)
+    ops + super.buildOperationPayloads(stage, serverGroup)
   }
 
   @Override

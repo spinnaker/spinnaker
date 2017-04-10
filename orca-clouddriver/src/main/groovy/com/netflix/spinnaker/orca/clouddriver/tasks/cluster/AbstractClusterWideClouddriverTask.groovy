@@ -133,7 +133,7 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
       filterServerGroups(stage, clusterSelection.credentials, l, tsgs) ?: null
     }.flatten()
 
-    List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(clusterSelection)).flatten()
+    List<Map<String, Map>> katoOps = filteredServerGroups.collect(this.&buildOperationPayloads.curry(stage)).flatten()
 
     if (!katoOps) {
       return TaskResult.SUCCEEDED
@@ -155,12 +155,13 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     ])
   }
 
-  protected Map buildOperationPayload(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
+  protected Map buildOperationPayload(Stage stage, TargetServerGroup serverGroup) {
+    ClusterSelection clusterSelection = stage.mapTo(ClusterSelection)
     serverGroup.toClouddriverOperationPayload(clusterSelection.credentials)
   }
 
-  protected List<Map> buildOperationPayloads(ClusterSelection clusterSelection, TargetServerGroup serverGroup) {
-    [[(getClouddriverOperation()): buildOperationPayload(clusterSelection, serverGroup)]]
+  protected List<Map> buildOperationPayloads(Stage stage, TargetServerGroup serverGroup) {
+    [[(getClouddriverOperation()): buildOperationPayload(stage, serverGroup)]]
   }
 
   protected List<TargetServerGroup> filterActiveGroups(boolean includeActive, List<TargetServerGroup> serverGroups) {
@@ -221,6 +222,11 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
         case Location.Type.REGION:
           deployedServerGroups.addAll(clusterServerGroups.findAll {
             it.region == location.value && dsgs[location.value]?.contains(it.name)
+          })
+          break;
+        case Location.Type.NAMESPACE:
+          deployedServerGroups.addAll(clusterServerGroups.findAll {
+            it.namespace == location.value && dsgs[location.value]?.contains(it.name)
           })
           break;
       }
