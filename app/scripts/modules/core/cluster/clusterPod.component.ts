@@ -11,9 +11,10 @@ class ClusterPodController implements IComponentController {
   public parentHeading: string;
   public host: string;
   public permalink: string;
+  public showCloseButton = false;
 
-  static get $inject(): string[] { return ['urlBuilderService']; }
-  constructor(private urlBuilderService: UrlBuilderService) {}
+  static get $inject(): string[] { return ['urlBuilderService', 'ClusterFilterModel']; }
+  constructor(private urlBuilderService: UrlBuilderService, private ClusterFilterModel: any) {}
 
   public $onInit(): void {
     // using location.host here b/c it provides the port, $location.host() does not.
@@ -27,6 +28,13 @@ class ClusterPodController implements IComponentController {
         account: this.parentHeading
       }
     );
+    this.showCloseButton = this.application.getDataSource('serverGroups').fetchOnDemand === true;
+  }
+
+  public close(): void {
+    delete this.ClusterFilterModel.sortFilter.clusters[`${this.parentHeading}:${this.grouping.heading}`];
+    this.ClusterFilterModel.applyParamsToUrl();
+    this.application.getDataSource('serverGroups').refresh();
   }
 }
 

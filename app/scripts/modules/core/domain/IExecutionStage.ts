@@ -7,6 +7,7 @@ export interface IRestartDetails {
 }
 
 export interface IExecutionContext {
+  [key: string]: any;
   restartDetails?: IRestartDetails;
   targetReferences?: any;
   instances?: any;

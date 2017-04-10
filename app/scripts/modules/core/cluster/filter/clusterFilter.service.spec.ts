@@ -1,6 +1,7 @@
 import {mock} from 'angular';
 import * as _ from 'lodash';
 import {CLUSTER_FILTER_SERVICE, ClusterFilterService} from 'core/cluster/filter/clusterFilter.service';
+import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
 import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 
@@ -23,7 +24,7 @@ describe('Service: clusterFilterService', function () {
       CLUSTER_FILTER_SERVICE,
       APPLICATION_MODEL_BUILDER,
       require('./clusterFilter.model.js'),
-      require('../cluster.service'),
+      CLUSTER_SERVICE,
       require('../../../../../../test/mock/mockApplicationData.js')
     );
     mock.inject(

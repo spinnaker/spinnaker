@@ -5,6 +5,7 @@ export class InsightFilterStateModel {
   public filtersPinned: boolean;
   public filtersExpanded: boolean;
   public filtersHovered: boolean;
+  public filtersHidden: boolean;
 
   static get $inject() { return ['$rootScope', '$timeout', 'collapsibleSectionStateCache']; };
 
