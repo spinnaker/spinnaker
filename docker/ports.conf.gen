@@ -1,6 +1,7 @@
 Listen {%DECK_HOST%}:{%DECK_PORT%}
 
 <IfModule ssl_module>
+        SSLPassPhraseDialog exec:/etc/apache2/passphrase
         Listen 443
 </IfModule>
 

@@ -5,6 +5,7 @@ _DECK_PORT=$DECK_PORT
 _API_HOST=$API_HOST
 _DECK_CERT_PATH=$DECK_CERT
 _DECK_KEY_PATH=$DECK_KEY
+_PASSPHRASE=$PASSPHRASE
 
 if [ -z "$_DECK_HOST" ];
 then
@@ -48,10 +49,23 @@ a2ensite spinnaker
 
 cp docker/ports.conf.gen ports.conf
 
-sed -ie "s/{%DECK_HOST%}/$_DECK_HOST/g" ports.conf
-sed -ie "s/{%DECK_PORT%}/$_DECK_PORT/g" ports.conf
-
+sed -ie "s|{%DECK_HOST%}|$_DECK_HOST|g" ports.conf
+sed -ie "s|{%DECK_PORT%}|$_DECK_PORT|g" ports.conf 
 mv ports.conf /etc/apache2/ports.conf
+
+# Create a passphrase file to inject the SSL passphrase into apache's startup
+
+cp docker/passphrase.gen passphrase
+
+sed -ie "s|{%PASSPHRASE%}|$_PASSPHRASE|g" passphrase
+
+# Clear password from env vars 
+
+_PASSPHRASE=""
+PASSPHRASE=""
+
+chmod +x passphrase
+mv passphrase /etc/apache2/passphrase
 
 if [ -e /opt/spinnaker/config/settings.js ];
 then 
