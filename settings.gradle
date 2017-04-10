@@ -33,7 +33,8 @@ include "orca-extensionpoint",
   "orca-applications",
   "orca-spring-batch",
   "orca-pipelinetemplate",
-  "orca-validation"
+  "orca-validation",
+  "orca-loadtest"
 
 rootProject.name = "orca"
 
