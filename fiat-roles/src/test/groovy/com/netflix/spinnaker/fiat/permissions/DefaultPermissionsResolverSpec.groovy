@@ -48,9 +48,7 @@ class DefaultPermissionsResolverSpec extends Specification {
   }
 
   @Shared
-  DefaultAccountProvider accountProvider = new DefaultAccountProvider(
-      clouddriverService: clouddriverService
-  )
+  DefaultAccountProvider accountProvider = new DefaultAccountProvider(clouddriverService)
 
   @Shared ServiceAccount group1SvcAcct = new ServiceAccount().setName("group1")
   @Shared ServiceAccount group2SvcAcct = new ServiceAccount().setName("group2@domain.com")

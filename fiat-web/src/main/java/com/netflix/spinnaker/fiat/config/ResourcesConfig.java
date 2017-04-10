@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.providers.internal.ClouddriverApi;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
+import com.netflix.spinnaker.fiat.providers.internal.Front50Api;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
 import lombok.Setter;
 import org.slf4j.Logger;
@@ -54,27 +56,37 @@ public class ResourcesConfig {
   private String clouddriverEndpoint;
 
   @Bean
-  Front50Service front50Service() {
+  Front50Api front50Api() {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(front50Endpoint))
         .setClient(okClient)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(Front50Service.class))
+        .setLog(new Slf4jRetrofitLogger(Front50Api.class))
         .build()
-        .create(Front50Service.class);
+        .create(Front50Api.class);
   }
 
   @Bean
-  ClouddriverService clouddriverService() {
+  Front50Service front50Service(Front50Api front50Api) {
+    return new Front50Service(front50Api);
+  }
+
+  @Bean
+  ClouddriverApi clouddriverApi() {
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(clouddriverEndpoint))
         .setClient(okClient)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)
-        .setLog(new Slf4jRetrofitLogger(ClouddriverService.class))
+        .setLog(new Slf4jRetrofitLogger(ClouddriverApi.class))
         .build()
-        .create(ClouddriverService.class);
+        .create(ClouddriverApi.class);
+  }
+
+  @Bean
+  ClouddriverService clouddriverService(ClouddriverApi clouddriverApi) {
+    return new ClouddriverService(clouddriverApi);
   }
 
   private static class Slf4jRetrofitLogger implements RestAdapter.Log {

@@ -36,9 +36,7 @@ class DefaultAccountProviderSpec extends Specification {
       ]
     }
     @Subject
-    DefaultAccountProvider accountProvider = new DefaultAccountProvider(
-        clouddriverService: clouddriverService
-    )
+    DefaultAccountProvider accountProvider = new DefaultAccountProvider(clouddriverService)
 
     when:
     def result = accountProvider.getAllRestricted(input.collect {new Role(it)})

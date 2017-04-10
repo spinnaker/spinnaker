@@ -18,15 +18,24 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Application;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
+import org.springframework.beans.factory.annotation.Autowired;
 import retrofit.http.GET;
 
 import java.util.List;
 
-public interface Front50Service {
+public class Front50Service {
 
-  @GET("/permissions/applications")
-  List<Application> getAllApplicationPermissions();
+  private final Front50Api front50Api;
 
-  @GET("/serviceAccounts")
-  List<ServiceAccount> getAllServiceAccounts();
+  public Front50Service(Front50Api front50Api) {
+    this.front50Api = front50Api;
+  }
+
+  public List<Application> getAllApplicationPermissions() {
+    return front50Api.getAllApplicationPermissions();
+  }
+
+  public List<ServiceAccount> getAllServiceAccounts() {
+    return front50Api.getAllServiceAccounts();
+  }
 }

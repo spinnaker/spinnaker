@@ -20,7 +20,6 @@ import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -34,9 +33,12 @@ import java.util.stream.Collectors;
 @Component
 public class DefaultAccountProvider extends BaseProvider implements AccountProvider {
 
+  private final ClouddriverService clouddriverService;
+
   @Autowired
-  @Setter
-  private ClouddriverService clouddriverService;
+  public DefaultAccountProvider(ClouddriverService clouddriverService) {
+    this.clouddriverService = clouddriverService;
+  }
 
   @Override
   public Set<Account> getAll() throws ProviderException {

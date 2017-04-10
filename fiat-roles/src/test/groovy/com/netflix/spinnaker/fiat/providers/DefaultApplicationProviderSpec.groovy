@@ -45,8 +45,7 @@ class DefaultApplicationProviderSpec extends Specification {
       ]
     }
 
-    provider = new DefaultApplicationProvider(front50Service: front50Service,
-                                              clouddriverService: clouddriverService)
+    provider = new DefaultApplicationProvider(front50Service, clouddriverService)
 
     when:
     def result = provider.getAllRestricted(input.collect {new Role(it)})

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,14 @@ package com.netflix.spinnaker.fiat.providers.internal;
 
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Application;
-import org.springframework.beans.factory.annotation.Autowired;
 import retrofit.http.GET;
 
 import java.util.List;
 
-public class ClouddriverService {
+public interface ClouddriverApi {
+  @GET("/credentials")
+  List<Account> getAccounts();
 
-  private final ClouddriverApi clouddriverApi;
-
-  public ClouddriverService(ClouddriverApi clouddriverApi) {
-    this.clouddriverApi = clouddriverApi;
-  }
-
-  public List<Account> getAccounts() {
-    return clouddriverApi.getAccounts();
-  }
-
-  public List<Application> getApplications() {
-    return clouddriverApi.getApplications();
-  }
+  @GET("/applications?restricted=false&expand=false")
+  List<Application> getApplications();
 }

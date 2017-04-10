@@ -37,11 +37,15 @@ import java.util.stream.Collectors;
 @Component
 public class DefaultApplicationProvider extends BaseProvider implements ApplicationProvider {
 
-  @Autowired
-  private Front50Service front50Service;
+  private final Front50Service front50Service;
+
+  private final ClouddriverService clouddriverService;
 
   @Autowired
-  private ClouddriverService clouddriverService;
+  public DefaultApplicationProvider(Front50Service front50Service, ClouddriverService clouddriverService) {
+    this.front50Service = front50Service;
+    this.clouddriverService = clouddriverService;
+  }
 
   @Override
   public Set<Application> getAll() throws ProviderException {
