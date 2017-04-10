@@ -161,6 +161,9 @@ module.exports = angular
       if (!ClusterFilterModel.sortFilter.multiselect) {
         let params = {provider: serverGroup.type, instanceId: instanceId};
         if (isClusterChildState()) {
+          if ($state.includes('**.instanceDetails', params)) {
+            return;
+          }
           $state.go('^.instanceDetails', params);
         } else {
           $state.go('.instanceDetails', params);
