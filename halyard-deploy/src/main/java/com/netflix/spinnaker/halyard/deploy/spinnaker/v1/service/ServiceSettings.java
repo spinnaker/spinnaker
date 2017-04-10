@@ -54,7 +54,7 @@ abstract public class ServiceSettings {
   boolean monitored;
   boolean sidecar;
   boolean safeToUpdate;
-  int targetSize;
+  int targetSize = 1;
 
   public ServiceSettings() {}
 

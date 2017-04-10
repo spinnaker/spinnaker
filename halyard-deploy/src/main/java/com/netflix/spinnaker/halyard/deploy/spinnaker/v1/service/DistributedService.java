@@ -20,8 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
@@ -75,13 +73,27 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     return versions.get(versions.size() - 1);
   }
 
-  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details) {
+  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details, ServiceSettings settings) {
     Map<String, Object> baseDescription = new HashMap<>();
     baseDescription.put("cloudProvider", getProviderType().getId());
     baseDescription.put("cloudProviderType", getProviderType().getId());
     baseDescription.put("region", getRegion());
     baseDescription.put("credentials", details.getAccount().getName());
     baseDescription.put("cluster", getName());
+
+    Map<String, Object> capacity = new HashMap<>();
+    capacity.put("desired", settings.getTargetSize() + "");
+
+    Map<String, Object> resizeDescription = new HashMap<>();
+    resizeDescription.putAll(baseDescription);
+    String resizeId = "resize";
+    resizeDescription.put("name", "Resize old " + getName() + " to prior size");
+    resizeDescription.put("capacity", capacity);
+    resizeDescription.put("type", "resizeServerGroup");
+    resizeDescription.put("refId", resizeId);
+    resizeDescription.put("target", "ancestor_asg_dynamic");
+    resizeDescription.put("action", "scale_exact");
+    resizeDescription.put("requisiteStageRefIds", Collections.emptyList());
 
     Map<String, Object> enableDescription = new HashMap<>();
     enableDescription.putAll(baseDescription);
@@ -90,7 +102,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     enableDescription.put("type", "enableServerGroup");
     enableDescription.put("refId", enableId);
     enableDescription.put("target", "ancestor_asg_dynamic");
-    enableDescription.put("requisiteStageRefIds", Collections.emptyList());
+    enableDescription.put("requisiteStageRefIds", Collections.singletonList(resizeId));
 
     // This is a destroy, rather than destroy because the typical flow will look like this:
     //
@@ -112,6 +124,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     destroyDescription.put("target", "current_asg_dynamic");
 
     List<Map<String, Object>> stages = new ArrayList<>();
+    stages.add(resizeDescription);
     stages.add(enableDescription);
     stages.add(destroyDescription);
 
@@ -127,7 +140,8 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   default Map<String, Object> buildDeployServerGroupPipeline(AccountDeploymentDetails<A> details,
       SpinnakerRuntimeSettings runtimeSettings,
       List<ConfigSource> configSources,
-      int maxRemaining) {
+      Integer maxRemaining,
+      boolean scaleDown) {
     Map<String, Object> deployDescription  = getServerGroupDescription(details, runtimeSettings, configSources);
     deployDescription.put("interestingHealthProviders", getHealthProviders());
     deployDescription.put("type", AtomicOperations.CREATE_SERVER_GROUP);
@@ -135,10 +149,11 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     deployDescription.put("refId", "deployredblack");
     deployDescription.put("region", getRegion());
     deployDescription.put("strategy", "redblack");
-    deployDescription.put("maxRemainingAsgs", maxRemaining + "");
-    /* TODO(lwander)
+    if (maxRemaining != null) {
+      deployDescription.put("maxRemainingAsgs", maxRemaining + "");
+    }
+
     deployDescription.put("scaleDown", scaleDown + "");
-    */
 
     List<Map<String, Object>> stages = new ArrayList<>();
     stages.add(deployDescription);

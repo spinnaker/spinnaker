@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
@@ -66,7 +67,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connect(deploymentDetails, runtimeSettings);
         DaemonTaskHandler.message("Rolling back " + distributedService.getName() + " via Spinnaker red/black");
-        rollbackService(deploymentDetails, orca, distributedService);
+        rollbackService(deploymentDetails, orca, distributedService, runtimeSettings.getServiceSettings(service));
       }
     }
   }
@@ -141,16 +142,24 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     }
 
     List<String> configs = distributedService.stageProfiles(details, resolvedConfiguration);
-    Map<String, Object> pipeline = distributedService.buildDeployServerGroupPipeline(details, runtimeSettings, configs, MAX_REMAINING_SERVER_GROUPS);
+    Integer maxRemaining = MAX_REMAINING_SERVER_GROUPS;
+    boolean scaleDown = true;
+    if (distributedService.getService().getArtifact() == SpinnakerArtifact.ORCA) {
+      maxRemaining = null;
+      scaleDown = false;
+    }
+
+    Map<String, Object> pipeline = distributedService.buildDeployServerGroupPipeline(details, runtimeSettings, configs, maxRemaining, scaleDown);
     idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }
 
   private <T extends Account> void rollbackService(AccountDeploymentDetails<T> details,
       Orca orca,
-      DistributedService distributedService) {
+      DistributedService distributedService,
+      ServiceSettings settings) {
     DaemonTaskHandler.newStage("Rolling back " + distributedService.getName());
-    Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details);
+    Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details, settings);
     Supplier<String> idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }

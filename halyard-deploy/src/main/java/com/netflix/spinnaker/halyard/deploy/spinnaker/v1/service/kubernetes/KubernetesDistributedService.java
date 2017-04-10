@@ -96,15 +96,15 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
   }
 
   @Override
-  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details) {
-    Map<String, Object> pipeline = DistributedService.super.buildRollbackPipeline(details);
+  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings) {
+    Map<String, Object> pipeline = DistributedService.super.buildRollbackPipeline(details, settings);
 
     List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.get("stages");
     assert(stages != null && !stages.isEmpty());
 
     for (Map<String, Object> stage : stages) {
       stage.put("namespaces", Collections.singletonList(getNamespace()));
-      stage.put("interestingHealthProviders", Collections.singletonList("KubernetesService"));
+      stage.put("interestingHealthProviderNames", Collections.singletonList("KubernetesService"));
       stage.remove("region");
     }
 
