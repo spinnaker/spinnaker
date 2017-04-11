@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+@Parameters(separators = "=")
 public class GenerateCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "generate";

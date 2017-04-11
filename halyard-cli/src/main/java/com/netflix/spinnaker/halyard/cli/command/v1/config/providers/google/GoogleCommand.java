@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNam
 /**
  * Interact with the google provider
  */
-@Parameters()
+@Parameters(separators = "=")
 public class GoogleCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "google";

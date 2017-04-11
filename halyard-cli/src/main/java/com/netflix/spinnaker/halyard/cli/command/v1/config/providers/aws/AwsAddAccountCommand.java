@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Parameters()
+@Parameters(separators = "=")
 public class AwsAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "aws";

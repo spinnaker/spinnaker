@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
 
-@Parameters()
+@Parameters(separators = "=")
 class AzureAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "azure";

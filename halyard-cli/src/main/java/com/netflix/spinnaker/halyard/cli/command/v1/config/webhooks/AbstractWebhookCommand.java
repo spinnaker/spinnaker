@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 
+@Parameters(separators = "=")
 public abstract class AbstractWebhookCommand extends AbstractConfigCommand {
   abstract protected String getWebhookName();
 }

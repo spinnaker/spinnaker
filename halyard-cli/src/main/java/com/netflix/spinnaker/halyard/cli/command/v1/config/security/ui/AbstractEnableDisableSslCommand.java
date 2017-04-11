@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.ui;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.AbstractEnableDisableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.Data;
@@ -27,6 +28,7 @@ import java.util.function.Supplier;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Parameters(separators = "=")
 abstract public class AbstractEnableDisableSslCommand extends AbstractEnableDisableCommand {
   private String targetName = "UI SSL";
 

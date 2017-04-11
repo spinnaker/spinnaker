@@ -26,7 +26,7 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class PublishBomCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "bom";

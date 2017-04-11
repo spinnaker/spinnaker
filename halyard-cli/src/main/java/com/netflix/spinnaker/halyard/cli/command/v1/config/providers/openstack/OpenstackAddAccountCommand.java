@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
+@Parameters(separators = "=")
 public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "openstack";

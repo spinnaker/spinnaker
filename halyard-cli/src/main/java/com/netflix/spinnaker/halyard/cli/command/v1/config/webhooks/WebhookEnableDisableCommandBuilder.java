@@ -36,7 +36,7 @@ public class WebhookEnableDisableCommandBuilder implements CommandBuilder {
     return new WebhookEnableDisableCommand(webhookName, enable);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class WebhookEnableDisableCommand extends AbstractWebhookEnableDisableCommand {
     private WebhookEnableDisableCommand(String webhookName, boolean enable) {
       this.webhookName = webhookName;

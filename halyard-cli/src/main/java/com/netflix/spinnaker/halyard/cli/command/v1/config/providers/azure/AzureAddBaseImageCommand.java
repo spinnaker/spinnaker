@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.Abst
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBaseImage;
 
-@Parameters()
+@Parameters(separators = "=")
 public class AzureAddBaseImageCommand extends AbstractAddBaseImageCommand {
   protected String getProviderName() {
     return "azure";

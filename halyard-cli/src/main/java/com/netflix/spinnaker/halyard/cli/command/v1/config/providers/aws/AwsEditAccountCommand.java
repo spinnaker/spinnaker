@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
@@ -25,6 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Parameters(separators = "=")
 public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount> {
   protected String getProviderName() {
     return "aws";

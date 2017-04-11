@@ -27,7 +27,7 @@ import lombok.Getter;
 
 import java.util.UUID;
 
-@Parameters()
+@Parameters(separators = "=")
 public class EditPersistentStorageCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";

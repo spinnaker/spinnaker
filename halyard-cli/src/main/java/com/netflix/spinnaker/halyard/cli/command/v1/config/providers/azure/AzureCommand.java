@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNam
 /**
  * Describe a specific azure account
  */
-@Parameters()
+@Parameters(separators = "=")
 public class AzureCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "azure";

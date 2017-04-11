@@ -17,11 +17,13 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 
+@Parameters(separators = "=")
 public abstract class AbstractNamedWebhookCommand extends AbstractWebhookCommand {
   @Override
   public String getCommandName() {

@@ -17,10 +17,12 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.azure;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureAccount;
 
+@Parameters(separators = "=")
 public class AzureEditAccountCommand extends AbstractEditAccountCommand<AzureAccount> {
   protected String getProviderName() {
     return "azure";

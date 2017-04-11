@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNam
 /**
  * Interact with the kubernetes provider
  */
-@Parameters()
+@Parameters(separators = "=")
 public class KubernetesCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "kubernetes";

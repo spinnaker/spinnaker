@@ -26,7 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
+@Parameters(separators = "=")
 public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "kubernetes";

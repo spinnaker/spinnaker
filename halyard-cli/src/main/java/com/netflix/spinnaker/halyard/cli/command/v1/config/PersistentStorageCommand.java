@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class PersistentStorageCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "storage";

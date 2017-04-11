@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -26,6 +27,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
+@Parameters(separators = "=")
 public abstract class AbstractAuthnMethodEnableDisableCommand extends AbstractAuthnMethodCommand {
   @Override
   public String getCommandName() {

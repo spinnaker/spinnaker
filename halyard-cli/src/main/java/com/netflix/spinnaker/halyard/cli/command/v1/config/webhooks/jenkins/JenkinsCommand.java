@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.AbstractName
 /**
  * Interact with the jenkins webhook
  */
-@Parameters()
+@Parameters(separators = "=")
 public class JenkinsCommand extends AbstractNamedWebhookCommand {
   protected String getWebhookName() {
     return "jenkins";

@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.Abstr
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import com.netflix.spinnaker.halyard.config.model.v1.webhooks.jenkins.JenkinsMaster;
 
-@Parameters()
+@Parameters(separators = "=")
 public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
   protected String getWebhookName() {
     return "jenkins";

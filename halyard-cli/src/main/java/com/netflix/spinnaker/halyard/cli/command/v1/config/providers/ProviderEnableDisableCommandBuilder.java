@@ -35,7 +35,7 @@ public class ProviderEnableDisableCommandBuilder implements CommandBuilder {
     return new ProviderEnableDisableCommand(providerName, enable);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class ProviderEnableDisableCommand extends AbstractProviderEnableDisableCommand {
     private ProviderEnableDisableCommand(String providerName, boolean enable) {
       this.providerName = providerName;

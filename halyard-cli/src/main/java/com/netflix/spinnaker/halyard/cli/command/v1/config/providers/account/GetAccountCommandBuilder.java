@@ -33,7 +33,7 @@ public class GetAccountCommandBuilder implements CommandBuilder {
     return new GetAccountCommand(providerName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class GetAccountCommand extends AbstractGetAccountCommand {
     private GetAccountCommand(String providerName) {
       this.providerName = providerName;

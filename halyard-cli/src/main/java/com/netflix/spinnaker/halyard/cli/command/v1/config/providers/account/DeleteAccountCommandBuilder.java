@@ -33,7 +33,7 @@ public class DeleteAccountCommandBuilder implements CommandBuilder {
     return new DeleteAccountCommand(providerName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class DeleteAccountCommand extends AbstractDeleteAccountCommand {
     private DeleteAccountCommand(String providerName) {
       this.providerName = providerName;

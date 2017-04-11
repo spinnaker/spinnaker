@@ -33,7 +33,7 @@ public class ListAccountsCommandBuilder implements CommandBuilder {
     return new ListAccountsCommand(providerName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class ListAccountsCommand extends AbstractListAccountsCommand {
     private ListAccountsCommand(String providerName) {
       this.providerName = providerName;

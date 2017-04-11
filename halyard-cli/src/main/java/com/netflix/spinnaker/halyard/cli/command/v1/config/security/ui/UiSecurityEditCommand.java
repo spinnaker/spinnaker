@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.ui;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -28,6 +29,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Parameters(separators = "=")
 public class UiSecurityEditCommand extends AbstractConfigCommand {
   private String commandName = "edit";
 

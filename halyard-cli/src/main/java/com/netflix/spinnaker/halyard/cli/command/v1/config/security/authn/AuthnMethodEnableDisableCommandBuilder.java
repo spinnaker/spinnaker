@@ -37,7 +37,7 @@ public class AuthnMethodEnableDisableCommandBuilder implements CommandBuilder {
     return new AuthnMethodEnableDisableCommand(method, enable);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class AuthnMethodEnableDisableCommand extends AbstractAuthnMethodEnableDisableCommand {
     private AuthnMethodEnableDisableCommand(AuthnMethod.Method method, boolean enable) {
       this.method = method;

@@ -33,7 +33,7 @@ public class EnableDisableRolesCommandBuilder implements CommandBuilder {
     return new EnableDisableRolesCommand(enable);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class EnableDisableRolesCommand extends AbstractEnableDisableRolesCommand {
     private EnableDisableRolesCommand(boolean enable) {
       this.enable = enable;

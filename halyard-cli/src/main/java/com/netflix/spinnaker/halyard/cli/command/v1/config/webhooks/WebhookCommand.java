@@ -28,7 +28,7 @@ import lombok.Getter;
  *
  * Usage is `$ hal config webhook`
  */
-@Parameters()
+@Parameters(separators = "=")
 public class WebhookCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "webhook";

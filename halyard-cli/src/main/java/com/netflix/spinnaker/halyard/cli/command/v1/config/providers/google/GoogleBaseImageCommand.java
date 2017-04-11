@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.Abst
 /**
  * Interact with the google provider's bakery
  */
-@Parameters()
+@Parameters(separators = "=")
 public class GoogleBaseImageCommand extends AbstractBaseImageCommand {
   protected String getProviderName() {
     return "google";

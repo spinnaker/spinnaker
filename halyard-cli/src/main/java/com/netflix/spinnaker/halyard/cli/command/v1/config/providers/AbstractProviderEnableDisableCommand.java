@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -25,6 +26,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
+@Parameters(separators = "=")
 public abstract class AbstractProviderEnableDisableCommand extends AbstractProviderCommand {
   @Override
   public String getCommandName() {

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -28,6 +29,7 @@ import java.util.Optional;
 /**
  * This is the base command, where we will register all the subcommands.
  */
+@Parameters(separators = "=")
 public class HalCommand extends NestableCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

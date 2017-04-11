@@ -17,11 +17,13 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 
 import java.util.function.Supplier;
 
+@Parameters(separators = "=")
 public abstract class AbstractEnableDisableCommand extends AbstractConfigCommand {
   @Override
   public String getCommandName() {

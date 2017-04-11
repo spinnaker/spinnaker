@@ -17,6 +17,9 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
+import com.beust.jcommander.Parameters;
+
+@Parameters(separators = "=")
 public abstract class AbstractBakeryCommand extends AbstractProviderCommand {
   @Override
   public String getCommandName() {

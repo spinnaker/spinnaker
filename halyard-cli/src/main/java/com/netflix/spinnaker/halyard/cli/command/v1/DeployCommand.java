@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.deploy.RollbackDeployCommand
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators =  "=")
 public class DeployCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "deploy";

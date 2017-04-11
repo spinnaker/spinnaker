@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractBak
 /**
  * Interact with the google provider's bakery
  */
-@Parameters()
+@Parameters(separators = "=")
 public class GoogleBakeryCommand extends AbstractBakeryCommand {
   protected String getProviderName() {
     return "google";

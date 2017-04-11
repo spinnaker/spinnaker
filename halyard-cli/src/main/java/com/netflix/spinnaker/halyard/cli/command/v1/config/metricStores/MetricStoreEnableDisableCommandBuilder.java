@@ -37,7 +37,7 @@ public class MetricStoreEnableDisableCommandBuilder implements CommandBuilder {
     return new MetricStoreEnableDisableCommand(metricStoreType, enable);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class MetricStoreEnableDisableCommand extends AbstractMetricStoreEnableDisableCommand {
     private MetricStoreEnableDisableCommand(MetricStores.MetricStoreType type, boolean enable) {
       this.metricStoreType = type;

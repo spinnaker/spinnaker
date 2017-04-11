@@ -6,7 +6,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNam
 /**
  * Interact with the openstack provider
  */
-@Parameters()
+@Parameters(separators = "=")
 public class OpenstackCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "openstack";

@@ -28,7 +28,7 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
+@Parameters(separators = "=")
 public class RollbackDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "rollback";

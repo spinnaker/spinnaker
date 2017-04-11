@@ -29,7 +29,7 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
+@Parameters(separators = "=")
 public class PublishProfileCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "profile";

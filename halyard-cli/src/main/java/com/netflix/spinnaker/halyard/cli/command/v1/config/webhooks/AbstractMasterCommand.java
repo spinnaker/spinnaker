@@ -17,11 +17,13 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.AbstractHasMasterCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.DeleteMasterCommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.GetMasterCommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.ListMastersCommandBuilder;
 
+@Parameters(separators = "=")
 public abstract class AbstractMasterCommand extends AbstractHasMasterCommand {
   @Override
   public String getCommandName() {

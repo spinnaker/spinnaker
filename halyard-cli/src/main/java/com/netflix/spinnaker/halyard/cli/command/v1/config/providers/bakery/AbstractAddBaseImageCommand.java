@@ -29,7 +29,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractAddBaseImageCommand extends AbstractHasBaseImageCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

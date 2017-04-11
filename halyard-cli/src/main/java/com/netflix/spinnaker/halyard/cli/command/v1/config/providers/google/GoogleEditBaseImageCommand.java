@@ -18,10 +18,12 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.AbstractEditBaseImageCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBaseImage;
 
+@Parameters(separators = "=")
 public class GoogleEditBaseImageCommand extends AbstractEditBaseImageCommand<GoogleBaseImage> {
   @Override
   protected String getProviderName() {

@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GoogleRoleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
@@ -27,6 +28,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Parameters(separators = "=")
 public class EditGoogleRoleProviderCommand extends AbstractEditRoleProviderCommand<GoogleRoleProvider> {
   GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GOOGLE;
 

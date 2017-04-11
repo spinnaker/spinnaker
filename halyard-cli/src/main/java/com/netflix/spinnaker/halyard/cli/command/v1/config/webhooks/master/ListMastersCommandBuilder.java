@@ -33,7 +33,7 @@ public class ListMastersCommandBuilder implements CommandBuilder {
     return new ListMastersCommand(webhookName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class ListMastersCommand extends AbstractListMastersCommand {
     private ListMastersCommand(String webhookName) {
       this.webhookName = webhookName;

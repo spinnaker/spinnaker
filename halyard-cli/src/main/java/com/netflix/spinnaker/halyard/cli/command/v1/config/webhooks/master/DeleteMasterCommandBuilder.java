@@ -33,7 +33,7 @@ public class DeleteMasterCommandBuilder implements CommandBuilder {
     return new DeleteMasterCommand(webhookName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class DeleteMasterCommand extends AbstractDeleteMasterCommand {
     private DeleteMasterCommand(String webhookName) {
       this.webhookName = webhookName;

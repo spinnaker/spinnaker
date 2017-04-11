@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractEditAccountCommand<T extends Account> extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

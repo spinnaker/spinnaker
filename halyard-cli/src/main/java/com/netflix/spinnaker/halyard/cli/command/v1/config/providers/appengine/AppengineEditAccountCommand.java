@@ -17,12 +17,14 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.google.CommonGoogleCommandProperties;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
+@Parameters(separators = "=")
 public class AppengineEditAccountCommand extends AbstractEditAccountCommand<AppengineAccount> {
   @Override
   protected String getProviderName() {

@@ -24,7 +24,7 @@ import lombok.Getter;
 
 /**
  */
-@Parameters()
+@Parameters(separators = "=")
 public class AdminCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "admin";

@@ -33,7 +33,7 @@ public class ListBaseImagesCommandBuilder implements CommandBuilder {
     return new ListBaseImagesCommand(providerName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class ListBaseImagesCommand extends AbstractListBaseImagesCommand {
     private ListBaseImagesCommand(String providerName) {
       this.providerName = providerName;

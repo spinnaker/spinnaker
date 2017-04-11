@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery.Abst
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBaseImage;
 
-@Parameters()
+@Parameters(separators = "=")
 public class GoogleAddBaseImageCommand extends AbstractAddBaseImageCommand {
   protected String getProviderName() {
     return "google";

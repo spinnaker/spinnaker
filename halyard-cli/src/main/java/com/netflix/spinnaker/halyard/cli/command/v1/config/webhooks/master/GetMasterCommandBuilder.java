@@ -33,7 +33,7 @@ public class GetMasterCommandBuilder implements CommandBuilder {
     return new GetMasterCommand(webhookName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class GetMasterCommand extends AbstractGetMasterCommand {
     private GetMasterCommand(String webhookName) {
       this.webhookName = webhookName;

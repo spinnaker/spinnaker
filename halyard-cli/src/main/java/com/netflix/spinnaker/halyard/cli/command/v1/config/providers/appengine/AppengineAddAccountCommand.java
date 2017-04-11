@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConve
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineAccount;
 
-@Parameters()
+@Parameters(separators = "=")
 public class AppengineAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "appengine";

@@ -33,7 +33,7 @@ import lombok.Getter;
  *
  * Usage is `$ hal config`
  */
-@Parameters()
+@Parameters(separators = "=")
 public class ProviderCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "provider";

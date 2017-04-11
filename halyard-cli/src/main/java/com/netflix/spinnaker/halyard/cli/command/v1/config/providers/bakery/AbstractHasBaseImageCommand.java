@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * An abstract definition for commands that accept ACCOUNT as a main parameter
  */
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractHasBaseImageCommand extends AbstractProviderCommand {
   @Parameter(description = "The name of the base image to operate on.", arity = 1)
   List<String> baseImages = new ArrayList<>();

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.Do
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
+@Parameters(separators = "=")
 class DockerRegistryAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "dockerRegistry";

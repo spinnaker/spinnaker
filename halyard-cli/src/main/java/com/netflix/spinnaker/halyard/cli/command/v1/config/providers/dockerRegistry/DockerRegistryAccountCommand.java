@@ -23,7 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractAcc
 /**
  * Describe a specific docker-registry account
  */
-@Parameters()
+@Parameters(separators = "=")
 public class DockerRegistryAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
     return "dockerRegistry";

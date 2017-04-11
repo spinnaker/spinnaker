@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Delete a specific PROVIDER master
  */
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractDeleteMasterCommand extends AbstractHasMasterCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

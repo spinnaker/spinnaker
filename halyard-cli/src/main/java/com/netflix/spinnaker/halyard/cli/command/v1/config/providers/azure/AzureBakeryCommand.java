@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractBak
 /**
  * Interact with the azure provider's bakery
  */
-@Parameters()
+@Parameters(separators = "=")
 public class AzureBakeryCommand extends AbstractBakeryCommand {
   protected String getProviderName() {
     return "azure";

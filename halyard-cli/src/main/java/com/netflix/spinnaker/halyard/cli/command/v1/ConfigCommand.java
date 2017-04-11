@@ -28,7 +28,7 @@ import lombok.Getter;
  *
  * Usage is `$ hal config`
  */
-@Parameters()
+@Parameters(separators =  "=")
 public class ConfigCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "config";

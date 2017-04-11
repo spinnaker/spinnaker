@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import lombok.Data;
@@ -24,6 +25,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
+@Parameters(separators = "=")
 abstract public class AbstractMetricStoreCommand extends AbstractConfigCommand {
   abstract public MetricStores.MetricStoreType getMetricStoreType();
 }

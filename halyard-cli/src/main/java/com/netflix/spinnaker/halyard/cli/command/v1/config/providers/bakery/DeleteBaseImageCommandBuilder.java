@@ -33,7 +33,7 @@ public class DeleteBaseImageCommandBuilder implements CommandBuilder {
     return new DeleteBaseImageCommand(providerName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class DeleteBaseImageCommand extends AbstractDeleteBaseImageCommand {
     private DeleteBaseImageCommand(String providerName) {
       this.providerName = providerName;

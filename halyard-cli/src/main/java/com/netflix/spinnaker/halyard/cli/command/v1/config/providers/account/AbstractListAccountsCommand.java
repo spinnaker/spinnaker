@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -27,6 +28,7 @@ import lombok.Getter;
 
 import java.util.List;
 
+@Parameters(separators = "=")
 abstract class AbstractListAccountsCommand extends AbstractProviderCommand {
   public String getDescription() {
     return "List the account names for the " + getProviderName() + " provider.";

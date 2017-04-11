@@ -33,7 +33,7 @@ public class GetBaseImageCommandBuilder implements CommandBuilder {
     return new GetBaseImageCommand(providerName);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class GetBaseImageCommand extends AbstractGetBaseImageCommand {
     private GetBaseImageCommand(String providerName) {
       this.providerName = providerName;

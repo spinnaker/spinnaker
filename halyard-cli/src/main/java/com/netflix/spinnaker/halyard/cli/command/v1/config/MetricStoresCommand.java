@@ -29,7 +29,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class MetricStoresCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "metric-stores";

@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class LatestVersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "latest";

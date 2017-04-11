@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.appengine;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractNamedProviderCommand;
 
-@Parameters()
+@Parameters(separators = "=")
 public class AppengineCommand extends AbstractNamedProviderCommand {
   protected String getProviderName() {
     return "appengine";

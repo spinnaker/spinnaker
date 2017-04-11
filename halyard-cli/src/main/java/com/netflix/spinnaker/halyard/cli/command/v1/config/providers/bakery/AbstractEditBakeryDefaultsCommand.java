@@ -30,7 +30,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractEditBakeryDefaultsCommand<T extends BakeryDefaults> extends AbstractProviderCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

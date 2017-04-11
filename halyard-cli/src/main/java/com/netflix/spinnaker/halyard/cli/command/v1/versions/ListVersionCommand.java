@@ -28,7 +28,7 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class ListVersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "list";

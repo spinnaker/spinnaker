@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Delete a specific PROVIDER base image
  */
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractDeleteBaseImageCommand extends AbstractHasBaseImageCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

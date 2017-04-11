@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
@@ -27,6 +28,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Parameters(separators = "=")
 public class GoogleRoleProviderCommand extends AbstractRoleProviderCommand {
   private GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GOOGLE;
 

@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 
+@Parameters(separators = "=")
 abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand {
   abstract public GroupMembership.RoleProviderType getRoleProviderType();
 

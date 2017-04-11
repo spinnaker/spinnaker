@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureBakery
 /**
  * Interact with the azure provider's bakery
  */
-@Parameters()
+@Parameters(separators = "=")
 public class AzureEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsCommand<AzureBakeryDefaults> {
   protected String getProviderName() {
     return "azure";

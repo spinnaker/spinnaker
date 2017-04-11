@@ -29,7 +29,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class SecurityCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "security";

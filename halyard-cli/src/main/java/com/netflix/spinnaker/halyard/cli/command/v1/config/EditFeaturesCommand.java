@@ -25,7 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class EditFeaturesCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";

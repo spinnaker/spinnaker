@@ -26,7 +26,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleBake
 /**
  * Interact with the google provider's bakery
  */
-@Parameters()
+@Parameters(separators = "=")
 public class GoogleEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsCommand<GoogleBakeryDefaults> {
   protected String getProviderName() {
     return "google";

@@ -17,11 +17,13 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractHasAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.DeleteAccountCommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.GetAccountCommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.ListAccountsCommandBuilder;
 
+@Parameters(separators = "=")
 public abstract class AbstractAccountCommand extends AbstractHasAccountCommand {
   @Override
   public String getCommandName() {

@@ -30,7 +30,7 @@ import lombok.Getter;
 /**
  * Delete a specific PROVIDER account
  */
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractDeleteAccountCommand extends AbstractHasAccountCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

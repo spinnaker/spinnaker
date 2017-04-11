@@ -18,11 +18,13 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.prometheus;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.AbstractEditMetricStoreCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.prometheus.PrometheusStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 
+@Parameters(separators = "=")
 public class EditPrometheusCommand extends AbstractEditMetricStoreCommand<PrometheusStore> {
   public MetricStores.MetricStoreType getMetricStoreType() {
     return MetricStores.MetricStoreType.PROMETHEUS;

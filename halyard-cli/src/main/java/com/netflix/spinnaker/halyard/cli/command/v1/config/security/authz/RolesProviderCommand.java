@@ -17,12 +17,14 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Parameters(separators = "=")
 public class RolesProviderCommand extends AbstractConfigCommand {
   String description = "Configure a roles provider.";
   String commandName = "provider";

@@ -33,7 +33,7 @@ public class EnableDisableSslCommandBuilder implements CommandBuilder {
     return new EnableDisableSslCommand(enable);
   }
 
-  @Parameters()
+  @Parameters(separators = "=")
   private static class EnableDisableSslCommand extends AbstractEnableDisableSslCommand {
     private EnableDisableSslCommand(boolean enable) {
       this.enable = enable;

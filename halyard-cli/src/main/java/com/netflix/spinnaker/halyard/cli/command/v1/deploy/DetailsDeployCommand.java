@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class DetailsDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "details";

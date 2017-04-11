@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.AbstractWebhookCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -27,6 +28,7 @@ import lombok.Getter;
 
 import java.util.List;
 
+@Parameters(separators = "=")
 abstract class AbstractListMastersCommand extends AbstractWebhookCommand {
   public String getDescription() {
     return "List the master names for the " + getWebhookName() + " webhook.";

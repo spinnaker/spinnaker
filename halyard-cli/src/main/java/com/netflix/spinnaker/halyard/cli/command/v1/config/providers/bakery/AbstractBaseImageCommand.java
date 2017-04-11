@@ -17,8 +17,10 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.AbstractProviderCommand;
 
+@Parameters(separators = "=")
 public abstract class AbstractBaseImageCommand extends AbstractProviderCommand {
   @Override
   public String getCommandName() {

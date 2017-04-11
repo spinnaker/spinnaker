@@ -18,10 +18,12 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.jenkins;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.AbstractEditMasterCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import com.netflix.spinnaker.halyard.config.model.v1.webhooks.jenkins.JenkinsMaster;
 
+@Parameters(separators = "=")
 public class JenkinsEditMasterCommand extends AbstractEditMasterCommand<JenkinsMaster> {
   protected String getWebhookName() {
     return "jenkins";

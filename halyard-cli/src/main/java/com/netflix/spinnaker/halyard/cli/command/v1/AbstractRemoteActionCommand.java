@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.amazonaws.util.StringUtils;
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiParagraphBuilder;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+@Parameters(separators = "=")
 abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--auto-run",

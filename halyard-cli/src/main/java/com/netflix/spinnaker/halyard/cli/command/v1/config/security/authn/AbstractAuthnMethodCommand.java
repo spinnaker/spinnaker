@@ -17,9 +17,11 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
+@Parameters(separators = "=")
 abstract public class AbstractAuthnMethodCommand extends AbstractConfigCommand {
   abstract public AuthnMethod.Method getMethod();
 }

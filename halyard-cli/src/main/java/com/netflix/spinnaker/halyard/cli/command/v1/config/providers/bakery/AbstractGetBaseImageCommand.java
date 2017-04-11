@@ -17,12 +17,14 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.bakery;
 
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
 import lombok.Getter;
 
+@Parameters(separators = "=")
 abstract class AbstractGetBaseImageCommand extends AbstractHasBaseImageCommand {
   public String getDescription() {
     return "Get the specified base image details for the " + getProviderName() + " provider.";

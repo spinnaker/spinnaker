@@ -29,7 +29,7 @@ import lombok.Getter;
 import java.util.HashMap;
 import java.util.Map;
 
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractEditMasterCommand<T extends Master> extends AbstractHasMasterCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();

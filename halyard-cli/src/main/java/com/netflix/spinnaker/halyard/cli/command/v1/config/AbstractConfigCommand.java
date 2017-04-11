@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import java.util.ArrayList;
 import java.util.List;
 
+@Parameters(separators = "=")
 abstract public class AbstractConfigCommand extends NestableCommand {
   @Parameter(names = { "--no-validate" }, description = "Skip validation.")
   public boolean noValidate = false;

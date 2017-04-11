@@ -33,7 +33,7 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-@Parameters()
+@Parameters(separators = "=")
 public class BomVersionCommand extends AbstractConfigCommand {
   @Parameter(description = "The version whose Bill of Materials (BOM) to lookup.", arity = 1)
   List<String> versions = new ArrayList<>();

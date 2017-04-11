@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class PublishCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "publish";

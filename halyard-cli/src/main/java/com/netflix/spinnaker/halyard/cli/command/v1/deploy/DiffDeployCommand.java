@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-@Parameters()
+@Parameters(separators = "=")
 public class DiffDeployCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "diff";

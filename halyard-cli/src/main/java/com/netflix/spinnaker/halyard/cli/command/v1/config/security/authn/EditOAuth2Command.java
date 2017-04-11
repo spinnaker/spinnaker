@@ -18,11 +18,13 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.OAuth2ProviderTypeConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import lombok.Getter;
 
+@Parameters(separators = "=")
 public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
   @Getter
   private AuthnMethod.Method method = AuthnMethod.Method.OAuth2;

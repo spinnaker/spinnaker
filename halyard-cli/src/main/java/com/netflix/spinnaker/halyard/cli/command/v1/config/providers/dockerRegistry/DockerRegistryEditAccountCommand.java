@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.dockerRegistry;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
@@ -24,6 +25,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.Do
 import java.util.ArrayList;
 import java.util.List;
 
+@Parameters(separators = "=")
 public class DockerRegistryEditAccountCommand extends AbstractEditAccountCommand<DockerRegistryAccount> {
   protected String getProviderName() {
     return "dockerRegistry";

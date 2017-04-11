@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * An abstract definition for commands that accept MASTER as a main parameter
  */
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractHasMasterCommand extends AbstractWebhookCommand {
   @Parameter(description = "The name of the master to operate on.", arity = 1)
   List<String> masters = new ArrayList<>();

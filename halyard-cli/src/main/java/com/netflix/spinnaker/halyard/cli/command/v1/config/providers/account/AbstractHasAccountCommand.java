@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * An abstract definition for commands that accept ACCOUNT as a main parameter
  */
-@Parameters()
+@Parameters(separators = "=")
 public abstract class AbstractHasAccountCommand extends AbstractProviderCommand {
   @Parameter(description = "The name of the account to operate on.", arity = 1)
   List<String> accounts = new ArrayList<>();

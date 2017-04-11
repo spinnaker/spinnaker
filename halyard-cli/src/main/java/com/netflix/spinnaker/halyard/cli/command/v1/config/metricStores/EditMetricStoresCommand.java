@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+@Parameters(separators = "=")
 public class EditMetricStoresCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "edit";

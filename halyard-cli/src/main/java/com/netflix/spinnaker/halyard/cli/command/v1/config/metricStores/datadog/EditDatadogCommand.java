@@ -18,11 +18,13 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.datadog;
 
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.metricStores.AbstractEditMetricStoreCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.metricStores.datadog.DatadogStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
 
+@Parameters(separators = "=")
 public class EditDatadogCommand extends AbstractEditMetricStoreCommand<DatadogStore> {
   public MetricStores.MetricStoreType getMetricStoreType() {
     return MetricStores.MetricStoreType.DATADOG;
