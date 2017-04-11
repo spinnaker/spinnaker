@@ -28,15 +28,19 @@ import java.io.IOException;
 
 public class ValidatingFileReader {
   public static String contents(ConfigProblemSetBuilder ps, String path) {
+    String noAccessRemediation = "Halyard is running as user " + System.getProperty("user.name") + ". Make sure that user can read the requested file.";
     try {
       return IOUtils.toString(new FileInputStream(path));
     } catch (FileNotFoundException e) {
-      ps.addProblem(Problem.Severity.FATAL, "Cannot find provided path: " + e.getMessage() + ".");
+      ConfigProblemBuilder problemBuilder = ps.addProblem(Problem.Severity.FATAL, "Cannot find provided path: " + e.getMessage() + ".");
+      if (e.getMessage().contains("denied")) {
+        problemBuilder.setRemediation(noAccessRemediation);
+      }
       return null;
     } catch (IOException e) {
       ConfigProblemBuilder problemBuilder = ps.addProblem(Problem.Severity.FATAL, "Failed to read path \"" + path + "\": " + e.getMessage() + ".");
-      if (e.getMessage().contains("Permission denied")) {
-        problemBuilder.setRemediation("Halyard is running as user " + System.getProperty("user.name") + ". Make sure that user can read the requested file.");
+      if (e.getMessage().contains("denied")) {
+        problemBuilder.setRemediation(noAccessRemediation);
       }
       return null;
     }
