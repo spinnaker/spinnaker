@@ -1,7 +1,9 @@
-import {Subject} from 'rxjs';
+import {get} from 'lodash';
+import {ILogService, IPromise, IQService, IScope} from 'angular';
+import {Subject, Subscription} from 'rxjs';
+
 import {Application} from '../application.model';
 import {IEntityTags} from 'core/domain/IEntityTags';
-import {get} from 'lodash';
 
 export class DataSourceConfig {
 
@@ -94,7 +96,7 @@ export class DataSourceConfig {
    * It does *not* automatically populate the "data" field of the data source - that is the responsibility of the
    * "onLoad" method.
    */
-  public loader: {(fn: any): ng.IPromise<any>};
+  public loader: {(fn: any): IPromise<any>};
 
   /**
    * A method that is called when the "loader" method resolves. The method must return a promise. If the "loader"
@@ -104,7 +106,7 @@ export class DataSourceConfig {
    * If the onLoad method resolves with a null value, the result will be discarded and the data source's "data" field
    * will remain unchanged.
    */
-  public onLoad: {(fn: any): ng.IPromise<any>};
+  public onLoad: {(fn: any): IPromise<any>};
 
   /**
    * (Optional) A method that is called after the "onLoad" method resolves. The data source's data will be populated
@@ -274,7 +276,7 @@ export class ApplicationDataSource {
   /**
    * See DataSourceConfig#onLoad
    */
-  public onLoad: {(application: Application, fn: any): ng.IPromise<any>};
+  public onLoad: {(application: Application, fn: any): IPromise<any>};
 
   /**
    * See DataSourceConfig#afterLoad
@@ -284,7 +286,7 @@ export class ApplicationDataSource {
   /**
    * See DataSourceConfig#loader
    */
-  public loader: {(fn: any): ng.IPromise<any>};
+  public loader: {(fn: any): IPromise<any>};
 
   private refreshStream: Subject<any> = new Subject();
 
@@ -300,7 +302,7 @@ export class ApplicationDataSource {
     }
   }
 
-  constructor(config: DataSourceConfig, private application: Application, private $q?: ng.IQService, private $log?: ng.ILogService, private $filter?: any) {
+  constructor(config: DataSourceConfig, private application: Application, private $q?: IQService, private $log?: ILogService, private $filter?: any) {
     Object.assign(this, config);
     if (!config.sref && config.visible !== false) {
       this.sref = '.insight.' + config.key;
@@ -318,34 +320,56 @@ export class ApplicationDataSource {
   /**
    * A method that allows another method to be called the next time the data source refreshes
    *
-   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed
+   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
+   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param method the method to call the next time the data source refreshes
    * @param failureMethod (optional) a method to call if the data source refresh fails
+   * @return a method to call to unsubscribe
    */
-  public onNextRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
-    const success = this.refreshStream.take(1).subscribe(method);
-    $scope.$on('$destroy', () => success.unsubscribe());
+  public onNextRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
+    const success: Subscription = this.refreshStream.take(1).subscribe(method);
+    let failure: Subscription = null;
     if (failureMethod) {
-      const failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
-      $scope.$on('$destroy', () => failure.unsubscribe());
+      failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
     }
+    const unsubscribe = () => {
+      success.unsubscribe();
+      if (failure) {
+        failure.unsubscribe();
+      }
+    };
+    if ($scope) {
+      $scope.$on('$destroy', () => unsubscribe());
+    }
+    return unsubscribe;
   }
 
   /**
    * A method that allows another method to be called the whenever the data source refreshes. The subscription will be
    * automatically disposed when the $scope is destroyed.
    *
-   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed
+   * @param $scope the controller scope of the calling method. If the $scope is destroyed, the subscription is disposed.
+   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param method the method to call the next time the data source refreshes
    * @param failureMethod (optional) a method to call if the data source refresh fails
+   * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
-    const success = this.refreshStream.subscribe(method);
-    $scope.$on('$destroy', () => success.unsubscribe());
+  public onRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
+    const success: Subscription = this.refreshStream.subscribe(method);
+    let failure: Subscription = null;
     if (failureMethod) {
-      const failure = this.refreshFailureStream.subscribe(failureMethod);
-      $scope.$on('$destroy', () => failure.unsubscribe());
+      failure = this.refreshFailureStream.subscribe(failureMethod);
     }
+    const unsubscribe = () => {
+      success.unsubscribe();
+      if (failure) {
+        failure.unsubscribe();
+      }
+    };
+    if ($scope) {
+      $scope.$on('$destroy', () => unsubscribe());
+    }
+    return unsubscribe;
   }
 
   /**
@@ -360,7 +384,7 @@ export class ApplicationDataSource {
    *
    * @returns {IPromise<T>}
    */
-  public ready(): ng.IPromise<any> {
+  public ready(): IPromise<any> {
     const deferred = this.$q.defer();
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       deferred.resolve();
@@ -396,7 +420,7 @@ export class ApplicationDataSource {
    * @param forceRefresh
    * @returns {any}
    */
-  public refresh(forceRefresh?: boolean): ng.IPromise<any> {
+  public refresh(forceRefresh?: boolean): IPromise<any> {
     if (!this.loader || this.disabled) {
       this.data.length = 0;
       this.loading = false;
