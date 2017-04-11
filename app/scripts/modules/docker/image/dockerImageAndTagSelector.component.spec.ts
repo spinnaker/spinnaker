@@ -17,9 +17,11 @@ describe('dockerImageAndTagSelector controller', () => {
   let organization: string,
       registry: string,
       repository: string,
-      tag: string,
-      account: string,
       showRegistry: boolean;
+
+  const tag: string = undefined,
+      account: string = undefined;
+
 
   beforeEach(mock.module(DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT));
 
@@ -35,7 +37,7 @@ describe('dockerImageAndTagSelector controller', () => {
     $scope = $rootScope.$new();
   }));
 
-  let initialize = (accounts: IAccount[], images: IDockerImage[]) => {
+  const initialize = (accounts: IAccount[], images: IDockerImage[]) => {
     spyOn(accountService, 'listAccounts').and.returnValue($q.when(accounts));
     spyOn(dockerImageReader, 'findImages').and.returnValue($q.when(images));
     $ctrl = <DockerImageAndTagSelectorController>$componentController(

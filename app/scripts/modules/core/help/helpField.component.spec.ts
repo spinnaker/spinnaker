@@ -10,14 +10,14 @@ describe('Component: helpField', () => {
       $scope: ng.IScope,
       $compile: ng.ICompileService;
 
-  let executeTest = (htmlString: string, expected: string, attr = 'uib-popover-html') => {
-    let helpField: JQuery = $compile(htmlString)($scope);
+  const executeTest = (htmlString: string, expected: string, attr = 'uib-popover-html') => {
+    const helpField: JQuery = $compile(htmlString)($scope);
     $scope.$digest();
     expect(helpField.find('a').attr(attr)).toBe(expected);
   };
 
-  let testContent = (htmlString: string, expected: string) => {
-    let helpField: JQuery = $compile(htmlString)($scope);
+  const testContent = (htmlString: string, expected: string) => {
+    const helpField: JQuery = $compile(htmlString)($scope);
     $scope.$digest();
     expect(element(helpField.find('a')).scope()['$ctrl']['contents']['content']).toBe(expected);
   };

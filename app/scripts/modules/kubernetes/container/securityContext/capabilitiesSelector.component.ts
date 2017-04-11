@@ -23,7 +23,7 @@ class CapabilitiesSelector implements ng.IComponentController {
   ];
 
   public add (fieldModel: string): void {
-    let path = ['securityContext', 'capabilities', fieldModel];
+    const path = ['securityContext', 'capabilities', fieldModel];
     if (!has(this.component, path)) {
       set(this.component, path, []);
     }

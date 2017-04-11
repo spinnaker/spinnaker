@@ -27,7 +27,7 @@ export class ExecutionService {
     }
 
     private getFilteredExecutions(applicationName: string, {statuses = Object.keys(pickBy(this.executionFilterModel.sortFilter.status || {}, identity)), limit = this.executionFilterModel.sortFilter.count} = {}): IPromise<IExecution[]> {
-      let statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
+      const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
       return this.API.one('applications', applicationName).all('pipelines').getList({ limit: limit, statuses: statusString})
         .then((data: IExecution[]) => {
           if (data) {
@@ -59,9 +59,9 @@ export class ExecutionService {
         return;
       }
       executions.forEach((execution) => {
-        let stringVal = JSON.stringify(execution, this.jsonReplacer);
+        const stringVal = JSON.stringify(execution, this.jsonReplacer);
         // do not transform if it hasn't changed
-        let match = (application.executions.data || []).find((test: IExecution) => test.id === execution.id);
+        const match = (application.executions.data || []).find((test: IExecution) => test.id === execution.id);
         if (!match || !match.stringVal || match.stringVal !== stringVal) {
           execution.stringVal = stringVal;
           this.executionsTransformer.transformExecution(application, execution);
@@ -276,7 +276,7 @@ export class ExecutionService {
 
     public synchronizeExecution(current: IExecution, updated: IExecution): void {
       (updated.stageSummaries || []).forEach((updatedSummary, idx) => {
-        let currentSummary = current.stageSummaries[idx];
+        const currentSummary = current.stageSummaries[idx];
         if (!currentSummary) {
           current.stageSummaries.push(updatedSummary);
         } else {

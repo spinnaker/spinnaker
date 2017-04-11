@@ -13,7 +13,7 @@ describe('orchestratedItem transformer', () => {
 
   describe('failure message extraction', () => {
 
-    let getMessage = (obj: any) => {
+    const getMessage = (obj: any) => {
       transformer.defineProperties(obj);
       return obj.failureMessage;
     };
@@ -32,7 +32,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns null when last kato task has no exception', () => {
-      let stage = {
+      const stage = {
         context: {
           'kato.tasks': [
             {
@@ -56,7 +56,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns general exception even if a kato task is present', () => {
-      let stage = {
+      const stage = {
         context: {
           'kato.tasks': [
             {
@@ -79,7 +79,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns exception when it is in the last kato task', () => {
-      let stage = {
+      const stage = {
         context: {
           'kato.tasks': [
             {
@@ -100,7 +100,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it ('extracts exception object from variables', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'exception',
@@ -117,7 +117,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('prefers "errors" to "error" and expects them to be an array in exception object', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'exception',
@@ -137,7 +137,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns null if an exception variable is present but has no details', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'exception',
@@ -149,7 +149,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('falls back to extracting last orchestration message if no exception found in variables', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'kato.tasks',
@@ -171,7 +171,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('prefers message from kato exception object if present', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'kato.tasks',
@@ -195,7 +195,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns null if kato exception object does not have a message property', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'kato.tasks',
@@ -214,7 +214,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('returns null if no kato exception and no history', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'kato.tasks',
@@ -230,7 +230,7 @@ describe('orchestratedItem transformer', () => {
     });
 
     it('gets orchestration message from failed kato task', () => {
-      let task = {
+      const task = {
         variables: [
           {
             key: 'kato.tasks',

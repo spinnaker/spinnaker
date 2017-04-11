@@ -15,7 +15,7 @@ describe('Component: loadBalancersTag', () => {
       $q: ng.IQService,
       $scope: ng.IScope;
 
-  let initialize = () => {
+  const initialize = () => {
     application = applicationModelBuilder.createApplication({
       key: 'loadBalancers',
       loader: () => $q.when(null),

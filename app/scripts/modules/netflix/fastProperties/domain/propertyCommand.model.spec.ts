@@ -6,31 +6,31 @@ describe('propertyCommand model', function () {
 
   describe('get button label', function () {
     it('for CREATE', function () {
-      let propCommand: PropertyCommand = new PropertyCommand();
+      const propCommand: PropertyCommand = new PropertyCommand();
       propCommand.type = PropertyCommandType.CREATE;
       expect(propCommand.submitButtonLabel()).toBe('Create');
     });
 
     it('for UPDATE', function () {
-      let propCommand: PropertyCommand = new PropertyCommand();
+      const propCommand: PropertyCommand = new PropertyCommand();
       propCommand.type = PropertyCommandType.UPDATE;
       expect(propCommand.submitButtonLabel()).toBe('Update');
     });
 
     it('for DELETE', function () {
-      let propCommand: PropertyCommand = new PropertyCommand();
+      const propCommand: PropertyCommand = new PropertyCommand();
       propCommand.type = PropertyCommandType.DELETE;
       expect(propCommand.submitButtonLabel()).toBe('Delete');
     });
 
     it('for undefined propertyCommandType', function() {
-      let propCommand: PropertyCommand = new PropertyCommand();
+      const propCommand: PropertyCommand = new PropertyCommand();
       propCommand.type = undefined;
       expect(propCommand.submitButtonLabel()).toBe('Submit');
     });
 
     it('for null propertyCommandType', function() {
-      let propCommand: PropertyCommand = new PropertyCommand();
+      const propCommand: PropertyCommand = new PropertyCommand();
       propCommand.type = null;
       expect(propCommand.submitButtonLabel()).toBe('Submit');
     });
@@ -38,11 +38,11 @@ describe('propertyCommand model', function () {
 
   describe('check to move to new scope', function () {
     it('is move to new scope if originalScope and selectedScope are different', function () {
-      let command: PropertyCommand = new PropertyCommand();
-      let origScope = new Scope();
+      const command: PropertyCommand = new PropertyCommand();
+      const origScope = new Scope();
       origScope.env = 'prod';
       origScope.appId = 'mahe';
-      let selectedScope = new Scope();
+      const selectedScope = new Scope();
       selectedScope.env = 'prod';
       selectedScope.appId = 'newApp';
 
@@ -53,12 +53,12 @@ describe('propertyCommand model', function () {
     });
 
     it('is not a move to new scope if originalScope and selectedScope are same but have different instance counts', function () {
-      let command: PropertyCommand = new PropertyCommand();
-      let origScope = new Scope();
+      const command: PropertyCommand = new PropertyCommand();
+      const origScope = new Scope();
       origScope.env = 'prod';
       origScope.appId = 'mahe';
       origScope.instanceCounts = {up: 1};
-      let selectedScope = new Scope();
+      const selectedScope = new Scope();
       selectedScope.env = 'prod';
       selectedScope.appId = 'mahe';
       selectedScope.instanceCounts = {up: 99};
@@ -71,8 +71,8 @@ describe('propertyCommand model', function () {
 
 
     it('is not a move to a new scope if the originalScope and the selected scope are the same ', function () {
-      let command: PropertyCommand = new PropertyCommand();
-      let scope = new Scope();
+      const command: PropertyCommand = new PropertyCommand();
+      const scope = new Scope();
       scope.env = 'prod';
       scope.appId = 'mahe';
 
@@ -83,8 +83,8 @@ describe('propertyCommand model', function () {
     });
 
     it('is not a move to a new scope if there is no new selected scope', function () {
-      let command: PropertyCommand = new PropertyCommand();
-      let scope = new Scope();
+      const command: PropertyCommand = new PropertyCommand();
+      const scope = new Scope();
       scope.env = 'prod';
       scope.appId = 'mahe';
 
@@ -95,8 +95,8 @@ describe('propertyCommand model', function () {
     });
 
     it('is not a move to a new scope if there is no new scope', function () {
-      let command: PropertyCommand = new PropertyCommand();
-      let scope = new Scope();
+      const command: PropertyCommand = new PropertyCommand();
+      const scope = new Scope();
       scope.env = 'prod';
       scope.appId = 'mahe';
 

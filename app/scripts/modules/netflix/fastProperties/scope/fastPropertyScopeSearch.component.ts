@@ -50,7 +50,7 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
   public $onInit() {
     this.accountService.getAllAccountDetailsForProvider('aws')
       .then((accounts: any) => {
-        let regions = accounts.reduce((acc: any, account: any) => {
+        const regions = accounts.reduce((acc: any, account: any) => {
           account.regions.forEach((region: any) => acc.add(region.name));
           return acc;
         }, new Set());
@@ -146,7 +146,7 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
   }
 
   public fetchApplicationInfo(categories: any[]): any {
-    let listOfPromises: ng.IPromise<any>[] = [];
+    const listOfPromises: ng.IPromise<any>[] = [];
 
     categories.forEach((category) => {
       category.results.forEach((item: any) => {
@@ -178,11 +178,11 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
   }
 
   private addStackCategory(categories: any[]) {
-    let applicationCategory = categories
+    const applicationCategory = categories
       .find((cat: any) => cat.category === 'Applications');
-    let applicationNames = applicationCategory ? applicationCategory.results.map((item: any) => item.application) : [];
+    const applicationNames = applicationCategory ? applicationCategory.results.map((item: any) => item.application) : [];
 
-    let appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
+    const appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
       if (applicationNames.includes(app.name)) {
         app.clusters.forEach((cluster: ICluster) => {
           cluster.serverGroups.forEach((serverGroup: ServerGroup) => {

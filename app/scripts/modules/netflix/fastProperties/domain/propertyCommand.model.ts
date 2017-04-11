@@ -48,12 +48,12 @@ export class PropertyCommand {
   public buildPropertyStages(user: IUser): PropertyPipelineStage[] {
     let stages: PropertyPipelineStage[] = [];
     if (this.isMoveToNewScope()) {
-      let createStage = PropertyPipelineStage.newPropertyStage(user, this.scopes[0], this);
-      let deleteStage = PropertyPipelineStage.deletePropertyStage(user, this, createStage);
+      const createStage = PropertyPipelineStage.newPropertyStage(user, this.scopes[0], this);
+      const deleteStage = PropertyPipelineStage.deletePropertyStage(user, this, createStage);
       stages = [createStage, deleteStage];
     } else {
       this.scopes.reduce((previousStage: PropertyPipelineStage, scope: Scope) => {
-        let stage = PropertyPipelineStage.upsertPropertyStage(user, scope, this, previousStage);
+        const stage = PropertyPipelineStage.upsertPropertyStage(user, scope, this, previousStage);
         stages.push(stage);
         return stage;
       }, null);
@@ -85,7 +85,7 @@ export class PropertyCommand {
   }
 
   public submitButtonLabel(): string {
-    let typeAsString = this.getTypeAsString();
+    const typeAsString = this.getTypeAsString();
     return typeAsString
               ? `${this.getTypeAsString().charAt(0).toUpperCase()}${this.getTypeAsString().slice(1).toLowerCase()}`
               : 'Submit';

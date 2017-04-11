@@ -49,7 +49,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
 
   public $onInit (): void {
 
-    let taskMonitorConfig = {
+    const taskMonitorConfig = {
       application: this.application,
       title: 'Deleting ' + this.loadBalancer.name,
       modalInstance: this.$uibModalInstance,

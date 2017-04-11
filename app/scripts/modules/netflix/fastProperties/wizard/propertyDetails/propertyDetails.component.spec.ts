@@ -9,7 +9,7 @@ describe('propertyDetailsComponent test', function () {
   let $componentController: ng.IComponentControllerService,
     $ctrl: FastPropertyDetailsComponentController;
 
-  let initializeController = (data: any) => {
+  const initializeController = (data: any) => {
     $ctrl = <FastPropertyDetailsComponentController> $componentController(
       'fastPropertyDetails',
       { $scope: null},
@@ -28,7 +28,7 @@ describe('propertyDetailsComponent test', function () {
 
   describe('FastPropertyDetailsComponentController', function () {
     it('constructor should handle missing property command', function () {
-      let data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
+      const data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
         command: null,
         isEditing: false,
         isDeleting: false,
@@ -39,7 +39,7 @@ describe('propertyDetailsComponent test', function () {
     });
 
     it('constructor should handle missing property on the PropertyCommand', function () {
-      let data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
+      const data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
         command: new PropertyCommand(),
         isEditing: false,
         isDeleting: false,
@@ -50,7 +50,7 @@ describe('propertyDetailsComponent test', function () {
     });
 
     it('command with property that has a propertyId should copy it to originalProperty field on the command', function () {
-      let data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
+      const data: {command: PropertyCommand, isEditing: boolean, isDeleting: boolean} = {
         command: new PropertyCommand(),
         isEditing: false,
         isDeleting: false,

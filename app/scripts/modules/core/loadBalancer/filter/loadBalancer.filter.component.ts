@@ -4,7 +4,7 @@ import {Application} from '../../application/application.model';
 
 export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controller';
 
-let ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
+const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
   require('./loadBalancer.filter.service'),
   require('./loadBalancer.filter.model'),
   require('../../filterModel/dependentFilter/dependentFilter.service'),

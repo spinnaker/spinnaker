@@ -20,7 +20,7 @@ export class FastPropertyDetailsComponentController implements IComponentControl
         this.command.originalProperty = Property.copy(this.command.property);
       }
 
-      let user: IUser = authenticationService.getAuthenticatedUser();
+      const user: IUser = authenticationService.getAuthenticatedUser();
       this.command.property.email = user.name;
     }
 

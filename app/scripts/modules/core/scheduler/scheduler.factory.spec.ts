@@ -29,7 +29,7 @@ describe('scheduler', function() {
       const numSubscribers = 20;
 
       spyOn(this.test, 'call');
-      for(let i = 0; i < numSubscribers; i++) {
+      for (let i = 0; i < numSubscribers; i++) {
         this.scheduler.subscribe(this.test.call);
       }
       const pre = this.test.call.calls.count();

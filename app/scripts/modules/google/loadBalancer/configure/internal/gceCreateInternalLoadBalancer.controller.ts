@@ -120,7 +120,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
         this.loadBalancer.loadBalancerName = this.getName(this.loadBalancer, this.application);
 
-        let accountNames: string[] = backingData.accounts.map((account: IAccount) => account.name);
+        const accountNames: string[] = backingData.accounts.map((account: IAccount) => account.name);
         if (accountNames.length && !accountNames.includes(this.loadBalancer.account)) {
           this.loadBalancer.credentials = accountNames[0];
         } else {
@@ -135,7 +135,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
           .groupHealthChecksByAccountAndType(backingData.healthChecks as IGceHealthCheck[]);
 
         // We don't count the load balancer's health check in the existing health checks list.
-        let healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
+        const healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
         this.existingHealthCheckNamesByAccount = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthCheckNamesByAccount(backingData.healthChecks as IGceHealthCheck[], healthCheckNamesToOmit);
 
@@ -162,7 +162,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
         this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthChecksByAccountAndType(data.healthChecks as IGceHealthCheck[]);
 
-        let healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
+        const healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
         this.existingHealthCheckNamesByAccount = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthCheckNamesByAccount(data.healthChecks as IGceHealthCheck[], healthCheckNamesToOmit);
       });
@@ -189,11 +189,11 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   }
 
   public accountUpdated (): void {
-    let existingHealthCheckNames =
+    const existingHealthCheckNames =
       _.get<any, string[]>(this, ['existingHealthCheckNamesByAccount', this.loadBalancer.credentials]);
     this.existingHealthCheckNames = existingHealthCheckNames || [];
 
-    let existingLoadBalancerNames =
+    const existingLoadBalancerNames =
       _.get<any, string[]>(this, ['existingLoadBalancerNamesByAccount', this.loadBalancer.credentials]);
     this.existingLoadBalancerNames = existingLoadBalancerNames || [];
 
@@ -221,8 +221,8 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
   }
 
   public submit (): void {
-    let descriptor = this.isNew ? 'Create' : 'Update';
-    let toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
+    const descriptor = this.isNew ? 'Create' : 'Update';
+    const toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
     toSubmitLoadBalancer.ports = toSubmitLoadBalancer.ports.split(',').map((port: string) => port.trim());
     toSubmitLoadBalancer.cloudProvider = 'gce';
     toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;

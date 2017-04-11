@@ -17,8 +17,8 @@ export class FastPropertyScopeComponentController implements IComponentControlle
   }
 
   public toggleEditScope(scopeIndex: number): void {
-    let scope: Scope = this.command.scopes[scopeIndex];
-    let isEditing = scope.isEditing;
+    const scope: Scope = this.command.scopes[scopeIndex];
+    const isEditing = scope.isEditing;
     scope.isEditing = !isEditing;
   }
 

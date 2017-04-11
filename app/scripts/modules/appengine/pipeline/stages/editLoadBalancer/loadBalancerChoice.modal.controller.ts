@@ -21,8 +21,8 @@ class AppengineLoadBalancerChoiceModalCtrl {
   }
 
   public submit(): void {
-    let config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
-    let updatedLoadBalancerPromise = this.$uibModal.open({
+    const config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
+    const updatedLoadBalancerPromise = this.$uibModal.open({
       templateUrl: config.createLoadBalancerTemplateUrl,
       controller: `${config.createLoadBalancerController} as ctrl`,
       size: 'lg',

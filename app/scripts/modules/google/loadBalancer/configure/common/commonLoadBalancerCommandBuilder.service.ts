@@ -55,7 +55,7 @@ export class GceCommonLoadBalancerCommandBuilder {
               private gceCertificateReader: GceCertificateReader) { }
 
   public getBackingData(dataTypes: string[]): IPromise<any> {
-    let promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {
+    const promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {
       if (this.dataFetchers[dataType]) {
         promisesByDataType[dataType] = this.dataFetchers[dataType]();
       }

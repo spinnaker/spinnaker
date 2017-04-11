@@ -14,7 +14,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
       $q: IQService,
       applicationBuilder: ApplicationModelBuilder;
 
-  let initializeController = (data: any) => {
+  const initializeController = (data: any) => {
     $ctrl = <ChaosMonkeyExceptionsController> $componentController(
       'chaosMonkeyExceptions',
       { $scope: null, accountService: accountService, $q: $q },
@@ -40,8 +40,8 @@ describe('Controller: ChaosMonkeyExceptions', () => {
   describe('data initialization', () => {
 
     it('gets all accounts, then adds wildcard and regions per account to vm', () => {
-      let accounts = [ {name: 'prod'}, {name: 'test'} ];
-      let details: any = {
+      const accounts = [ {name: 'prod'}, {name: 'test'} ];
+      const details: any = {
         prod: { name: 'prod', regions: [ {name: 'us-east-1'}, {name: 'us-west-1'}] },
         test: { name: 'test', regions: [ {name: 'us-west-2'}, {name: 'eu-west-1'}] }
       };

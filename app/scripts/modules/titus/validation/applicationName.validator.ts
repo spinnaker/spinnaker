@@ -6,7 +6,7 @@ import {
 
 class TitusApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {
-    let pattern = /^[a-zA-Z_0-9.]*$/g;
+    const pattern = /^[a-zA-Z_0-9.]*$/g;
     if (!pattern.test(name)) {
       errors.push('Only dot(.) and underscore(_) special characters are allowed.');
     }
@@ -21,7 +21,7 @@ class TitusApplicationNameValidator implements IApplicationNameValidator {
       if (name.length >= 248) {
         warnings.push('You will not be able to include a stack or detail field for clusters or security groups.');
       } else {
-        let remaining = 248 - name.length;
+        const remaining = 248 - name.length;
         warnings.push(`If you plan to include a stack or detail field for clusters, you will only
             have ~${remaining} characters to do so.`);
       }

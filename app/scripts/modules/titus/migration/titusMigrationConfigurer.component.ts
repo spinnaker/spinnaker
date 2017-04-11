@@ -63,7 +63,7 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
       this.config.config = new RollingPushStrategy();
     }
     if (this.config.type === PipelineStrategy.type) {
-      let newConfig = new PipelineStrategy();
+      const newConfig = new PipelineStrategy();
       newConfig.application = this.application.name;
       this.config.config = newConfig;
       this.applicationSelected(newConfig);

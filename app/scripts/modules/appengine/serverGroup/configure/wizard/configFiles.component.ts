@@ -20,8 +20,8 @@ class AppengineConfigFileConfigurerCtrl implements ng.IComponentController {
   public mapTabToSpaces(event: any) {
     if (event.which === 9) {
       event.preventDefault();
-      let cursorPosition = event.target.selectionStart;
-      let inputValue = event.target.value;
+      const cursorPosition = event.target.selectionStart;
+      const inputValue = event.target.value;
       event.target.value = `${inputValue.substring(0, cursorPosition)}  ${inputValue.substring(cursorPosition)}`;
       event.target.selectionStart += 2;
     }

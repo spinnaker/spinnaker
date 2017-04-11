@@ -75,7 +75,7 @@ describe('executionDetailsSectionService', function() {
 
     it('calls initialization after timeout', function() {
       let completed = false;
-      let init = () => completed = true;
+      const init = () => completed = true;
 
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');
@@ -88,7 +88,7 @@ describe('executionDetailsSectionService', function() {
 
     it('cancels prior initialization on second synchronization call', function() {
       let completed = false;
-      let init = () => completed = true;
+      const init = () => completed = true;
 
       spyOn($state, 'includes').and.returnValue(true);
       spyOn($state, 'go');

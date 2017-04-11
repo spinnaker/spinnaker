@@ -15,13 +15,13 @@ class FastPropertyFilterDirective implements ng.IDirective {
   public fields: string[] = ['app', 'env', 'region', 'stack', 'cluster'];
 
   public link(scope: any, el: any) {
-    let input = el.children('input');
+    const input = el.children('input');
 
-    let getScopeAttributeList = (scopeName: string) => {
+    const getScopeAttributeList = (scopeName: string) => {
       return ['none'].concat(<string[]> uniq(scope.properties.map((prop: any) => prop.scope[scopeName])));
     };
 
-    let textcompleteComponents = this.fields.map((field) => {
+    const textcompleteComponents = this.fields.map((field) => {
       return {
         id: field,
         match: new RegExp(`${field}:(\\w*|\\s*)$`),
@@ -32,8 +32,8 @@ class FastPropertyFilterDirective implements ng.IDirective {
           }));
         },
         replace: (attr: string): string => {
-          let copy = scope.filters.list.splice(0);
-          let tagBody = {label: field, value: attr};
+          const copy = scope.filters.list.splice(0);
+          const tagBody = {label: field, value: attr};
           copy.push(scope.createFilterTag(tagBody));
           scope.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
           return '';

@@ -30,7 +30,7 @@ export class EntityTagsReader {
       succeeded, 1, 0)
     );
 
-    let result: IDeferred<IEntityTags[]> = this.$q.defer();
+    const result: IDeferred<IEntityTags[]> = this.$q.defer();
 
     this.$q.all(sources).then(
       (entityTagGroups: IEntityTags[][]) => {
@@ -77,8 +77,8 @@ export class EntityTagsReader {
 
     if (joinedEntityIds.length > maxIdGroupLength) {
       let index = 0,
-        currentLength = 0,
-        currentGroup: string[] = [];
+        currentLength = 0;
+      const currentGroup: string[] = [];
       while (index < entityIds.length) {
         if (currentLength + entityIds[index].length + 1 > maxIdGroupLength) {
           idGroups.push(currentGroup.join(','));

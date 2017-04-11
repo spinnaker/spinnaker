@@ -15,7 +15,7 @@ export class NumberListController implements ng.IComponentController {
   public onChange: () => any;
 
   public synchronize(): void {
-    let model: number[] | string = this.model; // typescript union type woes
+    const model: number[] | string = this.model; // typescript union type woes
     if (model instanceof Array) {
       (<number[]> model).length = 0;
       this.backingModel.forEach(num => {

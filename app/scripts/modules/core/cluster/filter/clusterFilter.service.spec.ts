@@ -58,7 +58,7 @@ describe('Service: clusterFilterService', function () {
     };
 
     this.verifyTags = function(expectedTags: any[]) {
-      let actual: any = ClusterFilterModel.tags;
+      const actual: any = ClusterFilterModel.tags;
       expect(actual.length).toBe(expectedTags.length);
       expectedTags.forEach(function(expected: any) {
         expect(actual.some(function(test: any) {
@@ -516,7 +516,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should remove all instanceIds if server group is no longer visible, and add back when visible again', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
-      let serverGroup = application.getDataSource('serverGroups').data[0],
+      const serverGroup = application.getDataSource('serverGroups').data[0],
           multiselectGroup = MultiselectModel.getOrCreateInstanceGroup(serverGroup);
 
       serverGroup.instances.push({id: 'i-1234'});
@@ -539,7 +539,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should remove instances that are no longer visible', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
-      let serverGroup = application.getDataSource('serverGroups').data[0];
+      const serverGroup = application.getDataSource('serverGroups').data[0];
 
       MultiselectModel.toggleInstance(serverGroup, 'i-1234');
       MultiselectModel.toggleInstance(serverGroup, 'i-2345');
@@ -559,7 +559,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should add all instances when selectAll is selected and new instances appear in server group', function () {
       ClusterFilterModel.sortFilter.listInstances = true;
-      let serverGroup = application.getDataSource('serverGroups').data[0];
+      const serverGroup = application.getDataSource('serverGroups').data[0];
 
       MultiselectModel.getOrCreateInstanceGroup(serverGroup).selectAll = true;
       MultiselectModel.toggleInstance(serverGroup, 'i-1234');
@@ -576,7 +576,7 @@ describe('Service: clusterFilterService', function () {
 
     it('should remove all instance groups when listInstances is false', function () {
       ClusterFilterModel.sortFilter.listInstances = false;
-      let serverGroup = application.getDataSource('serverGroups').data[0];
+      const serverGroup = application.getDataSource('serverGroups').data[0];
 
       MultiselectModel.toggleInstance(serverGroup, 'i-1234');
 

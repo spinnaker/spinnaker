@@ -89,7 +89,7 @@ export class ExecutionFilterService {
     if (execution.searchField) {
       return;
     }
-    let searchText = [execution.name];
+    const searchText = [execution.name];
     searchText.push(execution.id);
     searchText.push(this.getValuesAsString(execution.appConfig));
     searchText.push(this.getValuesAsString(execution.trigger));
@@ -124,7 +124,7 @@ export class ExecutionFilterService {
   }
 
   private addEmptyPipelines(groups: IGroup[], application: Application): void {
-    let configs = application.pipelineConfigs.data || [];
+    const configs = application.pipelineConfigs.data || [];
     if (!this.isFilterable(this.executionFilterModel.sortFilter.pipeline) &&
       !this.isFilterable(this.executionFilterModel.sortFilter.status) &&
       !this.executionFilterModel.sortFilter.filter) {
@@ -141,7 +141,7 @@ export class ExecutionFilterService {
   }
 
   private extractAccounts(config: IPipeline): string[] {
-    let configAccounts: string[] = [];
+    const configAccounts: string[] = [];
     (config.stages || []).forEach(stage => {
       const stageConfig = this.pipelineConfig.getStageConfig(stage);
       if (stageConfig && stageConfig.configAccountExtractor) {
@@ -169,8 +169,8 @@ export class ExecutionFilterService {
     if (this.executionFilterModel.sortFilter.groupBy === 'name') {
       const executionGroups = groupBy(executions, 'name');
       forOwn(executionGroups, (groupExecutions, key) => {
-        let matchId = (config: IPipeline) => config.id === groupExecutions[0].pipelineConfigId;
-        let config = application.pipelineConfigs.data.find(matchId) || get(application, 'strategyConfigs.data', []).find(matchId);
+        const matchId = (config: IPipeline) => config.id === groupExecutions[0].pipelineConfigId;
+        const config = application.pipelineConfigs.data.find(matchId) || get(application, 'strategyConfigs.data', []).find(matchId);
         groupExecutions.sort((a, b) => this.executionSorter(a, b));
         groups.push({
           heading: key,

@@ -18,7 +18,7 @@ export class Property {
   public scope: Scope;
 
   public static build(platformProperty: IPlatformProperty): Property {
-    let property = new Property();
+    const property = new Property();
     property.propertyId = platformProperty.propertyId;
     property.env = platformProperty.env;
     property.updatedBy = platformProperty.updatedBy;

@@ -936,7 +936,7 @@ describe('pipelineConfigValidator', () => {
     });
 
     it('calls service account access validator', () => {
-      let trigger = { type: 'targetCheck', name: 'git trigger', runAsUser: 'my-account' } as ITriggerWithServiceAccount;
+      const trigger = { type: 'targetCheck', name: 'git trigger', runAsUser: 'my-account' } as ITriggerWithServiceAccount;
       pipeline = buildPipeline([trigger]);
 
       validate();

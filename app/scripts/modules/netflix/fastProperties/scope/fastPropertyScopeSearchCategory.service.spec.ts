@@ -15,7 +15,7 @@ describe('FastPropertyScopeSearchCategory Service', function () {
       }));
 
 
-  let testMatch = (env: string, account: string, result: boolean) => {
+  const testMatch = (env: string, account: string, result: boolean) => {
     expect(service.scopeEnvMatchesAccount(env, account)).toBe(result);
   };
 

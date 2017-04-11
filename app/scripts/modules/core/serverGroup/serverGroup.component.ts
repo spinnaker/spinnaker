@@ -80,7 +80,7 @@ export class ServerGroupController implements IComponentController {
 
     const serverGroup = this.serverGroup;
 
-    let viewModel: ViewModel = {
+    const viewModel: ViewModel = {
       waypoint: [serverGroup.account, serverGroup.region, serverGroup.name].join(':'),
       serverGroup: serverGroup,
       serverGroupSequence: (<Function>this.$filter('serverGroupSequence'))(serverGroup.name),
@@ -110,7 +110,7 @@ export class ServerGroupController implements IComponentController {
       viewModel.images = serverGroup.buildInfo.images.join(', ');
     }
 
-    let modelStringVal = JSON.stringify(viewModel, this.serverGroupTransformer.jsonReplacer);
+    const modelStringVal = JSON.stringify(viewModel, this.serverGroupTransformer.jsonReplacer);
 
     if (this.lastStringVal !== modelStringVal) {
       this.viewModel = viewModel;

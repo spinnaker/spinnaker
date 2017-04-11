@@ -28,7 +28,7 @@ describe('Component: Page Navigator', () => {
 
   beforeEach(() => jasmine.addMatchers(matchers));
 
-  let initialize = (pages: INavigationPage[]) => {
+  const initialize = (pages: INavigationPage[]) => {
     $scope['pages'] = pages;
 
     let dom = `
@@ -86,7 +86,7 @@ describe('Component: Page Navigator', () => {
       ];
       initialize(pages);
       $scope.$digest();
-      let navigator: JQuery = elem.find('.page-navigation');
+      const navigator: JQuery = elem.find('.page-navigation');
 
       navigator.find('a:eq(1)').click();
       expect(elem.find('[data-page-id=2]').hasClass('highlighted')).toBe(true);

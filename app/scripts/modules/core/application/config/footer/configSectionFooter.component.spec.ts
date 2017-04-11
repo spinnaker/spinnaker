@@ -10,7 +10,7 @@ describe('Component: ConfigSectionFooter', () => {
       $q: ng.IQService,
       $scope: ng.IScope;
 
-  let initializeController = (data: any) => {
+  const initializeController = (data: any) => {
     $ctrl = <ConfigSectionFooterController> $componentController(
       'configSectionFooter',
       { $scope: null, applicationWriter: applicationWriter },
@@ -34,7 +34,7 @@ describe('Component: ConfigSectionFooter', () => {
   describe('revert', () => {
 
     it('replaces contents of config with original config', () => {
-      let data = {
+      const data = {
         viewState: {
           originalConfig: { exceptions: ([] as any), enabled: false }
         },
@@ -76,7 +76,7 @@ describe('Component: ConfigSectionFooter', () => {
     });
 
     it ('sets state to saving, saves, then sets flags appropriately', () => {
-      let viewState = data.viewState;
+      const viewState = data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.when(null));
       initializeController(data);
       $ctrl.save();
@@ -93,7 +93,7 @@ describe('Component: ConfigSectionFooter', () => {
     });
 
     it('sets appropriate flags when save fails', () => {
-      let viewState = data.viewState;
+      const viewState = data.viewState;
       spyOn(applicationWriter, 'updateApplication').and.returnValue($q.reject(null));
       initializeController(data);
       $ctrl.save();

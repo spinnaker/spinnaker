@@ -18,7 +18,7 @@ describe('Component: numberList', () => {
     $scope = $rootScope.$new();
   }));
 
-  let initialize = (startModel: number[]) => {
+  const initialize = (startModel: number[]) => {
     model = startModel;
     $scope['data'] = {
       model: startModel,
@@ -29,7 +29,7 @@ describe('Component: numberList', () => {
       $scope['data'].model = stringModel;
     }
 
-    let dom = `<number-list model="data.model" constraints="data.constraints" on-change="data.onChange()"></number-list>`;
+    const dom = `<number-list model="data.model" constraints="data.constraints" on-change="data.onChange()"></number-list>`;
     elem = $compile(dom)($scope);
     $scope.$digest();
   };

@@ -80,7 +80,7 @@ export class V2ModalWizardService {
   }
 
   public renderPages(): void {
-    let renderedPages: WizardPage[] = this.pageRegistry.filter((page) => page.state.rendered);
+    const renderedPages: WizardPage[] = this.pageRegistry.filter((page) => page.state.rendered);
     this.renderedPages = renderedPages;
     if (renderedPages.length === 1) {
       this.setCurrentPage(renderedPages[0]);

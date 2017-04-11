@@ -49,7 +49,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
   }
 
   private addTriggers(pipelines: IPipeline[], pipelineIdToFind: string, stagesToTest: (IStage | ITrigger)[]): void {
-    let match = pipelines.find(p => p.id === pipelineIdToFind);
+    const match = pipelines.find(p => p.id === pipelineIdToFind);
     if (match) {
       stagesToTest.push(...match.triggers);
     }
@@ -64,10 +64,10 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
   }
 
   private addPipelineTriggers(pipeline: IPipeline, stagesToTest: (IStage | ITrigger)[]) {
-    let pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(t => t.type === 'pipeline') as IPipelineTrigger[];
-    let parentTriggersToCheck: ng.IPromise<any>[] = [];
+    const pipelineTriggers: IPipelineTrigger[] = pipeline.triggers.filter(t => t.type === 'pipeline') as IPipelineTrigger[];
+    const parentTriggersToCheck: ng.IPromise<any>[] = [];
     pipelineTriggers.forEach(trigger => {
-      let deferred: ng.IDeferred<any> = this.$q.defer();
+      const deferred: ng.IDeferred<any> = this.$q.defer();
       if (this.pipelineCache.has(trigger.application)) {
         this.addTriggers(this.pipelineCache.get(trigger.application), trigger.pipeline, stagesToTest);
       } else {

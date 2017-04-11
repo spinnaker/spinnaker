@@ -11,7 +11,7 @@ export class AppengineStageCtrl {
   }
 
   public setStageRegion(): void {
-    let selected = this.$scope.accounts.find((account) => account.name === this.$scope.stage.credentials);
+    const selected = this.$scope.accounts.find((account) => account.name === this.$scope.stage.credentials);
     if (selected && selected.name) {
       this.accountService.getAccountDetails(selected.name)
         .then((accountDetails: IAppengineAccount) => {

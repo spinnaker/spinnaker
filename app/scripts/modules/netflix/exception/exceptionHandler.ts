@@ -28,7 +28,7 @@ module(EXCEPTION_HANDLER, [AUTHENTICATION_SERVICE])
             }
           }
 
-          let payload = {
+          const payload = {
             alertName: 'Spinnaker',
             details: {
               url: location.href,

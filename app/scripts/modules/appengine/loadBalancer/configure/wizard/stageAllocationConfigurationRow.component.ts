@@ -9,7 +9,7 @@ class AppengineStageAllocationLabelCtrl implements ng.IComponentController {
   private allocationDescription: IAppengineAllocationDescription;
 
   private static mapTargetCoordinateToLabel(targetCoordinate: string): string {
-    let target = StageConstants.TARGET_LIST.find(t => t.val === targetCoordinate);
+    const target = StageConstants.TARGET_LIST.find(t => t.val === targetCoordinate);
     if (target) {
       return target.label;
     } else {
@@ -31,7 +31,7 @@ class AppengineStageAllocationLabelCtrl implements ng.IComponentController {
         break;
       case 'targetCoordinate':
         if (this.allocationDescription.cluster && this.allocationDescription.target) {
-          let targetLabel = AppengineStageAllocationLabelCtrl.mapTargetCoordinateToLabel(this.allocationDescription.target);
+          const targetLabel = AppengineStageAllocationLabelCtrl.mapTargetCoordinateToLabel(this.allocationDescription.target);
           this.inputViewValue = `${targetLabel} (${this.allocationDescription.cluster})`;
         } else {
           this.inputViewValue = null;
@@ -63,7 +63,7 @@ class AppengineStageAllocationConfigurationRowCtrl implements ng.IComponentContr
   public static get $inject() { return ['appListExtractorService']; }
 
   constructor(private appListExtractorService: any) {
-    let clusterFilter = this.appListExtractorService.clusterFilterForCredentialsAndRegion(this.account, this.region);
+    const clusterFilter = this.appListExtractorService.clusterFilterForCredentialsAndRegion(this.account, this.region);
     this.clusterList = this.appListExtractorService.getClusters([this.application], clusterFilter);
   }
 

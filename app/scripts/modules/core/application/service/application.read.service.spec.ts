@@ -53,7 +53,7 @@ describe('Service: applicationReader', function () {
     let application: Application = null;
 
     function loadApplication(dataSources?: IApplicationDataSourceAttribute) {
-      let response = {applicationName: 'deck', attributes: {} as any};
+      const response = {applicationName: 'deck', attributes: {} as any};
       if (dataSources !== undefined) {
         response.attributes['dataSources'] = dataSources;
       }
@@ -88,7 +88,7 @@ describe('Service: applicationReader', function () {
     });
 
     it ('only loads configured dataSources if attribute is non-empty', function () {
-      let dataSources = { enabled: ['serverGroups'], disabled: ['securityGroups', 'loadBalancers'] };
+      const dataSources = { enabled: ['serverGroups'], disabled: ['securityGroups', 'loadBalancers'] };
       loadApplication(dataSources);
       expect((<Spy>clusterService.loadServerGroups).calls.count()).toBe(1);
       expect((<Spy>securityGroupReader.getApplicationSecurityGroups).calls.count()).toBe(0);

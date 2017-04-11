@@ -13,7 +13,7 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
   }
 
   public addAllocation(): void {
-    let remainingServerGroups = this.serverGroupsWithoutAllocation();
+    const remainingServerGroups = this.serverGroupsWithoutAllocation();
     if (remainingServerGroups.length) {
       this.loadBalancer.splitDescription.allocationDescriptions.push({serverGroupName: remainingServerGroups[0], allocation: 0, locatorType: 'fromExisting'});
       if (this.loadBalancer.splitDescription.allocationDescriptions.length > 1 && !this.loadBalancer.splitDescription.shardBy) {
@@ -60,8 +60,8 @@ class AppengineLoadBalancerSettingsController implements ng.IComponentController
   }
 
   private serverGroupsWithoutAllocation(): string[] {
-    let serverGroupsWithAllocation = this.loadBalancer.splitDescription.allocationDescriptions.map(description => description.serverGroupName);
-    let allServerGroups = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
+    const serverGroupsWithAllocation = this.loadBalancer.splitDescription.allocationDescriptions.map(description => description.serverGroupName);
+    const allServerGroups = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
     return difference(allServerGroups, serverGroupsWithAllocation);
   }
 }

@@ -64,7 +64,7 @@ class UpdateFastPropertyWizardController {
   }
 
   public startPipeline(pipeline: PropertyPipeline) {
-    let submit = () => this.pipelineConfigService.startAdHocPipeline(pipeline);
+    const submit = () => this.pipelineConfigService.startAdHocPipeline(pipeline);
     this.propertyMonitor.submit(submit);
   }
 

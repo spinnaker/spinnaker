@@ -29,7 +29,7 @@ export class CommonGceLoadBalancerCtrl {
   }
 
   public getName (lb: IGceLoadBalancer, application: Application): string {
-    let loadBalancerName = [application.name, (lb.stack || ''), (lb.detail || '')].join('-');
+    const loadBalancerName = [application.name, (lb.stack || ''), (lb.detail || '')].join('-');
     return trimEnd(loadBalancerName, '-');
   }
 
@@ -40,7 +40,7 @@ export class CommonGceLoadBalancerCtrl {
     }
     this.$uibModalInstance.close();
 
-    let newStateParams = {
+    const newStateParams = {
       name: loadBalancer.loadBalancerName,
       accountId: loadBalancer.credentials,
       region: loadBalancer.region,

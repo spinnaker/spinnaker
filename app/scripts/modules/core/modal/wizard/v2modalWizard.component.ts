@@ -17,7 +17,7 @@ export class V2ModalWizard implements ng.IComponentController {
 
   public $onInit() {
     this.$scope.$on('waypoints-changed', (_event: any, snapshot: any) => {
-      let ids = snapshot.lastWindow
+      const ids = snapshot.lastWindow
         .map((entry: any) => entry.elem)
         .filter((key: string) => this.wizard.getPage(key));
       ids.reverse().forEach((id: string) => {

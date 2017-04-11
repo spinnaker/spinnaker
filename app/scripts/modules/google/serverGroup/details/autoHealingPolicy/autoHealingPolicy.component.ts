@@ -27,7 +27,7 @@ class GceAutoHealingPolicyDetailsCtrl implements ng.IComponentController {
 };
 
   public deletePolicy(): void {
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.application,
       title: `Deleting autohealing policy for ${this.serverGroup.name}`,
     };

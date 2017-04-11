@@ -54,12 +54,12 @@ class AppengineLoadBalancerDetailsController {
   }
 
   public deleteLoadBalancer(): void {
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.app,
       title: 'Deleting ' + this.loadBalancer.name,
     };
 
-    let submitMethod = () => {
+    const submitMethod = () => {
       const loadBalancer: ILoadBalancerDeleteDescription = {
         cloudProvider: this.loadBalancer.cloudProvider,
         loadBalancerName: this.loadBalancer.name,
@@ -109,14 +109,14 @@ class AppengineLoadBalancerDetailsController {
   }
 
   private getConfirmationModalBodyHtml(): string {
-    let serverGroupNames = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
-    let hasAny = serverGroupNames ? serverGroupNames.length > 0 : false;
-    let hasMoreThanOne = serverGroupNames ? serverGroupNames.length > 1 : false;
+    const serverGroupNames = this.loadBalancer.serverGroups.map(serverGroup => serverGroup.name);
+    const hasAny = serverGroupNames ? serverGroupNames.length > 0 : false;
+    const hasMoreThanOne = serverGroupNames ? serverGroupNames.length > 1 : false;
 
     // HTML accepted by the confirmationModalService is static (i.e., not managed by angular).
     if (hasAny) {
       if (hasMoreThanOne) {
-        let listOfServerGroupNames = serverGroupNames.map(name => `<li>${name}</li>`).join('');
+        const listOfServerGroupNames = serverGroupNames.map(name => `<li>${name}</li>`).join('');
         return `
           <div class="alert alert-warning">      
             <p>

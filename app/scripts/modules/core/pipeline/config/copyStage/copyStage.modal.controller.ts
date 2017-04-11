@@ -75,14 +75,14 @@ class CopyStageModalCtrl implements ng.IComponentController {
   }
 
   private getStagesForApplication (applicationName: string): ng.IPromise<IStageWrapper[]> {
-    let configType = this.forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
+    const configType = this.forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
     return this.API.one('applications')
         .one(applicationName)
         .all(configType)
         .getList()
         .then((configs: (IPipeline | IStrategy)[]) => {
-          let nestedStageWrappers = configs
+          const nestedStageWrappers = configs
             .map((config) => {
               return (config.stages || [])
                 .filter((stage: IStage) => !this.uncopiableStageTypes.has(stage.type))

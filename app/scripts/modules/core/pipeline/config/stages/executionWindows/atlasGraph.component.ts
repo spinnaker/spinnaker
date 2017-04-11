@@ -104,11 +104,11 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
         this.chartOptions.series.length = 1;
         this.chartData.SPS.length = 0;
         this.chartData.windows.length = 0;
-        let metadata = data.find((e: any) => e.type === 'graph-metadata');
+        const metadata = data.find((e: any) => e.type === 'graph-metadata');
         if (!metadata) {
           return;
         }
-        let timeseries = data.filter((e: any) => e.type === 'timeseries' && e.data.values.some((v: any) => v !== 'NaN'));
+        const timeseries = data.filter((e: any) => e.type === 'timeseries' && e.data.values.some((v: any) => v !== 'NaN'));
         timeseries.forEach((series: any) => {
           const datapoints = series.data.values
             .filter((v: any) => !isNaN(v))
@@ -209,7 +209,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   }
 
   private getDefaultRegion(): string {
-    let deployedRegions = new Set<string>();
+    const deployedRegions = new Set<string>();
     if (this.stage.clusters) {
       this.stage.clusters.forEach((c: any) => Object.keys(c.availabilityZones).forEach((r: string) => deployedRegions.add(r)));
       if (deployedRegions.size === 1 && this.regions.some(r => deployedRegions.has(r.label))) {
@@ -228,8 +228,8 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
 
     const windows: IWindowData[] = [];
     const today = new Date();
-    let restrictedDays = this.stage.restrictedExecutionWindow.days as number[];
-    let days = restrictedDays ? restrictedDays.map(d => (today.getDay() + d) % 7) : [0, 1, 2, 3, 4, 5, 6];
+    const restrictedDays = this.stage.restrictedExecutionWindow.days as number[];
+    const days = restrictedDays ? restrictedDays.map(d => (today.getDay() + d) % 7) : [0, 1, 2, 3, 4, 5, 6];
     if (days.includes(0)) {
       days.push(7); // in case there are windows later today
     }
@@ -273,7 +273,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
   }
 
   private getAtlasUrl(): string {
-    let base: string = SETTINGS.executionWindow.atlas.regions.find((r: IAtlasRegion) => r.label === this.stage.restrictedExecutionWindow.currentRegion).baseUrl;
+    const base: string = SETTINGS.executionWindow.atlas.regions.find((r: IAtlasRegion) => r.label === this.stage.restrictedExecutionWindow.currentRegion).baseUrl;
     return base + SETTINGS.executionWindow.atlas.url;
   }
 

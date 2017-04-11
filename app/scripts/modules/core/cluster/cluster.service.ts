@@ -66,11 +66,11 @@ export class ClusterService {
 
   public addServerGroupsToApplication(application: Application, serverGroups: ServerGroup[] = []): ServerGroup[] {
     if (application.serverGroups.data) {
-      let data = application.serverGroups.data;
+      const data = application.serverGroups.data;
       // remove any that have dropped off, update any that have changed
-      let toRemove: number[] = [];
+      const toRemove: number[] = [];
       data.forEach((serverGroup: ServerGroup, idx: number) => {
-        let matches = serverGroups.filter((test) =>
+        const matches = serverGroups.filter((test) =>
           test.name === serverGroup.name &&
           test.account === serverGroup.account &&
           test.region === serverGroup.region &&

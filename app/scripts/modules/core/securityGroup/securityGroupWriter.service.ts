@@ -46,7 +46,7 @@ export class SecurityGroupWriter {
 
     params.type = 'upsertSecurityGroup';
     params.credentials = securityGroup.credentials || securityGroup.accountName;
-    let job: ISecurityGroupJob = Object.assign(securityGroup, params);
+    const job: ISecurityGroupJob = Object.assign(securityGroup, params);
 
     const operation: ng.IPromise<ITask> = this.executor.executeTask({
       job: [job],

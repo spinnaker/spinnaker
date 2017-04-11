@@ -19,7 +19,7 @@ export class ExampleApplicationNameValidator implements IApplicationNameValidato
   public get provider() { return 'example'; }
 
   public validate(name = ''): IValidationResult {
-    let warnings: string[] = [],
+    const warnings: string[] = [],
         errors: string[] = [];
     name = name || '';
     if (name === this.WARNING_CONDITION) {
@@ -54,7 +54,7 @@ export class ExampleApplicationNameValidator2 implements IApplicationNameValidat
   public get provider() { return 'example2'; }
 
   public validate(name = ''): IValidationResult {
-    let warnings: string[] = [],
+    const warnings: string[] = [],
         errors: string[] = [];
     name = name || '';
     if (name === this.WARNING_CONDITION) {

@@ -21,7 +21,7 @@ class GceLoadBalancerChoiceCtrl implements ng.IComponentController {
   }
 
   public choose (choice: string): void {
-    let wizard = find(this.loadBalancerTypeToWizardMap, wizardConfig => wizardConfig.label === choice);
+    const wizard = find(this.loadBalancerTypeToWizardMap, wizardConfig => wizardConfig.label === choice);
     this.$uibModalInstance.dismiss();
     this.$uibModal.open({
       templateUrl: wizard.createTemplateUrl,

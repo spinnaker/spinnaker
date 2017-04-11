@@ -17,7 +17,7 @@ class GceLoadBalancingPolicySelectorController implements ng.IComponentControlle
   };
 
   public onBalancingModeChange (mode: string): void {
-    let keys: string[] = ['maxUtilization', 'maxRatePerInstance', 'maxConnectionsPerInstance'];
+    const keys: string[] = ['maxUtilization', 'maxRatePerInstance', 'maxConnectionsPerInstance'];
     let toDelete: string[] = [];
     switch (mode) {
       case 'RATE':
@@ -45,11 +45,11 @@ class GceLoadBalancingPolicySelectorController implements ng.IComponentControlle
     *   - If we have both, only UTILIZATION.
     * */
     if (has(this, 'command.backingData.filtered.loadBalancerIndex')) {
-      let index = this.command.backingData.filtered.loadBalancerIndex;
-      let selected = this.command.loadBalancers;
+      const index = this.command.backingData.filtered.loadBalancerIndex;
+      const selected = this.command.loadBalancers;
 
-      let hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
-      let hasHttp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP');
+      const hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
+      const hasHttp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP');
 
       if ((hasSsl && hasHttp)) {
         balancingModes = ['UTILIZATION'];

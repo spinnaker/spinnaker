@@ -18,9 +18,9 @@ export class AppengineServerGroupWriter {
   constructor(private taskExecutor: TaskExecutor) {}
 
   public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
-    let job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');
+    const job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');
 
-    let command: ITaskCommand = {
+    const command: ITaskCommand = {
       job: [job],
       application,
       description: `Start Server Group: ${serverGroup.name}`,
@@ -30,9 +30,9 @@ export class AppengineServerGroupWriter {
   }
 
   public stopServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
-    let job = this.buildJob(serverGroup, application, 'stopAppEngineServerGroup');
+    const job = this.buildJob(serverGroup, application, 'stopAppEngineServerGroup');
 
-    let command: ITaskCommand = {
+    const command: ITaskCommand = {
       job: [job],
       application,
       description: `Stop Server Group: ${serverGroup.name}`,

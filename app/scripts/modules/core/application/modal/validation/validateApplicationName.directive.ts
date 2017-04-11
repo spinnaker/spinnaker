@@ -26,7 +26,7 @@ class ValidateApplicationNameController implements ng.IComponentController {
 
   public initialize() {
     this.model.$asyncValidators['validateApplicationName'] = (value: string) => {
-      let deferred: ng.IDeferred<boolean> = this.$q.defer();
+      const deferred: ng.IDeferred<boolean> = this.$q.defer();
       this.applicationNameValidator.validate(value, this.cloudProviders)
         .then((result: IApplicationNameValidationResult) => {
           if (result.errors.length) {

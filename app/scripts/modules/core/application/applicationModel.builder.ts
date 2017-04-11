@@ -20,7 +20,7 @@ export class ApplicationModelBuilder {
     if (Array.isArray(dataSources[0])) {
       dataSources = dataSources[0];
     }
-    let application = new Application('app', this.schedulerFactory.createScheduler(), this.$q, this.$log);
+    const application = new Application('app', this.schedulerFactory.createScheduler(), this.$q, this.$log);
     dataSources.forEach(ds => this.addDataSource(new DataSourceConfig(ds), application));
     return application;
   }
@@ -38,7 +38,7 @@ export class ApplicationModelBuilder {
   }
 
   private addDataSource(config: DataSourceConfig, application: Application): void {
-    let source = new ApplicationDataSource(config, application, this.$q, this.$log, this.$filter);
+    const source = new ApplicationDataSource(config, application, this.$q, this.$log, this.$filter);
     application.dataSources.push(source);
     application[config.key] = source;
   }
