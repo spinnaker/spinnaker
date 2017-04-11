@@ -5,7 +5,7 @@ import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from 'core/help/helpConten
 export const APPENGINE_HELP_CONTENTS_REGISTRY = 'spinnaker.appengine.helpContents.registry';
 module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
   .run((helpContentsRegistry: HelpContentsRegistry) => {
-    let helpContents = [
+    const helpContents = [
       {
         key: 'appengine.serverGroup.repositoryUrl',
         value: `The full URL to the git repository containing the source files for this deployment,

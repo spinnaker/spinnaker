@@ -16,9 +16,9 @@ export class GceHttpLoadBalancerUtils {
                                               loadBalancers: IGceLoadBalancer[]): string[] {
     // Assume that loadBalancers is a list of all GCE load balancers in an application
     // (but possibly from several accounts), and has already been normalized (listener names mapped to URL map names).
-    let normalizedLoadBalancerNames: string[] = [];
+    const normalizedLoadBalancerNames: string[] = [];
     loadBalancerNames.forEach(loadBalancerName => {
-      let matchingUrlMap = loadBalancers.find(loadBalancer => {
+      const matchingUrlMap = loadBalancers.find(loadBalancer => {
         return account === loadBalancer.account &&
           this.isHttpLoadBalancer(loadBalancer) &&
           loadBalancer.listeners.map(listener => listener.name).includes(loadBalancerName);

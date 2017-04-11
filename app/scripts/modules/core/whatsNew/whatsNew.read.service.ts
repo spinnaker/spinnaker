@@ -33,9 +33,9 @@ export class WhatsNewReader {
   constructor(private $http: IHttpService, private $log: ILogService) {}
 
   public getWhatsNewContents(): IPromise<IWhatsNewContents> {
-    let gistId = NetflixSettings.whatsNew.gistId,
-      accessToken = NetflixSettings.whatsNew.accessToken || null,
-      url = `https://api.github.com/gists/${gistId}`;
+    const gistId = NetflixSettings.whatsNew.gistId,
+      accessToken = NetflixSettings.whatsNew.accessToken || null;
+    let url = `https://api.github.com/gists/${gistId}`;
     if (accessToken) {
       url += '?access_token=' + accessToken;
     }

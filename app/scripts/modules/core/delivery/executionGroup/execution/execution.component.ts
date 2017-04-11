@@ -56,7 +56,7 @@ class ExecutionController implements IComponentController {
       showStageDuration: this.executionFilterModel.sortFilter.showStageDuration,
     };
 
-    let restartedStage = this.execution.stages.find(stage => stage.context.restartDetails !== undefined);
+    const restartedStage = this.execution.stages.find(stage => stage.context.restartDetails !== undefined);
     if (restartedStage) {
       this.restartDetails = restartedStage.context.restartDetails;
     } else {
@@ -109,7 +109,7 @@ class ExecutionController implements IComponentController {
       this.$state.go('^');
       return;
     }
-    let index = node.index || 0;
+    const index = node.index || 0;
     const params = {
       executionId: node.executionId,
       stage: index,
@@ -151,7 +151,7 @@ class ExecutionController implements IComponentController {
   };
 
   public cancelExecution(): void {
-    let hasDeployStage = this.execution.stages && this.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
+    const hasDeployStage = this.execution.stages && this.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
     this.cancelModalService.confirm({
       header: `Really stop execution of ${this.execution.name}?`,
       buttonText: `Stop running ${this.execution.name}`,

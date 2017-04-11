@@ -74,7 +74,7 @@ describe('Travis Stage Controller', () => {
     it('clears job if no longer present when retrieving from igor', () => {
       spyOn(igorService, 'listJobsForMaster').and.returnValue($q.when(['a', 'b']));
       spyOn(igorService, 'getJobConfig').and.returnValue($q.when(null));
-      let stage = {
+      const stage = {
         master: 'not-parameterized',
         job: 'c',
       };
@@ -123,7 +123,7 @@ describe('Travis Stage Controller', () => {
     });
 
     it('gets job config and adds parameters to scope, setting defaults if present and not overridden', () => {
-      let params: ParameterDefinitionList[] = [
+      const params: ParameterDefinitionList[] = [
         {name: 'overridden', defaultValue: 'z'},
         {name: 'notSet', defaultValue: 'a'},
         {name: 'noDefault', defaultValue: null}

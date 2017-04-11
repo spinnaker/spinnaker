@@ -28,7 +28,7 @@ export class Scope {
   public static build(platformProperty: IPlatformProperty): Scope {
     // platform property has all the property details as well as the scope. We only want the scope.
     // Object.assign(new Scope(), platformProperty) brings the whole platform property into scope.
-    let scope = new Scope();
+    const scope = new Scope();
     scope.env = platformProperty.env;
     scope.region = platformProperty.region;
     scope.appId = platformProperty.appId;
@@ -41,7 +41,7 @@ export class Scope {
   }
 
   public copy() {
-    let scope = new Scope();
+    const scope = new Scope();
     return Object.assign(scope, this);
   }
 
@@ -67,7 +67,7 @@ export class Scope {
   }
 
   public forSubmit(env: string): Scope {
-    let copy: Scope = Object.assign({}, this);
+    const copy: Scope = Object.assign({}, this);
     copy.env = env;
     copy.appIdList = this.appId ? this.appId.split(',').map(appName => appName.trim()) : [];
     delete copy.instanceCounts;

@@ -14,7 +14,7 @@ describe('Component: Application Data Source Editor', () => {
       $q: ng.IQService,
       $scope: ng.IScope;
 
-  let initialize = () => {
+  const initialize = () => {
     ctrl = <DataSourceEditorController> $componentController(
       'applicationDataSourceEditor',
       { $scope: null, applicationWriter: applicationWriter },

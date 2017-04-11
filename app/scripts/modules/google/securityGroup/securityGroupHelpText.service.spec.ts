@@ -15,7 +15,7 @@ describe('Service: gceSecurityGroupHelpTextService', () => {
                  _$timeout_: ng.ITimeoutService) => {
       gceSecurityGroupHelpTextService = _gceSecurityGroupHelpTextService_;
       $q = _$q_;
-      let $timeout = _$timeout_;
+      const $timeout = _$timeout_;
 
       application = {
         ready: () => $q.resolve(),
@@ -78,7 +78,7 @@ describe('Service: gceSecurityGroupHelpTextService', () => {
   });
 
   it('should be ok if no server groups match the given tag', () => {
-    let helpText = gceSecurityGroupHelpTextService.getHelpTextForTag('no-matches-tag', 'source');
+    const helpText = gceSecurityGroupHelpTextService.getHelpTextForTag('no-matches-tag', 'source');
     expect(() => gceSecurityGroupHelpTextService.getHelpTextForTag('no-matches-tag', 'source')).not.toThrow();
     expect(helpText).not.toContain('match-v000');
     expect(helpText).not.toContain('match-v001');
@@ -88,7 +88,7 @@ describe('Service: gceSecurityGroupHelpTextService', () => {
 
   it('should have no matches after a reset', () => {
     gceSecurityGroupHelpTextService.reset();
-    let helpText = gceSecurityGroupHelpTextService.getHelpTextForTag('tag-a', 'source');
+    const helpText = gceSecurityGroupHelpTextService.getHelpTextForTag('tag-a', 'source');
     expect(helpText).not.toContain('match-v000');
     expect(helpText).not.toContain('match-v001');
     expect(helpText).not.toContain('other-account-v000');

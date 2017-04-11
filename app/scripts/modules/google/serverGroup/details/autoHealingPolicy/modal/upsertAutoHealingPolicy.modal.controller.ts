@@ -31,7 +31,7 @@ class GceUpsertAutoHealingPolicyModalCtrl {
   }
 
   public submit(): void {
-    let submitMethod = () => {
+    const submitMethod = () => {
       return this.gceAutoscalingPolicyWriter
         .upsertAutoHealingPolicy(this.application, this.serverGroup, this.autoHealingPolicy);
     };

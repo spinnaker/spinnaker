@@ -12,7 +12,7 @@ export interface IInstanceFilter {
   (i: Instance): boolean;
 }
 
-let defaultFilter = () => true;
+const defaultFilter = () => true;
 
 export class AppListExtractor {
 

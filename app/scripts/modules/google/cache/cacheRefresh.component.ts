@@ -18,7 +18,7 @@ class GceCacheRefreshCtrl implements IComponentController {
               private infrastructureCaches: InfrastructureCacheService) {}
 
   public $onInit(): void {
-    let cacheKeyAlias = this.cacheKeyAlias || this.cacheKey;
+    const cacheKeyAlias = this.cacheKeyAlias || this.cacheKey;
     this.capitalizedKey = cacheKeyAlias[0].toUpperCase() + cacheKeyAlias.substring(1);
     this.depluralizedKey = cacheKeyAlias.substring(0, cacheKeyAlias.length - 1);
   }

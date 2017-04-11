@@ -7,14 +7,14 @@ import {AWSProviderSettings} from '../aws.settings';
 
 class AmazonApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {
-    let pattern = /^[a-zA-Z_0-9.]*$/g;
+    const pattern = /^[a-zA-Z_0-9.]*$/g;
     if (!pattern.test(name)) {
       errors.push('Only dot(.) and underscore(_) special characters are allowed.');
     }
   }
 
   private validateClassicLock(warnings: string[]): void {
-  let lockoutDate = AWSProviderSettings.classicLaunchLockout;
+  const lockoutDate = AWSProviderSettings.classicLaunchLockout;
   if (lockoutDate && lockoutDate < new Date().getTime()) {
     warnings.push('New applications deployed to AWS are restricted to VPC; you cannot create server groups, ' +
       'load balancers, or security groups in EC2 Classic.');
@@ -38,7 +38,7 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
       if (name.length >= 248) {
         warnings.push('You will not be able to include a stack or detail field for clusters or security groups.');
       } else {
-        let remaining = 248 - name.length;
+        const remaining = 248 - name.length;
         warnings.push(`If you plan to include a stack or detail field for clusters, you will only
             have ~${remaining} characters to do so.`);
       }
@@ -53,7 +53,7 @@ class AmazonApplicationNameValidator implements IApplicationNameValidator {
               for load balancer names is 32 (currently: ${name.length} characters). With separators ("-"), you will not
               be able to add a stack and detail field to any load balancer.`);
         } else {
-          let remaining = 30 - name.length;
+          const remaining = 30 - name.length;
           warnings.push(`If you plan to create load balancers for this application, be aware that the character limit
               for load balancer names is 32. You will only have ~${remaining} characters to add a stack or detail
               field to any load balancer.`);

@@ -49,7 +49,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   };
 
   it('loads jobs on initialization, setting state flags', () => {
-    let builds: IBuild[] = [];
+    const builds: IBuild[] = [];
     spyOn(igorService, 'listBuildsForJob').and.returnValue($q.when(builds));
 
     const controller = initialize();
@@ -62,7 +62,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   });
 
   it('sets build to first one available when returned on initialization', function () {
-    let build = {number: '1', result: 'SUCCESS'};
+    const build = {number: '1', result: 'SUCCESS'};
     spyOn(igorService, 'listBuildsForJob').and.returnValue($q.when([build]));
 
     const controller = initialize();
@@ -89,7 +89,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   });
 
   it('re-initializes when trigger changes', function () {
-    let firstBuild: IBuild = <any>{number: '1', result: 'SUCCESS'},
+    const firstBuild: IBuild = <any>{number: '1', result: 'SUCCESS'},
       secondBuild: IBuild = <any>{number: '3', result: 'SUCCESS'},
       secondTrigger: IBuildTrigger = <IBuildTrigger>{type: 'travis', master: 'b', job: 'c'};
 

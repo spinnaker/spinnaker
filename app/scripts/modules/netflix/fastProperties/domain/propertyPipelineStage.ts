@@ -22,7 +22,7 @@ export class PropertyPipelineStage implements IStage {
   public description: string;
 
   public static clonePropertyForStage(user: IUser, property: Property): Property {
-    let propertyCopy: Property = copy(property);
+    const propertyCopy: Property = copy(property);
     propertyCopy.updatedBy = user.name;
     propertyCopy.cmcTicket = user.name;
 
@@ -39,12 +39,12 @@ export class PropertyPipelineStage implements IStage {
   }
 
   public static newPropertyStage(user: IUser, scope: Scope, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
-    let property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
+    const property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
     property.propertyId = null;
 
-    let scopeForSubmit: Scope = scope.forSubmit(command.property.env);
+    const scopeForSubmit: Scope = scope.forSubmit(command.property.env);
 
-    let stage = new PropertyPipelineStage(property, scopeForSubmit, previousStage);
+    const stage = new PropertyPipelineStage(property, scopeForSubmit, previousStage);
     stage.rawScope = scope; // This is so we can display the selected scope on the Review section of the wizard
     stage.delete = false;
     stage.description = `Create new property for ${property.key}`;
@@ -55,9 +55,9 @@ export class PropertyPipelineStage implements IStage {
   }
 
   public static deletePropertyStage(user: IUser, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
-    let property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
-    let scope: Scope = command.originalScopeForSubmit();
-    let stage = new PropertyPipelineStage(property, scope, previousStage);
+    const property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
+    const scope: Scope = command.originalScopeForSubmit();
+    const stage = new PropertyPipelineStage(property, scope, previousStage);
     stage.rawScope = command.originalScope; // This is so we can display the selected scope on the Review section of the wizard
     stage.delete = true;
     stage.description = `Deleting property for ${property.key}`;
@@ -67,9 +67,9 @@ export class PropertyPipelineStage implements IStage {
   }
 
   public static upsertPropertyStage(user: IUser, scope: Scope, command: PropertyCommand, previousStage?: IStage): PropertyPipelineStage {
-    let property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
-    let scopeForSubmit: Scope = scope.forSubmit(command.property.env);
-    let stage = new PropertyPipelineStage(property, scopeForSubmit, previousStage);
+    const property: Property = PropertyPipelineStage.clonePropertyForStage(user, command.property);
+    const scopeForSubmit: Scope = scope.forSubmit(command.property.env);
+    const stage = new PropertyPipelineStage(property, scopeForSubmit, previousStage);
     stage.rawScope = scope; // This is so we can display the selected scope on the Review section of the wizard
     stage.delete = command.type === PropertyCommandType.DELETE;
     stage.description = `Upserting property for ${property.key}`;

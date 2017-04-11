@@ -59,7 +59,7 @@ class AppengineLoadBalancerWizardController {
   }
 
   public submit(): any {
-    let description = cloneDeep(this.loadBalancer);
+    const description = cloneDeep(this.loadBalancer);
     description.mapAllocationsToDecimals();
     delete description.serverGroups;
 
@@ -119,7 +119,7 @@ class AppengineLoadBalancerWizardController {
     }
 
     this.$uibModalInstance.dismiss();
-    let newStateParams = {
+    const newStateParams = {
       name: this.loadBalancer.name,
       accountId: this.loadBalancer.credentials,
       region: this.loadBalancer.region,

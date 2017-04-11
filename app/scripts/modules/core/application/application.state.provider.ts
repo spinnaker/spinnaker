@@ -74,7 +74,7 @@ export class ApplicationStateProvider implements ng.IServiceProvider {
    * @param relativeUrl (optional) the prefix used for the application view
    */
   public addParentState(parentState: INestedState, mainView: string, relativeUrl = '') {
-    let applicationConfig: INestedState = {
+    const applicationConfig: INestedState = {
       name: 'application',
       abstract: true,
       url: `${relativeUrl}/:application`,

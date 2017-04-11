@@ -55,14 +55,14 @@ class AppengineCloneServerGroupCtrl {
   }
 
   public submit(): ng.IPromise<any> {
-    let mode = this.$scope.command.viewState.mode;
+    const mode = this.$scope.command.viewState.mode;
     if (['editPipeline', 'createPipeline'].includes(mode)) {
       return this.$uibModalInstance.close(this.$scope.command);
     } else {
-      let command = copy(this.$scope.command);
+      const command = copy(this.$scope.command);
       // Make sure we're sending off a create operation, because there's no such thing as clone for App Engine.
       command.viewState.mode = 'create';
-      let submitMethod = () => this.serverGroupWriter.cloneServerGroup(command, this.$scope.application);
+      const submitMethod = () => this.serverGroupWriter.cloneServerGroup(command, this.$scope.application);
       this.taskMonitor.submit(submitMethod);
 
       return null;

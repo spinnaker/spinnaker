@@ -4,7 +4,7 @@ import {Application} from '../../application/application.model';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
-let ngmodule = module(SECURITY_GROUP_FILTER, [
+const ngmodule = module(SECURITY_GROUP_FILTER, [
   require('./securityGroup.filter.service'),
   require('./securityGroup.filter.model'),
   require('../../filterModel/dependentFilter/dependentFilter.service'),

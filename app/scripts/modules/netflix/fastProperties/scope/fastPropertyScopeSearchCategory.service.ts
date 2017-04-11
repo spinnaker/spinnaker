@@ -60,7 +60,7 @@ export class FastPropertyScopeCategoryService {
    * Builds Global level fast property
    */
   private buildScopeForGlobal(): Scope[] {
-    let scope: Scope = new Scope();
+    const scope: Scope = new Scope();
 
     this.impactCountForGlobal()
       .then((counts) => {
@@ -71,13 +71,13 @@ export class FastPropertyScopeCategoryService {
   }
 
   public impactCountForGlobal() {
-    let countPromises = this.regions.map((region: any ) => {
+    const countPromises = this.regions.map((region: any ) => {
       return this.fastPropertyReader.fetchImpactCountForScope({region: region.region});
     });
 
     return this.$q.all(countPromises)
       .then((countResults: any[]) => {
-        let count = countResults.reduce((acc: number, result: any) => {
+        const count = countResults.reduce((acc: number, result: any) => {
           return acc + Number.parseInt(result.count) ;
         }, 0 );
         return {up: count, total: count};
@@ -90,7 +90,7 @@ export class FastPropertyScopeCategoryService {
    * Builds Region level fast property
    */
   private buildScopeForRegions(selected: any): Scope[] {
-    let scope = new Scope();
+    const scope = new Scope();
     scope.region = selected.region;
     this.impactCountForRegions(scope)
       .then((counts: IImpactCounts) => {
@@ -112,25 +112,25 @@ export class FastPropertyScopeCategoryService {
    * Builds Application level fast property
    */
   private buildScopeListForApplication(selected: any, applicationDictionary: any, env: string): Scope[] {
-    let application = applicationDictionary[selected.application];
-    let scopes = flatMap(application.clusters, (cluster: any) => {
+    const application = applicationDictionary[selected.application];
+    const scopes = flatMap(application.clusters, (cluster: any) => {
       return cluster.serverGroups.map((serverGroup: any) => {
-        let scope = new Scope();
+        const scope = new Scope();
         scope.appId = selected.application;
         scope.region = serverGroup.region;
         return scope;
       });
     });
 
-    let filteredScopes: Scope[] = <Scope[]>uniqBy(scopes, 'region');
-    let scopesWithImpactCount: Scope[] = <Scope[]>filteredScopes.map((scope: Scope) => {
-      let app = applicationDictionary[selected.application];
+    const filteredScopes: Scope[] = <Scope[]>uniqBy(scopes, 'region');
+    const scopesWithImpactCount: Scope[] = <Scope[]>filteredScopes.map((scope: Scope) => {
+      const app = applicationDictionary[selected.application];
       scope.instanceCounts = this.impactCountForApplication(scope, app, env);
       return scope;
     });
 
 
-    let appOnlyScope = new Scope();
+    const appOnlyScope = new Scope();
     appOnlyScope.appId = selected.application;
     appOnlyScope.instanceCounts = this.impactCountForApplication(appOnlyScope, application, env);
 
@@ -138,7 +138,7 @@ export class FastPropertyScopeCategoryService {
   };
 
   public impactCountForApplication(scope: Scope, application: any, env: string): IImpactCounts {
-    let serverGroupInstanceCounts = application.clusters
+    const serverGroupInstanceCounts = application.clusters
       .map((cluster: any) => cluster.serverGroups)
       .reduce((acc: any[], serverGroupList: any[]) => {
         serverGroupList.forEach((serverGroup) => {
@@ -165,8 +165,8 @@ export class FastPropertyScopeCategoryService {
    * Builds Cluster level fast property scope
    */
   private buildScopeForCluster(selected: any, applicationDictionary: any, env: string): Scope[] {
-    let application = applicationDictionary[selected.application];
-    let scope = new Scope();
+    const application = applicationDictionary[selected.application];
+    const scope = new Scope();
     scope.appId = selected.application;
     scope.cluster = selected.cluster;
     scope.stack = selected.stack;
@@ -175,7 +175,7 @@ export class FastPropertyScopeCategoryService {
   }
 
   public impactCountForCluster(scope: Scope, application: Application, env: string): IImpactCounts {
-    let foundCluster: any = application.clusters
+    const foundCluster: any = application.clusters
       .filter((cluster: any) => cluster.name === scope.cluster && this.scopeEnvMatchesAccount(env, cluster.account))
       .shift();
 
@@ -187,8 +187,8 @@ export class FastPropertyScopeCategoryService {
    * Builds Server Group level fast property scope
    */
   private buildScopeForServerGroup(selected: any, applicationDictionary: any, env: string): Scope[] {
-    let application = applicationDictionary[selected.application];
-    let scope = new Scope();
+    const application = applicationDictionary[selected.application];
+    const scope = new Scope();
     scope.appId = selected.application;
     scope.cluster = selected.cluster;
     scope.stack = selected.stack;
@@ -199,7 +199,7 @@ export class FastPropertyScopeCategoryService {
   }
 
   public impactCountForServerGroup(scope: Scope, application: Application, env: string): IImpactCounts {
-    let foundCluster = application.clusters
+    const foundCluster = application.clusters
       .filter((cluster: any) => cluster.name === scope.cluster && this.scopeEnvMatchesAccount(env, cluster.account))
       .shift();
 
@@ -218,8 +218,8 @@ export class FastPropertyScopeCategoryService {
    * Build Stack Group level fast property scope
    */
   private buildScopeForStack(selected: any, applicationDictionary: any, env: string): Scope[] {
-    let application = applicationDictionary[selected.application];
-    let scope = new Scope();
+    const application = applicationDictionary[selected.application];
+    const scope = new Scope();
     scope.region = selected.region;
     scope.appId = selected.application;
     scope.stack = selected.stack || this.getStackFromClusterName(selected.cluster);
@@ -228,7 +228,7 @@ export class FastPropertyScopeCategoryService {
   }
 
   public impactCountForStack(scope: Scope, application: Application, env: string): IImpactCounts {
-    let foundClustersWithStack = application.clusters
+    const foundClustersWithStack = application.clusters
       .filter((cluster: ICluster) =>  this.scopeEnvMatchesAccount(env, cluster.account) && this.getStackFromClusterName(cluster.name) === scope.stack);
 
     return foundClustersWithStack.reduce((acc: any, cluster: any) => {
@@ -237,7 +237,7 @@ export class FastPropertyScopeCategoryService {
   }
 
   public getStackFromClusterName(clusterName: string ): string {
-    let nameStackDetails = clusterName.split('-');
+    const nameStackDetails = clusterName.split('-');
     return nameStackDetails.length > 1 ? nameStackDetails[1] : '';
   }
 
@@ -245,7 +245,7 @@ export class FastPropertyScopeCategoryService {
    * Builds Instance level fast property scope
    */
   private buildScopeForInstance(selected: any): Scope[] {
-    let scope = new Scope();
+    const scope = new Scope();
     scope.appId = selected.application;
     scope.cluster = selected.cluster;
     scope.region = selected.region;
@@ -287,7 +287,7 @@ export class FastPropertyScopeCategoryService {
         return application;
       })
       .then((application: any) => {
-        let category = scope.getCategory();
+        const category = scope.getCategory();
         return this.impactCountFnByCategory[category](scope, application, scope.env);
       });
   }

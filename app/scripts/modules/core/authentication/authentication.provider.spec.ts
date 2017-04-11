@@ -6,7 +6,7 @@ import {AuthenticationService} from './authentication.service';
 import {AUTHENTICATION} from './authentication.module';
 import {SETTINGS} from 'core/config/settings';
 
-declare let window: any;
+declare const window: any;
 describe('authenticationProvider: application startup', function () {
   beforeEach(function () {
     SETTINGS.authEnabled = true;

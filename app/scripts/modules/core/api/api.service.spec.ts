@@ -98,25 +98,25 @@ describe('API Service', function () {
     describe('creating the config with "one" function', function () {
 
       it('missing url should create a default config with the base url', function () {
-        let result = API.one();
+        const result = API.one();
         expected.url = baseUrl;
         expect(result.config).toEqual(expected);
       });
 
       it('single url should create a default config with the base url', function () {
-        let result = API.one('foo');
+        const result = API.one('foo');
         expected.url = `${baseUrl}/foo`;
         expect(result.config).toEqual(expected);
       });
 
       it('multiple calls to "one" should create a default config with the base url and build out the url', function () {
-        let result = API.one('foo').one('bar');
+        const result = API.one('foo').one('bar');
         expected.url = `${baseUrl}/foo/bar`;
         expect(result.config).toEqual(expected);
       });
 
       it('should allow for multiple urls to be added to the url', function () {
-        let result = API.one('foo', 'bar');
+        const result = API.one('foo', 'bar');
         expected.url = `${baseUrl}/foo/bar`;
         expect(result.config).toEqual(expected);
       });
@@ -124,25 +124,25 @@ describe('API Service', function () {
 
     describe('creating the  config with "all" function', function () {
       it('missing url should create a default config with the base url', function () {
-        let result = API.all();
+        const result = API.all();
         expected.url = baseUrl;
         expect(result.config).toEqual(expected);
       });
 
       it('single url should create a default config with the base url', function () {
-        let result = API.all('foo');
+        const result = API.all('foo');
         expected.url = `${baseUrl}/foo`;
         expect(result.config).toEqual(expected);
       });
 
       it('multiple calls to "all" should create a default config with the base url and build out the url', function () {
-        let result = API.all('foo').all('bar');
+        const result = API.all('foo').all('bar');
         expected.url = `${baseUrl}/foo/bar`;
         expect(result.config).toEqual(expected);
       });
 
       it('should allow for multiple urls to be added to the url', function () {
-        let result = API.all('foo', 'bar');
+        const result = API.all('foo', 'bar');
         expected.url = `${baseUrl}/foo/bar`;
         expect(result.config).toEqual(expected);
       });
@@ -150,19 +150,19 @@ describe('API Service', function () {
 
     describe('creating the  config with mix of "one" and "all" function', function () {
       it('single url should create a default config with the base url', function () {
-        let result = API.all('foo').one('bar');
+        const result = API.all('foo').one('bar');
         expected.url = `${baseUrl}/foo/bar`;
         expect(result.config).toEqual(expected);
       });
 
       it('multiple calls to "all" should create a default config with the base url and build out the url', function () {
-        let result = API.one('foo').all('bar');
+        const result = API.one('foo').all('bar');
         expected.url = `${baseUrl}/foo/bar`;
         expect(result.config).toEqual(expected);
       });
 
       it('should allow for multiple urls to be added to the url', function () {
-        let result = API.all('foo', 'bar').one('baz');
+        const result = API.all('foo', 'bar').one('baz');
         expected.url = `${baseUrl}/foo/bar/baz`;
         expect(result.config).toEqual(expected);
       });
@@ -170,8 +170,8 @@ describe('API Service', function () {
 
     describe('creating multiple endpoints', function () {
       it('should not stomp on each other', function () {
-        let first = API.one('bar');
-        let second = API.one('foo');
+        const first = API.one('bar');
+        const second = API.one('foo');
 
         expect(first.config).toEqual({method: '', url: `${baseUrl}/bar`});
         expect(second.config).toEqual({method: '', url: `${baseUrl}/foo`});
@@ -180,14 +180,14 @@ describe('API Service', function () {
 
     describe('create config with data', function () {
       it('should not alter the config if no data object passed', function () {
-        let result = API.one('foo').data();
+        const result = API.one('foo').data();
         expected.url = `${baseUrl}/foo`;
         expect(result.config).toEqual(expected);
       });
 
       it('should add data to the config if data object passed', function () {
-        let data = {bar: 'baz'};
-        let result = API.one('foo').data(data);
+        const data = {bar: 'baz'};
+        const result = API.one('foo').data(data);
         expected.url = `${baseUrl}/foo`;
         expected.data = data;
         expect(result.config).toEqual(expected);
@@ -197,30 +197,30 @@ describe('API Service', function () {
 
   describe('create a config with params', function () {
     it('when no params are provided do not alter config', function () {
-      let result = API.one('foo').withParams();
+      const result = API.one('foo').withParams();
       expect(result.config).toEqual({method: '', url: `${baseUrl}/foo`});
     });
 
     it('when params are provided', function () {
-      let result = API.one('foo').withParams({one: 1});
+      const result = API.one('foo').withParams({one: 1});
       expect(result.config).toEqual({method: '', url: `${baseUrl}/foo`, params: {one: 1} });
     });
   });
 
   describe('useCache()', function () {
     it('should set cache to "true" if no params set', function () {
-      let result = API.one('foo').useCache();
+      const result = API.one('foo').useCache();
       expect(result.config.cache).toBe(true);
     });
 
     it('should set cache to "false" if explicitly  set', function () {
-      let result = API.one('foo').useCache(false);
+      const result = API.one('foo').useCache(false);
       expect(result.config.cache).toBe(false);
     });
 
     it('should set cache to cache object if explicitly set', function () {
-      let cacheObj = {count: 1};
-      let result = API.one('foo').useCache(cacheObj);
+      const cacheObj = {count: 1};
+      const result = API.one('foo').useCache(cacheObj);
       expect(result.config.cache).toBe(cacheObj);
     });
   });
@@ -304,7 +304,7 @@ describe('API Service', function () {
     });
 
     it('should create the url and POST with data', function () {
-      let data = {bar: 7};
+      const data = {bar: 7};
       $httpBackend.expectPOST(`${baseUrl}/foo`, data).respond(200);
 
       API.one('foo').post(data);
@@ -323,7 +323,7 @@ describe('API Service', function () {
     });
 
     it('should create the url and PUT with data', function () {
-      let data = {bar: 7};
+      const data = {bar: 7};
       $httpBackend.expectPUT(`${baseUrl}/foo`, data).respond(200);
 
       API.one('foo').put(data);
@@ -342,7 +342,7 @@ describe('API Service', function () {
     });
 
     it('should create the url with params and  make a DELETE call', function () {
-      let params = {bar: 7};
+      const params = {bar: 7};
       $httpBackend.expectDELETE(`${baseUrl}/foo?bar=7`).respond(200);
 
       API.one('foo').remove(params);

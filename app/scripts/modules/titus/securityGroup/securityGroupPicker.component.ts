@@ -35,13 +35,13 @@ class SecurityGroupPickerController implements ng.IComponentController {
                      private vpcReader: any) {}
 
   public $onInit(): void {
-    let credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: IAggregatedAccounts) => {
+    const credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: IAggregatedAccounts) => {
       this.credentials = credentials;
     });
-    let groupLoader: ng.IPromise<void> = this.securityGroupReader.getAllSecurityGroups().then((groups: any[]) => {
+    const groupLoader: ng.IPromise<void> = this.securityGroupReader.getAllSecurityGroups().then((groups: any[]) => {
       this.securityGroups = groups;
     });
-    let vpcLoader: ng.IPromise<void> = this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.vpcs = vpcs);
+    const vpcLoader: ng.IPromise<void> = this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.vpcs = vpcs);
     this.$q.all([credentialLoader, groupLoader, vpcLoader]).then(() => this.configureSecurityGroupOptions());
     this.subscriptions = [
       this.accountChanged.subscribe(() => this.configureSecurityGroupOptions()),
@@ -66,8 +66,8 @@ class SecurityGroupPickerController implements ng.IComponentController {
   }
 
   private getVpcId(): string {
-    let credentials = this.getCredentials();
-    let match = this.vpcs.find(vpc =>
+    const credentials = this.getCredentials();
+    const match = this.vpcs.find(vpc =>
       vpc.name === credentials.awsVpc
       && vpc.account === credentials.awsAccount
       && vpc.region === this.getRegion()
@@ -77,7 +77,7 @@ class SecurityGroupPickerController implements ng.IComponentController {
   }
 
   private getRegionalSecurityGroups(): ISecurityGroup[] {
-    let newSecurityGroups: any = this.securityGroups[this.getAwsAccount()] || { aws: {}};
+    const newSecurityGroups: any = this.securityGroups[this.getAwsAccount()] || { aws: {}};
     return _.chain<ISecurityGroup>(newSecurityGroups.aws[this.getRegion()])
       .filter({vpcId: this.getVpcId()})
       .sortBy('name')
@@ -96,22 +96,22 @@ class SecurityGroupPickerController implements ng.IComponentController {
   }
 
   private configureSecurityGroupOptions(): void {
-    let currentOptions = this.availableGroups;
-    let newRegionalSecurityGroups = this.getRegionalSecurityGroups();
+    const currentOptions = this.availableGroups;
+    const newRegionalSecurityGroups = this.getRegionalSecurityGroups();
     if (currentOptions && this.groupsToEdit) {
       // not initializing - we are actually changing groups
-      let currentGroupNames: string[] = this.groupsToEdit.map((groupId: string) => {
-        let match = currentOptions.find(o => o.id === groupId);
+      const currentGroupNames: string[] = this.groupsToEdit.map((groupId: string) => {
+        const match = currentOptions.find(o => o.id === groupId);
         return match ? match.name : groupId;
       });
 
-      let matchedGroups: ISecurityGroup[] = this.groupsToEdit.map((groupId: string) => {
-        let securityGroup: any = currentOptions.find(o => o.id === groupId || o.name === groupId);
+      const matchedGroups: ISecurityGroup[] = this.groupsToEdit.map((groupId: string) => {
+        const securityGroup: any = currentOptions.find(o => o.id === groupId || o.name === groupId);
         return securityGroup ? securityGroup.name : null;
       }).map((groupName: string) => newRegionalSecurityGroups.find(g => g.name === groupName)).filter((group: any) => group);
 
-      let matchedGroupNames: string[] = matchedGroups.map(g => g.name);
-      let removed: string[] = _.xor(currentGroupNames, matchedGroupNames);
+      const matchedGroupNames: string[] = matchedGroups.map(g => g.name);
+      const removed: string[] = _.xor(currentGroupNames, matchedGroupNames);
       this.groupsToEdit = matchedGroups.map(g => g.id);
       if (removed.length) {
         this.removedGroups.length = 0;

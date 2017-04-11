@@ -32,7 +32,7 @@ export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpse
   public serverGroups?: any[];
 
   public static convertTrafficSplitToTrafficSplitDescription(split: IAppengineTrafficSplit): IAppengineTrafficSplitDescription {
-    let allocationDescriptions = reduce(split.allocations, (acc: IAppengineAllocationDescription[], allocation: number, serverGroupName: string) => {
+    const allocationDescriptions = reduce(split.allocations, (acc: IAppengineAllocationDescription[], allocation: number, serverGroupName: string) => {
        return acc.concat({serverGroupName, allocation, locatorType: 'fromExisting'});
     }, []);
 
@@ -85,7 +85,7 @@ export class AppengineLoadBalancerTransformer {
         .map((instance: any) => this.transformInstance(instance, loadBalancer));
     });
 
-    let activeServerGroups = filter(loadBalancer.serverGroups, {isDisabled: false});
+    const activeServerGroups = filter(loadBalancer.serverGroups, {isDisabled: false});
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as Instance[];
     return this.$q.resolve(loadBalancer);
   }
@@ -93,7 +93,7 @@ export class AppengineLoadBalancerTransformer {
   public convertLoadBalancerForEditing(loadBalancer: IAppengineLoadBalancer,
                                        application: Application): ng.IPromise<IAppengineLoadBalancer> {
     return application.getDataSource('loadBalancers').ready().then(() => {
-      let upToDateLoadBalancer = application.getDataSource('loadBalancers').data.find((candidate: ILoadBalancer) => {
+      const upToDateLoadBalancer = application.getDataSource('loadBalancers').data.find((candidate: ILoadBalancer) => {
         return candidate.name === loadBalancer.name &&
           (candidate.account === loadBalancer.account || candidate.account === loadBalancer.credentials);
       });
@@ -110,7 +110,7 @@ export class AppengineLoadBalancerTransformer {
   }
 
   private buildInstanceCounts(serverGroups: ServerGroup[]): InstanceCounts {
-    let instanceCounts: InstanceCounts = chain(serverGroups)
+    const instanceCounts: InstanceCounts = chain(serverGroups)
       .map('instances')
       .flatten()
       .reduce((acc: InstanceCounts, instance: any) => {
@@ -129,7 +129,7 @@ export class AppengineLoadBalancerTransformer {
     instance.account = loadBalancer.account;
     instance.region = loadBalancer.region;
     instance.loadBalancers = [loadBalancer.name];
-    let health = instance.health || {};
+    const health = instance.health || {};
     instance.healthState = get(instance, 'health.state') || 'OutOfService';
     instance.health = [health];
 

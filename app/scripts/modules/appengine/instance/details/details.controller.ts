@@ -52,12 +52,12 @@ class AppengineInstanceDetailsController {
   }
 
   public terminateInstance(): void {
-    let instance = cloneDeep(this.instance) as any;
-    let shortName = `${this.instance.name.substring(0, 10)}...`;
+    const instance = cloneDeep(this.instance) as any;
+    const shortName = `${this.instance.name.substring(0, 10)}...`;
     instance.placement = {};
     instance.instanceId = instance.name;
 
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.app,
       title: 'Terminating ' + shortName,
       onTaskComplete: function() {
@@ -67,7 +67,7 @@ class AppengineInstanceDetailsController {
       }
     };
 
-    let submitMethod = () => {
+    const submitMethod = () => {
       return this.instanceWriter.terminateInstance(instance, this.app, {cloudProvider: 'appengine'});
     };
 
@@ -81,20 +81,20 @@ class AppengineInstanceDetailsController {
   }
 
   private retrieveInstance(instance: InstanceFromStateParams): IPromise<IAppengineInstance> {
-    let instanceLocatorPredicate = (dataSource: InstanceContainer) => {
+    const instanceLocatorPredicate = (dataSource: InstanceContainer) => {
       return dataSource.instances.some((possibleMatch) => possibleMatch.id === instance.instanceId);
     };
 
-    let dataSources: InstanceContainer[] = flattenDeep([
+    const dataSources: InstanceContainer[] = flattenDeep([
       this.app.getDataSource('serverGroups').data,
       this.app.getDataSource('loadBalancers').data,
       this.app.getDataSource('loadBalancers').data.map((loadBalancer) => loadBalancer.serverGroups),
     ]);
 
-    let instanceContainer = dataSources.find(instanceLocatorPredicate);
+    const instanceContainer = dataSources.find(instanceLocatorPredicate);
 
     if (instanceContainer) {
-      let recentHistoryExtraData: {[key: string]: string} = {
+      const recentHistoryExtraData: {[key: string]: string} = {
         region: instanceContainer.region,
         account: instanceContainer.account,
       };

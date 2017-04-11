@@ -187,7 +187,7 @@ describe ('Application Model', function () {
 
     it('sets default credentials and region from server group when only one account/region found', function () {
 
-      let serverGroups: ServerGroup[] = [{
+      const serverGroups: ServerGroup[] = [{
           name: 'deck-test-v001',
           cluster: 'deck-test',
           account: 'test',
@@ -206,7 +206,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default credentials and region from load balancer when only one account/region found', function () {
-      let serverGroups: ServerGroup[] = [],
+      const serverGroups: ServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', cloudProvider: 'gce', vpcId: 'vpc0', region: 'us-central-1', account: 'prod' }],
         securityGroupsByApplicationName: any[] = [];
 
@@ -216,7 +216,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default credentials and region from security group', function () {
-      let serverGroups: any[] = [],
+      const serverGroups: any[] = [],
         loadBalancers: ILoadBalancer[] = [],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'cf', accountName: 'test', region: 'us-south-7'}];
 
@@ -226,7 +226,7 @@ describe ('Application Model', function () {
     });
 
     it('does not set defaults when multiple values found for the same provider', function () {
-      let serverGroups: ServerGroup[] = [],
+      const serverGroups: ServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [ {name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-west-1', account: 'prod'} ],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1'}];
 
@@ -236,7 +236,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default region or default credentials if possible', function () {
-      let serverGroups: ServerGroup[] = [],
+      const serverGroups: ServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpcId', region: 'us-east-1', account: 'prod'}],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-east-1'}];
 
@@ -246,7 +246,7 @@ describe ('Application Model', function () {
     });
 
     it('sets default credentials, even if region cannot be set', function () {
-      let serverGroups: ServerGroup[] = [],
+      const serverGroups: ServerGroup[] = [],
         loadBalancers: ILoadBalancer[] = [{name: 'deck-frontend', cloudProvider: 'aws', vpcId: 'vpc0', region: 'us-east-1', account: 'test'}],
         securityGroupsByApplicationName: any[] = [{name: 'deck-test', provider: 'aws', accountName: 'test', region: 'us-west-1'}];
 
@@ -256,7 +256,7 @@ describe ('Application Model', function () {
     });
 
     it('should set defaults for multiple providers', function () {
-      let serverGroups: any[] = [
+      const serverGroups: any[] = [
           {
             name: 'deck-test-v001',
             account: 'test',

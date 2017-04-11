@@ -57,8 +57,8 @@ export class InstanceWriter {
   private executeMultiInstanceTask(instanceGroups: IMultiInstanceGroup[], application: Application, type: string,
                                    baseDescriptor: string, descriptorSuffix?: string,
                                    additionalJobProperties: any = {}): ng.IPromise<ITask> {
-    let jobs = this.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
-    let descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
+    const jobs = this.buildMultiInstanceJob(instanceGroups, type, additionalJobProperties);
+    const descriptor = this.buildMultiInstanceDescriptor(jobs, baseDescriptor, descriptorSuffix);
     return this.taskExecutor.executeTask({
       job: jobs,
       application: application,
@@ -88,9 +88,9 @@ export class InstanceWriter {
 
   public deregisterInstancesFromLoadBalancer(instanceGroups: IMultiInstanceGroup[], application: Application,
                                              loadBalancerNames: string[]): ng.IPromise<ITask> {
-    let jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
+    const jobs = this.buildMultiInstanceJob(instanceGroups, 'deregisterInstancesFromLoadBalancer');
     jobs.forEach((job) => job.loadBalancerNames = loadBalancerNames);
-    let descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
+    const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Deregister', `from ${loadBalancerNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
       application: application,
@@ -113,9 +113,9 @@ export class InstanceWriter {
   }
 
   public registerInstancesWithLoadBalancer(instanceGroups: IMultiInstanceGroup[], application: Application, loadBalancerNames: string[]) {
-    let jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
+    const jobs = this.buildMultiInstanceJob(instanceGroups, 'registerInstancesWithLoadBalancer');
     jobs.forEach((job) => job.loadBalancerNames = loadBalancerNames);
-    let descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
+    const descriptor = this.buildMultiInstanceDescriptor(jobs, 'Register', `with ${loadBalancerNames.join(' and ')}`);
     return this.taskExecutor.executeTask({
       job: jobs,
       application: application,
@@ -231,7 +231,7 @@ export class InstanceWriter {
   }
 
   private convertGroupToJob(instanceGroup: IMultiInstanceGroup, type: string, additionalJobProperties: any = {}): IMultiInstanceJob {
-    let job: IMultiInstanceJob = {
+    const job: IMultiInstanceJob = {
       type: type,
       cloudProvider: instanceGroup.cloudProvider,
       instanceIds: instanceGroup.instanceIds,
@@ -249,10 +249,10 @@ export class InstanceWriter {
   }
 
   private transform(instanceGroup: IMultiInstanceGroup, job: IMultiInstanceJob) {
-    let hasTransformer: boolean = this.serviceDelegate.hasDelegate(
+    const hasTransformer: boolean = this.serviceDelegate.hasDelegate(
       instanceGroup.cloudProvider, 'instance.multiInstanceTaskTransformer');
     if (hasTransformer) {
-      let transformer: any = this.serviceDelegate.getDelegate(
+      const transformer: any = this.serviceDelegate.getDelegate(
         instanceGroup.cloudProvider, 'instance.multiInstanceTaskTransformer');
       transformer.transform(instanceGroup, job);
     }

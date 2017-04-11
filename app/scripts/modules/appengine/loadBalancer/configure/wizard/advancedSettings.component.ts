@@ -9,8 +9,8 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements ng.IComponentControll
     if (this.loadBalancer.splitDescription.allocationDescriptions.length !== 1) {
       return true;
     } else {
-      let targetServerGroupName = this.loadBalancer.splitDescription.allocationDescriptions[0].serverGroupName;
-      let targetServerGroup = this.loadBalancer.serverGroups.find(candidate => candidate.name === targetServerGroupName);
+      const targetServerGroupName = this.loadBalancer.splitDescription.allocationDescriptions[0].serverGroupName;
+      const targetServerGroup = this.loadBalancer.serverGroups.find(candidate => candidate.name === targetServerGroupName);
 
       if (targetServerGroup) {
         return !targetServerGroup.allowsGradualTrafficMigration;

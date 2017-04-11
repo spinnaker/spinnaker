@@ -323,10 +323,10 @@ export class ApplicationDataSource {
    * @param failureMethod (optional) a method to call if the data source refresh fails
    */
   public onNextRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
-    let success = this.refreshStream.take(1).subscribe(method);
+    const success = this.refreshStream.take(1).subscribe(method);
     $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
-      let failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
+      const failure = this.refreshFailureStream.take(1).subscribe(failureMethod);
       $scope.$on('$destroy', () => failure.unsubscribe());
     }
   }
@@ -340,10 +340,10 @@ export class ApplicationDataSource {
    * @param failureMethod (optional) a method to call if the data source refresh fails
    */
   public onRefresh($scope: ng.IScope, method: any, failureMethod?: any): void {
-    let success = this.refreshStream.subscribe(method);
+    const success = this.refreshStream.subscribe(method);
     $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
-      let failure = this.refreshFailureStream.subscribe(failureMethod);
+      const failure = this.refreshFailureStream.subscribe(failureMethod);
       $scope.$on('$destroy', () => failure.unsubscribe());
     }
   }
@@ -361,7 +361,7 @@ export class ApplicationDataSource {
    * @returns {IPromise<T>}
    */
   public ready(): ng.IPromise<any> {
-    let deferred = this.$q.defer();
+    const deferred = this.$q.defer();
     if (this.disabled || this.loaded || (this.lazy && !this.active)) {
       deferred.resolve();
     } else if (this.loadFailure) {

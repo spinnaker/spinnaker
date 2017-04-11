@@ -6,7 +6,7 @@ export class PropertyMonitorService {
 
   public buildMonitor(params: any): any {
 
-    let monitor: any = {
+    const monitor: any = {
         submitting: false,
         pipeline: null,
         error: false,
@@ -50,7 +50,7 @@ export class PropertyMonitorService {
 
     monitor.submit = function (method: any): void {
       monitor.startSubmit();
-      let submit = monitor.submitMethod || method;
+      const submit = monitor.submitMethod || method;
       submit().then(monitor.handleTaskSuccess, monitor.setError);
     };
 

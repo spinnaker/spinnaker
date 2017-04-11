@@ -6,7 +6,7 @@ describe('Scope Domain Spec', function () {
 
   describe('statically create a new scope from a scope fetched from the props API', () => {
     it('should build a new scope when a we have complete scope from props API ', function () {
-      let platformProperty = <IPlatformProperty>{
+      const platformProperty = <IPlatformProperty>{
         env: 'prod',
         region: 'us-east-1',
         appId: 'deck',
@@ -19,7 +19,7 @@ describe('Scope Domain Spec', function () {
         propertyId: '1234'
       };
 
-      let result: Scope = Scope.build(platformProperty);
+      const result: Scope = Scope.build(platformProperty);
 
       ['env', 'region', 'appId', 'stack', 'asg', 'severId', 'zone', 'cluster'].forEach((prop: string) => {
         expect(result[prop]).toBe(platformProperty[prop]);
@@ -33,36 +33,36 @@ describe('Scope Domain Spec', function () {
   describe('prep a scope for submission', function () {
 
     it('has no appId', function () {
-      let scope = new Scope();
+      const scope = new Scope();
 
-      let readyScope = scope.forSubmit('prod');
+      const readyScope = scope.forSubmit('prod');
       expect(readyScope.appIdList).toEqual([]);
     });
 
     it('has single appId', function () {
-      let scope = new Scope();
+      const scope = new Scope();
 
       scope.appId = 'deck';
 
-      let readyScope = scope.forSubmit('prod');
+      const readyScope = scope.forSubmit('prod');
       expect(readyScope.appIdList).toEqual(['deck']);
     });
 
     it('has multiple comma delimited appId', function () {
-      let scope = new Scope();
+      const scope = new Scope();
 
       scope.appId = 'deck,demo';
 
-      let readyScope = scope.forSubmit('prod');
+      const readyScope = scope.forSubmit('prod');
       expect(readyScope.appIdList).toEqual(['deck', 'demo']);
     });
 
     it('has multiple comma delimited appId with whitespace', function () {
-      let scope = new Scope();
+      const scope = new Scope();
 
       scope.appId = 'deck , demo';
 
-      let readyScope = scope.forSubmit('prod');
+      const readyScope = scope.forSubmit('prod');
       expect(readyScope.appIdList).toEqual(['deck', 'demo']);
     });
   });

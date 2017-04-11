@@ -51,7 +51,7 @@ describe('Service: Cluster', function () {
 
   describe('lazy cluster fetching', () => {
     it('switches to lazy cluster fetching if there are more than 250 clusters', () => {
-      let clusters = Array(251);
+      const clusters = Array(251);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
       let serverGroups: ServerGroup[] = null;
@@ -62,7 +62,7 @@ describe('Service: Cluster', function () {
     });
 
     it('does boring regular fetching when there are less than 251 clusters', () => {
-      let clusters = Array(250);
+      const clusters = Array(250);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
       let serverGroups: ServerGroup[] = null;
@@ -73,7 +73,7 @@ describe('Service: Cluster', function () {
     });
 
     it('converts clusters parameter to q and account params when there are fewer than 251 clusters', () => {
-      let clusters = Array(250);
+      const clusters = Array(250);
       ClusterFilterModel.sortFilter.clusters = {'test:myapp': true};
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
@@ -350,7 +350,7 @@ describe('Service: Cluster', function () {
       });
 
       it('should successfully add a matched execution to a server group', function () {
-        let executions = [
+        const executions = [
           {
             stages: [
               {
@@ -374,7 +374,7 @@ describe('Service: Cluster', function () {
 
 
       it('should NOT add a execution to a server group if the region does not match', function () {
-        let executions = [
+        const executions = [
           {
             stages: [
               {
@@ -398,7 +398,7 @@ describe('Service: Cluster', function () {
 
 
       it('should NOT add a execution to a server group if the account does not match', function () {
-        let executions = [
+        const executions = [
           {
             stages: [
               {
@@ -434,7 +434,7 @@ describe('Service: Cluster', function () {
       });
 
       it('should successfully add a matched execution to a server group', function () {
-        let executions = [
+        const executions = [
           {
             stages: [
               {
@@ -457,7 +457,7 @@ describe('Service: Cluster', function () {
 
 
       it('should NOT add a execution to a server group if the region does not match', function () {
-        let executions = [
+        const executions = [
           {
             stages: [
               {

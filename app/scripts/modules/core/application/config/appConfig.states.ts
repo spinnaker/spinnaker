@@ -15,7 +15,7 @@ module(APP_CONFIG_STATES, [
       'insight': {
         templateProvider: ['$templateCache', 'overrideRegistry',
           ($templateCache: ng.ITemplateCacheService, overrideRegistry: OverrideRegistry) => {
-            let template: string = overrideRegistry.getTemplate('applicationConfigView', require('./applicationConfig.view.html'));
+            const template: string = overrideRegistry.getTemplate('applicationConfigView', require('./applicationConfig.view.html'));
             return $templateCache.get(template);
         }],
         controller: 'ApplicationConfigController',

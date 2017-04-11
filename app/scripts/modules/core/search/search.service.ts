@@ -33,7 +33,7 @@ export class SearchService {
       pageSize: SearchService.defaultPageSize,
     };
 
-    let requestBuilder = this.API.one('search').withParams(Object.assign(params, defaultParams));
+    const requestBuilder = this.API.one('search').withParams(Object.assign(params, defaultParams));
     if (cache) {
       requestBuilder.useCache(cache);
     }

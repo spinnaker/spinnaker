@@ -56,6 +56,12 @@
       "check-open-brace",
       "check-whitespace"
     ],
+    "prefer-const": [
+      true,
+      {
+        "destructuring": "all"
+      }
+    ],
     "quotemark": [
       true,
       "single",

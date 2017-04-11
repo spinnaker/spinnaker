@@ -30,18 +30,18 @@ export class FastPropertyDetailsController {
 
 
   public extractEnvFromId(propertyId: string) {
-    let list = propertyId.split('|');
+    const list = propertyId.split('|');
     return list[2] || 'prod';
   }
 
   public getProperty(environment?: string) {
-    let env = environment || this.extractEnvFromId(this.fastProperty.propertyId);
+    const env = environment || this.extractEnvFromId(this.fastProperty.propertyId);
     this.fastPropertyReader.getPropByIdAndEnv(this.fastProperty.propertyId, env)
       .then((results: any) => {
         this.property = results.property;
       })
       .catch(() => {
-        let otherEnv = env === 'prod' ? 'test' : 'prod';
+        const otherEnv = env === 'prod' ? 'test' : 'prod';
         this.getProperty(otherEnv);
       });
   }

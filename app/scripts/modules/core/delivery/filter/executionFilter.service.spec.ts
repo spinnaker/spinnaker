@@ -34,13 +34,13 @@ describe('Service: executionFilterService', function () {
 
   describe('Sorting', () => {
     it('sorts pipeline groups by index, always putting strategies at the end, followed by ad-hoc pipelines', () => {
-      let firstGroup = { config: { index: 1} };
-      let secondGroup = { config: { index: 2} };
-      let strategy = { config: { index: 0, strategy: true } };
-      let adHocA = { heading: 'a' };
-      let adHocB = { heading: 'b' };
-      let groups = [strategy, adHocB, adHocA, secondGroup, firstGroup];
-      let sorted = groups.sort((a: any, b: any) => service.executionGroupSorter(a, b));
+      const firstGroup = { config: { index: 1} };
+      const secondGroup = { config: { index: 2} };
+      const strategy = { config: { index: 0, strategy: true } };
+      const adHocA = { heading: 'a' };
+      const adHocB = { heading: 'b' };
+      const groups = [strategy, adHocB, adHocA, secondGroup, firstGroup];
+      const sorted = groups.sort((a: any, b: any) => service.executionGroupSorter(a, b));
 
       expect(sorted).toEqual([firstGroup, secondGroup, strategy, adHocA, adHocB]);
     });
@@ -49,7 +49,7 @@ describe('Service: executionFilterService', function () {
   describe('Updating execution groups', function () {
 
     it('limits executions per pipeline', function () {
-      let application: Application = modelBuilder.createApplication({key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
+      const application: Application = modelBuilder.createApplication({key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
       application.getDataSource('executions').data = [
         { pipelineConfigId: '1', name: 'pipeline 1', endTime: 1, stages: [] },
         { pipelineConfigId: '1', name: 'pipeline 1', endTime: 2, stages: [] },

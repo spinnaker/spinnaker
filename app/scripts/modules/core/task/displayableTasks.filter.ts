@@ -3,7 +3,7 @@ import { module } from 'angular';
 import { TaskStep } from '../domain/taskStep';
 
 export function displayableTaskFilter() {
-  let blacklist = [
+  const blacklist = [
     'stageStart', 'stageEnd', 'determineTargetServerGroup'
   ];
   return function (input: TaskStep[]): TaskStep[] {

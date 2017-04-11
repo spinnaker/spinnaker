@@ -136,7 +136,7 @@ class IsolatedTestingTargetStageCtrl {
     this.stage.clusters = this.stage.clusters || [];
     this.stage.vipOverrides = this.stage.vipOverrides || {};
     this.providerSelectionService.selectProvider(this.$scope.application).then((selectedProvider: string) => {
-      let config = this.cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
+      const config = this.cloudProviderRegistry.getValue(selectedProvider, 'serverGroup');
       this.$uibModal.open({
         templateUrl: config.cloneServerGroupTemplateUrl,
         controller: `${config.cloneServerGroupController} as ctrl`,
@@ -152,7 +152,7 @@ class IsolatedTestingTargetStageCtrl {
 
   public editCluster(cluster: any, index: number): void {
     cluster.provider = cluster.provider || 'aws';
-    let config = this.cloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
+    const config = this.cloudProviderRegistry.getValue(cluster.provider, 'serverGroup');
     this.$uibModal.open({
       templateUrl: config.cloneServerGroupTemplateUrl,
       controller: `${config.cloneServerGroupController} as ctrl`,

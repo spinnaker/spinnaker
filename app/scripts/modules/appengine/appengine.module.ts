@@ -19,7 +19,7 @@ import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider
 
 import './logo/appengine.logo.less';
 
-let templates = require.context('./', true, /\.html$/);
+const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });

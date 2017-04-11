@@ -20,7 +20,7 @@ class AppengineShrinkClusterStageCtrl extends AppengineStageCtrl {
     super.setStageCloudProvider();
     super.setStageCredentials();
 
-    let stage = $scope.stage as IAppengineShrinkClusterStage;
+    const stage = $scope.stage as IAppengineShrinkClusterStage;
     if (stage.shrinkToSize === undefined) {
       stage.shrinkToSize = 1;
     }

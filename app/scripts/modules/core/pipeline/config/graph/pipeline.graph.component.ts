@@ -42,7 +42,7 @@ export class PipelineGraphController implements ng.IComponentController {
   }
 
   private setLinkClass(link: IPipelineLink): void {
-    let child = link.child,
+    const child = link.child,
         parent = link.parent;
     const linkClasses: string[] = [];
     if (link.isHighlighted) {
@@ -224,7 +224,7 @@ export class PipelineGraphController implements ng.IComponentController {
 
     // get the saved horizontal scroll position for executions
     if (this.execution) {
-      let offsetForId = this.pipelineGraphService.xScrollOffset[this.execution.id] || 0;
+      const offsetForId = this.pipelineGraphService.xScrollOffset[this.execution.id] || 0;
       this.$element.scrollLeft(offsetForId);
     }
   }

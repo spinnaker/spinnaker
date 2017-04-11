@@ -37,7 +37,7 @@ export class StateHelper implements ng.IServiceProvider {
   }
 
   private fixStateViews(state: INestedState) {
-    let views = state.views || {},
+    const views = state.views || {},
         replaced: string[] = [];
     Object.keys(views).forEach((key) => {
       const relative: RegExpMatchArray = key.match('../');

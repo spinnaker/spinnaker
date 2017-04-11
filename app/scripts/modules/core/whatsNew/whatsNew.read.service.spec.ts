@@ -25,8 +25,8 @@ describe('Service: whatsNew reader ', () => {
     });
 
     it ('returns file contents with lastUpdated', () => {
-      let result: IWhatsNewContents = null,
-        response: IGistApiResponse = {
+      let result: IWhatsNewContents = null;
+      const response: IGistApiResponse = {
           'updated_at': '1999',
           files: {},
         };

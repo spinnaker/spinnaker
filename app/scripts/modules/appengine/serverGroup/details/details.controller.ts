@@ -39,7 +39,7 @@ class AppengineServerGroupDetailsController {
   }
 
   private static buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
-    let tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
+    const tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
       return `
         <tr>
           <td>${serverGroupName}</td>
@@ -90,7 +90,7 @@ class AppengineServerGroupDetailsController {
         return false;
       }
 
-      let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
+      const expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
       if (expectedAllocations) {
         return Object.keys(expectedAllocations).length > 0;
       } else {
@@ -107,7 +107,7 @@ class AppengineServerGroupDetailsController {
         return true;
       }
 
-      let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
+      const expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
       if (expectedAllocations) {
         return Object.keys(expectedAllocations).length > 0;
       } else {
@@ -119,20 +119,20 @@ class AppengineServerGroupDetailsController {
   }
 
   public destroyServerGroup(): void {
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.app,
       title: 'Destroying ' + this.serverGroup.name,
     };
 
-    let submitMethod = (params: any) => this.serverGroupWriter.destroyServerGroup(this.serverGroup, this.app, params);
+    const submitMethod = (params: any) => this.serverGroupWriter.destroyServerGroup(this.serverGroup, this.app, params);
 
-    let stateParams = {
+    const stateParams = {
       name: this.serverGroup.name,
       accountId: this.serverGroup.account,
       region: this.serverGroup.region
     };
 
-    let confirmationModalParams = {
+    const confirmationModalParams = {
       header: 'Really destroy ' + this.serverGroup.name + '?',
       buttonText: 'Destroy ' + this.serverGroup.name,
       account: this.serverGroup.account,
@@ -159,14 +159,14 @@ class AppengineServerGroupDetailsController {
   };
 
   public enableServerGroup(): void {
-    let taskMonitor: ITaskMonitorConfig = {
+    const taskMonitor: ITaskMonitorConfig = {
       application: this.app,
       title: 'Enabling ' + this.serverGroup.name,
     };
 
-    let submitMethod = (params: any) => this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));
+    const submitMethod = (params: any) => this.serverGroupWriter.enableServerGroup(this.serverGroup, this.app, Object.assign(params));
 
-    let modalBody = `
+    const modalBody = `
       <div class="well well-sm">
         <p>
           Enabling <b>${this.serverGroup.name}</b> will set its traffic allocation for 
@@ -179,7 +179,7 @@ class AppengineServerGroupDetailsController {
       </div>
     `;
 
-    let confirmationModalParams = {
+    const confirmationModalParams = {
       header: 'Really enable ' + this.serverGroup.name + '?',
       buttonText: 'Enable ' + this.serverGroup.name,
       provider: 'appengine',
@@ -201,15 +201,15 @@ class AppengineServerGroupDetailsController {
   }
 
   public disableServerGroup(): void {
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.app,
       title: 'Disabling ' + this.serverGroup.name,
     };
 
-    let submitMethod = (params: any) => this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app.name, params);
+    const submitMethod = (params: any) => this.serverGroupWriter.disableServerGroup(this.serverGroup, this.app.name, params);
 
-    let expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
-    let modalBody = `
+    const expectedAllocations = this.expectedAllocationsAfterDisableOperation(this.serverGroup, this.app);
+    const modalBody = `
       <div class="well well-sm">
         <p>
           For App Engine, a disable operation sets this server group's allocation
@@ -228,7 +228,7 @@ class AppengineServerGroupDetailsController {
       </div>
     `;
 
-    let confirmationModalParams = {
+    const confirmationModalParams = {
       header: 'Really disable ' + this.serverGroup.name + '?',
       buttonText: 'Disable ' + this.serverGroup.name,
       provider: 'appengine',
@@ -250,12 +250,12 @@ class AppengineServerGroupDetailsController {
   }
 
   public stopServerGroup(): void {
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.app,
       title: 'Stopping ' + this.serverGroup.name,
     };
 
-    let submitMethod = () => this.appengineServerGroupWriter.stopServerGroup(this.serverGroup, this.app);
+    const submitMethod = () => this.appengineServerGroupWriter.stopServerGroup(this.serverGroup, this.app);
 
     let modalBody: string;
     if (!this.serverGroup.disabled) {
@@ -269,7 +269,7 @@ class AppengineServerGroupDetailsController {
         </div>`;
     }
 
-    let confirmationModalParams = {
+    const confirmationModalParams = {
       header: 'Really stop ' + this.serverGroup.name + '?',
       buttonText: 'Stop ' + this.serverGroup.name,
       provider: 'appengine',
@@ -286,14 +286,14 @@ class AppengineServerGroupDetailsController {
   }
 
   public startServerGroup(): void {
-    let taskMonitor = {
+    const taskMonitor = {
       application: this.app,
       title: 'Starting ' + this.serverGroup.name,
     };
 
-    let submitMethod = () => this.appengineServerGroupWriter.startServerGroup(this.serverGroup, this.app);
+    const submitMethod = () => this.appengineServerGroupWriter.startServerGroup(this.serverGroup, this.app);
 
-    let confirmationModalParams = {
+    const confirmationModalParams = {
       header: 'Really start ' + this.serverGroup.name + '?',
       buttonText: 'Start ' + this.serverGroup.name,
       provider: 'appengine',
@@ -339,9 +339,9 @@ class AppengineServerGroupDetailsController {
   }
 
   private canStartOrStopServerGroup(): boolean {
-    let isFlex = this.serverGroup.env === 'FLEXIBLE';
-    let usesManualScaling = get(this.serverGroup, 'scalingPolicy.type') === 'MANUAL';
-    let usesBasicScaling = get(this.serverGroup, 'scalingPolicy.type') === 'BASIC';
+    const isFlex = this.serverGroup.env === 'FLEXIBLE';
+    const usesManualScaling = get(this.serverGroup, 'scalingPolicy.type') === 'MANUAL';
+    const usesBasicScaling = get(this.serverGroup, 'scalingPolicy.type') === 'BASIC';
     return isFlex || usesManualScaling || usesBasicScaling;
   }
 
@@ -354,7 +354,7 @@ class AppengineServerGroupDetailsController {
     }
 
     if (!serverGroup.disabled) {
-      let expectedAllocations = this.expectedAllocationsAfterDisableOperation(serverGroup, app);
+      const expectedAllocations = this.expectedAllocationsAfterDisableOperation(serverGroup, app);
 
       template += `
         <div class="well well-sm">
@@ -383,17 +383,17 @@ class AppengineServerGroupDetailsController {
   }
 
   private expectedAllocationsAfterDisableOperation(serverGroup: ServerGroup, app: Application): {[key: string]: number} {
-    let loadBalancer = app.getDataSource('loadBalancers').data.find((toCheck: IAppengineLoadBalancer): boolean => {
-      let allocations = get(toCheck, 'split.allocations', {});
-      let enabledServerGroups = Object.keys(allocations);
+    const loadBalancer = app.getDataSource('loadBalancers').data.find((toCheck: IAppengineLoadBalancer): boolean => {
+      const allocations = get(toCheck, 'split.allocations', {});
+      const enabledServerGroups = Object.keys(allocations);
       return enabledServerGroups.includes(serverGroup.name);
     });
 
     if (loadBalancer) {
       let allocations = cloneDeep(loadBalancer.split.allocations);
       delete allocations[serverGroup.name];
-      let denominator = reduce(allocations, (partialSum: number, allocation: number) => partialSum + allocation, 0);
-      let precision = loadBalancer.split.shardBy === 'COOKIE' ? 1000 : 100;
+      const denominator = reduce(allocations, (partialSum: number, allocation: number) => partialSum + allocation, 0);
+      const precision = loadBalancer.split.shardBy === 'COOKIE' ? 1000 : 100;
       allocations = mapValues(
         allocations,
         (allocation) => Math.round(allocation / denominator * precision) / precision

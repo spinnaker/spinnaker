@@ -31,7 +31,7 @@ class AppengineEditLoadBalancerStageCtrl {
   }
 
   public editLoadBalancer(index: number) {
-    let config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
+    const config = this.cloudProviderRegistry.getValue('appengine', 'loadBalancer');
     this.$uibModal.open({
       templateUrl: config.createLoadBalancerTemplateUrl,
       controller: `${config.createLoadBalancerController} as ctrl`,

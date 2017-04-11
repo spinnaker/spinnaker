@@ -43,7 +43,7 @@ class AppengineServerGroupBasicSettingsCtrl {
   }
 
   public onAccountChange(): void {
-    let account = this.findAccountInBackingData();
+    const account = this.findAccountInBackingData();
     if (account) {
       this.$scope.command.gitCredentialType = account.supportedGitCredentialTypes[0];
     } else {
@@ -52,7 +52,7 @@ class AppengineServerGroupBasicSettingsCtrl {
   }
 
   public getSupportedGitCredentialTypes(): GitCredentialType[] {
-    let account = this.findAccountInBackingData();
+    const account = this.findAccountInBackingData();
     if (account) {
       return account.supportedGitCredentialTypes;
     } else {

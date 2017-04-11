@@ -32,7 +32,7 @@ class GceAutoHealingPolicySelector implements ng.IComponentController {
       // Clouddriver deletes maxUnavailable if maxUnavailable is an empty object.
       this.autoHealingPolicy.maxUnavailable = {};
     } else {
-      let toDeleteKey = selectedMetric === 'percent' ? 'fixed' : 'percent';
+      const toDeleteKey = selectedMetric === 'percent' ? 'fixed' : 'percent';
       set(this.autoHealingPolicy, ['maxUnavailable', toDeleteKey], undefined);
     }
   }

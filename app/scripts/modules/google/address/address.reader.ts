@@ -42,7 +42,7 @@ class GceAddressReader {
             return searchResults.results
               .filter(result => result.provider === 'gce')
               .map(result => {
-                let address = JSON.parse(result.address) as IGceAddress;
+                const address = JSON.parse(result.address) as IGceAddress;
                 address.account = result.account;
                 address.region = result.region;
                 return address;

@@ -26,14 +26,14 @@ export class PropertyPipelineBuilderService {
     private pipelineConfigService: PipelineConfigService) {}
 
   public build(command: PropertyCommand): IPromise<PropertyPipeline> {
-    let user: IUser = this.authenticationService.getAuthenticatedUser();
+    const user: IUser = this.authenticationService.getAuthenticatedUser();
     command.user = user;
 
-    let propertyStage: PropertyPipelineStage[] = this.buildPropertyStages(user, command);
+    const propertyStage: PropertyPipelineStage[] = this.buildPropertyStages(user, command);
 
-    let strategyStage: IStage = command.strategy.buildStage(user, command, last(propertyStage));
+    const strategyStage: IStage = command.strategy.buildStage(user, command, last(propertyStage));
 
-    let stages: IStage[] = flatten([propertyStage, strategyStage]).filter((stage) => !!stage);
+    const stages: IStage[] = flatten([propertyStage, strategyStage]).filter((stage) => !!stage);
 
     return this.getPipelineConfigId(command)
       .then((pipelineConfigId: string) => {
@@ -46,7 +46,7 @@ export class PropertyPipelineBuilderService {
   }
 
   private createPropertyPipeline(stages: IStage[], pipelineConfigId: string, applicationName: string): PropertyPipeline {
-    let pipeline = new PropertyPipeline(pipelineConfigId);
+    const pipeline = new PropertyPipeline(pipelineConfigId);
     pipeline.keepWaitingPipelines = false;
     pipeline.lastModifiedBy = 'spinnaker';
     pipeline.limitConcurrent = false;
@@ -66,7 +66,7 @@ export class PropertyPipelineBuilderService {
     return this.findPipelineByNameForApplication(this.fastPropertyPipelineName, appId)
       .then((foundPipeline: IPipeline) => foundPipeline.id)
       .catch(() => {
-        let config: IPipeline = <IPipeline>{
+        const config: IPipeline = <IPipeline>{
           id: null,
           name: this.fastPropertyPipelineName,
           application: appId,
@@ -92,7 +92,7 @@ export class PropertyPipelineBuilderService {
   private findPipelineByNameForApplication(pipelineName: string, appName: string) {
     return this.pipelineConfigService.getPipelinesForApplication(appName)
       .then((pipelines: IPipeline[]) => {
-        let foundPipeline = pipelines.find((pipeline: IPipeline) => pipeline.name === pipelineName);
+        const foundPipeline = pipelines.find((pipeline: IPipeline) => pipeline.name === pipelineName);
         return foundPipeline ? foundPipeline : this.$q.reject(`pipeline not found`);
       });
   }

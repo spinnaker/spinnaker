@@ -15,9 +15,9 @@ export class LoadBalancersTagController implements ng.IComponentController {
 
   public $onInit() {
     this.application.getDataSource('loadBalancers').ready().then(() => {
-      let serverGroup: ServerGroup = this.serverGroup;
+      const serverGroup: ServerGroup = this.serverGroup;
       this.loadBalancers = serverGroup.loadBalancers.map( (lbName: string) => {
-        let match = this.application.getDataSource('loadBalancers')
+        const match = this.application.getDataSource('loadBalancers')
           .data
           .find((lb: ILoadBalancer): boolean => {
             return lb.name === lbName
@@ -35,14 +35,14 @@ export class LoadBalancersTagController implements ng.IComponentController {
       return null;
     }
 
-    let loadBalancer: ILoadBalancer = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider };
+    const loadBalancer: ILoadBalancer = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider };
     loadBalancer.instanceCounts = <InstanceCounts>{up: 0, down: 0, succeeded: 0, failed: 0, unknown: 0};
 
     this.serverGroup.instances.forEach(instance => {
-      let lbHealth: Health = instance.health.find(h => h.type === 'LoadBalancer');
+      const lbHealth: Health = instance.health.find(h => h.type === 'LoadBalancer');
       if (lbHealth) {
 
-        let matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
+        const matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
 
         if (matchedHealth !== undefined && matchedHealth.healthState !== undefined && loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined) {
           loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()]++;

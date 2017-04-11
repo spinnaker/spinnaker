@@ -74,8 +74,8 @@ class FastPropertyFilterSearchController implements IComponentController {
 
 
   public tagAndClearFilter(category: string, result: string): void {
-    let copy = this.filters.list.splice(0);
-    let tagBody = {label: category, value: result};
+    const copy = this.filters.list.splice(0);
+    const tagBody = {label: category, value: result};
     copy.push(this.createFilterTag(tagBody));
     this.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
     this.$element.find('input').val('');
@@ -98,7 +98,7 @@ class FastPropertyFilterSearchController implements IComponentController {
 
   public dispatchQueryInput(event: any) {
     if (this.showSearchResults) {
-      let code = event.which;
+      const code = event.which;
 
       if (code === 40) { // down
         return this.focusFirstSearchResult(event);
@@ -176,7 +176,7 @@ class FastPropertyFilterSearchController implements IComponentController {
 
   private createFilterCategories(properties: IFastProperty[]) {
     this.categories = properties.reduce((acc: any, property: IFastProperty) => {
-      let scope: IFastPropertyScope = property.scope;
+      const scope: IFastPropertyScope = property.scope;
       acc = this.addToList(acc, 'key', property.key );
       acc = this.addToList(acc, 'value', property.value);
       acc = this.addToList(acc, 'app', scope.app );
@@ -190,9 +190,9 @@ class FastPropertyFilterSearchController implements IComponentController {
 
   private addToList(acc: any[], scopeKey: string, scopeValue: string): any {
     if (scopeValue && scopeKey) {
-      let categoryIndex = findIndex(acc, ['category', scopeKey]);
+      const categoryIndex = findIndex(acc, ['category', scopeKey]);
       if (categoryIndex > -1) {
-        let categoryResults = acc[categoryIndex].results;
+        const categoryResults = acc[categoryIndex].results;
         if (categoryResults.indexOf(scopeValue) === -1) {
           categoryResults.push(scopeValue);
         }

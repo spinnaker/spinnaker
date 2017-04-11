@@ -7,7 +7,7 @@ import {
 // See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#Version
 class AppengineApplicationNameValidator implements IApplicationNameValidator {
   public validate(name = ''): IValidationResult {
-    let warnings: string[] = [],
+    const warnings: string[] = [],
         errors: string[] = [];
     if (name.length) {
       this.validateSpecialCharacters(name, errors);
@@ -17,7 +17,7 @@ class AppengineApplicationNameValidator implements IApplicationNameValidator {
   }
 
   private validateSpecialCharacters(name: string, errors: string[]): void {
-    let pattern = /^[a-z0-9]*$/g;
+    const pattern = /^[a-z0-9]*$/g;
     if (!pattern.test(name)) {
       errors.push('Only numbers and lowercase letters are allowed.');
     }
@@ -32,7 +32,7 @@ class AppengineApplicationNameValidator implements IApplicationNameValidator {
       if (name.length >= 56) {
         warnings.push('You will not be able to include a stack or detail field for clusters.');
       } else {
-        let remaining = 56 - name.length;
+        const remaining = 56 - name.length;
         warnings.push(`If you plan to include a stack or detail field for clusters, you will only have 
                        ${remaining} character${remaining > 1 ? 's' : ''} to do so.`);
       }

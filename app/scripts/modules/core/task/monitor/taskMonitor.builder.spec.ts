@@ -49,11 +49,11 @@ describe('Service: taskMonitorBuilder', () => {
   describe('task submit', () => {
     it('waits for task to complete, then calls onComplete', () => {
       let completeCalled = false;
-      let task: any = { id: 'a', status: 'RUNNING' };
+      const task: any = { id: 'a', status: 'RUNNING' };
       orchestratedItemTransformer.defineProperties(task);
 
-      let operation = () => $q.when(task);
-      let monitor = taskMonitorBuilder.buildTaskMonitor({
+      const operation = () => $q.when(task);
+      const monitor = taskMonitorBuilder.buildTaskMonitor({
         application: applicationModelBuilder.createApplication({key: 'runningTasks', lazy: true}),
         title: 'some task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
@@ -84,9 +84,9 @@ describe('Service: taskMonitorBuilder', () => {
 
     it('sets error when task fails immediately', () => {
       let completeCalled = false;
-      let task = { failureMessage: 'it failed' };
-      let operation = () => $q.reject(task);
-      let monitor = taskMonitorBuilder.buildTaskMonitor({
+      const task = { failureMessage: 'it failed' };
+      const operation = () => $q.reject(task);
+      const monitor = taskMonitorBuilder.buildTaskMonitor({
         application: applicationModelBuilder.createApplication({key: 'runningTasks', lazy: true}),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
@@ -106,11 +106,11 @@ describe('Service: taskMonitorBuilder', () => {
 
     it('sets error when task fails while polling', () => {
       let completeCalled = false;
-      let task = { id: 'a', status: 'RUNNING' };
+      const task = { id: 'a', status: 'RUNNING' };
       orchestratedItemTransformer.defineProperties(task);
 
-      let operation = () => $q.when(task);
-      let monitor = taskMonitorBuilder.buildTaskMonitor({
+      const operation = () => $q.when(task);
+      const monitor = taskMonitorBuilder.buildTaskMonitor({
         application: applicationModelBuilder.createApplication({key: 'runningTasks', lazy: true}),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,

@@ -54,7 +54,7 @@ class CloneFastPropertyToNewScopeWizardController {
   }
 
   public startPipeline(pipeline: PropertyPipeline): void {
-    let submit = () => this.pipelineConfigService.startAdHocPipeline(pipeline);
+    const submit = () => this.pipelineConfigService.startAdHocPipeline(pipeline);
     this.propertyMonitor.submit(submit);
   }
 

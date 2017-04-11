@@ -65,7 +65,7 @@ export class DataSourceEditorController implements ng.IComponentController {
   public save() {
     this.saving = true;
     this.saveError = false;
-    let newDataSources = { enabled: this.explicitlyEnabled, disabled: this.explicitlyDisabled };
+    const newDataSources = { enabled: this.explicitlyEnabled, disabled: this.explicitlyDisabled };
     this.applicationWriter.updateApplication({
       name: this.application.name,
       accounts: this.application.attributes.accounts,

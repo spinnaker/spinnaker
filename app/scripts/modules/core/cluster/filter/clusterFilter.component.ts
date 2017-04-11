@@ -6,7 +6,7 @@ import {Application} from '../../application/application.model';
 
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
-let ngmodule = module(CLUSTER_FILTER, [
+const ngmodule = module(CLUSTER_FILTER, [
   require('./collapsibleFilterSection.directive'),
   CLUSTER_FILTER_SERVICE,
   require('./clusterFilter.model'),

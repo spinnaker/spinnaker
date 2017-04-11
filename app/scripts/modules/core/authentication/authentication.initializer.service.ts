@@ -114,7 +114,7 @@ export class AuthenticationInitializer {
 
   public logOut(): void {
     if (!this.userLoggedOut) {
-      let config = {
+      const config = {
         headers: {'Content-Type': 'text/plain'},
         transformResponse: (response: string) => response,
       };

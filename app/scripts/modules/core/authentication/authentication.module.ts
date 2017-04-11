@@ -5,7 +5,7 @@ import {AUTHENTICATION_SERVICE} from './authentication.service';
 import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 export const AUTHENTICATION = 'spinnaker.authentication';
 angular.module(AUTHENTICATION, [

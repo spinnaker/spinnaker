@@ -49,8 +49,8 @@ export class ClusterFilterService {
       }
     }
 
-    let groups: IClusterGroup[] = [];
-    let serverGroups: ServerGroup[] = this.filterServerGroupsForDisplay(application.getDataSource('serverGroups').data);
+    const groups: IClusterGroup[] = [];
+    const serverGroups: ServerGroup[] = this.filterServerGroupsForDisplay(application.getDataSource('serverGroups').data);
 
     const accountGroupings = groupBy(serverGroups, 'account');
 
@@ -183,7 +183,7 @@ export class ClusterFilterService {
   }
 
   private filterServerGroupsForDisplay(serverGroups: ServerGroup[]): ServerGroup[] {
-    let filtered: ServerGroup[] = serverGroups.filter(g => this.textFilter(g))
+    const filtered: ServerGroup[] = serverGroups.filter(g => this.textFilter(g))
       .filter(g => this.instanceCountFilter(g))
       .filter(g => this.filterModelService.checkAccountFilters(this.ClusterFilterModel)(g))
       .filter(g => this.filterModelService.checkRegionFilters(this.ClusterFilterModel)(g))
@@ -205,7 +205,7 @@ export class ClusterFilterService {
     if (this.ClusterFilterModel.sortFilter.listInstances && this.ClusterFilterModel.sortFilter.multiselect) {
       let instancesSelected = 0;
       this.MultiselectModel.instanceGroups.forEach((instanceGroup: any) => {
-        let match = serverGroups.find((serverGroup) => {
+        const match = serverGroups.find((serverGroup) => {
           return serverGroup.name === instanceGroup.serverGroup &&
             serverGroup.region === instanceGroup.region &&
             serverGroup.account === instanceGroup.account &&
@@ -217,7 +217,7 @@ export class ClusterFilterService {
           // back in subsequent filter operations
           instanceGroup.instanceIds.length = 0;
         } else {
-          let filteredInstances = match.instances.filter(i => this.shouldShowInstance(i));
+          const filteredInstances = match.instances.filter(i => this.shouldShowInstance(i));
           if (instanceGroup.selectAll) {
             instanceGroup.instanceIds = filteredInstances.map(i => i.id);
           } else {
@@ -238,8 +238,8 @@ export class ClusterFilterService {
   private updateMultiselectServerGroups(serverGroups: ServerGroup[]): void {
     if (this.ClusterFilterModel.sortFilter.multiselect) {
       if (this.MultiselectModel.serverGroups.length) {
-        let remainingKeys = serverGroups.map(s => this.MultiselectModel.makeServerGroupKey(s));
-        let toRemove: number[] = [];
+        const remainingKeys = serverGroups.map(s => this.MultiselectModel.makeServerGroupKey(s));
+        const toRemove: number[] = [];
         this.MultiselectModel.serverGroups.forEach((group: any, index: number) => {
           if (!remainingKeys.includes(group.key)) {
             toRemove.push(index);
@@ -255,7 +255,7 @@ export class ClusterFilterService {
 
   private instanceTypeFilters(serverGroup: ServerGroup): boolean {
     if (this.isFilterable(this.ClusterFilterModel.sortFilter.instanceType)) {
-      let checkedInstanceTypes: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.instanceType);
+      const checkedInstanceTypes: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.instanceType);
       return checkedInstanceTypes.includes(serverGroup.instanceType);
     } else {
       return true;
@@ -295,13 +295,13 @@ export class ClusterFilterService {
     }
 
     if (filter.includes('vpc:')) {
-      let vpcName: string = filter.split('vpc:')[1];
+      const vpcName: string = filter.split('vpc:')[1];
       return serverGroup.vpcName.toLowerCase() === vpcName.toLowerCase();
     }
 
     if (filter.includes('tag:')) {
       let match = false;
-      let [, tag] = filter.split('tag:');
+      const [, tag] = filter.split('tag:');
       let tagKey: string = null;
       let tagValue: string = null;
       if (tag.includes('=')) {
@@ -320,12 +320,12 @@ export class ClusterFilterService {
     }
 
     if (filter.includes('detail:')) {
-      let detailName: string = filter.split('detail:')[1];
+      const detailName: string = filter.split('detail:')[1];
       return serverGroup.detail === detailName.toLowerCase();
     }
 
     if (filter.includes('cluster:')) {
-      let clusterName: string = filter.split('cluster:')[1];
+      const clusterName: string = filter.split('cluster:')[1];
       return serverGroup.cluster === clusterName;
     } else {
       this.addSearchField(serverGroup);
@@ -392,7 +392,7 @@ export class ClusterFilterService {
   private diffSubgroups(oldGroups: Grouping[], newGroups: Grouping[]): void {
     const groupsToRemove: number[] = [];
     oldGroups.forEach((oldGroup: Grouping, idx: number) => {
-      let newGroup = (newGroups || []).find(group => group.key === oldGroup.key);
+      const newGroup = (newGroups || []).find(group => group.key === oldGroup.key);
       if (!newGroup) {
         groupsToRemove.push(idx);
       } else {

@@ -32,9 +32,9 @@ export interface IJsonDiff {
 export class JsonUtilityService {
 
   private generateDiff(left: string, right: string): [[number, string]] {
-    let dmp: any = new DiffMatchPatch();
-    let a = dmp.diff_linesToChars_(left, right);
-    let diffs = dmp.diff_main(a.chars1, a.chars2, false);
+    const dmp: any = new DiffMatchPatch();
+    const a = dmp.diff_linesToChars_(left, right);
+    const diffs = dmp.diff_main(a.chars1, a.chars2, false);
     dmp.diff_charsToLines_(diffs, a.lineArray);
     return diffs;
   }
@@ -69,12 +69,12 @@ export class JsonUtilityService {
       left = this.makeSortedString(left);
       right = this.makeSortedString(right);
     }
-    let diffs = this.generateDiff(left, right);
-    let diffLines: IDiffDetails[] = [];
+    const diffs = this.generateDiff(left, right);
+    const diffLines: IDiffDetails[] = [];
     let additions = 0, removals = 0, unchanged = 0, total = 0;
-    let changeBlocks: IChangeBlock[] = [];
+    const changeBlocks: IChangeBlock[] = [];
     diffs.forEach(diff => {
-      let lines = diff[1].split('\n');
+      const lines = diff[1].split('\n');
       if (lines[lines.length - 1] === '') {
         lines.pop(); // always a trailing new line...
       }

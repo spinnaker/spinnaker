@@ -7,10 +7,10 @@ import {IGceLoadBalancer, IGceHttpLoadBalancer} from 'google/domain/loadBalancer
 export class GceLoadBalancerSetTransformer {
 
   private static normalizeHttpLoadBalancerGroup(group: IGceHttpLoadBalancer[]): IGceHttpLoadBalancer {
-    let normalized = cloneDeep(group[0]);
+    const normalized = cloneDeep(group[0]);
 
     normalized.listeners = group.map((loadBalancer) => {
-      let port = loadBalancer.portRange ? GceLoadBalancerSetTransformer.parsePortRange(loadBalancer.portRange) : null;
+      const port = loadBalancer.portRange ? GceLoadBalancerSetTransformer.parsePortRange(loadBalancer.portRange) : null;
       return {
         port,
         name: loadBalancer.name,
@@ -34,10 +34,10 @@ export class GceLoadBalancerSetTransformer {
   constructor(private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils) {}
 
   public normalizeLoadBalancerSet = (loadBalancers: IGceLoadBalancer[]): IGceLoadBalancer[] => {
-    let [httpLoadBalancers, otherLoadBalancers] = partition(loadBalancers, lb => this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb));
+    const [httpLoadBalancers, otherLoadBalancers] = partition(loadBalancers, lb => this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb));
 
-    let groupedByUrlMap = groupBy(httpLoadBalancers, 'urlMapName');
-    let normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeHttpLoadBalancerGroup);
+    const groupedByUrlMap = groupBy(httpLoadBalancers, 'urlMapName');
+    const normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeHttpLoadBalancerGroup);
 
     return (normalizedElSevenLoadBalancers as IGceLoadBalancer[]).concat(otherLoadBalancers);
   }

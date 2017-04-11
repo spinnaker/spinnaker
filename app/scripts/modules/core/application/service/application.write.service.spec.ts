@@ -27,7 +27,7 @@ describe('Service: applicationWriter', function () {
     it('should execute one task for an application with one account', function () {
       spyOn(taskExecutor, 'executeTask');
 
-      let application: IApplicationAttributes = {
+      const application: IApplicationAttributes = {
         name: 'foo',
         accounts: ['test'],
         cloudProviders: [],
@@ -43,7 +43,7 @@ describe('Service: applicationWriter', function () {
       let jobs: IJob[] = [];
       spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => jobs = task.job);
 
-      let application: IApplicationAttributes = {
+      const application: IApplicationAttributes = {
         name: 'foo',
         accounts: ['test', 'prod'],
         cloudProviders: [],
@@ -60,7 +60,7 @@ describe('Service: applicationWriter', function () {
       let job: IJob = null;
       spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => job = task.job[0]);
 
-      let application: IApplicationAttributes = {
+      const application: IApplicationAttributes = {
         name: 'foo',
         accounts: ['test'],
         cloudProviders: ['titus', 'cf'],
@@ -78,7 +78,7 @@ describe('Service: applicationWriter', function () {
     it('should execute one task if the application has one account', function () {
       spyOn(taskExecutor, 'executeTask').and.returnValue($q.when({}));
 
-      let application: IApplicationAttributes = {
+      const application: IApplicationAttributes = {
         name: 'foo',
         accounts: ['test'],
       };
@@ -96,7 +96,7 @@ describe('Service: applicationWriter', function () {
         return $q.when(task);
       });
 
-      let application: IApplicationAttributes = {
+      const application: IApplicationAttributes = {
         name: 'foo',
         accounts: ['test', 'prod'],
       };

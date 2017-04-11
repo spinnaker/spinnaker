@@ -18,7 +18,7 @@ export class GceSecurityGroupHelpTextService {
   }
 
   public getHelpTextForTag(tag: string, tagType: 'source' | 'target'): string {
-    let serverGroups = this.getServerGroupsWithTag(tag);
+    const serverGroups = this.getServerGroupsWithTag(tag);
     let text: string;
     switch (serverGroups.length) {
       case 0:

@@ -71,7 +71,7 @@ describe('Controller: ScalingActivitiesCtrl', () => {
       ctrl.$onInit();
       $scope.$digest();
 
-      let result: IScalingEventSummary[] = ctrl.activities;
+      const result: IScalingEventSummary[] = ctrl.activities;
       expect(result.length).toEqual(2);
       expect(result[0].cause).toBe('common cause');
       expect(result[1].cause).toBe('some other cause');
@@ -116,7 +116,7 @@ describe('Controller: ScalingActivitiesCtrl', () => {
       ctrl.$onInit();
       $scope.$digest();
 
-      let result: IScalingEventSummary[] = ctrl.activities;
+      const result: IScalingEventSummary[] = ctrl.activities;
       expect(result.length).toEqual(1);
       expect(result[0].cause).toBe('some cause');
       expect(result[0].events[0].availabilityZone).toBe('unknown');

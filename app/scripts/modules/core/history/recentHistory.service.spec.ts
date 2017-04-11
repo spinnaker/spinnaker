@@ -38,8 +38,8 @@ describe('recent history service', () => {
   describe('addItem is fancy', () => {
 
     function initializeCache(count: number) {
-      let start = Date.now() - 1;
-      let currentItems = range(0, count).map((idx: number) => {
+      const start = Date.now() - 1;
+      const currentItems = range(0, count).map((idx: number) => {
         return { id: '' + idx, params: {id: idx}, accessTime: start - idx};
       });
       backingCache.put('whatever', currentItems);
@@ -48,27 +48,27 @@ describe('recent history service', () => {
     it('puts items in cache most recent first', () => {
       initializeCache(2);
       service.addItem('whatever', 'state', {id: 'new item'});
-      let ids = service.getItems('whatever').map((item) => { return item.params.id; });
+      const ids = service.getItems('whatever').map((item) => { return item.params.id; });
       expect(ids).toEqual(['new item', 0, 1]);
     });
 
     it('replaces oldest item if cache is full', () => {
       initializeCache(15);
       service.addItem('whatever', 'state', {id: 'new item'});
-      let ids = service.getItems('whatever').map((item) => { return item.params.id; });
+      const ids = service.getItems('whatever').map((item) => { return item.params.id; });
       expect(ids).toEqual(['new item', 0, 1, 2, 3]);
     });
 
     it('removes previous entry and adds replacement if params match', () => {
       initializeCache(3);
       service.addItem('whatever', 'state', {id: 1});
-      let ids = service.getItems('whatever').map((item) => { return item.params.id; });
+      const ids = service.getItems('whatever').map((item) => { return item.params.id; });
       expect(ids).toEqual([1, 0, 2]);
     });
 
     it('only matches on specified params if supplied', () => {
-      let start = Date.now() - 1;
-      let currentItems = range(0, 3).map((idx: number) => {
+      const start = Date.now() - 1;
+      const currentItems = range(0, 3).map((idx: number) => {
         return { params: {id: idx, importantParam: idx, ignoredParam: idx + 1}, accessTime: start - idx};
       });
       backingCache.put('whatever', currentItems);
@@ -83,8 +83,8 @@ describe('recent history service', () => {
 
   describe('remove item from history cache by app name', () => {
     beforeEach(() => {
-        let start = Date.now() - 1;
-        let currentItems = ['foo', 'bar', 'baz'].map((appName, index) => {
+        const start = Date.now() - 1;
+        const currentItems = ['foo', 'bar', 'baz'].map((appName, index) => {
           return { params: {application: appName, accessTime: start - index}};
         });
         backingCache.put('applications', currentItems);
@@ -92,13 +92,13 @@ describe('recent history service', () => {
     );
 
     it('should have 3 items in the "applications" cache', () => {
-      let items = service.getItems('applications');
+      const items = service.getItems('applications');
       expect(items.length).toBe(3);
     });
 
     it('should have 2 items in the "application" cache when we remove "foo" by application name', () => {
       service.removeByAppName('foo');
-      let items = service.getItems('applications');
+      const items = service.getItems('applications');
       expect(items.length).toBe(2);
       expect(some(items, {params: {application: 'foo'}})).toBeFalsy();
     });

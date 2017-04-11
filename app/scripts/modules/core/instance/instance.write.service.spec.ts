@@ -46,7 +46,7 @@ describe('Service: instance writer', function () {
   describe('terminate and decrement server group', () => {
 
     it('should set setMaxToNewDesired flag based on current server group capacity', function () {
-      let serverGroup = {
+      const serverGroup = {
         asg: {
           minSize: 4,
           maxSize: 4
@@ -93,7 +93,7 @@ describe('Service: instance writer', function () {
     }
 
     function addInstance(serverGroup: ServerGroup, instance: Instance) {
-      let instanceGroup: IMultiInstanceGroup = getInstanceGroup(serverGroup);
+      const instanceGroup: IMultiInstanceGroup = getInstanceGroup(serverGroup);
       instanceGroup.instanceIds.push(instance.id);
       instanceGroup.instances.push(instance);
     }
@@ -107,7 +107,7 @@ describe('Service: instance writer', function () {
     });
 
     it('only sends jobs for groups with instances', () => {
-      let application: Application = applicationModelBuilder.createApplication();
+      const application: Application = applicationModelBuilder.createApplication();
       addInstance(serverGroupB, {id: 'i-234', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
       addInstance(serverGroupB, {id: 'i-345', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
       service.terminateInstances(
@@ -116,7 +116,7 @@ describe('Service: instance writer', function () {
 
       expect(task.job.length).toBe(1);
 
-      let job = task.job[0];
+      const job = task.job[0];
 
       expect(job.type).toBe('terminateInstances');
       expect(job['instanceIds']).toEqual(['i-234', 'i-345']);
@@ -127,7 +127,7 @@ describe('Service: instance writer', function () {
     });
 
     it('includes additional job properties for terminate and shrink', () => {
-      let application: Application = applicationModelBuilder.createApplication();
+      const application: Application = applicationModelBuilder.createApplication();
       addInstance(serverGroupA, {id: 'i-234', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
       addInstance(serverGroupA, {id: 'i-345', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
       service.terminateInstancesAndShrinkServerGroups(
@@ -136,7 +136,7 @@ describe('Service: instance writer', function () {
 
       expect(task.job.length).toBe(1);
 
-      let job: IJob = task.job[0];
+      const job: IJob = task.job[0];
 
       expect(job.type).toBe('detachInstances');
       expect(job['instanceIds']).toEqual(['i-234', 'i-345']);
@@ -149,7 +149,7 @@ describe('Service: instance writer', function () {
     });
 
     it('includes a useful descriptor on terminate instances', () => {
-      let application: Application = applicationModelBuilder.createApplication();
+      const application: Application = applicationModelBuilder.createApplication();
       addInstance(serverGroupA, {id: 'i-123', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
 
       service.terminateInstances([getInstanceGroup(serverGroupA)], application);
@@ -161,7 +161,7 @@ describe('Service: instance writer', function () {
     });
 
     it('includes a useful descriptor on reboot instances', function () {
-      let application: Application = applicationModelBuilder.createApplication();
+      const application: Application = applicationModelBuilder.createApplication();
       addInstance(serverGroupA, {id: 'i-123', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
 
       service.rebootInstances([getInstanceGroup(serverGroupA)], application);
@@ -173,7 +173,7 @@ describe('Service: instance writer', function () {
     });
 
     it('includes a useful descriptor on disable in discovery', function () {
-      let application: Application = applicationModelBuilder.createApplication();
+      const application: Application = applicationModelBuilder.createApplication();
       addInstance(serverGroupA, {id: 'i-123', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
 
       service.disableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application);
@@ -185,7 +185,7 @@ describe('Service: instance writer', function () {
     });
 
     it('includes a useful descriptor on enable in discovery', function () {
-      let application: Application = applicationModelBuilder.createApplication();
+      const application: Application = applicationModelBuilder.createApplication();
       addInstance(serverGroupA, {id: 'i-123', health: [], healthState: 'Up', zone: 'a', launchTime: 2});
 
       service.enableInstancesInDiscovery([getInstanceGroup(serverGroupA)], application);

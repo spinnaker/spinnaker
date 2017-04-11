@@ -18,10 +18,10 @@ export function anyFieldFilter() {
       items.forEach(function (item) {
         let itemMatches = false;
 
-        let keys: any[] = Object.keys(props);
+        const keys: any[] = Object.keys(props);
         for (let i = 0; i < keys.length; i++) {
-          let prop: any = keys[i];
-          let text: string = (<any>props)[prop].toLowerCase();
+          const prop: any = keys[i];
+          const text: string = (<any>props)[prop].toLowerCase();
           if (item[prop] && item[prop].toString().toLowerCase().includes(text)) {
             itemMatches = true;
             break;

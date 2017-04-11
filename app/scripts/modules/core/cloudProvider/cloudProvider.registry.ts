@@ -43,10 +43,10 @@ export class CloudProviderRegistry {
       console.warn(`Cannot override "${key}" for provider "${cloudProvider}" (provider not registered)`);
       return;
     }
-    let config = this.providers.get(cloudProvider),
+    const config = this.providers.get(cloudProvider),
       parentKeys = key.split('.'),
-      lastKey = parentKeys.pop(),
-      current = config;
+      lastKey = parentKeys.pop();
+    let current = config;
 
     parentKeys.forEach((parentKey) => {
       if (!current[parentKey]) {
@@ -66,9 +66,9 @@ export class CloudProviderRegistry {
     if (!key || !this.providers.has(cloudProvider)) {
       return null;
     }
-    let config = this.getProvider(cloudProvider),
-      keyParts = key.split('.'),
-      current = config,
+    const config = this.getProvider(cloudProvider),
+      keyParts = key.split('.');
+    let current = config,
       notFound = false;
 
     keyParts.forEach((keyPart) => {

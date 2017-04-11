@@ -60,11 +60,11 @@ export class AppengineServerGroupCommandBuilder {
   public buildNewServerGroupCommand(app: Application,
                                     selectedProvider = 'appengine',
                                     mode = 'create'): IPromise<IAppengineServerGroupCommand> {
-    let dataToFetch = {
+    const dataToFetch = {
       accounts: this.accountService.getAllAccountDetailsForProvider('appengine'),
     };
 
-    let viewState: IViewState = {
+    const viewState: IViewState = {
       mode: mode,
       submitButtonLabel: this.getSubmitButtonLabel(mode),
       disableStrategySelection: mode === 'create' ? true : false,
@@ -72,8 +72,8 @@ export class AppengineServerGroupCommandBuilder {
 
     return this.$q.all(dataToFetch)
       .then((backingData: any) => {
-        let credentials: string = this.getCredentials(backingData.accounts, app);
-        let region: string = this.getRegion(backingData.accounts, credentials);
+        const credentials: string = this.getCredentials(backingData.accounts, app);
+        const region: string = this.getRegion(backingData.accounts, credentials);
 
         return {
           application: app.name,
@@ -115,9 +115,9 @@ export class AppengineServerGroupCommandBuilder {
   }
 
   private getCredentials(accounts: IAppengineAccount[], application: Application): string {
-    let accountNames: string[] = (accounts || []).map((account) => account.name);
-    let defaultCredentials: string = AppengineProviderSettings.defaults.account;
-    let firstApplicationAccount: string = intersection(application.accounts || [], accountNames)[0];
+    const accountNames: string[] = (accounts || []).map((account) => account.name);
+    const defaultCredentials: string = AppengineProviderSettings.defaults.account;
+    const firstApplicationAccount: string = intersection(application.accounts || [], accountNames)[0];
 
     return accountNames.includes(defaultCredentials) ?
       defaultCredentials :
@@ -125,7 +125,7 @@ export class AppengineServerGroupCommandBuilder {
   }
 
   private getRegion(accounts: IAppengineAccount[], credentials: string): string {
-    let account = accounts.find((_account) => _account.name === credentials);
+    const account = accounts.find((_account) => _account.name === credentials);
     return account ? account.region : null;
   }
 

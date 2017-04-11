@@ -159,7 +159,7 @@ module(TRAVIS_STAGE, [
       if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
         return 0;
       }
-      let lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
+      const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
       return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
     },
     defaultTimeoutMs: moment.duration(2, 'hours').asMilliseconds(),

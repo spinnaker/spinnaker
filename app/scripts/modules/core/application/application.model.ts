@@ -128,10 +128,10 @@ export class Application {
    * @param failureMethod a method to call if the refresh fails
    */
   public onRefresh($scope: ng.IScope, method: any, failureMethod: any): void {
-    let success = this.refreshStream.subscribe(method);
+    const success = this.refreshStream.subscribe(method);
     $scope.$on('$destroy', () => success.unsubscribe());
     if (failureMethod) {
-      let failure = this.refreshFailureStream.subscribe(failureMethod);
+      const failure = this.refreshFailureStream.subscribe(failureMethod);
       $scope.$on('$destroy', () => failure.unsubscribe());
     }
   }
@@ -142,7 +142,7 @@ export class Application {
    * @param scope
    */
   public enableAutoRefresh(scope: ng.IScope): void {
-    let dataLoader = this.scheduler.subscribe(() => this.refresh());
+    const dataLoader = this.scheduler.subscribe(() => this.refresh());
     scope.$on('$destroy', () => {
       dataLoader.unsubscribe();
       this.scheduler.unsubscribe();
@@ -171,16 +171,16 @@ export class Application {
   }
 
   private extractProviderDefault(field: string): Map<string, string> {
-    let results = new Map<string, string>();
-    let sources = this.dataSources.filter(d => d[field] !== undefined);
-    let providers = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
+    const results = new Map<string, string>();
+    const sources = this.dataSources.filter(d => d[field] !== undefined);
+    const providers = sources.map(ds => ds.data.map(d => d[ds.providerField])).filter(p => p.length > 0);
     let allProviders: any; // typescript made me do it this way
     allProviders = union<string[]>(...providers);
     allProviders.forEach((provider: string) => {
-      let vals = sources
+      const vals = sources
         .map(ds => map(ds.data.filter(d => d[ds.providerField] === provider), ds[field]))
         .filter(v => v.length > 0);
-      let allRegions = union(...vals);
+      const allRegions = union(...vals);
       if (allRegions.length === 1) {
         (<any>results)[provider] = allRegions[0];
       }
