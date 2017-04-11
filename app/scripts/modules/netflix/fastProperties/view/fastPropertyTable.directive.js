@@ -43,7 +43,7 @@ module.exports = angular.module('spinnaker.netflix.fastProperties.view.tableRow.
 
               return `
 
-              <tr data-property-id="${property.propertyId}">
+              <tr data-property-id="${property.propertyId}" class="clickable">
                 <td>${property.key}</td>
                 <td>${property.value || ''}</td>
                 <td>${property.appId}</td>
