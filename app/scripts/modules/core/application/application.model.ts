@@ -1,6 +1,8 @@
+import {ILogService, IPromise, IQService, IScope} from 'angular';
 import {map, union, uniq} from 'lodash';
+import {Subject, Subscription} from 'rxjs';
+
 import {ApplicationDataSource} from './service/applicationDataSource';
-import {Subject} from 'rxjs';
 import {ICluster} from '../domain/ICluster';
 
 export class Application {
@@ -77,7 +79,7 @@ export class Application {
 
   private refreshFailureStream: Subject<any> = new Subject();
 
-  constructor(private applicationName: string, private scheduler: any, private $q: ng.IQService, private $log: ng.ILogService) {}
+  constructor(private applicationName: string, private scheduler: any, private $q: IQService, private $log: ILogService) {}
 
   /**
    * Returns a data source based on its key. Data sources can be accessed on the application directly via the key,
@@ -95,7 +97,7 @@ export class Application {
    * @returns {IPromise<void>} a promise that resolves when the application finishes loading, rejecting with an error if
    * one of the data sources fails to refresh
    */
-  public refresh(forceRefresh?: boolean): ng.IPromise<any> {
+  public refresh(forceRefresh?: boolean): IPromise<any> {
     // refresh hidden data sources but do not consider their results when determining when the refresh completes
     this.dataSources.filter(ds => !ds.visible).forEach(ds => ds.refresh(forceRefresh));
     return this.$q.all(
@@ -111,10 +113,10 @@ export class Application {
   /**
    * A promise that resolves immediately if all data sources are ready (i.e. loaded), or once all data sources have
    * loaded
-   * @returns {IPromise<any>|IPromise<any[]>|IPromise<{}>|IPromise<T>} the return value is a promise, but its value is
+   * @returns {IPromise<any>} the return value is a promise, but its value is
    * not useful - it's only useful to watch the promise itself
    */
-  public ready(): ng.IPromise<any> {
+  public ready(): IPromise<any> {
     return this.$q.all(
       this.dataSources
         .filter(ds => ds.onLoad !== undefined && ds.visible)
@@ -124,26 +126,37 @@ export class Application {
   /**
    * Used to subscribe to the application's refresh cycle. Will automatically be disposed when the $scope is destroyed.
    * @param $scope the $scope that will manage the lifecycle of the subscription
+   *        If you pass in null for the $scope, you are responsible for unsubscribing when your component unmounts.
    * @param method the method to call when the refresh completes
    * @param failureMethod a method to call if the refresh fails
+   * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: ng.IScope, method: any, failureMethod: any): void {
-    const success = this.refreshStream.subscribe(method);
-    $scope.$on('$destroy', () => success.unsubscribe());
+  public onRefresh($scope: IScope, method: any, failureMethod: any): () => void {
+    const success: Subscription = this.refreshStream.subscribe(method);
+    let failure: Subscription = null;
     if (failureMethod) {
-      const failure = this.refreshFailureStream.subscribe(failureMethod);
-      $scope.$on('$destroy', () => failure.unsubscribe());
+      failure = this.refreshFailureStream.subscribe(failureMethod);
     }
+    const unsubscribe = () => {
+      success.unsubscribe();
+      if (failure) {
+        failure.unsubscribe();
+      }
+    };
+    if ($scope) {
+      $scope.$on('$destroy', () => unsubscribe());
+    }
+    return unsubscribe;
   }
 
   /**
    * This is really only used by the ApplicationController - it manages the refresh cycle for the overall application
    * and halts refresh when switching applications or navigating to a non-application view
-   * @param scope
+   * @param $scope
    */
-  public enableAutoRefresh(scope: ng.IScope): void {
+  public enableAutoRefresh($scope: IScope): void {
     const dataLoader = this.scheduler.subscribe(() => this.refresh());
-    scope.$on('$destroy', () => {
+    $scope.$on('$destroy', () => {
       dataLoader.unsubscribe();
       this.scheduler.unsubscribe();
     });
