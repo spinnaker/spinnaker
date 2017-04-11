@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.deploy.ActuateDeployCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.deploy.ApplyDeployCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.deploy.DetailsDeployCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.deploy.DiffDeployCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.deploy.RollbackDeployCommand;
@@ -34,7 +34,7 @@ public class DeployCommand extends NestableCommand {
       + " what the infrastructure footprint looks like, what the currently running deployment looks like, etc...";
 
   public DeployCommand() {
-    registerSubcommand(new ActuateDeployCommand());
+    registerSubcommand(new ApplyDeployCommand());
     registerSubcommand(new RollbackDeployCommand());
     registerSubcommand(new DiffDeployCommand());
     registerSubcommand(new DetailsDeployCommand());

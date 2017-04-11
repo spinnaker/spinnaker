@@ -148,7 +148,7 @@
  * [**hal version latest**](#hal-version-latest)
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy rollback**](#hal-deploy-rollback)
- * [**hal deploy actuate**](#hal-deploy-actuate)
+ * [**hal deploy apply**](#hal-deploy-apply)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy details**](#hal-deploy-details)
 ## hal
@@ -2444,7 +2444,7 @@ Manage the deployment of Spinnaker. This includes where it's deployed, what the 
 hal deploy [subcommands]
 ```
 #### Subcommands
- * `actuate`: Deploy/update the currently configured instance of Spinnaker to a selected environment.
+ * `apply`: Deploy or update the currently configured instance of Spinnaker to a selected environment.
  * `details`: Get details about your currently deployed Spinnaker installation.
  * `diff`: This shows what changes you have made since Spinnaker was last deployed.
  * `rollback`: Rollback Spinnaker to the prior version on a selected environment.
@@ -2463,13 +2463,13 @@ hal deploy rollback [parameters]
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
 ---
-## hal deploy actuate
+## hal deploy apply
 
 This command deploys Spinnaker, depending on how you've configured your deployment. Local deployments are applied to the machine running Halyard, whereas Distributed deployments are applied to a cloud provider. Local deployments are subject to downtime during updates, whereas Distributed deployments are deployed and updated via a headless 'bootstrap' deployment of Spinnaker, and don't suffer downtime.
 
 #### Usage
 ```
-hal deploy actuate [parameters]
+hal deploy apply [parameters]
 ```
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.

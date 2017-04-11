@@ -148,7 +148,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Actuate deployment");
+    return DaemonTaskHandler.submitTask(builder::build, "Apply deployment");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/configDiff/", method = RequestMethod.GET)

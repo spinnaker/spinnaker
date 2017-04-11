@@ -31,12 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(separators = "=")
-public class ActuateDeployCommand extends AbstractRemoteActionCommand {
+public class ApplyDeployCommand extends AbstractRemoteActionCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "actuate";
+  private String commandName = "apply";
 
   @Getter(AccessLevel.PUBLIC)
-  private String shortDescription = "Deploy/update the currently configured instance of Spinnaker to a selected environment.";
+  private String shortDescription = "Deploy or update the currently configured instance of Spinnaker to a selected environment.";
 
   @Getter(AccessLevel.PUBLIC)
   private String longDescription = String.join("",
