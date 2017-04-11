@@ -17,7 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 
 import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.MapMerge;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
@@ -46,27 +46,27 @@ public class StageInheritanceControlTransform implements PipelineTemplateVisitor
     Object oldValue = dc.read(rule.getPath());
     if (oldValue instanceof Collection) {
       if (!(rule.getValue() instanceof Collection)) {
-        throw new TemplateRenderException("cannot merge non-collection value into collection");
+        throw new IllegalTemplateConfigurationException("cannot merge non-collection value into collection");
       }
       ((Collection) oldValue).addAll((Collection) rule.getValue());
       dc.set(rule.getPath(), oldValue);
     } else if (oldValue instanceof Map) {
       if (!(rule.getValue() instanceof Map)) {
-        throw new TemplateRenderException("cannot merge non-map value into map");
+        throw new IllegalTemplateConfigurationException("cannot merge non-map value into map");
       }
       Map<String, Object> merged = MapMerge.merge((Map<String, Object>) oldValue, (Map<String, Object>) rule.getValue());
       dc.set(rule.getPath(), merged);
     } else {
-      throw new TemplateRenderException("merge inheritance control must be given a list or map value: " + rule.getPath());
+      throw new IllegalTemplateConfigurationException("merge inheritance control must be given a list or map value: " + rule.getPath());
     }
   }
 
   private static void replace(DocumentContext dc, Rule rule) {
     Object oldValue = dc.read(rule.getPath());
     if (oldValue instanceof Collection && !(rule.getValue() instanceof Collection)) {
-      throw new TemplateRenderException("cannot replace collection value with non-collection value");
+      throw new IllegalTemplateConfigurationException("cannot replace collection value with non-collection value");
     } else if (oldValue instanceof Map && !(rule.getValue() instanceof Map)) {
-      throw new TemplateRenderException("cannot replace map value with non-map value");
+      throw new IllegalTemplateConfigurationException("cannot replace map value with non-map value");
     }
     dc.set(rule.getPath(), rule.getValue());
   }

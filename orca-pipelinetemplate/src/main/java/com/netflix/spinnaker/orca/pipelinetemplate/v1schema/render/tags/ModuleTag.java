@@ -18,7 +18,9 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.interpret.Context;
+import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
+import com.hubspot.jinjava.interpret.TemplateStateException;
 import com.hubspot.jinjava.interpret.TemplateSyntaxException;
 import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.tree.TagNode;
@@ -69,11 +71,7 @@ public class ModuleTag implements Tag {
 
     PipelineTemplate template = (PipelineTemplate) context.get("pipelineTemplate");
     if (template == null) {
-      throw new TemplateRenderException(new Error()
-        .withMessage("Pipeline template missing from jinja context")
-        .withCause("Internal error")
-        .withLocation(String.format("module:%s", moduleId))
-      );
+      throw new TemplateStateException("Pipeline template missing from jinja context");
     }
 
     TemplateModule module = template.getModules().stream()
@@ -124,22 +122,37 @@ public class ModuleTag implements Tag {
     }
 
     if (missing.size() > 0) {
-      throw new TemplateRenderException(new Error()
-        .withMessage("Missing required variables in module")
-        .withCause("'" + StringUtils.join(missing, "', '") + "' must be defined")
-        .withLocation(moduleContext.getLocation())
+      throw TemplateRenderException.fromError(
+        new Error()
+          .withMessage("Missing required variables in module")
+          .withCause("'" + StringUtils.join(missing, "', '") + "' must be defined")
+          .withLocation(moduleContext.getLocation())
+          .withDetail("source", tagNode.getMaster().getImage())
       );
     }
 
-    Object rendered = RenderUtil.deepRender(renderer, module.getDefinition(), moduleContext);
+    Object rendered;
+    try {
+      rendered = RenderUtil.deepRender(renderer, module.getDefinition(), moduleContext);
+    } catch (InterpretException e) {
+      throw TemplateRenderException.fromError(
+        new Error()
+          .withMessage("Failed rendering module")
+          .withLocation(moduleContext.getLocation())
+          .withDetail("source", tagNode.getMaster().getImage()),
+        e
+      );
+    }
 
     try {
       return new String(objectMapper.writeValueAsBytes(rendered));
     } catch (JsonProcessingException e) {
-      throw new TemplateRenderException(new Error()
-        .withMessage("Failed rendering module as JSON")
-        .withCause(e.getMessage())
-        .withLocation(moduleContext.getLocation())
+      throw TemplateRenderException.fromError(
+        new Error()
+          .withMessage("Failed rendering module as JSON")
+          .withLocation(moduleContext.getLocation())
+          .withDetail("source", tagNode.getMaster().getImage()),
+        e
       );
     }
   }

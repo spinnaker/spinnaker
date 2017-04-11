@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 
 import java.util.List;
 import java.util.Map;
@@ -83,14 +84,17 @@ public class RenderTransform implements PipelineTemplateVisitor {
     }
 
     for (StageDefinition stage : stages) {
+      context.setLocation(String.format("%s:stages.%s", locationNamespace, stage.getId()));
+
       Object rendered;
       try {
         rendered = RenderUtil.deepRender(renderer, stage.getConfig(), context);
       } catch (TemplateRenderException e) {
-        throw new TemplateRenderException(new Errors.Error()
-          .withMessage("Failed rendering stage")
-          .withCause(e.getMessage())
-          .withLocation(String.format("%s:stages.%s", locationNamespace, stage.getId()))
+        throw TemplateRenderException.fromError(
+          new Error()
+            .withMessage("Failed rendering stage")
+            .withLocation(context.getLocation()),
+          e
         );
       }
 
@@ -98,7 +102,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
         throw new IllegalTemplateConfigurationException(new Errors.Error()
           .withMessage("A stage's rendered config must be a map")
           .withCause("Received type " + rendered.getClass().toString())
-          .withLocation(String.format("%s:stages.%s", locationNamespace, stage.getId()))
+          .withLocation(context.getLocation())
         );
       }
       stage.setConfig((Map<String, Object>) rendered);
@@ -110,13 +114,13 @@ public class RenderTransform implements PipelineTemplateVisitor {
 
   private String renderStageProperty(String input, RenderContext context, String location) {
     try {
-      String rendered = (String) RenderUtil.deepRender(renderer, input, context);
-      return rendered;
+      return (String) RenderUtil.deepRender(renderer, input, context);
     } catch (TemplateRenderException e) {
-      throw new TemplateRenderException(new Errors.Error()
-        .withMessage("Failed rendering stage property")
-        .withCause(e.getMessage())
-        .withLocation(location)
+      throw TemplateRenderException.fromError(
+        new Error()
+          .withMessage("Failed rendering stage property")
+          .withLocation(location),
+        e
       );
     }
   }

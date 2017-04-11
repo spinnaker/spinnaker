@@ -26,6 +26,7 @@ public class IllegalTemplateConfigurationException extends IllegalStateException
   }
 
   public IllegalTemplateConfigurationException(Error error) {
+    this(error.getMessage());
     this.error = error;
   }
 

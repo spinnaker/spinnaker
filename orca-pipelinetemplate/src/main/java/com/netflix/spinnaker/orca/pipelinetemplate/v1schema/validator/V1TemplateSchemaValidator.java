@@ -35,12 +35,12 @@ public class V1TemplateSchemaValidator<T extends SchemaValidatorContext> impleme
     PipelineTemplate template = (PipelineTemplate) pipelineTemplate;
 
     if (!SUPPORTED_VERSION.equals(template.getSchemaVersion())) {
-      errors.addError(new Error()
+      errors.add(new Error()
         .withMessage("template schema version is unsupported: expected '" + SUPPORTED_VERSION + "', got '" + template.getSchemaVersion() + "'"));
     }
 
     if (template.getProtect() && context.configHasStages) {
-      errors.addError(new Error()
+      errors.add(new Error()
         .withMessage("Modification of the stage graph (adding, removing, editing) is disallowed")
         .withCause("The template being used has marked itself as protected")
       );

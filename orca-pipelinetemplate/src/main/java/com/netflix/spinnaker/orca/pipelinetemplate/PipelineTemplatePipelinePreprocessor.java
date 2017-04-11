@@ -70,19 +70,22 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
   @Override
   public Map<String, Object> process(Map<String, Object> pipeline) {
+    Errors errors;
     try {
       return processInternal(pipeline);
     } catch (TemplateLoaderException e) {
-      return new Errors().addError(new Error().withMessage("failed loading template").withCause(e.getMessage())).toResponse();
+      errors = new Errors().add(new Error().withMessage("failed loading template").withCause(e.getMessage()));
     } catch (TemplateRenderException e) {
-      return new Errors().addError(
-        e.getError() != null ? e.getError() : new Error().withMessage("failed rendering handlebars template").withCause(e.getMessage())
-      ).toResponse();
+      errors = e.getErrors();
+      if (!errors.hasErrors(true)) {
+        errors.add(new Error().withMessage("failed rendering template expression").withCause(e.getMessage()));
+      }
     } catch (IllegalTemplateConfigurationException e) {
-      return new Errors().addError(
+      errors = new Errors().add(
         e.getError() != null ? e.getError() : new Error().withMessage("malformed template configuration").withCause(e.getMessage())
-      ).toResponse();
+      );
     }
+    return errors.toResponse();
   }
 
   private Map<String, Object> processInternal(Map<String, Object> pipeline) {

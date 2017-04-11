@@ -22,10 +22,6 @@ public class InvalidPipelineTemplateException extends RuntimeException {
 
   private List<Map<String, Object>> errors;
 
-  public InvalidPipelineTemplateException(List<Map<String, Object>> errors) {
-    this.errors = errors;
-  }
-
   public InvalidPipelineTemplateException(String message, List<Map<String, Object>> errors) {
     super(message);
     this.errors = errors;

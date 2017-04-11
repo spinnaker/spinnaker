@@ -16,7 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform
 
 import com.jayway.jsonpath.PathNotFoundException
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InheritanceControl.Rule
@@ -83,7 +83,7 @@ class StageInheritanceControlTransformSpec extends Specification {
     subject.visitPipelineTemplate(template)
 
     then:
-    thrown(TemplateRenderException)
+    thrown(IllegalTemplateConfigurationException)
 
     where:
     path        | value
@@ -172,7 +172,7 @@ class StageInheritanceControlTransformSpec extends Specification {
     subject.visitPipelineTemplate(template)
 
     then:
-    thrown(TemplateRenderException)
+    thrown(IllegalTemplateConfigurationException)
 
     where:
     path        | value
