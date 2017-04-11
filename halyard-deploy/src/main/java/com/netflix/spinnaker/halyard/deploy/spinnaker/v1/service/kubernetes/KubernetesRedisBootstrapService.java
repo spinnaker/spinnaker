@@ -21,17 +21,17 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisBootstrapService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesRedisBootstrapService extends RedisBootstrapService implements KubernetesDistributedService<RedisService.Redis> {
+public class KubernetesRedisBootstrapService extends RedisBootstrapService implements KubernetesDistributedService<Jedis> {
   @Autowired
   private String dockerRegistry;
 
@@ -52,6 +52,7 @@ public class KubernetesRedisBootstrapService extends RedisBootstrapService imple
     Settings settings = new Settings();
     settings.setAddress(buildAddress())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setSafeToUpdate(true) // It's OK to flush this redis fully since we generally redeploy bootstrap clouddriver & orca
         .setEnabled(true);
     return settings;
   }

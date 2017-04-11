@@ -33,10 +33,14 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Data;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.utils.URIBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -53,10 +57,23 @@ class KubernetesProviderUtils {
     Integer port;
   }
 
+  static URI proxyServiceEndpoint(Proxy proxy, String namespace, String serviceName, int servicePort) {
+    try {
+      return new URIBuilder().setPort(proxy.getPort())
+          .setHost("localhost")
+          .setScheme("http")
+          .setPath("/api/v1/proxy/namespaces/" + namespace + "/services/" + serviceName + ":" + servicePort)
+          .build();
+    } catch (URISyntaxException e) {
+      throw new HalException(Severity.FATAL, "Malformed service details: " + e.getMessage());
+    }
+  }
+
   static Proxy openProxy(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
     Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
-    if (proxy.jobId == null || proxy.jobId.isEmpty()) {
+    String jobId = proxy.jobId;
+    if (StringUtils.isEmpty(jobId) || !jobExecutor.jobExists(jobId)) {
       DaemonTaskHandler.newStage("Connecting to the Kubernetes cluster in account \"" + account.getName() + "\"");
       List<String> command = kubectlAccountCommand(details);
       command.add("proxy");

@@ -43,9 +43,6 @@ public class KubernetesRoscoService extends RoscoService implements KubernetesDi
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  JobExecutor jobExecutor;
-
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();

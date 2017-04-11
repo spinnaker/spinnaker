@@ -26,11 +26,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class DebianRedisService extends RedisService implements LocalDebianService<RedisService.Redis> {
+public class DebianRedisService extends RedisService implements LocalDebianService<Jedis> {
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings().setArtifactId("redis")

@@ -47,9 +47,6 @@ public class KubernetesOrcaBootstrapService extends OrcaBootstrapService impleme
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  JobExecutor jobExecutor;
-
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     List<String> profiles = new ArrayList<>();

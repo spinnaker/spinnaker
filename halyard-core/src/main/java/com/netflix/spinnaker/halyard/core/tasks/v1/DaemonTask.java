@@ -2,6 +2,8 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,6 +24,7 @@ public class DaemonTask<C, T> {
   List<DaemonTask> children = new ArrayList<>();
   final String name;
   final String uuid;
+  @JsonIgnore final JobExecutor jobExecutor;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
@@ -31,6 +34,7 @@ public class DaemonTask<C, T> {
   public DaemonTask(String name) {
     this.name = name;
     this.uuid = UUID.randomUUID().toString();
+    this.jobExecutor = new JobExecutorLocal();
   }
 
   void newStage(String name) {
@@ -63,6 +67,10 @@ public class DaemonTask<C, T> {
     public boolean isTerminal() {
       return this == SUCCESS || this == FATAL;
     }
+  }
+
+  public void cleanupResources() {
+    jobExecutor.cancelAllJobs();
   }
 
   public <C, P> DaemonTask<C, P> spawnChild(Supplier<DaemonResponse<P>> childRunner, String name) {

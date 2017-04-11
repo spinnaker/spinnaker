@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.Front50Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
@@ -42,9 +41,6 @@ public class KubernetesFront50Service extends Front50Service implements Kubernet
 
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
-
-  @Autowired
-  JobExecutor jobExecutor;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

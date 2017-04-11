@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
@@ -31,6 +32,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orc
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,6 +115,16 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     DaemonTaskHandler.message("Waiting on red/black pipelines to complete");
     DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
         .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
+
+    DaemonTaskHandler.message("Flushing redis cache");
+    try {
+      Jedis jedis = (Jedis) serviceProvider
+          .getDeployableService(SpinnakerService.Type.REDIS)
+          .connect(deploymentDetails, runtimeSettings);
+      jedis.del("*clouddriver*");
+    } catch (Exception e) {
+      throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
+    }
 
     reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
 

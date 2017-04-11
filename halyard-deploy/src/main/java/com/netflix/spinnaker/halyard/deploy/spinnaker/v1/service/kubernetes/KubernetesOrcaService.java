@@ -43,9 +43,6 @@ public class KubernetesOrcaService extends OrcaService implements KubernetesDist
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  JobExecutor jobExecutor;
-
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();

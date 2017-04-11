@@ -190,4 +190,11 @@ public class JobExecutorLocal extends JobExecutor {
 
     watchdog.destroyProcess();
   }
+
+  @Override
+  public void cancelAllJobs() {
+    for (Map.Entry<String, ExecutionHandler> job : jobIdToHandlerMap.entrySet()) {
+      cancelJob(job.getKey());
+    }
+  }
 }

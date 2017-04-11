@@ -18,19 +18,32 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
+import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesRedisService extends RedisService implements KubernetesDistributedService<RedisService.Redis> {
+public class KubernetesRedisService extends RedisService implements KubernetesDistributedService<Jedis> {
   @Autowired
   private String dockerRegistry;
 
@@ -43,8 +56,29 @@ public class KubernetesRedisService extends RedisService implements KubernetesDi
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  JobExecutor jobExecutor;
+  @Override
+  public Jedis connect(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(this);
+    List<String> command = Arrays.stream(connectCommand(details, runtimeSettings).split(" ")).collect(Collectors.toList());
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+    String jobId = getJobExecutor().startJob(request);
+    // Wait for the proxy to spin up.
+    try {
+      Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+    } catch (InterruptedException ignored) {
+    }
+
+    JobStatus status = getJobExecutor().updateJob(jobId);
+
+    // This should be a long-running job.
+    if (status.getState() == JobStatus.State.COMPLETED) {
+      throw new HalException(Problem.Severity.FATAL,
+          "Unable to establish a proxy against Redis:\n" + status.getStdOut()
+              + "\n" + status.getStdErr());
+    }
+
+    return new Jedis("localhost", settings.getPort());
+  }
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

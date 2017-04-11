@@ -43,9 +43,6 @@ public class KubernetesIgorService extends IgorService implements KubernetesDist
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  JobExecutor jobExecutor;
-
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();

@@ -32,6 +32,8 @@ public abstract class JobExecutor {
 
   abstract public void cancelJob(String jobId);
 
+  abstract public void cancelAllJobs();
+
   public String startJob(JobRequest jobRequest) {
     InputStream stdIn = new ByteArrayInputStream("".getBytes());
     ByteArrayOutputStream stdOut = new ByteArrayOutputStream();

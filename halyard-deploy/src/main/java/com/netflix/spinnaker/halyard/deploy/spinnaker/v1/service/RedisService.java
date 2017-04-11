@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +33,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class RedisService extends SpinnakerService<RedisService.Redis> {
+abstract public class RedisService extends SpinnakerService<Jedis> {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.REDIS;
@@ -44,16 +45,14 @@ abstract public class RedisService extends SpinnakerService<RedisService.Redis> 
   }
 
   @Override
-  public Class<Redis> getEndpointClass() {
-    return Redis.class;
+  public Class<Jedis> getEndpointClass() {
+    return Jedis.class;
   }
 
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }
-
-  public interface Redis { }
 
   @EqualsAndHashCode(callSuper = true)
   @Data

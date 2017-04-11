@@ -56,6 +56,11 @@ public class HalException extends RuntimeException {
     this.problems = new ProblemSet(new ArrayList<>(Collections.singletonList(problem)));
   }
 
+  public HalException(Problem problem, Exception e) {
+    super(e);
+    this.problems = new ProblemSet(new ArrayList<>(Collections.singletonList(problem)));
+  }
+
   public HalException(List<Problem> problems) {
     super();
     this.problems = new ProblemSet(problems);
@@ -63,5 +68,9 @@ public class HalException extends RuntimeException {
 
   public HalException(Problem.Severity severity, String message) {
     this(new ProblemBuilder(severity, message).build());
+  }
+
+  public HalException(Problem.Severity severity, String message, Exception e) {
+    this(new ProblemBuilder(severity, message).build(), e);
   }
 }

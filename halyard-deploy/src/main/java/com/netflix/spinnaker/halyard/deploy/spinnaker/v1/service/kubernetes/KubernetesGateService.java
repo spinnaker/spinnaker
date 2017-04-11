@@ -44,9 +44,6 @@ public class KubernetesGateService extends GateService implements KubernetesDist
   @Autowired
   ServiceInterfaceFactory serviceInterfaceFactory;
 
-  @Autowired
-  JobExecutor jobExecutor;
-
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     ApiSecurity apiSecurity = deploymentConfiguration.getSecurity().getApiSecurity();

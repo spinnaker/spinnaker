@@ -30,6 +30,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -52,8 +53,11 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
   String getDockerRegistry();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
-  JobExecutor getJobExecutor();
   ObjectMapper getObjectMapper();
+
+  default JobExecutor getJobExecutor() {
+    return DaemonTaskHandler.getTask().getJobExecutor();
+  }
 
   default String getNamespace() {
     return "spinnaker";
@@ -622,10 +626,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
 
     KubernetesProviderUtils.Proxy proxy = KubernetesProviderUtils.openProxy(getJobExecutor(), details);
-
-    String endpoint = "http://localhost:" + proxy.getPort() + "/api/v1/proxy/namespaces/"
-        + getNamespace() + "/services/"
-        + getName() + ":" + settings.getPort() + "/";
+    String endpoint = KubernetesProviderUtils.proxyServiceEndpoint(proxy, getNamespace(), getName(), settings.getPort()).toString();
 
     return getServiceInterfaceFactory().createService(endpoint, getService());
   }

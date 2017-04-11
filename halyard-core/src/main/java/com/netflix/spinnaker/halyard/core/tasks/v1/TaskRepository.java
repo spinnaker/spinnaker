@@ -50,6 +50,7 @@ public class TaskRepository {
         task.setFatalError(e);
         task.setState(State.FATAL);
       } finally {
+        task.cleanupResources();
         // Notify after changing state to avoid data-race where threads are notified before thread appears terminal
         synchronized (task) {
           task.notifyAll();
