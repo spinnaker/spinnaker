@@ -48,7 +48,7 @@ public class AnsiFormatUtils {
     return yamlParser;
   }
 
-  private  static ObjectMapper getObjectMapper() {
+  private static ObjectMapper getObjectMapper() {
     if (objectMapper == null) {
       objectMapper = new ObjectMapper();
     }

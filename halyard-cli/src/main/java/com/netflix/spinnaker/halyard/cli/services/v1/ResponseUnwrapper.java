@@ -54,8 +54,6 @@ public class ResponseUnwrapper {
     }
 
     formatTasks(aggregateTasks(task), lastTaskCount);
-    AnsiSnippet clear = new AnsiSnippet("\r").setErase(AnsiErase.ERASE_LINE);
-    AnsiPrinter.print(clear.toString());
 
     DaemonResponse<T> response = task.getResponse();
     formatProblemSet(response.getProblemSet());
@@ -79,7 +77,7 @@ public class ResponseUnwrapper {
 
   private static int formatTasks(List<DaemonTask> tasks, int lastChildCount) {
     if (tasks.size() == 0 || GlobalOptions.getGlobalOptions().isQuiet()) {
-      return 0;
+      return tasks.size();
     }
 
     int taskCountGrowth = tasks.size() - lastChildCount;
@@ -175,7 +173,7 @@ public class ResponseUnwrapper {
   }
 
   private static void formatProblemSet(ProblemSet problemSet) {
-    if (problemSet == null) {
+    if (problemSet == null || problemSet.isEmpty()) {
       return;
     }
 

@@ -48,6 +48,10 @@ public class ProblemSet {
     return result;
   }
 
+  public boolean isEmpty() {
+    return problems.isEmpty();
+  }
+
   public void add(Problem problem) {
     problems.add(problem);
   }
