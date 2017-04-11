@@ -88,6 +88,7 @@ public class DaemonTask<C, T> {
     }
 
     log.info("Collected child task " + childTask + " with state " + childTask.getState());
+    assert(childTask.getResponse() != null);
 
     return childTask.getResponse();
   }

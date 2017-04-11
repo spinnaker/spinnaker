@@ -20,10 +20,7 @@ package com.netflix.spinnaker.halyard.core.problem.v1;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * ProblemSet represents all problems collected when validating the currently loaded/modified halconfig.
@@ -64,6 +61,14 @@ public class ProblemSet {
     this.problems = problems;
   }
 
+  public ProblemSet(ProblemSet other) {
+    addAll(other);
+  }
+
+  public ProblemSet(Problem problem) {
+    add(problem);
+  }
+
   public ProblemSet() { }
 
 
@@ -87,7 +92,7 @@ public class ProblemSet {
    * This is can be used to ignore errors that user deems frivolous.
    *
    * Example: A client's Jenkins instance isn't connecting to Halyard, but they are sure it will connect to Igor, so they
-   * can force halyard to only generate an error if the severity exceeds "FAProblemAL" (which is impossible).
+   * can force halyard to only generate an error if the severity exceeds "FATAL" (which is impossible).
    *
    * @param severity is the severity to compare all errors to that this problem set stores.
    */

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
@@ -110,7 +111,8 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     }
 
     DaemonTaskHandler.message("Waiting on red/black pipelines to complete");
-    DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null);
+    DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
+        .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
 
     reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
 

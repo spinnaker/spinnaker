@@ -38,10 +38,7 @@ public class DaemonResponse<T> {
   private T responseBody;
 
   @Getter
-  private ProblemSet problemSet;
-
-  @Getter
-  private String jobUuid;
+  private final ProblemSet problemSet;
 
   public DaemonResponse(T responseBody, ProblemSet problemSet) {
     this.responseBody = responseBody;

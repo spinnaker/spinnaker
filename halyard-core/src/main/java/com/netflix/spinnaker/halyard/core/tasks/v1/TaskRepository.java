@@ -2,6 +2,8 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
 import lombok.Data;
@@ -10,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
@@ -26,7 +27,7 @@ public class TaskRepository {
   }
 
   static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner, String name) {
-    DaemonTask<C, T> task = new DaemonTask<C, T>(name);
+    DaemonTask<C, T> task = new DaemonTask<>(name);
     String uuid = task.getUuid();
     log.info("Scheduling task " + task);
     Runnable r = () -> {
@@ -34,10 +35,18 @@ public class TaskRepository {
       DaemonTaskHandler.setTask(task);
       task.setState(State.RUNNING);
       try {
-        task.setResponse(runner.get());
+        DaemonResponse<T> response = runner.get();
+        task.setResponse(response);
         task.setState(State.SUCCESS);
+      } catch (HalException e) {
+        log.info("Task " + task + " failed for reason: ", e);
+        task.setResponse(new DaemonResponse<>(null, new ProblemSet(e.getProblems())));
+        task.setFatalError(e);
+        task.setState(State.FATAL);
       } catch (Exception e) {
-        log.info("Task " + task + " failed");
+        log.warn("Task " + task + " failed for unknown reason: ", e);
+        Problem problem = new ProblemBuilder(Problem.Severity.FATAL, "Unknown exception: " + e).build();
+        task.setResponse(new DaemonResponse<>(null, new ProblemSet(problem)));
         task.setFatalError(e);
         task.setState(State.FATAL);
       } finally {
@@ -65,14 +74,12 @@ public class TaskRepository {
     }
 
     DaemonTask<C, T> task = status.getTask();
-    Exception fatalError = null;
     switch (task.getState()) {
       case NOT_STARTED:
       case RUNNING:
         break;
       case FATAL:
-        log.error("Task " + task + " encountered a fatal exception");
-        fatalError = task.getFatalError();
+        log.warn("Task " + task + " encountered a fatal exception");
       case SUCCESS:
         log.info("Terminating task " + task);
         try {
@@ -81,20 +88,6 @@ public class TaskRepository {
         }
 
         tasks.remove(uuid);
-    }
-
-    if (fatalError != null) {
-      if (fatalError instanceof HalException) {
-        HalException halException = (HalException) fatalError;
-        ProblemSet problemSet = halException.getProblems();
-        if (task.getResponse() != null) {
-          task.getResponse().getProblemSet().addAll(problemSet);
-        } else {
-          task.setResponse(new DaemonResponse<>(null, problemSet));
-        }
-      } else {
-        throw new RuntimeException("Unknown error encountered while running task: " + fatalError.getMessage(), fatalError);
-      }
     }
 
     return task;
