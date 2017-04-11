@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 import com.amazonaws.services.autoscaling.model.CreateAutoScalingGroupRequest
+import com.amazonaws.services.autoscaling.model.EnableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.SuspendProcessesRequest
 import com.amazonaws.services.autoscaling.model.Tag
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
@@ -60,6 +61,7 @@ class AutoScalingWorker {
   private Boolean associatePublicIpAddress
   private String subnetType
   private Integer cooldown
+  private Collection<String> enabledMetrics
   private Integer healthCheckGracePeriod
   private String healthCheckType
   private String spotPrice
@@ -216,6 +218,13 @@ class AutoScalingWorker {
     autoScaling.createAutoScalingGroup(request)
     if (suspendedProcesses) {
       autoScaling.suspendProcesses(new SuspendProcessesRequest(autoScalingGroupName: asgName, scalingProcesses: suspendedProcesses))
+    }
+    if (enabledMetrics && instanceMonitoring) {
+      task.updateStatus AWS_PHASE, "Enabling metrics collection for: $asgName"
+      autoScaling.enableMetricsCollection(new EnableMetricsCollectionRequest()
+        .withAutoScalingGroupName(asgName)
+        .withGranularity('1Minute')
+        .withMetrics(enabledMetrics))
     }
     autoScaling.updateAutoScalingGroup(new UpdateAutoScalingGroupRequest(autoScalingGroupName: asgName,
       minSize: minInstances, maxSize: maxInstances, desiredCapacity: desiredInstances))

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
+import com.amazonaws.services.autoscaling.AmazonAutoScaling
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTask
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -37,10 +38,12 @@ class AutoScalingWorkerUnitSpec extends Specification {
 
   def lcBuilder = Mock(LaunchConfigurationBuilder)
   def asgService = Mock(AsgService)
+  def autoScaling = Mock(AmazonAutoScaling)
   def clusterProvider = Mock(ClusterProvider)
   def awsServerGroupNameResolver = new AWSServerGroupNameResolver('test', 'us-east-1', asgService, [clusterProvider])
   def credential = TestCredential.named('foo')
   def regionScopedProvider = Stub(RegionScopedProviderFactory.RegionScopedProvider) {
+    getAutoScaling() >> autoScaling
     getLaunchConfigurationBuilder() >> lcBuilder
     getAsgService() >> asgService
     getAWSServerGroupNameResolver() >> awsServerGroupNameResolver
@@ -103,10 +106,67 @@ class AutoScalingWorkerUnitSpec extends Specification {
     1 * asgService.getAutoScalingGroup('myasg-v011') >> { new AutoScalingGroup() }
     1 * asgService.getAutoScalingGroup('myasg-v012') >> { new AutoScalingGroup() }
     1 * asgService.getAutoScalingGroup('myasg-v013') >> { null }
+    1 * autoScaling.createAutoScalingGroup(_)
+    1 * autoScaling.updateAutoScalingGroup(_)
     0 * _
 
     asgName == 'myasg-v013'
     awsServerGroupNameResolver.getTask().resultObjects[0].ancestorServerGroupNameByRegion.get("us-east-1") == "myasg-v011"
+  }
+
+  void "does not enable metrics collection when enabledMetrics are absent"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: [],
+      instanceMonitoring: true,
+      regionScopedProvider : regionScopedProvider,
+      credentials: credential,
+      application : "myasg",
+      region : "us-east-1"
+    )
+
+    when:
+    String asgName = autoScalingWorker.deploy()
+
+    then:
+    0 * autoScaling.enableMetricsCollection(_)
+  }
+
+  void "does not enable metrics collection when instanceMonitoring is set to false"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
+      instanceMonitoring: false,
+      regionScopedProvider : regionScopedProvider,
+      credentials: credential,
+      application : "myasg",
+      region : "us-east-1"
+    )
+
+    when:
+    String asgName = autoScalingWorker.deploy()
+
+    then:
+    0 * autoScaling.enableMetricsCollection(_)
+  }
+
+
+  void "enables metrics collection for specified metrics when enabledMetrics are present"() {
+    setup:
+    def autoScalingWorker = new AutoScalingWorker(
+      enabledMetrics: ['GroupMinSize', 'GroupMaxSize'],
+      instanceMonitoring: true,
+      regionScopedProvider : regionScopedProvider,
+      credentials: credential,
+      application : "myasg",
+      region : "us-east-1"
+    )
+
+    when:
+    String asgName = autoScalingWorker.deploy()
+
+    then:
+    1 * autoScaling.enableMetricsCollection({ it.metrics == ['GroupMinSize', 'GroupMaxSize'] })
   }
 
   static ServerGroup sG(String name, Long createdTime, String region) {

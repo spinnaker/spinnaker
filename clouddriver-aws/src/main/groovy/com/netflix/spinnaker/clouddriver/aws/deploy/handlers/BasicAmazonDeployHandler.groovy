@@ -255,6 +255,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         classicLoadBalancers: loadBalancers.classicLoadBalancers,
         targetGroupArns: loadBalancers.targetGroupArns,
         cooldown: description.cooldown,
+        enabledMetrics: description.enabledMetrics,
         healthCheckGracePeriod: description.healthCheckGracePeriod,
         healthCheckType: description.healthCheckType,
         terminationPolicies: description.terminationPolicies,

@@ -22,6 +22,7 @@ class ModifyAsgDescription extends AbstractAmazonCredentialsDescription {
   Integer cooldown
   Integer healthCheckGracePeriod
   String healthCheckType
+  List<String> enabledMetrics
   List<String> terminationPolicies
 
 }
