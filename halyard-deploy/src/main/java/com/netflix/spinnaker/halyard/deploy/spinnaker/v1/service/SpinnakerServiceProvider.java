@@ -45,7 +45,7 @@ abstract public class SpinnakerServiceProvider {
     return endpoints;
   }
 
-  Field getField(String name) {
+  protected Field getField(String name) {
     String reducedName = reduceFieldName(name);
 
     Optional<Field> matchingField = Arrays.stream(this.getClass().getDeclaredFields())

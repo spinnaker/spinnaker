@@ -24,10 +24,11 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.kubernetes.KubernetesServiceProvider;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.debian.DebianServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesDistributedServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,17 +38,22 @@ public class ServiceProviderFactory {
   AccountService accountService;
 
   @Autowired
-  KubernetesServiceProvider kubernetesServiceProvider;
+  KubernetesDistributedServiceProvider kubernetesDistributedServiceProvider;
 
   @Autowired
-  DebianServiceProvider debianServiceProvider;
+  LocalDebianServiceProvider localDebianServiceProvider;
+
+  @Autowired
+  BakeDebianServiceProvider bakeDebianServiceProvider;
 
   public SpinnakerServiceProvider create(DeploymentConfiguration deploymentConfiguration) {
     DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
     // TODO(lwander) what's the best UX here? mashing together deploys & installs feels wrong.
     switch (type) {
+      case BakeDebian:
+        return bakeDebianServiceProvider;
       case LocalDebian:
-        return debianServiceProvider;
+        return localDebianServiceProvider;
       case Distributed:
         return createDeployableServiceProvider(deploymentConfiguration);
       default:
@@ -69,7 +75,7 @@ public class ServiceProviderFactory {
 
     switch (providerType) {
       case KUBERNETES:
-        return kubernetesServiceProvider;
+        return kubernetesDistributedServiceProvider;
       default:
         throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getId());
     }

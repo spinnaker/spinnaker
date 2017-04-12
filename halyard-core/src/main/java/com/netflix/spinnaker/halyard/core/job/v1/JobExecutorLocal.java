@@ -146,6 +146,9 @@ public class JobExecutorLocal extends JobExecutor {
       stdErrStream = handler.getStdErr();
       resultHandler = handler.getResultHandler();
 
+      stdOutStream.flush();
+      stdErrStream.flush();
+
       jobStatus.setStdOut(new String(stdOutStream.toByteArray()));
       jobStatus.setStdErr(new String(stdErrStream.toByteArray()));
 

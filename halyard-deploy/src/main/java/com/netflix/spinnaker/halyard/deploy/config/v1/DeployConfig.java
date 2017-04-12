@@ -47,4 +47,9 @@ public class DeployConfig {
   Integer vaultTimeoutSeconds(@Value("${spinnaker.vault.timeoutSeconds:10}") Integer vaultTimeoutSeconds) {
     return vaultTimeoutSeconds;
   }
+
+  @Bean
+  String startupScriptPath(@Value("${spinnaker.startup.scriptsPath:/var/spinnaker/startup/}") String startupScriptPath) {
+    return startupScriptPath;
+  }
 }

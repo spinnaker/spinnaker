@@ -12,6 +12,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
 package com.netflix.spinnaker.halyard.deploy.deployment.v1;
@@ -21,8 +22,8 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -31,14 +32,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentDetails> {
+public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDetails> {
   @Override
   public RemoteAction deploy(
-      LocalServiceProvider serviceProvider,
+      BakeServiceProvider serviceProvider,
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<String> serviceNames) {
-    List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceNames)
+    List<BakeService> enabledServices = serviceProvider.getBakeableServices(serviceNames)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
         .collect(Collectors.toList());
@@ -46,7 +47,7 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
     Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {
       String command = String.join("\n",
           installable.installArtifactCommand(deploymentDetails),
-          installable.stageProfilesCommand(resolvedConfiguration));
+          installable.stageStartupScripts(resolvedConfiguration));
       commands.put(installable.getService().getCanonicalName(), command);
       return commands;
     }, (m1, m2) -> {
@@ -62,7 +63,11 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
   }
 
   @Override
-  public void rollback(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<String> serviceNames) {
-    throw new HalException(Problem.Severity.FATAL, "No support for rolling back debian deployments yet.");
+  public void rollback(
+      BakeServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<String> serviceNames) {
+    throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be rolled back.");
   }
 }

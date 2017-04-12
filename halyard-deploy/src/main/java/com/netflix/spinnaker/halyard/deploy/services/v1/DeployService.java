@@ -59,6 +59,9 @@ public class DeployService {
   LocalDeployer localDeployer;
 
   @Autowired
+  BakeDeployer bakeDeployer;
+
+  @Autowired
   GenerateService generateService;
 
   @Autowired
@@ -139,6 +142,8 @@ public class DeployService {
   private Deployer getDeployer(DeploymentConfiguration deploymentConfiguration) {
     DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
     switch (type) {
+      case BakeDebian:
+        return bakeDeployer;
       case LocalDebian:
         return localDeployer;
       case Distributed:
@@ -153,6 +158,7 @@ public class DeployService {
     BillOfMaterials billOfMaterials = artifactService.getBillOfMaterials(deploymentName);
     DeploymentEnvironment.DeploymentType type = deploymentConfiguration.getDeploymentEnvironment().getType();
     switch (type) {
+      case BakeDebian:
       case LocalDebian:
         return new DeploymentDetails()
             .setDeploymentConfiguration(deploymentConfiguration)

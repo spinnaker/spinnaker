@@ -49,7 +49,9 @@ public class DeploymentEnvironment extends Node {
         + "per microservice, and a single instance of Redis acting as "
         + "Spinnaker's cache layer. This requires a cloud provider to deploy to."),
     LocalDebian("Deploy Spinnaker locally (on the machine running the daemon) "
-        + "using `apt-get` to fetch all the service's debian packages.");
+        + "using `apt-get` to fetch all the service's debian packages."),
+    BakeDebian("Deploy Spinnaker locally but only with the necessary config "
+        + "to be baked into a VM image later.");
 
     @Getter
     final String description;
