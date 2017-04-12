@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.webhooks.jenkins.JenkinsWebhook;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsCi;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,8 +27,8 @@ import java.util.Optional;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class Webhooks extends Node implements Cloneable {
-  JenkinsWebhook jenkins = new JenkinsWebhook();
+public class Cis extends Node implements Cloneable {
+  JenkinsCi jenkins = new JenkinsCi();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
@@ -37,7 +37,7 @@ public class Webhooks extends Node implements Cloneable {
 
   @Override
   public String getNodeName() {
-    return "webhooks";
+    return "ci";
   }
 
   @Override
@@ -45,23 +45,23 @@ public class Webhooks extends Node implements Cloneable {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  public static Class<? extends Webhook> translateWebhookType(String webhookName) {
-    Optional<? extends Class<?>> res = Arrays.stream(Webhooks.class.getDeclaredFields())
-        .filter(f -> f.getName().equals(webhookName))
+  public static Class<? extends Ci> translateCiType(String ciName) {
+    Optional<? extends Class<?>> res = Arrays.stream(Cis.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(ciName))
         .map(Field::getType)
         .findFirst();
 
     if (res.isPresent()) {
-      return (Class<? extends Webhook>)res.get();
+      return (Class<? extends Ci>)res.get();
     } else {
-      throw new IllegalArgumentException("No webhook with name \"" + webhookName + "\" handled by halyard");
+      throw new IllegalArgumentException("No Continous Integration service with name \"" + ciName + "\" handled by halyard");
     }
   }
 
-  public static Class<? extends Master> translateMasterType(String webhookName) {
-    Class<? extends Webhook> webhookClass = translateWebhookType(webhookName);
+  public static Class<? extends Master> translateMasterType(String ciName) {
+    Class<? extends Ci> ciClass = translateCiType(ciName);
 
-    String masterClassName = webhookClass.getName().replaceAll("Webhook", "Master");
+    String masterClassName = ciClass.getName().replaceAll("Ci", "Master");
     try {
       return (Class<? extends Master>) Class.forName(masterClassName);
     } catch (ClassNotFoundException e) {

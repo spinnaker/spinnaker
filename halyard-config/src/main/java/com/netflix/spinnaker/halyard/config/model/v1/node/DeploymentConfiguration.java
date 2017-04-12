@@ -74,9 +74,9 @@ public class DeploymentConfiguration extends Node {
   String timezone = "America/Los_Angeles";
 
   /**
-   * Webhooks, e.g. Jenkins, TravisCI, etc...
+   * Continuous integration services, e.g. Jenkins, TravisCI, etc...
    */
-  Webhooks webhooks = new Webhooks();
+  Cis ci = new Cis();
 
   /**
    * Authn & Authz configuration.

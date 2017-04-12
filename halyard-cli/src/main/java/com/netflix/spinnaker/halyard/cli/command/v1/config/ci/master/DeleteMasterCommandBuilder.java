@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
@@ -24,22 +24,22 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class ListMastersCommandBuilder implements CommandBuilder {
+public class DeleteMasterCommandBuilder implements CommandBuilder {
   @Setter
-  String webhookName;
+  String ciName;
 
   @Override
   public NestableCommand build() {
-    return new ListMastersCommand(webhookName);
+    return new DeleteMasterCommand(ciName);
   }
 
   @Parameters(separators = "=")
-  private static class ListMastersCommand extends AbstractListMastersCommand {
-    private ListMastersCommand(String webhookName) {
-      this.webhookName = webhookName;
+  private static class DeleteMasterCommand extends AbstractDeleteMasterCommand {
+    private DeleteMasterCommand(String ciName) {
+      this.ciName = ciName;
     }
 
     @Getter(AccessLevel.PROTECTED)
-    private String webhookName;
+    private String ciName;
   }
 }

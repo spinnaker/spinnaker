@@ -31,16 +31,6 @@
  * [**hal config security oauth2 edit**](#hal-config-security-oauth2-edit)
  * [**hal config security oauth2 enable**](#hal-config-security-oauth2-enable)
  * [**hal config security oauth2 disable**](#hal-config-security-oauth2-disable)
- * [**hal config webhook**](#hal-config-webhook)
- * [**hal config webhook jenkins**](#hal-config-webhook-jenkins)
- * [**hal config webhook jenkins disable**](#hal-config-webhook-jenkins-disable)
- * [**hal config webhook jenkins enable**](#hal-config-webhook-jenkins-enable)
- * [**hal config webhook jenkins master**](#hal-config-webhook-jenkins-master)
- * [**hal config webhook jenkins master add**](#hal-config-webhook-jenkins-master-add)
- * [**hal config webhook jenkins master edit**](#hal-config-webhook-jenkins-master-edit)
- * [**hal config webhook jenkins master get**](#hal-config-webhook-jenkins-master-get)
- * [**hal config webhook jenkins master list**](#hal-config-webhook-jenkins-master-list)
- * [**hal config webhook jenkins master delete**](#hal-config-webhook-jenkins-master-delete)
  * [**hal config provider**](#hal-config-provider)
  * [**hal config provider appengine**](#hal-config-provider-appengine)
  * [**hal config provider appengine disable**](#hal-config-provider-appengine-disable)
@@ -121,6 +111,16 @@
  * [**hal config provider azure account get**](#hal-config-provider-azure-account-get)
  * [**hal config provider azure account list**](#hal-config-provider-azure-account-list)
  * [**hal config provider azure account delete**](#hal-config-provider-azure-account-delete)
+ * [**hal config ci**](#hal-config-ci)
+ * [**hal config ci jenkins**](#hal-config-ci-jenkins)
+ * [**hal config ci jenkins disable**](#hal-config-ci-jenkins-disable)
+ * [**hal config ci jenkins enable**](#hal-config-ci-jenkins-enable)
+ * [**hal config ci jenkins master**](#hal-config-ci-jenkins-master)
+ * [**hal config ci jenkins master add**](#hal-config-ci-jenkins-master-add)
+ * [**hal config ci jenkins master edit**](#hal-config-ci-jenkins-master-edit)
+ * [**hal config ci jenkins master get**](#hal-config-ci-jenkins-master-get)
+ * [**hal config ci jenkins master list**](#hal-config-ci-jenkins-master-list)
+ * [**hal config ci jenkins master delete**](#hal-config-ci-jenkins-master-delete)
  * [**hal config metric-stores**](#hal-config-metric-stores)
  * [**hal config metric-stores edit**](#hal-config-metric-stores-edit)
  * [**hal config metric-stores datadog**](#hal-config-metric-stores-datadog)
@@ -271,6 +271,7 @@ Configure, validate, and view your halconfig.
 hal config [subcommands]
 ```
 #### Subcommands
+ * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
  * `features`: Display the state of Spinnaker's feature flags.
  * `generate`: Generate the full Spinnaker config for your current deployment.
@@ -279,7 +280,6 @@ hal config [subcommands]
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
  * `storage`: Show Spinnaker's persistent storage options.
  * `version`: Configure & view the current deployment of Spinnaker's version.
- * `webhook`: Configure, validate, and view the specified webhook.
 
 ---
 ## hal config features
@@ -649,147 +649,6 @@ Set the oauth2 method as disabled
 hal config security oauth2 disable [parameters]
 ```
 #### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config webhook
-
-Configure, validate, and view the specified webhook.
-
-#### Usage
-```
-hal config webhook [subcommands]
-```
-#### Subcommands
- * `jenkins`: Manage and view Spinnaker configuration for the jenkins webhook
-
----
-## hal config webhook jenkins
-
-Manage and view Spinnaker configuration for the jenkins webhook
-
-#### Usage
-```
-hal config webhook jenkins [parameters] [subcommands]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
- * `disable`: Set the jenkins webhook as disabled
- * `enable`: Set the jenkins webhook as enabled
- * `master`: Manage and view Spinnaker configuration for the jenkins webhook's master
-
----
-## hal config webhook jenkins disable
-
-Set the jenkins webhook as disabled
-
-#### Usage
-```
-hal config webhook jenkins disable [parameters]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config webhook jenkins enable
-
-Set the jenkins webhook as enabled
-
-#### Usage
-```
-hal config webhook jenkins enable [parameters]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config webhook jenkins master
-
-Manage and view Spinnaker configuration for the jenkins webhook's master
-
-#### Usage
-```
-hal config webhook jenkins master MASTER [parameters] [subcommands]
-```
-#### Parameters
-`MASTER`: The name of the master to operate on.
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
- * `add`: Add a master for the jenkins webhook type.
- * `delete`: Delete a specific jenkins master by name.
- * `edit`: Edit a master for the jenkins webhook type.
- * `get`: Get the specified master details for the jenkins webhook.
- * `list`: List the master names for the jenkins webhook.
-
----
-## hal config webhook jenkins master add
-
-Add a master for the jenkins webhook type.
-
-#### Usage
-```
-hal config webhook jenkins master add MASTER [parameters]
-```
-#### Parameters
-`MASTER`: The name of the master to operate on.
- * `--address`: (*Required*) The address your jenkins master is reachable at.
- * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
- * `--username`: The username of the jenkins user to authenticate as.
-
----
-## hal config webhook jenkins master edit
-
-Edit a master for the jenkins webhook type.
-
-#### Usage
-```
-hal config webhook jenkins master edit MASTER [parameters]
-```
-#### Parameters
-`MASTER`: The name of the master to operate on.
- * `--address`: The address your jenkins master is reachable at.
- * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
- * `--username`: The username of the jenkins user to authenticate as.
-
----
-## hal config webhook jenkins master get
-
-Get the specified master details for the jenkins webhook.
-
-#### Usage
-```
-hal config webhook jenkins master get MASTER [parameters]
-```
-#### Parameters
-`MASTER`: The name of the master to operate on.
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config webhook jenkins master list
-
-List the master names for the jenkins webhook.
-
-#### Usage
-```
-hal config webhook jenkins master list [parameters]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config webhook jenkins master delete
-
-Delete a specific jenkins master by name.
-
-#### Usage
-```
-hal config webhook jenkins master delete MASTER [parameters]
-```
-#### Parameters
-`MASTER`: The name of the master to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
@@ -2091,6 +1950,147 @@ hal config provider azure account delete ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config ci
+
+Configure, validate, and view the specified Continuous Integration service.
+
+#### Usage
+```
+hal config ci [subcommands]
+```
+#### Subcommands
+ * `jenkins`: Manage and view Spinnaker configuration for the jenkins ci
+
+---
+## hal config ci jenkins
+
+Manage and view Spinnaker configuration for the jenkins ci
+
+#### Usage
+```
+hal config ci jenkins [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Set the jenkins ci as disabled
+ * `enable`: Set the jenkins ci as enabled
+ * `master`: Manage and view Spinnaker configuration for the jenkins Continuous Integration services's master
+
+---
+## hal config ci jenkins disable
+
+Set the jenkins ci as disabled
+
+#### Usage
+```
+hal config ci jenkins disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config ci jenkins enable
+
+Set the jenkins ci as enabled
+
+#### Usage
+```
+hal config ci jenkins enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config ci jenkins master
+
+Manage and view Spinnaker configuration for the jenkins Continuous Integration services's master
+
+#### Usage
+```
+hal config ci jenkins master MASTER [parameters] [subcommands]
+```
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `add`: Add a master for the jenkins Continuous Integration service.
+ * `delete`: Delete a specific jenkins master by name.
+ * `edit`: Edit a master for the jenkins Continuous Integration service.
+ * `get`: Get the specified master details for jenkins.
+ * `list`: List the master names for jenkins.
+
+---
+## hal config ci jenkins master add
+
+Add a master for the jenkins Continuous Integration service.
+
+#### Usage
+```
+hal config ci jenkins master add MASTER [parameters]
+```
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--address`: (*Required*) The address your jenkins master is reachable at.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
+ * `--username`: The username of the jenkins user to authenticate as.
+
+---
+## hal config ci jenkins master edit
+
+Edit a master for the jenkins Continuous Integration service.
+
+#### Usage
+```
+hal config ci jenkins master edit MASTER [parameters]
+```
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--address`: The address your jenkins master is reachable at.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
+ * `--username`: The username of the jenkins user to authenticate as.
+
+---
+## hal config ci jenkins master get
+
+Get the specified master details for jenkins.
+
+#### Usage
+```
+hal config ci jenkins master get MASTER [parameters]
+```
+#### Parameters
+`MASTER`: The name of the master to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config ci jenkins master list
+
+List the master names for jenkins.
+
+#### Usage
+```
+hal config ci jenkins master list [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config ci jenkins master delete
+
+Delete a specific jenkins master by name.
+
+#### Usage
+```
+hal config ci jenkins master delete MASTER [parameters]
+```
+#### Parameters
+`MASTER`: The name of the master to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---

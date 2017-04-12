@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
@@ -24,29 +24,22 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class WebhookEnableDisableCommandBuilder implements CommandBuilder {
+public class GetMasterCommandBuilder implements CommandBuilder {
   @Setter
-  String webhookName;
-
-  @Setter
-  boolean enable;
+  String ciName;
 
   @Override
   public NestableCommand build() {
-    return new WebhookEnableDisableCommand(webhookName, enable);
+    return new GetMasterCommand(ciName);
   }
 
   @Parameters(separators = "=")
-  private static class WebhookEnableDisableCommand extends AbstractWebhookEnableDisableCommand {
-    private WebhookEnableDisableCommand(String webhookName, boolean enable) {
-      this.webhookName = webhookName;
-      this.enable = enable;
+  private static class GetMasterCommand extends AbstractGetMasterCommand {
+    private GetMasterCommand(String ciName) {
+      this.ciName = ciName;
     }
 
     @Getter(AccessLevel.PROTECTED)
-    boolean enable;
-
-    @Getter(AccessLevel.PROTECTED)
-    private String webhookName;
+    private String ciName;
   }
 }

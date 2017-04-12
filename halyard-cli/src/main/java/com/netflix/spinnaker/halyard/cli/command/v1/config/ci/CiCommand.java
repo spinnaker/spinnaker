@@ -15,31 +15,33 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins.JenkinsCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
-public class DeleteMasterCommandBuilder implements CommandBuilder {
-  @Setter
-  String webhookName;
+/**
+ * This is a top-level command for dealing with your halconfig.
+ *
+ * Usage is `$ hal config ci`
+ */
+@Parameters(separators = "=")
+public class CiCommand extends NestableCommand {
+  @Getter(AccessLevel.PUBLIC)
+  private String commandName = "ci";
 
-  @Override
-  public NestableCommand build() {
-    return new DeleteMasterCommand(webhookName);
+  @Getter(AccessLevel.PUBLIC)
+  private String description = "Configure, validate, and view the specified Continuous Integration service.";
+
+  public CiCommand() {
+    registerSubcommand(new JenkinsCommand());
   }
 
-  @Parameters(separators = "=")
-  private static class DeleteMasterCommand extends AbstractDeleteMasterCommand {
-    private DeleteMasterCommand(String webhookName) {
-      this.webhookName = webhookName;
-    }
-
-    @Getter(AccessLevel.PROTECTED)
-    private String webhookName;
+  @Override
+  protected void executeThis() {
+    showHelp();
   }
 }

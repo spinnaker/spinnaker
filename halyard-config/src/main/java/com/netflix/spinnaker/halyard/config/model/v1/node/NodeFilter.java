@@ -48,15 +48,15 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
-  public NodeFilter withAnyWebhook() {
-    matchers.add(Node.thisNodeAcceptor(Webhooks.class));
-    matchers.add(Node.thisNodeAcceptor(Webhook.class));
+  public NodeFilter withAnyCi() {
+    matchers.add(Node.thisNodeAcceptor(Cis.class));
+    matchers.add(Node.thisNodeAcceptor(Ci.class));
     return this;
   }
 
-  public NodeFilter setWebhook(String name) {
-    matchers.add(Node.thisNodeAcceptor(Webhooks.class));
-    matchers.add(Node.namedNodeAcceptor(Webhook.class, name));
+  public NodeFilter setCi(String name) {
+    matchers.add(Node.thisNodeAcceptor(Cis.class));
+    matchers.add(Node.namedNodeAcceptor(Ci.class, name));
     return this;
   }
 

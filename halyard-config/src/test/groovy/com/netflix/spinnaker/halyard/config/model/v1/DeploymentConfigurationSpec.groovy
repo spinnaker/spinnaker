@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.config.model.v1
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhooks
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis
 import spock.lang.Specification
 
 class DeploymentConfigurationSpec extends Specification {
@@ -57,7 +57,7 @@ class DeploymentConfigurationSpec extends Specification {
     when:
     def child = iterator.getNext()
     while (child != null) {
-      if (child instanceof Webhooks) {
+      if (child instanceof Cis) {
         webhooks = true
       }
 

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhooks;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import org.springframework.stereotype.Component;
@@ -40,9 +40,9 @@ public class IgorProfileFactory extends SpringProfileFactory {
       profile.appendContents("dockerRegistry.enabled: true");
     }
 
-    Webhooks webhooks = deploymentConfiguration.getWebhooks();
-    List<String> files = processRequiredFiles(webhooks);
-    profile.appendContents(yamlToString(webhooks))
+    Cis cis = deploymentConfiguration.getCi();
+    List<String> files = processRequiredFiles(cis);
+    profile.appendContents(yamlToString(cis))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }

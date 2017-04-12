@@ -15,12 +15,20 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.jenkins;
+package com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins;
 
-public class JenkinsCommandProperties {
-  static final String USERNAME_DESCRIPTION = "The username of the jenkins user to authenticate as.";
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 
-  static final String PASSWORD_DESCRIPTION = "The password of the jenkins user to authenticate as.";
+public class JenkinsCi extends Ci<JenkinsMaster> {
+  @Override
+  public String getNodeName() {
+    return "jenkins";
+  }
 
-  static final String ADDRESS_DESCRIPTION = "The address your jenkins master is reachable at.";
+  @Override
+  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+    v.validate(psBuilder, this);
+  }
 }

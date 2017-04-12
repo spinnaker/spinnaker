@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -12,31 +12,33 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.node;
+package com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
-@EqualsAndHashCode(callSuper = false)
-public abstract class Webhook<T extends Master> extends Node implements Cloneable {
-  boolean enabled;
-  List<T> masters = new ArrayList<>();
-
+public class JenkinsMaster extends Master {
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeListIterator(masters.stream().map(a -> (Node) a).collect(Collectors.toList()));
+    return NodeIteratorFactory.makeEmptyIterator();
   }
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
+
+  private String address;
+  private String username;
+  private String password;
 }

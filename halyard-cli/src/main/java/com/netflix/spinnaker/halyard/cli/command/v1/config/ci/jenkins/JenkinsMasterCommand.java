@@ -15,20 +15,23 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.webhooks.jenkins;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
-import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractMasterCommand;
 
-public class JenkinsWebhook extends Webhook<JenkinsMaster> {
-  @Override
-  public String getNodeName() {
+/**
+ * Interact with the jenkins ci's masters
+ */
+@Parameters(separators = "=")
+public class JenkinsMasterCommand extends AbstractMasterCommand {
+  protected String getCiName() {
     return "jenkins";
   }
 
-  @Override
-  public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
-    v.validate(psBuilder, this);
+  public JenkinsMasterCommand() {
+    super();
+    registerSubcommand(new JenkinsAddMasterCommand());
+    registerSubcommand(new JenkinsEditMasterCommand());
   }
 }

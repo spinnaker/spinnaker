@@ -15,13 +15,13 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.AbstractHasMasterCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.DeleteMasterCommandBuilder;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.GetMasterCommandBuilder;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.ListMastersCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractHasMasterCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.DeleteMasterCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.GetMasterCommandBuilder;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.ListMastersCommandBuilder;
 
 @Parameters(separators = "=")
 public abstract class AbstractMasterCommand extends AbstractHasMasterCommand {
@@ -32,22 +32,22 @@ public abstract class AbstractMasterCommand extends AbstractHasMasterCommand {
 
   @Override
   public String getDescription() {
-    return "Manage and view Spinnaker configuration for the " + getWebhookName() + " webhook's master";
+    return "Manage and view Spinnaker configuration for the " + getCiName() + " Continuous Integration services's master";
   }
 
   protected AbstractMasterCommand() {
     registerSubcommand(new DeleteMasterCommandBuilder()
-        .setWebhookName(getWebhookName())
+        .setCiName(getCiName())
         .build()
     );
 
     registerSubcommand(new GetMasterCommandBuilder()
-        .setWebhookName(getWebhookName())
+        .setCiName(getCiName())
         .build()
     );
 
     registerSubcommand(new ListMastersCommandBuilder()
-        .setWebhookName(getWebhookName())
+        .setCiName(getCiName())
         .build()
     );
   }

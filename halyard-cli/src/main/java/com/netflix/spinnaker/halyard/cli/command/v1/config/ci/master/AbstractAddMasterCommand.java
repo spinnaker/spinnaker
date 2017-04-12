@@ -15,13 +15,12 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,43 +29,30 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Parameters(separators = "=")
-public abstract class AbstractEditMasterCommand<T extends Master> extends AbstractHasMasterCommand {
+public abstract class AbstractAddMasterCommand extends AbstractHasMasterCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "edit";
+  private String commandName = "add";
 
-  protected abstract Master editMaster(T master);
+  protected abstract Master buildMaster(String masterName);
 
   public String getDescription() {
-    return "Edit a master for the " + getWebhookName() + " webhook type.";
+    return "Add a master for the " + getCiName() + " Continuous Integration service.";
   }
 
   @Override
   protected void executeThis() {
     String masterName = getMasterName();
-    String webhookName = getWebhookName();
+    Master master = buildMaster(masterName);
+    String ciName = getCiName();
+
     String currentDeployment = getCurrentDeployment();
-    // Disable validation here, since we don't want an illegal config to prevent us from fixing it.
-    Master master = new OperationHandler<Master>()
-        .setOperation(Daemon.getMaster(currentDeployment, webhookName, masterName, !noValidate))
-        .setFailureMesssage("Failed to get " + masterName + " webhook for " + webhookName + ".")
-        .get();
-
-    int originalHash = master.hashCode();
-
-    master = editMaster((T) master);
-
-    if (originalHash == master.hashCode()) {
-      AnsiUi.failure("No changes supplied.");
-      return;
-    }
-
     new OperationHandler<Void>()
-        .setOperation(Daemon.setMaster(currentDeployment, webhookName, masterName, !noValidate, master))
-        .setSuccessMessage("Edited " + masterName + " webhook for " + webhookName + ".")
-        .setFailureMesssage("Failed to edit " + masterName + " webhook for " + webhookName + ".")
+        .setOperation(Daemon.addMaster(currentDeployment, ciName, !noValidate, master))
+        .setSuccessMessage("Added " + masterName + " for " + ciName + ".")
+        .setFailureMesssage("Failed to add " + masterName + " for " + ciName + ".")
         .get();
   }
 }

@@ -189,44 +189,44 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Master> getMaster(String deploymentName, String webhookName, String masterName, boolean validate) {
+  public static Supplier<Master> getMaster(String deploymentName, String ciName, String masterName, boolean validate) {
     return () -> {
-      Object rawMaster = ResponseUnwrapper.get(getService().getMaster(deploymentName, webhookName, masterName, validate));
-      return getObjectMapper().convertValue(rawMaster, Webhooks.translateMasterType(webhookName));
+      Object rawMaster = ResponseUnwrapper.get(getService().getMaster(deploymentName, ciName, masterName, validate));
+      return getObjectMapper().convertValue(rawMaster, Cis.translateMasterType(ciName));
     };
   }
 
-  public static Supplier<Void> addMaster(String deploymentName, String webhookName, boolean validate, Master master) {
+  public static Supplier<Void> addMaster(String deploymentName, String ciName, boolean validate, Master master) {
     return () -> {
-      ResponseUnwrapper.get(getService().addMaster(deploymentName, webhookName, validate, master));
+      ResponseUnwrapper.get(getService().addMaster(deploymentName, ciName, validate, master));
       return null;
     };
   }
 
-  public static Supplier<Void> setMaster(String deploymentName, String webhookName, String masterName, boolean validate, Master master) {
+  public static Supplier<Void> setMaster(String deploymentName, String ciName, String masterName, boolean validate, Master master) {
     return () -> {
-      ResponseUnwrapper.get(getService().setMaster(deploymentName, webhookName, masterName, validate, master));
+      ResponseUnwrapper.get(getService().setMaster(deploymentName, ciName, masterName, validate, master));
       return null;
     };
   }
 
-  public static Supplier<Void> deleteMaster(String deploymentName, String webhookName, String masterName, boolean validate) {
+  public static Supplier<Void> deleteMaster(String deploymentName, String ciName, String masterName, boolean validate) {
     return () -> {
-      ResponseUnwrapper.get(getService().deleteMaster(deploymentName, webhookName, masterName, validate));
+      ResponseUnwrapper.get(getService().deleteMaster(deploymentName, ciName, masterName, validate));
       return null;
     };
   }
 
-  public static Supplier<Webhook> getWebhook(String deploymentName, String webhookName, boolean validate) {
+  public static Supplier<Ci> getCi(String deploymentName, String ciName, boolean validate) {
     return () -> {
-      Object webhook = ResponseUnwrapper.get(getService().getWebhook(deploymentName, webhookName, validate));
-      return getObjectMapper().convertValue(webhook, Webhooks.translateWebhookType(webhookName));
+      Object ci = ResponseUnwrapper.get(getService().getCi(deploymentName, ciName, validate));
+      return getObjectMapper().convertValue(ci, Cis.translateCiType(ciName));
     };
   }
 
-  public static Supplier<Void> setWebhookEnableDisable(String deploymentName, String webhookName, boolean validate, boolean enable) {
+  public static Supplier<Void> setCiEnableDisable(String deploymentName, String ciName, boolean validate, boolean enable) {
     return () -> {
-      ResponseUnwrapper.get(getService().setWebhookEnabled(deploymentName, webhookName, validate, enable));
+      ResponseUnwrapper.get(getService().setCiEnabled(deploymentName, ciName, validate, enable));
       return null;
     };
   }

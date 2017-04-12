@@ -15,11 +15,11 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.AbstractWebhookCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractCiCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.List;
  * An abstract definition for commands that accept MASTER as a main parameter
  */
 @Parameters(separators = "=")
-public abstract class AbstractHasMasterCommand extends AbstractWebhookCommand {
+public abstract class AbstractHasMasterCommand extends AbstractCiCommand {
   @Parameter(description = "The name of the master to operate on.", arity = 1)
   List<String> masters = new ArrayList<>();
 

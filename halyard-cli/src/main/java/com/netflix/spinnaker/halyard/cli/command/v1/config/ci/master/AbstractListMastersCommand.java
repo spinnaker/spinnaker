@@ -15,45 +15,45 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.AbstractWebhookCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractCiCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 import lombok.Getter;
 
 import java.util.List;
 
 @Parameters(separators = "=")
-abstract class AbstractListMastersCommand extends AbstractWebhookCommand {
+abstract class AbstractListMastersCommand extends AbstractCiCommand {
   public String getDescription() {
-    return "List the master names for the " + getWebhookName() + " webhook.";
+    return "List the master names for " + getCiName() + ".";
   }
 
   @Getter
   private String commandName = "list";
 
-  private Webhook getWebhook() {
+  private Ci getCi() {
     String currentDeployment = getCurrentDeployment();
-    String webhookName = getCurrentDeployment();
-    return new OperationHandler<Webhook>()
-        .setOperation(Daemon.getWebhook(currentDeployment, webhookName, !noValidate))
-        .setFailureMesssage("Failed to get " + webhookName + " wehbook.")
+    String ciName = getCurrentDeployment();
+    return new OperationHandler<Ci>()
+        .setOperation(Daemon.getCi(currentDeployment, ciName, !noValidate))
+        .setFailureMesssage("Failed to get " + ciName + " wehbook.")
         .get();
   }
 
   @Override
   protected void executeThis() {
-    Webhook webhook = getWebhook();
-    List<Master> masters = webhook.getMasters();
+    Ci ci = getCi();
+    List<Master> masters = ci.getMasters();
     if (masters.isEmpty()) {
-      AnsiUi.success("No configured masters for " + getWebhookName() + ".");
+      AnsiUi.success("No configured masters for " + getCiName() + ".");
     } else {
-      AnsiUi.success("Masters for " + getWebhookName() + ":");
+      AnsiUi.success("Masters for " + getCiName() + ":");
       masters.forEach(master -> AnsiUi.listItem(master.getName()));
     }
   }

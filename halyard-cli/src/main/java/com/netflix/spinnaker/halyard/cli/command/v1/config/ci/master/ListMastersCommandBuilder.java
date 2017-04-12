@@ -15,33 +15,31 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.CommandBuilder;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.jenkins.JenkinsCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
-/**
- * This is a top-level command for dealing with your halconfig.
- *
- * Usage is `$ hal config webhook`
- */
-@Parameters(separators = "=")
-public class WebhookCommand extends NestableCommand {
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "webhook";
-
-  @Getter(AccessLevel.PUBLIC)
-  private String description = "Configure, validate, and view the specified webhook.";
-
-  public WebhookCommand() {
-    registerSubcommand(new JenkinsCommand());
-  }
+public class ListMastersCommandBuilder implements CommandBuilder {
+  @Setter
+  String ciName;
 
   @Override
-  protected void executeThis() {
-    showHelp();
+  public NestableCommand build() {
+    return new ListMastersCommand(ciName);
+  }
+
+  @Parameters(separators = "=")
+  private static class ListMastersCommand extends AbstractListMastersCommand {
+    private ListMastersCommand(String ciName) {
+      this.ciName = ciName;
+    }
+
+    @Getter(AccessLevel.PROTECTED)
+    private String ciName;
   }
 }

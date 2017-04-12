@@ -15,33 +15,49 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
-import lombok.Getter;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
 
 @Parameters(separators = "=")
-abstract class AbstractGetMasterCommand extends AbstractHasMasterCommand {
-  public String getDescription() {
-    return "Get the specified master details for the " + getWebhookName() + " webhook.";
+public abstract class AbstractNamedCiCommand extends AbstractCiCommand {
+  @Override
+  public String getCommandName() {
+    return getCiName();
   }
 
-  @Getter
-  private String commandName = "get";
+  @Override
+  public String getDescription() {
+    return "Manage and view Spinnaker configuration for the " + getCiName() + " ci";
+  }
+
+  protected AbstractNamedCiCommand() {
+    registerSubcommand(new CiEnableDisableCommandBuilder()
+        .setCiName(getCiName())
+        .setEnable(false)
+        .build()
+    );
+
+    registerSubcommand(new CiEnableDisableCommandBuilder()
+        .setCiName(getCiName())
+        .setEnable(true)
+        .build()
+    );
+  }
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-    String masterName = getMasterName();
-    String webhookName = getWebhookName();
-    new OperationHandler<Master>()
-        .setOperation(Daemon.getMaster(currentDeployment, webhookName, masterName, !noValidate))
-        .setFailureMesssage("Failed to get " + masterName + " webhook for " + webhookName + ".")
+    String ciName = getCiName();
+    new OperationHandler<Ci>()
+        .setOperation(Daemon.getCi(currentDeployment, ciName, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setSuccessMessage("Configured " + ciName + " ci: ")
+        .setFailureMesssage("Failed to load ci " + ciName + ".")
         .get();
   }
 }

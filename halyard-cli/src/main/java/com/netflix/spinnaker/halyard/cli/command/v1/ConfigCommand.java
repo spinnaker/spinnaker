@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.*;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.WebhookCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.CiCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -45,7 +45,7 @@ public class ConfigCommand extends NestableCommand {
     registerSubcommand(new ProviderCommand());
     registerSubcommand(new SecurityCommand());
     registerSubcommand(new VersionConfigCommand());
-    registerSubcommand(new WebhookCommand());
+    registerSubcommand(new CiCommand());
   }
 
   @Override

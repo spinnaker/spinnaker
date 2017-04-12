@@ -374,45 +374,45 @@ public interface DaemonService {
       @Path("baseImageId") String baseImageId,
       @Query("validate") boolean validate);
 
-  @GET("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/")
-  DaemonTask<Halconfig, Object> getWebhook(
+  @GET("/v1/config/deployments/{deploymentName}/ci/{ciName}/")
+  DaemonTask<Halconfig, Object> getCi(
       @Path("deploymentName") String deploymentName,
-      @Path("webhookName") String webhookName,
+      @Path("ciName") String ciName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/enabled/")
-  DaemonTask<Halconfig, Void> setWebhookEnabled(
+  @PUT("/v1/config/deployments/{deploymentName}/ci/{ciName}/enabled/")
+  DaemonTask<Halconfig, Void> setCiEnabled(
       @Path("deploymentName") String deploymentName,
-      @Path("webhookName") String webhookName,
+      @Path("ciName") String ciName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
 
-  @POST("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/")
+  @POST("/v1/config/deployments/{deploymentName}/ci/{ciName}/masters/")
   DaemonTask<Halconfig, Void> addMaster(
       @Path("deploymentName") String deploymentName,
-      @Path("webhookName") String webhookName,
+      @Path("ciName") String ciName,
       @Query("validate") boolean validate,
       @Body Master master);
 
-  @GET("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/{masterName}/")
+  @GET("/v1/config/deployments/{deploymentName}/ci/{ciName}/masters/{masterName}/")
   DaemonTask<Halconfig, Object> getMaster(
       @Path("deploymentName") String deploymentName,
-      @Path("webhookName") String webhookName,
+      @Path("ciName") String ciName,
       @Path("masterName") String masterName,
       @Query("validate") boolean validate);
 
-  @PUT("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/{masterName}/")
+  @PUT("/v1/config/deployments/{deploymentName}/ci/{ciName}/masters/{masterName}/")
   DaemonTask<Halconfig, Void> setMaster(
       @Path("deploymentName") String deploymentName,
-      @Path("webhookName") String webhookName,
+      @Path("ciName") String ciName,
       @Path("masterName") String masterName,
       @Query("validate") boolean validate,
       @Body Master master);
 
-  @DELETE("/v1/config/deployments/{deploymentName}/webhooks/{webhookName}/masters/{masterName}/")
+  @DELETE("/v1/config/deployments/{deploymentName}/ci/{ciName}/masters/{masterName}/")
   DaemonTask<Halconfig, Void> deleteMaster(
       @Path("deploymentName") String deploymentName,
-      @Path("webhookName") String webhookName,
+      @Path("ciName") String ciName,
       @Path("masterName") String masterName,
       @Query("validate") boolean validate);
 

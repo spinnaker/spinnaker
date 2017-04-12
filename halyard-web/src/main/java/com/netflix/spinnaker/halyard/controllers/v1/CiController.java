@@ -18,9 +18,9 @@
 package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
-import com.netflix.spinnaker.halyard.config.services.v1.WebhookService;
+import com.netflix.spinnaker.halyard.config.services.v1.CiService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -34,69 +34,69 @@ import java.util.List;
 import java.util.function.Supplier;
 
 @RestController
-@RequestMapping("/v1/config/deployments/{deploymentName:.+}/webhooks")
-public class WebhookController {
+@RequestMapping("/v1/config/deployments/{deploymentName:.+}/ci")
+public class CiController {
   @Autowired
   HalconfigParser halconfigParser;
 
   @Autowired
-  WebhookService webhookService;
+  CiService ciService;
 
-  @RequestMapping(value = "/{webhookName:.+}", method = RequestMethod.GET)
-  DaemonTask<Halconfig, Webhook> webhook(
+  @RequestMapping(value = "/{ciName:.+}", method = RequestMethod.GET)
+  DaemonTask<Halconfig, Ci> ci(
       @PathVariable String deploymentName,
-      @PathVariable String webhookName,
+      @PathVariable String ciName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<Webhook> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<Ci> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> webhookService.getWebhook(deploymentName, webhookName));
+    builder.setBuildResponse(() -> ciService.getCi(deploymentName, ciName));
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> webhookService.validateWebhook(deploymentName, webhookName));
+      builder.setValidateResponse(() -> ciService.validateCi(deploymentName, ciName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Get " + webhookName + " webhook");
+    return DaemonTaskHandler.submitTask(builder::build, "Get " + ciName + " ci");
   }
 
-  @RequestMapping(value = "/{webhookName:.+}/enabled", method = RequestMethod.PUT)
+  @RequestMapping(value = "/{ciName:.+}/enabled", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> setEnabled(
       @PathVariable String deploymentName,
-      @PathVariable String webhookName,
+      @PathVariable String ciName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
       @RequestBody boolean enabled) {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
-    builder.setUpdate(() -> webhookService.setEnabled(deploymentName, webhookName, enabled));
+    builder.setUpdate(() -> ciService.setEnabled(deploymentName, ciName, enabled));
     builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
     if (validate) {
-      doValidate = () -> webhookService.validateWebhook(deploymentName, webhookName);
+      doValidate = () -> ciService.validateCi(deploymentName, ciName);
     }
 
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return DaemonTaskHandler.submitTask(builder::build, "Edit " + webhookName + " settings");
+    return DaemonTaskHandler.submitTask(builder::build, "Edit " + ciName + " settings");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Webhook>> webhooks(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, List<Ci>> cis(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
-    StaticRequestBuilder<List<Webhook>> builder = new StaticRequestBuilder<>();
+    StaticRequestBuilder<List<Ci>> builder = new StaticRequestBuilder<>();
 
-    builder.setBuildResponse(() -> webhookService.getAllWebhooks(deploymentName));
+    builder.setBuildResponse(() -> ciService.getAllCis(deploymentName));
     builder.setSeverity(severity);
 
     if (validate) {
-      builder.setValidateResponse(() -> webhookService.validateAllWebhooks(deploymentName));
+      builder.setValidateResponse(() -> ciService.validateAllCis(deploymentName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Get all webhooks");
+    return DaemonTaskHandler.submitTask(builder::build, "Get all Continuous Integration services");
   }
 }

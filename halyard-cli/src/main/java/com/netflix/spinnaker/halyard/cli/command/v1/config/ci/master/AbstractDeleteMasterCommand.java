@@ -15,44 +15,47 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Delete a specific PROVIDER master
+ */
 @Parameters(separators = "=")
-public abstract class AbstractAddMasterCommand extends AbstractHasMasterCommand {
+public abstract class AbstractDeleteMasterCommand extends AbstractHasMasterCommand {
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "add";
-
-  protected abstract Master buildMaster(String masterName);
+  private String commandName = "delete";
 
   public String getDescription() {
-    return "Add a master for the " + getWebhookName() + " webhook type.";
+    return "Delete a specific " + getCiName() + " master by name.";
   }
 
   @Override
   protected void executeThis() {
-    String masterName = getMasterName();
-    Master master = buildMaster(masterName);
-    String webhookName = getWebhookName();
+    deleteMaster(getMasterName());
+    AnsiUi.success("Deleted " + getMasterName());
+  }
 
+  private void deleteMaster(String masterName) {
     String currentDeployment = getCurrentDeployment();
+    String ciName = getCiName();
     new OperationHandler<Void>()
-        .setOperation(Daemon.addMaster(currentDeployment, webhookName, !noValidate, master))
-        .setSuccessMessage("Added " + masterName + " webhook for " + webhookName + ".")
-        .setFailureMesssage("Failed to add " + masterName + " webhook for " + webhookName + ".")
+        .setOperation(Daemon.deleteMaster(currentDeployment, ciName, masterName, !noValidate))
+        .setSuccessMessage("Deleted " + masterName + " for " + ciName + ".")
+        .setFailureMesssage("Failed to delete " + masterName + " for " + ciName + ".")
         .get();
   }
 }

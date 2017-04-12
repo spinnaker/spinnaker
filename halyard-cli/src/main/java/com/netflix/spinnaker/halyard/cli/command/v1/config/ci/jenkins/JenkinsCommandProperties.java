@@ -15,23 +15,12 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.jenkins;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins;
 
-import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.AbstractMasterCommand;
+public class JenkinsCommandProperties {
+  static final String USERNAME_DESCRIPTION = "The username of the jenkins user to authenticate as.";
 
-/**
- * Interact with the jenkins webhook's masters
- */
-@Parameters(separators = "=")
-public class JenkinsMasterCommand extends AbstractMasterCommand {
-  protected String getWebhookName() {
-    return "jenkins";
-  }
+  static final String PASSWORD_DESCRIPTION = "The password of the jenkins user to authenticate as.";
 
-  public JenkinsMasterCommand() {
-    super();
-    registerSubcommand(new JenkinsAddMasterCommand());
-    registerSubcommand(new JenkinsEditMasterCommand());
-  }
+  static final String ADDRESS_DESCRIPTION = "The address your jenkins master is reachable at.";
 }

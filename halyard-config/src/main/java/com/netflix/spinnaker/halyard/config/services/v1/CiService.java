@@ -19,8 +19,8 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -31,67 +31,65 @@ import java.util.List;
 
 /**
  * This service is meant to be autowired into any service or controller that needs to inspect the current halconfigs
- * webhooks.
+ * cis.
  */
 @Component
-public class WebhookService {
+public class CiService {
   @Autowired
   private LookupService lookupService;
 
   @Autowired
   private ValidateService validateService;
 
-  public Webhook getWebhook(String deploymentName, String webhookName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook(webhookName);
+  public Ci getCi(String deploymentName, String ciName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName);
 
-    List<Webhook> matching = lookupService.getMatchingNodesOfType(filter, Webhook.class);
+    List<Ci> matching = lookupService.getMatchingNodesOfType(filter, Ci.class);
 
     switch (matching.size()) {
       case 0:
         throw new ConfigNotFoundException(new ConfigProblemBuilder(Severity.FATAL,
-            "No webhook with name \"" + webhookName + "\" could be found")
-            .setRemediation("Create a new webhook with name \"" + webhookName + "\"").build());
+            "No Continuous Integration service with name \"" + ciName + "\" could be found").build());
       case 1:
         return matching.get(0);
       default:
         throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
-            "More than one webhook with name \"" + webhookName + "\" found")
-            .setRemediation("Manually delete or rename duplicate webhooks with name \"" + webhookName + "\" in your halconfig file").build());
+            "More than one CI with name \"" + ciName + "\" found").build());
     }
   }
 
-  public List<Webhook> getAllWebhooks(String deploymentName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyWebhook();
+  public List<Ci> getAllCis(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyCi();
 
-    List<Webhook> matching = lookupService.getMatchingNodesOfType(filter, Webhook.class);
+    List<Ci> matching = lookupService.getMatchingNodesOfType(filter, Ci.class);
 
     if (matching.size() == 0) {
       throw new ConfigNotFoundException(
-          new ConfigProblemBuilder(Severity.FATAL, "No webhooks could be found")
+          new ConfigProblemBuilder(Severity.FATAL, "No cis could be found")
               .build());
     } else {
       return matching;
     }
   }
 
-  public void setEnabled(String deploymentName, String webhookName, boolean enabled) {
-    Webhook webhook = getWebhook(deploymentName, webhookName);
-    webhook.setEnabled(enabled);
+  public void setEnabled(String deploymentName, String ciName, boolean enabled) {
+    Ci ci = getCi(deploymentName, ciName);
+    ci.setEnabled(enabled);
   }
 
-  public ProblemSet validateWebhook(String deploymentName, String webhookName) {
+  public ProblemSet validateCi(String deploymentName, String ciName) {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
-        .setWebhook(webhookName)
+        .setCi(ciName)
         .withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateAllWebhooks(String deploymentName) {
+  public ProblemSet validateAllCis(String deploymentName) {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
-        .withAnyWebhook()
+        .withAnyCi()
         .withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);

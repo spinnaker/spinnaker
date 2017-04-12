@@ -15,12 +15,22 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.AbstractNamedCiCommand;
 
+/**
+ * Interact with the jenkins ci
+ */
 @Parameters(separators = "=")
-public abstract class AbstractWebhookCommand extends AbstractConfigCommand {
-  abstract protected String getWebhookName();
+public class JenkinsCommand extends AbstractNamedCiCommand {
+  protected String getCiName() {
+    return "jenkins";
+  }
+
+  public JenkinsCommand() {
+    super();
+    registerSubcommand(new JenkinsMasterCommand());
+  }
 }

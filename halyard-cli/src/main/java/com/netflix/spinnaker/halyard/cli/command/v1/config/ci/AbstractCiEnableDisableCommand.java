@@ -15,47 +15,52 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Delete a specific PROVIDER master
- */
 @Parameters(separators = "=")
-public abstract class AbstractDeleteMasterCommand extends AbstractHasMasterCommand {
+public abstract class AbstractCiEnableDisableCommand extends AbstractCiCommand {
+  @Override
+  public String getCommandName() {
+    return isEnable() ? "enable" : "disable";
+  }
+
+  private String subjunctivePerfectAction() {
+    return isEnable() ? "enabled" : "disabled";
+  }
+
+  private String indicativePastPerfectAction() {
+    return isEnable() ? "enabled" : "disabled";
+  }
+
+  protected abstract boolean isEnable();
+
   @Getter(AccessLevel.PROTECTED)
   private Map<String, NestableCommand> subcommands = new HashMap<>();
 
-  @Getter(AccessLevel.PUBLIC)
-  private String commandName = "delete";
-
+  @Override
   public String getDescription() {
-    return "Delete a specific " + getWebhookName() + " master by name.";
+    return "Set the " + getCiName() + " ci as " + subjunctivePerfectAction();
   }
 
   @Override
   protected void executeThis() {
-    deleteMaster(getMasterName());
-    AnsiUi.success("Deleted " + getMasterName());
-  }
-
-  private void deleteMaster(String masterName) {
     String currentDeployment = getCurrentDeployment();
-    String webhookName = getWebhookName();
+    String ciName = getCiName();
+    boolean enable = isEnable();
     new OperationHandler<Void>()
-        .setOperation(Daemon.deleteMaster(currentDeployment, webhookName, masterName, !noValidate))
-        .setSuccessMessage("Deleted " + masterName + " webhook for " + webhookName + ".")
-        .setFailureMesssage("Failed to delete " + masterName + " webhook for " + webhookName + ".")
+        .setSuccessMessage("Successfully " + indicativePastPerfectAction() + " " + ciName)
+        .setFailureMesssage("Failed to " + getCommandName() + " " + ciName)
+        .setOperation(Daemon.setCiEnableDisable(currentDeployment, ciName, !noValidate, enable))
         .get();
   }
 }

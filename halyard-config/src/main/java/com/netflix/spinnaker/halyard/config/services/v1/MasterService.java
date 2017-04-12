@@ -19,9 +19,9 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Webhook;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -41,13 +41,13 @@ public class MasterService {
   private LookupService lookupService;
 
   @Autowired
-  private WebhookService webhookService;
+  private CiService ciService;
 
   @Autowired
   private ValidateService validateService;
 
-  public List<Master> getAllMasters(String deploymentName, String webhookName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook(webhookName).withAnyMaster();
+  public List<Master> getAllMasters(String deploymentName, String ciName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName).withAnyMaster();
 
     List<Master> matchingMasters = lookupService.getMatchingNodesOfType(filter, Master.class);
 
@@ -66,7 +66,7 @@ public class MasterService {
       case 0:
         throw new ConfigNotFoundException(new ConfigProblemBuilder(
             Severity.FATAL, "No master with name \"" + masterName + "\" was found")
-            .setRemediation("Check if this master was defined in another webhook, or create a new one").build());
+            .setRemediation("Check if this master was defined in another Continuous Integration service, or create a new one").build());
       case 1:
         return matchingMasters.get(0);
       default:
@@ -76,23 +76,23 @@ public class MasterService {
     }
   }
 
-  public Master getWebhookMaster(String deploymentName, String webhookName, String masterName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook(webhookName).setMaster(masterName);
+  public Master getCiMaster(String deploymentName, String ciName, String masterName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName).setMaster(masterName);
     return getMaster(filter, masterName);
   }
 
-  public Master getAnyWebhookMaster(String deploymentName, String masterName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyWebhook().setMaster(masterName);
+  public Master getAnyCiMaster(String deploymentName, String masterName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).withAnyCi().setMaster(masterName);
     return getMaster(filter, masterName);
   }
 
-  public void setMaster(String deploymentName, String webhookName, String masterName, Master newMaster) {
-    Webhook webhook = webhookService.getWebhook(deploymentName, webhookName);
+  public void setMaster(String deploymentName, String ciName, String masterName, Master newMaster) {
+    Ci ci = ciService.getCi(deploymentName, ciName);
 
-    for (int i = 0; i < webhook.getMasters().size(); i++) {
-      Master master = (Master) webhook.getMasters().get(i);
+    for (int i = 0; i < ci.getMasters().size(); i++) {
+      Master master = (Master) ci.getMasters().get(i);
       if (master.getNodeName().equals(masterName)) {
-        webhook.getMasters().set(i, newMaster);
+        ci.getMasters().set(i, newMaster);
         return;
       }
     }
@@ -100,9 +100,9 @@ public class MasterService {
     throw new HalException(new ConfigProblemBuilder(Severity.FATAL, "Master \"" + masterName + "\" wasn't found").build());
   }
 
-  public void deleteMaster(String deploymentName, String webhookName, String masterName) {
-    Webhook webhook = webhookService.getWebhook(deploymentName, webhookName);
-    boolean removed = webhook.getMasters().removeIf(master -> ((Master) master).getName().equals(masterName));
+  public void deleteMaster(String deploymentName, String ciName, String masterName) {
+    Ci ci = ciService.getCi(deploymentName, ciName);
+    boolean removed = ci.getMasters().removeIf(master -> ((Master) master).getName().equals(masterName));
 
     if (!removed) {
       throw new HalException(
@@ -111,18 +111,18 @@ public class MasterService {
     }
   }
 
-  public void addMaster(String deploymentName, String webhookName, Master newMaster) {
-    Webhook webhook = webhookService.getWebhook(deploymentName, webhookName);
-    webhook.getMasters().add(newMaster);
+  public void addMaster(String deploymentName, String ciName, Master newMaster) {
+    Ci ci = ciService.getCi(deploymentName, ciName);
+    ci.getMasters().add(newMaster);
   }
 
-  public ProblemSet validateMaster(String deploymentName, String webhookName, String masterName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook(webhookName).setMaster(masterName);
+  public ProblemSet validateMaster(String deploymentName, String ciName, String masterName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName).setMaster(masterName);
     return validateService.validateMatchingFilter(filter);
   }
 
-  public ProblemSet validateAllMasters(String deploymentName, String webhookName) {
-    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setWebhook(webhookName).withAnyMaster();
+  public ProblemSet validateAllMasters(String deploymentName, String ciName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setCi(ciName).withAnyMaster();
     return validateService.validateMatchingFilter(filter);
   }
 }

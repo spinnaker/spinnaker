@@ -15,23 +15,22 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.jenkins;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.ci.jenkins;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.webhooks.master.AbstractAddMasterCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.master.AbstractEditMasterCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
-import com.netflix.spinnaker.halyard.config.model.v1.webhooks.jenkins.JenkinsMaster;
 
 @Parameters(separators = "=")
-public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
-  protected String getWebhookName() {
+public class JenkinsEditMasterCommand extends AbstractEditMasterCommand<JenkinsMaster> {
+  protected String getCiName() {
     return "jenkins";
   }
 
   @Parameter(
       names = "--address",
-      required = true,
       description = JenkinsCommandProperties.ADDRESS_DESCRIPTION
   )
   private String address;
@@ -50,12 +49,12 @@ public class JenkinsAddMasterCommand extends AbstractAddMasterCommand {
   public String password;
 
   @Override
-  protected Master buildMaster(String masterName) {
-    JenkinsMaster master = (JenkinsMaster) new JenkinsMaster().setName(masterName);
-    master.setAddress(address)
-        .setPassword(password)
-        .setUsername(username);
+  protected Master editMaster(JenkinsMaster master) {
+    master.setAddress(isSet(address) ? address : master.getAddress());
+    master.setUsername(isSet(username) ? username : master.getUsername());
+    master.setPassword(isSet(password) ? password : master.getPassword());
 
     return master;
   }
+
 }
