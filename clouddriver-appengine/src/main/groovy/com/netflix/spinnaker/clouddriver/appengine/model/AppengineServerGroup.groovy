@@ -88,10 +88,8 @@ class AppengineServerGroup implements ServerGroup, Serializable {
         * For the flexible environment, a version using automatic scaling can be stopped.
         * A stopped version scales down to zero instances and ignores its scaling policy.
         * */
-        def min = servingStatus == ServingStatus.SERVING ?
-          [scalingPolicy.minTotalInstances, scalingPolicy.minIdleInstances].max() : 0
-        def max = servingStatus == ServingStatus.SERVING ?
-          [scalingPolicy.maxTotalInstances, scalingPolicy.maxIdleInstances, instanceCount].max() : instanceCount
+        def min = computeMinForAutomaticScaling(scalingPolicy)
+        def max = computeMaxForAutomaticScaling(scalingPolicy)
         return new ServerGroup.Capacity(min: min,
                                         max: max,
                                         desired: min)
@@ -111,6 +109,26 @@ class AppengineServerGroup implements ServerGroup, Serializable {
       default:
         return new ServerGroup.Capacity(min: instanceCount, max: instanceCount, desired: instanceCount)
         break
+    }
+  }
+
+  Integer computeMinForAutomaticScaling(AppengineScalingPolicy scalingPolicy) {
+    Integer instanceCount = instances?.size() ?: 0
+    if (servingStatus == ServingStatus.SERVING) {
+      def candidateMinValues = [scalingPolicy.minIdleInstances, scalingPolicy.minTotalInstances, instanceCount].findAll { it != null }
+      return candidateMinValues.min()
+    } else {
+      return 0
+    }
+  }
+
+  Integer computeMaxForAutomaticScaling(AppengineScalingPolicy scalingPolicy) {
+    Integer instanceCount = instances?.size() ?: 0
+    if (servingStatus == ServingStatus.SERVING) {
+      def candidateMaxValues = [scalingPolicy.maxIdleInstances, scalingPolicy.maxTotalInstances, instanceCount].findAll { it != null }
+      return candidateMaxValues.max()
+    } else {
+      return instanceCount
     }
   }
 
