@@ -226,4 +226,26 @@ class CloneServerGroupTaskSpec extends Specification {
     where:
     contextAmi = "ami-ctx"
   }
+
+  def "favors 'region' to 'availabilityZones' when adding allowLaunch"() {
+    given:
+    stage.context.amiName = "ami-123"
+    stage.context.region = "eu-west-1"
+
+    def operations
+    task.kato = Mock(KatoService) {
+      1 * requestOperations(_, _) >> {
+        operations = it[1]
+        Observable.from(taskId)
+      }
+    }
+
+    when:
+    task.execute(stage)
+
+    then:
+    operations.size() == 2
+    operations[0].allowLaunchDescription.region == "eu-west-1"
+
+  }
 }
