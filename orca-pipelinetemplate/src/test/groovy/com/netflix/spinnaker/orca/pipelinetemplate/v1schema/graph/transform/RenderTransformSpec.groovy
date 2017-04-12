@@ -28,7 +28,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfig
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineConfiguration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration.PipelineDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateModule
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.HandlebarsRenderer
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class RenderTransformSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
 
-  Renderer renderer = new HandlebarsRenderer(objectMapper)
+  Renderer renderer = new JinjaRenderer(objectMapper)
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {
@@ -74,7 +74,7 @@ class RenderTransformSpec extends Specification {
           type: 'findImageFromTags',
           config: [
             package: '{{ application }}',
-            regions: '{{ json regions }}',
+            regions: '{{ regions|json }}',
             tags: [stack: 'test']
           ]
         ),
@@ -97,7 +97,7 @@ class RenderTransformSpec extends Specification {
           name: '{{deployStageName}}',
           dependsOn: ['manualJudgment'],
           config: [
-            clusters: '[{{#each regions}}{{module "deployCluster" region=this}}{{#unless @last}},{{/unless}}{{/each}}]'
+            clusters: '[{% for region in regions %}{% module deployCluster region=region %}{% if not loop.last %},{% endif %}{% endfor %}]'
           ]
         )
       ],
