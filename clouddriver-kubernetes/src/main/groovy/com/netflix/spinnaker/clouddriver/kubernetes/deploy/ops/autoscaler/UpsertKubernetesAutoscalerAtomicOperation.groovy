@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.autoscaler
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiConverter
@@ -51,10 +52,17 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
 
     def credentials = description.credentials.credentials
     def namespace = KubernetesUtil.validateNamespace(credentials, description.namespace)
+    def serverGroupName = description.serverGroupName
+    def parsedName = Names.parseName(serverGroupName)
+
+    def replicaSet = credentials.apiAdaptor.getReplicaSet(namespace, serverGroupName)
+    def hasDeployment = credentials.apiAdaptor.hasDeployment(replicaSet)
+    def name = hasDeployment ? parsedName.cluster : serverGroupName
+    def kind = hasDeployment ? KubernetesUtil.DEPLOYMENT_KIND : KubernetesUtil.SERVER_GROUP_KIND
 
     task.updateStatus BASE_PHASE, "Looking up existing autoscaler..."
 
-    def autoscaler = credentials.apiAdaptor.getAutoscaler(namespace, description.serverGroupName)
+    def autoscaler = credentials.apiAdaptor.getAutoscaler(namespace, name)
 
     if (autoscaler) {
       task.updateStatus BASE_PHASE, "Updating autoscaler settings..."
@@ -73,7 +81,7 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
         autoscaler.spec.cpuUtilization.targetPercentage
 
       task.updateStatus BASE_PHASE, "Deleting old autoscaler..."
-      credentials.apiAdaptor.deleteAutoscaler(namespace, description.serverGroupName)
+      credentials.apiAdaptor.deleteAutoscaler(namespace, name)
     }
 
     if (!description.scalingPolicy || !description.scalingPolicy.cpuUtilization || description.scalingPolicy.cpuUtilization.target == null) {
@@ -84,8 +92,9 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
       throw new KubernetesOperationException("Capacity min and max must be fully specified when the target server group has no autoscaler.")
     }
 
+
     task.updateStatus BASE_PHASE, "Creating autoscaler..."
-    credentials.apiAdaptor.createAutoscaler(namespace, KubernetesApiConverter.toAutoscaler(description))
+    credentials.apiAdaptor.createAutoscaler(namespace, KubernetesApiConverter.toAutoscaler(description, name, kind))
 
     return null
   }

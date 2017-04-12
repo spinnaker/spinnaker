@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
@@ -23,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergro
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import io.fabric8.kubernetes.api.model.ReplicationController
+import io.fabric8.kubernetes.api.model.extensions.Deployment
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
@@ -58,7 +60,10 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
     def desired = null
     def getGeneration = null
     def getResource = null
-    if (credentials.apiAdaptor.getReplicationController(namespace, name)) {
+    def replicationController = credentials.apiAdaptor.getReplicationController(namespace, name)
+    def replicaSet = credentials.apiAdaptor.getReplicaSet(namespace, name)
+    if (replicationController) {
+      task.updateStatus BASE_PHASE, "Resizing replication controller..."
       desired = credentials.apiAdaptor.resizeReplicationController(namespace, name, size)
       getGeneration = { ReplicationController rc ->
         return rc.metadata.generation
@@ -66,13 +71,26 @@ class ResizeKubernetesAtomicOperation implements AtomicOperation<Void> {
       getResource = {
         return credentials.apiAdaptor.getReplicationController(namespace, name)
       }
-    } else if (credentials.apiAdaptor.getReplicaSet(namespace, name)) {
-      desired = credentials.apiAdaptor.resizeReplicaSet(namespace, name, size)
-      getGeneration = { ReplicaSet rs ->
-        return rs.metadata.generation
-      }
-      getResource = {
-        return credentials.apiAdaptor.getReplicaSet(namespace, name)
+    } else if (replicaSet) {
+      if (credentials.apiAdaptor.hasDeployment(replicaSet)) {
+        String clusterName = Names.parseName(name).cluster
+        task.updateStatus BASE_PHASE, "Resizing deployment..."
+        desired = credentials.apiAdaptor.resizeDeployment(namespace, clusterName, size)
+        getGeneration = { Deployment d ->
+          return d.metadata.generation
+        }
+        getResource = {
+          return credentials.apiAdaptor.getDeployment(namespace, clusterName)
+        }
+      } else {
+        task.updateStatus BASE_PHASE, "Resizing replica set..."
+        desired = credentials.apiAdaptor.resizeReplicaSet(namespace, name, size)
+        getGeneration = { ReplicaSet rs ->
+          return rs.metadata.generation
+        }
+        getResource = {
+          return credentials.apiAdaptor.getReplicaSet(namespace, name)
+        }
       }
     } else {
       throw new KubernetesOperationException("Neither a replication controller nor a replica set could be found by that name.")

@@ -90,8 +90,9 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     replicaSet = credentials.apiAdaptor.createReplicaSet(namespace, replicaSet)
 
     task.updateStatus BASE_PHASE, "Deployed replica set ${replicaSet.metadata.name}"
+    def hasDeployment = KubernetesApiConverter.hasDeployment(description)
 
-    if (KubernetesApiConverter.hasDeployment(description)) {
+    if (hasDeployment) {
       if (!credentials.apiAdaptor.getDeployment(namespace, clusterName)) {
         task.updateStatus BASE_PHASE, "Building deployment..."
         credentials.apiAdaptor.createDeployment(namespace, ((DeploymentBuilder) KubernetesApiConverter.toDeployment((DeploymentFluentImpl) new DeploymentBuilder(), description, replicaSetName)).build())
@@ -107,7 +108,13 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     if (description.scalingPolicy) {
       task.updateStatus BASE_PHASE, "Attaching a horizontal pod autoscaler..."
 
-      def autoscaler = KubernetesApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(replicaSetName, description))
+      def name = hasDeployment ? clusterName : replicaSetName
+      def kind = hasDeployment ? KubernetesUtil.DEPLOYMENT_KIND : KubernetesUtil.SERVER_GROUP_KIND
+      def autoscaler = KubernetesApiConverter.toAutoscaler(new KubernetesAutoscalerDescription(replicaSetName, description), name, kind)
+
+      if (credentials.apiAdaptor.getAutoscaler(namespace, name)) {
+        credentials.apiAdaptor.deleteAutoscaler(namespace, name)
+      }
 
       credentials.apiAdaptor.createAutoscaler(namespace, autoscaler)
     }

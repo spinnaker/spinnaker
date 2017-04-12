@@ -32,6 +32,7 @@ class KubernetesUtil {
   static String LOAD_BALANCER_LABEL_PREFIX = "load-balancer-"
   static String SERVER_GROUP_LABEL = "replication-controller"
   static String SERVER_GROUP_KIND = "replicaSet"
+  static String DEPLOYMENT_KIND = "deployment"
   static String JOB_LABEL = "job"
   @Value("kubernetes.defaultRegistry:gcr.io")
   static String DEFAULT_REGISTRY

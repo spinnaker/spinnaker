@@ -286,13 +286,15 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
       log.warn "Failure fetching events for all server groups in $namespaces", e
     }
 
-    // Map namespace -> name -> event
+    // Map namespace -> name -> autoscaler
     Map<String, Map<String, HorizontalPodAutoscaler>> rcAutoscalers = [:].withDefault { _ -> [:] }
     Map<String, Map<String, HorizontalPodAutoscaler>> rsAutoscalers = [:].withDefault { _ -> [:] }
+    Map<String, Map<String, HorizontalPodAutoscaler>> deployAutoscalers = [:].withDefault { _ -> [:] }
     try {
       namespaces.each { String namespace ->
         rcAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "replicationController")
         rsAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "replicaSet")
+        deployAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "deployment")
       }
     } catch (Exception e) {
       log.warn "Failure fetching autoscalers for all server groups in $namespaces", e
@@ -360,11 +362,23 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
         }
 
         cachedServerGroups[serverGroupKey].with {
-          def events = serverGroup.replicationController ? rcEvents[serverGroup.namespace][serverGroupName] : rsEvents[serverGroup.namespace][serverGroupName]
-          def autoscaler = serverGroup.replicationController ? rcAutoscalers[serverGroup.namespace][serverGroupName] : rsAutoscalers[serverGroup.namespace][serverGroupName]
+          def events = null
+          def autoscaler = null
           attributes.name = serverGroupName
-          attributes.serverGroup = new KubernetesServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events, autoscaler)
 
+          if (serverGroup.replicaSet) {
+            if (credentials.apiAdaptor.hasDeployment(serverGroup.replicaSet)) {
+              autoscaler = deployAutoscalers[serverGroup.namespace][clusterName]
+            } else {
+              autoscaler = rsAutoscalers[serverGroup.namespace][serverGroupName]
+            }
+            events = rsEvents[serverGroup.namespace][serverGroupName]
+          } else {
+            autoscaler = rcAutoscalers[serverGroup.namespace][serverGroupName]
+            events = rcEvents[serverGroup.namespace][serverGroupName]
+          }
+
+          attributes.serverGroup = new KubernetesServerGroup(serverGroup.replicaSet ?: serverGroup.replicationController, accountName, events, autoscaler)
           relationships[Keys.Namespace.APPLICATIONS.ns].add(applicationKey)
           relationships[Keys.Namespace.CLUSTERS.ns].add(clusterKey)
           relationships[Keys.Namespace.LOAD_BALANCERS.ns].addAll(loadBalancerKeys)

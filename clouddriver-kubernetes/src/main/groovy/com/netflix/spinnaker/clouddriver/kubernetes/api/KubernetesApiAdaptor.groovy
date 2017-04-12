@@ -17,18 +17,12 @@
 package com.netflix.spinnaker.clouddriver.kubernetes.api
 
 import com.netflix.spectator.api.Clock
-import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesOperationException
 import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.*
-import io.fabric8.kubernetes.api.model.extensions.Deployment
-import io.fabric8.kubernetes.api.model.extensions.DoneableDeployment
-import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
-import io.fabric8.kubernetes.api.model.extensions.Ingress
-import io.fabric8.kubernetes.api.model.extensions.Job
-import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
+import io.fabric8.kubernetes.api.model.extensions.*
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClient
 import io.fabric8.kubernetes.client.KubernetesClientException
@@ -462,6 +456,12 @@ class KubernetesApiAdaptor {
     }
   }
 
+  Deployment resizeDeployment(String namespace, String name, int size) {
+    exceptionWrapper("deployments.scale", "Resize Deployment $name to $size", namespace) {
+      client.extensions().deployments().inNamespace(namespace).withName(name).scale(size)
+    }
+  }
+
   Deployment createDeployment(String namespace, Deployment deployment) {
     exceptionWrapper("deployments.create", "Create Deployment $deployment.metadata.name", namespace) {
       client.extensions().deployments().inNamespace(namespace).create(deployment)
@@ -478,6 +478,10 @@ class KubernetesApiAdaptor {
     exceptionWrapper("deployments.delete", "Delete Deployment $name", namespace) {
       client.extensions().deployments().inNamespace(namespace).withName(name).delete()
     }
+  }
+
+  static boolean hasDeployment(ReplicaSet replicaSet) {
+    return replicaSet?.metadata?.annotations?.any { k, v -> k.startsWith(DEPLOYMENT_ANNOTATION) }
   }
 
   static String getDeploymentRevision(Deployment deployment) {
