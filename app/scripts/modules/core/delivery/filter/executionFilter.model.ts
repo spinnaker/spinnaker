@@ -155,3 +155,8 @@ module (EXECUTION_FILTER_MODEL, [
   VIEW_STATE_CACHE_SERVICE
 ]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, urlParser: any, viewStateCache: ViewStateCacheService) =>
                                     new ExecutionFilterModel($rootScope, filterModelService, urlParser, viewStateCache));
+
+export let executionFilterModel: ExecutionFilterModel = undefined;
+export const ExecutionFilterModelInject = ($injector: any) => {
+    executionFilterModel = <ExecutionFilterModel>$injector.get('executionFilterModel');
+};

@@ -356,3 +356,8 @@ module(EXECUTION_SERVICE, [
   API_SERVICE
 ]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
                                 new ExecutionService($http, $q, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig));
+
+export let executionService: ExecutionService = undefined;
+export const ExecutionServiceInject = ($injector: any) => {
+    executionService = <ExecutionService>$injector.get('executionService');
+};

@@ -99,3 +99,8 @@ module(SCHEDULER_FACTORY, [
 
 ]).factory('schedulerFactory', ($log: ILogService, $window: IWindowService, $timeout: ITimeoutService) =>
                                 new SchedulerFactory($log, $window, $timeout));
+
+export let schedulerFactory: SchedulerFactory = undefined;
+export const SchedulerFactoryInject = ($injector: any) => {
+    schedulerFactory = <SchedulerFactory>$injector.get('schedulerFactory');
+};

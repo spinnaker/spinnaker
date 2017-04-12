@@ -45,3 +45,8 @@ module(CANCEL_MODAL_SERVICE, [
   require('angular-ui-bootstrap'),
   CANCEL_MODAL_CONTROLLER,
 ]).service('cancelModalService', CancelModalService);
+
+export let cancelModalService: CancelModalService = undefined;
+export const CancelModalServiceInject = ($injector: any) => {
+    cancelModalService = <CancelModalService>$injector.get('cancelModalService');
+};

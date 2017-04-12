@@ -59,3 +59,8 @@ module(CONFIRMATION_MODAL_SERVICE, [
   require('angular-ui-bootstrap'),
   require('./confirmationModal.controller.js'),
 ]).service('confirmationModalService', ConfirmationModalService);
+
+export let confirmationModalService: ConfirmationModalService = undefined;
+export const ConfirmationModalServiceInject = ($injector: any) => {
+    confirmationModalService = <ConfirmationModalService>$injector.get('confirmationModalService');
+};
