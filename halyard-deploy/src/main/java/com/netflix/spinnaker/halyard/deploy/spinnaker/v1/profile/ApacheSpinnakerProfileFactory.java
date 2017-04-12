@@ -33,13 +33,15 @@ import java.util.Map;
 @Component
 public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory {
   private static String SSL_TEMPLATE = String.join("\n",
-      "  SSLEngine on",
-      "  SSLCertificateFile \"{%cert-file%}\"",
-      "  SSLCertificateKeyFile \"{%key-file%}\"");
+      "    SSLEngine on",
+      "    SSLCertificateFile \"{%cert-file%}\"",
+      "    SSLCertificateKeyFile \"{%key-file%}\"");
 
   private static String SPINNAKER_TEMPLATE = String.join("\n",
       "<VirtualHost {%deck-host%}:{%deck-port%}>",
+      "  <IfModule ssl_module>",
       "{%ssl%}",
+      "  </IfModule>",
       "  DocumentRoot /opt/deck/html",
       "",
       "  <Directory \"/opt/deck/html/\">",
