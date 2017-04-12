@@ -9,6 +9,7 @@ export interface IGitTrigger extends ITrigger {
   project: string;
   slug: string;
   branch: string;
+  hash?: string;
   type: 'git';
 }
 

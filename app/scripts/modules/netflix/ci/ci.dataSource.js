@@ -7,7 +7,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.netflix.ci.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
-    require('./build.read.service'),
+    require('./services/build.read.service'),
   ])
   .run(function($q, applicationDataSourceRegistry, buildService) {
 
