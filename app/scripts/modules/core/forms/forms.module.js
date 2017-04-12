@@ -1,5 +1,6 @@
 'use strict';
 
+import {BUTTON_BUSY_INDICATOR_COMPONENT} from './buttonBusyIndicator/buttonBusyIndicator.component';
 import {NUMBER_LIST_COMPONENT} from './numberList/numberList.component';
 
 let angular = require('angular');
@@ -9,7 +10,7 @@ module.exports = angular.module('spinnaker.core.forms', [
   require('./checklist/checklist.directive.js'),
   require('./checkmap/checkmap.directive.js'),
   require('./ignoreEmptyDelete.directive.js'),
-  require('./buttonBusyIndicator/buttonBusyIndicator.directive.js'),
+  BUTTON_BUSY_INDICATOR_COMPONENT,
   require('./mapEditor/mapEditor.component.js'),
   NUMBER_LIST_COMPONENT
 ]);
