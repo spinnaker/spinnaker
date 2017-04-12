@@ -54,13 +54,10 @@ export class ConfirmationModalService {
 
 }
 
+export let confirmationModalService: ConfirmationModalService = undefined;
 export const CONFIRMATION_MODAL_SERVICE = 'spinnaker.core.confirmationModal.service';
 module(CONFIRMATION_MODAL_SERVICE, [
   require('angular-ui-bootstrap'),
   require('./confirmationModal.controller.js'),
-]).service('confirmationModalService', ConfirmationModalService);
-
-export let confirmationModalService: ConfirmationModalService = undefined;
-export const ConfirmationModalServiceInject = ($injector: any) => {
-    confirmationModalService = <ConfirmationModalService>$injector.get('confirmationModalService');
-};
+]).service('confirmationModalService', ConfirmationModalService)
+  .run(($injector: any) => confirmationModalService = <ConfirmationModalService>$injector.get('confirmationModalService'));

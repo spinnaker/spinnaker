@@ -4,9 +4,8 @@ import _ from 'lodash';
 
 let angular = require('angular');
 
+import {ExecutionBarLabel} from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
-
-let executionBarLabelTemplate = require('../../pipeline/config/stages/core/executionBarLabel.html');
 
 module.exports = angular.module('spinnaker.core.delivery.executionTransformer.service', [
   ORCHESTRATED_ITEM_TRANSFORMER,
@@ -274,7 +273,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     function styleStage(stage) {
       var stageConfig = pipelineConfig.getStageConfig(stage);
       if (stageConfig) {
-        stage.labelTemplateUrl = stageConfig.executionLabelTemplateUrl || executionBarLabelTemplate;
+        stage.labelTemplate = stageConfig.executionLabelTemplate || ExecutionBarLabel;
         stage.extraLabelLines = stageConfig.extraLabelLines;
       }
     }

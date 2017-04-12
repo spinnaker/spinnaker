@@ -11,5 +11,3 @@ export let AccountLabelColor: React.ComponentClass<IAccountLabelColorProps> = un
 export const AccountLabelColorInject = ($injector: any) => {
   AccountLabelColor = angular2react<IAccountLabelColorProps>('accountLabelColor', new AccountLabelColorComponent(), $injector);
 };
-
-

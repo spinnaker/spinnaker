@@ -1,4 +1,4 @@
-<div class="row pipelines executions" ng-class="{'showing-details': $ctrl.showingDetails()}">
+<div class="row pipelines executions" ng-class="{'showing-details': $ctrl.showingDetails(), 'show-durations':  $ctrl.sortFilter.showStageDuration}">
   <div class="row" ng-if="$ctrl.viewState.initializationError">
     <h4 class="text-center">There was a server error loading pipelines. Please try again later.</h4>
   </div>

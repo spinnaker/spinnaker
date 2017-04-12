@@ -94,13 +94,10 @@ export class SchedulerFactory {
   }
 }
 
+export let schedulerFactory: SchedulerFactory = undefined;
 export const SCHEDULER_FACTORY = 'spinnaker.core.scheduler';
 module(SCHEDULER_FACTORY, [
 
 ]).factory('schedulerFactory', ($log: ILogService, $window: IWindowService, $timeout: ITimeoutService) =>
-                                new SchedulerFactory($log, $window, $timeout));
-
-export let schedulerFactory: SchedulerFactory = undefined;
-export const SchedulerFactoryInject = ($injector: any) => {
-    schedulerFactory = <SchedulerFactory>$injector.get('schedulerFactory');
-};
+                                new SchedulerFactory($log, $window, $timeout))
+  .run(($injector: any) => schedulerFactory = <SchedulerFactory>$injector.get('schedulerFactory'));

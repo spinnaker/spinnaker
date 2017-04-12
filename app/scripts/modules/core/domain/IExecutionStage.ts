@@ -1,4 +1,5 @@
 import {IOrchestratedItem} from './IOrchestratedItem';
+import {IStage} from './IStage';
 import {IStageStep} from './IStageStep';
 
 export interface IRestartDetails {
@@ -14,10 +15,16 @@ export interface IExecutionContext {
   asg?: string;
 }
 
-export interface IExecutionStage extends IOrchestratedItem {
-  name: string;
-  type: string;
-  refId: string;
+export interface IExecutionStage extends IOrchestratedItem, IStage {
   tasks: IStageStep[];
   context: IExecutionContext;
+}
+
+export interface IExecutionStageSummary extends IExecutionStage {
+  masterStage: IStage;
+  labelTemplate: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+  extraLabelLines?: (stage: IExecutionStageSummary) => number;
+  index: number;
+  status: string;
+  hasNotStarted: boolean;
 }

@@ -131,7 +131,7 @@ export class Application {
    * @param failureMethod a method to call if the refresh fails
    * @return a method to call to unsubscribe
    */
-  public onRefresh($scope: IScope, method: any, failureMethod: any): () => void {
+  public onRefresh($scope: IScope, method: any, failureMethod?: any): () => void {
     const success: Subscription = this.refreshStream.subscribe(method);
     let failure: Subscription = null;
     if (failureMethod) {

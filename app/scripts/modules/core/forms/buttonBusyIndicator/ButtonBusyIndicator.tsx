@@ -8,5 +8,5 @@ interface IButtonBusyIndicatorProps {
 
 export let ButtonBusyIndicator: React.ComponentClass<IButtonBusyIndicatorProps> = undefined;
 export const ButtonBusyIndicatorInject = ($injector: any) => {
-  ButtonBusyIndicator = angular2react('buttonBusyIndicator', ButtonBusyIndicatorComponent, $injector) as React.ComponentClass<IButtonBusyIndicatorProps>;
+  ButtonBusyIndicator = angular2react<IButtonBusyIndicatorProps>('buttonBusyIndicator', new ButtonBusyIndicatorComponent(), $injector);
 };

@@ -1,6 +1,8 @@
 'use strict';
 
 import _ from 'lodash';
+
+import {BakeExecutionLabel} from 'core/pipeline/config/stages/bake/BakeExecutionLabel';
 import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
 
 let angular = require('angular');
@@ -23,7 +25,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage'
       description: 'Bakes an image in the specified region',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
-      executionLabelTemplateUrl: require('core/pipeline/config/stages/bake/bakeExecutionLabel.html'),
+      executionLabelTemplate: BakeExecutionLabel,
       extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },

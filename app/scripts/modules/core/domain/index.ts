@@ -1,4 +1,5 @@
 export * from './IExecution';
+export * from './IExecutionStage';
 export * from './stageContext';
 export * from './taskStep';
 export * from './ITrigger';

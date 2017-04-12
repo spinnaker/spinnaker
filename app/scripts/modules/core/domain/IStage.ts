@@ -6,12 +6,3 @@ export interface IStage {
   [k: string]: any;
   isNew?: boolean;
 }
-
-export interface IStageSummary extends IStage {
-  masterStage: IStage;
-  labelTemplateUrl: string;
-  extraLabelLines?: (stage: IStageSummary) => number;
-  index: number;
-  status: string;
-  hasNotStarted: boolean;
-}

@@ -3,7 +3,7 @@ import {module} from 'angular';
 
 require('./canary.less');
 
-class CanaryScoreConfigComponentCtrl implements ng.IComponentController {
+class CanaryScoresConfigComponentCtrl implements ng.IComponentController {
 
   public unhealthyScore: string;
   public successfulScore: string;
@@ -38,14 +38,14 @@ class CanaryScoreConfigComponentCtrl implements ng.IComponentController {
   }
 }
 
-class CanaryScoreConfigComponent implements ng.IComponentOptions {
+class CanaryScoresConfigComponent implements ng.IComponentOptions {
 
   public bindings: any = {
     unhealthyScore: '<',
     successfulScore: '<',
     onChange: '&'
   };
-  public controller: any = CanaryScoreConfigComponentCtrl;
+  public controller: any = CanaryScoresConfigComponentCtrl;
   public template = `
     <div ng-if="$ctrl.hasExpressions" class="form-group">
       <div class="col-md-2 col-md-offset-1 sm-label-right">
@@ -99,6 +99,6 @@ class CanaryScoreConfigComponent implements ng.IComponentOptions {
   `;
 }
 
-export const CANARY_SCORE_CONFIG_COMPONENT = 'spinnaker.netflix.canary.scores.component';
-module(CANARY_SCORE_CONFIG_COMPONENT, [])
-  .component('canaryScores', new CanaryScoreConfigComponent());
+export const CANARY_SCORES_CONFIG_COMPONENT = 'spinnaker.netflix.canary.scores.component';
+module(CANARY_SCORES_CONFIG_COMPONENT, [])
+  .component('canaryScores', new CanaryScoresConfigComponent());

@@ -148,15 +148,12 @@ export class ExecutionFilterModel {
   }
 }
 
+export let executionFilterModel: ExecutionFilterModel = undefined;
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.delivery.filter.executionFilter.model';
 module (EXECUTION_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
   require('core/navigation/urlParser.service'),
   VIEW_STATE_CACHE_SERVICE
 ]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, urlParser: any, viewStateCache: ViewStateCacheService) =>
-                                    new ExecutionFilterModel($rootScope, filterModelService, urlParser, viewStateCache));
-
-export let executionFilterModel: ExecutionFilterModel = undefined;
-export const ExecutionFilterModelInject = ($injector: any) => {
-    executionFilterModel = <ExecutionFilterModel>$injector.get('executionFilterModel');
-};
+                                    new ExecutionFilterModel($rootScope, filterModelService, urlParser, viewStateCache))
+  .run(($injector: any) => executionFilterModel = <ExecutionFilterModel>$injector.get('executionFilterModel'));
