@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # This script installs Halyard.
-# See http://www.spinnaker.io/docs/creating-a-spinnaker-instance
 
 set -e
 set -o pipefail
@@ -43,7 +42,7 @@ else
   echo "Not a supported operating system: "
   echo "It's recommended you use Ubuntu 14.04 or higher"
   echo ""
-  echo "Please file an issue against github.com/spinnaker/spinnaker/issues "
+  echo "Please file an issue against github.com/spinnaker/halyard/issues "
   echo "if you'd like to see support for your OS and version"
   exit 1
 fi
@@ -56,10 +55,6 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
     [--local-install] [--home_dir <path>]
     -y                          Accept all default options during install
                                 (non-interactive mode).
-
-    --quiet                     Sets cloud provider to "none". You will need to
-                                edit /etc/default/spinnaker manually
-                                cannot be used with --cloud_provider.
 
     --repository <url>          Obtain Spinnaker packages from the <url>
                                 rather than the default repository, which is
@@ -268,7 +263,18 @@ halyard:
     directory: $halconfig
 EOL
 
-  chown spinnaker /opt/spinnaker/config/halyard.yml
+  local user
+  echo ""
+  if [ -z "$YES" ]; then
+    read -p "Which user would you like to run Halyard as? [default=$USER]: " user
+  fi
+
+  if [ -z "$user" ]; then
+    user="$USER"
+  fi
+
+  sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf.gen
+  mv /etc/init/halyard.conf.gen /etc/init/halyard.conf
 }
 
 process_args "$@"
@@ -298,21 +304,6 @@ fi
 ## Spinnaker
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
-
-## Remove
-
-if [ "$homebase" = "" ]; then
-  homebase="/home"
-  echo "Setting spinnaker home to $homebase"
-fi
-
-if [ -z "$(getent group spinnaker)" ]; then
-  groupadd spinnaker
-fi
-
-if [ -z "$(getent passwd spinnaker)" ]; then
-  useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
-fi
 
 configure_halyard_defaults
 configure_bash_completion
