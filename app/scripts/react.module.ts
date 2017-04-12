@@ -13,7 +13,12 @@ import {SCHEDULER_FACTORY, SchedulerFactoryInject} from './modules/core/schedule
 import {StateServiceInject} from './modules/core/state.service';
 
 // react component wrappers around angular components
+import {AccountLabelColorInject} from './modules/core/account/AccountLabelColor';
 import {ButtonBusyIndicatorInject} from './modules/core/forms/buttonBusyIndicator/ButtonBusyIndicator';
+import {CopyToClipboardInject} from './modules/core/utils/clipboard/CopyToClipboard';
+import {ExecutionDetailsInject} from './modules/core/delivery/details/ExecutionDetails';
+import {ExecutionStatusInject} from './modules/core/delivery/status/ExecutionStatus';
+import {PipelineGraphInject} from './modules/core/pipeline/config/graph/PipelineGraph';
 
 // Initialize React Google Analytics
 if (SETTINGS.analytics.ga) {
@@ -38,5 +43,10 @@ module(REACT_MODULE, [
   StateServiceInject($injector);
 
   // Convert angular components to react
+  AccountLabelColorInject($injector);
   ButtonBusyIndicatorInject($injector);
+  CopyToClipboardInject($injector);
+  ExecutionDetailsInject($injector);
+  ExecutionStatusInject($injector);
+  PipelineGraphInject($injector);
 });

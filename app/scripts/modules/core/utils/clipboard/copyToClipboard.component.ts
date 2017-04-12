@@ -44,9 +44,9 @@ export class CopyToClipboardController implements IComponentController {
 
 export class CopyToClipboardComponent implements IComponentOptions {
   public bindings: any = {
-    text: '@',
-    toolTip: '@',
-    analyticsLabel: '@'
+    text: '<',
+    toolTip: '<',
+    analyticsLabel: '<'
   };
   public controller: any = CopyToClipboardController;
   public template = `

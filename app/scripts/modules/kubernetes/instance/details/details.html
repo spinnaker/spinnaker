@@ -97,8 +97,8 @@
           <a href="http://{{instance.hostIp}}" target="_blank">{{instance.hostIp}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.hostIp}}"
-              tool-tip="Copy to clipboard">
+              text="instance.hostIp"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.podIp">Pod IP</dt>
@@ -106,8 +106,8 @@
           <a href="http://{{instance.podIp}}" target="_blank">{{instance.podIp}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.podIp}}"
-              tool-tip="Copy to clipboard">
+              text="instance.podIp"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -152,8 +152,8 @@
         <dd>{{container.terminationMessagePath}}
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{container.terminationMessagePath}}"
-              tool-tip="Copy to clipboard">
+              text="container.terminationMessagePath"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dl ng-repeat="volumeMount in container.volumeMounts" class="dl-horizontal dl-flex">

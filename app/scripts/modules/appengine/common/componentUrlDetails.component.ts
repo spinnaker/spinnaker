@@ -7,15 +7,15 @@ class AppengineComponentUrlDetailsComponent implements IComponentOptions {
     <dl class="small">
       <a href="{{$ctrl.component.httpsUrl}}" target="_blank">{{$ctrl.component.httpsUrl}}</a>
       <copy-to-clipboard class="copy-to-clipboard copy-to-clipboard-sm"
-                         tool-tip="Copy URL to clipboard"
-                         text="{{$ctrl.component.httpsUrl}}"></copy-to-clipboard>
+                         tool-tip="'Copy URL to clipboard'"
+                         text="$ctrl.component.httpsUrl"></copy-to-clipboard>
     </dl>
     <dt>HTTP</dt>
     <dl class="small">
       <a href="{{$ctrl.component.httpUrl}}" target="_blank">{{$ctrl.component.httpUrl}}</a>
       <copy-to-clipboard class="copy-to-clipboard copy-to-clipboard-sm"
-                         tool-tip="Copy URL to clipboard"
-                         text="{{$ctrl.component.httpUrl}}"></copy-to-clipboard>
+                         tool-tip="'Copy URL to clipboard'"
+                         text="$ctrl.component.httpUrl"></copy-to-clipboard>
     </dl>
   `;
 }

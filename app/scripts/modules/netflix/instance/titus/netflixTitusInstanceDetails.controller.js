@@ -58,6 +58,8 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
         } else {
           this.bastionStack = '';
         }
+
+        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh ${this.bastionStack} -region ${$scope.instance.region} -id ${$scope.instance.id}'`;
       });
     };
 

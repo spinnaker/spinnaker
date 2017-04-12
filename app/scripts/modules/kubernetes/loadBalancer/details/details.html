@@ -83,8 +83,8 @@
         {{ctrl.internalDNSName}}
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{ctrl.internalDNSName}}"
-              tool-tip="Copy Internal DNS Name to clipboard">
+              text="ctrl.internalDNSName"
+              tool-tip="'Copy Internal DNS Name to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -96,8 +96,8 @@
           </a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{loadBalancer.service.spec.clusterIP}}"
-              tool-tip="Copy Cluster IP to clipboard">
+              text="loadBalancer.service.spec.clusterIP"
+              tool-tip="'Copy Cluster IP to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -110,8 +110,8 @@
           <copy-to-clipboard
             ng-if="ingress.hostname"
             class="copy-to-clipboard copy-to-clipboard-sm"
-            text="{{ingress.hostname}}"
-            tool-tip="Copy Ingress hostname to clipboard">
+            text="ingress.hostname"
+            tool-tip="'Copy Ingress hostname to clipboard'">
           </copy-to-clipboard>
           <a ng-if="ingress.ip" target="_blank" href="//{{ingress.ip}}">
             {{ingress.ip}}
@@ -119,8 +119,8 @@
           <copy-to-clipboard
             ng-if="ingress.ip"
             class="copy-to-clipboard copy-to-clipboard-sm"
-            text="{{ingress.ip}}"
-            tool-tip="Copy Ingress IP to clipboard">
+            text="ingress.ip"
+            tool-tip="'Copy Ingress IP to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -132,8 +132,8 @@
           </a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{loadBalancer.service.spec.loadBalancerIP}}"
-              tool-tip="Copy Load Balancer IP to clipboard">
+              text="loadBalancer.service.spec.loadBalancerIP"
+              tool-tip="'Copy Load Balancer IP to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>

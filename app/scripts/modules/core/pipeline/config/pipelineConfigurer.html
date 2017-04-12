@@ -19,7 +19,7 @@
              analytics-category="Pipeline Config"
              analytics-event="Permalink clicked"
              ng-href="{{pipelineConfigurerCtrl.getUrl()}}">Permalink</a>
-          <copy-to-clipboard text="{{pipelineConfigurerCtrl.getUrl()}}" tool-tip="Copy permalink to clipboard"></copy-to-clipboard>
+          <copy-to-clipboard text="pipelineConfigurerCtrl.getUrl()" tool-tip="'Copy permalink to clipboard'"></copy-to-clipboard>
         </div>
         <div class="create-action">
           <create-new application="application"></create-new>
@@ -76,7 +76,7 @@
         <pipeline-graph view-state="viewState"
                         pipeline="pipeline"
                         should-validate="true"
-                        on-node-click="pipelineConfigurerCtrl.navigateTo(node)"></pipeline-graph>
+                        on-node-click="pipelineConfigurerCtrl.graphNodeClicked"></pipeline-graph>
       </div>
       <div class="row">
         <div class="col-md-8">
