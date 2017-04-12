@@ -273,8 +273,7 @@ EOL
     user="$USER"
   fi
 
-  sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf.gen
-  mv /etc/init/halyard.conf.gen /etc/init/halyard.conf
+  sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf
 }
 
 process_args "$@"
