@@ -57,8 +57,8 @@ public class DeckDockerProfileFactory extends DeckProfileFactory {
       env.put("DECK_HOST", deckSettings.getHost());
       env.put("DECK_PORT", deckSettings.getPort() + "");
       env.put("API_HOST", gateSettings.getBaseUrl());
-      env.put("DECK_CERT_PATH", apacheSsl.getSslCertificateFile());
-      env.put("DECK_KEY_PATH", apacheSsl.getSslCertificateKeyFile());
+      env.put("DECK_CERT", apacheSsl.getSslCertificateFile());
+      env.put("DECK_KEY", apacheSsl.getSslCertificateKeyFile());
       env.put("PASSPHRASE", apacheSsl.getSslCertificatePassphrase());
     }
   }

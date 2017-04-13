@@ -104,7 +104,7 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
     String healthEndpoint = null;
     boolean enabled = true;
     boolean safeToUpdate = true;
-    boolean monitored = true;
+    boolean monitored = false;
     boolean sidecar = false;
 
     public Settings() {}

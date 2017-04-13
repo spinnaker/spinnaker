@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -130,6 +131,9 @@ public class DeployService {
     } else {
       resolvedConfiguration = generateService.generateConfig(deploymentName, serviceNames);
     }
+
+    Path path = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
+    configParser.atomicWrite(path, resolvedConfiguration);
 
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);

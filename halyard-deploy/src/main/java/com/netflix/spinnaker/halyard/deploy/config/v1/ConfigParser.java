@@ -45,7 +45,8 @@ public class ConfigParser {
     return yamlParser.dump(objectMapper.convertValue(yaml, Map.class));
   }
 
-  public void atomicWrite(Path path, String contents) {
+  public void atomicWrite(Path path, Object obj) {
+    String contents = yamlToString(obj);
     AtomicFileWriter writer = null;
     try {
       writer = new AtomicFileWriter(path);

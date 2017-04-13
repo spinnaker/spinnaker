@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
@@ -55,6 +56,7 @@ public class SpinnakerRuntimeSettings {
     ServiceSettings vaultClient;
   }
 
+  @JsonIgnore
   public Map<SpinnakerService.Type, ServiceSettings> getAllServiceSettings() {
     return Arrays.stream(Services.class.getDeclaredFields()).reduce(
         new HashMap<>(),

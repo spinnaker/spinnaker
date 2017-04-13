@@ -168,7 +168,9 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     if (thisServiceSettings.isMonitored() && monitoringSettings.isEnabled()) {
       Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
 
-      Profile profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.serviceRegistryProfileName(name));
+      String profileName = SpinnakerMonitoringDaemonService.serviceRegistryProfileName(thisService.getCanonicalName());
+      Profile profile = monitoringProfiles.get(profileName);
+
       assert(profile != null);
 
       String secretName = KubernetesProviderUtils.componentRegistry(name, version);
@@ -187,7 +189,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
           .setEnv(env)
       );
 
-      profile = monitoringProfiles.get("monitoring.yml");
+      profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.monitoringProfileName());
       assert(profile != null);
 
       secretName = KubernetesProviderUtils.componentMonitoring(name, version);

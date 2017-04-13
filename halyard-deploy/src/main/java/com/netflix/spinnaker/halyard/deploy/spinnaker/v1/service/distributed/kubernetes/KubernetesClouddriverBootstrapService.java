@@ -54,6 +54,7 @@ public class KubernetesClouddriverBootstrapService extends ClouddriverBootstrapS
     Settings settings = new Settings(profiles);
     settings.setAddress(buildAddress())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setMonitored(false)
         .setEnabled(true);
     return settings;
   }

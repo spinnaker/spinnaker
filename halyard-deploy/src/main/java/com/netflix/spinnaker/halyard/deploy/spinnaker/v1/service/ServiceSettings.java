@@ -24,6 +24,7 @@ import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,10 +60,18 @@ abstract public class ServiceSettings {
   public ServiceSettings() {}
 
   private URIBuilder buildBaseUri() {
-    return new URIBuilder()
-        .setScheme(getScheme())
-        .setPort(getPort())
-        .setHost(getAddress());
+    if (StringUtils.isEmpty(overrideBaseUrl)) {
+      return new URIBuilder()
+          .setScheme(getScheme())
+          .setPort(getPort())
+          .setHost(getAddress());
+    } else {
+      try {
+        return new URIBuilder(overrideBaseUrl);
+      } catch (URISyntaxException e) {
+        throw new HalException(Problem.Severity.FATAL, "Illegal override baseURL: " + overrideBaseUrl, e);
+      }
+    }
   }
 
   @JsonIgnore
@@ -73,10 +82,6 @@ abstract public class ServiceSettings {
   }
 
   public String getBaseUrl() {
-    if (StringUtils.isEmpty(overrideBaseUrl)) {
-      return buildBaseUri().toString();
-    } else {
-      return overrideBaseUrl;
-    }
+    return buildBaseUri().toString();
   }
 }

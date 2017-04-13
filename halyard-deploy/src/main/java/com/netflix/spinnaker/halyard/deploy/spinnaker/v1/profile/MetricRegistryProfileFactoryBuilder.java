@@ -58,7 +58,13 @@ public class MetricRegistryProfileFactoryBuilder {
       protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
         URI uri;
         try {
-          uri = new URIBuilder(settings.getAuthBaseUrl()).setPath("/spectator/metrics").build();
+          String baseUrl;
+          if (settings.isBasicAuthEnabled()) {
+            baseUrl = settings.getAuthBaseUrl();
+          } else {
+            baseUrl = settings.getBaseUrl();
+          }
+          uri = new URIBuilder(baseUrl).setHost("localhost").setPath("/spectator/metrics").build();
         } catch (URISyntaxException e) {
           throw new HalException(Problem.Severity.FATAL, "Unable to build service URL: " + e.getMessage());
         }
