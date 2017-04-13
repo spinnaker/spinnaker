@@ -1,6 +1,7 @@
-import {isEqual, omit} from 'lodash';
-import {Scope} from '../domain/scope.domain';
-import {Property} from '../domain/property.domain';
+import {omit} from 'lodash';
+import {equals} from 'angular';
+import {Scope} from './scope.domain';
+import {Property} from './property.domain';
 import {PropertyPipeline} from './propertyPipeline.domain';
 import {PropertyStrategy} from './propertyStrategy.domain';
 import {PropertyCommandType} from './propertyCommandType.enum';
@@ -72,9 +73,9 @@ export class PropertyCommand {
 
   public isMoveToNewScope(): boolean {
     if (this.scopes.length > 0 && this.originalScope) {
-      return !isEqual(
-        omit(this.scopes[0], ['instanceCounts']),
-        omit(this.originalScope, ['instanceCounts'])
+      return !equals(
+        omit(this.scopes[0], ['instanceCounts', 'env']),
+        omit(this.originalScope, ['instanceCounts', 'env'])
       );
     }
     return false;
