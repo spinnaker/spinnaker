@@ -103,6 +103,3 @@ if [ -z "$(getent passwd spinnaker)" ]; then
 fi
 
 {%install-commands%}
-
-set +e
-service spinnaker stop
