@@ -1,9 +1,9 @@
 import {NgModule, Type} from '@angular/core';
 import {BrowserModule} from '@angular/platform-browser';
-import {UpgradeModule, downgradeInjectable, downgradeComponent} from '@angular/upgrade/static';
+import {UpgradeModule, downgradeInjectable} from '@angular/upgrade/static';
 declare let angular: any;
 
-import {SPINNAKER_DOWNGRADES, SPINNAKER_COMPONENT_DOWNGRADES, SPINNAKER_DIRECTIVE_UPGRADES} from './modules';
+import {SPINNAKER_DOWNGRADES, SPINNAKER_DIRECTIVE_UPGRADES} from './modules';
 
 const providers: Type<any>[] = [];
 export const DOWNGRADED_MODULE_NAMES: string[] = [];
@@ -14,24 +14,6 @@ SPINNAKER_DOWNGRADES.forEach((item) => {
 });
 
 const declarations: Type<any>[] = [];
-export const DOWNGRADED_COMPONENT_MODULE_NAMES: string[] = [];
-SPINNAKER_COMPONENT_DOWNGRADES.forEach((item) => {
-  DOWNGRADED_COMPONENT_MODULE_NAMES.push(item.moduleName);
-  declarations.push(item.moduleClass);
-
-  // ng2 AoT requires we specify the inputs/outputs for downgraded components because the metadata is lost at runtime
-  const component: any = {
-    component: item.moduleClass
-  };
-  if (item.inputs) {
-    component.inputs = item.inputs;
-  }
-  if (item.outputs) {
-    component.outputs = item.outputs;
-  }
-
-  angular.module(item.moduleName, []).directive(item.injectionName, downgradeComponent(component) as ng.IDirectiveFactory);
-});
 
 @NgModule({
   imports: [

@@ -8,7 +8,7 @@ import 'ts-helpers';
 import * as angular from 'angular';
 import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 
-import {DOWNGRADED_MODULE_NAMES, DOWNGRADED_COMPONENT_MODULE_NAMES, SpinnakerModule} from './app.module';
+import {DOWNGRADED_MODULE_NAMES, SpinnakerModule} from './app.module';
 import {NETFLIX_MODULE} from './modules/netflix/netflix.module';
 import {APPENGINE_MODULE} from './modules/appengine/appengine.module';
 import {AUTHENTICATION_SERVICE} from './modules/core/authentication/authentication.service';
@@ -27,7 +27,6 @@ module.exports = angular.module('netflix.spinnaker', [
   APPENGINE_MODULE,
   AUTHENTICATION_SERVICE,
   ...DOWNGRADED_MODULE_NAMES,
-  ...DOWNGRADED_COMPONENT_MODULE_NAMES
 ]);
 
 const events: any = {
