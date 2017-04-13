@@ -236,6 +236,19 @@ function configure_bash_completion() {
 }
 
 function configure_halyard_defaults() {
+  local user _user
+  _user=$(who -m | awk '{print $1;}')
+  echo ""
+  if [ -z "$YES" ]; then
+    read -p "Which user would you like to run Halyard as? [default=$_user]: " user
+  fi
+
+  if [ -z "$user" ]; then
+    user="$_user"
+  fi
+
+  sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf
+
   local halconfig
   echo ""
   if [ -z "$YES" ]; then
@@ -247,10 +260,10 @@ function configure_halyard_defaults() {
   fi
 
   mkdir -p $halconfig
-  chown spinnaker $halconfig
+  chown $user $halconfig
 
   mkdir -p /opt/spinnaker/config
-  chown spinnaker /opt/spinnaker/config
+  chown $user /opt/spinnaker/config
 
   cat > /opt/spinnaker/config/halyard.yml <<EOL
 spinnaker:
@@ -262,18 +275,6 @@ halyard:
   halconfig:
     directory: $halconfig
 EOL
-
-  local user
-  echo ""
-  if [ -z "$YES" ]; then
-    read -p "Which user would you like to run Halyard as? [default=$USER]: " user
-  fi
-
-  if [ -z "$user" ]; then
-    user="$USER"
-  fi
-
-  sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf
 }
 
 process_args "$@"
