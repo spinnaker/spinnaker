@@ -16,16 +16,42 @@
 
 package com.netflix.kayenta.metrics;
 
-import java.io.IOException;
-import java.util.Optional;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Singular;
+import lombok.ToString;
 
-public interface MetricsService {
-  boolean servicesAccount(String accountName);
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
 
-  // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
-  Optional<MetricSet> queryMetrics(String accountName,
-                                   String metricSetName,
-                                   String instanceNamePrefix,
-                                   String intervalStartTime,
-                                   String intervalEndTime) throws IOException;
+@Builder
+@ToString
+public class MetricSet {
+
+  @NotNull
+  @Getter
+  private String name;
+
+  @NotNull
+  @Singular
+  @Getter
+  private Map<String, String> tags;
+
+  @NotNull
+  @Getter
+  private long startTimeMillis;
+
+  @NotNull
+  @Getter
+  private String startTimeIso;
+
+  @NotNull
+  @Getter
+  private long stepMillis;
+
+  @NotNull
+  @Singular
+  @Getter
+  private List<Double> values;
 }

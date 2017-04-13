@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.controllers;
 
+import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -33,8 +34,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,10 +52,11 @@ public class FetchController {
   StorageServiceRepository storageServiceRepository;
 
   @RequestMapping(method = RequestMethod.GET)
-  public Map queryMetrics(@RequestParam(required = false) final String accountName,
-                          @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
-                          @ApiParam(defaultValue = "2017-02-24T15:13:00Z") @RequestParam String intervalStartTime,
-                          @ApiParam(defaultValue = "2017-02-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
+  public MetricSet queryMetrics(@RequestParam(required = false) final String accountName,
+                                @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+                                @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
+                                @ApiParam(defaultValue = "2017-02-24T15:13:00Z") @RequestParam String intervalStartTime,
+                                @ApiParam(defaultValue = "2017-02-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
     AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {
@@ -71,13 +71,13 @@ public class FetchController {
 
     String resolvedAccountName = credentials.getName();
     Optional<MetricsService> metricsService = metricsServiceRepository.getOne(resolvedAccountName);
-    Map someMetrics = null;
+    MetricSet someMetrics = null;
 
     if (metricsService.isPresent()) {
       someMetrics = metricsService
         .get()
-        .queryMetrics(resolvedAccountName, instanceNamePrefix, intervalStartTime, intervalEndTime)
-        .orElse(Collections.singletonMap("no-metrics", "were-returned"));
+        .queryMetrics(resolvedAccountName, metricSetName, instanceNamePrefix, intervalStartTime, intervalEndTime)
+        .orElse(MetricSet.builder().name("no-metrics").build());
     } else {
       log.debug("No metrics service was configured; skipping placeholder logic to read from metrics store.");
     }
@@ -87,7 +87,7 @@ public class FetchController {
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
 
     if (storageService.isPresent()) {
-      storageService.get().storeObject(resolvedAccountName, ObjectType.METRICS, UUID.randomUUID() + "", someMetrics);
+      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET, UUID.randomUUID() + "", someMetrics);
     } else {
       log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
     }

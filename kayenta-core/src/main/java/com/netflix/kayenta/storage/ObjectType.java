@@ -19,7 +19,7 @@ package com.netflix.kayenta.storage;
 import lombok.Getter;
 
 public enum ObjectType {
-  METRICS("metrics", "metrics.json");
+  METRIC_SET("metrics", "metric_set.json");
 
   @Getter
   final String group;
