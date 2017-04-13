@@ -1,29 +1,8 @@
-import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {PAGER_DUTY_READ_SERVICE, PagerDutyReader, IPagerDutyService} from './pagerDuty.read.service';
+import {module, IComponentController, IComponentOptions} from 'angular';
 
-import {IDowngradeItem} from 'core/domain/IDowngradeItem';
-import {API_SERVICE_PROVIDER} from 'core/api/api.service';
-import {IPagerDutyService, PagerDutyReader} from './pagerDuty.read.service';
+export class PagerDutyTagComponentController implements IComponentController {
 
-@Component({
-  selector: 'deck-pager-duty-tag',
-  providers: [API_SERVICE_PROVIDER, PagerDutyReader],
-  template: `
-    <span>
-      <span *ngIf="!servicesLoaded">
-        <i class="fa fa-asterisk fa-spin fa-fw"></i> Loading...
-      </span>
-      <span *ngIf="servicesLoaded  && currentService">
-        {{ currentService.name }} ({{ currentService.integration_key }})
-      </span>
-      <span *ngIf="servicesLoaded && !currentService">
-        Unable to locate PagerDuty key ({{ apiKey }})
-      </span>
-    </span>
-  `
-})
-export class PagerDutyTagComponent implements OnInit, OnChanges {
-
-  @Input()
   public apiKey: any;
 
   public servicesLoaded = false;
@@ -41,20 +20,34 @@ export class PagerDutyTagComponent implements OnInit, OnChanges {
     });
   }
 
-  public ngOnInit(): void {
+  public $onInit(): void {
     this.setCurrentService();
   }
 
-  public ngOnChanges(changes: SimpleChanges): void {
-    this.apiKey = changes.apiKey.currentValue;
+  public $onChanges(): void {
     this.setCurrentService();
   }
 }
 
-export const PAGER_DUTY_TAG_COMPONENT = 'spinnaker.netflix.pagerDuty.pagerDutyTag.component';
-export const PAGER_DUTY_TAG_COMPONENT_DOWNGRADE: IDowngradeItem = {
-  moduleName: PAGER_DUTY_TAG_COMPONENT,
-  injectionName: 'pagerDutyTag',
-  moduleClass: PagerDutyTagComponent,
-  inputs: ['apiKey']
+const pagerDutyTagComponent: IComponentOptions = {
+  bindings: {
+    apiKey: '<',
+  },
+  controller: PagerDutyTagComponentController,
+  template: `
+    <span>
+      <span ng-if="!$ctrl.servicesLoaded">
+        <i class="fa fa-asterisk fa-spin fa-fw"></i> Loading...
+      </span>
+      <span ng-if="$ctrl.servicesLoaded && $ctrl.currentService">
+        {{ $ctrl.currentService.name }} ({{ $ctrl.currentService.integration_key }})
+      </span>
+      <span ng-if="$ctrl.servicesLoaded && !$ctrl.currentService">
+        Unable to locate PagerDuty key ({{ $ctrl.apiKey }})
+      </span>
+    </span>
+  `
 };
+
+export const PAGER_DUTY_TAG_COMPONENT = 'spinnaker.netflix.pagerDuty.pagerDutyTag.component';
+module(PAGER_DUTY_TAG_COMPONENT, [PAGER_DUTY_READ_SERVICE]).component('pagerDutyTag', pagerDutyTagComponent);
