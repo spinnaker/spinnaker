@@ -3,7 +3,7 @@
   <dd>{{vm.application.attributes.email}}</dd>
   <dt ng-if="vm.application.attributes.pdApiKey">Pager Duty</dt>
   <dd ng-if="vm.application.attributes.pdApiKey">
-    <pager-duty-tag [api-key]="vm.application.attributes.pdApiKey"></pager-duty-tag>
+    <pager-duty-tag api-key="vm.application.attributes.pdApiKey"></pager-duty-tag>
   </dd>
   <dt ng-if="vm.application.attributes.repoType">Source Repo Type</dt>
   <dd ng-if="vm.application.attributes.repoType">{{vm.application.attributes.repoType}}</dd>
