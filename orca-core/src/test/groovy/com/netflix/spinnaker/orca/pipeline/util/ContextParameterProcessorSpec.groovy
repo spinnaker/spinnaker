@@ -18,19 +18,22 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
 class ContextParameterProcessorSpec extends Specification {
+
+  @Subject ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Unroll
   def "should #processAttributes"() {
     given:
     def source = ['test': sourceValue]
     def context = ['testArray': ['good', ['arrayVal': 'bad'], [['one': 'two']]], replaceMe: 'newValue', 'h1': [h1: 'h1Val'], hierarchy: [h2: 'hierarchyValue', h3: [h4: 'h4Val']],
-                   replaceTest: 'stack-with-hyphens']
+                   replaceTest: 'stack-with-hyphens', withUpperCase: 'baconBacon']
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.test == expectedValue
@@ -49,9 +52,84 @@ class ContextParameterProcessorSpec extends Specification {
     'get a value in an array within an array'   | '${testArray[2][0].one}'                                    | 'two'
     'support SPEL expression'                   | '${ h1.h1 == "h1Val" }'                                     | true
     'support SPEL defaults'                     | '${ h1.h2  ?: 60 }'                                         | 60
-    'support SPEL string methods'               | '${ replaceTest.replaceAll("-","") }'                       | 'stackwithhyphens'
+    'support SPEL string methods no args'       | '${ withUpperCase.toLowerCase() }'                          | 'baconbacon'
+    'support SPEL string methods with args'     | '${ replaceTest.replaceAll("-","") }'                       | 'stackwithhyphens'
     'make any string alphanumerical for deploy' | '${ #alphanumerical(replaceTest) }'                         | 'stackwithhyphens'
     'make any string alphanumerical for deploy' | '''${#readJson('{ "newValue":"two" }')[#root.replaceMe]}''' | 'two' // [#root.parameters.cluster]
+  }
+
+  @Unroll
+  def "should restrict fromUrl requests #desc"() {
+    given:
+    def source = ['test': '${ #fromUrl(\'' + theTest + '\')}']
+
+    when:
+    def result = contextParameterProcessor.process(source, [:], true)
+
+    then:
+    result.test == source.test
+
+    where:
+    theTest                   | desc
+    'file:///etc/passwd'      | 'file scheme'
+    'http://169.254.169.254/' | 'link local'
+    'http://127.0.0.1/'       | 'localhost'
+    'http://localhost/'       | 'localhost by name'
+    //successful case: 'http://captive.apple.com/' | 'this should work'
+  }
+
+  @Unroll
+  def "should not System.exit"() {
+    when:
+
+    def result = contextParameterProcessor.process([test: testCase], [:], true)
+
+    then:
+    //the failure scenario for this test case is the VM halting...
+    true
+
+    where:
+    testCase                                  | desc
+    '${T(java.lang.System).exit(1)}'          | 'System.exit'
+    '${T(java.lang.Runtime).runtime.exit(1)}' | 'Runtime.getRuntime.exit'
+
+
+  }
+
+  @Unroll
+  def "should not allow bad type #desc"() {
+    given:
+    def source = [test: testCase]
+
+    when:
+    def result = contextParameterProcessor.process(source, [:], true)
+
+    then:
+    //ensure we failed to interpret the expression and left it as is
+    result.test == source.test
+
+    where:
+    testCase                                                            | desc
+    '${ new java.net.URL(\'http://google.com\').openConnection() }'     | 'URL'
+    '${T(java.lang.Boolean).forName(\'java.net.URI\').getSimpleName()}' | 'forName'
+  }
+
+  @Unroll
+  def "should not allow bad method #desc"() {
+    given:
+    def source = [test: testCase]
+
+    when:
+    def result = contextParameterProcessor.process(source, [:], true)
+
+    then:
+    //ensure we failed to interpret the expression and left it as is
+    result.test == source.test
+
+    where:
+    testCase                                                            | desc
+    '${ new java.lang.Integer(1).wait(100000) }'                        | 'wait'
+    '${ new java.lang.Integer(1).getClass().getSimpleName() }'          | 'getClass'
   }
 
   @Unroll
@@ -61,7 +139,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [exists: 'yay', isempty: '', isnull: null]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, allowUnknownKeys)
+    def result = contextParameterProcessor.process(source, context, allowUnknownKeys)
 
     then:
     result.test == expectedValue
@@ -84,7 +162,7 @@ class ContextParameterProcessorSpec extends Specification {
     def source = ['${replaceMe}': 'somevalue', '${replaceMe}again': ['cats': 'dogs']]
 
     when:
-    def result = ContextParameterProcessor.process(source, [replaceMe: 'newVal'], true)
+    def result = contextParameterProcessor.process(source, [replaceMe: 'newVal'], true)
 
     then:
     result.newVal == 'somevalue'
@@ -96,7 +174,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [var1: 17, map1: [map1key: 'map1val']]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.test.k1 instanceof Integer
@@ -113,7 +191,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = ['h1': 'h1val', 'h2': 'h2val']
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.test == 'h1val'
@@ -129,7 +207,7 @@ class ContextParameterProcessorSpec extends Specification {
     def source = ['branch': '${scmInfo.branch}']
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.branch == expectedBranch
@@ -150,7 +228,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [execution: execution]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.deployed == '${deployedServerGroups}'
@@ -191,7 +269,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [execution: execution]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.deployed.size == 2
@@ -329,7 +407,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [map: [["v1": "k1"], ["v2": "k2"]]]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.json == '[{"v1":"k1"},{"v2":"k2"}]'
@@ -343,7 +421,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [str: str]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.intParam instanceof Integer
@@ -362,7 +440,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [str: str]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.floatParam instanceof Float
@@ -382,7 +460,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [str: str]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.booleanParam instanceof Boolean
@@ -413,7 +491,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [execution: execution]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.stage.value == "two"
@@ -435,7 +513,7 @@ class ContextParameterProcessorSpec extends Specification {
     def context = [execution: execution]
 
     when:
-    def result = ContextParameterProcessor.process(source, context, true)
+    def result = contextParameterProcessor.process(source, context, true)
 
     then:
     result.judgment == "input"

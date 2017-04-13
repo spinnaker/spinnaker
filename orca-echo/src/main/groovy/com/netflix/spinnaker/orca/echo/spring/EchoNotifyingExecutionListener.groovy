@@ -24,10 +24,13 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
 
   private final ObjectMapper objectMapper
 
-  EchoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service, ObjectMapper objectMapper) {
+  private final ContextParameterProcessor contextParameterProcessor
+
+  EchoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service, ObjectMapper objectMapper, ContextParameterProcessor contextParameterProcessor) {
     this.echoService = echoService
     this.front50Service = front50Service
     this.objectMapper = objectMapper
+    this.contextParameterProcessor = contextParameterProcessor
   }
 
   @Override
@@ -96,7 +99,7 @@ class EchoNotifyingExecutionListener implements ExecutionListener {
       notifications.getPipelineNotifications().each { appNotification ->
         Map executionMap = objectMapper.convertValue(pipeline, Map)
 
-        appNotification = ContextParameterProcessor.process(appNotification, executionMap, false)
+        appNotification = contextParameterProcessor.process(appNotification, executionMap, false)
 
         Map<String, Object> targetMatch = pipeline.notifications.find { pipelineNotification ->
           pipelineNotification.address == appNotification.address && pipelineNotification.type == appNotification.type

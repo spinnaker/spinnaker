@@ -20,9 +20,13 @@ import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack;
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack;
+import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -45,7 +49,7 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
   "com.netflix.spinnaker.orca.restart",
   "com.netflix.spinnaker.orca.deprecation"
 })
-
+@EnableConfigurationProperties
 public class OrcaConfiguration {
   @Bean public Clock clock() {
     return Clock.systemDefaultZone();
@@ -96,6 +100,17 @@ public class OrcaConfiguration {
   @Bean
   public StageNavigator stageNavigator(ApplicationContext applicationContext) {
     return new StageNavigator(applicationContext);
+  }
+
+  @Bean
+  @ConfigurationProperties("expressions")
+  public ContextFunctionConfiguration contextFunctionConfiguration() {
+    return new ContextFunctionConfiguration();
+  }
+
+  @Bean
+  public ContextParameterProcessor contextParameterProcessor(ContextFunctionConfiguration contextFunctionConfiguration) {
+    return new ContextParameterProcessor(contextFunctionConfiguration);
   }
 
   // TODO: this is a weird place to have this, feels like it should be a bean configurer or something

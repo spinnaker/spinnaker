@@ -38,6 +38,9 @@ class DependentPipelineStarter implements ApplicationContextAware {
   @Autowired
   ObjectMapper objectMapper
 
+  @Autowired
+  ContextParameterProcessor contextParameterProcessor
+
   Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
@@ -77,7 +80,7 @@ class DependentPipelineStarter implements ApplicationContextAware {
     }
 
     def augmentedContext = [trigger: pipelineConfig.trigger]
-    def processedPipeline = ContextParameterProcessor.process(pipelineConfig, augmentedContext, false)
+    def processedPipeline = contextParameterProcessor.process(pipelineConfig, augmentedContext, false)
 
     json = objectMapper.writeValueAsString(processedPipeline)
 

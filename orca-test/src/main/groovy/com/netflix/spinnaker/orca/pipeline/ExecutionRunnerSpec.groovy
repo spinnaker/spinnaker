@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+
 import java.util.function.BiFunction
 import java.util.function.Consumer
 import com.netflix.spinnaker.orca.Task
@@ -1109,6 +1111,11 @@ abstract class ExecutionRunnerSpec<R extends ExecutionRunner> extends Specificat
     @Qualifier("executionListener")
     FactoryBean<ExecutionListener> executionListener() {
       new SpockMockFactoryBean(ExecutionListener)
+    }
+
+    @Bean
+    ContextParameterProcessor contextParameterProcessor() {
+      new ContextParameterProcessor()
     }
   }
 

@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import com.netflix.spinnaker.security.User
@@ -48,17 +49,20 @@ class TaskTasklet implements Tasklet {
   private final List<ExceptionHandler> exceptionHandlers
   private final Registry registry
   private final StageNavigator stageNavigator
+  private final ContextParameterProcessor contextParameterProcessor
 
   TaskTasklet(Task task,
               ExecutionRepository executionRepository,
               List<ExceptionHandler> exceptionHandlers,
               Registry registry,
-              StageNavigator stageNavigator) {
+              StageNavigator stageNavigator,
+              ContextParameterProcessor contextParameterProcessor) {
     this.task = task
     this.executionRepository = executionRepository
     this.exceptionHandlers = exceptionHandlers
     this.registry = registry
     this.stageNavigator = stageNavigator
+    this.contextParameterProcessor = contextParameterProcessor
   }
 
   Class<? extends Task> getTaskType() {
@@ -75,7 +79,7 @@ class TaskTasklet implements Tasklet {
         setStopStatus(chunkContext, ExitStatus.STOPPED, ExecutionStatus.CANCELED)
         contribution.exitStatus = ExitStatus.STOPPED
         return cancel(stage)
-      } else if (!OptionalStageSupport.isOptional(stage) && (task.status.complete || task.status.halt)) {
+      } else if (!OptionalStageSupport.isOptional(stage, contextParameterProcessor) && (task.status.complete || task.status.halt)) {
         // no-op if task is already complete AND stage is NOT optional
         log.warn "Skipping task $task.name because its status is $task.status"
         chunkContext.stepContext.stepExecution.executionContext.put("orcaTaskStatus", task.status)
@@ -193,7 +197,7 @@ class TaskTasklet implements Tasklet {
   }
 
   private TaskResult executeTask(Stage stage, ChunkContext chunkContext) {
-    if (OptionalStageSupport.isOptional(stage)) {
+    if (OptionalStageSupport.isOptional(stage, contextParameterProcessor)) {
       return new TaskResult(ExecutionStatus.SKIPPED)
     }
 
@@ -246,7 +250,7 @@ class TaskTasklet implements Tasklet {
   private Stage currentStage(ChunkContext chunkContext, boolean includeGlobalContext = false) {
     def execution = currentExecution(chunkContext)
     def stage = execution.stages.find { it.id == stageId(chunkContext) }
-    return includeGlobalContext ? ExecutionContextManager.retrieve(stage, chunkContext) : stage
+    return includeGlobalContext ? ExecutionContextManager.retrieve(stage, chunkContext, contextParameterProcessor) : stage
   }
 
   private

@@ -53,6 +53,9 @@ class OperationsController {
   @Autowired
   ExecutionRepository executionRepository
 
+  @Autowired
+  ContextParameterProcessor contextParameterProcessor
+
   @Autowired(required = false)
   BuildArtifactFilter buildArtifactFilter
 
@@ -84,7 +87,7 @@ class OperationsController {
     }
 
     def augmentedContext = [trigger: pipeline.trigger]
-    def processedPipeline = ContextParameterProcessor.process(pipeline, augmentedContext, false)
+    def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
 
     if (plan) {
       log.info('not starting pipeline (plan: true): {}', pipeline.id)

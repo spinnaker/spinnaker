@@ -35,6 +35,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionSt
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import groovy.transform.CompileStatic
@@ -196,12 +197,17 @@ abstract class EchoEventIntegrationSpec<R extends ExecutionRunner> extends Speci
     }
 
     @Bean
-    EchoNotifyingExecutionListener echoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service) {
-      new EchoNotifyingExecutionListener(echoService, front50Service, new ObjectMapper())
+    EchoNotifyingExecutionListener echoNotifyingExecutionListener(EchoService echoService, Front50Service front50Service, ContextParameterProcessor contextParameterProcessor) {
+      new EchoNotifyingExecutionListener(echoService, front50Service, new ObjectMapper(), contextParameterProcessor)
     }
 
     @Bean
     TestTask testTask() { mockFactory.Stub(TestTask) }
+
+    @Bean
+    ContextParameterProcessor contextParameterProcessor() {
+      new ContextParameterProcessor()
+    }
   }
 }
 

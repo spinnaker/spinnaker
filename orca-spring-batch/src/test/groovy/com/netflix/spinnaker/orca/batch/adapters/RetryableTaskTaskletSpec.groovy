@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+
 import java.time.Clock
 import java.time.Instant
 import com.netflix.spectator.api.NoopRegistry
@@ -64,7 +66,7 @@ class RetryableTaskTaskletSpec extends Specification {
 
     and:
     def stage = new Stage<>(new Pipeline(), null, stageContext)
-    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, clock)
+    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, new ContextParameterProcessor(), clock)
     stage.execution.paused = new Execution.PausedDetails(pauseTime: 0)
 
     when:
@@ -104,7 +106,7 @@ class RetryableTaskTaskletSpec extends Specification {
     stage.tasks << new DefaultTask(status: SUCCEEDED)
     stage.tasks << new DefaultTask(status: RUNNING)
     stage.execution.status = PAUSED
-    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, clock)
+    def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, new ContextParameterProcessor(), clock)
 
     when:
     def taskResult = tasklet.doExecuteTask(stage, chunkContext)

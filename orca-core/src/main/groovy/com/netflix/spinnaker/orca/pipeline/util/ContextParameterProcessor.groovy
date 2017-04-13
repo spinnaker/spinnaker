@@ -20,15 +20,29 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import groovy.transform.Canonical
+import lombok.experimental.PackagePrivate
 import org.springframework.expression.AccessException
 import org.springframework.expression.EvaluationContext
+import org.springframework.expression.EvaluationException
 import org.springframework.expression.Expression
 import org.springframework.expression.ExpressionParser
 import org.springframework.expression.ParserContext
+import org.springframework.expression.TypeLocator
 import org.springframework.expression.TypedValue
+import org.springframework.expression.common.TemplateParserContext
+import org.springframework.expression.spel.SpelEvaluationException
+import org.springframework.expression.spel.SpelMessage
 import org.springframework.expression.spel.standard.SpelExpressionParser
+import org.springframework.expression.spel.support.ReflectiveMethodResolver
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor
 import org.springframework.expression.spel.support.StandardEvaluationContext
+import org.springframework.expression.spel.support.StandardTypeLocator
+
+import java.lang.reflect.Method
+import java.text.DateFormat
+import java.util.concurrent.atomic.AtomicReference
+import java.util.regex.Pattern
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
@@ -36,24 +50,26 @@ import org.springframework.expression.spel.support.StandardEvaluationContext
 class ContextParameterProcessor {
 
   // uses $ instead of  #
-  private static ParserContext parserContext = [
-    getExpressionPrefix: {
-      '${'
-    },
-    getExpressionSuffix: {
-      '}'
-    },
-    isTemplate         : {
-      true
-    }
-  ] as ParserContext
+  private final ParserContext parserContext = new TemplateParserContext('${', '}')
 
-  private static final MapPropertyAccessor allowUnknownKeysAccessor = new MapPropertyAccessor(true)
-  private static final MapPropertyAccessor requireKeysAccessor = new MapPropertyAccessor(false)
+  private final MapPropertyAccessor allowUnknownKeysAccessor = new MapPropertyAccessor(true)
+  private final MapPropertyAccessor requireKeysAccessor = new MapPropertyAccessor(false)
 
-  private static ExpressionParser parser = new SpelExpressionParser()
+  private final ExpressionParser parser = new SpelExpressionParser()
 
-  static Map process(Map parameters, Map context, boolean allowUnknownKeys) {
+  private final ContextFunctionConfiguration contextFunctionConfiguration
+
+  ContextParameterProcessor() {
+    this(new ContextFunctionConfiguration())
+  }
+
+  ContextParameterProcessor(ContextFunctionConfiguration contextFunctionConfiguration) {
+    this.contextFunctionConfiguration = contextFunctionConfiguration
+    //this sucks so much:
+    ContextUtilities.contextFunctionConfiguration.set(contextFunctionConfiguration)
+  }
+
+  Map process(Map parameters, Map context, boolean allowUnknownKeys) {
     if (!parameters) {
       return null
     }
@@ -61,7 +77,7 @@ class ContextParameterProcessor {
     transform(parameters, precomputeValues(context), allowUnknownKeys)
   }
 
-  static Map<String, Object> buildExecutionContext(Stage stage, boolean includeStageContext) {
+  Map<String, Object> buildExecutionContext(Stage stage, boolean includeStageContext) {
     def augmentedContext = [:] + (includeStageContext ? stage.context : [:])
     if (stage.execution instanceof Pipeline) {
       augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
@@ -71,11 +87,11 @@ class ContextParameterProcessor {
     return augmentedContext
   }
 
-  static boolean containsExpression(String value) {
+  boolean containsExpression(String value) {
     return value?.contains(parserContext.getExpressionPrefix())
   }
 
-  static Map precomputeValues(Map context) {
+  Map precomputeValues(Map context) {
 
     if (context.trigger?.parameters) {
       context.parameters = context.trigger.parameters
@@ -113,7 +129,9 @@ class ContextParameterProcessor {
     context
   }
 
-  static <T> T transform(T parameters, Map context, boolean allowUnknownKeys) {
+
+
+  protected <T> T transform(T parameters, Map context, boolean allowUnknownKeys) {
     if (parameters instanceof Map) {
       return parameters.collectEntries { k, v ->
         [transform(k, context, allowUnknownKeys), transform(v, context, allowUnknownKeys)]
@@ -124,7 +142,9 @@ class ContextParameterProcessor {
       }
     } else if (parameters instanceof String || parameters instanceof GString) {
       Object convertedValue = parameters.toString()
-      EvaluationContext evaluationContext = new StandardEvaluationContext(context)
+      StandardEvaluationContext evaluationContext = new StandardEvaluationContext(context)
+      evaluationContext.setTypeLocator(new WhitelistTypeLocator())
+      evaluationContext.setMethodResolvers([new FilteredMethodResolver()])
       evaluationContext.addPropertyAccessor(allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor)
 
       evaluationContext.registerFunction('alphanumerical', ContextUtilities.getDeclaredMethod("alphanumerical", String))
@@ -166,9 +186,79 @@ class ContextParameterProcessor {
     }
   }
 
+  static class WhitelistTypeLocator implements TypeLocator {
+    private final List<Class<?>> allowedTypes = Collections.unmodifiableList([
+        String,
+        Date,
+        Number,
+        DateFormat,
+        Math,
+        Random,
+        UUID,
+        Boolean
+    ])
+
+    final TypeLocator delegate = new StandardTypeLocator()
+    @Override
+    Class<?> findType(String typeName) throws EvaluationException {
+      def type = delegate.findType(typeName)
+
+      for (Class<?> t : allowedTypes) {
+        if (t.isAssignableFrom(type)) {
+          return type
+        }
+      }
+
+
+      throw new SpelEvaluationException(SpelMessage.TYPE_NOT_FOUND, typeName)
+    }
+  }
+
+  static class FilteredMethodResolver extends ReflectiveMethodResolver {
+
+    private static final List<Method> rejectedMethods = buildRejectedMethods()
+
+    private static List<Method> buildRejectedMethods() {
+      def rejectedMethods = []
+      def allowedObjectMethods = [
+          Object.getMethod("equals", Object),
+          Object.getMethod("hashCode"),
+          Object.getMethod("toString")
+      ]
+      def objectMethods = new ArrayList<Method>(Arrays.asList(Object.getMethods()))
+      objectMethods.removeAll(allowedObjectMethods)
+      rejectedMethods.addAll(objectMethods)
+      rejectedMethods.addAll(Class.getMethods())
+      rejectedMethods.addAll(Boolean.getMethods().findAll { it.name == 'getBoolean' })
+      rejectedMethods.addAll(Integer.getMethods().findAll { it.name == 'getInteger' })
+      rejectedMethods.addAll(Long.getMethods().findAll { it.name == 'getLong' })
+
+      return Collections.unmodifiableList(rejectedMethods)
+    }
+
+    @Override
+    protected Method[] getMethods(Class<?> type) {
+      Method[] methods = super.getMethods(type)
+
+      def m = new ArrayList<Method>(Arrays.asList(methods))
+      m.removeAll(rejectedMethods)
+
+      return m.toArray(new Method[m.size()])
+    }
+  }
+}
+
+@Canonical
+class ContextFunctionConfiguration {
+  String allowedHostnamesRegex = ".*"
+  List<String> allowedSchemes = ['http', 'https']
+  boolean rejectLocalhost = true
+  boolean rejectLinkLocal = true
 }
 
 abstract class ContextUtilities {
+
+  @PackagePrivate static final AtomicReference<ContextFunctionConfiguration> contextFunctionConfiguration = new AtomicReference<>(new ContextFunctionConfiguration())
 
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
@@ -191,7 +281,32 @@ abstract class ContextUtilities {
   }
 
   static String fromUrl(String url) {
-    new URL(url).text
+    def cfg = contextFunctionConfiguration.get()
+    def u = URI.create(url).normalize()
+    if (!u.isAbsolute()) {
+      throw new IllegalArgumentException('non absolute URI ' + url)
+    }
+    if (!cfg.allowedSchemes.contains(u.getScheme().toLowerCase())) {
+      throw new IllegalArgumentException('unsupported URI scheme ' + url)
+    }
+    def allowedHostnames = Pattern.compile(cfg.allowedHostnamesRegex)
+    if (!allowedHostnames.matcher(u.getHost()).matches()) {
+      throw new IllegalArgumentException('host not allowed ' + u.getHost())
+    }
+
+    if (cfg.rejectLocalhost || cfg.rejectLinkLocal) {
+      def addr = InetAddress.getByName(u.getHost())
+      if (cfg.rejectLocalhost) {
+        if (addr.isLoopbackAddress() || NetworkInterface.getByInetAddress(addr)) {
+          throw new IllegalArgumentException('invalid address for ' + u.getHost())
+        }
+      }
+      if (cfg.rejectLinkLocal && addr.isLinkLocalAddress()) {
+        throw new IllegalArgumentException('invalid address for ' + u.getHost())
+      }
+    }
+
+    return u.toURL().getText()
   }
 
   static Object readJson(String text) {
@@ -206,7 +321,7 @@ abstract class ContextUtilities {
     Map map = [:]
     Properties properties = new Properties()
     properties.load(new ByteArrayInputStream(text.bytes))
-    map = map << properties
+    map.putAll(properties)
     map
   }
 

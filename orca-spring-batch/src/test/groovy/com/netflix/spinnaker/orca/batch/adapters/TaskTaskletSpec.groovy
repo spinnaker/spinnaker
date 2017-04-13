@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.*
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -49,6 +50,9 @@ class TaskTaskletSpec extends Specification {
   def stageNavigator = new StageNavigator(Stub(ApplicationContext))
 
   @Shared
+  ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+
+  @Shared
   def allStartedStatuses = ExecutionStatus.values().findAll { it != NOT_STARTED }
 
   def setupSpec() {
@@ -68,7 +72,7 @@ class TaskTaskletSpec extends Specification {
   def task = Mock(Task)
 
   @Subject
-  def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator)
+  def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator, contextParameterProcessor)
 
   JobExecution jobExecution
   StepExecution stepExecution
@@ -298,7 +302,7 @@ class TaskTaskletSpec extends Specification {
   def "should #verb stage when task ends in a #status"() {
     given:
     def wasCanceled = false
-    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator) {
+    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator, new ContextParameterProcessor()) {
       @Override
       void doCancel(Stage stage, boolean adjustStageStatusAndTasks) {
         wasCanceled = true
@@ -362,7 +366,7 @@ class TaskTaskletSpec extends Specification {
     def task = Mock(taskType)
     task.execute(_) >> { throw new RuntimeException() }
 
-    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator)
+    def tasklet = new TaskTasklet(task, executionRepository, [], new NoopRegistry(), stageNavigator, new ContextParameterProcessor())
     tasklet.exceptionHandlers << Mock(ExceptionHandler) {
       1 * handles(_) >> {
         true

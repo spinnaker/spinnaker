@@ -18,12 +18,16 @@ package com.netflix.spinnaker.orca.batch
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import org.springframework.batch.core.scope.context.ChunkContext
 import org.springframework.batch.core.scope.context.StepContext
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class ExecutionContextManagerSpec extends Specification {
+
+  @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Unroll
   def "should not overwrite a local value with a global value"() {
@@ -43,7 +47,7 @@ class ExecutionContextManagerSpec extends Specification {
     }
 
     when:
-    ExecutionContextManager.retrieve(stage, chunkContext)
+    ExecutionContextManager.retrieve(stage, chunkContext, contextParameterProcessor)
 
     then:
     stage.context.execution == pipeline
@@ -74,7 +78,7 @@ class ExecutionContextManagerSpec extends Specification {
     }
 
     when:
-    ExecutionContextManager.retrieve(stage, chunkContext)
+    ExecutionContextManager.retrieve(stage, chunkContext, contextParameterProcessor)
 
     then:
     stage.context.key == expectedValue
@@ -102,7 +106,7 @@ class ExecutionContextManagerSpec extends Specification {
     }
 
     when:
-    ExecutionContextManager.retrieve(stage, chunkContext)
+    ExecutionContextManager.retrieve(stage, chunkContext, contextParameterProcessor)
     def contextCopy = [:] + stage.context
 
     then:

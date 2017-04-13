@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionSt
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
@@ -168,6 +169,11 @@ class RollingRestartSpec extends Specification {
     @Bean
     ObjectMapper objectMapper() {
       OrcaObjectMapper.newInstance()
+    }
+
+    @Bean
+    ContextParameterProcessor contextParameterProcessor() {
+      new ContextParameterProcessor()
     }
   }
 }

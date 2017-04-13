@@ -27,6 +27,7 @@ import com.netflix.spinnaker.orca.config.OrcaConfiguration;
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.ListableJobLocator;
@@ -110,7 +111,8 @@ public class SpringBatchConfiguration {
   TaskTaskletAdapter taskTaskletAdapter(ExecutionRepository executionRepository,
                                         List<ExceptionHandler> exceptionHandlers,
                                         StageNavigator stageNavigator,
+                                        ContextParameterProcessor contextParameterProcessor,
                                         Registry registry) {
-    return new TaskTaskletAdapterImpl(executionRepository, exceptionHandlers, stageNavigator, registry);
+    return new TaskTaskletAdapterImpl(executionRepository, exceptionHandlers, stageNavigator, contextParameterProcessor, registry);
   }
 }

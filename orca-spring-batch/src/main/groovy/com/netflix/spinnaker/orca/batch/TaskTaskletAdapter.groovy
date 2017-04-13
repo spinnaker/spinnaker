@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.retry.PollingRetryPolicy
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 import org.springframework.aop.framework.ProxyFactory
@@ -46,6 +47,7 @@ class TaskTaskletAdapterImpl implements TaskTaskletAdapter {
   private final ExecutionRepository executionRepository
   private final List<ExceptionHandler> exceptionHandlers
   private final StageNavigator stageNavigator
+  private final ContextParameterProcessor contextParameterProcessor
   private final Registry registry
   private final Sleeper sleeper
 
@@ -53,11 +55,13 @@ class TaskTaskletAdapterImpl implements TaskTaskletAdapter {
   TaskTaskletAdapterImpl(ExecutionRepository executionRepository,
                          List<ExceptionHandler> exceptionHandlers,
                          StageNavigator stageNavigator,
+                         ContextParameterProcessor contextParameterProcessor,
                          Registry registry = new NoopRegistry(),
                          Sleeper sleeper = DEFAULT_SLEEPER) {
     this.executionRepository = executionRepository
     this.exceptionHandlers = exceptionHandlers
     this.stageNavigator = stageNavigator
+    this.contextParameterProcessor = contextParameterProcessor
     this.registry = registry
     this.sleeper = sleeper
   }
@@ -65,7 +69,7 @@ class TaskTaskletAdapterImpl implements TaskTaskletAdapter {
   @Override
   Tasklet decorate(Task task) {
     if (task instanceof RetryableTask) {
-      def tasklet = new RetryableTaskTasklet(task, executionRepository, exceptionHandlers, registry, stageNavigator)
+      def tasklet = new RetryableTaskTasklet(task, executionRepository, exceptionHandlers, registry, stageNavigator, contextParameterProcessor)
       def proxyFactory = new ProxyFactory(Tasklet, new SingletonTargetSource(tasklet))
       def backOffPolicy = new FixedBackOffPolicy(
         backOffPeriod: task.backoffPeriod,
@@ -78,7 +82,7 @@ class TaskTaskletAdapterImpl implements TaskTaskletAdapter {
       )
       return proxyFactory.proxy as Tasklet
     } else {
-      return new TaskTasklet(task, executionRepository, exceptionHandlers, registry, stageNavigator)
+      return new TaskTasklet(task, executionRepository, exceptionHandlers, registry, stageNavigator, contextParameterProcessor)
     }
   }
 }

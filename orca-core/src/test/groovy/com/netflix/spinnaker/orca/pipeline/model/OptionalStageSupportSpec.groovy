@@ -18,10 +18,15 @@
 package com.netflix.spinnaker.orca.pipeline.model
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class OptionalStageSupportSpec extends Specification {
+
+  @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+
   @Unroll
   def "should support expression-based optionality"() {
     given:
@@ -41,7 +46,7 @@ class OptionalStageSupportSpec extends Specification {
     ])
 
     expect:
-    OptionalStageSupport.isOptional(stage) == expectedOptionality
+    OptionalStageSupport.isOptional(stage, contextParameterProcessor) == expectedOptionality
 
     where:
     optionalConfig                                                                                                   || expectedOptionality
@@ -75,7 +80,7 @@ class OptionalStageSupportSpec extends Specification {
     pipeline.stages[1].parentStageId = pipeline.stages[0].id
 
     expect:
-    OptionalStageSupport.isOptional(pipeline.stages[1]) == expectedOptionality
+    OptionalStageSupport.isOptional(pipeline.stages[1], contextParameterProcessor) == expectedOptionality
 
     where:
     optionalConfig                                            || expectedOptionality

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+
 import javax.servlet.http.HttpServletResponse
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
@@ -56,7 +58,8 @@ class OperationsControllerSpec extends Specification {
       buildService: buildService,
       buildArtifactFilter: buildArtifactFilter,
       executionRepository: executionRepository,
-      pipelineLauncher: pipelineLauncher
+      pipelineLauncher: pipelineLauncher,
+      contextParameterProcessor: new ContextParameterProcessor()
     )
 
   @Unroll

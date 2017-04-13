@@ -30,19 +30,19 @@ class OptionalStageSupport {
   /**
    * A Stage is optional if it has an {@link OptionalStageEvaluator} in it's context that evaluates {@code false}.
    */
-  static boolean isOptional(Stage stage) {
+  static boolean isOptional(Stage stage, ContextParameterProcessor contextParameterProcessor) {
     def optionalType = (stage.context.stageEnabled?.type as String)?.toLowerCase()
     if (!optionalType || !OPTIONAL_STAGE_TYPES[optionalType]) {
       if (stage.syntheticStageOwner || stage.parentStageId) {
         def parentStage = stage.execution.stages.find { it.id == stage.parentStageId }
-        return isOptional(parentStage)
+        return isOptional(parentStage, contextParameterProcessor)
       }
 
       return false
     }
 
     try {
-      return !stage.mapTo("/stageEnabled", OPTIONAL_STAGE_TYPES[optionalType]).evaluate(stage)
+      return !stage.mapTo("/stageEnabled", OPTIONAL_STAGE_TYPES[optionalType]).evaluate(stage, contextParameterProcessor)
     } catch (InvalidExpression e) {
       log.warn("Unable to determine stage optionality, reason: ${e.message} (executionId: ${stage.execution.id}, stageId: ${stage.id})")
       return false
@@ -53,7 +53,7 @@ class OptionalStageSupport {
    * Determines whether a stage is optional and should be skipped
    */
   private static interface OptionalStageEvaluator {
-    boolean evaluate(Stage stage)
+    boolean evaluate(Stage stage, ContextParameterProcessor contextParameterProcessor)
   }
 
   /**
@@ -63,10 +63,10 @@ class OptionalStageSupport {
     String expression
 
     @Override
-    boolean evaluate(Stage stage) {
-      String expression = ContextParameterProcessor.process([
+    boolean evaluate(Stage stage, ContextParameterProcessor contextParameterProcessor) {
+      String expression = contextParameterProcessor.process([
         "expression": '${' + expression + '}'
-      ], ContextParameterProcessor.buildExecutionContext(stage, true), true).expression
+      ], contextParameterProcessor.buildExecutionContext(stage, true), true).expression
 
       def matcher = expression =~ /\$\{(.*)\}/
       if (matcher.matches()) {

@@ -40,6 +40,7 @@ import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionSt
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.test.batch.BatchTestConfiguration
 import groovy.transform.CompileStatic
@@ -258,6 +259,11 @@ abstract class DeploymentStrategiesExecutionSpec<R extends ExecutionRunner> exte
     @Bean
     FactoryBean<ExecutionRunnerSpec.TestTask> testTask() {
       new SpockMockFactoryBean(ExecutionRunnerSpec.TestTask)
+    }
+
+    @Bean
+    ContextParameterProcessor contextParameterProcessor() {
+      new ContextParameterProcessor()
     }
   }
 }

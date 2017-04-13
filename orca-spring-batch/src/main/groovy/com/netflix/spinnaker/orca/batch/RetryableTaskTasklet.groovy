@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.batch.retry.PollRequiresRetry
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileStatic
 import org.joda.time.Duration
@@ -49,8 +50,9 @@ class RetryableTaskTasklet extends TaskTasklet {
                        List<ExceptionHandler> exceptionHandlers,
                        Registry registry,
                        StageNavigator stageNavigator,
+                       ContextParameterProcessor contextParameterProcessor,
                        Clock clock = Clock.systemUTC()) {
-    super(task, executionRepository, exceptionHandlers, registry, stageNavigator)
+    super(task, executionRepository, exceptionHandlers, registry, stageNavigator, contextParameterProcessor)
     this.clock = clock
     this.timeoutMs = task.timeout
   }

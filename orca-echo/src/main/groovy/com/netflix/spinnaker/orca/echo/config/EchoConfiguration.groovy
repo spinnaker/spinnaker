@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.echo.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
@@ -74,7 +75,8 @@ class EchoConfiguration {
   @Bean
   EchoNotifyingExecutionListener echoNotifyingPipelineExecutionListener(EchoService echoService,
                                                                         Front50Service front50Service,
-                                                                        ObjectMapper objectMapper) {
-    new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper)
+                                                                        ObjectMapper objectMapper,
+                                                                        ContextParameterProcessor contextParameterProcessor) {
+    new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor)
   }
 }
