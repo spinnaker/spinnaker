@@ -216,20 +216,21 @@ function configure_bash_completion() {
     local bashrc
     hal --print-bash-completion | tee $completion_script  > /dev/null
     if [ -z "$YES" ]; then
+      echo ""
       read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
     fi
     
     if [ -z "$bashrc" ]; then
       bashrc="$HOME/.bashrc"
     fi
-    
+
     if [ -z "$(grep $completion_script $bashrc)" ]; then
       echo "# configure hal auto-complete " >> $bashrc
       echo ". /etc/bash_completion.d/hal" >> $bashrc
     fi
 
     echo "Bash auto-completion configured."
-    echo "$(tput bold)To use the auto-completion, either restart your shell, or run$(tput sgr0)"
+    echo "$(tput bold)To use the auto-completion either restart your shell, or run$(tput sgr0)"
     echo "$(tput bold). $bashrc$(tput sgr0)"
   fi
   
@@ -247,6 +248,13 @@ function configure_halyard_defaults() {
     user="$_user"
   fi
 
+  # user can't be resolved in docker containers
+  if [ -z "$user" ]; then
+    user=root
+  fi
+
+  echo "Configuring daemon to be run as $user"
+
   sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf
 
   local halconfig
@@ -258,6 +266,8 @@ function configure_halyard_defaults() {
   if [ -z "$halconfig" ]; then
     halconfig="$HOME/.hal"
   fi
+
+  echo "Halconfig will be stored at $halconfig"
 
   mkdir -p $halconfig
   chown $user $halconfig
