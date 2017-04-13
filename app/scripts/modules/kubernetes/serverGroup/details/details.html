@@ -139,9 +139,9 @@
           <dt>Target CPU</dt>
           <dd>{{serverGroup.deployDescription.scalingPolicy.cpuUtilization.target}}%</dd>
           <dt>Current CPU</dt>
-          <dd>{{serverGroup.autoscalerStatus.currentCpuUtilization}}%</dd>
-          <dt>Latest Rescale</dt>
-          <dd>{{serverGroup.autoscalerStatus.lastScaleTime | relativeTime}}</dd>
+          <dd>{{serverGroup.autoscalerStatus.currentCpuUtilization !== null ? serverGroup.autoscalerStatus.currentCpuUtilization : '- '}}%</dd>
+          <dt ng-if="serverGroup.autoscalerStatus.lastScaleTime">Latest Rescale</dt>
+          <dd ng-if="serverGroup.autoscalerStatus.lastScaleTime">{{serverGroup.autoscalerStatus.lastScaleTime | relativeTime}}</dd>
         </div>
       </dl>
     </collapsible-section>

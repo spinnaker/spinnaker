@@ -76,7 +76,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
 
       wizardSubFormValidation
         .config({ scope: $scope, form: 'form' })
-        .register({ page: 'location', subForm: 'basicSettings'})
+        .register({page: 'location', subForm: 'basicSettings'})
         .register({page: 'advanced-settings', subForm: 'advancedSettings'});
     }
 

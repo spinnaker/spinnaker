@@ -53,8 +53,8 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         viewState: {
           mode: defaults.mode || 'create',
           disableStrategySelection: true,
+          useAutoscaler: false,
         },
-        useAutoscaler: false,
         capacity: {
           min: 1,
           desired: 1,
@@ -103,6 +103,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
 
       command.viewState = {
         mode: mode,
+        useAutoscaler: !!command.scalingPolicy,
       };
 
       if (!command.capacity) {
@@ -223,6 +224,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
           mode: 'editPipeline',
           submitButtonLabel: 'Done',
           requiresTemplateSelection: true,
+          useAutoscaler: false,
         }
       };
     }
@@ -243,6 +245,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         mode: 'editPipeline',
         contextImages: contextImages,
         submitButtonLabel: 'Done',
+        useAutoscaler: !!command.scalingPolicy,
       };
 
       if (!_.has(command, 'scalingPolicy.cpuUtilization.target')) {
