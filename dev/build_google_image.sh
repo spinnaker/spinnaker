@@ -18,23 +18,14 @@
 #
 # Create an image from a debian repo.
 #    build_google_image.sh \
-#        --project_id $PROJECT \
+#        --project $PROJECT \
 #        --debian_repo https://dl.bintray.com/$BINTRAY_REPO \
 #        --target_image $IMAGE
 #
-# Create an image from a debian repo, but keep the disk around.
+# Create tarball from an image
 #    build_google_image.sh \
-#        --project_id $PROJECT \
-#        --debian_repo https://dl.bintray.com/$BINTRAY_REPO \
-#        --target_image $IMAGE \
-#        --target_disk ${IMAGE}-disk
-#
-# Create tarball from a previous run's disk.
-# We could have created this will the image, but it takes a long
-# time and we might want to test the image first.
-#    build_google_image.sh \
-#        --project_id $PROJECT \
-#        --source_disk ${IMAGE}-disk
+#        --project $PROJECT \
+#        --source_image ${IMAGE}
 #        --gz_uri gs://${BUCKET}/${IMAGE}.tar.gz
 
 
@@ -52,7 +43,7 @@ DEBIAN_REPO_URL=https://dl.bintray.com/spinnaker/debians
 INSTALL_SCRIPT=https://dl.bintray.com/spinnaker/scripts/InstallSpinnaker.sh
 
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
-BASE_IMAGE_OR_FAMILY_PROJECT=
+IMAGE_PROJECT=
 TARGET_IMAGE=
 
 # If the source image is provided then do not install spinnaker since
@@ -83,12 +74,11 @@ CLEANER_INSTANCE_PID=
 
 ACCOUNT=$DEFAULT_ACCOUNT
 PROJECT=$DEFAULT_PROJECT
+
 ZONE=$(gcloud config list 2>&1 \
            | grep "zone =" | head -1 \
            | sed "s/.* \(.*\)$/\1/")
 
-SOURCE_DISK=""
-TARGET_DISK=""
 GZ_URI=""
 
 
@@ -97,27 +87,32 @@ function fix_defaults() {
     ZONE=us-central1-f
   fi
 
-  local image_entry=$(gcloud compute images list 2>&1 \
-                      | grep $BASE_IMAGE_OR_FAMILY | head -1)
+  if [[ "$SOURCE_IMAGE" != "" ]]; then
+    if [[ "$IMAGE_PROJECT" == "" ]]; then
+       IMAGE_PROJECT=$PROJECT
+    fi
+  else
+    # No source image, so assume a base image (to install from).
+    local image_entry=$(gcloud compute images list 2>&1 \
+                        | grep $BASE_IMAGE_OR_FAMILY | head -1)
 
-  # If this was a family, convert it to a particular image for argument consistency
-  if [[ "$BASE_IMAGE_OR_FAMILY_PROJECT" == "" ]]; then
-    BASE_IMAGE_OR_FAMILY_PROJECT=$(echo "$image_entry" | sed "s/[^ ]* *\([^ ]*\)* .*/\1/")
     BASE_IMAGE=$(echo "$image_entry" | sed "s/\([^ ]*\) .*/\1/")
+
+    # If this was a family, convert it to a particular image for
+    # argument consistency
+    if [[ "$IMAGE_PROJECT" == "" ]]; then
+      IMAGE_PROJECT=$(echo "$image_entry" | sed "s/[^ ]* *\([^ ]*\)* .*/\1/")
+    fi
   fi
 
-  if [[ "$SOURCE_DISK" != "" ]]; then
-    BUILD_INSTANCE=""  # dont create an instance
-    CLEANER_INSTANCE="clean-${SOURCE_DISK}-${TIME_DECORATOR}"
-  elif [[ "$TARGET_IMAGE" != "" ]]; then
-    if [[ "$BUILD_INSTANCE" == "" ]]; then
-      BUILD_INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
-    fi
+  if [[ "$TARGET_IMAGE" != "" ]]; then
+    BUILD_INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
     CLEANER_INSTANCE="clean-${TARGET_IMAGE}-${TIME_DECORATOR}"
   elif [[ "$SOURCE_IMAGE" != "" ]]; then
+    BUILD_INSTANCE="build-${SOURCE_IMAGE}-${TIME_DECORATOR}"
     CLEANER_INSTANCE="clean-${SOURCE_IMAGE}-${TIME_DECORATOR}"
   else
-    >&2 echo "You must have either --source_disk, --source_image, or create a --target_image."
+    >&2 echo "You must have either --source_image, or create a --target_image."
     exit -1
   fi
 }
@@ -160,15 +155,10 @@ Usage:  $0 [options]
        [$BASE_IMAGE_OR_FAMILY]
        Use BASE_IMAGE_OR_FAMILY as the base image. Install spinnaker onto it.
 
-   --source_disk SOURCE_DISK
-       [$SOURCE_DISK]
-       If not empty, then create the image from this disk.
-
-   --target_disk TARGET_DISK
-       [$TARGET_DISK]
-       If not empty "" then also keep the disk used to create the image.
-       Otherwise, delete the disk when done. If keeping the disk, then give
-       it TARGET_DISK.
+   --image_project IMAGE_PROJECT
+      [$IMAGE_PROJECT]
+      The project for the SOURCE_IMAGE or BASE_IMAGE. The default is the
+      PROJECT.
 
    --target_image TARGET_IMAGE
        [$TARGET_IMAGE]
@@ -232,7 +222,7 @@ function process_args() {
             shift
             ;;
         --image_project)
-            >&2 echo "--image_project is no longer used -- ignoring."
+            IMAGE_PROJECT=$1
             shift
             ;;
         --json_credentials)
@@ -242,17 +232,6 @@ function process_args() {
 
         --source_image)
             SOURCE_IMAGE=$1
-            shift
-            ;;
-
-        --source_disk)
-            SOURCE_DISK="$1"
-            shift
-            ;;
-
-        --target_disk)
-            TARGET_DISK="$1"
-            BUILD_INSTANCE="$1"
             shift
             ;;
 
@@ -300,23 +279,18 @@ function cleanup_instances_on_error() {
     delete_build_instance
   fi
 
-  echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
-  wait $CLEANER_INSTANCE_PID || true
-  gcloud compute instances delete ${CLEANER_INSTANCE} \
+  if [[ "$CLEANER_INSTANCE" != "" ]]; then
+    echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
+    gcloud compute instances delete ${CLEANER_INSTANCE} \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
-      --quiet || true
+      --quiet
+  fi
 }
 
 
 function create_cleaner_instance() {
-  # This instance will be used later to clean the image
-  # we dont need it yet, but will spin it up now to have it ready.
-  # this has a bigger disk so we can store a copy of the original disk on it.
-  # Give this a lot of ram because we're going to tar up and compress the
-  # disk.
-  echo "`date` Warming up '$CLEANER_INSTANCE' for later"
   gcloud compute instances create ${CLEANER_INSTANCE} \
       --project $PROJECT \
       --account $ACCOUNT \
@@ -325,11 +299,8 @@ function create_cleaner_instance() {
       --scopes storage-rw \
       --boot-disk-type pd-ssd \
       --boot-disk-size 20GB \
-      --image $BASE_IMAGE \
-      --image-project $BASE_IMAGE_OR_FAMILY_PROJECT >& /dev/null&
-  CLEANER_INSTANCE_PID=$!
-
-  trap cleanup_instances_on_error EXIT
+      --image-family ubuntu-1404-lts \
+      --image-project ubuntu-os-cloud
 }
 
 function delete_cleaner_instance() {
@@ -339,10 +310,9 @@ function delete_cleaner_instance() {
       --account $ACCOUNT \
       --zone $ZONE \
       --quiet || true
+  CLEANER_INSTANCE=
 
-  if [[ "$TARGET_DISK" != "" ]]; then
-    echo "`date`: Keeping disk '$TARGET_DISK'"
-  elif [[ "$BUILD_INSTANCE" != "" ]]; then
+  if [[ "$BUILD_INSTANCE" != "" ]]; then
     echo "`date`: Deleting disk '$BUILD_INSTANCE'"
     gcloud compute disks delete $BUILD_INSTANCE \
         --project $PROJECT \
@@ -355,25 +325,22 @@ function delete_cleaner_instance() {
 
 function create_prototype_disk() {
   if [[ "$SOURCE_IMAGE"  != "" ]]; then
-    # This will be on success too
-    trap delete_cleaner_instance EXIT
-
-    echo "`date` Creating disk '$SOURCE_IMAGE' from image '$SOURCE_IMAGE'"
-    gcloud compute instances create ${SOURCE_IMAGE} \
+    echo "`date` Creating disk '$BUILD_INSTANCE' from image '$SOURCE_IMAGE'"
+    gcloud compute instances create ${BUILD_INSTANCE} \
         --no-boot-disk-auto-delete \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
-        --image-project $PROJECT \
+        --image-project $IMAGE_PROJECT \
         --image $SOURCE_IMAGE \
         --quiet
     echo "`date` Almost there..."
-    gcloud compute instances delete ${SOURCE_IMAGE} \
+    gcloud compute instances delete ${BUILD_INSTANCE} \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
         --quiet
-    echo "`date` Finished creating disk '$SOURCE_IMAGE'"
+    echo "`date` Finished creating disk '$BUILD_INSTANCE'"
     return 0
   fi
 
@@ -397,7 +364,7 @@ function create_prototype_disk() {
       --boot-disk-type pd-ssd \
       --boot-disk-size 10GB \
       --image $BASE_IMAGE \
-      --image-project $BASE_IMAGE_OR_FAMILY_PROJECT \
+      --image-project $IMAGE_PROJECT \
       --metadata block-project-ssh-keys=TRUE
 
   # For purposes of cleaning up, remember this name.
@@ -461,9 +428,6 @@ function create_prototype_disk() {
     --no-auto-delete \
     --disk $PROTOTYPE_INSTANCE
 
-  # This will be on success too
-  trap delete_cleaner_instance EXIT
-
   # Just the builder instance, not the cleanup instance
   delete_build_instance
 }
@@ -473,19 +437,12 @@ process_args "$@"
 fix_defaults
 
 create_empty_ssh_key
+
+trap cleanup_instances_on_error EXIT
+create_prototype_disk
+SOURCE_DISK=$BUILD_INSTANCE
+
 create_cleaner_instance
-if [[ "$SOURCE_DISK" == "" ]]; then
-  create_prototype_disk
-  if [[ "$SOURCE_IMAGE" != "" ]]; then
-    SOURCE_DISK=$SOURCE_IMAGE
-  else
-    SOURCE_DISK=$BUILD_INSTANCE
-  fi
-fi
-
-echo "Waiting on ${CLEANER_INSTANCE}...."
-wait $CLEANER_INSTANCE_PID || true
-
 extract_clean_prototype_disk \
     "$SOURCE_DISK" "$CLEANER_INSTANCE" "$GZ_URI"
 
