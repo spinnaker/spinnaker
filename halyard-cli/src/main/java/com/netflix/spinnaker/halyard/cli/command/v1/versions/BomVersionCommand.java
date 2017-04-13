@@ -19,14 +19,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
-import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -53,6 +51,12 @@ public class BomVersionCommand extends AbstractConfigCommand {
       "get the BOM for whatever version of Spinnaker you are currently configuring."
   );
 
+  @Parameter(
+      names = "--artifact-name",
+      description = "When supplied, print the version of this artifact only."
+  )
+  String artifactName;
+
   @Override
   public String getMainParameter() {
     return "VERSION";
@@ -74,10 +78,18 @@ public class BomVersionCommand extends AbstractConfigCommand {
 
   @Override
   protected void executeThis() {
-    new OperationHandler<BillOfMaterials>()
-        .setFormat(AnsiFormatUtils.Format.YAML)
+    BillOfMaterials bom = new OperationHandler<BillOfMaterials>()
         .setOperation(Daemon.getBillOfMaterials(getVersion()))
         .setFailureMesssage("Failed to get Bill of Materials for version " + getVersion())
         .get();
+
+    String result;
+    if (artifactName == null) {
+      result = AnsiFormatUtils.format(AnsiFormatUtils.Format.YAML, bom);
+    } else {
+      result = bom.getArtifactVersion(artifactName);
+    }
+
+    AnsiPrinter.println(result);
   }
 }

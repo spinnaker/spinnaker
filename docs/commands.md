@@ -2412,6 +2412,7 @@ hal version bom VERSION [parameters]
 ```
 #### Parameters
 `VERSION`: The version whose Bill of Materials (BOM) to lookup.
+ * `--artifact-name`: When supplied, print the version of this artifact only.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
