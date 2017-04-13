@@ -126,17 +126,17 @@ class OrcaSmokeGoogleSpec extends Specification {
       name       : "my-pipeline",
       stages     : [
         [
-          type         : "linearDeploy",
-          providerType : "gce",
-          zone         : "us-central1-b",
-          image        : "debian-7-wheezy-v20141021",
-          instanceType : "f1-micro",
-          capacity     : [ desired : 2 ],
-          application  : applicationName,
-          stack        : "test",
-          credentials  : "my-account-name",
-          user         : "smoke-test-user",
-          description  : "Create new server group in cluster googletest as smoke test."
+          type          : "linearDeploy",
+          cloudProvider : "gce",
+          zone          : "us-central1-b",
+          image         : "debian-7-wheezy-v20141021",
+          instanceType  : "f1-micro",
+          capacity      : [ desired : 2 ],
+          application   : applicationName,
+          stack         : "test",
+          credentials   : "my-account-name",
+          user          : "smoke-test-user",
+          description   : "Create new server group in cluster googletest as smoke test."
         ]
       ]
     ]

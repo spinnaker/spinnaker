@@ -98,7 +98,7 @@ class OortHelper {
       clusterName = context.clusterName
     }
 
-    def response = oortService.getCluster(app, context.account, clusterName, context.providerType ?: "aws")
+    def response = oortService.getCluster(app, context.account, clusterName, context.cloudProvider ?: context.providerType ?: "aws")
     def oortCluster = convert(response, Map)
     def instanceMap = [:]
 

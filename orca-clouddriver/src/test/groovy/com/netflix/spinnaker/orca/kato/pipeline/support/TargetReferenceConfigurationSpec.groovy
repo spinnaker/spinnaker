@@ -38,4 +38,12 @@ class TargetReferenceConfigurationSpec extends Specification {
     null             | []                 || []
     null             | null               || []
   }
+
+  def "sets cloudProvider when providerType is sent"() {
+    setup:
+    def subject = new TargetReferenceConfiguration(providerType: "someprovider")
+
+    expect:
+    subject.cloudProvider == "someprovider"
+  }
 }

@@ -31,7 +31,17 @@ class TargetReferenceConfiguration {
   String credentials
   List<String> regions
   List<String> zones
-  String providerType = "aws"
+  String cloudProvider = "aws"
+
+  /**
+   * Deprecated - use #cloudProvider (this method just sets the supplied value on the cloudProvider field)
+   * @param providerType
+   * @return
+   */
+  @Deprecated
+  public setProviderType(String providerType) {
+    cloudProvider = providerType
+  }
 
   List<String> getLocations() {
     if (regions && !regions.isEmpty()) {

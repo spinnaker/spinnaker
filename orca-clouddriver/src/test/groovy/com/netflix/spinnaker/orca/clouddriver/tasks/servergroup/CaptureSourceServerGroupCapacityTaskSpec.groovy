@@ -62,7 +62,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
         max    : 10
       ],
       application      : "application",
-      providerType     : "aws",
+      cloudProvider    : "aws",
       source           : [
         account: "test",
         asgName: "application-v001",
@@ -87,7 +87,7 @@ class CaptureSourceServerGroupCapacityTaskSpec extends Specification {
       stage.context.source.account as String,
       stage.context.source.asgName as String,
       stage.context.source.region as String,
-      stage.context.providerType as String
+      stage.context.cloudProvider as String
     ) >> Optional.of(targetServerGroup)
 
     result.stageOutputs.useSourceCapacity == false
