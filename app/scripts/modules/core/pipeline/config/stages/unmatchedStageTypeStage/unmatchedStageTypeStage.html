@@ -1,0 +1,20 @@
+<div ng-controller="UnmatchedStageTypeStageCtrl as $ctrl">
+  <form name="form" class="form-horizontal flex-fill">
+    <div class="flex-fill">
+      <textarea class="code form-control flex-fill"
+                ng-model="$ctrl.stageJson"
+                spellcheck="false"
+                ng-blur="$ctrl.updateStage()"
+                ng-change="$ctrl.updateStage()"
+                ng-model-options="{'debounce': 500}"
+                rows="{{::$ctrl.textareaRows}}"></textarea>
+    </div>
+  </form>
+
+  <div class="form-group row" style="margin-top: 10px;">
+    <div class="col-md-9 col-md-offset-3 error-message slide-in" ng-if="$ctrl.errorMessage">
+      Error: <span ng-bind-html="$ctrl.errorMessage"></span>
+    </div>
+  </div>
+</div>
+

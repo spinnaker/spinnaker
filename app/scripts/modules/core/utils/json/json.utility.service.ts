@@ -61,7 +61,11 @@ export class JsonUtilityService {
   }
 
   public makeSortedStringFromObject(obj: any): string {
-    return JSON.stringify(this.sortObject(obj), null, 2);
+    return this.makeStringFromObject(this.sortObject(obj));
+  }
+
+  public makeStringFromObject(obj: any): string {
+    return JSON.stringify(obj, null, 2);
   }
 
   public diff(left: any, right: any, sortKeys = false): IJsonDiff {
