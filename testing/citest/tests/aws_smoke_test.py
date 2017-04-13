@@ -87,6 +87,11 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     super(AwsSmokeTestScenario, self).__init__(bindings, agent)
     bindings = self.bindings
 
+    aws_observer = self.aws_observer
+    self.autoscaling_client = aws_observer.make_boto_client('autoscaling')
+    self.ec2_client = aws_observer.make_boto_client('ec2')
+    self.elb_client = aws_observer.make_boto_client('elb')
+
     self.lb_detail = 'lb'
     self.lb_name = '{app}-{stack}-{detail}'.format(
         app=bindings['TEST_APP'], stack=bindings['TEST_STACK'],
@@ -111,8 +116,8 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     contract = jc.Contract()
     return st.OperationContract(
         self.agent.make_delete_app_operation(
-             application=self.TEST_APP,
-             account_name=self.bindings['SPINNAKER_AWS_ACCOUNT']),
+            application=self.TEST_APP,
+            account_name=self.bindings['SPINNAKER_AWS_ACCOUNT']),
         contract=contract)
 
   def upsert_load_balancer(self, use_vpc):
@@ -149,14 +154,12 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       # The resulting load balancer will only be available in the zone of
       # the subnet we are using. We'll figure that out by looking up the
       # subnet we want.
-      subnet_details = self.aws_observer.get_resource_list(
+      subnets_response = self.aws_observer.call_method(
           context,
-          root_key='Subnets',
-          aws_command='describe-subnets',
-          aws_module='ec2',
-          args=['--filters',
-                'Name=vpc-id,Values={vpc_id}'
-                .format(vpc_id=vpc_id)])
+          self.ec2_client.describe_subnets,
+          Filters=[{'Name': 'vpc-id', 'Values': [vpc_id]}])
+      subnet_details = subnets_response['Subnets']
+
       try:
         avail_zones = [detail['AvailabilityZone'] for detail in subnet_details]
         region = avail_zones[0][:-1]
@@ -236,20 +239,20 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
         description='Create Load Balancer: ' + load_balancer_name,
         application=self.TEST_APP)
 
-    builder = aws.AwsContractBuilder(self.aws_observer)
+    builder = aws.AwsPythonContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Load Balancer Added', retryable_for_secs=10)
-     .collect_resources(
-         aws_module='elb',
-         command='describe-load-balancers',
-         args=['--load-balancer-names', load_balancer_name])
+     .call_method(
+         self.elb_client.describe_load_balancers,
+         LoadBalancerNames=[load_balancer_name])
      .contains_path_match(
-        'LoadBalancerDescriptions',
-        {'HealthCheck': jp.DICT_MATCHES({
-              key: jp.EQUIVALENT(value) for key, value in health_check.items()}),
-         'AvailabilityZones': jp.LIST_SIMILAR(avail_zones),
-         'ListenerDescriptions/Listener':
-             jp.DICT_MATCHES({key: jp.NUM_EQ(value)
-                              for key, value in listener['Listener'].items()})
+         'LoadBalancerDescriptions',
+         {'HealthCheck': jp.DICT_MATCHES({
+             key: jp.EQUIVALENT(value) for key, value in health_check.items()}),
+          'AvailabilityZones': jp.LIST_SIMILAR(avail_zones),
+          'ListenerDescriptions/Listener':
+              jp.DICT_MATCHES(
+                  {key: jp.NUM_EQ(value)
+                   for key, value in listener['Listener'].items()})
          })
     )
 
@@ -291,14 +294,13 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             self.bindings['TEST_AWS_REGION']),
         application=self.TEST_APP)
 
-    builder = aws.AwsContractBuilder(self.aws_observer)
+    builder = aws.AwsPythonContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Load Balancer Removed')
-     .collect_resources(
-         aws_module='elb',
-         command='describe-load-balancers',
-         args=['--load-balancer-names', load_balancer_name],
-         no_resources_ok=True)
-     .excludes_path_value('LoadBalancerName', load_balancer_name))
+     .call_method(
+         self.elb_client.describe_load_balancers,
+         LoadBalancerNames=[load_balancer_name])
+     .append_verifier(
+         aws.AwsErrorVerifier('ExpectError', 'LoadBalancerNotFound')))
 
     title_decorator = '_with_vpc' if use_vpc else '_without_vpc'
     return st.OperationContract(
@@ -367,11 +369,12 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
         description='Create Server Group in ' + group_name,
         application=self.TEST_APP)
 
-    builder = aws.AwsContractBuilder(self.aws_observer)
+    builder = aws.AwsPythonContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Auto Server Group Added',
                                 retryable_for_secs=30)
-     .collect_resources('autoscaling', 'describe-auto-scaling-groups',
-                        args=['--auto-scaling-group-names', group_name])
+     .call_method(
+         self.autoscaling_client.describe_auto_scaling_groups,
+         AutoScalingGroupNames=[group_name])
      .contains_path_match('AutoScalingGroups', {'MaxSize': jp.NUM_EQ(2)}))
 
     return st.OperationContract(
@@ -404,17 +407,13 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
         application=self.TEST_APP,
         description='DestroyServerGroup: ' + group_name)
 
-    builder = aws.AwsContractBuilder(self.aws_observer)
+    builder = aws.AwsPythonContractBuilder(self.aws_observer)
     (builder.new_clause_builder('Auto Scaling Group Removed')
-     .collect_resources('autoscaling', 'describe-auto-scaling-groups',
-                        args=['--auto-scaling-group-names', group_name],
-                        no_resources_ok=True)
-     .contains_path_match('AutoScalingGroups', {'MaxSize': jp.NUM_EQ(0)}))
-
-    (builder.new_clause_builder('Instances Are Removed',
-                                retryable_for_secs=30)
-     .collect_resources('ec2', 'describe-instances', no_resources_ok=True)
-     .excludes_path_value('name', group_name))
+     .call_method(
+         self.autoscaling_client.describe_auto_scaling_groups,
+         AutoScalingGroupNames=[group_name])
+     .append_verifier(
+         aws.AwsErrorVerifier('ExpectError', 'AutoScalingGroupNotFound')))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -437,7 +436,6 @@ class AwsSmokeTest(st.AgentTestCase):
 
   @property
   def testing_agent(self):
-    scenario = self.scenario
     return self.scenario.agent
 
   def test_a_create_app(self):
@@ -454,10 +452,12 @@ class AwsSmokeTest(st.AgentTestCase):
     # because it might be waiting on confirmation
     # but we'll continue anyway because side effects
     # should have still taken place.
-    self.run_test_case(self.scenario.create_server_group(), timeout_ok=True)
+    self.run_test_case(self.scenario.create_server_group(),
+                       poll_every_secs=5, timeout_ok=True)
 
   def test_x_delete_server_group(self):
-    self.run_test_case(self.scenario.delete_server_group(), max_retries=5)
+    self.run_test_case(self.scenario.delete_server_group(),
+                       max_retries=5, poll_every_secs=5)
 
   def test_y_delete_load_balancer_vpc(self):
     self.run_test_case(self.scenario.delete_load_balancer(use_vpc=True),
