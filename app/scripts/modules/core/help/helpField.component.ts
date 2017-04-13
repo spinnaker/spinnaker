@@ -103,7 +103,7 @@ class HelpFieldComponent implements ng.IComponentOptions {
               ng-mouseleave="$ctrl.hidePopover(true)"
               popover-placement="{{$ctrl.contents.placement}}"
               popover-is-open="$ctrl.displayPopover"
-              popover-trigger="none"
+              popover-trigger="'none'"
               ng-bind-html="$ctrl.label">
       </a>
     </div>
@@ -117,7 +117,7 @@ class HelpFieldComponent implements ng.IComponentOptions {
               ng-mouseleave="$ctrl.hidePopover(true)"
               popover-placement="{{$ctrl.contents.placement}}"
               popover-is-open="$ctrl.displayPopover"
-              popover-trigger="none">
+              popover-trigger="'none'">
         <span class="small glyphicon glyphicon-question-sign"></span>
       </a>
     </div>

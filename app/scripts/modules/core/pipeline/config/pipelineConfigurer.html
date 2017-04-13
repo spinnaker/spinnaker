@@ -118,7 +118,7 @@
                 ng-if="pipelineConfigurerCtrl.validations.hasWarnings"
                 uib-popover-template="pipelineConfigurerCtrl.warningsPopover"
                 popover-placement="left-bottom"
-                popover-trigger="mouseenter">
+                popover-trigger="'mouseenter'">
         <i class="fa fa-exclamation-triangle" style="font-size: 125%;"></i>
         </button>
         <span ng-if="viewState.saveError" class="alert alert-danger">

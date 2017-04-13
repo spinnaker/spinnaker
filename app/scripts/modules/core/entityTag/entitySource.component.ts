@@ -50,7 +50,7 @@ class EntitySourceComponent implements ng.IComponentOptions {
       <dd>
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="left"
-              popover-trigger="mouseenter">
+              popover-trigger="'mouseenter'">
           <span ng-if="$ctrl.executionNotFound">pipeline (not found)</span>
           <a ng-if="!$ctrl.executionNotFound && $ctrl.metadata.value.executionType === 'pipeline'"
              ui-sref="{{$ctrl.relativePath}}.pipelines.executionDetails.execution({application: $ctrl.metadata.value.application, executionId: $ctrl.metadata.value.executionId, stageId: $ctrl.metadata.value.stageId})">

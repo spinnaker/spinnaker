@@ -55,7 +55,7 @@ module.exports = angular
       <span is-visible="$ctrl.hasNextScheduled">
         <span class="glyphicon glyphicon-time"
               popover-placement="left"
-              popover-trigger="mouseenter"
+              popover-trigger="'mouseenter'"
               ng-mouseenter="$ctrl.updateSchedule()"
               uib-popover="Next run: {{$ctrl.nextScheduled | timestamp}} ({{$ctrl.getNextDuration()}})"></span>
       </span>`
