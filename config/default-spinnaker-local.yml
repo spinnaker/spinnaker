@@ -270,6 +270,9 @@ services:
   fiat:
     enabled: false
 
+  chaos:
+    enabled: false
+
   front50:
     cassandra:
       enabled: true
