@@ -72,7 +72,7 @@ class DataSourceAlertsComponent implements ng.IComponentOptions {
             analytics-category="Alerts hovered"
             analytics-label="{{$ctrl.analyticsLabel}}"
             popover-placement="bottom"
-            popover-trigger="none"
+            popover-trigger="'none'"
             popover-is-open="$ctrl.displayPopover"
             popover-class="no-padding">
         <i class="entity-tag fa fa-exclamation-triangle"></i>

@@ -8,7 +8,7 @@
         ng-mouseleave="$ctrl.hidePopover(i, true)"
         popover-placement="top"
         popover-is-open="$ctrl.popoverOpen[i]"
-        popover-trigger="none">
+        popover-trigger="'none'">
         <circle ng-attr-r="{{dot.r}}" ng-attr-cx="{{dot.cx}}" ng-attr-cy="{{dot.cy}}" class="score-fill-{{dot.score}}"></circle>
       </g>
     </g>

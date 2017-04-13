@@ -17,7 +17,7 @@
     <g uib-popover-template="warningsPopover"
        popover-placement="auto"
        popover-enable="stage.hasWarnings"
-       popover-trigger="mouseenter">
+       popover-trigger="'mouseenter'">
       <circle ng-attr-r="{{::nodeRadius}}"
               class="clickable stage-type-{{::stage.masterStage.type.toLowerCase()}} execution-marker execution-marker-{{::stage.status.toLowerCase()}}"
               ng-class="{active: stage.isActive}"

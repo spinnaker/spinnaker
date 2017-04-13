@@ -154,7 +154,7 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
             ng-mouseleave="$ctrl.hidePopover(true)">
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="auto top"
-              popover-trigger="none"
+              popover-trigger="'none'"
               analytics-on="mouseenter"
               analytics-category="Notice hovered"
               analytics-label="{{$ctrl.alertAnalyticsLabel}}"
@@ -169,7 +169,7 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
             ng-mouseleave="$ctrl.hidePopover(true)">
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="auto top"
-              popover-trigger="none"
+              popover-trigger="'none'"
               analytics-on="mouseenter"
               analytics-category="Notice hovered"
               analytics-label="{{$ctrl.noticeAnalyticsLabel}}"
