@@ -51,8 +51,8 @@ class OracleBMCSInstanceProvider implements InstanceProvider<OracleBMCSInstance>
     if (identifiers.size() > 1) {
       log.warn("There should be at most one identifier!")
     }
-    Set<OracleBMCSInstance> instances = loadInstances(identifiers)
-    return instances.first()
+    Set<OracleBMCSInstance> instances = loadInstances(identifiers) ?: null
+    return instances?.first()
   }
 
   @Override

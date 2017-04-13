@@ -31,17 +31,18 @@ class OracleBMCSInstanceProviderSpec extends Specification {
     def instanceProvider = new OracleBMCSInstanceProvider(cache, new ObjectMapper(), null)
 
     expect:
-    instanceProvider.getInstance(account, region, id).name == res.name
-    instanceProvider.getInstance(account, region, id).healthState == res.healthState
-    instanceProvider.getInstance(account, region, id).health[0].size() == 3
+    instanceProvider.getInstance(account, region, id)?.name == res.name
+    instanceProvider.getInstance(account, region, id)?.healthState == res.healthState
+    instanceProvider.getInstance(account, region, id)?.health?.first()?.size() == res.hsize
 
     where:
     account | region | id                || res
-    "A1"    | "R1"   | "ocid.instance.1" || [name: "Instance 1", healthState: HealthState.Up]
-    "A1"    | "R1"   | "Instance 1"      || [name: "Instance 1", healthState: HealthState.Up]
-    "A2"    | "R2"   | "ocid.instance.2" || [name: "Instance 2", healthState: HealthState.Starting]
-    "A2"    | "R2"   | "Instance 2"      || [name: "Instance 2", healthState: HealthState.Starting]
-    "A2"    | "R2"   | "Instance 3"      || [name: "Instance 3", healthState: HealthState.Starting]
+    "A1"    | "R1"   | "ocid.instance.1" || [name: "Instance 1", healthState: HealthState.Up, hsize: 3]
+    "A1"    | "R1"   | "Instance 1"      || [name: "Instance 1", healthState: HealthState.Up, hsize: 3]
+    "A2"    | "R2"   | "ocid.instance.2" || [name: "Instance 2", healthState: HealthState.Starting, hsize: 3]
+    "A2"    | "R2"   | "Instance 2"      || [name: "Instance 2", healthState: HealthState.Starting, hsize: 3]
+    "A2"    | "R2"   | "Instance 3"      || [name: "Instance 3", healthState: HealthState.Starting, hsize: 3]
+    "A2"    | "R2"   | "Does not exist"  || [name: null, healthState: null, hsize: null]
   }
 
   def buildInstanceCacheData(def num, def region, def account, Instance.LifecycleState lifecycleState) {
