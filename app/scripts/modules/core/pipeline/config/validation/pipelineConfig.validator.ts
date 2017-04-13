@@ -19,6 +19,7 @@ export interface IPipelineValidationResults {
 
 export interface IValidatorConfig {
   type: string;
+  message?: string;
   skipValidation?: (pipeline: IPipeline, stage: IStage) => boolean;
   preventSave?: boolean;
 }
@@ -28,6 +29,7 @@ export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
 }
 
 export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
+  executionDetailsUrl: string;
   defaultTimeoutMs?: number;
 }
 
@@ -36,7 +38,6 @@ export interface IStageOrTriggerTypeConfig {
   description: string;
   key: string;
   templateUrl: string;
-  executionDetailsUrl: string;
   popoverLabelUrl?: string;
   controller: string;
   controllerAs: string;

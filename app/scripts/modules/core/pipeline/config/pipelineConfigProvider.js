@@ -141,8 +141,14 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
     }, (stage) => [stage ? stage.type : '', stage ? stage.cloudProvider || stage.cloudProviderType || 'aws' : ''].join(':'));
 
     function getTriggerConfig(type) {
-      var matches = getTriggerTypes().filter(function(triggerType) { return triggerType.key === type; });
-      return matches.length ? matches[0] : null;
+      return getTriggerTypes().find((triggerType) => triggerType.key === type);
+    }
+
+    function overrideManualExecutionHandler(triggerType, handlerName) {
+      const triggerConfig = triggerTypes.find(t => t.key === triggerType);
+      if (triggerConfig) {
+        triggerConfig.manualExecutionHandler = handlerName;
+      }
     }
 
     this.registerTrigger = registerTrigger;
@@ -183,6 +189,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configProvider',
         getConfigurableStageTypes: getConfigurableStageTypes,
         getExecutionTransformers: getExecutionTransformers,
         registerTransformer: registerTransformer,
+        overrideManualExecutionHandler: overrideManualExecutionHandler,
       };
     };
 

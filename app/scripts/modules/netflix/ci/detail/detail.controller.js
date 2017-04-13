@@ -7,7 +7,7 @@ const angular = require('angular');
 module.exports = angular
   .module('spinnaker.netflix.ci.detail.controller', [
     require('angular-ui-router'),
-    require('../build.read.service.js'),
+    require('../services/build.read.service'),
     SCHEDULER_FACTORY,
   ])
   .controller('CiDetailCtrl', function ($scope, $state, $stateParams, buildService, schedulerFactory, app) {

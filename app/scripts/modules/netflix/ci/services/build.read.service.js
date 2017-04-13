@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 import {API_SERVICE} from 'core/api/api.service';
-import {CI_FILTER_MODEL} from './ci.filter.model';
+import {CI_FILTER_MODEL} from '../ci.filter.model';
 import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
 import {SETTINGS} from 'core/config/settings';
 
