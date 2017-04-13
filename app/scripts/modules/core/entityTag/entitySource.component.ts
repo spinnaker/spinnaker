@@ -11,6 +11,7 @@ class EntitySourceCtrl implements ng.IComponentController {
   public popoverTemplate: string = require('./entitySource.popover.html');
   public execution: IExecution;
   public executionNotFound: boolean;
+  private loadingExecution = false;
 
   static get $inject() { return ['executionService']; }
 
@@ -18,12 +19,16 @@ class EntitySourceCtrl implements ng.IComponentController {
 
   public $onInit(): void {
     this.executionType = 'Task';
+    if (this.execution || this.loadingExecution) {
+      return;
+    }
     if (this.metadata && this.metadata.value.executionType === 'pipeline') {
       this.executionType = 'Pipeline';
+      this.loadingExecution = true;
       this.executionService.getExecution(this.metadata.value.executionId).then(
         (execution: IExecution) => this.execution = execution,
         () => this.executionNotFound = true
-      );
+      ).finally(() => this.loadingExecution = false);
     }
   }
 

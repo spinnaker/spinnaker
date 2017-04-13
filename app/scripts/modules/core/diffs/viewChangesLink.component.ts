@@ -47,6 +47,9 @@ class ViewChangesLinkController implements IComponentController {
   public commits: ICommit[];
   public jarDiffs: IJarDiff;
 
+  private loadingExecution = false;
+  private executionLoaded = false;
+
   static get $inject(): string[] {
     return ['$uibModal', 'executionService'];
   }
@@ -61,8 +64,11 @@ class ViewChangesLinkController implements IComponentController {
   }
 
   private lookForDiffs(stageId: string, executionId: string): void {
+    if (this.executionLoaded || this.loadingExecution) {
+      return;
+    }
+    this.loadingExecution = true;
     this.executionService.getExecution(executionId).then((details: any) => {
-
       const stage: any = details.stages.find((s: any) => s.id === stageId);
       this.jarDiffs = stage.context.jarDiffs;
       this.commits = stage.context.commits;
@@ -71,7 +77,10 @@ class ViewChangesLinkController implements IComponentController {
       if (this.hasJarChanges || this.commits.length) {
         this.changesAvailable = true;
       }
-    });
+      // if the stage is still running, and we haven't found commits or changes, reload it on the next refresh cycle
+      this.executionLoaded = stage.status !== 'RUNNING' || this.changesAvailable;
+
+    }).finally(() => this.loadingExecution = false);
   }
 
   public $onInit(): void {
