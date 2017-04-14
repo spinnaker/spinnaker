@@ -62,6 +62,11 @@
       }
       a {
         padding: 5px 15px 10px;
+        &.active, &:focus, &:hover {
+          &:after {
+            bottom: -5px;
+          }
+        }
       }
       secondary-application-nav {
         a {
