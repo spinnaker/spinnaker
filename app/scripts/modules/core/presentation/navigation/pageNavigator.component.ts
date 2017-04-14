@@ -3,28 +3,31 @@ import {PageNavigationState, PAGE_NAVIGATION_STATE} from './pageNavigationState'
 import {throttle} from 'lodash';
 import {ScrollToService, SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
 import {PAGE_SECTION_COMPONENT} from './pageSection.component';
+import {UUIDGenerator} from 'core/utils/uuid.service';
 import './pageNavigation.less';
 
 class PageNavigatorController implements ng.IComponentController {
   public scrollableContainer: string;
   private container: JQuery;
   private navigator: JQuery;
+  private id: string;
 
-  private static get EVENT_KEY(): string { return 'scroll.pageNavigation'; }
+  private getEventKey(): string { return `scroll.pageNavigation.${this.id}`; }
 
   static get $inject() { return ['$element', 'scrollToService', 'pageNavigationState']; }
 
   public constructor(private $element: JQuery, private scrollToService: ScrollToService, public pageNavigationState: PageNavigationState) {}
 
   public $onInit(): void {
+    this.id = UUIDGenerator.generateUuid();
     this.pageNavigationState.reset();
     this.container = this.$element.closest(this.scrollableContainer);
-    this.container.bind(PageNavigatorController.EVENT_KEY, throttle(() => this.handleScroll(), 20));
+    this.container.bind(this.getEventKey(), throttle(() => this.handleScroll(), 20));
     this.navigator = this.$element.find('.page-navigation');
   }
 
   public $onDestroy(): void {
-    this.container.unbind(PageNavigatorController.EVENT_KEY);
+    this.container.unbind(this.getEventKey());
   }
 
   public setCurrentSection(key: string): void {
