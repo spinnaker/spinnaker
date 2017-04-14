@@ -27,7 +27,9 @@ disk_id=$1
 
 # Mount the dirty disk
 mkdir -p /mnt/disks/${disk_id}
-mount -o discard,defaults /dev/disk/by-id/google-${disk_id}-part1 /mnt/disks/${disk_id}
+mount -t ext4 -o discard,defaults \
+      /dev/disk/by-id/google-${disk_id}-part1 \
+      /mnt/disks/${disk_id}
 cd /mnt/disks/${disk_id}
 echo "FYI, disk Usage is `df -kh .`"
 
