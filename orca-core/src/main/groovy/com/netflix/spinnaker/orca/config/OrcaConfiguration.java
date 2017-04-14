@@ -103,9 +103,19 @@ public class OrcaConfiguration {
   }
 
   @Bean
-  @ConfigurationProperties("expressions")
-  public ContextFunctionConfiguration contextFunctionConfiguration() {
-    return new ContextFunctionConfiguration();
+  @ConfigurationProperties("userConfiguredUrlRestrictions")
+  public UserConfiguredUrlRestrictions.Builder userConfiguredUrlRestrictionProperties() {
+    return new UserConfiguredUrlRestrictions.Builder();
+  }
+
+  @Bean
+  UserConfiguredUrlRestrictions userConfiguredUrlRestrictions(UserConfiguredUrlRestrictions.Builder userConfiguredUrlRestrictionProperties) {
+    return userConfiguredUrlRestrictionProperties.build();
+  }
+
+  @Bean
+  public ContextFunctionConfiguration contextFunctionConfiguration(UserConfiguredUrlRestrictions userConfiguredUrlRestrictions) {
+    return new ContextFunctionConfiguration(userConfiguredUrlRestrictions);
   }
 
   @Bean

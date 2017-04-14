@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook
 
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
@@ -31,12 +31,17 @@ class WebhookService {
   @Autowired
   RestTemplate restTemplate
 
+  @Autowired
+  UserConfiguredUrlRestrictions userConfiguredUrlRestrictions
+
   ResponseEntity<Object> exchange(HttpMethod httpMethod, String url, Object payload) {
+    URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
     HttpEntity<Object> payloadEntity = new HttpEntity<>(payload)
-    return restTemplate.exchange(url, httpMethod, payloadEntity, Object)
+    return restTemplate.exchange(validatedUri, httpMethod, payloadEntity, Object)
   }
 
   ResponseEntity<Object> getStatus(String url) {
-    return restTemplate.getForEntity(url, Object)
+    URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
+    return restTemplate.getForEntity(validatedUri, Object)
   }
 }

@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.pipeline.util
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import groovy.transform.Canonical
-import lombok.experimental.PackagePrivate
+import groovy.transform.PackageScope
 import org.springframework.expression.AccessException
 import org.springframework.expression.EvaluationContext
 import org.springframework.expression.EvaluationException
@@ -42,7 +42,6 @@ import org.springframework.expression.spel.support.StandardTypeLocator
 import java.lang.reflect.Method
 import java.text.DateFormat
 import java.util.concurrent.atomic.AtomicReference
-import java.util.regex.Pattern
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
@@ -60,7 +59,7 @@ class ContextParameterProcessor {
   private final ContextFunctionConfiguration contextFunctionConfiguration
 
   ContextParameterProcessor() {
-    this(new ContextFunctionConfiguration())
+    this(new ContextFunctionConfiguration(new UserConfiguredUrlRestrictions.Builder().build()))
   }
 
   ContextParameterProcessor(ContextFunctionConfiguration contextFunctionConfiguration) {
@@ -248,17 +247,18 @@ class ContextParameterProcessor {
   }
 }
 
-@Canonical
+
 class ContextFunctionConfiguration {
-  String allowedHostnamesRegex = ".*"
-  List<String> allowedSchemes = ['http', 'https']
-  boolean rejectLocalhost = true
-  boolean rejectLinkLocal = true
+  final UserConfiguredUrlRestrictions urlRestrictions
+
+  ContextFunctionConfiguration(UserConfiguredUrlRestrictions urlRestrictions) {
+    this.urlRestrictions = urlRestrictions
+  }
 }
 
 abstract class ContextUtilities {
 
-  @PackagePrivate static final AtomicReference<ContextFunctionConfiguration> contextFunctionConfiguration = new AtomicReference<>(new ContextFunctionConfiguration())
+  @PackageScope static final AtomicReference<ContextFunctionConfiguration> contextFunctionConfiguration = new AtomicReference<>(new ContextFunctionConfiguration())
 
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
@@ -281,32 +281,8 @@ abstract class ContextUtilities {
   }
 
   static String fromUrl(String url) {
-    def cfg = contextFunctionConfiguration.get()
-    def u = URI.create(url).normalize()
-    if (!u.isAbsolute()) {
-      throw new IllegalArgumentException('non absolute URI ' + url)
-    }
-    if (!cfg.allowedSchemes.contains(u.getScheme().toLowerCase())) {
-      throw new IllegalArgumentException('unsupported URI scheme ' + url)
-    }
-    def allowedHostnames = Pattern.compile(cfg.allowedHostnamesRegex)
-    if (!allowedHostnames.matcher(u.getHost()).matches()) {
-      throw new IllegalArgumentException('host not allowed ' + u.getHost())
-    }
-
-    if (cfg.rejectLocalhost || cfg.rejectLinkLocal) {
-      def addr = InetAddress.getByName(u.getHost())
-      if (cfg.rejectLocalhost) {
-        if (addr.isLoopbackAddress() || NetworkInterface.getByInetAddress(addr)) {
-          throw new IllegalArgumentException('invalid address for ' + u.getHost())
-        }
-      }
-      if (cfg.rejectLinkLocal && addr.isLinkLocalAddress()) {
-        throw new IllegalArgumentException('invalid address for ' + u.getHost())
-      }
-    }
-
-    return u.toURL().getText()
+    URL u = contextFunctionConfiguration.get().urlRestrictions.validateURI(url).toURL()
+    return u.getText()
   }
 
   static Object readJson(String text) {

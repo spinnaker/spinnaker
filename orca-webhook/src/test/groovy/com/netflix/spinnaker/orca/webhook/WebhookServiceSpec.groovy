@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.orca.webhook
 
+import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -36,14 +37,17 @@ class WebhookServiceSpec extends Specification {
   @Shared
   def restTemplate = new RestTemplate()
 
+  @Shared
+  def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build()
+
   def server = MockRestServiceServer.createServer(restTemplate)
 
   @Subject
-  def webhookService = new WebhookService(restTemplate: restTemplate)
+  def webhookService = new WebhookService(restTemplate: restTemplate, userConfiguredUrlRestrictions: userConfiguredUrlRestrictions)
 
   def "Webhook is being called with correct parameters"() {
     expect:
-    server.expect(requestTo("https://my.webhook.com/v1/test"))
+    server.expect(requestTo("https://localhost/v1/test"))
       .andExpect(method(HttpMethod.POST))
       .andExpect(jsonPath('$.payload1').value("Hello"))
       .andExpect(jsonPath('$.payload2').value("World!"))
@@ -52,7 +56,7 @@ class WebhookServiceSpec extends Specification {
     when:
     def responseEntity = webhookService.exchange(
       HttpMethod.POST,
-      "https://my.webhook.com/v1/test",
+      "https://localhost/v1/test",
       ["payload1": "Hello", "payload2": "World!"])
 
     then:
@@ -63,12 +67,12 @@ class WebhookServiceSpec extends Specification {
 
   def "Status endpoint is being called"() {
     expect:
-    server.expect(requestTo("https://my.webhook.com/v1/status/123"))
+    server.expect(requestTo("https://localhost/v1/status/123"))
       .andExpect(method(HttpMethod.GET))
       .andRespond(withSuccess('["element1", 123, false]', MediaType.APPLICATION_JSON))
 
     when:
-    def responseEntity = webhookService.getStatus("https://my.webhook.com/v1/status/123")
+    def responseEntity = webhookService.getStatus("https://localhost/v1/status/123")
 
     then:
     server.verify()
