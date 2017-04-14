@@ -26,14 +26,6 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
-    "@angular/common": "^4.0.0",
-    "@angular/compiler": "^4.0.0",
-    "@angular/core": "^4.0.0",
-    "@angular/forms": "^4.0.0",
-    "@angular/http": "^4.0.0",
-    "@angular/platform-browser": "^4.0.0",
-    "@angular/platform-browser-dynamic": "^4.0.0",
-    "@angular/upgrade": "^4.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "1.6.3",
     "angular-cache": "^4.6.0",
@@ -65,8 +57,7 @@
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
     "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
-    "ui-select": "^0.19.6",
-    "zone.js": "^0.8.5"
+    "ui-select": "^0.19.6"
   },
   "devDependencies": {
     "@types/angular": "1.6.10",
@@ -90,7 +81,6 @@
     "babel-core": "^6.21.1",
     "babel-loader": "^6.2.10",
     "babel-preset-es2015": "^6.18.0",
-    "codelyzer": "2.0.0",
     "css-loader": "^0.27.3",
     "envify": "^1.2.1",
     "envify-loader": "^0.1.0",
@@ -125,7 +115,6 @@
     "protractor": "^5.1.1",
     "rimraf": "^2.5.4",
     "style-loader": "^0.16.0",
-    "ts-helpers": "^1.1.2",
     "tslint": "^4.5.1",
     "tslint-loader": "^3.4.3",
     "typescript": "2.2.1",

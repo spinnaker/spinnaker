@@ -1,16 +1,16 @@
-import {destroyPlatform} from '@angular/core';
+import {mock} from 'angular';
 
-import {AuthenticationService, IUser} from './authentication.service';
+import {AUTHENTICATION_SERVICE, AuthenticationService, IUser} from './authentication.service';
 
 describe('authenticationService', function () {
 
-  beforeEach(() => destroyPlatform());
-  afterEach(() => destroyPlatform());
+  let authenticationService: AuthenticationService = null;
 
-  let authenticationService: AuthenticationService;
-  beforeEach(() => {
-    authenticationService = new AuthenticationService();
-  });
+  beforeEach(mock.module(AUTHENTICATION_SERVICE));
+
+  beforeEach(mock.inject((_authenticationService_: AuthenticationService) => {
+    authenticationService = _authenticationService_;
+  }));
 
   describe('setAuthenticatedUser', function () {
     it('sets name, authenticated flag', function () {

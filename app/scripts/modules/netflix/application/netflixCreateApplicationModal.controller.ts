@@ -6,7 +6,6 @@ import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectFie
 import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
 import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
-import {UI_SELECT_COMPONENT} from 'core/widgets/uiSelect.component';
 import {SETTINGS} from 'core/config/settings';
 import {Application} from 'core/application/application.model';
 
@@ -66,6 +65,5 @@ module(NETFLIX_CREATE_APPLICATION_MODAL_CONTROLLER, [
   APPLICATION_READ_SERVICE,
   ACCOUNT_SERVICE,
   PAGER_DUTY_SELECT_FIELD_COMPONENT,
-  UI_SELECT_COMPONENT
 ])
   .controller('netflixCreateApplicationModalCtrl', NetflixCreateApplicationModalController);

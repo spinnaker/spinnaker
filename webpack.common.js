@@ -1,7 +1,6 @@
 const webpack = require('webpack');
 const HappyPack = require('happypack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const {CheckerPlugin} = require('awesome-typescript-loader');
 
 const path = require('path');
 const NODE_MODULE_PATH = path.join(__dirname, 'node_modules');
@@ -110,10 +109,7 @@ function configure(IS_TEST) {
       vendor: [
         'jquery', 'angular', 'angular-ui-bootstrap', 'angular-ui-router', 'source-sans-pro',
         'angular-cache', 'angular-marked', 'angular-messages', 'angular-sanitize', 'bootstrap',
-        'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs', 'reflect-metadata', 'zone.js',
-        '@angular/platform-browser', '@angular/platform-browser-dynamic', '@angular/core',
-        '@angular/common', '@angular/forms', '@angular/http', '@angular/upgrade/static',
-        'zone.js/dist/wtf'
+        'clipboard', 'd3', 'jquery-ui', 'moment-timezone', 'rxjs'
       ]
     };
 
@@ -146,8 +142,6 @@ function configure(IS_TEST) {
       })
     ]);
   }
-
-  config.plugins.push(new webpack.ContextReplacementPlugin(/angular(\\|\/)core(\\|\/)@angular/, path.resolve(__dirname, '../src')));
 
   // this is temporary and will be deprecated in WP3.  moving forward,
   // loaders will individually need to accept this as an option.
