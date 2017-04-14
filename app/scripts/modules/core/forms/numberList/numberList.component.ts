@@ -122,8 +122,8 @@ class NumberListComponent implements ng.IComponentOptions {
     <div ng-if="!$ctrl.parameterized" class="row-number" ng-repeat="entry in $ctrl.backingModel track by $index">
       <input type="number"
              class="form-control input-sm"
-             ng-model="$ctrl.backingModel[$index]" 
-             ng-min="$ctrl.constraints.min" 
+             ng-model="$ctrl.backingModel[$index]"
+             ng-min="$ctrl.constraints.min"
              ng-max="$ctrl.constraints.max"
              ng-change="$ctrl.synchronize()"
              />

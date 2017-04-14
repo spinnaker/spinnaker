@@ -44,7 +44,7 @@ class GceAutoHealingPolicyDetailsCtrl implements ng.IComponentController {
 
 class GceAutoHealingPolicyDetails implements ng.IComponentOptions {
   public bindings: any = {serverGroup: '<', application: '<'};
-  public template = `    
+  public template = `
     <dt>
       Health Check
       <help-field key="gce.serverGroup.autoHealing"></help-field>

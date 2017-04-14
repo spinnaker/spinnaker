@@ -147,9 +147,9 @@ class SecurityGroupPickerComponent implements ng.IComponentOptions {
   public template = `
     <div class="clearfix" ng-if="$ctrl.loaded">
       <server-group-security-groups-removed removed="$ctrl.removedGroups"></server-group-security-groups-removed>
-      <server-group-security-group-selector command="$ctrl.command" hide-label="$ctrl.hideLabel" 
+      <server-group-security-group-selector command="$ctrl.command" hide-label="$ctrl.hideLabel"
           groups-to-edit="$ctrl.groupsToEdit"
-          refresh="$ctrl.refreshSecurityGroups()" 
+          refresh="$ctrl.refreshSecurityGroups()"
           help-key="titus.deploy.securityGroups"
           available-groups="$ctrl.availableGroups"></server-group-security-group-selector>
     </div>

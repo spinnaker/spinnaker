@@ -33,8 +33,8 @@ class CloudProviderLogoComponent implements ng.IComponentOptions {
     showTooltip: '<',
   };
   public controller: any = CloudProviderLogoController;
-  public template = `<span class="icon icon-{{$ctrl.provider}} icon-{{$ctrl.state}}" 
-                                   style="height: {{$ctrl.height}}; width: {{$ctrl.width}}" 
+  public template = `<span class="icon icon-{{$ctrl.provider}} icon-{{$ctrl.state}}"
+                                   style="height: {{$ctrl.height}}; width: {{$ctrl.width}}"
                                    uib-tooltip="{{$ctrl.tooltip}}"></span>`;
 }
 

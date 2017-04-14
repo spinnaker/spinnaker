@@ -28,13 +28,13 @@ export class HealthCheckTemplate {
   public unhealthyThreshold = 2;
 }
 
+export class PathMatcherTemplate {
+  public pathRules: PathRuleTemplate[] = [];
+}
+
 export class HostRuleTemplate {
   public hostPatterns: string[];
   public pathMatcher: PathMatcherTemplate = new PathMatcherTemplate();
-}
-
-export class PathMatcherTemplate {
-  public pathRules: PathRuleTemplate[] = [];
 }
 
 export class PathRuleTemplate {

@@ -33,7 +33,7 @@ class AppengineApplicationNameValidator implements IApplicationNameValidator {
         warnings.push('You will not be able to include a stack or detail field for clusters.');
       } else {
         const remaining = 56 - name.length;
-        warnings.push(`If you plan to include a stack or detail field for clusters, you will only have 
+        warnings.push(`If you plan to include a stack or detail field for clusters, you will only have
                        ${remaining} character${remaining > 1 ? 's' : ''} to do so.`);
       }
     }

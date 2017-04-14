@@ -5,41 +5,6 @@ import {PropertyCommandType} from './propertyCommandType.enum';
 import {ICanaryDeployment} from './canaryDeployment.interface';
 import {AcaTaskStageConfigDetails} from './acaTaskStageConfigDetails.model';
 
-export class Canary {
-  public application = 'spinnakerfp';
-  public owner: string;
-  public canaryConfig: CanaryConfig;
-  public watchers: string[] = [];
-  public canaryDeployments: CanaryDeployments[];
-
-  constructor(user: IUser, command: PropertyCommand, configDetails: AcaTaskStageConfigDetails ) {
-    this.owner = user.name;
-    this.canaryConfig = new CanaryConfig(command);
-    this.watchers = configDetails.watchers.split(',');
-    this.canaryDeployments = [new CanaryDeployments(command.strategy.configDetails)];
-  }
-}
-
-
-class CanaryConfig {
-  public name: string;
-  public lifetimeHours: string;
-  public combinedCanaryResultStrategy: string;
-  public canaryHealthCheckHandler: CanaryHealthCheckHandler;
-  public canaryAnalysisConfig: CanaryAnalysisConfig;
-  public canarySuccessCriteria: CanarySuccessCriteria;
-
-  constructor(command: PropertyCommand) {
-    this.name = command.strategy.configDetails.name || `FP - ${PropertyCommandType[command.type]} ACA Task`;
-    command.strategy.configDetails.name = this.name;
-    this.lifetimeHours = command.strategy.configDetails.lifetimeHours;
-    this.combinedCanaryResultStrategy = command.strategy.configDetails.combinedCanaryResultStrategy;
-    this.canaryHealthCheckHandler = new CanaryHealthCheckHandler(command.strategy.configDetails.minimumCanaryResultScore);
-    this.canaryAnalysisConfig = new CanaryAnalysisConfig(command.strategy.configDetails);
-    this.canarySuccessCriteria = new CanarySuccessCriteria(command.strategy.configDetails.canaryResultScore);
-  }
-}
-
 class CanaryAnalysisConfig {
   public notificationHours: number[] = [];
   public useLookback: boolean;
@@ -67,6 +32,25 @@ class CanaryHealthCheckHandler {
   constructor(public minimumCanaryResultScore: string) {}
 }
 
+class CanaryConfig {
+  public name: string;
+  public lifetimeHours: string;
+  public combinedCanaryResultStrategy: string;
+  public canaryHealthCheckHandler: CanaryHealthCheckHandler;
+  public canaryAnalysisConfig: CanaryAnalysisConfig;
+  public canarySuccessCriteria: CanarySuccessCriteria;
+
+  constructor(command: PropertyCommand) {
+    this.name = command.strategy.configDetails.name || `FP - ${PropertyCommandType[command.type]} ACA Task`;
+    command.strategy.configDetails.name = this.name;
+    this.lifetimeHours = command.strategy.configDetails.lifetimeHours;
+    this.combinedCanaryResultStrategy = command.strategy.configDetails.combinedCanaryResultStrategy;
+    this.canaryHealthCheckHandler = new CanaryHealthCheckHandler(command.strategy.configDetails.minimumCanaryResultScore);
+    this.canaryAnalysisConfig = new CanaryAnalysisConfig(command.strategy.configDetails);
+    this.canarySuccessCriteria = new CanarySuccessCriteria(command.strategy.configDetails.canaryResultScore);
+  }
+}
+
 class CanaryDeployments {
   public '@class' = '.CanaryTaskDeployment';
 
@@ -85,3 +69,17 @@ class CanaryDeployments {
   }
 }
 
+export class Canary {
+  public application = 'spinnakerfp';
+  public owner: string;
+  public canaryConfig: CanaryConfig;
+  public watchers: string[] = [];
+  public canaryDeployments: CanaryDeployments[];
+
+  constructor(user: IUser, command: PropertyCommand, configDetails: AcaTaskStageConfigDetails ) {
+    this.owner = user.name;
+    this.canaryConfig = new CanaryConfig(command);
+    this.watchers = configDetails.watchers.split(',');
+    this.canaryDeployments = [new CanaryDeployments(command.strategy.configDetails)];
+  }
+}

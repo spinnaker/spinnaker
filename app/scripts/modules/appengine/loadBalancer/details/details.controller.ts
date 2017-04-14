@@ -118,7 +118,7 @@ class AppengineLoadBalancerDetailsController {
       if (hasMoreThanOne) {
         const listOfServerGroupNames = serverGroupNames.map(name => `<li>${name}</li>`).join('');
         return `
-          <div class="alert alert-warning">      
+          <div class="alert alert-warning">
             <p>
               Deleting <b>${this.loadBalancer.name}</b> will destroy the following server groups:
               <ul>

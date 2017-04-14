@@ -35,7 +35,7 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
     <div class="form-horizontal container-fluid">
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
-          Application Root 
+          Application Root
           <help-field class="help-field-absolute" key="appengine.serverGroup.applicationDirectoryRoot"></help-field>
         </div>
         <div class="col-md-7">
@@ -44,7 +44,7 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
                  name="applicationDirectoryRoot"
                  ng-model="$ctrl.command.applicationDirectoryRoot"/></div>
       </div>
-  
+
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Config Filepaths <help-field key="appengine.serverGroup.configFilepaths"></help-field>
@@ -59,7 +59,7 @@ class AppengineConfigFileConfigurerComponent implements ng.IComponentOptions {
           </ui-select>
         </div>
       </div>
- 
+
       <div class="form-group">
         <div class="col-md-3 sm-label-right">
           Config Files <help-field key="appengine.serverGroup.configFiles"></help-field>

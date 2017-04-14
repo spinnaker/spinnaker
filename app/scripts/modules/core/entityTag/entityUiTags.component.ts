@@ -149,8 +149,8 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
   public template = `
     <span ng-if="$ctrl.component.entityTags.alerts.length + $ctrl.component.entityTags.notices.length > 0">
       <span ng-if="$ctrl.component.entityTags.alerts.length > 0"
-            class="tag-marker" 
-            ng-mouseover="$ctrl.showPopover('alert')" 
+            class="tag-marker"
+            ng-mouseover="$ctrl.showPopover('alert')"
             ng-mouseleave="$ctrl.hidePopover(true)">
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="auto top"
@@ -165,7 +165,7 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
       </span>
       <span ng-if="$ctrl.component.entityTags.notices.length > 0"
             class="tag-marker"
-            ng-mouseover="$ctrl.showPopover('notice')" 
+            ng-mouseover="$ctrl.showPopover('notice')"
             ng-mouseleave="$ctrl.hidePopover(true)">
         <span uib-popover-template="$ctrl.popoverTemplate"
               popover-placement="auto top"

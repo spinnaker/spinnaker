@@ -17,10 +17,6 @@ export interface ICreationMetadata {
   comments?: string;
 }
 
-export interface ICreationMetadataTag extends IEntityTag {
-  value: ICreationMetadata;
-}
-
 export interface IEntityTag {
   name: string;
   value: any;
@@ -28,6 +24,10 @@ export interface IEntityTag {
   lastModified?: number;
   createdBy?: string;
   lastModifiedBy?: string;
+}
+
+export interface ICreationMetadataTag extends IEntityTag {
+  value: ICreationMetadata;
 }
 
 export interface IEntityTags {

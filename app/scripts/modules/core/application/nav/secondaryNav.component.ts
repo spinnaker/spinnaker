@@ -35,8 +35,8 @@ class SecondaryApplicationNavComponent implements IComponentOptions {
          ng-class="{active: $ctrl.isActive(dataSource)}">
          <i ng-if="dataSource.icon" class="ds-icon fa fa-{{dataSource.icon}}"></i>
         {{dataSource.label}}
-         <ds-alerts alerts="dataSource.alerts" 
-                    application-name="$ctrl.application.name" 
+         <ds-alerts alerts="dataSource.alerts"
+                    application-name="$ctrl.application.name"
                     tab-name="{{dataSource.key}}"></ds-alerts>
         <span class="badge"
               ng-if="dataSource.badge && $ctrl.application[dataSource.badge].data.length">
