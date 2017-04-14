@@ -64,8 +64,8 @@ class DataSourceAlertsComponent implements ng.IComponentOptions {
   public controller: any = DataSourceAlertsCtrl;
   public template = `
     <span ng-if="$ctrl.alerts.length > 0"
-          class="tag-marker small" 
-          ng-mouseover="$ctrl.showPopover()" 
+          class="tag-marker small"
+          ng-mouseover="$ctrl.showPopover()"
           ng-mouseleave="$ctrl.hidePopover(true)">
       <span uib-popover-template="$ctrl.popoverTemplate"
             analytics-on="mouseenter"
@@ -77,7 +77,7 @@ class DataSourceAlertsComponent implements ng.IComponentOptions {
             popover-class="no-padding">
         <i class="entity-tag fa fa-exclamation-triangle"></i>
       </span>
-    </span>  
+    </span>
   `;
 }
 

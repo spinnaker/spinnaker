@@ -24,15 +24,6 @@ export interface IValidatorConfig {
   preventSave?: boolean;
 }
 
-export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
-  manualExecutionHandler?: string;
-}
-
-export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
-  executionDetailsUrl: string;
-  defaultTimeoutMs?: number;
-}
-
 export interface IStageOrTriggerTypeConfig {
   label: string;
   description: string;
@@ -42,6 +33,15 @@ export interface IStageOrTriggerTypeConfig {
   controller: string;
   controllerAs: string;
   validators: IValidatorConfig[];
+}
+
+export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
+  manualExecutionHandler?: string;
+}
+
+export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
+  executionDetailsUrl: string;
+  defaultTimeoutMs?: number;
 }
 
 export interface IStageOrTriggerValidator {

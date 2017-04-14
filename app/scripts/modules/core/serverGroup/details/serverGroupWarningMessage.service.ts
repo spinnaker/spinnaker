@@ -16,10 +16,10 @@ export class ServerGroupWarningMessageService {
         <dl class="dl-horizontal dl-narrow">
           <dt>Account: </dt>
           <dd>${serverGroup.account}</dd>
-        
+
           <dt>Region: </dt>
           <dd>${serverGroup.region}</dd>
-        
+
           <dt>Cluster: </dt>
           <dd>${serverGroup.cluster}</dd>
         </dl>`;
@@ -46,7 +46,7 @@ export class ServerGroupWarningMessageService {
       const activePercentRemaining = Math.round(activeInstancesAfterDisable / totalActiveInstances * 100);
 
       params.body = `
-        <h4>You are disabling <b>${serverGroup.instanceCounts.up}</b> 
+        <h4>You are disabling <b>${serverGroup.instanceCounts.up}</b>
             instance${serverGroup.instanceCounts.up === 1 ? '' : 's'}.</h4>
         <p>This will reduce the cluster to <b>${activePercentRemaining}</b> percent of its current capacity,
            leaving <b>${activeInstancesAfterDisable}</b> instance${activeInstancesAfterDisable === 1 ? '' : 's'} taking

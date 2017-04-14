@@ -169,13 +169,13 @@ class AppengineServerGroupDetailsController {
     const modalBody = `
       <div class="well well-sm">
         <p>
-          Enabling <b>${this.serverGroup.name}</b> will set its traffic allocation for 
+          Enabling <b>${this.serverGroup.name}</b> will set its traffic allocation for
           <b>${this.serverGroup.loadBalancers[0]}</b> to 100%.
         </p>
         <p>
           If you would like more fine-grained control over your server groups' allocations,
           edit <b>${this.serverGroup.loadBalancers[0]}</b> under the <b>Load Balancers</b> tab.
-        </p> 
+        </p>
       </div>
     `;
 

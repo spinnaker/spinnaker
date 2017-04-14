@@ -29,7 +29,7 @@ class ServerGroupRunningTasksComponent implements ng.IComponentOptions {
           </div>
         </div>
       </div>
-  
+
       <div class="container-fluid no-padding" ng-repeat="execution in $ctrl.serverGroup.runningExecutions">
         <div class="row">
           <div class="col-md-12">

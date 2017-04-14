@@ -22,7 +22,7 @@
     "start": "sh ./start.sh",
     "start-dev-server": "webpack-dev-server --inline --hot",
     "test": "karma start",
-    "tslint": "tslint --project tsconfig.json",
+    "tslint": "tslint --type-check --project tsconfig.json",
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
@@ -115,9 +115,9 @@
     "protractor": "^5.1.1",
     "rimraf": "^2.5.4",
     "style-loader": "^0.16.0",
-    "tslint": "^4.5.1",
+    "tslint": "^5.1.0",
     "tslint-loader": "^3.4.3",
-    "typescript": "2.2.1",
+    "typescript": "^2.2.2",
     "url-loader": "^0.5.7",
     "webpack": "^2.2.1",
     "webpack-dev-server": "^2.3.0"

@@ -13,7 +13,7 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       },
       {
         key: 'appengine.serverGroup.gitCredentialType',
-        value: `The credential type that will be used to access the git repository for this deployment. 
+        value: `The credential type that will be used to access the git repository for this deployment.
                 You can configure these credentials alongside your App Engine credentials.`
       },
       {
@@ -23,7 +23,7 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       {
         key: 'appengine.serverGroup.applicationDirectoryRoot',
         value: `(Optional) Path to the directory root of the application to be deployed,
-                starting from the root of the git repository. This is the directory from which 
+                starting from the root of the git repository. This is the directory from which
                 <code>gcloud app deploy</code> will be run.`,
       },
       {
@@ -34,15 +34,15 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       },
       {
         key: 'appengine.serverGroup.configFiles',
-        value: `<p>(Optional) The contents of an App Engine config file (e.g., an <code>app.yaml</code> or 
-                <code>cron.yaml</code> file). These files should not conflict with the config filepaths above: 
+        value: `<p>(Optional) The contents of an App Engine config file (e.g., an <code>app.yaml</code> or
+                <code>cron.yaml</code> file). These files should not conflict with the config filepaths above:
                 if you include, for example, the contents of an <code>app.yaml</code>
                 file here, you should <b>not</b> specify the file path to an <code>app.yaml</code> above.<br></p>
                 <p>If this is a pipeline stage, you can use Spinnaker Pipeline Expressions here.</p>`,
       },
       {
         key: 'appengine.serverGroup.matchBranchOnRegex',
-        value: `(Optional) A Jenkins trigger may produce details from multiple repositories and branches. 
+        value: `(Optional) A Jenkins trigger may produce details from multiple repositories and branches.
                 Spinnaker will use the regex specified here to help resolve a branch for the deployment.
                 If Spinnaker cannot resolve exactly one branch from the trigger, this pipeline will fail.`,
       },
@@ -66,9 +66,9 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       },
       {
         key: 'appengine.loadBalancer.migrateTraffic',
-        value: `If selected, traffic will be gradually shifted to a single version. For gradual traffic migration, 
-                the target version must be located within instances that are configured for 
-                both warmup requests and automatic scaling. 
+        value: `If selected, traffic will be gradually shifted to a single version. For gradual traffic migration,
+                the target version must be located within instances that are configured for
+                both warmup requests and automatic scaling.
                 Gradual traffic migration is not supported in the App Engine flexible environment.`
       },
       {
@@ -77,7 +77,7 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
       },
       {
         key: 'appengine.loadBalancer.textLocator',
-        value: `Either the name of a server group, or a Spinnaker Pipeline Expression 
+        value: `Either the name of a server group, or a Spinnaker Pipeline Expression
                 that resolves to the name of a server group.`
       },
       {
@@ -87,8 +87,8 @@ module(APPENGINE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])
           <ul>
             <li>Manual scaling versions use resident instances</li>
             <li>Basic scaling versions use dynamic instances</li>
-            <li>Auto scaling versions use dynamic instances - but if you specify a number, N, 
-                of minimum idle instances, the first N instances will be resident, 
+            <li>Auto scaling versions use dynamic instances - but if you specify a number, N,
+                of minimum idle instances, the first N instances will be resident,
                 and additional dynamic instances will be created as necessary.
             </li>
           </ul>`

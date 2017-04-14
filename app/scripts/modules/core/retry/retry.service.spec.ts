@@ -68,7 +68,7 @@ describe('Service: Retry', function () {
       $timeout.flush();
     });
 
-    it(`should be tolerant of a function that does not return a promise 
+    it(`should be tolerant of a function that does not return a promise
         (only relevant if stopCondition is met on first try)`, () => {
       const callback = () => true;
       const stopCondition = () => true;

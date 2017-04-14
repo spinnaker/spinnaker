@@ -6,12 +6,12 @@ import {
   IApplicationStateParams
 } from 'core/application/application.state.provider';
 
-export interface IDetailTabsPanelStateParams extends IDetailPanelStateParams {
-  tab: string;
-}
-
 export interface IDetailPanelStateParams extends IApplicationStateParams {
   buildId: string;
+}
+
+export interface IDetailTabsPanelStateParams extends IDetailPanelStateParams {
+  tab: string;
 }
 
 export const CI_STATES = 'spinnaker.netflix.ci.states';

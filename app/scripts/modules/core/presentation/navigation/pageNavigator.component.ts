@@ -79,10 +79,10 @@ class PageNavigatorComponent implements ng.IComponentOptions {
         <ul class="page-navigation">
           <li ng-repeat="page in $ctrl.pageNavigationState.pages"
               data-page-navigation-link="{{page.key}}"
-              ng-if="page.visible" 
+              ng-if="page.visible"
               ng-class="{current: $ctrl.pageNavigationState.currentPageKey === page.key}">
             <a href ng-click="$ctrl.setCurrentSection(page.key)">
-              {{page.label}} 
+              {{page.label}}
               <span ng-if="page.badge">({{page.badge}})</span>
             </a>
           </li>
