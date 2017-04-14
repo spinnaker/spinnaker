@@ -6,6 +6,7 @@ let angular = require('angular');
 import {ACCOUNT_LABEL_COLOR_COMPONENT} from './account/accountLabelColor.component';
 import {AUTHENTICATION} from './authentication/authentication.module';
 import {API_SERVICE} from './api/api.service';
+import {CANCEL_MODAL_SERVICE} from './cancelModal/cancelModal.service';
 import {CLOUD_PROVIDER_LOGO} from './cloudProvider/cloudProviderLogo.component';
 import {CORE_DIFF_MODULE} from './diffs';
 import {HELP_FIELD_COMPONENT} from './help/helpField.component';
@@ -64,6 +65,7 @@ module.exports = angular
     API_SERVICE,
 
     require('./cache/caches.module.js'),
+    CANCEL_MODAL_SERVICE,
     CLOUD_PROVIDER_LOGO,
     CORE_DIFF_MODULE,
     require('./cloudProvider/cloudProviderLabel.directive.js'),
