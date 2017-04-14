@@ -33,6 +33,7 @@
 // var slackEnabled = ${services.echo.notifications.slack.enabled};
 // var slackBotName = ${services.echo.notifications.slack.botName};
 // var fiatEnabled = ${services.fiat.enabled};
+// var chaosEnabled = ${services.chaos.enabled};
 // var openstackPrimaryAccount = ${providers.openstack.primaryCredentials.name};
 // var openstackDefaultRegion = ${providers.openstack.defaultRegion};
 // var appenginePrimaryAccount = ${providers.appengine.primaryCredentials.name};
@@ -128,5 +129,6 @@ window.spinnakerSettings = {
     roscoMode: true,
     netflixMode: false,
     fiatEnabled: fiatEnabled,
+    chaosMonkey: chaosEnabled,
   },
 };
