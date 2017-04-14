@@ -1,6 +1,4 @@
-import {Directive, ElementRef, Injector, Input} from '@angular/core';
-import {UpgradeComponent} from '@angular/upgrade/static';
-import {module} from 'angular';
+import {IComponentController, IComponentOptions, IPromise, ITimeoutService, module} from 'angular';
 
 import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from './helpContents.registry';
 
@@ -9,7 +7,7 @@ interface IHelpFieldContents {
   placement: string;
 }
 
-class HelpFieldCtrl implements ng.IComponentController {
+class HelpFieldCtrl implements IComponentController {
 
   public content: string;
   public expand: boolean;
@@ -22,13 +20,11 @@ class HelpFieldCtrl implements ng.IComponentController {
   private fallback: string;
   private placement: string;
   private popoverShownStart: number;
-  private popoverClose: ng.IPromise<void>;
+  private popoverClose: IPromise<void>;
 
-  static get $inject() {
-    return ['$timeout', '$analytics', 'helpContents', 'helpContentsRegistry'];
-  }
+  static get $inject() { return ['$timeout', '$analytics', 'helpContents', 'helpContentsRegistry']; }
 
-  constructor(private $timeout: ng.ITimeoutService,
+  constructor(private $timeout: ITimeoutService,
               private $analytics: any,
               private helpContents: any,
               private helpContentsRegistry: HelpContentsRegistry) {}
@@ -85,17 +81,17 @@ class HelpFieldCtrl implements ng.IComponentController {
   }
 }
 
-class HelpFieldComponent implements ng.IComponentOptions {
-  public bindings: any = {
+const helpFieldComponent: IComponentOptions = {
+  bindings: {
     key: '@',
     fallback: '@',
     content: '@',
     placement: '@',
     expand: '=',
     label: '@'
-  };
-  public controller: any = HelpFieldCtrl;
-  public template = `
+  },
+  controller: HelpFieldCtrl,
+  template: `
     <div class="text-only" ng-if="$ctrl.label">
       <a href class="help-field" ng-if="!$ctrl.expand && $ctrl.contents.content"
               uib-popover-template="$ctrl.popoverTemplate"
@@ -121,41 +117,12 @@ class HelpFieldComponent implements ng.IComponentOptions {
         <span class="small glyphicon glyphicon-question-sign"></span>
       </a>
     </div>
-  `;
-}
+  `
+};
 
-const selector = 'helpField';
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';
 module(HELP_FIELD_COMPONENT, [
   HELP_CONTENTS_REGISTRY,
   require('./helpContents'),
   require('angulartics'),
-]).component(selector, new HelpFieldComponent());
-
-@Directive({
-  selector: 'help-field'
-})
-export class HelpFieldComponentDirective extends UpgradeComponent {
-
-  @Input()
-  public key: string;
-
-  @Input()
-  public fallback: string;
-
-  @Input()
-  public content: string;
-
-  @Input()
-  public placement: string;
-
-  @Input()
-  public expand: boolean;
-
-  @Input()
-  public label: string;
-
-  constructor(elementRef: ElementRef, injector: Injector) {
-    super(selector, elementRef, injector);
-  }
-}
+]).component('helpField', helpFieldComponent);

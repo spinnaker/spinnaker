@@ -1,31 +1,22 @@
-import {ReflectiveInjector} from '@angular/core';
-import {mock, module} from 'angular';
+import {IQService, IRequestConfig, IRootScopeService, mock} from 'angular';
 
 import {AUTHENTICATION_INTERCEPTOR_SERVICE, AuthenticationInterceptor} from './authentication.interceptor.service';
-import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
+import {AuthenticationService} from './authentication.service';
 import {SETTINGS} from 'core/config/settings';
 
 describe('authenticationInterceptor', function() {
 
   let interceptor: AuthenticationInterceptor,
     authenticationService: AuthenticationService,
-    $rootScope: ng.IRootScopeService;
-
-  module(AUTHENTICATION_SERVICE, [])
-    .factory('injector', function () {
-      return ReflectiveInjector.resolveAndCreate([AuthenticationService]);
-    })
-    .factory('authenticationService', function (injector: ReflectiveInjector) {
-      return injector.get(AuthenticationService);
-    });
+    $rootScope: IRootScopeService;
 
   beforeEach(mock.module(AUTHENTICATION_INTERCEPTOR_SERVICE));
 
   beforeEach(
     mock.inject(
-      function (_$q_: ng.IQService,
+      function (_$q_: IQService,
                 _authenticationService_: AuthenticationService,
-                _$rootScope_: ng.IRootScopeService,
+                _$rootScope_: IRootScopeService,
                 _authenticationInterceptor_: AuthenticationInterceptor) {
         authenticationService = _authenticationService_;
         $rootScope = _$rootScope_;
@@ -34,16 +25,16 @@ describe('authenticationInterceptor', function() {
 
   describe('non-intercepted requests', function() {
     it('resolves immediately for auth endpoint', function() {
-      let resolved: ng.IRequestConfig = null;
-      const request: ng.IRequestConfig = { url: SETTINGS.authEndpoint, method: 'GET' };
+      let resolved: IRequestConfig = null;
+      const request: IRequestConfig = { url: SETTINGS.authEndpoint, method: 'GET' };
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
       expect(resolved).toBe(request);
     });
 
     it('resolves immediately for relative and non-http requests', function() {
-      let resolved: ng.IRequestConfig = null;
-      const request: ng.IRequestConfig = { url: '/something/relative', method: 'GET' };
+      let resolved: IRequestConfig = null;
+      const request: IRequestConfig = { url: '/something/relative', method: 'GET' };
       interceptor.request(request).then(function(result) { resolved = result; });
       $rootScope.$digest();
       expect(resolved.url).toBe(request.url);
@@ -58,8 +49,8 @@ describe('authenticationInterceptor', function() {
   describe('intercepted requests', function () {
 
     it('registers event with authentication service and does not resolve when not authenticated', function () {
-      let resolved: ng.IRequestConfig = null;
-      const request: ng.IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
+      let resolved: IRequestConfig = null;
+      const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
       const pendingRequests: Function[] = [];
 
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: false });
@@ -78,8 +69,8 @@ describe('authenticationInterceptor', function() {
     });
 
     it('resolves immediately when authenticated', function () {
-      let resolved: ng.IRequestConfig = null;
-      const request: ng.IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
+      let resolved: IRequestConfig = null;
+      const request: IRequestConfig = { url: 'http://some-server.spinnaker.org', method: 'GET' };
 
       spyOn(authenticationService, 'getAuthenticatedUser').and.returnValue({ authenticated: true, lastAuthenticated: new Date().getTime() });
 

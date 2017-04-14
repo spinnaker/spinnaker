@@ -6,7 +6,6 @@ import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
 import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
 import {PAGER_DUTY_TAG_COMPONENT} from '../pagerDuty/pagerDutyTag.component';
-import {UI_SELECT_COMPONENT} from 'core/widgets/uiSelect.component';
 import {Application} from 'core/application/application.model';
 
 class NetflixEditApplicationModalController {
@@ -46,6 +45,5 @@ module(NETFLIX_EDIT_APPLICATION_MODAL_CONTROLLER, [
   ACCOUNT_SERVICE,
   PAGER_DUTY_SELECT_FIELD_COMPONENT,
   PAGER_DUTY_TAG_COMPONENT,
-  UI_SELECT_COMPONENT
 ])
   .controller('netflixEditApplicationController', NetflixEditApplicationModalController);

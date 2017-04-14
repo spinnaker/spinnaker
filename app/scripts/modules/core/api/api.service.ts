@@ -1,4 +1,3 @@
-import {Provider} from '@angular/core';
 import {module, IHttpService, IPromise, IQResolveReject, IQService, IRequestConfig} from 'angular';
 import {
   AUTHENTICATION_INITIALIZER_SERVICE,
@@ -193,9 +192,3 @@ const API_SERVICE_NAME = 'API';
 export const API_SERVICE = 'spinnaker.core.api.provider';
 module(API_SERVICE, [AUTHENTICATION_INITIALIZER_SERVICE])
   .service(API_SERVICE_NAME, Api);
-
-export const API_SERVICE_PROVIDER: Provider = {
-  provide: API_SERVICE_NAME,
-  useFactory: (i: any) => i.get(API_SERVICE_NAME),
-  deps: ['$injector']
-};
