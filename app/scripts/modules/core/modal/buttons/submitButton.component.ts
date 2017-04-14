@@ -8,7 +8,12 @@ export class SubmitButtonComponent implements IComponentOptions {
     submitting: '<',
     label: '<',
   };
-  public templateUrl = require('./submitButton.component.html');
+  public template = `
+    <button class="btn btn-primary" ng-disabled="$ctrl.isDisabled" ng-click="$ctrl.onClick()">
+      <span ng-if="!$ctrl.submitting" class="glyphicon glyphicon-ok-circle"></span>
+      <button-busy-indicator ng-if="$ctrl.submitting"></button-busy-indicator>
+      {{$ctrl.label || ($ctrl.isNew ? 'Create' : 'Update')}}
+    </button>`;
 }
 
 export const SUBMIT_BUTTON_COMPONENT = 'spinnaker.core.modal.buttons.submitButton.component';

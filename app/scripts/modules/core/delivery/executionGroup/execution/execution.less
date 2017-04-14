@@ -100,47 +100,13 @@ execution-status {
       visibility: hidden;
       display: inline-block;
     }
-    &.show-durations {
-      .stage {
-        .duration {
-          visibility: visible;
-        }
-        min-width: 50px;
-      }
-    }
   }
+}
+.show-durations {
   .stage {
-    margin-top: 0;
-    display: inline-block;
-    height: 20px;
-    opacity: 0.65;
-    transition: 0.2s all;
-    text-align: center;
-    padding: 0;
-    color: #000000;
-    font-size: 90%;
-    border: 1px solid transparent;
-    border-left-color: #FFFFFF;
-    &:hover, &.active {
-      opacity: 1;
+    .duration {
+      visibility: visible;
     }
-    &:first-child {
-      border-left-width: 0;
-    }
-    &.active {
-      border-color: #222222;
-      &:first-child {
-        border-left-width: 1px;
-      }
-      &:last-child {
-        border-right-width: 1px;
-      }
-      & + .stage {
-        border-left-color: transparent;
-      }
-    }
-    &.glowing {
-      .glowing(2.5);
-    }
+    min-width: 50px;
   }
 }

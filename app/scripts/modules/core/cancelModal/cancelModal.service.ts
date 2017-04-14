@@ -40,8 +40,10 @@ export class CancelModalService {
   }
 }
 
+export let cancelModalService: CancelModalService = undefined;
 export const CANCEL_MODAL_SERVICE = 'spinnaker.core.cancelModal.service';
 module(CANCEL_MODAL_SERVICE, [
   require('angular-ui-bootstrap'),
   CANCEL_MODAL_CONTROLLER,
-]).service('cancelModalService', CancelModalService);
+]).service('cancelModalService', CancelModalService)
+  .run(($injector: any) => cancelModalService = <CancelModalService>$injector.get('cancelModalService'));

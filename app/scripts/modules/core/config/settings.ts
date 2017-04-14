@@ -58,7 +58,7 @@ export interface ISpinnakerSettings {
   gitSources: string[];
   triggerTypes: string[];
   analytics: {
-    ga?: boolean;
+    ga?: string;
   };
   feature: IFeatures;
   executionWindow?: {

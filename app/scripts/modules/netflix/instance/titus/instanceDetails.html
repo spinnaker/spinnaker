@@ -24,8 +24,8 @@
       <copy-to-clipboard
         ng-if="instance"
         class="copy-to-clipboard"
-        text="ssh -t {{ctrl.bastionHost}} 'titus-ssh {{ctrl.bastionStack}} -region {{instance.region}} -id {{instance.id}}'"
-        tool-tip="Copy titus-ssh command to clipboard">
+        text="sshLink"
+        tool-tip="'Copy titus-ssh command to clipboard'">
       </copy-to-clipboard>
     </div>
     <div>
@@ -84,8 +84,8 @@
         <dd ng-if="instance.placement.containerIp">{{instance.placement.containerIp}}
           <copy-to-clipboard
             class="copy-to-clipboard"
-            text="{{instance.placement.containerIp}}"
-            tool-tip="Copy container IP clipboard">
+            text="instance.placement.containerIp"
+            tool-tip="'Copy container IP clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>

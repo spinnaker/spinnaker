@@ -4,7 +4,8 @@ import {ISCEService, module} from 'angular';
 import { IExecution, IPipeline } from 'core/domain/index';
 import { IPipelineValidationResults, PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from '../validation/pipelineConfig.validator';
 import { IExecutionViewState, IPipelineLink, IPipelineNode, PIPELINE_GRAPH_SERVICE, PipelineGraphService } from './pipelineGraph.service';
-import {UUIDGenerator} from 'core/utils/uuid.service';
+import { UUIDGenerator } from 'core/utils/uuid.service';
+import { LABEL_TEMPLATE_COMPONENT } from 'core/presentation/labelTemplate.component';
 
 require('./pipelineGraph.less');
 
@@ -361,7 +362,7 @@ export class PipelineGraphController implements ng.IComponentController {
     const graphId = this.pipeline ? this.pipeline.id : this.execution.id;
 
     this.$scope.nodeClicked = (node: IPipelineNode) => {
-      this.onNodeClick({ node: node });
+      this.onNodeClick(node);
     };
 
     this.$scope.highlight = (node: IPipelineNode) => {
@@ -418,13 +419,13 @@ export class PipelineGraphController implements ng.IComponentController {
   }
 }
 
-class PipelineGraphComponent implements ng.IComponentOptions {
+export class PipelineGraphComponent implements ng.IComponentOptions {
   public bindings: any = {
-    pipeline: '=',
-    execution: '=',
-    viewState: '=',
-    onNodeClick: '&',
-    shouldValidate: '=',
+    pipeline: '<',
+    execution: '<',
+    viewState: '<',
+    onNodeClick: '<',
+    shouldValidate: '<',
   };
 
   public templateUrl: string = require('./pipelineGraph.component.html');
@@ -435,6 +436,7 @@ export const PIPELINE_GRAPH_COMPONENT = 'spinnaker.core.pipeline.config.graph.co
 
 module(PIPELINE_GRAPH_COMPONENT, [
   PIPELINE_GRAPH_SERVICE,
-  PIPELINE_CONFIG_VALIDATOR
+  PIPELINE_CONFIG_VALIDATOR,
+  LABEL_TEMPLATE_COMPONENT
 ])
   .component('pipelineGraph', new PipelineGraphComponent());

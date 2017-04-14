@@ -3,6 +3,7 @@ import * as angular from 'angular';
 import {NETFLIX_MODULE} from './modules/netflix/netflix.module';
 import {APPENGINE_MODULE} from './modules/appengine/appengine.module';
 import {AUTHENTICATION_SERVICE} from './modules/core/authentication/authentication.service';
+import {REACT_MODULE} from './react.module';
 
 module.exports = angular.module('netflix.spinnaker', [
   NETFLIX_MODULE,
@@ -17,4 +18,5 @@ module.exports = angular.module('netflix.spinnaker', [
   require('./modules/docker/docker.module.js'),
   APPENGINE_MODULE,
   AUTHENTICATION_SERVICE,
+  REACT_MODULE
 ]);

@@ -1,6 +1,7 @@
 'use strict';
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CanaryExecutionLabel} from '../canary/CanaryExecutionLabel';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {NetflixSettings} from '../../../netflix.settings';
 
@@ -22,7 +23,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
         executionDetailsUrl: require('./acaTaskExecutionDetails.html'),
         executionSummaryUrl: require('./acaTaskExecutionSummary.html'),
         stageFilter: (stage) => ['monitorAcaTask', 'acaTask'].includes(stage.type),
-        executionLabelTemplateUrl: require('../canary/canaryExecutionLabel.html'),
+        executionLabelTemplate: CanaryExecutionLabel,
         controller: 'AcaTaskStageCtrl',
         controllerAs: 'acaTaskStageCtrl',
         validators: [

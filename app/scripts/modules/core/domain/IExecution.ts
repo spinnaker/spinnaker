@@ -1,14 +1,15 @@
 import {IOrchestratedItem} from './IOrchestratedItem';
 import {IExecutionTrigger} from './IExecutionTrigger';
-import {IExecutionStage} from './IExecutionStage';
-import {IStageSummary} from './IStage';
+import { IExecutionStage, IExecutionStageSummary } from './IExecutionStage';
 
 export interface IExecution extends IOrchestratedItem {
   id: string;
   trigger: IExecutionTrigger;
   stages: IExecutionStage[];
   user: string;
-  stageSummaries?: IStageSummary[];
+  application: string;
+  deploymentTargets: string[];
+  stageSummaries?: IExecutionStageSummary[];
   isStrategy?: boolean;
   name?: string;
   executionEngine?: string;
@@ -18,4 +19,8 @@ export interface IExecution extends IOrchestratedItem {
   pipelineConfigId?: string;
   searchField?: string;
   appConfig?: any;
+  cancellationReason?: string;
+  canceledBy?: string;
+  parallel?: boolean;
+  buildInfo?: any;
 }

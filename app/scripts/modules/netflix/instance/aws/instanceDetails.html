@@ -31,8 +31,8 @@
       <copy-to-clipboard
           ng-if="instance"
           class="copy-to-clipboard"
-          text="ssh -t {{ctrl.bastionHost}} 'oq-ssh --region {{instance.region}} {{instance.instanceId}}'"
-          tool-tip="Copy SSH command to clipboard">
+          text="sshLink"
+          tool-tip="'Copy SSH command to clipboard'">
       </copy-to-clipboard>
 
     </div>
@@ -128,8 +128,8 @@
           <a href="http://{{instance.privateDnsName}}:{{state.instancePort}}" target="_blank">{{instance.privateDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.privateDnsName}}"
-              tool-tip="Copy to clipboard">
+              text="instance.privateDnsName"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.publicDnsName">Public DNS Name</dt>
@@ -137,8 +137,8 @@
           <a href="http://{{instance.publicDnsName}}:{{state.instancePort}}" target="_blank">{{instance.publicDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.publicDnsName}}"
-              tool-tip="Copy to clipboard">
+              text="instance.publicDnsName"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.privateIpAddress">Private IP Address</dt>
@@ -146,8 +146,8 @@
           <a href="http://{{instance.privateIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.privateIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.privateIpAddress}}"
-              tool-tip="Copy to clipboard">
+              text="instance.privateIpAddress"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.permanentIps">Permanent IP Address</dt>
@@ -155,8 +155,8 @@
           <a href="http://{{ip}}:{{state.instancePort}}" target="_blank">{{ip}}</a>
           <copy-to-clipboard
             class="copy-to-clipboard copy-to-clipboard-sm"
-            text="{{ip}}"
-            tool-tip="Copy to clipboard">
+            text="ip"
+            tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.publicIpAddress">Public IP Address</dt>
@@ -164,8 +164,8 @@
           <a href="http://{{instance.publicIpAddress}}:{{state.instancePort}}" target="_blank">{{instance.publicIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.publicIpAddress}}"
-              tool-tip="Copy to clipboard">
+              text="instance.publicIpAddress"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.vipAddress && instance.vipAddress.length > 0">VIP Address</dt>
@@ -173,8 +173,8 @@
           <a href="http://{{address}}" target="_blank">{{address}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{address}}"
-              tool-tip="Copy to clipboard">
+              text="address"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.secureVipAddress && instance.secureVipAddress.length > 0">Secure VIP Address</dt>
@@ -182,8 +182,8 @@
           <a href="http://{{address}}" target="_blank">{{address}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{address}}"
-              tool-tip="Copy to clipboard">
+              text="address"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>

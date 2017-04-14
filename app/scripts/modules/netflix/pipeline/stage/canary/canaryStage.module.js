@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import {CANARY_SCORE_COMPONENT} from './canaryScore.component';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary', [
@@ -12,7 +13,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary', [
   require('core/deploymentStrategy/deploymentStrategy.module.js'),
   require('./canaryDeployment/canaryDeployment.module.js'),
   require('./canaryStage.transformer.js'),
-  require('./canaryScore.directive.js'),
+  CANARY_SCORE_COMPONENT,
   require('./canaryStatus.directive.js'),
   ACCOUNT_SERVICE,
   NAMING_SERVICE,

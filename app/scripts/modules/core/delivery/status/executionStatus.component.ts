@@ -46,7 +46,7 @@ export class ExecutionStatusController implements IComponentController {
 export class ExecutionStatusComponent implements IComponentOptions {
   public bindings: any = {
     execution: '<',
-    toggleDetails: '&',
+    toggleDetails: '<',
     showingDetails: '<',
     standalone: '<',
   };

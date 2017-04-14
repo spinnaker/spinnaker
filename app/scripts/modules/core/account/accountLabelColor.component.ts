@@ -17,9 +17,9 @@ class AccountLabelColorController implements IComponentController {
   }
 }
 
-class AccountLabelColorComponent implements IComponentOptions {
+export class AccountLabelColorComponent implements IComponentOptions {
   public bindings: any = {
-    account: '@'
+    account: '<'
   };
   public controller: any = AccountLabelColorController;
   public template = '<span class="account-tag account-tag-{{$ctrl.accountType}}">{{$ctrl.account}}</span>';

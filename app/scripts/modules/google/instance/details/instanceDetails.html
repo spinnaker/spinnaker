@@ -26,8 +26,8 @@
       <copy-to-clipboard
           ng-if="instance.gcloudSSHCommand"
           class="copy-to-clipboard"
-          text="{{instance.gcloudSSHCommand}}"
-          tool-tip="Copy gcloud compute ssh command to clipboard">
+          text="instance.gcloudSSHCommand"
+          tool-tip="'Copy gcloud compute ssh command to clipboard'">
       </copy-to-clipboard>
     </div>
     <div>
@@ -120,8 +120,8 @@
           <a href="http://{{instance.internalDnsName}}" target="_blank">{{instance.internalDnsName}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.internalDnsName}}"
-              tool-tip="Copy to clipboard">
+              text="instance.internalDnsName"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.internalIpAddress">Internal IP Address</dt>
@@ -129,8 +129,8 @@
           <a href="http://{{instance.internalIpAddress}}" target="_blank">{{instance.internalIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.internalIpAddress}}"
-              tool-tip="Copy to clipboard">
+              text="instance.internalIpAddress"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
         <dt ng-if="instance.externalIpAddress">External IP Address</dt>
@@ -138,8 +138,8 @@
           <a href="http://{{instance.externalIpAddress}}" target="_blank">{{instance.externalIpAddress}}</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.externalIpAddress}}"
-              tool-tip="Copy to clipboard">
+              text="instance.externalIpAddress"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -190,8 +190,8 @@
           <a href="{{instance.sshLink}}" target="_blank">SSH</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.sshLink}}"
-              tool-tip="Copy to clipboard">
+              text="instance.sshLink"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </dd>
       </dl>
@@ -202,8 +202,8 @@
           <a href="{{instance.logsLink}}" target="_blank">Cloud Console Logs</a>
           <copy-to-clipboard
               class="copy-to-clipboard copy-to-clipboard-sm"
-              text="{{instance.logsLink}}"
-              tool-tip="Copy to clipboard">
+              text="instance.logsLink"
+              tool-tip="'Copy to clipboard'">
           </copy-to-clipboard>
         </li>
         <li>

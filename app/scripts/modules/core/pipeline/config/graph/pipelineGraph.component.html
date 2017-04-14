@@ -61,17 +61,17 @@
     <foreignobject ng-attr-width="{{::maxLabelWidth}}" height="100"
                    ng-attr-transform="translate({{::labelOffsetX}}, {{::stage.leaf && !stage.executionStage ? -8 : labelOffsetY*-1}})">
       <div class="execution-stage-label clickable {{::stage.status.toLowerCase()}}"
-           ng-if="stage.labelTemplateUrl"
+           ng-if="stage.labelTemplate"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
            ng-style="{height: stage.height + 'px'}"
            analytics-on="click"
            analytics-category="Pipeline Graph ({{::execution ? 'execution' : 'config'}})"
            analytics-event="Node label clicked"
            ng-click="nodeClicked(stage)">
-        <div ng-include="stage.labelTemplateUrl"></div>
+        <label-template stage="stage"></label-template>
       </div>
       <div class="label-body node clickable"
-           ng-if="!stage.labelTemplateUrl"
+           ng-if="!stage.labelTemplate"
            ng-mouseenter="highlight(stage)" ng-mouseleave="removeHighlight(stage)"
            analytics-on="click"
            analytics-category="Pipeline Graph ({{::execution ? 'execution' : 'config'}})"

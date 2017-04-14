@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import {IGOR_SERVICE, IgorService, BuildServiceType} from 'core/ci/igor.service';
 import {IJobConfig, ParameterDefinitionList} from 'core/domain/IJobConfig';
 import {IStage} from 'core/domain/IStage';
+import {TravisExecutionLabel} from './TravisExecutionLabel';
 
 interface IViewState {
   mastersLoaded: boolean;
@@ -154,7 +155,7 @@ module(TRAVIS_STAGE, [
     controllerAs: '$ctrl',
     templateUrl: require('./travisStage.html'),
     executionDetailsUrl: require('./travisExecutionDetails.html'),
-    executionLabelTemplateUrl: require('./travisExecutionLabel.html'),
+    executionLabelTemplate: TravisExecutionLabel,
     extraLabelLines: (stage: IStage) => {
       if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
         return 0;

@@ -59,6 +59,7 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
     this.getBastionAddressForAccount = (account) => {
       return accountService.getAccountDetails(account).then((details) => {
         this.bastionHost = details.bastionHost || 'unknown';
+        $scope.sshLink = `ssh -t ${this.bastionHost} 'oq-ssh --region ${$scope.instance.region} ${$scope.instance.instanceId}'`;
       });
     };
 

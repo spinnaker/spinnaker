@@ -258,6 +258,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       }
     };
 
+    // When using callbacks in a component that can be both angular and react, have to force binding in the angular world
+    this.graphNodeClicked = this.navigateTo.bind(this);
+
     this.isActive = function(section) {
       return $scope.viewState.section === section;
     };

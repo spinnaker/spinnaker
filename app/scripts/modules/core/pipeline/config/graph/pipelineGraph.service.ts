@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IExecution, IPipeline, IStage, IStageSummary} from 'core/domain/index';
+import {IExecution, IExecutionStageSummary, IPipeline, IStage} from 'core/domain/index';
 
 export interface IExecutionViewState {
   activeStageId: number;
@@ -48,12 +48,12 @@ export interface IPipelineNode {
   hasWarnings?: boolean;
 
   // Execution node parameters
-  stage?: IStageSummary;
+  stage?: IExecutionStageSummary;
   masterStage?: IStage;
   executionStage?: boolean;
   hasNotStarted?: boolean;
   status?: string;
-  labelTemplateUrl?: string;
+  labelTemplate?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
   executionId?: string;
 }
 
@@ -62,7 +62,7 @@ export class PipelineGraphService {
 
   public generateExecutionGraph(execution: IExecution, viewState: IExecutionViewState) {
     const nodes: IPipelineNode[] = [];
-    (execution.stageSummaries || []).forEach(function(stage: IStageSummary, idx: number) {
+    (execution.stageSummaries || []).forEach((stage: IExecutionStageSummary, idx: number) => {
       const node: IPipelineNode = {
         id: stage.refId,
         name: stage.name,
@@ -70,7 +70,7 @@ export class PipelineGraphService {
         parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
         stage: stage,
         masterStage: stage.masterStage,
-        labelTemplateUrl: stage.labelTemplateUrl,
+        labelTemplate: stage.labelTemplate,
         extraLabelLines: stage.extraLabelLines ? stage.extraLabelLines(stage) : 0,
         parents: [],
         children: [],
@@ -113,7 +113,7 @@ export class PipelineGraphService {
         };
     nodes.push(configNode);
 
-    pipeline.stages.forEach(function(stage: IStageSummary, idx: number) {
+    pipeline.stages.forEach(function(stage: IExecutionStageSummary, idx: number) {
       const warnings = pipelineValidations.stages.find((e: any) => e.stage === stage);
       const node: IPipelineNode = {
         id: stage.refId,

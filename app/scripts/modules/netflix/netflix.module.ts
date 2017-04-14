@@ -6,7 +6,7 @@ import {AVAILABILITY_DIRECTIVE} from './availability/availability.directive';
 import {BLESK_MODULE} from './blesk/blesk.module';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {EXCEPTION_HANDLER} from './exception/exceptionHandler';
-import {FEEDBACK_MODULE} from './feedback/feedback.module';
+import {FEEDBACK_COMPONENT} from './feedback/feedback.component';
 import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
 import {NETFLIX_APPLICATION_MODULE} from './application';
 import {TABLEAU_STATES} from './tableau/tableau.states';
@@ -25,7 +25,7 @@ module(NETFLIX_MODULE, [
   BLESK_MODULE,
   CLOUD_PROVIDER_REGISTRY,
   EXCEPTION_HANDLER,
-  FEEDBACK_MODULE,
+  FEEDBACK_COMPONENT,
   ISOLATED_TESTING_TARGET_STAGE_MODULE,
   NETFLIX_APPLICATION_MODULE,
   TABLEAU_STATES,

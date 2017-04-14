@@ -15,9 +15,9 @@
       <div class="shadowed">
         <account-label-color ng-if="$ctrl.viewState.showAccounts"
                              ng-repeat="account in $ctrl.deploymentAccounts"
-                             account="{{account}}"></account-label-color>
+                             account="account"></account-label-color>
         <account-label-color ng-repeat="account in $ctrl.group.targetAccounts"
-                             account="{{account}}"></account-label-color>
+                             account="account"></account-label-color>
         <h4 class="execution-group-title">
           {{ $ctrl.group.heading }}
           <span ng-if="$ctrl.pipelineConfig.description" class="glyphicon glyphicon-info-sign" uib-tooltip="{{ $ctrl.pipelineConfig.description }}"></span>

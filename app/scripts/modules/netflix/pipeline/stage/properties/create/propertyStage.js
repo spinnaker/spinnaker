@@ -6,6 +6,7 @@ let angular = require('angular');
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
 import {FAST_PROPERTY_READ_SERVICE} from 'netflix/fastProperties/fastProperty.read.service';
 import {NetflixSettings} from '../../../../netflix.settings';
+import {PropertyExecutionLabel} from './PropertyExecutionLabel';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   AUTHENTICATION_SERVICE,
@@ -20,7 +21,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
         templateUrl: require('./propertyStage.html'),
         executionDetailsUrl: require('./propertyExecutionDetails.html'),
         executionSummaryUrl: require('./propertyExecutionSummary.html'),
-        executionLabelTemplateUrl: require('./propertyExecutionLabel.html'),
+        executionLabelTemplate: PropertyExecutionLabel,
         controller: 'PropertyStageCtrl',
         controllerAs: 'propertyStage',
         accountExtractor: (stage) => stage.context.scope.env,
