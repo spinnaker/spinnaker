@@ -180,6 +180,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     $scope.$on('pipeline-json-edited', this.selectStage);
     $scope.$watch('stage.type', this.selectStage);
     $scope.$watch('viewState.stageIndex', this.selectStage);
+    $scope.$watch('stage.refId', this.selectStage);
   })
   .controller('RestartStageCtrl', function($scope, $stateParams, $http, API, confirmationModalService) {
     var restartStage = function () {
