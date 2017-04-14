@@ -84,14 +84,14 @@ export class DockerImageAndTagSelectorController implements ng.IComponentControl
 
   private updateTag(): void {
     if (this.specifyTagByRegex) {
-      if (trim(this.tag) === '') {
+      if (trim(this.tag) === '' && this.tag) {
         this.tag = null;
       }
     } else {
       if (this.repositoryMap) {
         const key = this.repository;
         this.tags = this.repositoryMap[key] || [];
-        if (!this.tags.includes(this.tag)) {
+        if (!this.tags.includes(this.tag) && this.tag) {
           this.tag = null;
         }
       }

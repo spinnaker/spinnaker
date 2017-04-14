@@ -65,8 +65,7 @@
            class="form-control input-sm"
            ng-model="$ctrl.tag"
            ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
-           ng-change="$ctrl.updateTag()"
-           required/>
+           ng-change="$ctrl.updateTag()"/>
   </div>
 </div>
 <div class="form-group" ng-if="!$ctrl.specifyTagByRegex">
