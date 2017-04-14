@@ -42,7 +42,7 @@ function extract_clean_prototype_disk() {
       exit -1
     fi
   fi
-  
+
   echo "`date`: Preparing '$worker_instance'"
   gcloud compute instances add-metadata $worker_instance \
       --project $PROJECT \
@@ -56,7 +56,7 @@ function extract_clean_prototype_disk() {
       --zone $ZONE \
       --disk $prototype_disk \
       --device-name spinnaker
-      
+
   gcloud compute copy-files \
       --project $PROJECT \
       --account $ACCOUNT \
@@ -114,4 +114,47 @@ function image_from_prototype_disk() {
         --source-disk $prototype_disk \
         --source-disk-zone $ZONE
   fi
+}
+
+
+function delete_build_instance() {
+  echo "`date`: Cleaning up prototype instance '$PROTOTYPE_INSTANCE'"
+  gcloud compute instances delete $PROTOTYPE_INSTANCE \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --quiet
+  PROTOTYPE_INSTANCE=
+}
+
+
+function cleanup_instances_on_error() {
+  if [[ "$PROTOTYPE_INSTANCE" != "" ]]; then
+    delete_build_instance
+  fi
+
+  echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
+  wait $CLEANER_INSTANCE_PID || true
+  gcloud compute instances delete ${CLEANER_INSTANCE} \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --quiet || true
+}
+
+
+function delete_prototype_disk() {
+  echo "Deleting cleaner instance ${CLEANER_INSTANCE}"
+  gcloud compute instances delete ${CLEANER_INSTANCE} \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --quiet || true
+
+  echo "`date`: Deleting disk '$BUILD_INSTANCE'"
+  gcloud compute disks delete $BUILD_INSTANCE \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --quiet || true
 }

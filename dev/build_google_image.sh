@@ -82,42 +82,6 @@ ZONE=$(gcloud config list 2>&1 \
 GZ_URI=""
 
 
-function fix_defaults() {
-  if [[ "$ZONE" == "" ]]; then
-    ZONE=us-central1-f
-  fi
-
-  if [[ "$SOURCE_IMAGE" != "" ]]; then
-    if [[ "$IMAGE_PROJECT" == "" ]]; then
-       IMAGE_PROJECT=$PROJECT
-    fi
-  else
-    # No source image, so assume a base image (to install from).
-    local image_entry=$(gcloud compute images list 2>&1 \
-                        | grep $BASE_IMAGE_OR_FAMILY | head -1)
-
-    BASE_IMAGE=$(echo "$image_entry" | sed "s/\([^ ]*\) .*/\1/")
-
-    # If this was a family, convert it to a particular image for
-    # argument consistency
-    if [[ "$IMAGE_PROJECT" == "" ]]; then
-      IMAGE_PROJECT=$(echo "$image_entry" | sed "s/[^ ]* *\([^ ]*\)* .*/\1/")
-    fi
-  fi
-
-  if [[ "$TARGET_IMAGE" != "" ]]; then
-    BUILD_INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
-    CLEANER_INSTANCE="clean-${TARGET_IMAGE}-${TIME_DECORATOR}"
-  elif [[ "$SOURCE_IMAGE" != "" ]]; then
-    BUILD_INSTANCE="build-${SOURCE_IMAGE}-${TIME_DECORATOR}"
-    CLEANER_INSTANCE="clean-${SOURCE_IMAGE}-${TIME_DECORATOR}"
-  else
-    >&2 echo "You must have either --source_image, or create a --target_image."
-    exit -1
-  fi
-}
-
-
 function show_usage() {
     fix_defaults
 
@@ -163,7 +127,7 @@ Usage:  $0 [options]
    --target_image TARGET_IMAGE
        [$TARGET_IMAGE]
        Produce the given TARGET_IMAGE. If empty, then do not produce an image.
-       
+
    --gz_uri GZ_URI
        [none]
        Also extract the image to the specified a gs:// tar.gz URI.
@@ -259,33 +223,6 @@ function process_args() {
        >&2 echo "$GZ_URI is not a gs:// tar.gz path."
        exit -1
      fi
-  fi
-}
-
-
-function delete_build_instance() {
-  echo "`date`: Cleaning up prototype instance '$PROTOTYPE_INSTANCE'"
-  gcloud compute instances delete $PROTOTYPE_INSTANCE \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --quiet
-  PROTOTYPE_INSTANCE=
-}
-
-
-function cleanup_instances_on_error() {
-  if [[ "$PROTOTYPE_INSTANCE" != "" ]]; then
-    delete_build_instance
-  fi
-
-  if [[ "$CLEANER_INSTANCE" != "" ]]; then
-    echo "Deleting cleaner instance '${CLEANER_INSTANCE}'"
-    gcloud compute instances delete ${CLEANER_INSTANCE} \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --quiet
   fi
 }
 
@@ -433,6 +370,42 @@ function create_prototype_disk() {
 
   # Just the builder instance, not the cleanup instance
   delete_build_instance
+}
+
+
+function fix_defaults() {
+  if [[ "$ZONE" == "" ]]; then
+    ZONE=us-central1-f
+  fi
+
+  if [[ "$SOURCE_IMAGE" != "" ]]; then
+    if [[ "$IMAGE_PROJECT" == "" ]]; then
+       IMAGE_PROJECT=$PROJECT
+    fi
+  else
+    # No source image, so assume a base image (to install from).
+    local image_entry=$(gcloud compute images list 2>&1 \
+                        | grep $BASE_IMAGE_OR_FAMILY | head -1)
+
+    BASE_IMAGE=$(echo "$image_entry" | sed "s/\([^ ]*\) .*/\1/")
+
+    # If this was a family, convert it to a particular image for
+    # argument consistency
+    if [[ "$IMAGE_PROJECT" == "" ]]; then
+      IMAGE_PROJECT=$(echo "$image_entry" | sed "s/[^ ]* *\([^ ]*\)* .*/\1/")
+    fi
+  fi
+
+  if [[ "$TARGET_IMAGE" != "" ]]; then
+    BUILD_INSTANCE="build-${TARGET_IMAGE}-${TIME_DECORATOR}"
+    CLEANER_INSTANCE="clean-${TARGET_IMAGE}-${TIME_DECORATOR}"
+  elif [[ "$SOURCE_IMAGE" != "" ]]; then
+    BUILD_INSTANCE="build-${SOURCE_IMAGE}-${TIME_DECORATOR}"
+    CLEANER_INSTANCE="clean-${SOURCE_IMAGE}-${TIME_DECORATOR}"
+  else
+    >&2 echo "You must have either --source_image, or create a --target_image."
+    exit -1
+  fi
 }
 
 
