@@ -1,72 +1,70 @@
-<ng-form name="autoHealingPolicySubForm">
-  <div class="form-group">
-    <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
-      <b>HTTP Health Check</b>
-    </div>
-    <div class="col-md-6">
-      <ui-select ng-model="$ctrl.autoHealingPolicy.healthCheck" class="form-control input-sm" required>
-        <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
-        <ui-select-choices repeat="httpHealthCheck in $ctrl.httpHealthChecks | filter: $select.search">
-          <span ng-bind-html="httpHealthCheck | highlight: $select.search"></span>
-        </ui-select-choices>
-      </ui-select>
+<div class="form-group">
+  <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
+    <b>HTTP Health Check</b>
+  </div>
+  <div class="col-md-6">
+    <ui-select ng-model="$ctrl.autoHealingPolicy.healthCheck" class="form-control input-sm" required>
+      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="httpHealthCheck in $ctrl.httpHealthChecks | filter: $select.search">
+        <span ng-bind-html="httpHealthCheck | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
+    <b>Initial Delay</b>
+  </div>
+  <div class="col-md-6">
+    <div class="input-group">
+      <input type="number"
+        class="form-control input-sm"
+        ng-model="$ctrl.autoHealingPolicy.initialDelaySec"
+        min="0"
+        max="2147483647"
+        required/>
+      <span class="input-group-addon">seconds</span>
     </div>
   </div>
-  <div class="form-group">
-    <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
-      <b>Initial Delay</b>
-    </div>
-  	<div class="col-md-6">
-      <div class="input-group">
-    		<input type="number"
-    			class="form-control input-sm"
-    			ng-model="$ctrl.autoHealingPolicy.initialDelaySec"
-    			min="0"
-    			max="2147483647"
-    			required/>
-    		<span class="input-group-addon">seconds</span>
-      </div>
-  	</div>
+</div>
+<div class="form-group" ng-switch on="$ctrl.viewState.maxUnavailableMetric">
+  <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
+    <b>Max Unavailable <help-field key="gce.serverGroup.maxUnavailable"></help-field></b>
   </div>
-  <div class="form-group" ng-switch on="$ctrl.viewState.maxUnavailableMetric">
-    <div class="col-md-{{::$ctrl.labelColumns || 3}} sm-label-right">
-      <b>Max Unavailable <help-field key="gce.serverGroup.maxUnavailable"></help-field></b>
-    </div>
-    <div class="col-md-3" ng-switch-default>
-      <input type="number" style="width: 130px;"
-             readonly
-             class="form-control input-sm"/>
-    </div>
-    <div class="col-md-3" ng-switch-when="percent">
-      <div class="input-group" style="width: 130px;">
-        <input class="form-control input-sm"
-               ng-model="$ctrl.autoHealingPolicy.maxUnavailable.percent"
-               required
-               type="number" min="0" max="100"/>
-        <span class="input-group-addon">%</span>
-      </div>
-    </div>
-    <div class="col-md-3" ng-switch-when="fixed">
-      <input class="form-control input-sm" style="width: 130px;"
+  <div class="col-md-3" ng-switch-default>
+    <input type="number" style="width: 130px;"
+           readonly
+           class="form-control input-sm"/>
+  </div>
+  <div class="col-md-3" ng-switch-when="percent">
+    <div class="input-group" style="width: 130px;">
+      <input class="form-control input-sm"
+             ng-model="$ctrl.autoHealingPolicy.maxUnavailable.percent"
              required
-             ng-model="$ctrl.autoHealingPolicy.maxUnavailable.fixed"
-             type="number" min="0" max="2147483647"/>
-    </div>
-    <div class="col-md-3">
-      <select ng-model="$ctrl.viewState.maxUnavailableMetric"
-              ng-change="$ctrl.manageMaxUnavailableMetric($ctrl.viewState.maxUnavailableMetric)"
-              ng-options="metric for metric in ['percent', 'fixed']"
-              class="form-control input-sm">
-        <option value="">-- select metric --</option>
-      </select>
+             type="number" min="0" max="100"/>
+      <span class="input-group-addon">%</span>
     </div>
   </div>
-  <div class="form-group small" style="margin-top: 20px">
-    <div class="col-md-7 col-md-offset-{{::$ctrl.labelColumns || 3}}">
-      <gce-cache-refresh cache-key="healthChecks"
-                         cache-key-alias="HTTP health checks"
-                         on-refresh="$ctrl.onHealthCheckRefresh()">
-      </gce-cache-refresh>
-    </div>
+  <div class="col-md-3" ng-switch-when="fixed">
+    <input class="form-control input-sm" style="width: 130px;"
+           required
+           ng-model="$ctrl.autoHealingPolicy.maxUnavailable.fixed"
+           type="number" min="0" max="2147483647"/>
   </div>
-</ng-form>
+  <div class="col-md-3">
+    <select ng-model="$ctrl.viewState.maxUnavailableMetric"
+            ng-change="$ctrl.manageMaxUnavailableMetric($ctrl.viewState.maxUnavailableMetric)"
+            ng-options="metric for metric in ['percent', 'fixed']"
+            class="form-control input-sm">
+      <option value="">-- select metric --</option>
+    </select>
+  </div>
+</div>
+<div class="form-group small" style="margin-top: 20px">
+  <div class="col-md-7 col-md-offset-{{::$ctrl.labelColumns || 3}}">
+    <gce-cache-refresh cache-key="healthChecks"
+                       cache-key-alias="HTTP health checks"
+                       on-refresh="$ctrl.onHealthCheckRefresh()">
+    </gce-cache-refresh>
+  </div>
+</div>

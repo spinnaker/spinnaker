@@ -24,7 +24,7 @@ class GceAutoHealingPolicySelector implements ng.IComponentController {
   }
 
   public $onDestroy(): void {
-    this.setAutoHealingPolicy({autoHealingPolicy: {}});
+    this.setAutoHealingPolicy({autoHealingPolicy: null});
   }
 
   public manageMaxUnavailableMetric(selectedMetric: string): void {
