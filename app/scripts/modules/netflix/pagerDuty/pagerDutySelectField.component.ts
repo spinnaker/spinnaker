@@ -1,18 +1,38 @@
 import {IComponentController, IComponentOptions, module} from 'angular';
-import {PAGER_DUTY_READ_SERVICE, IPagerDutyService} from './pagerDuty.read.service';
+import {PAGER_DUTY_READ_SERVICE, IPagerDutyService, PagerDutyReader} from './pagerDuty.read.service';
+import {SchedulerFactory} from 'core/scheduler/scheduler.factory';
 
 export class PagerDutySelectFieldController implements IComponentController {
   public component: any;
   public pagerDutyServices: IPagerDutyService[];
   public servicesLoaded: boolean;
+  private scheduler: any;
   public helpContents = `<p>Make sure your service exists in Pager Duty and includes the "Generic API"
-      integration (from your service in Pager Duty, click "New Integration", then select "Use our API directly").`;
+      integration.</p>
+      <h5><b>Setting up a new integration</b></h5>
+      <ol>
+        <li>Find your service in Pager Duty</li>
+        <li>Click "New Integration"</li>
+        <li>Select "Use our API directly"</li>
+        <li>Make sure to select "Events API v1" (Spinnaker is not compatible with v2)</li>
+      </ol>
+      <p><b>Note:</b> it can take up to five minutes for the service to appear in Spinnaker</p>`;
 
-  static get $inject() { return ['pagerDutyReader']; }
+  static get $inject() { return ['pagerDutyReader', 'schedulerFactory']; }
 
-  public constructor(private pagerDutyReader: any) {}
+  public constructor(private pagerDutyReader: PagerDutyReader, private schedulerFactory: SchedulerFactory) {}
 
   public $onInit() {
+    this.scheduler = this.schedulerFactory.createScheduler(10000);
+    this.scheduler.subscribe(() => this.loadPagerDutyServices());
+    this.loadPagerDutyServices();
+  }
+
+  public $onDestroy(): void {
+    this.scheduler.unsubscribe();
+  }
+
+  private loadPagerDutyServices(): void {
     this.pagerDutyReader.listServices().subscribe((pagerDutyServices: IPagerDutyService[]) => {
       this.pagerDutyServices = pagerDutyServices;
       this.servicesLoaded = true;

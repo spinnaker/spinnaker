@@ -14,7 +14,7 @@ export class PagerDutyReader {
   public constructor(private API: Api) {}
 
   public listServices(): Observable<IPagerDutyService[]> {
-    return Observable.fromPromise(this.API.one('pagerDuty/services').useCache().getList());
+    return Observable.fromPromise(this.API.one('pagerDuty/services').getList());
   }
 }
 
