@@ -19,6 +19,7 @@ import {WEBHOOK_STAGE_MODULE} from './pipeline/config/stages/webhook/webhookStag
 import {UNMATCHED_STAGE_TYPE_STAGE} from './pipeline/config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
 import {SETTINGS} from 'core/config/settings';
 import {INSIGHT_NGMODULE} from './insight/insight.module';
+import {REPLACE_FILTER} from './filter/replace.filter';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -133,6 +134,7 @@ module.exports = angular
     require('./pipeline/config/preconditions/types/clusterSize/clusterSize.precondition.type.module.js'),
     require('./pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),
     require('./presentation/presentation.module.js'),
+    REPLACE_FILTER,
 
     require('./search/search.module.js'),
     require('./securityGroup/securityGroup.module.js'),
