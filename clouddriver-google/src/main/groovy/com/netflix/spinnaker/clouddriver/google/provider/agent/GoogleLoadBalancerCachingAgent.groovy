@@ -197,7 +197,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
 
           def forwardingRuleTokens = forwardingRule.target.split("/")
 
-          if (forwardingRuleTokens[forwardingRuleTokens.size() - 2] != "targetVpnGateways") {
+          if (forwardingRuleTokens[forwardingRuleTokens.size() - 2] != "targetVpnGateways"
+              && forwardingRuleTokens[forwardingRuleTokens.size() - 2] != "targetInstances") {
             def targetPoolName = Utils.getLocalName(forwardingRule.target)
             def targetPoolsCallback = new TargetPoolCallback(googleLoadBalancer: newLoadBalancer,
                                                              httpHealthChecksRequest: httpHealthChecksRequest,
