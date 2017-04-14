@@ -29,15 +29,18 @@ if [[ "$gcs_path" != gs://*.tar.gz ]]; then
   exit -1
 fi
 
-# This might need to literally be "disk.raw" inside tar file.
+# https://cloud.google.com/compute/docs/images/import-existing-image#plan_import
 echo "`date` Dumping disk $disk_id"
-sudo dd if=/dev/disk/by-id/google-${disk_id}-part1 of=./disk.raw bs=4096
+sudo dd if=/dev/disk/by-id/google-${disk_id} \
+        of=./disk.raw \
+        bs=4M \
+        conv=sparse
 
 echo "`date` Creating tar file"
-sudo tar czf disk.raw.tz disk.raw
+sudo tar -Sczf disk.raw.tar.gz disk.raw
 
 echo "`date` Writing $gcs_path"
-gsutil -q cp disk.raw.tz ${gcs_path}
+gsutil -q cp disk.raw.tar.gz ${gcs_path}
 
 echo "`date` Finished"
 

@@ -328,6 +328,9 @@ function create_prototype_disk() {
     echo "`date` Creating disk '$BUILD_INSTANCE' from image '$SOURCE_IMAGE'"
     gcloud compute instances create ${BUILD_INSTANCE} \
         --no-boot-disk-auto-delete \
+        --boot-disk-type pd-ssd \
+        --boot-disk-size 10GB \
+        --machine-type n1-standard-4 \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
@@ -360,7 +363,7 @@ function create_prototype_disk() {
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
-      --machine-type n1-standard-1 \
+      --machine-type n1-standard-2 \
       --boot-disk-type pd-ssd \
       --boot-disk-size 10GB \
       --image $BASE_IMAGE \
