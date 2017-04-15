@@ -53,7 +53,9 @@ class PageSectionComponent implements ng.IComponentOptions {
   public transclude = true;
   public template = `
     <div ng-if="$ctrl.pageConfig.visible" class="page-subheading" data-page-id="{{$ctrl.pageConfig.key}}">
-      <h4 sticky-header>{{$ctrl.pageConfig.label}}</h4>
+      <sticky-header>
+        <h4>{{$ctrl.pageConfig.label}}</h4>
+      </sticky-header>
       <div ng-class="$ctrl.noWrapper ? 'no-wrapper' : 'section-body'" data-page-content="{{$ctrl.pageConfig.key}}" ng-transclude></div>
     </div>
   `;

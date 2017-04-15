@@ -1,15 +1,17 @@
 <div class="row rollup-entry sub-group">
-  <div sticky-header class="rollup-summary">
-    <div class="rollup-title-cell">
-      <account-label-color account="parentHeading"></account-label-color>
-      <div class="pod-center">
-        <div>
-          <span class="glyphicon glyphicon-transfer"></span>
-          {{grouping.heading}}
+  <sticky-header>
+    <div class="rollup-summary">
+      <div class="rollup-title-cell">
+        <account-label-color account="parentHeading"></account-label-color>
+        <div class="pod-center">
+          <div>
+            <span class="glyphicon glyphicon-transfer"></span>
+            {{grouping.heading}}
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </sticky-header>
   <div class="rollup-details">
     <div class="pod-subgroup" ng-repeat="subgroup in grouping.subgroups">
       <security-group

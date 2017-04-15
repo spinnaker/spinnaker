@@ -13,18 +13,18 @@
     <pre class="small" ng-if="ctrl.viewState.loading">
       <h3 us-spinner="{radius:12, width:4, length: 8}"></h3>
     </pre>
-    <div class="text-right auto-scroll-header"
-         sticky-header
-         notify-only="true"
-         is-visible="!ctrl.viewState.stickyHeaderEnabled"
-         ng-if="ctrl.viewState.tab === 'output' && !ctrl.viewState.loading">
-      <a href>
+    <sticky-header notify-only="true">
+      <div class="text-right auto-scroll-header"
+          is-visible="!ctrl.viewState.stickyHeaderEnabled"
+          ng-if="ctrl.viewState.tab === 'output' && !ctrl.viewState.loading">
+        <a href>
           <span class="glyphicon glyphicon-circle-arrow-down"
                 uib-tooltip="Scroll to bottom"
                 ng-class="ctrl.viewState.autoScrollEnabled ? 'enabled' : 'disabled'"
                 ng-click="ctrl.toggleAutoScroll()"></span>
-      </a>
-    </div>
+        </a>
+      </div>
+    </sticky-header>
     <div ng-if="!ctrl.viewState.loading"
          auto-scroll="ctrl.content"
          scroll-to-top="ctrl.scrollToTopSubject"

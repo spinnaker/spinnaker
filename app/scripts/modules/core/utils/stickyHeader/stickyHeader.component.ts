@@ -1,68 +1,75 @@
-import {module, IAttributes, IDirective, ILogService, IWindowService, IScope} from 'angular';
-import {DirectiveFactory} from 'core/utils/tsDecorators/directiveFactoryDecorator';
+import { module, ILogService, IWindowService, IScope, IComponentOptions } from 'angular';
 import * as $ from 'jquery';
-import {throttle} from 'lodash';
+import { throttle } from 'lodash';
 
-require('./stickyHeader.less');
+import './stickyHeader.less';
 
 /**
  * Based on https://github.com/polarblau/stickySectionHeaders
  */
-
-interface IStickyHeaderAttributes extends IAttributes {
-  addedOffsetHeight: string;
-  notifyOnly: string;
-  stickyIf: string;
-}
-
 export class StickyHeaderController implements ng.IComponentController {
-  public $element: JQuery;
-  public $attrs: IStickyHeaderAttributes;
-  public $scope: IScope;
+  private addedOffsetHeight: number;
+  private notifyOnly: boolean;
+  private stickyIf: string;
+
   private $scrollableContainer: JQuery;
   private $section: JQuery;
+  private $header: JQuery;
   private id: number;
   private isSticky = false;
-  private notifyOnly = false;
-  private addedOffsetHeight = 0;
   private topOffset = 0;
 
-  public constructor(private $log: ILogService, private $window: IWindowService) {}
+  static get $inject(): string[] { return ['$scope', '$element', '$log', '$window']; }
+  public constructor(public $scope: IScope,
+                     public $element: JQuery,
+                     private $log: ILogService,
+                     private $window: IWindowService) {}
 
-  public initialize() {
+  public $postLink(): void {
     this.id = Math.round(Math.random() * Date.now());
-    this.$section = this.$element.parent();
+    this.$section = this.$element.parent(); // Maybe?
     this.$scrollableContainer = this.$element.closest('[sticky-headers]');
     this.isSticky = false;
-    this.notifyOnly = this.$attrs.notifyOnly === 'true';
     this.positionHeader = throttle(this.positionHeader, 50, {trailing: true});
+    this.addedOffsetHeight = this.addedOffsetHeight || 0;
 
     if (!this.$scrollableContainer.length) {
-      this.$log.warn('No parent container with attribute "sticky-header"; headers will not stick.');
+      this.$log.warn('No parent container with attribute "sticky-headers"; headers will not stick.');
       return;
     }
-
-    this.addedOffsetHeight = this.$attrs.addedOffsetHeight ? parseInt(this.$attrs.addedOffsetHeight, 10) : 0;
 
     // fun thing about modals is they use a CSS transform, which resets position: fixed element placement -
     // but not offset() positioning, so we need to take that into account when calculating the fixed position
     const $modalDialog = this.$element.closest('div.modal-dialog');
     this.topOffset = $modalDialog.size() > 0 ? parseInt($modalDialog.css('marginTop'), 10) : 0;
 
-    if (this.$attrs.stickyIf) {
-      this.$scope.$watch(this.$attrs.stickyIf, (sticky: boolean) => this.toggleSticky(sticky));
+    if (this.stickyIf !== undefined) {
+      this.$scope.$watch(this.stickyIf, (sticky: boolean) => this.toggleSticky(sticky));
     } else {
       this.toggleSticky(true);
     }
   }
 
+  // We need to wait for the first digest cycle to build the children, so this convenience function will
+  // cache the header the first time we look it up
+  private getHeader(): JQuery {
+    if (!this.$header) {
+      const header = this.$element.children().first();
+      if (header.get(0) !== undefined) {
+        this.$header = header;
+      }
+    }
+    return this.$header;
+  }
+
   private positionHeader(): void {
-    const sectionRect = this.$section.get(0).getBoundingClientRect(),
+    const $header = this.getHeader(),
+      sectionRect = this.$section.get(0).getBoundingClientRect(),
       sectionTop = sectionRect.top,
       windowHeight = this.$window.innerHeight,
       bottom = sectionRect.bottom;
 
-    if (bottom < 0 || sectionTop > windowHeight) {
+    if (!$header || bottom < 0 || sectionTop > windowHeight) {
       this.clearStickiness();
       return;
     }
@@ -71,9 +78,9 @@ export class StickyHeaderController implements ng.IComponentController {
           top = sectionTop - containerTop;
 
     if (top < 0 && bottom > containerTop) {
-      const headingRect = this.$element.get(0).getBoundingClientRect(),
+      const headingRect = $header.get(0).getBoundingClientRect(),
             headingWidth = headingRect.width,
-            headingHeight = this.$element.outerHeight(true);
+            headingHeight = $header.outerHeight(true);
 
       let topBase = containerTop,
           zIndex = 5;
@@ -91,10 +98,8 @@ export class StickyHeaderController implements ng.IComponentController {
       if (this.notifyOnly) {
         this.$scope.$emit('sticky-header-enabled', newHeaderStyle);
       } else {
-        this.$section.css({
-          paddingTop: headingHeight,
-        });
-        this.$element.addClass('heading-sticky').removeClass('not-sticky').css(newHeaderStyle);
+        this.$section.css({ paddingTop: headingHeight });
+        $header.addClass('heading-sticky').removeClass('not-sticky').css(newHeaderStyle);
       }
       this.isSticky = true;
     } else {
@@ -103,8 +108,9 @@ export class StickyHeaderController implements ng.IComponentController {
   }
 
   private resetHeaderWidth(): void {
-    if (this.$element.get(0).className.includes('heading-sticky')) {
-      this.$element.removeClass('heading-sticky').addClass('not-sticky').removeAttr('style').css({width: '', top: ''});
+    const $header = this.getHeader();
+    if ($header && $header.get(0).className.includes('heading-sticky')) {
+      $header.removeClass('heading-sticky').addClass('not-sticky').removeAttr('style').css({width: '', top: ''});
     }
   }
 
@@ -114,10 +120,11 @@ export class StickyHeaderController implements ng.IComponentController {
   }
 
   private destroyStickyBindings(): void {
+    const $header = this.getHeader();
     this.$scrollableContainer.unbind('.stickyHeader-' + this.id);
     $(this.$window).unbind('.stickyHeader-' + this.id);
     this.$section.removeData();
-    this.$element.removeData();
+    $header.removeData();
   }
 
   private clearStickiness(): void {
@@ -125,9 +132,7 @@ export class StickyHeaderController implements ng.IComponentController {
       if (this.notifyOnly) {
         this.$scope.$emit('sticky-header-disabled');
       } else {
-        this.$section.css({
-          paddingTop: 0,
-        });
+        this.$section.css({ paddingTop: 0 });
         this.resetHeaderWidth();
       }
     }
@@ -140,31 +145,21 @@ export class StickyHeaderController implements ng.IComponentController {
       $(this.$window).bind('resize.stickyHeader-' + this.id, () => this.handleWindowResize());
 
       this.$scope.$on('page-reflow', () => this.handleWindowResize());
-
       this.$scope.$on('$destroy', () => this.destroyStickyBindings());
     } else {
       this.destroyStickyBindings();
     }
   }
 }
-
-@DirectiveFactory('$log', '$window')
-class StickyHeaderDirective implements IDirective {
-  public restrict = 'A';
-  public controller: any = StickyHeaderController;
-
-  public link = {
-    post: this.postLink
+export class StickyHeaderComponent implements IComponentOptions {
+  public bindings: any = {
+    addedOffsetHeight: '<',
+    notifyOnly: '<',
+    stickyIf: '<'
   };
-
-  private postLink($scope: IScope, $element: JQuery, $attrs: IStickyHeaderAttributes, ctrl: StickyHeaderController): void {
-    ctrl.$scope = $scope;
-    ctrl.$element = $element;
-    ctrl.$attrs = $attrs;
-    ctrl.initialize();
-  }
+  public controller: any = StickyHeaderController;
 }
 
-export const STICKY_HEADER_DIRECTIVE = 'spinnaker.core.utils.stickyHeader';
-module(STICKY_HEADER_DIRECTIVE, [])
-  .directive('stickyHeader', <any>StickyHeaderDirective);
+export const STICKY_HEADER_COMPONENT = 'spinnaker.core.utils.stickyHeader';
+module(STICKY_HEADER_COMPONENT, [])
+  .component('stickyHeader', new StickyHeaderComponent());
