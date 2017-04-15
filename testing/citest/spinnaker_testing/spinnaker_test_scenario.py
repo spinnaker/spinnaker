@@ -21,6 +21,7 @@ to make appropriate observations.
 """
 
 import logging
+import traceback
 
 from citest.base import JournalLogger
 
@@ -253,7 +254,9 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
         self.__platform_support[support.platform_name] = support
       except:
         logger = logging.getLogger(__name__)
-        logger.exception('Failed to initialize support class %s', str(klas))
+        
+        logger.exception('Failed to initialize support class %s:\n%s',
+                         str(klas), traceback.format_exc())
 
     try:
       self._do_init_bindings()

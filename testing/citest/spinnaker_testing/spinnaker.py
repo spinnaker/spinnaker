@@ -256,7 +256,10 @@ class SpinnakerAgent(service_testing.HttpAgent):
       elif bindings['NATIVE_HOSTNAME']:
         host_platform = 'native'
       else:
-        raise ValueError('No --native_hostname nor --gce_project')
+        bindings['NATIVE_HOSTNAME'] = 'localhost'
+        logging.getLogger(__name__).info('Assuming --native_hostname=localhost')
+        host_platform = 'native'
+
     return host_platform
 
   @classmethod
@@ -371,7 +374,7 @@ class SpinnakerAgent(service_testing.HttpAgent):
       return None
 
     logger.info('%s is available at %s', name, base_url)
-    env_url = os.path.join(base_url, 'env')
+    env_url = os.path.join(base_url, 'resolvedEnv')
     deployed_config = scrape_spring_config(env_url)
     spinnaker_agent = cls(base_url, status_factory)
     spinnaker_agent.__deployed_config = deployed_config
