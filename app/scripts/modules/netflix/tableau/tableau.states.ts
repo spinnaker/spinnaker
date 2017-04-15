@@ -2,14 +2,17 @@ import {module} from 'angular';
 
 import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
 import {APPLICATION_STATE_PROVIDER, ApplicationStateProvider} from 'core/application/application.state.provider';
+import {SUMMARY_TABLEAU_CONTROLLER} from './summary/summaryTableau.controller';
+import {APPLICATION_TABLEAU_CONTROLLER} from './application/appTableau.controller';
+import {TABLEAU_DATASOURCE} from './tableau.dataSource';
 
 export const TABLEAU_STATES = 'spinnaker.netflix.tableau.states';
 module(TABLEAU_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
-  require('./summary/summaryTableau.controller'),
-  require('./application/appTableau.controller'),
-  require('./tableau.dataSource'),
+  SUMMARY_TABLEAU_CONTROLLER,
+  APPLICATION_TABLEAU_CONTROLLER,
+  TABLEAU_DATASOURCE
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const appState: INestedState = {
