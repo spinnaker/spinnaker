@@ -179,6 +179,9 @@ services:
     extractBuildDetails: true
     allowMissingPackageInstallation: false
 
+  chaos:
+    enabled: false
+
   docker:
     # This target repository is used by the bakery to publish baked docker images.
     # Do not include http://.
