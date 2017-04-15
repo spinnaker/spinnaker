@@ -1,11 +1,11 @@
-<h4 ng-if="vm.viewState.loading"><span us-spinner="{radius:5, width:2, length: 3}"></span></h4>
+<h4 ng-if="$ctrl.viewState.loading"><span us-spinner="{radius:5, width:2, length: 3}"></span></h4>
 <!-- TODO: Remove error switch when feature flagging is available to toggle this directive on and off -->
-<div class="small reservation-report" ng-if="!vm.viewState.loading && !vm.viewState.error">
-  <div ng-if="!vm.viewState.error">
+<div class="small reservation-report" ng-if="!$ctrl.viewState.loading && !$ctrl.viewState.error">
+  <div ng-if="!$ctrl.viewState.error">
     <h4>
-      <span ng-if="vm.isVpc">VPC</span>
-      Reservations for {{vm.instanceType}} in
-      <account-tag account="vm.account"></account-tag>
+      <span ng-if="$ctrl.isVpc">VPC</span>
+      Reservations for {{$ctrl.instanceType}} in
+      <account-tag account="$ctrl.account"></account-tag>
     </h4>
     <table class="table table-condensed">
       <thead>
@@ -18,7 +18,7 @@
       </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="row in vm.reportData">
+        <tr ng-repeat="row in $ctrl.reportData">
           <td>{{row.availabilityZone}}</td>
           <td>{{row.os}}</td>
           <td>{{row.display.reserved}}</td>
@@ -28,7 +28,7 @@
       </tbody>
     </table>
   </div>
-  <h5 ng-if="vm.viewState.error" class="text-center">
-    There was an error loading the reservation counts for {{vm.instanceType}}
+  <h5 ng-if="$ctrl.viewState.error" class="text-center">
+    There was an error loading the reservation counts for {{$ctrl.instanceType}}
   </h5>
 </div>

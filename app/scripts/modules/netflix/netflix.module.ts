@@ -1,6 +1,5 @@
 import {module} from 'angular';
 
-import {NetflixSettings} from './netflix.settings';
 import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from 'core/application/service/applicationDataSource.registry';
 import {AVAILABILITY_DIRECTIVE} from './availability/availability.directive';
 import {BLESK_MODULE} from './blesk/blesk.module';
@@ -9,6 +8,8 @@ import {EXCEPTION_HANDLER} from './exception/exceptionHandler';
 import {FEEDBACK_COMPONENT} from './feedback/feedback.component';
 import {ISOLATED_TESTING_TARGET_STAGE_MODULE} from './pipeline/stage/isolatedTestingTarget/isolatedTestingTargetStage.module';
 import {NETFLIX_APPLICATION_MODULE} from './application';
+import {NetflixSettings} from './netflix.settings';
+import {RESERVATION_REPORT_COMPONENT} from './report/reservationReport.component';
 import {TABLEAU_STATES} from './tableau/tableau.states';
 import {TEMPLATE_OVERRIDES} from './templateOverride/templateOverrides.module';
 
@@ -28,6 +29,7 @@ module(NETFLIX_MODULE, [
   FEEDBACK_COMPONENT,
   ISOLATED_TESTING_TARGET_STAGE_MODULE,
   NETFLIX_APPLICATION_MODULE,
+  RESERVATION_REPORT_COMPONENT,
   TABLEAU_STATES,
   TEMPLATE_OVERRIDES,
 
@@ -45,7 +47,6 @@ module(NETFLIX_MODULE, [
   require('./migrator/pipeline/pipeline.migrator.directive.js'),
   require('./serverGroup/wizard/serverGroupCommandConfigurer.service.js'),
   require('./serverGroup/networking/networking.module.js'),
-  require('./report/reservationReport.directive.js'),
   require('./help/netflixHelpContents.registry.js'),
   require('./ci/ci.module'),
 ])
