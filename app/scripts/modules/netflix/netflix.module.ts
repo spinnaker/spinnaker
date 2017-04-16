@@ -6,6 +6,7 @@ import {
 } from 'core/application/service/applicationDataSource.registry';
 import {AVAILABILITY_DIRECTIVE} from './availability/availability.directive';
 import {BLESK_MODULE} from './blesk/blesk.module';
+import {CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT} from './canary/canaryAnalysisNameSelector.component';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {EXCEPTION_HANDLER} from './exception/exceptionHandler';
 import {FEEDBACK_COMPONENT} from './feedback/feedback.component';
@@ -28,6 +29,7 @@ module(NETFLIX_MODULE, [
   APPLICATION_DATA_SOURCE_REGISTRY,
   AVAILABILITY_DIRECTIVE,
   BLESK_MODULE,
+  CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
   CLOUD_PROVIDER_REGISTRY,
   EXCEPTION_HANDLER,
   FEEDBACK_COMPONENT,
@@ -48,7 +50,6 @@ module(NETFLIX_MODULE, [
   require('./pipeline/stage/quickPatchAsg/bulkQuickPatchStage/bulkQuickPatchStage.module.js'),
   require('./pipeline/stage/chap/chapStage'),
   require('./pipeline/config/properties'),
-  require('./canary'),
   require('./migrator/pipeline/pipeline.migrator.directive.js'),
   require('./serverGroup/wizard/serverGroupCommandConfigurer.service.js'),
   require('./serverGroup/networking/networking.module.js'),
