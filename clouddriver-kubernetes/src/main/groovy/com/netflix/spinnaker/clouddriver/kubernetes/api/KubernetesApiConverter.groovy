@@ -619,6 +619,8 @@ class KubernetesApiConverter {
 
     deployDescription.terminationGracePeriodSeconds = replicaSet?.spec?.template?.spec?.terminationGracePeriodSeconds
 
+    deployDescription.nodeSelector = replicaSet?.spec?.template?.spec?.nodeSelector
+
     return deployDescription
   }
 
@@ -672,6 +674,8 @@ class KubernetesApiConverter {
     } ?: []
 
     deployDescription.terminationGracePeriodSeconds = replicationController?.spec?.template?.spec?.terminationGracePeriodSeconds
+
+    deployDescription.nodeSelector = replicationController?.spec?.template?.spec?.nodeSelector
 
     return deployDescription
   }
