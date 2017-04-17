@@ -44,6 +44,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   Map<String, String> nodeSelector
   KubernetesSecurityContext securityContext
   KubernetesDeployment deployment
+  Long terminationGracePeriodSeconds
 
   @JsonIgnore
   Set<String> imagePullSecrets

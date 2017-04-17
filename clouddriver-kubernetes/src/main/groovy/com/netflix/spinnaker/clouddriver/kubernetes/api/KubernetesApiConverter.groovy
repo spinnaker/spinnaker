@@ -617,6 +617,8 @@ class KubernetesApiConverter {
       fromContainer(it)
     } ?: []
 
+    deployDescription.terminationGracePeriodSeconds = replicaSet?.spec?.template?.spec?.terminationGracePeriodSeconds
+
     return deployDescription
   }
 
@@ -668,6 +670,8 @@ class KubernetesApiConverter {
     deployDescription.containers = replicationController?.spec?.template?.spec?.containers?.collect {
       fromContainer(it)
     } ?: []
+
+    deployDescription.terminationGracePeriodSeconds = replicationController?.spec?.template?.spec?.terminationGracePeriodSeconds
 
     return deployDescription
   }
@@ -883,6 +887,10 @@ class KubernetesApiConverter {
 
     if (description.restartPolicy) {
       podTemplateSpecBuilder.withRestartPolicy(description.restartPolicy)
+    }
+
+    if (description.terminationGracePeriodSeconds) {
+      podTemplateSpecBuilder.withTerminationGracePeriodSeconds(description.terminationGracePeriodSeconds)
     }
 
     podTemplateSpecBuilder = podTemplateSpecBuilder.withImagePullSecrets()
