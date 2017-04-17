@@ -10,7 +10,7 @@ class SummaryTableauController {
   public srcUrl: string;
 
   static get $inject(): string[] {
-    return ['$sce', 'app', 'authenticationService'];
+    return ['$sce', 'authenticationService'];
   }
 
   constructor(private $sce: ISCEService,
