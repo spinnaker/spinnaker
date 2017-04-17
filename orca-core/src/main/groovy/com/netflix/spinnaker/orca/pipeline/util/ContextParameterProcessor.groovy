@@ -41,6 +41,7 @@ import org.springframework.expression.spel.support.StandardTypeLocator
 
 import java.lang.reflect.Method
 import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -186,28 +187,27 @@ class ContextParameterProcessor {
   }
 
   static class WhitelistTypeLocator implements TypeLocator {
-    private final List<Class<?>> allowedTypes = Collections.unmodifiableList([
+    private final Set<Class<?>> allowedTypes = Collections.unmodifiableSet([
         String,
         Date,
-        Number,
-        DateFormat,
+        Integer,
+        Long,
+        Double,
+        Byte,
+        SimpleDateFormat,
         Math,
         Random,
         UUID,
         Boolean
-    ])
+    ] as Set)
 
     final TypeLocator delegate = new StandardTypeLocator()
     @Override
     Class<?> findType(String typeName) throws EvaluationException {
       def type = delegate.findType(typeName)
-
-      for (Class<?> t : allowedTypes) {
-        if (t.isAssignableFrom(type)) {
-          return type
-        }
+      if (allowedTypes.contains(type)) {
+        return type
       }
-
 
       throw new SpelEvaluationException(SpelMessage.TYPE_NOT_FOUND, typeName)
     }
