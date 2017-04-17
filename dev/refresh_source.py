@@ -555,12 +555,20 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
 
     refresher = cls(options)
     in_repository_url = refresher.get_remote_repository_url('.')
-    if in_repository_url:
+    expected_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    if (in_repository_url
+        and os.path.basename(in_repository_url).startswith('spinnaker')):
       sys.stderr.write(
-          'ERROR: You cannot run this script from within a local repository.\n'
-          ' This directory is from "{url}".\n'
-          ' Did you intend to be in the parent directory?\n'
-        .format(url=in_repository_url))
+          'ERROR: Assuming you did not intend to run this from inside'
+          ' your spinnaker repo.\n'
+          '   This directory is from the repository:\n'
+          '      {url}.\n'
+          '   The normal use case would be to run this from:\n'
+          '      {expected_dir}\n'
+          '   to manage this repo alongside the others.\n'
+          .format(url=in_repository_url, expected_dir=expected_dir))
       return -1
 
     try:
