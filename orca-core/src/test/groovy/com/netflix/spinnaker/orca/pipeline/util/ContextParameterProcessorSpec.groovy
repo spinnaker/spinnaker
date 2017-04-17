@@ -157,6 +157,21 @@ class ContextParameterProcessorSpec extends Specification {
 
   }
 
+  def "should not allow subtypes in expression allowed types"() {
+    given:
+    def source = ["test": sourceValue]
+    def context = [:]
+
+    when:
+    def result = contextParameterProcessor.process(source, context, true)
+
+    then:
+    result.test == sourceValue
+
+    where:
+    sourceValue = '${new rx.internal.util.RxThreadFactory("").newThread(null).getContextClassLoader().toString()}'
+  }
+
   def "should replace the keys in a map"() {
     given:
     def source = ['${replaceMe}': 'somevalue', '${replaceMe}again': ['cats': 'dogs']]
