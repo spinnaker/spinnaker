@@ -17,3 +17,4 @@ export * from './instance';
 export * from './IStrategy'
 export * from './IEntityTags';
 export * from './ICluster';
+export * from './IOrchestratedItem';

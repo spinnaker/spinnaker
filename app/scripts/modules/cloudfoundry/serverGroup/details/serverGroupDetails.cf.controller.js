@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
                                                       cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
                                                       serverGroupWarningMessageService) {
 
-      let application = app;
+      let application = this.application = app;
 
       $scope.state = {
         loading: true

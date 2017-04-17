@@ -71,7 +71,7 @@
   </div>
   <div class="content" ng-if="!ctrl.state.loading">
     <h4 class="text-center" ng-if="ctrl.serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
-    <server-group-running-tasks-details server-group="ctrl.serverGroup"></server-group-running-tasks-details>
+    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.application"></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>

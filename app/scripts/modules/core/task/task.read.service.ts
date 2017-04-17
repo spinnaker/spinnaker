@@ -4,10 +4,15 @@ import {TaskStep} from '../domain/taskStep';
 import {IOrchestratedItem} from '../domain/IOrchestratedItem';
 import {ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer} from 'core/orchestratedItem/orchestratedItem.transformer';
 
+interface ITaskVariable {
+  key: string;
+  value: any;
+}
+
 export interface ITask extends IOrchestratedItem {
   id: string;
   steps?: TaskStep[];
-  variables: any[];
+  variables: ITaskVariable[];
   endTime: number;
   startTime: number;
   execution: any;

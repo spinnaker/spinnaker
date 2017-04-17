@@ -70,7 +70,7 @@
               class="disabled">
               <a href>Destroy</a>
           </li>
-          <li uib-tooltip="It is not possible to clone an App Engine server group's full 
+          <li uib-tooltip="It is not possible to clone an App Engine server group's full
                            launch configuration. However, clicking this button will allow
                            you to deploy into this server group's cluster.">
             <a href ng-click="ctrl.cloneServerGroup()">Clone</a>
@@ -83,7 +83,7 @@
 
   <div class="content" ng-if="!ctrl.state.loading">
     <div class="band band-info" ng-if="ctrl.serverGroup.isDisabled || ctrl.serverGroup.disabled">Disabled</div>
-    <server-group-running-tasks-details server-group="ctrl.serverGroup"></server-group-running-tasks-details>
+    <server-group-running-tasks-details server-group="ctrl.serverGroup" application="ctrl.app"></server-group-running-tasks-details>
     <collapsible-section heading="Server Group Information" expanded="true">
       <dl class="dl-horizontal dl-flex">
         <dt>Created</dt>

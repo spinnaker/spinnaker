@@ -65,7 +65,7 @@ class AppengineServerGroupDetailsController {
               private $scope: IPrivateScope,
               private $uibModal: IModalService,
               serverGroup: IServerGroupFromStateParams,
-              private app: Application,
+              public app: Application,
               private serverGroupReader: ServerGroupReader,
               private serverGroupWriter: ServerGroupWriter,
               private serverGroupWarningMessageService: ServerGroupWarningMessageService,

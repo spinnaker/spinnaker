@@ -31,6 +31,8 @@ module.exports = angular.module('spinnaker.azure.serverGroup.details.controller'
       loading: true
     };
 
+    this.application = app;
+
     function extractServerGroupSummary() {
       var summary = _.find(app.serverGroups.data, function (toCheck) {
         return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;

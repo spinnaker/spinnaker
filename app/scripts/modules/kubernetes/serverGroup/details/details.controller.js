@@ -25,7 +25,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
                                                                   serverGroupWarningMessageService,
                                                                   kubernetesServerGroupCommandBuilder, kubernetesServerGroupParamsMixin,
                                                                   confirmationModalService, kubernetesProxyUiService) {
-    let application = app;
+    let application = this.application = app;
 
     $scope.state = {
       loading: true

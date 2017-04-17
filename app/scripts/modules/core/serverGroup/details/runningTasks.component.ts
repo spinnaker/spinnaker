@@ -1,13 +1,16 @@
 import {module} from 'angular';
 import {ServerGroup} from 'core/domain/serverGroup';
+import {Application} from 'core/application/application.model';
 
 class ServerGroupRunningTasksCtrl implements ng.IComponentController {
   public serverGroup: ServerGroup;
+  public application: Application;
 }
 
 class ServerGroupRunningTasksComponent implements ng.IComponentOptions {
   public bindings: any = {
     serverGroup: '<',
+    application: '<',
   };
   public controller: any = ServerGroupRunningTasksCtrl;
   public template = `
@@ -23,6 +26,9 @@ class ServerGroupRunningTasksComponent implements ng.IComponentOptions {
         <div class="row" ng-repeat="step in task.steps | displayableTasks">
           <div class="col-md-7 col-md-offset-0">
             <span class="small"><status-glyph item="step"></status-glyph></span> {{step.name | robotToHuman }}
+            <platform-health-override-message ng-if="step.name === 'waitForUpInstances'"
+                                              step="step" task="task"
+                                              application="$ctrl.application"></platform-health-override-message>
           </div>
           <div class="col-md-4 text-right">
             {{step.runningTimeInMs | duration }}
