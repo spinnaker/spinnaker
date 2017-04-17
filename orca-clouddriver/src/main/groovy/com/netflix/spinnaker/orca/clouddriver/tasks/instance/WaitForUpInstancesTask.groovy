@@ -144,10 +144,6 @@ class WaitForUpInstancesTask extends AbstractWaitingForInstancesTask {
       return false
     }
 
-    if (HealthHelper.isDownConsideringPlatformHealth(healths)) {
-      return true
-    }
-
     // no health indicators is indicative of being down
     return !healths || healths.any { it.state == 'Down' || it.state == 'OutOfService' }
   }
