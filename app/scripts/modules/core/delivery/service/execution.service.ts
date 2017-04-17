@@ -107,7 +107,7 @@ export class ExecutionService {
           application.executions.refresh().then(deferred.resolve);
           return deferred.promise;
         } else {
-          return this.$timeout(function() {
+          return this.$timeout(() => {
             return this.waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId);
           }, 1000);
         }
