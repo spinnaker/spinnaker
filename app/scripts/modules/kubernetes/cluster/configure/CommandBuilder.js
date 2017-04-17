@@ -50,6 +50,7 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
         volumeSources: [],
         buildImageId: buildImageId,
         groupByRegistry: groupByRegistry,
+        terminationGracePeriodSeconds: 30,
         viewState: {
           mode: defaults.mode || 'create',
           disableStrategySelection: true,

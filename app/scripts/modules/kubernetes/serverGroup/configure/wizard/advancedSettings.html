@@ -8,5 +8,22 @@
 
     <kubernetes-annotation-configurer component="command" field="nodeSelector" label="Node Selector">
     </kubernetes-annotation-configurer>
+
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        Termination Grace Period
+        <help-field key="kubernetes.serverGroup.terminationGracePeriodSeconds"></help-field>
+      </div>
+      <div class="col-md-3">
+        <div class="input-group">
+          <input type="number" min="0"
+             class="form-control input-sm"
+             name="terminationGracePeriodSeconds"
+             ng-model="command.terminationGracePeriodSeconds" required/>
+          <span class="input-group-addon">seconds</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </ng-form>
