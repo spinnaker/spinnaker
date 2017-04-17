@@ -1,16 +1,17 @@
-'use strict';
+import {module} from 'angular';
 
-import {HELP_CONTENTS_REGISTRY} from 'core/help/helpContents.registry';
+import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from 'core/help/helpContents.registry';
 import {NetflixSettings} from '../netflix.settings';
 
-const angular = require('angular');
+interface IHelpItem {
+  key: string;
+  contents: string;
+}
 
-module.exports = angular
-  .module('spinnaker.netflix.help.registry', [
-    HELP_CONTENTS_REGISTRY,
-  ])
-  .run(function(helpContentsRegistry) {
-    let helpContents = [
+export const NETFLIX_HELP_REGISTRY = 'spinnaker.netflix.help.registry';
+module(NETFLIX_HELP_REGISTRY, [HELP_CONTENTS_REGISTRY])
+  .run((helpContentsRegistry: HelpContentsRegistry) => {
+    const helpContents: IHelpItem[] = [
       {
         key: 'application.legacyUdf',
         contents: `<p>The legacy user data format was used to support custom user data per account and application. We
@@ -80,7 +81,8 @@ module.exports = angular
         contents: 'The availability trends for the Netflix streaming service represented as percentage of expected stream starts acheived and the number of \'nines\' of that availability. <a href="http://go/availabilitycontextdoc" target="_blank">Click here</a> for more details.'
       }
     ];
+
     if (NetflixSettings.feature.netflixMode) {
-      helpContents.forEach((entry) => helpContentsRegistry.registerOverride(entry.key, entry.contents));
+      helpContents.forEach((entry: IHelpItem) => helpContentsRegistry.registerOverride(entry.key, entry.contents));
     }
   });
