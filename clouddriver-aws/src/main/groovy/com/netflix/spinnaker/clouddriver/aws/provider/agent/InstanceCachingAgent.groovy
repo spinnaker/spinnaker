@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.InstanceStateName
 import com.amazonaws.services.ec2.model.StateReason
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -191,7 +192,7 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
   private Map<String, String>  getAmazonHealth(Instance instance) {
     InstanceState state = instance.state
     StateReason stateReason = instance.stateReason
-    HealthState amazonState = state?.code == 16 ? HealthState.Unknown : HealthState.Down
+    HealthState amazonState = state?.name == InstanceStateName.Running.toString() ? HealthState.Unknown : HealthState.Down
     Map<String, String> awsInstanceHealth = [
       type: 'Amazon',
       healthClass: 'platform',
@@ -205,8 +206,8 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
 
   private static class InstanceData {
     static final String ASG_TAG_NAME = "aws:autoscaling:groupName"
-    static final int SHUTTING_DOWN = 32
-    static final int TERMINATED = 48
+    static final String SHUTTING_DOWN = InstanceStateName.ShuttingDown.toString()
+    static final String TERMINATED = InstanceStateName.Terminated.toString()
 
     final Instance instance
     final String instanceId
@@ -216,7 +217,7 @@ class InstanceCachingAgent implements CachingAgent, AccountAware, DriftMetric {
 
     public InstanceData(Instance instance, String account, String region) {
       this.instance = instance
-      cache = !(instance.state.code == SHUTTING_DOWN || instance.state.code == TERMINATED)
+      cache = !(instance.state.name == SHUTTING_DOWN || instance.state.name == TERMINATED)
       this.instanceId = Keys.getInstanceKey(instance.instanceId, account, region)
       String sgTag = instance.tags?.find { it.key == ASG_TAG_NAME }?.value
       this.serverGroup = sgTag ? Keys.getServerGroupKey(sgTag, account, region) : null
