@@ -2,17 +2,17 @@
      waypoint="{{waypoint}}"
      ng-click="loadDetails($event)"
      ng-class="{active: $state.includes('**.securityGroupDetails', {region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})}">
-
-  <h6 sticky-header added-offset-height="36">
-    <span class="glyphicon glyphicon-transfer"></span>
-    {{heading | uppercase}}
-    <entity-ui-tags component="securityGroup"
-                    application="application"
-                    entity-type="securityGroup"
-                    page-location="details"
-                    on-update="application.securityGroups.refresh()"></entity-ui-tags>
-  </h6>
-
+  <sticky-header added-offset-height="36">
+    <h6>
+      <span class="glyphicon glyphicon-transfer"></span>
+      {{heading | uppercase}}
+      <entity-ui-tags component="securityGroup"
+                      application="application"
+                      entity-type="securityGroup"
+                      page-location="details"
+                      on-update="application.securityGroups.refresh()"></entity-ui-tags>
+    </h6>
+  </sticky-header>
   <div class="cluster-container">
     <div class="rollup-details-section col-md-6" ng-if="sortFilter.showServerGroups">
       <div ng-if="!securityGroup.usages.serverGroups.length" class="small">
