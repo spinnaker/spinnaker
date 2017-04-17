@@ -88,7 +88,7 @@
         <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
         <render-if-feature feature="entityTags">
           <entity-source metadata="ctrl.serverGroup.entityTags.creationMetadata"></entity-source>
-          <view-changes-link commits="ctrl.commits"
+          <view-changes-link change-config="ctrl.changeConfig"
                              jar-diffs="ctrl.jarDiffs"
                              link-text="view changes"
                              name-item="ctrl.serverGroup"></view-changes-link>
