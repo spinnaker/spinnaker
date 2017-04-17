@@ -65,7 +65,7 @@ class SpinnakerProjectConventionsPlugin implements Plugin<Project> {
         project.plugins.withType(OspackageBintrayPublishPlugin) {
             OspackageBintrayExtension bintrayPackage = (OspackageBintrayExtension) project.extensions.getByName('bintrayPackage')
             bintrayPackage.packageRepo = propOrDefault('bintrayPackageRepo', 'debians')
-            bintrayPackage.debDistribution = 'trusty'
+            bintrayPackage.debDistribution = propOrDefault('bintrayPackageDebDistribution', 'trusty')
             bintrayPackage.debComponent = 'spinnaker'
             bintrayPackage.debArchitectures = 'i386,amd64'
             bintrayPackage.buildNumber = propOrDefault('bintrayPackageBuildNumber', '')
