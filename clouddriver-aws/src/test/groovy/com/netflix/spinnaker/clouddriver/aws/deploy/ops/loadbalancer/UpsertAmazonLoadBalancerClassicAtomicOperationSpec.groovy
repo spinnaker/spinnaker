@@ -38,7 +38,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetAnalyzer
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetTarget
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
@@ -46,18 +46,18 @@ import com.netflix.spinnaker.clouddriver.aws.services.SecurityGroupService
 import spock.lang.Specification
 import spock.lang.Subject
 
-class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
+class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
   }
 
-  UpsertAmazonLoadBalancerDescription description = new UpsertAmazonLoadBalancerDescription(
+  UpsertAmazonLoadBalancerClassicDescription description = new UpsertAmazonLoadBalancerClassicDescription(
           name: "kato-main-frontend",
           availabilityZones: ["us-east-1": ["us-east-1a"]],
           listeners: [
-                  new UpsertAmazonLoadBalancerDescription.Listener(
-                          externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
+                  new UpsertAmazonLoadBalancerClassicDescription.Listener(
+                          externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTP,
                           externalPort: 80,
                           internalPort: 8501
                   )
@@ -177,8 +177,8 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
 
     given:
     description.listeners.add(
-      new UpsertAmazonLoadBalancerDescription.Listener(
-        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTP,
         externalPort: 8080,
         internalPort: 8080
       ))
@@ -228,14 +228,14 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
     given:
     description.listeners.clear()
     description.listeners.add(
-      new UpsertAmazonLoadBalancerDescription.Listener(
-        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.TCP,
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.TCP,
         externalPort: 22,
         internalPort: 22
       ))
     description.listeners.add(
-      new UpsertAmazonLoadBalancerDescription.Listener(
-        externalProtocol: UpsertAmazonLoadBalancerDescription.Listener.ListenerType.HTTP,
+      new UpsertAmazonLoadBalancerClassicDescription.Listener(
+        externalProtocol: UpsertAmazonLoadBalancerClassicDescription.Listener.ListenerType.HTTP,
         externalPort: 80,
         internalPort: 8502
       ))
@@ -288,7 +288,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should handle VPC ELB creation backward compatibility"() {
     description.subnetType = "internal"
-    description.isInternal = null;
+    description.setInternal(null)
     when:
     operation.operate([])
 
@@ -309,7 +309,7 @@ class UpsertAmazonLoadBalancerAtomicOperationSpec extends Specification {
 
   void "should handle VPC ELB creation"() {
       description.subnetType = "internal"
-      description.isInternal = true;
+      description.setInternal(true)
       when:
       operation.operate([])
 
