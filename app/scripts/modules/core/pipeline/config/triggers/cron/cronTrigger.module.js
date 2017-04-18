@@ -21,7 +21,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.cron', [
       controller: 'CronTriggerCtrl',
       controllerAs: 'vm',
       templateUrl: require('./cronTrigger.html'),
-      popoverLabelUrl: require('./cronPopoverLabel.html'),
       validators: [
         {
           type: 'serviceAccountAccess',

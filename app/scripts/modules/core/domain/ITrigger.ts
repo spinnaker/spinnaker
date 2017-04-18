@@ -23,3 +23,7 @@ export interface IPipelineTrigger extends ITrigger {
   application: string;
   pipeline: string;
 }
+
+export interface ICronTrigger extends ITrigger {
+  cronExpression: string;
+}

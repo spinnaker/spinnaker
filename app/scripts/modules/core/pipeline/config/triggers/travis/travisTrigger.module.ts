@@ -98,7 +98,6 @@ module(TRAVIS_TRIGGER, [
     controller: 'TravisTriggerCtrl',
     controllerAs: '$ctrl',
     templateUrl: require('./travisTrigger.html'),
-    popoverLabelUrl: require('./travisPopoverLabel.html'),
     manualExecutionHandler: 'travisTriggerExecutionHandler',
     validators: [
       {

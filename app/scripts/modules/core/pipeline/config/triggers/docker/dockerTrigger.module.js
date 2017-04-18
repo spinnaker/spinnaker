@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
       controller: 'DockerTriggerCtrl as ctrl',
       controllerAs: 'vm',
       templateUrl: require('./dockerTrigger.html'),
-      popoverLabelUrl: require('./dockerPopoverLabel.html'),
       manualExecutionHandler: 'dockerTriggerExecutionHandler',
       validators: [
         { type: 'requiredField', fieldName: 'account',

@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
       controller: 'JenkinsTriggerCtrl',
       controllerAs: 'jenkinsTriggerCtrl',
       templateUrl: require('./jenkinsTrigger.html'),
-      popoverLabelUrl: require('./jenkinsPopoverLabel.html'),
       manualExecutionHandler: 'jenkinsTriggerExecutionHandler',
       validators: [
         {

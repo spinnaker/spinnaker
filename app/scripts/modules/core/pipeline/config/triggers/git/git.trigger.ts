@@ -73,7 +73,6 @@ module(GIT_TRIGGER, [
     controller: 'GitTriggerCtrl',
     controllerAs: 'vm',
     templateUrl: require('./gitTrigger.html'),
-    popoverLabelUrl: require('./gitPopoverLabel.html'),
     validators: [
       {
         type: 'serviceAccountAccess',
