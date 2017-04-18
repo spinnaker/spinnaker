@@ -39,15 +39,15 @@ describe('Directives: regionSelectField', function () {
     var elem = this.compile(html)(scope);
     scope.$digest();
 
-    expect(elem.find('option').length).toBe(1);
+    expect(elem.find('option').length).toBe(2);
 
     scope.regions = [{name: 'us-east-1'}, {name: 'us-west-1'}];
     scope.$digest();
 
     var options = elem.find('option');
-    var expected = ['us-east-1', 'us-west-1'];
+    var expected = ['', 'us-east-1', 'us-west-1'];
 
-    expect(options.length).toBe(2);
+    expect(options.length).toBe(3);
     options.each(function(idx, option) {
       expect(option.value).toBe(expected[idx]);
     });
@@ -66,7 +66,7 @@ describe('Directives: regionSelectField', function () {
     scope.$digest();
 
     var options = elem.find('option');
-    expect(options[1].selected).toBe(true);
+    expect(options[2].selected).toBe(true);
 
   });
 });
