@@ -146,7 +146,7 @@ providers:
       username: ${OS_USERNAME}
       password: ${OS_PASSWORD}
       projectName: ${OS_PROJECT_NAME}
-      domainName: ${OS_PROJECT_DOMAIN_NAME}
+      domainName: ${OS_USER_DOMAIN_NAME}
       regions: ${OS_REGION_NAME:RegionOne}
       # Enable this if your OpenStack Installation uses a self-signed certificate (use with caution)
       # insecure: true
