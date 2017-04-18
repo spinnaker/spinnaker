@@ -3,12 +3,13 @@
 import _ from 'lodash';
 import {BakeExecutionLabel} from 'core/pipeline/config/stages/bake/BakeExecutionLabel';
 import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SETTINGS} from 'core/config/settings';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
-  require('core/pipeline/config/pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   require('./bakeExecutionDetails.controller.js'),
   BAKERY_SERVICE,
   require('core/pipeline/config/stages/bake/modal/addExtendedAttribute.controller.modal.js'),

@@ -5,11 +5,12 @@ let angular = require('angular');
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {API_SERVICE} from 'core/api/api.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   API_SERVICE,
-  require('../pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   PIPELINE_CONFIG_SERVICE,
   require('./overrideTimeout/overrideTimeout.directive.js'),
   require('./overrideFailure/overrideFailure.component.js'),

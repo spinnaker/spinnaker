@@ -3,6 +3,7 @@
 let angular = require('angular');
 import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
 import {IGOR_SERVICE, BuildServiceType} from 'core/ci/igor.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins', [
@@ -10,7 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.trigger.jenkins'
   require('../trigger.directive.js'),
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
-  require('../../pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
 ])
   .config(function(pipelineConfigProvider) {
 

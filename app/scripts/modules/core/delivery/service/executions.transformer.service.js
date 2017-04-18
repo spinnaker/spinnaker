@@ -6,10 +6,11 @@ let angular = require('angular');
 
 import {ExecutionBarLabel} from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 module.exports = angular.module('spinnaker.core.delivery.executionTransformer.service', [
   ORCHESTRATED_ITEM_TRANSFORMER,
-  require('../../pipeline/config/pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
 ])
   .factory('executionsTransformer', function(orchestratedItemTransformer, pipelineConfig) {
 

@@ -1,6 +1,7 @@
 import {module, extend} from 'angular';
 
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 interface IViewState {
   waitForCompletion?: boolean;
@@ -65,7 +66,7 @@ export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
 
 module(WEBHOOK_STAGE, [
   JSON_UTILITY_SERVICE,
-  require('../../pipelineConfigProvider.js')
+  PIPELINE_CONFIG_PROVIDER
 ]).config((pipelineConfigProvider: any) => {
   pipelineConfigProvider.registerStage({
     label: 'Webhook',

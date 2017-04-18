@@ -1,10 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
-  require('core/pipeline/config/pipelineConfigProvider'),
+  PIPELINE_CONFIG_PROVIDER,
   require('core/application/modal/platformHealthOverride.directive.js'),
 ])
   .config(function(pipelineConfigProvider) {

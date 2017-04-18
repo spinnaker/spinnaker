@@ -1,10 +1,12 @@
 'use strict';
 
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.stage.bakeStage', [
-    require('../../pipelineConfigProvider.js'),
+    PIPELINE_CONFIG_PROVIDER,
     require('./bakeStage.transformer.js'),
   ])
   .config(function(pipelineConfigProvider) {

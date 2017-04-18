@@ -1,3 +1,4 @@
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {module, IScope} from 'angular';
 import * as moment from 'moment';
 
@@ -144,7 +145,7 @@ export const TRAVIS_STAGE = 'spinnaker.core.pipeline.stage.travisStage';
 
 module(TRAVIS_STAGE, [
   IGOR_SERVICE,
-  require('../../pipelineConfigProvider.js')
+  PIPELINE_CONFIG_PROVIDER
 ]).config((pipelineConfigProvider: any) => {
   pipelineConfigProvider.registerStage({
     label: 'Travis',

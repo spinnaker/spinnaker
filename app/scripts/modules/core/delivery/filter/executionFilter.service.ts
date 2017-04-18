@@ -6,6 +6,7 @@ import {Application} from 'core/application/application.model';
 import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
 import {IExecution} from 'core/domain/IExecution';
 import {IPipeline} from 'core/domain/IPipeline';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 interface IGroup {
   heading: string;
@@ -315,6 +316,6 @@ module (EXECUTION_FILTER_SERVICE, [
   require('core/utils/waypoints/waypoint.service'),
   require('core/filterModel/filter.model.service'),
   require('core/orchestratedItem/timeBoundaries.service'),
-  require('core/pipeline/config/pipelineConfigProvider')
+  PIPELINE_CONFIG_PROVIDER
 ]).factory('executionFilterService', (executionFilterModel: ExecutionFilterModel, timeBoundaries: any, waypointService: any, $log: ILogService, filterModelService: any, pipelineConfig: any) =>
                                       new ExecutionFilterService(executionFilterModel, timeBoundaries, waypointService, $log, filterModelService, pipelineConfig));

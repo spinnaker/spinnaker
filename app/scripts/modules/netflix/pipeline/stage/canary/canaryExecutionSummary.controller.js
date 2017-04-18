@@ -1,5 +1,7 @@
 'use strict';
 
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary.controller', [
@@ -7,7 +9,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),
-  require('../../../../core/pipeline/config/pipelineConfigProvider.js')
+  PIPELINE_CONFIG_PROVIDER
 ])
   .controller('CanaryExecutionSummaryCtrl', function ($scope, $http, $uibModal, pipelineConfig) {
 
