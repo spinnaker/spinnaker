@@ -80,7 +80,11 @@ module.exports = angular.module('spinnaker.azure.serverGroup.transformer', [
 
       if (typeof command.customScriptsSettings !== 'undefined') {
         configuration.customScriptsSettings.commandToExecute = command.customScriptsSettings.commandToExecute;
-        configuration.customScriptsSettings.fileUris = [command.customScriptsSettings.fileUris];
+        if (Array.isArray(command.customScriptsSettings.fileUris)) {
+          configuration.customScriptsSettings.fileUris = command.customScriptsSettings.fileUris;
+        } else {
+          configuration.customScriptsSettings.fileUris = [command.customScriptsSettings.fileUris];
+        }
       }
 
       // Default to an empty list of health provider names for now.
