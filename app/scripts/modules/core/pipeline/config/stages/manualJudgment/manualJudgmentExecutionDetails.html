@@ -19,34 +19,7 @@
           <dd ng-bind-html="stage.context.instructions"></dd>
         </dl>
       </div>
-      <div class="col-md-9" ng-if="stage.status !== 'SKIPPED' && (!stage.context.judgmentStatus || stage.status === 'RUNNING')">
-        <div class="form-group" ng-if="!!stage.context.judgmentInputs.length">
-          <p><b>Judgment Input</b></p>
-          <ui-select ng-model="viewState.judgmentInput" class="form-control input-sm">
-            <ui-select-match allow-clear="true" placeholder="Select...">{{$select.selected.value}}</ui-select-match>
-            <ui-select-choices repeat="judgmentInput in stage.context.judgmentInputs | filter: $select.search">
-              <span ng-bind-html="judgmentInput.value | highlight: $select.search"></span>
-            </ui-select-choices>
-          </ui-select>
-        </div>
-        <button class="btn btn-primary"
-                style="margin: 0 15px"
-                ng-click="manualCtrl.provideJudgment('continue', viewState.judgmentInput.value)"
-                ng-disabled="viewState.submitting || stage.context.judgmentStatus">
-          <button-busy-indicator
-            ng-if="(viewState.submitting && viewState.judgmentDecision === 'continue') || stage.context.judgmentStatus === 'continue'"></button-busy-indicator>
-          Continue
-        </button>
-        <button class="btn btn-danger" ng-click="manualCtrl.provideJudgment('stop')"
-                ng-disabled="viewState.submitting || stage.context.judgmentStatus">
-          <button-busy-indicator
-            ng-if="(viewState.submitting && viewState.judgmentDecision === 'stop') || stage.context.judgmentStatus === 'stop'"></button-busy-indicator>
-          Stop
-        </button>
-      </div>
-      <div class="col-md-12 error-message" ng-if="viewState.error">
-        There was an error recording your decision. Please try again.
-      </div>
+      <manual-judgment-selector application="application" execution="execution" stage="stage"></manual-judgment-selector>
     </div>
 
     <stage-failure-message stage="stage" is-failed="stage.isFailed && !stage.context.judgmentStatus" message="stage.failureMessage"></stage-failure-message>

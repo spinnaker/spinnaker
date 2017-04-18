@@ -16,6 +16,7 @@ export interface IExecutionContext {
 }
 
 export interface IExecutionStage extends IOrchestratedItem, IStage {
+  id: string;
   tasks: IStageStep[];
   context: IExecutionContext;
 }

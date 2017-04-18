@@ -1,13 +1,14 @@
 'use strict';
 
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+import {MANUAL_JUDGMENT_COMPONENT} from './manualJudgment.component';
 
 module.exports = angular
     .module('spinnaker.core.pipeline.stage.manualJudgment.executionDetails.controller', [
     require('angular-ui-router'),
-    require('./manualJudgment.service.js'),
+    MANUAL_JUDGMENT_COMPONENT,
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   ])
