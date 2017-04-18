@@ -271,8 +271,8 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt>Cooldown</dt>
         <dd>{{ctrl.serverGroup.asg.defaultCooldown}} seconds</dd>
-        <dt>Enabled Metrics</dt>
-        <dd>{{ctrl.serverGroup.asg.enabledMetrics.join(', ')}}</dd>
+        <dt ng-if="ctrl.enabledMetrics.length">Enabled Metrics</dt>
+        <dd ng-if="ctrl.enabledMetrics.length">{{ctrl.enabledMetrics.join(', ')}}</dd>
         <dt>Health Check Type</dt>
         <dd>{{ctrl.serverGroup.asg.healthCheckType}}</dd>
         <dt>Grace Period</dt>
