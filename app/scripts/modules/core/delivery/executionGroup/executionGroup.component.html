@@ -27,7 +27,7 @@
           </h4>
           <div class="text-right execution-group-actions" ng-if="$ctrl.viewState.canConfigure">
             <triggers-tag is-visible="!$ctrl.pipelineConfig.disabled" pipeline="$ctrl.pipelineConfig"></triggers-tag>
-            <next-run-tag ng-if="!$ctrl.pipelineConfig.disabled" pipeline="$ctrl.pipelineConfig"></next-run-tag>
+            <next-run-tag is-visible="!$ctrl.pipelineConfig.disabled" pipeline="$ctrl.pipelineConfig"></next-run-tag>
             <h4>
               <a href
                 class="btn btn-xs btn-link"

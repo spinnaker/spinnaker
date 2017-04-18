@@ -34,7 +34,6 @@ export interface IStageOrTriggerTypeConfig {
   description: string;
   key: string;
   templateUrl: string;
-  popoverLabelUrl?: string;
   controller: string;
   controllerAs: string;
   validators: IValidatorConfig[];

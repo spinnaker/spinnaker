@@ -8,7 +8,9 @@ import {IExecutionDetailsStateParams} from '../delivery.states';
 import {EXECUTION_COMPONENT} from './execution/execution.component';
 import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
 import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
+import {NEXT_RUN_TAG_COMPONENT} from 'core/delivery/triggers/nextRunTag.component';
 import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
+import {TRIGGERS_TAG_COMPONENT} from 'core/delivery/triggers/triggersTag.component';
 
 import './executionGroup.less';
 
@@ -153,8 +155,8 @@ export class ExecutionGroupComponent implements IComponentOptions {
 
 export const EXECUTION_GROUP_COMPONENT = 'spinnaker.core.delivery.group.executionGroup.component';
 module(EXECUTION_GROUP_COMPONENT, [
-  require('../triggers/triggersTag.directive.js'),
-  require('../triggers/nextRun.component'),
+  TRIGGERS_TAG_COMPONENT,
+  NEXT_RUN_TAG_COMPONENT,
   EXECUTION_COMPONENT,
   EXECUTION_FILTER_MODEL,
   EXECUTION_SERVICE,
