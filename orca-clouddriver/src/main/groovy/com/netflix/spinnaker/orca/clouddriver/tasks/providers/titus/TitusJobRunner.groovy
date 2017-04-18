@@ -37,6 +37,10 @@ class TitusJobRunner implements JobRunner {
     }
     operation.put('cloudProvider', cloudProvider)
 
+    if (stage.execution.authentication?.user) {
+      operation.put('user', stage.execution.authentication?.user)
+    }
+
     return [[(OPERATION): operation]]
   }
 }
