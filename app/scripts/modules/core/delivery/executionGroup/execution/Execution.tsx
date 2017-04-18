@@ -259,8 +259,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             <div className="execution-summary">
               Status: <span className={`status execution-status execution-status-${this.props.execution.status.toLowerCase()}`}>{this.props.execution.status}</span>
               { this.props.execution.cancellationReason && (<Tooltip value={this.props.execution.cancellationReason}><span className="glyphicon glyphicon-info-sign"></span></Tooltip>) }
-              { this.props.execution.canceledBy && (<span>by {this.props.execution.canceledBy} &mdash; {timestamp(this.props.execution.endTime)}</span>) }
-              { this.state.restartDetails && (<span>Restarted by {this.state.restartDetails.restartedBy} &mdash; {timestamp(this.state.restartDetails.restartTime)}</span>) }
+              { this.props.execution.canceledBy && (<span> by {this.props.execution.canceledBy} &mdash; {timestamp(this.props.execution.endTime)}</span>) }
+              { this.state.restartDetails && (<span> Restarted by {this.state.restartDetails.restartedBy} &mdash; {timestamp(this.state.restartDetails.restartTime)}</span>) }
               <span className="pull-right">Duration: {duration(this.props.execution.runningTimeInMs)}</span>
             </div>
           </div>
@@ -334,7 +334,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
                 <a onClick={() => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked'})}
                   target="_blank"
                   href={this.state.pipelinesUrl + this.props.execution.id}>Source</a>
-                |
+                { ' | ' }
                 <a onClick={() => ReactGA.event({category: 'Pipeline', action: 'Permalink clicked'}) }
                    href={this.getUrl()}>Permalink</a>
                 <CopyToClipboard text={this.getUrl()} toolTip="Copy permalink to clipboard"></CopyToClipboard>
