@@ -56,9 +56,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.detai
       return stageContext.persistedProperties;
     };
 
-    let extractProperties = (propertyList) => {
-      if (propertyList.length) return propertyList.map( prop => prop.property );
-    };
-
+    const extractProperties = (propertyList) => propertyList ? propertyList.map(prop => prop.property) : [];
 
   });
