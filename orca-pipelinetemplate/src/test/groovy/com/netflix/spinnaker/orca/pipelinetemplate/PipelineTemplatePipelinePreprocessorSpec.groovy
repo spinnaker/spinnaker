@@ -175,6 +175,24 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     false       || ['wait']
   }
 
+  @Unroll
+  def 'should preserve children stages of conditional stage'() {
+    when:
+    def result = subject.process(createTemplateRequest('conditional-stages-with-children-001.yml', [includeWait: includeWait]))
+
+    then:
+    result.stages*.name == expectedStageNames
+
+    and:
+    result.stages.find { it.name == 'childOfConditionalStage' }.requisiteStageRefIds == childStageRequisiteRefIds
+
+    where:
+    includeWait || childStageRequisiteRefIds  || expectedStageNames
+    true        || ['conditionalWait']        || ['wait', 'conditionalWait', 'childOfConditionalStage']
+    false       || ['wait']                   || ['wait', 'childOfConditionalStage']
+  }
+
+
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {
     return [
       type: 'templatedPipeline',

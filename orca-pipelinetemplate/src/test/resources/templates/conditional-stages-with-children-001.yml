@@ -1,0 +1,25 @@
+schema: "1"
+id: simpleTemplate
+variables:
+- name: includeWait
+  type: boolean
+stages:
+- id: wait
+  type: wait
+  config:
+    waitTime: 5
+- id: conditionalWait
+  type: wait
+  dependsOn:
+  - wait
+  config:
+    waitTime: 5
+  when:
+  # This could also just be '{{ includeWait }}', but examples.
+  - '{{ includeWait == true }}'
+- id: childOfConditionalStage
+  type: conditionalWait
+  dependsOn:
+  - conditionalWait
+  config:
+    waitTime: 5

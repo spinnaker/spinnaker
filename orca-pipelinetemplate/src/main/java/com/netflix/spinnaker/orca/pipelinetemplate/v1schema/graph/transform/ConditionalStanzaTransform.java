@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
 
@@ -46,25 +47,18 @@ public class ConditionalStanzaTransform implements PipelineTemplateVisitor {
   }
 
   private <T extends Conditional> void trimConditionals(List<T> stages, PipelineTemplate template) {
-    if (stages == null) {
-      return;
-    }
-
-    for (T el : stages) {
-      if (el.getWhen() == null || el.getWhen().isEmpty()) {
-        continue;
-      }
-
-      RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
-      context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
-
-      for (String conditional : el.getWhen()) {
-        String rendered = renderer.render(conditional, context);
-        if (!Boolean.parseBoolean(rendered)) {
-          stages.remove(el);
-          return;
+    Optional.ofNullable(stages).ifPresent( allStages -> allStages
+      .stream()
+      .filter(stage -> stage.getWhen() != null && !stage.getWhen().isEmpty())
+      .forEach(stage -> {
+        RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
+        context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
+        for (String conditional : stage.getWhen()) {
+          String rendered = renderer.render(conditional, context);
+          if (!Boolean.parseBoolean(rendered)) {
+            stage.setRemove();
+          }
         }
-      }
-    }
+      }));
   }
 }

@@ -62,8 +62,7 @@ class ConditionalStanzaTransformSpec extends Specification {
 
     then:
     noExceptionThrown()
-    template.stages.size() == 1
-    template.stages.find { it.id == 's2' } == null
-
+    !template.stages.find { it.id == 's1' }.removed
+    template.stages.find { it.id == 's2' }.removed
   }
 }
