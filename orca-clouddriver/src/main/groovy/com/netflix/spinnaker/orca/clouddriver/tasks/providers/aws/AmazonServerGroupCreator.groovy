@@ -102,6 +102,10 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       }
     }
 
+    if (context.cloudProvider == 'titus' && stage.execution.authentication?.user) {
+      operation.user = stage.execution.authentication?.user
+    }
+
     log.info("Deploying ${operation.amiName ?: operation.imageId} to ${targetRegion}")
 
     if (context.account && !operation.credentials) {
