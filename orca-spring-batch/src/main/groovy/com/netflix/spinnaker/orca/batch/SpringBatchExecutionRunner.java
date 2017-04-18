@@ -284,9 +284,9 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   }
 
   private <E extends Execution<E>> void buildStepsForFlow(Stage<E> stage, Map<Serializable, AtomicInteger> taskIdGenerators, FlowBuilder<Flow> flow) {
-    planBeforeOrAfterStages(stage, STAGE_BEFORE, (preStage) -> {
-      buildStepsForFlow(preStage, taskIdGenerators, flow);
-    });
+    planBeforeOrAfterStages(stage, STAGE_BEFORE, (preStage) ->
+      buildStepsForFlow(preStage, taskIdGenerators, flow)
+    );
     planStage(
       stage,
       (stages, taskGraph) -> {
