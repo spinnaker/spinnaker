@@ -32,6 +32,7 @@ Then start the pipeline by sending a start `managedTemplate` pipeline request wi
 {
 	"type": "templatedPipeline",
 	"config": {
+	  "schema": "1",
 		"pipeline":{
 			"name": "My fancy DCD pipeline",
 			"application": "yourAppName",

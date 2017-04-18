@@ -66,9 +66,11 @@ public class RenderTransform implements PipelineTemplateVisitor {
   private void render(PipelineTemplate template) {
     RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
 
-    template.getVariables().stream()
-      .filter(Variable::hasDefaultValue)
-      .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
+    if (template.getVariables() != null) {
+      template.getVariables().stream()
+        .filter(Variable::hasDefaultValue)
+        .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
+    }
 
     context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
 
