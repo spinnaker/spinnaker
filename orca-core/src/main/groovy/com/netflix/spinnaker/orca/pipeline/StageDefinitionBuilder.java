@@ -174,6 +174,19 @@ public interface StageDefinitionBuilder {
                                                              Stage<E> parent,
                                                              SyntheticStageOwner stageOwner) {
       Stage<E> stage = new Stage<>(execution, type, name, context);
+      if (parent != null) {
+        String stageName = Optional.ofNullable(name).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
+        String id = parent.getId() + "-" + parent.getStageCounter().incrementAndGet() + "-" + stageName;
+
+        Optional<Stage<E>> existingStage = execution.getStages().stream().filter(it -> it.getId().equals(id)).findFirst();
+        if (existingStage.isPresent()) {
+          // restarted pipelines will have synthetic stages already built so we
+          // don't want to duplicate them
+          return existingStage.get();
+        } else {
+          stage.setId(id);
+        }
+      }
 
       stage.setSyntheticStageOwner(stageOwner);
 
@@ -190,13 +203,6 @@ public interface StageDefinitionBuilder {
             .findFirst()
             .orElse(null);
         }
-      }
-
-      if (parent != null) {
-        String stageName = Optional.ofNullable(stage.getName()).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
-        stage.setId(
-          parent.getId() + "-" + parent.getStageCounter().incrementAndGet() + "-" + stageName
-        );
       }
 
       return stage;

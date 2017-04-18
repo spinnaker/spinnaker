@@ -175,10 +175,12 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
     SyntheticStageOwner type
   ) {
     List<Stage<T>> stages = parent.getExecution().getStages();
-    int index = stages.indexOf(parent);
-    int offset = type == STAGE_BEFORE ? 0 : 1;
-    stages.add(index + offset, stage);
-    stage.setParentStageId(parent.getId());
+    if (stages.stream().filter(it -> it.getId().equals(stage.getId())).count() == 0) {
+      int index = stages.indexOf(parent);
+      int offset = type == STAGE_BEFORE ? 0 : 1;
+      stages.add(index + offset, stage);
+      stage.setParentStageId(parent.getId());
+    }
   }
 
   // TODO: change callback type to Consumer<TaskDefinition>
