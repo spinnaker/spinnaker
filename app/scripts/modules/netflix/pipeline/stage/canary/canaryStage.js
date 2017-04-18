@@ -7,6 +7,7 @@ import {CanaryExecutionLabel} from './CanaryExecutionLabel';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {CANARY_SCORES_CONFIG_COMPONENT} from './canaryScores.component';
 import {NetflixSettings} from '../../../netflix.settings';
 
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   CANARY_SCORES_CONFIG_COMPONENT,
-  require('core/pipeline/config/pipelineConfigProvider')
+  PIPELINE_CONFIG_PROVIDER
 ])
   .config(function (pipelineConfigProvider) {
 

@@ -6,6 +6,7 @@ import {AuthenticationService} from 'core/authentication/authentication.service'
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {ICluster, IStage, ServerGroup} from 'core/domain/index';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
@@ -243,7 +244,7 @@ class IsolatedTestingTargetStageCtrl {
 export const ISOLATED_TESTING_TARGET_STAGE = 'spinnaker.netflix.pipeline.stage.isolatedTestingTargetStage';
 
 module(ISOLATED_TESTING_TARGET_STAGE, [
-  require('core/pipeline/config/pipelineConfigProvider'),
+  PIPELINE_CONFIG_PROVIDER,
   LIST_EXTRACTOR_SERVICE,
   EDIT_VIP_MODAL_CONTROLLER,
   NAMING_SERVICE,

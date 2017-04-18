@@ -2,6 +2,7 @@ import {IPromise, IQService, module} from 'angular';
 
 import {IGitTrigger} from 'core/domain/ITrigger';
 import {NetflixSettings} from 'netflix/netflix.settings';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 class NetflixGitManualExecutionHandler {
 
@@ -18,7 +19,7 @@ class NetflixGitManualExecutionHandler {
 export const NETFLIX_GIT_MANUAL_EXECUTION_HANDLER = 'spinnaker.netflix.ci.trigger.handler';
 const handlerName = 'netflixCiManualExecutionHandler';
 module(NETFLIX_GIT_MANUAL_EXECUTION_HANDLER, [
-  require('core/pipeline/config/pipelineConfigProvider'),
+  PIPELINE_CONFIG_PROVIDER,
 ])
   .service(handlerName, NetflixGitManualExecutionHandler)
   .run((pipelineConfig: any) => {

@@ -1,6 +1,7 @@
 import {module, IScope, IQService} from 'angular';
 
 import {IGOR_SERVICE, IgorService, BuildServiceType} from 'core/ci/igor.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SERVICE_ACCOUNT_SERVICE, ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
 import {IBuildTrigger} from 'core/domain/ITrigger';
 import {TRAVIS_TRIGGER_OPTIONS_COMPONENT} from './travisTriggerOptions.component';
@@ -88,7 +89,7 @@ module(TRAVIS_TRIGGER, [
   require('../trigger.directive.js'),
   IGOR_SERVICE,
   SERVICE_ACCOUNT_SERVICE,
-  require('../../pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
 ]).config((pipelineConfigProvider: any) => {
   pipelineConfigProvider.registerTrigger({
     label: 'Travis',

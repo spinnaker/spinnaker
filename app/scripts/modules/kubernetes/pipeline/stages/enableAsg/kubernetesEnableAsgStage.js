@@ -1,10 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.enableAsgStage', [
-  require('core/pipeline/config/pipelineConfigProvider'),
+  PIPELINE_CONFIG_PROVIDER,
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('./enableAsgExecutionDetails.controller.js')
 ])

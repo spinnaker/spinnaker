@@ -5,9 +5,10 @@ let angular = require('angular');
 import {CORE_WIDGETS_MODULE} from 'core/widgets';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
 import {NetflixSettings} from '../../../netflix.settings';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
-  require('core/pipeline/config/pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   LIST_EXTRACTOR_SERVICE,
   CORE_WIDGETS_MODULE
 ])

@@ -3,9 +3,10 @@
 let angular = require('angular');
 
 import {NetflixSettings} from '../../../netflix.settings';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.chap', [
-  require('core/pipeline/config/pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   require('./chapStage.controller'),
   require('./chapExecutionDetails.controller')
 ]).config(function (pipelineConfigProvider) {

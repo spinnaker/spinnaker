@@ -1,9 +1,11 @@
 'use strict';
 
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.tagImageStage', [
-  require('core/pipeline/config/pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   require('./tagImageExecutionDetails.controller.js'),
 ])
   .config(function (pipelineConfigProvider) {

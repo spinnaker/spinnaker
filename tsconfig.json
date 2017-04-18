@@ -43,6 +43,6 @@
   ],
   "include": [
     "app/scripts/modules/**/*.ts",
-    "node_modules/zone.js/dist/zone.js.d.ts"
+    "app/scripts/modules/**/*.tsx"
   ]
 }

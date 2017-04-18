@@ -5,6 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 require('./manualPipelineExecution.less');
@@ -12,7 +13,7 @@ require('./manualPipelineExecution.less');
 module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution.controller', [
   require('angular-ui-bootstrap'),
   require('./inlinePropertyScope.filter'),
-  require('../../pipeline/config/pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   PIPELINE_CONFIG_SERVICE,
   require('../../notification/notification.service'),
   AUTHENTICATION_SERVICE

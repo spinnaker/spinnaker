@@ -4,11 +4,12 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
+import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.pipeline', [
   PIPELINE_CONFIG_SERVICE,
-  require('../../pipelineConfigProvider.js'),
+  PIPELINE_CONFIG_PROVIDER,
   APPLICATION_READ_SERVICE,
   require('../trigger.directive.js'),
   require('./pipelineTriggerOptions.directive.js'),
