@@ -31,6 +31,7 @@ class KubernetesUtil {
   static String SECURITY_GROUP_LABEL_PREFIX = "security-group-"
   static String LOAD_BALANCER_LABEL_PREFIX = "load-balancer-"
   static String SERVER_GROUP_LABEL = "replication-controller"
+  static String DEPRECATED_SERVER_GROUP_KIND = "ReplicationController"
   static String SERVER_GROUP_KIND = "ReplicaSet"
   static String DEPLOYMENT_KIND = "Deployment"
   static String JOB_LABEL = "job"

@@ -279,8 +279,8 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
     Map<String, Map<String, Event>> rsEvents = [:].withDefault { _ -> [:] }
     try {
       namespaces.each { String namespace ->
-        rcEvents[namespace] = credentials.apiAdaptor.getEvents(namespace, "ReplicationController")
-        rsEvents[namespace] = credentials.apiAdaptor.getEvents(namespace, "ReplicaSet")
+        rcEvents[namespace] = credentials.apiAdaptor.getEvents(namespace, KubernetesUtil.DEPRECATED_SERVER_GROUP_KIND)
+        rsEvents[namespace] = credentials.apiAdaptor.getEvents(namespace, KubernetesUtil.SERVER_GROUP_KIND)
       }
     } catch (Exception e) {
       log.warn "Failure fetching events for all server groups in $namespaces", e
@@ -292,9 +292,9 @@ class KubernetesServerGroupCachingAgent extends KubernetesCachingAgent implement
     Map<String, Map<String, HorizontalPodAutoscaler>> deployAutoscalers = [:].withDefault { _ -> [:] }
     try {
       namespaces.each { String namespace ->
-        rcAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "replicationController")
-        rsAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "replicaSet")
-        deployAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, "deployment")
+        rcAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, KubernetesUtil.DEPRECATED_SERVER_GROUP_KIND)
+        rsAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, KubernetesUtil.SERVER_GROUP_KIND)
+        deployAutoscalers[namespace] = credentials.apiAdaptor.getAutoscalers(namespace, KubernetesUtil.DEPLOYMENT_KIND)
       }
     } catch (Exception e) {
       log.warn "Failure fetching autoscalers for all server groups in $namespaces", e
