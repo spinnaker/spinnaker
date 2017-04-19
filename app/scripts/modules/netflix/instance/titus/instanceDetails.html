@@ -57,6 +57,14 @@
       <dl class="dl-horizontal dl-flex">
         <dt>Task Id</dt>
         <dd><a href="{{ ctrl.apiEndpoint }}v2/tasks/{{instance.id}}" target="_blank">{{instance.id}}</a></dd>
+        <dt>Instance Id</dt>
+        <dd>{{instance.instanceId}}
+          <copy-to-clipboard
+            class="copy-to-clipboard"
+            text="instance.instanceId"
+            tool-tip="'Copy instance Id to clipboard'">
+          </copy-to-clipboard>
+        </dd>
         <dt>Job Id</dt>
         <dd><a href="{{ ctrl.apiEndpoint }}v2/jobs/{{instance.jobId}}?taskState=ANY" target="_blank">{{instance.jobId}}</a></dd>
         <dt ng-if="instance.serverGroup">Job Name</dt>
