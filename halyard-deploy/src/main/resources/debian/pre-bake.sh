@@ -102,6 +102,8 @@ if [ -z "$(getent passwd spinnaker)" ]; then
   useradd --gid spinnaker -m --home-dir $homebase/spinnaker spinnaker
 fi
 
+mkdir -p $(dirname {%startup-file%})
+
 cat > {%startup-file%} <<EOL
 #!/usr/bin/env bash
 
