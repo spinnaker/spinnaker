@@ -23,15 +23,15 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import org.springframework.stereotype.Component;
 
 @Component
-public class VaultMountGoogleConfigProfileFactory extends JarResourceBackedProfileFactory {
+public class ConsulServerStartupProfileFactory extends JarResourceBackedProfileFactory {
   @Override
   protected String getResourceName() {
-    return "/services/vault/client/startup/google/mount-config.sh";
+    return "/services/consul/server/startup/startup-consul.sh";
   }
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.VAULT;
+    return SpinnakerArtifact.CONSUL;
   }
 
   @Override

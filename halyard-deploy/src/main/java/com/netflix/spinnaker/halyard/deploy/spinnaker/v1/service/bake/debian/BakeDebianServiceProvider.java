@@ -41,6 +41,9 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
   BakeDebianConsulClientService consulClientService;
 
   @Autowired
+  BakeDebianConsulServerService consulServerService;
+
+  @Autowired
   BakeDebianDeckService deckService;
 
   @Autowired
@@ -65,10 +68,16 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
   BakeDebianOrcaService orcaService;
 
   @Autowired
+  BakeDebianRedisService redisService;
+
+  @Autowired
   BakeDebianRoscoService roscoService;
 
   @Autowired
   BakeDebianVaultClientService vaultClientService;
+
+  @Autowired
+  BakeDebianVaultServerService vaultServerService;
 
   @Autowired
   String startupScriptPath;

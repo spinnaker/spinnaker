@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class VaultStartupProfileFactory extends JarResourceBackedProfileFactory {
   @Override
   protected String getResourceName() {
-    return "/services/vault/startup/startup-vault.sh";
+    return "/services/vault/client/startup/startup-vault.sh";
   }
 
   @Override

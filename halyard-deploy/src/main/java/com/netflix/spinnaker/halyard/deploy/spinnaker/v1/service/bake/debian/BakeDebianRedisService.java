@@ -23,13 +23,13 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,18 +39,18 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianConsulClientService extends ConsulClientService implements BakeDebianService<ConsulClientService.Consul> {
+public class BakeDebianRedisService extends RedisService implements BakeDebianService<Jedis> {
   @Autowired
   ArtifactService artifactService;
 
   StartupPriority priority = new StartupPriority(StartupPriority.MODERATE);
 
-  final String upstartServiceName = "consul";
+  final String upstartServiceName = "redis-server";
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings()
-        .setArtifactId("consul")
+        .setArtifactId("redis")
         .setEnabled(true);
   }
 
@@ -63,7 +63,7 @@ public class BakeDebianConsulClientService extends ConsulClientService implement
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     Map<String, String> bindings = new HashMap<>();
     bindings.put("version", deploymentDetails.getArtifactVersion(getArtifact().getName()));
-    return new JarResource("/services/consul/client/install.sh")
+    return new JarResource("/services/redis/install.sh")
         .setBindings(bindings)
         .toString();
   }

@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class VaultMountConfigProfileFactory extends JarResourceBackedProfileFactory {
   @Override
   protected String getResourceName() {
-    return "/services/vault/startup/mount-config.py";
+    return "/services/vault/client/startup/mount-config.py";
   }
 
   @Override

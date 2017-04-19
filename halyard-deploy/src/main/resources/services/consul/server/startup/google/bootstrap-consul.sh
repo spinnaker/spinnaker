@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Note: for instances running in GCP only.
 #
@@ -11,6 +11,8 @@
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
 INSTANCE_LIST_METADATA="consul-members"
+
+service consul start
 
 function get_instance_metadata_attribute() {
   local name="$1"

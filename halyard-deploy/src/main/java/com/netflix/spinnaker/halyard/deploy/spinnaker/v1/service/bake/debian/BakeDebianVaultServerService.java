@@ -23,14 +23,17 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.VaultMountConfigProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.VaultMountGoogleConfigProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.VaultStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,31 +42,38 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianConsulClientService extends ConsulClientService implements BakeDebianService<ConsulClientService.Consul> {
+public class BakeDebianVaultServerService extends VaultServerService implements BakeDebianService<VaultServerService.Vault> {
+  final String upstartServiceName = "vault";
+
+  StartupPriority priority = new StartupPriority(StartupPriority.LOW);
+
   @Autowired
   ArtifactService artifactService;
 
-  StartupPriority priority = new StartupPriority(StartupPriority.MODERATE);
+  @Autowired
+  VaultMountConfigProfileFactory mountConfigProfileFactory;
 
-  final String upstartServiceName = "consul";
+  @Autowired
+  VaultMountGoogleConfigProfileFactory mountGoogleConfigProfileFactory;
+
+  @Autowired
+  VaultStartupProfileFactory vaultStartupProfileFactory;
+
+  @Autowired
+  String startupScriptPath;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings()
-        .setArtifactId("consul")
+        .setArtifactId("vault")
         .setEnabled(true);
-  }
-
-  @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    return new ArrayList<>();
   }
 
   @Override
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     Map<String, String> bindings = new HashMap<>();
     bindings.put("version", deploymentDetails.getArtifactVersion(getArtifact().getName()));
-    return new JarResource("/services/consul/client/install.sh")
+    return new JarResource("/services/vault/server/install.sh")
         .setBindings(bindings)
         .toString();
   }

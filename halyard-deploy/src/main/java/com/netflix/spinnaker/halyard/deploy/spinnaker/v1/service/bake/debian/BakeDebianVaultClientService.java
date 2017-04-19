@@ -43,7 +43,7 @@ import java.util.Map;
 @Data
 @Component
 public class BakeDebianVaultClientService extends VaultClientService implements BakeDebianService<VaultClientService.Vault> {
-  final String upstartServiceName = "rosco";
+  final String upstartServiceName = null;
 
   StartupPriority priority = new StartupPriority(StartupPriority.HIGH);
 
@@ -93,13 +93,8 @@ public class BakeDebianVaultClientService extends VaultClientService implements 
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     Map<String, String> bindings = new HashMap<>();
     bindings.put("version", deploymentDetails.getArtifactVersion(getArtifact().getName()));
-    return new JarResource("/services/vault/install.sh")
+    return new JarResource("/services/vault/client/install.sh")
         .setBindings(bindings)
         .toString();
-  }
-
-  @Override
-  public String getUpstartServiceName() {
-    return null;
   }
 }

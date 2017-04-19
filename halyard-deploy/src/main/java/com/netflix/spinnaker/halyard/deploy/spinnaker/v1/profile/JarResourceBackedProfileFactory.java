@@ -32,6 +32,5 @@ abstract public class JarResourceBackedProfileFactory extends ProfileFactory {
   @Override
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     profile.appendContents(profile.getBaseContents());
-    System.out.println(profile.getContents());
   }
 }
