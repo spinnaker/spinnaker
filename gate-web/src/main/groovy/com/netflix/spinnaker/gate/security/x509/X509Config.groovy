@@ -30,15 +30,19 @@ import org.springframework.cloud.security.oauth2.sso.OAuth2SsoConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
-import org.springframework.security.config.annotation.authentication.configurers.GlobalAuthenticationConfigurerAdapter
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
-import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
+import org.springframework.security.core.context.SecurityContext
+import org.springframework.security.web.context.HttpRequestResponseHolder
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
+import org.springframework.security.web.context.NullSecurityContextRepository
+import org.springframework.security.web.context.SecurityContextRepository
+
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @ConditionalOnExpression('${x509.enabled:false}')
 @Configuration
@@ -64,6 +68,40 @@ class X509Config {
   }
 
   /**
+   * A SecurityContextRepository for use with dual authentication mechanisms (X509 + SAML|OAUTH).
+   *
+   * Inspectes the request for the X509Certificate attribute and delegates X509 requests to a
+   * NullSecurityContextRepository while delegating any other requests to an HttpSessionSecurityContextRepository.
+   */
+  static class X509SecurityContextRepository implements SecurityContextRepository {
+    private final SecurityContextRepository certAuthRepository = new NullSecurityContextRepository()
+    private final SecurityContextRepository defaultAuthRepository = new HttpSessionSecurityContextRepository()
+
+    private SecurityContextRepository getDelegate(HttpServletRequest req) {
+      if (req.getAttribute("javax.servlet.request.X509Certificate")) {
+        return certAuthRepository
+      }
+
+      return defaultAuthRepository
+    }
+
+    @Override
+    SecurityContext loadContext(HttpRequestResponseHolder requestResponseHolder) {
+      return getDelegate(requestResponseHolder.request).loadContext(requestResponseHolder)
+    }
+
+    @Override
+    void saveContext(SecurityContext context, HttpServletRequest request, HttpServletResponse response) {
+      getDelegate(request).saveContext(context, request, response)
+    }
+
+    @Override
+    boolean containsContext(HttpServletRequest request) {
+      return getDelegate(request).containsContext(request)
+    }
+  }
+
+  /**
    * See {@link OAuth2SsoConfig} for why these classes and conditionals exist!
    */
   @ConditionalOnMissingBean([OAuth2SsoConfig, SamlSsoConfig])
@@ -75,6 +113,7 @@ class X509Config {
   class X509StandaloneAuthConfig extends WebSecurityConfigurerAdapter {
     void configure(HttpSecurity http) {
       authConfig.configure(http)
+      http.securityContext().securityContextRepository(new NullSecurityContextRepository())
       X509Config.this.configure(http)
     }
   }
@@ -105,6 +144,7 @@ class X509Config {
     @Override
     void configure(HttpSecurity http) throws Exception {
       X509Config.this.configure(http)
+      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
     }
   }
 
@@ -118,6 +158,7 @@ class X509Config {
     @Override
     void configure(HttpSecurity http) throws Exception {
       X509Config.this.configure(http)
+      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
     }
   }
 }

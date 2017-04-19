@@ -23,7 +23,6 @@ import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.fiat.shared.FiatService
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.gate.filters.CorsFilter
-import com.netflix.spinnaker.gate.filters.FiatSessionFilter
 import com.netflix.spinnaker.gate.filters.GateOriginValidator
 import com.netflix.spinnaker.gate.filters.OriginValidator
 import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
