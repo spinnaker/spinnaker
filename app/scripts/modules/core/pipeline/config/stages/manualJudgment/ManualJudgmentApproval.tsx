@@ -47,10 +47,6 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
     this.props.application.getDataSource('executions').refresh();
   }
 
-  private judgmentOptionSelected(option: Select.Option): void {
-    this.setState({judgmentInput: {value: option.value as string}});
-  }
-
   private judgmentFailure(): void {
     this.setState({submitting: false, error: true});
   }
@@ -59,6 +55,12 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
     return this.props.stage.context.judgmentStatus === decision ||
       (this.state.submitting && this.state.judgmentDecision === decision);
   }
+
+  private handleJudgementChanged = (option: Select.Option) => this.setState({judgmentInput: {value: option.value as string}});
+
+  private handleContinueClick = () => this.provideJudgment('continue');
+
+  private handleStopClick = () => this.provideJudgment('stop');
 
   public render(): React.ReactElement<ManualJudgmentApproval> {
     const stage: IExecutionStage = this.props.stage,
@@ -81,23 +83,23 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
                 <Select options={options}
                         clearable={false}
                         value={this.state.judgmentInput.value}
-                        onChange={(option: Select.Option) => this.judgmentOptionSelected(option)}/>
+                        onChange={this.handleJudgementChanged}/>
               </div>
             )}
             <button className="btn btn-primary"
                     style={buttonMargin}
                     disabled={this.state.submitting || stage.context.judgmentStatus}
-                    onClick={() => this.provideJudgment('continue')}>
+                    onClick={this.handleContinueClick}>
               { this.isSubmitting('continue') && (
-                <ButtonBusyIndicator></ButtonBusyIndicator>
+                <ButtonBusyIndicator/>
               )}
               Continue
             </button>
             <button className="btn btn-danger"
-                    onClick={() => this.provideJudgment('stop')}
+                    onClick={this.handleStopClick}
                     disabled={this.state.submitting || stage.context.judgmentStatus}>
               { this.isSubmitting('stop') && (
-                <ButtonBusyIndicator></ButtonBusyIndicator>
+                <ButtonBusyIndicator/>
               )}
               Stop
             </button>

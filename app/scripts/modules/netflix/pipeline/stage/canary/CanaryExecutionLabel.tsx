@@ -15,8 +15,7 @@ export class CanaryExecutionLabel extends React.Component<{ stage: IExecutionSta
             inverse={true}
             score={canaryResult.overallScore}
             result={canaryResult.overallResult}
-            health={canaryHealth.health}>
-          </CanaryScore>)
+            health={canaryHealth.health}/>)
       </span>
     );
   }

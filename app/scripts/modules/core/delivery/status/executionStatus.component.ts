@@ -9,7 +9,7 @@ import './executionStatus.less';
 
 export class ExecutionStatusController implements IComponentController {
   public execution: IExecution;
-  public toggleDetails: (node: {executionId: string, index: number}) => void;
+  public toggleDetails: (stageIndex?: number) => void;
   public showingDetails: boolean;
   public standalone: boolean;
 

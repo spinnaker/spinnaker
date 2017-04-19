@@ -6,7 +6,7 @@ import {IExecution} from 'core/domain/IExecution';
 
 interface IExecutionStatusProps {
   execution: IExecution;
-  toggleDetails: (node: {executionId: string, index: number}) => void;
+  toggleDetails: (stageIndex?: number) => void;
   showingDetails: boolean;
   standalone: boolean;
 }

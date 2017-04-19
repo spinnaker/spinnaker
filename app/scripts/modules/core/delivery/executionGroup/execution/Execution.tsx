@@ -115,14 +115,14 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return this.state.showingDetails && Number(stateParamsService.stage) === stageIndex;
   }
 
-  public toggleDetails(node: {executionId: string, index: number}): void {
-    if (node.executionId === stateService.params.executionId && stateService.current.name.includes('.executions.execution') && node.index === undefined) {
+  public toggleDetails = (stageIndex?: number): void => {
+    if (this.props.execution.id === stateService.params.executionId && stateService.current.name.includes('.executions.execution') && stageIndex === undefined) {
       stateService.go('^');
       return;
     }
-    const index = node.index || 0;
+    const index = stageIndex || 0;
     const params = {
-      executionId: node.executionId,
+      executionId: this.props.execution.id,
       stage: index,
       step: this.props.execution.stageSummaries[index].firstActiveStage
     };
@@ -216,18 +216,47 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     }
   }
 
+  private handleSourceNoStagesClick = () => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked (no stages found)'});
+
+  private handlePauseClick = (event: React.MouseEvent<HTMLElement>) => {
+    ReactGA.event({category: 'Pipeline', action: 'Execution pause clicked'});
+    this.pauseExecution();
+    event.stopPropagation();
+  }
+
+  private handleResumeClick = (event: React.MouseEvent<HTMLElement>) => {
+    ReactGA.event({category: 'Pipeline', action: 'Execution resume clicked'});
+    this.resumeExecution();
+    event.stopPropagation();
+  }
+
+  private handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
+    ReactGA.event({category: 'Pipeline', action: 'Execution delete clicked'});
+    this.deleteExecution();
+    event.stopPropagation();
+  }
+
+  private handleCancelClick = (event: React.MouseEvent<HTMLElement>) => {
+    ReactGA.event({category: 'Pipeline', action: 'Execution cancel clicked'});
+    this.cancelExecution();
+    event.stopPropagation();
+  }
+
+  private handleSourceClick = () => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked'});
+
+  private handlePermalinkClick = () => ReactGA.event({category: 'Pipeline', action: 'Permalink clicked'});
   public render() {
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
-      <AccountLabelColor key={account} account={account}></AccountLabelColor>
+      <AccountLabelColor key={account} account={account}/>
     ));
 
     const executionMarkerWidth = `${100 / this.props.execution.stageSummaries.length}%`;
-    const executionMarkers = this.props.execution.stageSummaries.map((stage, index) => (
+    const executionMarkers = this.props.execution.stageSummaries.map((stage) => (
       <ExecutionMarker key={stage.refId}
                        stage={stage}
-                       onClick={() => this.toggleDetails({executionId: this.props.execution.id, index: index})}
-                       active={this.isActive(index)}
-                       width={executionMarkerWidth}></ExecutionMarker>
+                       onClick={this.toggleDetails}
+                       active={this.isActive(stage.index)}
+                       width={executionMarkerWidth}/>
     ));
 
     return (
@@ -240,17 +269,16 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             </h4>
           )}
           <ExecutionStatus execution={this.props.execution}
-                           toggleDetails={(node) => this.toggleDetails(node)}
+                           toggleDetails={this.toggleDetails}
                            showingDetails={this.state.showingDetails}
-                           standalone={this.props.standalone}>
-          </ExecutionStatus>
+                           standalone={this.props.standalone}/>
           <div className="execution-bar">
             <div className="stages">
               {executionMarkers}
               { !this.props.execution.stageSummaries.length && (
                 <div className="text-center">
                   No stages found.
-                  <a onClick={() => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked (no stages found)'})}
+                  <a onClick={this.handleSourceNoStagesClick}
                     target="_blank"
                     href={this.state.pipelinesUrl + this.props.execution.id}>Source</a>
                 </div>
@@ -258,7 +286,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             </div>
             <div className="execution-summary">
               Status: <span className={`status execution-status execution-status-${this.props.execution.status.toLowerCase()}`}>{this.props.execution.status}</span>
-              { this.props.execution.cancellationReason && (<Tooltip value={this.props.execution.cancellationReason}><span className="glyphicon glyphicon-info-sign"></span></Tooltip>) }
+              { this.props.execution.cancellationReason && (<Tooltip value={this.props.execution.cancellationReason}><span className="glyphicon glyphicon-info-sign"/></Tooltip>) }
               { this.props.execution.canceledBy && (<span> by {this.props.execution.canceledBy} &mdash; {timestamp(this.props.execution.endTime)}</span>) }
               { this.state.restartDetails && (<span> Restarted by {this.state.restartDetails.restartedBy} &mdash; {timestamp(this.state.restartDetails.restartTime)}</span>) }
               <span className="pull-right">Duration: {duration(this.props.execution.runningTimeInMs)}</span>
@@ -268,48 +296,32 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             { this.props.execution.isRunning && (
               <Tooltip value="Pause execution">
                 <a className="clickable"
-                   onClick={(event) => {
-                    ReactGA.event({category: 'Pipeline', action: 'Execution pause clicked'});
-                    this.pauseExecution();
-                    event.stopPropagation();
-                  }}>
-                  <span className="glyphicon glyphicon-pause"></span>
+                   onClick={this.handlePauseClick}>
+                  <span className="glyphicon glyphicon-pause"/>
                 </a>
               </Tooltip>
             )}
             { this.props.execution.isPaused && (
               <Tooltip value="Resume execution">
                 <a className="clickable"
-                   onClick={(event) => {
-                    ReactGA.event({category: 'Pipeline', action: 'Execution resume clicked'});
-                    this.resumeExecution();
-                    event.stopPropagation();
-                  }}>
-                  <span className="glyphicon glyphicon-play"></span>
+                   onClick={this.handleResumeClick}>
+                  <span className="glyphicon glyphicon-play"/>
                 </a>
               </Tooltip>
             )}
             { !this.props.execution.isActive && (
               <Tooltip value="Delete execution">
                 <a className="clickable"
-                   onClick={(event) => {
-                    ReactGA.event({category: 'Pipeline', action: 'Execution delete clicked'});
-                    this.deleteExecution();
-                    event.stopPropagation();
-                  }}>
-                  <span className="glyphicon glyphicon-trash"></span>
+                   onClick={this.handleDeleteClick}>
+                  <span className="glyphicon glyphicon-trash"/>
                 </a>
               </Tooltip>
             )}
             { this.props.execution.isActive && (
               <Tooltip value="Cancel execution">
                 <a className="clickable"
-                   onClick={(event) => {
-                    ReactGA.event({category: 'Pipeline', action: 'Execution cancel clicked'});
-                    this.cancelExecution();
-                    event.stopPropagation();
-                }}>
-                  <span className="glyphicon glyphicon-remove-circle"></span>
+                   onClick={this.handleCancelClick}>
+                  <span className="glyphicon glyphicon-remove-circle"/>
                 </a>
               </Tooltip>
             )}
@@ -319,25 +331,23 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           <div className="execution-graph">
             { this.props.execution.parallel && (
               <PipelineGraph execution={this.props.execution}
-                             onNodeClick={(node) => this.toggleDetails(node)}
-                             viewState={this.state.viewState}>
-              </PipelineGraph>
+                             onNodeClick={this.toggleDetails}
+                             viewState={this.state.viewState}/>
             )}
           </div>
         )}
         { this.state.showingDetails && (
           <div className="execution-details-container">
-            <ExecutionDetails execution={this.props.execution} application={this.props.application} standalone={this.props.standalone}>
-            </ExecutionDetails>
+            <ExecutionDetails execution={this.props.execution} application={this.props.application} standalone={this.props.standalone}/>
             <div className="permalinks">
               <div className="permalinks-content">
-                <a onClick={() => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked'})}
+                <a onClick={this.handleSourceClick}
                   target="_blank"
                   href={this.state.pipelinesUrl + this.props.execution.id}>Source</a>
                 { ' | ' }
-                <a onClick={() => ReactGA.event({category: 'Pipeline', action: 'Permalink clicked'}) }
+                <a onClick={this.handlePermalinkClick}
                    href={this.getUrl()}>Permalink</a>
-                <CopyToClipboard text={this.getUrl()} toolTip="Copy permalink to clipboard"></CopyToClipboard>
+                <CopyToClipboard text={this.getUrl()} toolTip="Copy permalink to clipboard"/>
               </div>
             </div>
           </div>

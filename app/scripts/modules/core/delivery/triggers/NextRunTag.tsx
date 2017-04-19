@@ -60,12 +60,14 @@ export class NextRunTag extends React.Component<IProps, IState> {
     };
   }
 
+  private handleMouseEnter = () => this.setState(this.updateSchedule());
+
   public render(): React.ReactElement<NextRunTag> {
     const nextDuration = moment(this.state.nextScheduled).fromNow();
     return (
       <span style={{visibility: this.state.hasNextScheduled ? 'visible' : 'hidden'}}>
         <Popover value={`Next run: ${timestamp(this.state.nextScheduled)} (${nextDuration})`} placement="left">
-          <span className="glyphicon glyphicon-time" onMouseEnter={() => this.setState(this.updateSchedule())}></span>
+          <span className="glyphicon glyphicon-time" onMouseEnter={this.handleMouseEnter}/>
         </Popover>
       </span>
     );

@@ -48,6 +48,6 @@ export class TriggersTag extends React.Component<IProps, IState> {
         </div>
       );
     }
-    return <div></div>;
+    return <div/>;
   }
 }

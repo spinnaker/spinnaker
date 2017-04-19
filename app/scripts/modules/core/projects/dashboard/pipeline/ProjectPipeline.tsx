@@ -2,8 +2,8 @@ import * as React from 'react';
 import { has } from 'lodash';
 
 import { ExecutionBuildNumber } from 'core/delivery/executionBuild/ExecutionBuildNumber';
+import { ExecutionMarker } from 'core/delivery/executionGroup/execution/ExecutionMarker';
 import { IExecution } from 'core/domain/index';
-import { Tooltip } from 'core/presentation/Tooltip';
 import { stateService } from 'core/state.service';
 import { timestamp } from 'core/utils/timeFormatters';
 
@@ -29,29 +29,21 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
     };
   }
 
+  private handleExecutionTitleClick = () => stateService.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
+
+  private handleStageClick = (stageIndex: number) => stateService.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
+
   public render() {
-    const stages = this.props.execution.stageSummaries.map((stage, index) => {
-      const TooltipTemplate = stage.labelTemplate;
-      return (
-        <Tooltip key={stage.refId} template={<TooltipTemplate stage={stage}></TooltipTemplate>}>
-          <div className={`clickable stage stage-type-${stage.type.toLowerCase()} execution-marker execution-marker-${stage.status.toLowerCase()}`}
-              style={{width: this.state.stageWidth, backgroundColor: stage.color}}
-              onClick={() => {
-                stateService.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: index});
-              }}>
-          </div>
-        </Tooltip>
-      );
-    });
+    const stages = this.props.execution.stageSummaries.map((stage) => <ExecutionMarker key={stage.refId} stage={stage} onClick={this.handleStageClick} width={this.state.stageWidth}/>);
 
     return (
       <div>
         <h5 className="execution-title">
-          <a onClick={() => stateService.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id})}>
+          <a onClick={this.handleExecutionTitleClick}>
             {`${this.props.execution.application.toUpperCase()}: ${this.props.execution.name}`}
           </a>
         </h5>
-        &nbsp;(<ExecutionBuildNumber execution={this.props.execution}></ExecutionBuildNumber>{ this.state.hasBuildInfo && (<span>, </span>) }started {timestamp(this.props.execution.startTime)})
+        &nbsp;(<ExecutionBuildNumber execution={this.props.execution}/>{ this.state.hasBuildInfo && (<span>, </span>) }started {timestamp(this.props.execution.startTime)})
         <div className="execution-bar">
           {stages}
         </div>
