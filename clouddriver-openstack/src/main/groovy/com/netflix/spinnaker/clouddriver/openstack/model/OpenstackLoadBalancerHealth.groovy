@@ -30,6 +30,7 @@ class OpenstackLoadBalancerHealth {
 
   enum PlatformStatus {
     ONLINE,
+    OFFLINE,
     DISABLED
 
     HealthState toHealthState() {
