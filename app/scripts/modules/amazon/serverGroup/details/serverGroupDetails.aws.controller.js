@@ -110,6 +110,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
               if (!isEmpty(this.serverGroup)) {
 
                 this.image = details.image ? details.image : undefined;
+                this.enabledMetrics = get(this.serverGroup, 'asg.enabledMetrics', []).map(m => m.metric);
 
                 var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 

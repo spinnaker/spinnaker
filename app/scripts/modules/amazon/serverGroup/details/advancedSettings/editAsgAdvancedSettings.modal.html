@@ -19,9 +19,9 @@
         </div>
         <div class="col-md-6">
 
-          <ui-select multiple ng-model="$ctrl.command.enabledMetrics" class="form-control input-sm">
+          <ui-select multiple ng-model="command.enabledMetrics" class="form-control input-sm">
             <ui-select-match>{{$item}}</ui-select-match>
-            <ui-select-choices repeat="enabledMetric in $ctrl.command.backingData.enabledMetrics | filter: $select.search | orderBy: 'toString()'">
+            <ui-select-choices repeat="enabledMetric in command.backingData.enabledMetrics | filter: $select.search | orderBy: 'toString()'">
               <span ng-bind-html="enabledMetric | highlight: $select.search"></span>
             </ui-select-choices>
           </ui-select>
