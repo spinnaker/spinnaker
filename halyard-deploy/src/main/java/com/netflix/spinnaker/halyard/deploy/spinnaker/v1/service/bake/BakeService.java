@@ -31,6 +31,7 @@ public interface BakeService<T> extends HasServiceSettings<T> {
   String getSpinnakerStagingPath();
   String installArtifactCommand(DeploymentDetails deploymentDetails);
   StartupPriority getPriority();
+  String getStartupCommand();
 
   default String stageStartupScripts(GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());

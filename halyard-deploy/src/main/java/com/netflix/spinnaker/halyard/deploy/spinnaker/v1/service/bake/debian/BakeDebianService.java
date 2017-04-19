@@ -32,6 +32,15 @@ public interface BakeDebianService<T> extends BakeService<T> {
   ArtifactService getArtifactService();
   String getUpstartServiceName();
 
+  @Override
+  default String getStartupCommand() {
+    if (getUpstartServiceName() != null) {
+      return "service " + getUpstartServiceName() + " start";
+    }
+
+    return null;
+  }
+
   default String getArtifactId(String deploymentName) {
     SpinnakerArtifact artifact = getArtifact();
     String version = getArtifactService().getArtifactVersion(deploymentName, artifact);

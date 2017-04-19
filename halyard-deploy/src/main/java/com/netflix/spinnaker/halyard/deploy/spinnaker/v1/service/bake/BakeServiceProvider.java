@@ -50,13 +50,16 @@ abstract public class BakeServiceProvider extends SpinnakerServiceProvider {
   }
 
   // TODO(lwander) move from string to something like RemoteAction
-  abstract public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands);
+  abstract public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand);
 
-  public List<BakeService> getBakeableServices(List<String> serviceNames) {
-    return getFieldsOfType(BakeService.class)
+  public List<BakeService> getPrioritizedBakeableServices(List<String> serviceNames) {
+    List<BakeService> result = getFieldsOfType(BakeService.class)
         .stream()
         .filter(s -> serviceNames.contains(s.getService().getCanonicalName()))
         .collect(Collectors.toList());
+
+    result.sort((a, b) -> b.getPriority().compareTo(a.getPriority()));
+    return result;
   }
 }
 

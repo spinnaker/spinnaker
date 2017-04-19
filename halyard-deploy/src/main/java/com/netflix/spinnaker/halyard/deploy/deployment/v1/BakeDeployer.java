@@ -24,11 +24,13 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Component
@@ -39,7 +41,7 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<String> serviceNames) {
-    List<BakeService> enabledServices = serviceProvider.getBakeableServices(serviceNames)
+    List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceNames)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
         .collect(Collectors.toList());
@@ -55,7 +57,12 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       return m1;
     });
 
-    String installCommand = serviceProvider.getInstallCommand(resolvedConfiguration, installCommands);
+    String startupCommand = String.join("\n", enabledServices.stream()
+        .map(BakeService::getStartupCommand)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList()));
+
+    String installCommand = serviceProvider.getInstallCommand(resolvedConfiguration, installCommands, startupCommand);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);

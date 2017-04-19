@@ -70,6 +70,11 @@ public class BakeDebianVaultClientService extends VaultClientService implements 
   }
 
   @Override
+  public String getStartupCommand() {
+    return Paths.get(startupScriptPath, "startup-vault.sh").toString() + " $@";
+  }
+
+  @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
     String name = "mount-config.py";

@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
-import com.netflix.discovery.converters.Auto;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -26,6 +25,7 @@ import io.fabric8.utils.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -74,10 +74,10 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
   String startupScriptPath;
 
   @Override
-  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
+  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand) {
     Map<String, String> bindings = new HashMap<>();
     List<String> serviceNames = new ArrayList<>(installCommands.keySet());
-    List<String> upstartNames = getBakeableServices(serviceNames)
+    List<String> upstartNames = getPrioritizedBakeableServices(serviceNames)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
         .map(i -> ((BakeDebianService) i).getUpstartServiceName())
@@ -95,8 +95,9 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
     bindings = new HashMap<>();
     bindings.put("debian-repository", debianRepository);
     bindings.put("install-commands", String.join("\n", serviceInstalls));
-    bindings.put("startup-script-path", startupScriptPath);
     bindings.put("upstart-init", upstartInit);
+    bindings.put("startup-file", Paths.get(startupScriptPath, "startup.sh").toString());
+    bindings.put("startup-command", startupCommand);
 
     return resource.setBindings(bindings).toString();
   }
