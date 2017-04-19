@@ -33,6 +33,9 @@ class UpsertKubernetesLoadBalancerAtomicOperationConverter extends AbstractAtomi
   }
 
   KubernetesLoadBalancerDescription convertDescription(Map input) {
+    if (input.loadBalancerName) {
+      input.name = input.loadBalancerName
+    }
     KubernetesAtomicOperationConverterHelper.convertDescription(input, this, KubernetesLoadBalancerDescription)
   }
 }

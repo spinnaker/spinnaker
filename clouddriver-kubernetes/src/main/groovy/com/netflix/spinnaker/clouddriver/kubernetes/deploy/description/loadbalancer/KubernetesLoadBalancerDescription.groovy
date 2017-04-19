@@ -25,6 +25,8 @@ import groovy.transform.Canonical
 @Canonical
 class KubernetesLoadBalancerDescription extends KubernetesAtomicOperationDescription implements DeployDescription {
   String name
+  // If `loadBalancerName` is given in the description, it will override `name`.
+  String loadBalancerName
   String app
   String stack
   String detail
