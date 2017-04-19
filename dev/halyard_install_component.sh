@@ -64,16 +64,33 @@ function process_args() {
   done
 }
 
+EXTERNAL_SERVICES=(vault-server consul-server redis)
+
+function contains() {
+  local e
+  for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+  return 1
+}
+
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/InstallHalyard.sh
   sudo bash InstallHalyard.sh -y
 
-  echo "Installing $COMPONENT and spinnaker-monitoring..."
+  echo "Installing $COMPONENT and optional dependencies..."
   hal config version edit --version $VERSION
   hal config deploy edit --type BakeDebian
-  hal deploy apply --service-names "$COMPONENT" "monitoring-daemon" \
-      "vault-client"  "consul-client" --no-validate
+
+  local service_names
+  if contains $COMPONENT "${EXTERNAL_SERVICES[@]}"; then
+    service_names=($COMPONENT)
+  else 
+    service_names=($COMPONENT monitoring-daemon vault-client consul-client)
+  fi
+
+  echo "Installed services chosen to be ${service_names[@]}"
+
+  hal deploy apply --no-validate --service-names ${service_names[@]}
 }
 
 process_args "$@"
