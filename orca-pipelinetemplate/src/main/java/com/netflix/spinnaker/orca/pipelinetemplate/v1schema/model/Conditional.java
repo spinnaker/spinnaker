@@ -18,6 +18,6 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 import java.util.List;
 
 public interface Conditional {
-
   List<String> getWhen();
+  void setRemove();
 }

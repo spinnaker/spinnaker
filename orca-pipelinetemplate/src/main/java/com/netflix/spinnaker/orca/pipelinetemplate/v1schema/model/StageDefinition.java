@@ -33,6 +33,7 @@ public class StageDefinition implements Identifiable, Conditional {
   private String comments;
   private List<String> when;
   private InheritanceControl inheritanceControl;
+  private Boolean removed = false;
 
   private List<String> requisiteStageRefIds = new ArrayList<>();
 
@@ -217,6 +218,16 @@ public class StageDefinition implements Identifiable, Conditional {
   public List<String> getWhen() {
     return when;
   }
+
+  @Override
+  public void setRemove() {
+    this.removed = true;
+  }
+
+  public Boolean getRemoved() {
+    return removed;
+  }
+
 
   public void setWhen(List<String> when) {
     this.when = when;
