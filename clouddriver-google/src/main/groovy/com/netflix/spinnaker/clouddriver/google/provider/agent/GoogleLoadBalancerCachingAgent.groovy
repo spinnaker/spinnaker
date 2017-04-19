@@ -58,6 +58,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   String agentType = "${accountName}/${region}/${GoogleLoadBalancerCachingAgent.simpleName}"
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
+  List<String> failedLoadBalancers
 
   GoogleLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                  GoogleNamedAccountCredentials credentials,
@@ -73,6 +74,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
         registry,
         this,
         "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}")
+    failedLoadBalancers = []
   }
 
   @Override
@@ -82,6 +84,8 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
   }
 
   List<GoogleLoadBalancer> getLoadBalancers() {
+    // Reset failed load balancers on each caching agent execution.
+    failedLoadBalancers = []
     List<GoogleLoadBalancer> loadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
@@ -100,7 +104,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     executeIfRequestsAreQueued(httpHealthChecksRequest, "LoadBalancerCaching.httpHealthChecks")
     executeIfRequestsAreQueued(instanceHealthRequest, "LoadBalancerCaching.instanceHealth")
 
-    return loadBalancers
+    return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
   CacheResult buildCacheResult(ProviderCache _, List<GoogleLoadBalancer> googleLoadBalancers) {
@@ -200,9 +204,13 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
           if (forwardingRuleTokens[forwardingRuleTokens.size() - 2] != "targetVpnGateways"
               && forwardingRuleTokens[forwardingRuleTokens.size() - 2] != "targetInstances") {
             def targetPoolName = Utils.getLocalName(forwardingRule.target)
-            def targetPoolsCallback = new TargetPoolCallback(googleLoadBalancer: newLoadBalancer,
-                                                             httpHealthChecksRequest: httpHealthChecksRequest,
-                                                             instanceHealthRequest: instanceHealthRequest)
+            def targetPoolsCallback = new TargetPoolCallback(
+                googleLoadBalancer: newLoadBalancer,
+                httpHealthChecksRequest: httpHealthChecksRequest,
+                instanceHealthRequest: instanceHealthRequest,
+                subject: newLoadBalancer.name,
+                failedSubjects: failedLoadBalancers
+            )
 
             compute.targetPools().get(project, region, targetPoolName).queue(targetPoolsRequest, targetPoolsCallback)
           }
@@ -211,7 +219,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     }
   }
 
-  class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> implements PlatformErrorPropagator {
+  class TargetPoolCallback<TargetPool> extends JsonBatchCallback<TargetPool> implements FailedSubjectChronicler {
 
     GoogleLoadBalancer googleLoadBalancer
 
@@ -224,9 +232,13 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
       boolean hasHealthChecks = targetPool?.healthChecks
       targetPool?.healthChecks?.each { def healthCheckUrl ->
         def localHealthCheckName = Utils.getLocalName(healthCheckUrl)
-        def httpHealthCheckCallback = new HttpHealthCheckCallback(googleLoadBalancer: googleLoadBalancer,
-                                                                  targetPool: targetPool,
-                                                                  instanceHealthRequest: instanceHealthRequest)
+        def httpHealthCheckCallback = new HttpHealthCheckCallback(
+            googleLoadBalancer: googleLoadBalancer,
+            targetPool: targetPool,
+            instanceHealthRequest: instanceHealthRequest,
+            subject: googleLoadBalancer.name,
+            failedSubjects: failedLoadBalancers
+        )
 
         compute.httpHealthChecks().get(project, localHealthCheckName).queue(httpHealthChecksRequest, httpHealthCheckCallback)
       }
@@ -238,7 +250,7 @@ class GoogleLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implemen
     }
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements PlatformErrorPropagator {
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailedSubjectChronicler {
 
     GoogleLoadBalancer googleLoadBalancer
     def targetPool

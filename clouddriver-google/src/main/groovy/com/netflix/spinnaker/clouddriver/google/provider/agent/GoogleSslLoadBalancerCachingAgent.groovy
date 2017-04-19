@@ -57,6 +57,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
   String agentType = "${accountName}/global/${GoogleSslLoadBalancerCachingAgent.simpleName}"
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
+  List<String> failedLoadBalancers
 
   GoogleSslLoadBalancerCachingAgent(String googleApplicationName,
                                     GoogleNamedAccountCredentials credentials,
@@ -68,6 +69,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
         this,
         "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}"
     )
+    failedLoadBalancers = []
   }
 
   @Override
@@ -77,6 +79,8 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
   }
 
   List<GoogleSslLoadBalancer> getSslLoadBalancers() {
+    // Reset failed load balancers on each caching agent execution.
+    failedLoadBalancers = []
     List<GoogleSslLoadBalancer> loadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
@@ -100,7 +104,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     executeIfRequestsAreQueued(healthCheckRequest, "SslLoadBalancerCaching.healthCheck")
     executeIfRequestsAreQueued(groupHealthRequest, "SslLoadBalancerCaching.groupHealthCheck")
 
-    loadBalancers
+    return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
   CacheResult buildCacheResult(ProviderCache _, List<GoogleSslLoadBalancer> googleLoadBalancers) {
@@ -196,6 +200,8 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
             backendServiceRequest: backendServiceRequest,
             healthCheckRequest: healthCheckRequest,
             groupHealthRequest: groupHealthRequest,
+            subject: newLoadBalancer.name,
+            failedSubjects: failedLoadBalancers,
           )
           compute.targetSslProxies().get(project, targetSslProxyName).queue(targetSslProxyRequest, targetSslProxyCallback)
         }
@@ -203,7 +209,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class TargetSslProxyCallback<TargetSslProxy> extends JsonBatchCallback<TargetSslProxy> implements PlatformErrorPropagator {
+  class TargetSslProxyCallback<TargetSslProxy> extends JsonBatchCallback<TargetSslProxy> implements FailedSubjectChronicler {
 
     GoogleSslLoadBalancer googleLoadBalancer
     BatchRequest backendServiceRequest
@@ -220,12 +226,14 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
         googleLoadBalancer: googleLoadBalancer,
         healthCheckRequest: healthCheckRequest,
         groupHealthRequest: groupHealthRequest,
+        subject: googleLoadBalancer.name,
+        failedSubjects: failedLoadBalancers,
       )
       compute.backendServices().get(project, GCEUtil.getLocalName(targetSslProxy.service)).queue(backendServiceRequest, backendServiceCallback)
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements PlatformErrorPropagator {
+  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements FailedSubjectChronicler {
     GoogleSslLoadBalancer googleLoadBalancer
     BatchRequest healthCheckRequest
     BatchRequest groupHealthRequest
@@ -233,7 +241,9 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     @Override
     void onSuccess(BackendService backendService, HttpHeaders responseHeaders) throws IOException {
       def groupHealthCallback = new GroupHealthCallback(
-        googleLoadBalancer: googleLoadBalancer
+        googleLoadBalancer: googleLoadBalancer,
+        subject: googleLoadBalancer.name,
+        failedSubjects: failedLoadBalancers
       )
 
       GoogleBackendService newService = new GoogleBackendService(
@@ -264,7 +274,9 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
         switch (healthCheckType) {
           case "healthChecks":
             def healthCheckCallback = new HealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService
+              googleBackendService: googleLoadBalancer.backendService,
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers
             )
             compute.healthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
             break
@@ -276,7 +288,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements PlatformErrorPropagator {
+  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements FailedSubjectChronicler {
     GoogleBackendService googleBackendService
 
     @Override
@@ -318,7 +330,7 @@ class GoogleSslLoadBalancerCachingAgent extends AbstractGoogleCachingAgent imple
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements PlatformErrorPropagator {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailedSubjectChronicler {
     GoogleSslLoadBalancer googleLoadBalancer
 
     @Override

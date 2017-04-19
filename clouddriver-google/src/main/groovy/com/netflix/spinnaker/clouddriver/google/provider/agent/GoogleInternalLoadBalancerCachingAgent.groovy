@@ -58,6 +58,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
   String agentType = "${accountName}/${region}/${GoogleInternalLoadBalancerCachingAgent.simpleName}"
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
+  List<String> failedLoadBalancers
 
   GoogleInternalLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                          GoogleNamedAccountCredentials credentials,
@@ -67,6 +68,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry)
     this.region = region
     this.metricsSupport = new OnDemandMetricsSupport(registry, this, "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}")
+    failedLoadBalancers = []
   }
 
   @Override
@@ -76,6 +78,8 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
   }
 
   List<GoogleInternalLoadBalancer> getInternalLoadBalancers() {
+    // Reset failed load balancers on each caching agent execution.
+    failedLoadBalancers = []
     List<GoogleInternalLoadBalancer> loadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
@@ -96,7 +100,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     executeIfRequestsAreQueued(healthCheckRequest, "InternalLoadBalancerCaching.healthCheck")
     executeIfRequestsAreQueued(groupHealthRequest, "InternalLoadBalancerCaching.groupHealth")
 
-    return loadBalancers
+    return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
   CacheResult buildCacheResult(ProviderCache _, List<GoogleInternalLoadBalancer> googleLoadBalancers) {
@@ -202,6 +206,8 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
             googleLoadBalancer: newLoadBalancer,
             healthCheckRequest: healthCheckRequest,
             groupHealthRequest: groupHealthRequest,
+            subject: newLoadBalancer.name,
+            failedSubjects: failedLoadBalancers
           )
           compute.regionBackendServices()
             .get(project, region, backendServiceName)
@@ -211,7 +217,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements PlatformErrorPropagator {
+  class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> implements FailedSubjectChronicler {
     GoogleInternalLoadBalancer googleLoadBalancer
     BatchRequest healthCheckRequest
     BatchRequest groupHealthRequest
@@ -219,7 +225,9 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     @Override
     void onSuccess(BackendService backendService, HttpHeaders responseHeaders) throws IOException {
       def groupHealthCallback = new GroupHealthCallback(
-        googleLoadBalancer: googleLoadBalancer
+        googleLoadBalancer: googleLoadBalancer,
+        subject: googleLoadBalancer.name,
+        failedSubjects: failedLoadBalancers
       )
 
       GoogleBackendService newService = new GoogleBackendService(
@@ -249,19 +257,25 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
         switch (healthCheckType) {
           case "httpHealthChecks":
             def healthCheckCallback = new HttpHealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService
+              googleBackendService: googleLoadBalancer.backendService,
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers
             )
             compute.httpHealthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
             break
           case "httpsHealthChecks":
             def healthCheckCallback = new HttpsHealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService
+              googleBackendService: googleLoadBalancer.backendService,
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers
             )
             compute.httpsHealthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
             break
           case "healthChecks":
             def healthCheckCallback = new HealthCheckCallback(
-              googleBackendService: googleLoadBalancer.backendService
+              googleBackendService: googleLoadBalancer.backendService,
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers
             )
             compute.healthChecks().get(project, healthCheckName).queue(healthCheckRequest, healthCheckCallback)
             break
@@ -273,7 +287,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements PlatformErrorPropagator {
+  class HealthCheckCallback<HealthCheck> extends JsonBatchCallback<HealthCheck> implements FailedSubjectChronicler {
     GoogleBackendService googleBackendService
 
     @Override
@@ -315,7 +329,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements PlatformErrorPropagator {
+  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements FailedSubjectChronicler {
     GoogleBackendService googleBackendService
 
     @Override
@@ -333,7 +347,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements PlatformErrorPropagator {
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailedSubjectChronicler {
     GoogleBackendService googleBackendService
 
     @Override
@@ -351,7 +365,7 @@ class GoogleInternalLoadBalancerCachingAgent extends AbstractGoogleCachingAgent 
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements PlatformErrorPropagator {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailedSubjectChronicler {
     GoogleInternalLoadBalancer googleLoadBalancer
 
     @Override

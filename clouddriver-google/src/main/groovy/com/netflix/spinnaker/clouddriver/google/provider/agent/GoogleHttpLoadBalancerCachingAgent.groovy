@@ -57,6 +57,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   String agentType = "${accountName}/global/${GoogleHttpLoadBalancerCachingAgent.simpleName}"
   String onDemandAgentType = "${agentType}-OnDemand"
   final OnDemandMetricsSupport metricsSupport
+  List<String> failedLoadBalancers
 
   GoogleHttpLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                      GoogleNamedAccountCredentials credentials,
@@ -68,6 +69,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
         this,
         "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}"
     )
+    this.failedLoadBalancers = []
   }
 
   @Override
@@ -77,6 +79,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   List<GoogleHttpLoadBalancer> getHttpLoadBalancers() {
+    // Reset failed load balancers on each caching agent execution.
+    failedLoadBalancers = []
     List<GoogleHttpLoadBalancer> loadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
@@ -103,7 +107,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     executeIfRequestsAreQueued(httpHealthCheckRequest, "HttpLoadBalancerCaching.httpHealthCheck")
     executeIfRequestsAreQueued(groupHealthRequest, "HttpLoadBalancerCaching.groupHealth")
 
-    return loadBalancers
+    return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
   CacheResult buildCacheResult(ProviderCache _, List<GoogleHttpLoadBalancer> googleLoadBalancers) {
@@ -217,6 +221,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             backendServiceRequest: backendServiceRequest,
             httpHealthCheckRequest: httpHealthCheckRequest,
             groupHealthRequest: groupHealthRequest,
+            subject: newLoadBalancer.name,
+            failedSubjects: failedLoadBalancers,
           )
           def targetHttpsProxyCallback = new TargetHttpsProxyCallback(
             googleLoadBalancer: newLoadBalancer,
@@ -224,6 +230,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             backendServiceRequest: backendServiceRequest,
             httpHealthCheckRequest: httpHealthCheckRequest,
             groupHealthRequest: groupHealthRequest,
+            subject: newLoadBalancer.name,
+            failedSubjects: failedLoadBalancers,
           )
 
           switch (Utils.getTargetProxyType(forwardingRule.target)) {
@@ -243,7 +251,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   // Note: The TargetProxyCallbacks assume that each proxy points to a unique urlMap.
-  class TargetHttpsProxyCallback<TargetHttpsProxy> extends JsonBatchCallback<TargetHttpsProxy> implements PlatformErrorPropagator {
+  class TargetHttpsProxyCallback<TargetHttpsProxy> extends JsonBatchCallback<TargetHttpsProxy> implements FailedSubjectChronicler {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest urlMapRequest
 
@@ -272,7 +280,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   // Note: The TargetProxyCallbacks assume that each proxy points to a unique urlMap.
-  class TargetProxyCallback<TargetHttpProxy> extends JsonBatchCallback<TargetHttpProxy> implements PlatformErrorPropagator {
+  class TargetProxyCallback<TargetHttpProxy> extends JsonBatchCallback<TargetHttpProxy> implements FailedSubjectChronicler {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest urlMapRequest
 
@@ -291,13 +299,15 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             backendServiceRequest: backendServiceRequest,
             httpHealthCheckRequest: httpHealthCheckRequest,
             groupHealthRequest: groupHealthRequest,
+            subject: googleLoadBalancer.name,
+            failedSubjects: failedLoadBalancers
         )
         compute.urlMaps().get(project, urlMapName).queue(urlMapRequest, urlMapCallback)
       }
     }
   }
 
-  class UrlMapCallback<UrlMap> extends JsonBatchCallback<UrlMap> implements PlatformErrorPropagator {
+  class UrlMapCallback<UrlMap> extends JsonBatchCallback<UrlMap> implements FailedSubjectChronicler {
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest backendServiceRequest
 
@@ -384,6 +394,8 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     @Override
     void onSuccess(BackendService backendService, HttpHeaders responseHeaders) throws IOException {
       def groupHealthCallback = new GroupHealthCallback(
+          subject: googleLoadBalancer.name,
+          failedSubjects: failedLoadBalancers,
           googleLoadBalancer: googleLoadBalancer,
       )
       Boolean isHttps = backendService.protocol == 'HTTPS'
@@ -417,11 +429,15 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
         def healthCheckName = Utils.getLocalName(healthCheckURL)
         if (isHttps) {
           def healthCheckCallback = new HttpsHealthCheckCallback(
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers,
               googleBackendServices: backendServicesToUpdate
           )
           compute.httpsHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
         } else {
           def healthCheckCallback = new HttpHealthCheckCallback(
+              subject: googleLoadBalancer.name,
+              failedSubjects: failedLoadBalancers,
               googleBackendServices: backendServicesToUpdate
           )
           compute.httpHealthChecks().get(project, healthCheckName).queue(httpHealthCheckRequest, healthCheckCallback)
@@ -430,7 +446,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements PlatformErrorPropagator {
+  class HttpsHealthCheckCallback<HttpsHealthCheck> extends JsonBatchCallback<HttpsHealthCheck> implements FailedSubjectChronicler {
     List<GoogleBackendService> googleBackendServices
 
     @Override
@@ -450,7 +466,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements PlatformErrorPropagator {
+  class HttpHealthCheckCallback<HttpHealthCheck> extends JsonBatchCallback<HttpHealthCheck> implements FailedSubjectChronicler {
     List<GoogleBackendService> googleBackendServices
 
     @Override
@@ -470,7 +486,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     }
   }
 
-  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements PlatformErrorPropagator {
+  class GroupHealthCallback<BackendServiceGroupHealth> extends JsonBatchCallback<BackendServiceGroupHealth> implements FailedSubjectChronicler {
     GoogleHttpLoadBalancer googleLoadBalancer
 
     @Override
