@@ -1,8 +1,9 @@
 'use strict';
 
+import { COLLAPSIBLE_SECTION_STATE_CACHE } from './collapsibleSectionStateCache';
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.cache', [
-    require('./collapsibleSectionStateCache.js'),
+    COLLAPSIBLE_SECTION_STATE_CACHE,
   ]);

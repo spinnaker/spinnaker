@@ -1,9 +1,11 @@
 'use strict';
 
+import { COLLAPSIBLE_SECTION_STATE_CACHE } from 'core/cache/collapsibleSectionStateCache';
+
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.presentation.collapsibleSection.directive', [
-  require('core/cache/collapsibleSectionStateCache.js')
+  COLLAPSIBLE_SECTION_STATE_CACHE
 ])
   .directive('collapsibleSection', function(collapsibleSectionStateCache) {
     return {
