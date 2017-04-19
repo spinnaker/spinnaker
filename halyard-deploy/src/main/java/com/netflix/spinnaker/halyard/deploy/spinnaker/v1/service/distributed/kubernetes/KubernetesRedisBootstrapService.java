@@ -50,8 +50,10 @@ public class KubernetesRedisBootstrapService extends RedisBootstrapService imple
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setAddress(buildAddress())
+    String location = "spinnaker";
+    settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setLocation(location)
         .setSafeToUpdate(true) // It's OK to flush this redis fully since we generally redeploy bootstrap clouddriver & orca
         .setEnabled(true);
     return settings;

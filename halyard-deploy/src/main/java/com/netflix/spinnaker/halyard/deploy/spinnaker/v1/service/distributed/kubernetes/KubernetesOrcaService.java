@@ -46,8 +46,10 @@ public class KubernetesOrcaService extends OrcaService implements KubernetesDist
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setAddress(buildAddress())
+    String location = "spinnaker";
+    settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setLocation(location)
         .setEnabled(true);
     return settings;
   }

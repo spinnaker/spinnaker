@@ -45,8 +45,10 @@ public class KubernetesFront50Service extends Front50Service implements Kubernet
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
-    settings.setAddress(buildAddress())
+    String location = "spinnaker";
+    settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setLocation(location)
         .setEnabled(true);
     return settings;
   }

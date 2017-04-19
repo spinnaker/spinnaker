@@ -27,7 +27,7 @@ import java.util.Map;
 public class RunningServiceDetails {
   int healthy;
   LoadBalancer loadBalancer;
-  String version;
+  Integer latestEnabledVersion;
   String artifactId;
   String internalEndpoint;
   String externalEndpoint;
@@ -38,6 +38,8 @@ public class RunningServiceDetails {
   public static class Instance {
     String id;
     String location;
+    boolean running;
+    boolean healthy;
   }
 
   @Data

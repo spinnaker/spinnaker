@@ -15,7 +15,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class KubernetesMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
+public class GoogleMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
   @Autowired
   private String dockerRegistry;
 
@@ -41,7 +41,6 @@ public class KubernetesMonitoringDaemonService extends SpinnakerMonitoringDaemon
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setLocation("spinnaker")
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
     return settings;
   }

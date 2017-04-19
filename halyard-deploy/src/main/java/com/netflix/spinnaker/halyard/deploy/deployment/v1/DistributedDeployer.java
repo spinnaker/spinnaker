@@ -73,7 +73,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         Orca orca = serviceProvider
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connect(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.message("Rolling back " + distributedService.getName() + " via Spinnaker red/black");
+        DaemonTaskHandler.message("Rolling back " + distributedService.getServiceName() + " via Spinnaker red/black");
         rollbackService(deploymentDetails, orca, distributedService, runtimeSettings.getServiceSettings(service));
       }
     }
@@ -98,7 +98,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       boolean safeToUpdate = settings.isSafeToUpdate();
 
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
-        DaemonTaskHandler.message("Manually deploying " + distributedService.getName());
+        DaemonTaskHandler.message("Manually deploying " + distributedService.getServiceName());
         List<ConfigSource> configs = distributedService.stageProfiles(deploymentDetails, resolvedConfiguration);
         distributedService.ensureRunning(deploymentDetails, resolvedConfiguration, configs, safeToUpdate);
       } else {
@@ -107,12 +107,12 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
           Orca orca = serviceProvider
               .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
               .connect(deploymentDetails, runtimeSettings);
-          DaemonTaskHandler.newStage("Deploying " + distributedService.getName() + " via red/black");
+          DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via red/black");
           deployService(deploymentDetails, resolvedConfiguration, orca, distributedService);
 
           return null;
         });
-        DaemonTaskHandler.submitTask(builder::build, "Deploy " + distributedService.getName());
+        DaemonTaskHandler.submitTask(builder::build, "Deploy " + distributedService.getServiceName());
       }
     }
 
@@ -151,7 +151,8 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       Orca orca,
       DistributedService distributedService) {
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
-    RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details);
+    ServiceSettings settings = resolvedConfiguration.getServiceSettings(distributedService.getService());
+    RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details, settings);
     Supplier<String> idSupplier;
     if (!runningServiceDetails.getLoadBalancer().isExists()) {
       Map<String, Object> task = distributedService.buildUpsertLoadBalancerTask(details, runtimeSettings);
@@ -176,7 +177,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       Orca orca,
       DistributedService distributedService,
       ServiceSettings settings) {
-    DaemonTaskHandler.newStage("Rolling back " + distributedService.getName());
+    DaemonTaskHandler.newStage("Rolling back " + distributedService.getServiceName());
     Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details, settings);
     Supplier<String> idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
@@ -187,7 +188,8 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       DistributedService<Orca, T> orcaService) {
     Orca orca = orcaService.connect(details, runtimeSettings);
     Map<String, ActiveExecutions> executions = orca.getActiveExecutions();
-    RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details);
+    ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
+    RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details, orcaSettings);
 
     Map<String, Integer> executionsByInstance = new HashMap<>();
 
@@ -219,7 +221,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       // TODO(lwander) consult clouddriver to ensure this orca isn't enabled
       if (executionsByServerGroupVersion.get(orcaVersion) == 0) {
         DaemonTaskHandler.message("Reaping old orca instance " + orcaVersion);
-        orcaService.deleteVersion(details, orcaVersion);
+        orcaService.deleteVersion(details, orcaSettings, orcaVersion);
       }
     }
   }

@@ -44,8 +44,8 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
   }
 
   @Override
-  public String getName() {
-    return getType().toString();
+  public String getServiceName() {
+    return getType().getServiceName();
   }
 
   public String getCanonicalName() {
@@ -72,8 +72,10 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     REDIS_BOOTSTRAP("spin-redis-bootstrap", "redis-bootstrap"),
     ROSCO("spin-rosco", "rosco"),
     MONITORING_DAEMON("spin-monitoring-daemon", "monitoring-daemon"),
-    VAULT_CLIENT("spin-vault-client", "vault-client");
+    VAULT_CLIENT("spin-vault-client", "vault-client"),
+    VAULT_SERVER("spin-vault-server", "vault-server");
 
+    @Getter
     final String serviceName;
     @Getter
     final String canonicalName;

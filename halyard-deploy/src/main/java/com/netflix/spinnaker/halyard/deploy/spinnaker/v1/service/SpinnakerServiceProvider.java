@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -37,7 +36,7 @@ abstract public class SpinnakerServiceProvider {
     for (SpinnakerService.Type type : SpinnakerService.Type.values()) {
       SpinnakerService service = getSpinnakerService(type);
       if (service != null) {
-        log.info("Building service settings entry for " + service.getName());
+        log.info("Building service settings entry for " + service.getServiceName());
         ServiceSettings settings = service.buildServiceSettings(deploymentConfiguration);
         endpoints.setServiceSettings(type, settings);
       }

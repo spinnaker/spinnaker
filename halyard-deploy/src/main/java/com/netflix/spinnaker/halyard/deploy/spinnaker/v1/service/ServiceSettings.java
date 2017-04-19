@@ -24,7 +24,6 @@ import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
@@ -50,6 +49,7 @@ abstract public class ServiceSettings {
   Map<String, String> env = new HashMap<>();
   String artifactId;
   String overrideBaseUrl;
+  String location;
   boolean enabled;
   boolean basicAuthEnabled;
   boolean monitored;

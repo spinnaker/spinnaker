@@ -54,6 +54,7 @@ public class SpinnakerRuntimeSettings {
     ServiceSettings redisBootstrap;
     ServiceSettings monitoringDaemon;
     ServiceSettings vaultClient;
+    ServiceSettings vaultServer;
   }
 
   @JsonIgnore

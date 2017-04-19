@@ -36,6 +36,12 @@ public class HalconfigDirectoryStructure {
     return ensureRelativeHalDirectory(deploymentName, "profiles");
   }
 
+  public Path getVaultTokenPath(String deploymentName) {
+    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    ensureDirectory(halconfigPath);
+    return new File(halconfigPath.toFile(), "vault-token").toPath();
+  }
+
   public Path getInstallScriptPath(String deploymentName) {
     Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
     ensureDirectory(halconfigPath);

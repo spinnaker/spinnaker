@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian.BakeDebianServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google.GoogleDistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes.KubernetesDistributedServiceProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian.LocalDebianServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class ServiceProviderFactory {
 
   @Autowired
   KubernetesDistributedServiceProvider kubernetesDistributedServiceProvider;
+
+  @Autowired
+  GoogleDistributedServiceProvider googleDistributedServiceProvider;
 
   @Autowired
   LocalDebianServiceProvider localDebianServiceProvider;
@@ -76,6 +80,8 @@ public class ServiceProviderFactory {
     switch (providerType) {
       case KUBERNETES:
         return kubernetesDistributedServiceProvider;
+      case GOOGLE:
+        return googleDistributedServiceProvider;
       default:
         throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getId());
     }

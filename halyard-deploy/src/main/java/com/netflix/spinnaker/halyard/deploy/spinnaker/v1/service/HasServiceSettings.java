@@ -24,5 +24,5 @@ public interface HasServiceSettings<T> {
   ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration);
   SpinnakerService<T> getService();
   SpinnakerArtifact getArtifact();
-  String getName();
+  String getServiceName();
 }

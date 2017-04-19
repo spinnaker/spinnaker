@@ -17,17 +17,14 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.google;
 
 import com.google.api.services.compute.Compute;
-import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,45 +40,17 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
   public void validate(ConfigProblemSetBuilder p, GoogleAccount n) {
     DaemonTaskHandler.message("Validating " + n.getNodeName() + " with " + GoogleAccountValidator.class.getSimpleName());
 
-    String jsonKey = null;
-    String jsonPath = n.getJsonPath();
-    String project = n.getProject();
-    GoogleNamedAccountCredentials credentials = null;
-
-    if (!StringUtils.isEmpty(jsonPath)) {
-      jsonKey = ValidatingFileReader.contents(p, jsonPath);
-
-      if (jsonKey == null) {
-        return;
-      } else if (jsonKey.isEmpty()) {
-        p.addProblem(Severity.WARNING, "The supplied credentials file is empty.");
-      }
-    }
-
-    if (StringUtils.isEmpty(n.getProject())) {
-      p.addProblem(Severity.ERROR, "No google project supplied.");
+    GoogleNamedAccountCredentials credentials = n.getNamedAccountCredentials(halyardVersion, p);
+    if (credentials == null) {
       return;
-    }
-
-    try {
-      credentials = new GoogleNamedAccountCredentials.Builder()
-          .jsonKey(jsonKey)
-          .project(n.getProject())
-          .computeVersion(n.isAlphaListed() ? ComputeVersion.ALPHA : ComputeVersion.DEFAULT)
-          .imageProjects(n.getImageProjects())
-          .applicationName("halyard " + halyardVersion)
-          .build();
+    } else {
       credentialsList.add(credentials);
-    } catch (Exception e) {
-      p.addProblem(Severity.ERROR, "Error instantiating Google credentials: " + e.getMessage() + ".")
-        .setRemediation("Do the provided credentials have access to project " + n.getProject() + "?");
-      return;
     }
 
     try {
       Compute compute = credentials.getCompute();
 
-      compute.projects().get(project).execute();
+      compute.projects().get(n.getProject()).execute();
 
       for (String imageProject : n.getImageProjects()) {
         compute.projects().get(imageProject).execute();

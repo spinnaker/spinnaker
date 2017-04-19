@@ -49,6 +49,7 @@ public class KubernetesGateService extends GateService implements KubernetesDist
     ApiSecurity apiSecurity = deploymentConfiguration.getSecurity().getApiSecurity();
     Settings settings = new Settings(apiSecurity);
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setLocation("spinnaker")
         .setEnabled(true);
     return settings;
   }

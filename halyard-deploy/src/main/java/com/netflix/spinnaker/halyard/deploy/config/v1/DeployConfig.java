@@ -33,9 +33,15 @@ public class DeployConfig {
   String dockerRegistry(@Value("${spinnaker.artifacts.dockerRegistry:gcr.io/spinnaker-marketplace}") String dockerRegistry) {
     return dockerRegistry;
   }
+
   @Bean
   String debianRepository(@Value("${spinnaker.artifacts.debianRepository:https://dl.bintray.com/spinnaker-team/spinnakerbuild}") String debianRepository) {
     return debianRepository;
+  }
+
+  @Bean
+  String googleImageProject(@Value("${spinnaker.artifacts.googleImageProject:marketplace-spinnaker-release}") String googleImageProject) {
+    return googleImageProject;
   }
 
   @Bean

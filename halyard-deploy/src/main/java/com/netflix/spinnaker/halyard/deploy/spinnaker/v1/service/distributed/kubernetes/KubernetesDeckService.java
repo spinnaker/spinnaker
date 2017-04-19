@@ -57,6 +57,7 @@ public class KubernetesDeckService extends DeckService implements KubernetesDist
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getUiSecurity());
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setLocation("spinnaker")
         .setEnabled(true);
     return settings;
   }

@@ -52,8 +52,10 @@ public class KubernetesOrcaBootstrapService extends OrcaBootstrapService impleme
     List<String> profiles = new ArrayList<>();
     profiles.add("bootstrap");
     Settings settings = new Settings(profiles);
-    settings.setAddress(buildAddress())
+    String location = "spinnaker";
+    settings.setAddress(buildAddress(location))
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setLocation(location)
         .setMonitored(false)
         .setEnabled(true);
     return settings;
