@@ -70,7 +70,7 @@ public class PipelineTemplate implements VersionedSchema {
     private String name;
     private String group = "Ungrouped";
     private String description;
-    private String type;
+    private String type = "string";
     private Object defaultValue;
     private String example;
 
