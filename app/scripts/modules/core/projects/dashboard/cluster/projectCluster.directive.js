@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 
+import {COLLAPSIBLE_SECTION_STATE_CACHE} from 'core/cache/collapsibleSectionStateCache';
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
@@ -13,7 +14,7 @@ require('./projectCluster.less');
 module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
   require('core/account/collapsibleAccountTag.directive.js'),
   URL_BUILDER_SERVICE,
-  require('core/cache/collapsibleSectionStateCache.js'),
+  COLLAPSIBLE_SECTION_STATE_CACHE,
   CLUSTER_FILTER_SERVICE,
   TIME_FORMATTERS,
   require('../../../healthCounts/healthCounts.directive.js'),
