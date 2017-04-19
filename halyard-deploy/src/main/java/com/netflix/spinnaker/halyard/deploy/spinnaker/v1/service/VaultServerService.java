@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructur
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
@@ -166,7 +167,11 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
       try {
         result = IOUtils.toString(new FileInputStream(vaultTokenFile));
       } catch (IOException e) {
-        throw new HalException(Problem.Severity.FATAL, "Unable to read vault token: " + e.getMessage());
+        throw new HalException(
+            new ProblemBuilder(Problem.Severity.FATAL, "Unable to read vault token: " + e.getMessage())
+                .setRemediation("This file is needed for storing credentials to your vault server. "
+                  + "If you have deployed vault by hand, make sure Halyard can authenticate using the token in that file.").build()
+        );
       }
     } else {
       try {

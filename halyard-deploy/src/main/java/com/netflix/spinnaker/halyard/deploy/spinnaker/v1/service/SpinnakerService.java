@@ -60,6 +60,7 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
     CLOUDDRIVER("spin-clouddriver", "clouddriver"),
     CLOUDDRIVER_BOOTSTRAP("spin-clouddriver-bootstrap", "clouddriver-bootstrap"),
     CONSUL_CLIENT("spin-consul-client", "consul-client"),
+    CONSUL_SERVER("spin-consul-server", "consul-server"),
     DECK("spin-deck", "deck"),
     ECHO("spin-echo", "echo"),
     FIAT("spin-fiat", "fiat"),

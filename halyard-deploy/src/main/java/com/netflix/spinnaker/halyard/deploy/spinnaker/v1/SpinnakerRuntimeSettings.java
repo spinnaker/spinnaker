@@ -41,6 +41,7 @@ public class SpinnakerRuntimeSettings {
     ServiceSettings clouddriver;
     ServiceSettings clouddriverBootstrap;
     ServiceSettings consulClient;
+    ServiceSettings consulServer;
     ServiceSettings deck;
     ServiceSettings echo;
     ServiceSettings fiat;

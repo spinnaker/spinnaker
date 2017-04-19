@@ -44,12 +44,26 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 class GoogleProviderUtils {
   // Map from service -> the port & job managing the connection.
   private static ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
+
+  static String defaultServiceAccount(AccountDeploymentDetails<GoogleAccount> details) {
+    GoogleAccount account = details.getAccount();
+    String project = account.getProject();
+    Compute compute = getCompute(details);
+
+    try {
+      return compute.projects().get(project).execute().getDefaultServiceAccount();
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Unable to get default compute service account");
+    }
+  }
 
   static URI openSshTunnel(AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service) {
     String key = Proxy.buildKey(details.getDeploymentName(), instanceName);
@@ -103,18 +117,35 @@ class GoogleProviderUtils {
   }
 
   static void waitOnZoneOperation(Compute compute, String project, String zone, Operation operation) throws IOException {
-    while (!operation.getStatus().equals("DONE")) {
-      operation = compute.zoneOperations().get(project, zone, operation.getName()).execute();
+    waitOnOperation(() -> {
       try {
-        Thread.sleep(1000);
-      } catch (InterruptedException ignored) {
+        return compute.zoneOperations().get(project, zone, operation.getName()).execute();
+      } catch (IOException e) {
+        throw new HalException(FATAL, "Operation failed: " + e);
       }
-    }
+    });
   }
 
   static void waitOnGlobalOperation(Compute compute, String project, Operation operation) throws IOException {
+    waitOnOperation(() -> {
+      try {
+        return compute.globalOperations().get(project, operation.getName()).execute();
+      } catch (IOException e) {
+        throw new HalException(FATAL, "Operation failed: " + e);
+      }
+    });
+  }
+
+  static void waitOnOperation(Supplier<Operation> operationSupplier) {
+    Operation operation = operationSupplier.get();
     while (!operation.getStatus().equals("DONE")) {
-      operation = compute.globalOperations().get(project, operation.getName()).execute();
+      if (operation.getError() != null) {
+        throw new HalException(FATAL, String.join("\n", operation.getError()
+            .getErrors()
+            .stream()
+            .map(e -> e.getCode() + ": " + e.getMessage()).collect(Collectors.toList())));
+      }
+      operation = operationSupplier.get();
       try {
         Thread.sleep(1000);
       } catch (InterruptedException ignored) {
