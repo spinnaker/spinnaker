@@ -5,4 +5,5 @@ dependencies {
   spinnaker.group('bootWeb')
   spinnaker.group('jackson')
   spinnaker.group('retrofitDefault')
+  testCompile spinnaker.dependency('groovy')
 }

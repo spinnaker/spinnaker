@@ -17,6 +17,7 @@
 package com.netflix.kayenta.config;
 
 import com.netflix.kayenta.metrics.MapBackedMetricsServiceRepository;
+import com.netflix.kayenta.metrics.MetricSetMixerService;
 import com.netflix.kayenta.metrics.MetricsServiceRepository;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.MapBackedAccountCredentialsRepository;
@@ -41,6 +42,12 @@ public class KayentaConfiguration {
   @ConditionalOnMissingBean(MetricsServiceRepository.class)
   MetricsServiceRepository metricsServiceRepository() {
     return new MapBackedMetricsServiceRepository();
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(MetricsServiceRepository.class)
+  MetricSetMixerService metricSetMixerService() {
+    return new MetricSetMixerService();
   }
 
   @Bean

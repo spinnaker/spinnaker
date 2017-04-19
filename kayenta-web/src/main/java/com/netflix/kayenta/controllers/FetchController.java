@@ -55,8 +55,8 @@ public class FetchController {
   public MetricSet queryMetrics(@RequestParam(required = false) final String accountName,
                                 @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                                 @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
-                                @ApiParam(defaultValue = "2017-02-24T15:13:00Z") @RequestParam String intervalStartTime,
-                                @ApiParam(defaultValue = "2017-02-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
+                                @ApiParam(defaultValue = "2017-03-24T15:13:00Z") @RequestParam String intervalStartTime,
+                                @ApiParam(defaultValue = "2017-03-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
     AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {

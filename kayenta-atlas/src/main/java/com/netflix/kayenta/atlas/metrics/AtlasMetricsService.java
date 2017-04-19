@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -69,8 +70,8 @@ public class AtlasMetricsService implements MetricsService {
     Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
     List<List<Double>> timeSeriesList = atlasResults.getValues();
 
-    if (timeSeriesList.size() == 0) {
-      throw new IllegalArgumentException("No time series was returned.");
+    if (timeSeriesList == null) {
+      timeSeriesList = new ArrayList<>();
     }
 
     List<Double> pointValues =

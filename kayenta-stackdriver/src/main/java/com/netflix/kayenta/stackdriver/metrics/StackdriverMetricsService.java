@@ -18,6 +18,7 @@ package com.netflix.kayenta.stackdriver.metrics;
 
 import com.google.api.services.monitoring.v3.Monitoring;
 import com.google.api.services.monitoring.v3.model.ListTimeSeriesResponse;
+import com.google.api.services.monitoring.v3.model.Metric;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -97,8 +99,8 @@ public class StackdriverMetricsService implements MetricsService {
 
     List<TimeSeries> timeSeriesList = response.getTimeSeries();
 
-    if (timeSeriesList.size() == 0) {
-      throw new IllegalArgumentException("No time series was returned.");
+    if (timeSeriesList == null || timeSeriesList.size() == 0) {
+      timeSeriesList = Collections.singletonList(new TimeSeries().setMetric(new Metric()).setPoints(new ArrayList<>()));
     } else if (timeSeriesList.size() > 1) {
       log.warn("Expected 1 time series, but {} were returned; using just the first time series.", timeSeriesList.size());
     }
