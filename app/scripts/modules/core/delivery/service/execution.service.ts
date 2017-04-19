@@ -136,8 +136,6 @@ export class ExecutionService {
         method: 'PUT',
         url: [
           SETTINGS.gateUrl,
-          'applications',
-          application.name,
           'pipelines',
           executionId,
           'cancel',

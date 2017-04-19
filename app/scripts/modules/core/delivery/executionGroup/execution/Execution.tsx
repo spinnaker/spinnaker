@@ -166,7 +166,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     cancelModalService.confirm({
       header: `Really stop execution of ${this.props.execution.name}?`,
       buttonText: `Stop running ${this.props.execution.name}`,
-      forceable: this.props.execution.executionEngine === 'v2',
+      forceable: this.props.execution.executionEngine !== 'v1',
       body: hasDeployStage ? '<b>Note:</b> Any deployments that have begun will continue and need to be cleaned up manually.' : null,
       submitMethod: (reason, force) => executionService.cancelExecution(this.props.application, this.props.execution.id, force, reason)
     });

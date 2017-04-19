@@ -41,7 +41,7 @@ describe('Service: executionService', function () {
     it('should wait until pipeline is not running, then resolve', function () {
       let completed = false;
       let executionId = 'abc';
-      let cancelUrl = [ SETTINGS.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
+      let cancelUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'cancel' ].join('/');
       let checkUrl = [ SETTINGS.gateUrl, 'pipelines', executionId ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
@@ -61,7 +61,7 @@ describe('Service: executionService', function () {
     it('should propagate rejection from failed cancel', function () {
       let failed = false;
       let executionId = 'abc';
-      let cancelUrl = [ SETTINGS.gateUrl, 'applications', 'deck', 'pipelines', executionId, 'cancel' ].join('/');
+      let cancelUrl = [ SETTINGS.gateUrl, 'pipelines', executionId, 'cancel' ].join('/');
       let application = { name: 'deck', executions: { refresh: () => $q.when(null) } };
 
       $httpBackend.expectPUT(cancelUrl).respond(500, []);
