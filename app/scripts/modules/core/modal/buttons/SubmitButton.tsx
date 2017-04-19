@@ -15,11 +15,11 @@ export class SubmitButton extends React.Component<ISubmitButtonProps, any> {
     return (
       <Button className="btn btn-primary"
               disabled={this.props.isDisabled}
-              onClick={() => this.props.onClick()}>
+              onClick={this.props.onClick}>
         { !this.props.submitting && (
-          <span className="glyphicon glyphicon-ok-circle"></span>
+          <span className="glyphicon glyphicon-ok-circle"/>
         ) || (
-          <ButtonBusyIndicator></ButtonBusyIndicator>
+          <ButtonBusyIndicator/>
         )}&nbsp;
         {this.props.label || (this.props.isNew ? 'Create' : 'Update')}
       </Button>

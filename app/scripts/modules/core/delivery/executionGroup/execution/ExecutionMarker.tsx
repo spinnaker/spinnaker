@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 
-import { IExecutionStage } from 'core/domain/IExecutionStage';
+import { IExecutionStageSummary } from 'core/domain/IExecutionStage';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { duration } from 'core/utils/timeFormatters';
@@ -9,10 +9,10 @@ import { duration } from 'core/utils/timeFormatters';
 import './executionMarker.less';
 
 interface IExecutionMarkerProps {
-  stage: IExecutionStage;
-  active: boolean;
+  stage: IExecutionStageSummary;
+  active?: boolean;
   width: string;
-  onClick: () => void;
+  onClick: (stageIndex: number) => void;
 }
 
 interface IExecutionMarkerState {
@@ -42,6 +42,11 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     this.runningTime.reset();
   }
 
+  private handleStageClick = () => {
+    ReactGA.event({category: 'Pipeline', action: 'Stage clicked (bar)'});
+    this.props.onClick(this.props.stage.index);
+  }
+
   public render() {
     const stage = this.props.stage;
     const markerClassName = [
@@ -56,13 +61,10 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
 
     const TooltipTemplate = stage.labelTemplate;
     return (
-      <Tooltip key={stage.refId} template={(<TooltipTemplate stage={stage}></TooltipTemplate>)}>
+      <Tooltip key={stage.refId} template={(<TooltipTemplate stage={stage}/>)}>
         <div className={markerClassName}
           style={{width: this.props.width, backgroundColor: stage.color}}
-          onClick={() => {
-            ReactGA.event({category: 'Pipeline', action: 'Stage clicked (bar)'});
-            this.props.onClick();
-          }}>
+          onClick={this.handleStageClick}>
           <span className="duration">{duration(stage.runningTimeInMs)}</span>
         </div>
       </Tooltip>);

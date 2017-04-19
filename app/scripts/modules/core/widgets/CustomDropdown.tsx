@@ -9,14 +9,14 @@ export class CustomToggle extends React.Component<ToggleProps, {}> {
     super(props);
   }
 
-  public handleClick (e: React.MouseEvent<HTMLAnchorElement>) {
+  private handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     this.props.onClick(e);
   }
 
   public render() {
     return (
-      <a onClick={(e) => this.handleClick(e)} className="remove-border-top">
+      <a onClick={this.handleClick} className="remove-border-top">
         {this.props.children}
       </a>
     );

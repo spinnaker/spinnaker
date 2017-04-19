@@ -31,8 +31,12 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
     this.setState({open: open});
   }
 
-  public showModal(show: boolean) {
-    this.setState({ showModal: show });
+  public showModal = (): void => {
+    this.setModal(true);
+  }
+
+  public setModal = (show: boolean) => {
+    this.setState({showModal: show});
   }
 
   public render() {
@@ -42,25 +46,25 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
     return (
       <Dropdown id="feedback-dropdown" componentClass="li" className="feedback-nav">
         <CustomToggle bsRole="toggle">
-          <span className="glyphicon glyphicon-question-sign"></span>
+          <span className="glyphicon glyphicon-question-sign"/>
           <span className="hidden-xs hidden-sm">Help</span>
         </CustomToggle>
         <CustomMenu bsRole="menu">
-          <MenuItem onClick={() => this.showModal(true)}>
-            <span className="glyphicon glyphicon-envelope"></span>
+          <MenuItem onClick={this.showModal}>
+            <span className="glyphicon glyphicon-envelope"/>
             Create an issue in JIRA
           </MenuItem>
-          { this.state.slackConfig &&
-            (<MenuItem href={slackUrl} target={slackTarget}>
-              <span className="icon"><span className="glyphicon icon-bubbles"></span></span>
+          { this.state.slackConfig && (
+            <MenuItem href={slackUrl} target={slackTarget}>
+              <span className="icon"><span className="glyphicon icon-bubbles"/></span>
               Talk to us on Slack
-            </MenuItem>)
-          }
+            </MenuItem>
+          )}
           <MenuItem href="https://confluence.netflix.com/display/ENGTOOLS/Spinnaker" target="_blank">
-            <span className="glyphicon glyphicon-file"></span> Documentation
+            <span className="glyphicon glyphicon-file"/> Documentation
           </MenuItem>
         </CustomMenu>
-        <FeedbackModal show={ this.state.showModal } showCallback={(show) => this.showModal(show)}></FeedbackModal>
+        <FeedbackModal show={ this.state.showModal } showCallback={this.setModal}/>
       </Dropdown>
     );
   }

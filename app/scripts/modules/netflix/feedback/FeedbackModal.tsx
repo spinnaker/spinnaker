@@ -102,8 +102,7 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
       });
   };
 
-
-  private close(): void {
+  private close = (): void => {
     this.props.showCallback(false);
   }
 
@@ -114,6 +113,18 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
     this.setState({ feedback: Object.assign({}, this.state.feedback, updatedFeedback)});
   }
 
+  private handleTitleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    this.handleFeedbackChange(e, 'title');
+  }
+
+  private handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    this.handleFeedbackChange(e, 'description');
+  }
+
+  private handleContactChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    this.handleFeedbackChange(e, 'contact');
+  }
+
   public render() {
     const formValid = this.state.feedback.title.length > 0 &&
                       this.state.feedback.description.length > 0;
@@ -121,8 +132,8 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
     const submitting = this.state.feedbackState === states.SUBMITTING;
 
     return (
-      <Modal show={this.props.show} onHide={() => this.close()}>
-        <Modal.Header closeButton>
+      <Modal show={this.props.show} onHide={this.close}>
+        <Modal.Header closeButton={true}>
           <Modal.Title>Talk to Us</Modal.Title>
         </Modal.Header>
         <Modal.Body>
@@ -138,19 +149,19 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
                 <label>Title</label>
                 <input type="text" className="form-control"
                         value={this.state.feedback.title}
-                        onChange={(e) => this.handleFeedbackChange(e, 'title')}
+                        onChange={this.handleTitleChange}
                         placeholder="How can we help you?"
-                        required/>
+                        required={true}/>
               </div>
               <div className="form-group">
                 <label>Description</label>
                 <textarea value={this.state.feedback.description}
-                          onChange={(e) => this.handleFeedbackChange(e, 'description')}
+                          onChange={this.handleDescriptionChange}
                           className="form-control"
                           rows={4}
                           placeholder="Please be detailed and mention any steps required to reproduce the issue. Or just tell us what feature you want!"
-                          required
-                  ></textarea>
+                          required={true}
+                  />
               </div>
               { !this.state.userIsAuthenticated && (
                 <div className="form-group">
@@ -158,14 +169,14 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
                   <input type="text"
                           className="form-control"
                           value={this.state.feedback.contact}
-                          onChange={(e) => this.handleFeedbackChange(e, 'contact')}
+                          onChange={this.handleContactChange}
                           placeholder="Name or email address"
-                          required/>
+                          required={true}/>
                 </div>
               )}
               { !formValid && (
                 <div className="form-group">
-                  <p className="warning-text text-right"><strong><span className="glyphicon glyphicon-asterisk"></span> All fields are required.</strong></p>
+                  <p className="warning-text text-right"><strong><span className="glyphicon glyphicon-asterisk"/> All fields are required.</strong></p>
                 </div>
               )}
               { this.state.feedbackState === states.ERROR && (
@@ -191,9 +202,9 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
           )}
         </Modal.Body>
         <Modal.Footer>
-          <Button onClick={() => this.close()}>{this.state.feedbackState === states.EDITING ? 'Cancel' : 'Close'}</Button>
+          <Button onClick={this.close}>{this.state.feedbackState === states.EDITING ? 'Cancel' : 'Close'}</Button>
           {this.state.feedbackState !== states.SUBMITTED && (
-            <SubmitButton label="Submit issue" onClick={() => this.submit()} submitting={submitting} isDisabled={!(formValid && !submitting)}></SubmitButton>
+            <SubmitButton label="Submit issue" onClick={this.submit} submitting={submitting} isDisabled={!(formValid && !submitting)}/>
           )}
         </Modal.Footer>
       </Modal>

@@ -1,15 +1,15 @@
 import * as React from 'react';
 import { angular2react } from 'angular2react';
 
-import { PipelineGraphComponent } from './pipeline.graph.component';
 import { IExecution, IPipeline } from 'core/domain/index';
 import { IExecutionViewState } from './pipelineGraph.service';
+import { PipelineGraphComponent } from './pipeline.graph.component';
 
 interface IPipelineGraphProps {
   pipeline?: IPipeline;
   execution: IExecution;
   viewState: IExecutionViewState;
-  onNodeClick: (node: any) => void;
+  onNodeClick: (stageIndex: number) => void;
   shouldValidate?: boolean;
 }
 
