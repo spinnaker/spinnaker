@@ -245,7 +245,7 @@ function fix_defaults() {
 
 process_args "$@"
 
-declare -a COMPONENTS=('clouddriver' 'deck' 'echo' 'fiat' 'front50' 'gate' 'igor' 'orca' 'rosco')
+declare -a COMPONENTS=('clouddriver' 'deck' 'echo' 'fiat' 'front50' 'gate' 'igor' 'orca' 'rosco' 'consul-server' 'vault-server' 'redis')
 TIME_DECORATOR=$(date +%Y%m%d%H%M%S)
 ZONE=us-central1-f
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
