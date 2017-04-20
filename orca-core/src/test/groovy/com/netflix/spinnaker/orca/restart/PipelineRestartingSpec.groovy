@@ -27,10 +27,10 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.test.JobCompletionListener
 import com.netflix.spinnaker.orca.test.TestConfiguration
@@ -66,11 +66,11 @@ class PipelineRestartingSpec extends Specification {
 
   def "a previously run pipeline can be restarted and completed tasks are skipped"() {
     given:
-    pipeline.stages[0].tasks << new DefaultTask(
+    pipeline.stages[0].tasks << new TaskModel(
       id: 1, name: "task1", status: SUCCEEDED,
       startTime: currentTimeMillis(),
       endTime: currentTimeMillis(), implementingClass: Task1)
-    pipeline.stages[0].tasks << new DefaultTask(
+    pipeline.stages[0].tasks << new TaskModel(
       id: 2, name: "task2", status: RUNNING,
       startTime: currentTimeMillis(), implementingClass: Task2)
     repository.store(pipeline)

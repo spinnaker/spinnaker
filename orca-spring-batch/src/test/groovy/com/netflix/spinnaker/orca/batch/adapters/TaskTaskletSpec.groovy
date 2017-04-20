@@ -24,9 +24,9 @@ import com.netflix.spinnaker.orca.batch.TaskTasklet
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -84,7 +84,7 @@ class TaskTaskletSpec extends Specification {
   def random = Random.newInstance()
 
   void setup() {
-    def taskModel = new DefaultTask(id: random.nextLong(), name: "task1")
+    def taskModel = new TaskModel(id: random.nextLong(), name: "task1")
     stage.tasks << taskModel
     executionRepository.store(pipeline)
     jobExecution = createJobExecution(
@@ -337,8 +337,8 @@ class TaskTaskletSpec extends Specification {
     and:
     def pipeline = new Pipeline()
     def stage = new Stage<>(pipeline, stageType)
-    stage.tasks << new DefaultTask(status: SUCCEEDED)
-    stage.tasks << new DefaultTask()
+    stage.tasks << new TaskModel(status: SUCCEEDED)
+    stage.tasks << new TaskModel()
     stage.stageNavigator = new StageNavigator(applicationContext)
 
     when:

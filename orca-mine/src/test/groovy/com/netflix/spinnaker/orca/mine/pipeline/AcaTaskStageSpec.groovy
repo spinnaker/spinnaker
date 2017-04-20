@@ -2,11 +2,12 @@ package com.netflix.spinnaker.orca.mine.pipeline
 
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.mine.MineService
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Specification
+
 /*
  * Copyright 2016 Netflix, Inc.
  *
@@ -133,21 +134,21 @@ class AcaTaskStageSpec extends Specification {
   def createStage(pipeline, context) {
     Stage stage = new Stage<>(pipeline, "acaTask", "ACA Task", context)
     stage.tasks = [
-      new DefaultTask(
+      new Task(
         id: "1",
         name: "stageStart",
         startTime: 1470062659330,
         endTime: 1470062660513,
         status: "SUCCEEDED"
       ),
-      new DefaultTask(
+      new Task(
         id: "2",
         name: "registerGenericCanary",
         startTime: 1470062663868,
         endTime: 1470062664805,
         status: "SUCCEEDED"
       ),
-      new DefaultTask(
+      new Task(
         id: "3",
         name: "monitorGenericCanary",
         startTime: 1470062668621,

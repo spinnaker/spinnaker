@@ -25,10 +25,10 @@ import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.batch.listeners.SpringBatchExecutionListenerProvider
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.*
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task as TaskModel
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionTask
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -70,7 +70,7 @@ class RollingRestartSpec extends Specification {
   def "a previously run rolling push pipeline can be restarted and redirects work"() {
     given:
     pipeline.stages.first().with {
-      tasks << new DefaultTask(
+      tasks << new TaskModel(
         id: 1,
         name: "start",
         status: SUCCEEDED,
@@ -78,7 +78,7 @@ class RollingRestartSpec extends Specification {
         endTime: currentTimeMillis(),
         loopStart: true,
         implementingClass: StartTask)
-      tasks << new DefaultTask(
+      tasks << new TaskModel(
         id: 2,
         name: "end",
         status: REDIRECT,
@@ -86,7 +86,7 @@ class RollingRestartSpec extends Specification {
         endTime: currentTimeMillis(),
         loopEnd: true,
         implementingClass: EndTask)
-      tasks << new DefaultTask(
+      tasks << new TaskModel(
         id: 3,
         name: "final",
         status: NOT_STARTED,

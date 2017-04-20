@@ -16,38 +16,23 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import lombok.Data;
+import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 
 /**
  * A "task" is a component piece of a stage
  */
-@JsonDeserialize(as = DefaultTask.class)
-public interface Task {
-
-  String getId();
-
-  Class<? extends com.netflix.spinnaker.orca.Task> getImplementingClass();
-
-  String getName();
-
-  Long getStartTime();
-
-  void setStartTime(Long time);
-
-  Long getEndTime();
-
-  void setEndTime(Long time);
-
-  ExecutionStatus getStatus();
-
-  void setStatus(ExecutionStatus status);
-
-  boolean isStageStart();
-
-  boolean isStageEnd();
-
-  boolean isLoopStart();
-
-  boolean isLoopEnd();
+@Data
+public class Task {
+  String id;
+  Class<? extends com.netflix.spinnaker.orca.Task> implementingClass;
+  String name;
+  Long startTime;
+  Long endTime;
+  ExecutionStatus status = NOT_STARTED;
+  boolean stageStart;
+  boolean stageEnd;
+  boolean loopStart;
+  boolean loopEnd;
 }
