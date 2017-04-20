@@ -71,7 +71,6 @@ sudo /opt/halyard/bin/halyard 2>&1 /var/log/spinnaker/halyard/halyard.log &
 sleep 60
 
 echo "Configuring k8s..."
-echo $KUBE_CONF
 mkdir ~/.kube
 echo $KUBE_CONF >> ~/.kube/config
 
