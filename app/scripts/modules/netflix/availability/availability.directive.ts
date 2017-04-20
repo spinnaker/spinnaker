@@ -37,6 +37,7 @@ export class AvailabilityController implements ng.IComponentController {
     // Figure out score
     if (result.override.value === true) {
       score = 4;
+      title = 'Danger';
       reason = result.override.reason;
     } else if (result.trends.yesterday.score > 1) {
       // If there were recent incidents yesterday
