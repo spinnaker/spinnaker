@@ -49,38 +49,78 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
   @Override
   Map convert(Stage stage) {
     try {
-      def ancestorDeployStage = getAncestorDeployStage(executionRepository, stage)
-      def ancestorDeployStageData = ancestorDeployStage.mapTo(DeployStageData)
+      TargetServerGroupContext operationContext = getTargetServerGroupContext(stage)
 
-      def deployServerGroup = oortHelper.getTargetServerGroup(
-        ancestorDeployStageData.account,
-        ancestorDeployStageData.deployedServerGroupName,
-        ancestorDeployStageData.region,
-        getCloudProvider(ancestorDeployStage)
+      def context = operationContext.context
+      def sourceServerGroupCapacitySnapshot = operationContext.sourceServerGroupCapacitySnapshot
+
+      def targetServerGroup = oortHelper.getTargetServerGroup(
+        context.credentials as String,
+        context.serverGroupName as String,
+        context.region as String,
+        context.cloudProvider as String
       ).get()
 
       def minCapacity = Math.min(
-        ancestorDeployStageData.sourceServerGroupCapacitySnapshot.min as Long,
-        deployServerGroup.capacity.min as Long
+        sourceServerGroupCapacitySnapshot.min as Long,
+        targetServerGroup.capacity.min as Long
       )
 
-      log.info("Restoring capacity of ${ancestorDeployStageData.region}/${deployServerGroup.name} to ${minCapacity} (currentMin: ${deployServerGroup.capacity.min}, snapshotMin: ${ancestorDeployStageData.sourceServerGroupCapacitySnapshot.min})")
-
-      return [
-        credentials    : getCredentials(stage),
-        regions        : [ancestorDeployStageData.region],
-        region         : ancestorDeployStageData.region,
-        asgName        : deployServerGroup.name,
-        serverGroupName: deployServerGroup.name,
-        capacity       : deployServerGroup.capacity + [
-          // only update the min capacity, desired + max should be inherited from the current server group
-          min: minCapacity
-        ]
+      // only update the min capacity, desired + max should be inherited/unchanged from the target server group
+      context.capacity = targetServerGroup.capacity + [
+        min: minCapacity
       ]
+
+      log.info("Restoring min capacity of ${context.region}/${targetServerGroup.name} to ${minCapacity} (currentMin: ${targetServerGroup.capacity.min}, snapshotMin: ${sourceServerGroupCapacitySnapshot.min})")
+
+      return context
     } catch (Exception e) {
       log.error("Unable to apply source server group capacity (executionId: ${stage.execution.id})", e)
       return null
     }
+  }
+
+  /**
+   * Fetch target server group coordinates and source server group capacity snapshot.
+   *
+   * This may exist either on the current stage (if a Rollback) or on an upstream deploy stage (if a standard deploy)
+   */
+  TargetServerGroupContext getTargetServerGroupContext(Stage stage) {
+    if (stage.context.target) {
+      // target server group coordinates have been explicitly provided (see RollbackServerGroupStage)
+      def ancestorCaptureStage = getAncestorSnapshotStage(stage)
+
+      TargetServerGroupCoordinates targetServerGroupCoordinates = stage.mapTo(
+        "/target", TargetServerGroupCoordinates
+      )
+
+      return new TargetServerGroupContext(
+        context: [
+          credentials    : targetServerGroupCoordinates.account,
+          region         : targetServerGroupCoordinates.region,
+          asgName        : targetServerGroupCoordinates.serverGroupName,
+          serverGroupName: targetServerGroupCoordinates.serverGroupName,
+          cloudProvider  : targetServerGroupCoordinates.cloudProvider
+        ],
+        sourceServerGroupCapacitySnapshot: ancestorCaptureStage.context.sourceServerGroupCapacitySnapshot as Map<String, Long>
+      )
+    }
+
+    // target server group coordinates must be retrieved up from the closest ancestral deploy stage
+    def ancestorDeployStage = getAncestorDeployStage(executionRepository, stage)
+
+    DeployStageData ancestorDeployStageData = ancestorDeployStage.mapTo(DeployStageData)
+
+    return new TargetServerGroupContext(
+      context: [
+        credentials    : getCredentials(stage),
+        region         : ancestorDeployStageData.region,
+        asgName        : ancestorDeployStageData.deployedServerGroupName,
+        serverGroupName: ancestorDeployStageData.deployedServerGroupName,
+        cloudProvider  : getCloudProvider(ancestorDeployStage)
+      ],
+      sourceServerGroupCapacitySnapshot: ancestorDeployStageData.sourceServerGroupCapacitySnapshot
+    )
   }
 
   /**
@@ -89,10 +129,7 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
    * This can either be in the current pipeline or a dependent child pipeline in the event of a 'custom' deploy strategy.
    */
   static Stage getAncestorDeployStage(ExecutionRepository executionRepository, Stage stage) {
-    def deployStage = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
-      ancestorStage.context.containsKey("sourceServerGroupCapacitySnapshot")
-    }[0].stage
-
+    def deployStage = getAncestorSnapshotStage(stage)
     if (deployStage.context.strategy == "custom") {
       def pipelineStage = stage.execution.stages.find {
         it.type == "pipeline" && it.parentStageId == deployStage.id
@@ -106,7 +143,22 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
     return deployStage
   }
 
-  static class DeployStageData extends StageData {
+  /**
+   * Find an ancestor (or synthetic sibling) stage w/ `sourceServerGroupCapacitySnapshot` in it's context.
+   */
+  static Stage getAncestorSnapshotStage(Stage stage) {
+    def ancestors = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
+      ancestorStage.context.containsKey("sourceServerGroupCapacitySnapshot")
+    }*.stage
+
+    return ancestors ? ancestors[0] : stage.execution.stages.find {
+      // find a synthetic sibling w/ 'sourceServerGroupCapacitySnapshot' in the event of there being no suitable
+      // ancestors (ie. rollback stages)
+      it.context.containsKey("sourceServerGroupCapacitySnapshot") && it.parentStageId == stage.parentStageId
+    }
+  }
+
+  private static class DeployStageData extends StageData {
     @JsonProperty("deploy.server.groups")
     Map<String, Set<String>> deployServerGroups = [:]
 
@@ -117,5 +169,26 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
     String getDeployedServerGroupName() {
       return deployServerGroups.values().flatten().first()
     }
+  }
+
+  private static class TargetServerGroupCoordinates {
+    String region
+    String asgName
+    String serverGroupName
+    String account
+    String cloudProvider
+
+    String getAsgName() {
+      return getServerGroupName()
+    }
+
+    String getServerGroupName() {
+      return serverGroupName ?: asgName
+    }
+  }
+
+  private static class TargetServerGroupContext {
+    Map<String, Object> context
+    Map<String, Long> sourceServerGroupCapacitySnapshot
   }
 }

@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline
 
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityStage
+import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.CaptureSourceServerGroupCapacityStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.DisableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.EnableServerGroupStage
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerGroupStage
@@ -39,6 +41,12 @@ class RollbackServerGroupStageSpec extends Specification {
   @Shared
   def resizeServerGroupStage = new ResizeServerGroupStage()
 
+  @Shared
+  def captureSourceServerGroupCapacityStage = new CaptureSourceServerGroupCapacityStage()
+
+  @Shared
+  def applySourceServerGroupCapacityStage = new ApplySourceServerGroupCapacityStage()
+
   def "should inject enable, resize and disable stages corresponding to the server group being restored and rollbacked"() {
     given:
     def autowireCapableBeanFactory = Stub(AutowireCapableBeanFactory) {
@@ -46,6 +54,8 @@ class RollbackServerGroupStageSpec extends Specification {
         rollback.enableServerGroupStage = enableServerGroupStage
         rollback.disableServerGroupStage = disableServerGroupStage
         rollback.resizeServerGroupStage = resizeServerGroupStage
+        rollback.captureSourceServerGroupCapacityStage = captureSourceServerGroupCapacityStage
+        rollback.applySourceServerGroupCapacityStage = applySourceServerGroupCapacityStage
       }
     }
 
@@ -53,13 +63,14 @@ class RollbackServerGroupStageSpec extends Specification {
     rollbackServerGroupStage.autowireCapableBeanFactory = autowireCapableBeanFactory
 
     def stage = new Stage<>(new Pipeline(), "rollbackServerGroup", [
-      rollbackType: "EXPLICIT",
+      rollbackType   : "EXPLICIT",
       rollbackContext: [
-        restoreServerGroupName: "servergroup-v001",
+        restoreServerGroupName : "servergroup-v001",
         rollbackServerGroupName: "servergroup-v002"
       ],
-      credentials: "test",
-      cloudProvider: "aws"
+      credentials    : "test",
+      cloudProvider  : "aws",
+      "region"       : "us-west-1"
     ])
 
     when:
@@ -71,17 +82,44 @@ class RollbackServerGroupStageSpec extends Specification {
     then:
     tasks.iterator().size() == 0
     beforeStages.isEmpty()
-    afterStages.size() == 3
+    afterStages*.type == [
+      "enableServerGroup",
+      "captureSourceServerGroupCapacity",
+      "resizeServerGroup",
+      "disableServerGroup",
+      "applySourceServerGroupCapacity"
+    ]
     afterStages[0].context == stage.context + [
       serverGroupName: "servergroup-v001"
     ]
-    afterStages[1].context == stage.context + [
-      action: "scale_to_server_group",
-      source: new ResizeStrategy.Source(null, null, null, null, "servergroup-v002", "test", "aws"),
-      asgName: "servergroup-v001"
+    afterStages[1].context == [
+      source           : [
+        asgName        : "servergroup-v002",
+        serverGroupName: "servergroup-v002",
+        region         : "us-west-1",
+        account        : "test",
+        cloudProvider  : "aws"
+      ],
+      useSourceCapacity: true
     ]
     afterStages[2].context == stage.context + [
+      action            : "scale_to_server_group",
+      source            : new ResizeStrategy.Source(null, null, "us-west-1", null, "servergroup-v002", "test", "aws"),
+      asgName           : "servergroup-v001",
+      pinMinimumCapacity: true
+    ]
+    afterStages[3].context == stage.context + [
       serverGroupName: "servergroup-v002"
+    ]
+    afterStages[4].context == [
+      target     : [
+        asgName        : "servergroup-v001",
+        serverGroupName: "servergroup-v001",
+        region         : "us-west-1",
+        account        : "test",
+        cloudProvider  : "aws"
+      ],
+      credentials: "test"
     ]
   }
 }

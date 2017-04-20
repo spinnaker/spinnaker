@@ -36,12 +36,18 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
   }
 
   @Override
-  ResizeStrategy.Capacity capacityForOperation(Stage stage, String account, String serverGroupName, String cloudProvider, Location location, ResizeStrategy.OptionalConfiguration resizeConfig) {
+  ResizeStrategy.Capacity capacityForOperation(Stage stage,
+                                               String account,
+                                               String serverGroupName,
+                                               String cloudProvider,
+                                               Location location,
+                                               ResizeStrategy.OptionalConfiguration resizeConfig) {
     if (!stage.context.source) {
       throw new IllegalStateException("No source configuration available (${stage.context})")
     }
 
-    def source = stage.mapTo("/source", ResizeStrategy.Source)
+    StageData stageData = stage.mapTo(StageData)
+    ResizeStrategy.Source source = stageData.source
     TargetServerGroup tsg = oortHelper
       .getTargetServerGroup(source.credentials, source.serverGroupName, source.location, source.cloudProvider)
       .orElseThrow({
@@ -54,6 +60,17 @@ class ScaleToServerGroupResizeStrategy implements ResizeStrategy {
     def currentDesired = Integer.parseInt(tsg.capacity.desired.toString())
     def currentMax = Integer.parseInt(tsg.capacity.max.toString())
 
-    return new ResizeStrategy.Capacity(currentMax, currentDesired, currentMin)
+    return new ResizeStrategy.Capacity(
+      currentMax,
+      currentDesired,
+      stageData.pinMinimumCapacity ? currentDesired : currentMin
+    )
+  }
+
+  private static class StageData {
+    ResizeStrategy.Source source
+
+    // whether or not `min` capacity should be set to `desired` capacity
+    boolean pinMinimumCapacity
   }
 }

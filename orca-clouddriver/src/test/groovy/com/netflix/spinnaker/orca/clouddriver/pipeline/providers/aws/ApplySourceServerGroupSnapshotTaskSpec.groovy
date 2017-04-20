@@ -15,14 +15,14 @@
  */
 
 
-package com.netflix.spinnaker.orca.clouddriver.tasks.servergroup
+package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws.ApplySourceServerGroupCapacityTask
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.context.ApplicationContext
@@ -115,28 +115,28 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   @Unroll
   void "should construct resizeServerGroup context with source `min` + target `desired` and `max` capacity"() {
     given:
-    def pipeline = new Pipeline()
-    pipeline.stages << new Stage<>(pipeline, "", [
-      "deploy.server.groups"           : [
-        "us-east-1": ["application-stack-v001"]
-      ],
-      application                      : "application",
-      stack                            : "stack",
-      account                          : "test",
-      region                           : "us-east-1",
-      sourceServerGroupCapacitySnapshot: [
-        min    : originalMinCapacity,
-        desired: 10,
-        max    : 20
-      ]
-    ])
-    pipeline.stages << new Stage<>(pipeline, "", [account: "test"])
-    pipeline.stages.each {
-      it.setStageNavigator(stageNavigator)
-    }
+    def sourceServerGroupCapacitySnapshot = [
+      min    : originalMinCapacity,
+      desired: 10,
+      max    : 20
+    ]
 
-    pipeline.stages[0].id = "stage-1"
-    pipeline.stages[1].parentStageId = "stage-1"
+    task = new ApplySourceServerGroupCapacityTask() {
+      @Override
+      ApplySourceServerGroupCapacityTask.TargetServerGroupContext getTargetServerGroupContext(Stage stage) {
+        return new ApplySourceServerGroupCapacityTask.TargetServerGroupContext(
+          context: [
+            credentials    : "test",
+            region         : "us-east-1",
+            asgName        : "application-stack-v001",
+            serverGroupName: "application-stack-v001",
+            cloudProvider  : "aws"
+          ],
+          sourceServerGroupCapacitySnapshot: sourceServerGroupCapacitySnapshot
+        )
+      }
+    }
+    task.oortHelper = oortHelper
 
     and:
     def targetServerGroup = new TargetServerGroup(
@@ -149,7 +149,7 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     )
 
     when:
-    def result = task.convert(pipeline.stages[-1])
+    def result = task.convert(null)
 
     then:
     1 * oortHelper.getTargetServerGroup(
@@ -160,10 +160,10 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     ) >> Optional.of(targetServerGroup)
 
     result == [
+      cloudProvider  : "aws",
       credentials    : "test",
       asgName        : "application-stack-v001",
       serverGroupName: "application-stack-v001",
-      regions        : ["us-east-1"],
       region         : "us-east-1",
       capacity       : [
         min    : expectedMinCapacity,
@@ -176,5 +176,84 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
     originalMinCapacity || expectedMinCapacity
     0                   || 0            // min(currentMin, snapshotMin) == 0
     10                  || 5            // min(currentMin, snapshotMin) == 5
+  }
+
+  void "should get TargetServerGroupContext with explicitly provided coordinates"() {
+    given:
+    def pipeline = new Pipeline()
+    def stage = new Stage(pipeline, "", [
+      target: [
+        region         : "us-west-2",
+        serverGroupName: "asg-v001",
+        account        : "test",
+        cloudProvider  : "aws"
+      ]
+    ])
+
+    def siblingStage = new Stage(pipeline, "", [
+      sourceServerGroupCapacitySnapshot: [
+        min    : 10,
+        max    : 20,
+        desired: 15
+      ]
+    ])
+
+    stage.parentStageId = "parentStageId"
+
+    siblingStage.parentStageId = stage.parentStageId
+    siblingStage.syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
+
+    pipeline.stages << stage
+    pipeline.stages << siblingStage
+
+    when:
+    def targetServerGroupContext = task.getTargetServerGroupContext(stage)
+
+    then:
+    targetServerGroupContext.sourceServerGroupCapacitySnapshot == siblingStage.context.sourceServerGroupCapacitySnapshot
+    targetServerGroupContext.context == [
+      region         : "us-west-2",
+      asgName        : "asg-v001",
+      serverGroupName: "asg-v001",
+      credentials    : "test",
+      cloudProvider  : "aws"
+    ]
+  }
+
+  void "should get TargetServerGroupContext from coordinates from upstream deploy stage"() {
+    given:
+    def pipeline = new Pipeline()
+    def deployStage = new Stage(pipeline, "", [
+      refId                            : "1",
+      "deploy.server.groups"           : ["us-west-2a": ["asg-v001"]],
+      region                           : "us-west-2",
+      sourceServerGroupCapacitySnapshot: [
+        min    : 10,
+        max    : 20,
+        desired: 15
+      ],
+    ])
+
+
+    def childStage = new Stage(pipeline, "", [
+      requisiteRefIds: ["1"],
+      credentials    : "test"
+    ])
+
+    pipeline.stages << deployStage
+    pipeline.stages << childStage
+
+    when:
+    def targetServerGroupContext = task.getTargetServerGroupContext(childStage)
+
+    then:
+    targetServerGroupContext.sourceServerGroupCapacitySnapshot == deployStage.context.sourceServerGroupCapacitySnapshot
+    targetServerGroupContext.context == [
+      region         : "us-west-2",
+      asgName        : "asg-v001",
+      serverGroupName: "asg-v001",
+      credentials    : "test",
+      cloudProvider  : "aws"
+    ]
   }
 }

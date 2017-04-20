@@ -197,7 +197,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
    * Maps the stage's context to a typed object at a provided pointer. Uses
    * <a href="https://tools.ietf.org/html/rfc6901">JSON Pointer</a> notation for determining the pointer's position
    */
-  <O> O mapTo(String pointer, Class<O> type) {
+  public <O> O mapTo(String pointer, Class<O> type) {
     try {
       return objectMapper.readValue(new TreeTraversingParser(getPointer(pointer != null ? pointer : "", contextToNode()), objectMapper), type);
     } catch (IOException e) {
