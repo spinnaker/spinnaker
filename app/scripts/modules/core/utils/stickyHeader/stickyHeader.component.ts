@@ -120,11 +120,15 @@ export class StickyHeaderController implements ng.IComponentController {
   }
 
   private destroyStickyBindings(): void {
-    const $header = this.getHeader();
     this.$scrollableContainer.unbind('.stickyHeader-' + this.id);
     $(this.$window).unbind('.stickyHeader-' + this.id);
-    this.$section.removeData();
-    $header.removeData();
+    if (this.$section) {
+      this.$section.removeData();
+    }
+    const $header = this.getHeader();
+    if ($header) {
+      $header.removeData();
+    }
   }
 
   private clearStickiness(): void {
