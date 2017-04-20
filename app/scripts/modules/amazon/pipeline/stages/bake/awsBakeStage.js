@@ -106,7 +106,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
     function showAdvanced() {
       const stg = $scope.stage;
       return !!(stg.templateFileName || (stg.extendedAttributes && _.size(stg.extendedAttributes) > 0) ||
-        stg.varFileName || stg.baseName || stg.baseAmi || stg.amiName || stg.amiSuffix || stg.enhancedNetworking);
+        stg.varFileName || stg.baseName || stg.baseAmi || stg.amiName || stg.amiSuffix);
     }
 
     this.addExtendedAttribute = function() {
