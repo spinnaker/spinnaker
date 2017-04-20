@@ -254,11 +254,15 @@ SSH_KEY_FILE=$HOME/.ssh/google_empty
 fix_defaults
 create_empty_ssh_key
 
+PIDS=
 for comp in "${COMPONENTS[@]}"; do
   LOG="create-${comp}-image.log"
   echo "Creating component image for $comp, output will be logged to $LOG..."
   create_component_image $comp &> $LOG &
+  PID=$!
+  PIDS+=($PID)
 done
-wait
+echo "Waiting on PIDs: ${PIDS[@]}..."
+wait ${PIDS[@]}
 
 echo "`date`: DONE"
