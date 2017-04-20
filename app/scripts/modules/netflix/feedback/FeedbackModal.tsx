@@ -85,7 +85,7 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
     };
   }
 
-  private submit(): void {
+  private submit = (): void => {
     this.setState({ feedbackState: states.SUBMITTING });
     $http.post(NetflixSettings.feedbackUrl, this.buildRequestBody())
       .then((result: any) => {
@@ -106,7 +106,7 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
     this.props.showCallback(false);
   }
 
-  private handleFeedbackChange(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string): void {
+  private handleFeedbackChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string): void => {
     // TOOD: Use immutablejs
     const updatedFeedback: any = {};
     updatedFeedback[field] = e.target.value;
