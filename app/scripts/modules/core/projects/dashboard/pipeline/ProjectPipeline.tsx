@@ -4,7 +4,7 @@ import { has } from 'lodash';
 import { ExecutionBuildNumber } from 'core/delivery/executionBuild/ExecutionBuildNumber';
 import { ExecutionMarker } from 'core/delivery/executionGroup/execution/ExecutionMarker';
 import { IExecution } from 'core/domain/index';
-import { stateService } from 'core/state.service';
+import { $state } from 'core/uirouter';
 import { timestamp } from 'core/utils/timeFormatters';
 
 import './projectPipeline.less';
@@ -29,9 +29,9 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
     };
   }
 
-  private handleExecutionTitleClick = () => stateService.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
+  private handleExecutionTitleClick = () => $state.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
 
-  private handleStageClick = (stageIndex: number) => stateService.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
+  private handleStageClick = (stageIndex: number) => $state.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
 
   public render() {
     const stages = this.props.execution.stageSummaries.map((stage) => <ExecutionMarker key={stage.refId} stage={stage} onClick={this.handleStageClick} width={this.state.stageWidth}/>);

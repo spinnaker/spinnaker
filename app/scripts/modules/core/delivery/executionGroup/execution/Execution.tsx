@@ -1,22 +1,23 @@
-import { clone } from 'lodash';
-import { $location, $rootScope } from 'ngimport';
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
+import { clone } from 'lodash';
+import { $location } from 'ngimport';
+import { Subscription } from 'rxjs/Subscription';
 
 import { Application } from 'core/application/application.model';
+import { IExecution , IRestartDetails } from 'core/domain';
 import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.service';
-import { IExecution } from 'core/domain/IExecution';
 import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
-import { IRestartDetails } from 'core/domain/IExecutionStage';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
-import { confirmationModalService } from 'core/confirmationModal/confirmationModal.service';
-import { cancelModalService } from 'core/cancelModal/cancelModal.service';
-import { executionService } from 'core/delivery/service/execution.service';
-import { executionFilterModel } from 'core/delivery/filter/executionFilter.model';
 import { SETTINGS } from 'core/config/settings';
-import { schedulerFactory } from 'core/scheduler/scheduler.factory';
-import { stateService, stateParamsService } from 'core/state.service';
+import { $state, $stateParams } from 'core/uirouter';
+import { cancelModalService } from 'core/cancelModal/cancelModal.service';
+import { confirmationModalService } from 'core/confirmationModal/confirmationModal.service';
 import { duration, timestamp } from 'core/utils/timeFormatters';
+import { executionFilterModel } from 'core/delivery/filter/executionFilter.model';
+import { executionService } from 'core/delivery/service/execution.service';
+import { schedulerFactory } from 'core/scheduler/scheduler.factory';
+import { stateEvents } from 'core/state.events';
 
 // react components
 import { AccountLabelColor } from 'core/account/AccountLabelColor';
@@ -32,7 +33,7 @@ import './execution.less';
 interface IExecutionProps {
   application: Application;
   execution: IExecution;
-  standalone: boolean;
+  standalone?: boolean;
 }
 
 interface IExecutionState {
@@ -46,8 +47,7 @@ interface IExecutionState {
 
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
   private activeRefresher: any;
-  private stateChangeSuccessDeregister: () => void;
-  private applicationRefreshUnsubscribe: () => void;
+  private stateChangeSuccessSubscription: Subscription;
   private runningTime: OrchestratedItemRunningTime;
 
   // Since executionService.getExecution is a promise, we cannot short circuit the .then()
@@ -59,7 +59,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     super(props);
 
     const initialViewState = {
-      activeStageId: Number(stateParamsService.stage),
+      activeStageId: Number($stateParams.stage),
       executionId: this.props.execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
@@ -76,8 +76,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       restartDetails: restartedStage ? restartedStage.context.restartDetails : null,
       runningTimeInMs: props.execution.runningTimeInMs
     };
-
-    this.stateChangeSuccessDeregister = $rootScope.$on('$stateChangeSuccess', () => this.updateViewStateDetails());
 
     if (this.props.execution.isRunning && !this.props.standalone) {
       this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(this.props.execution.stages.length / 10));
@@ -99,8 +97,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   private updateViewStateDetails(): void {
     const newViewState = clone(this.state.viewState);
-    newViewState.activeStageId = Number(stateParamsService.stage);
-    newViewState.executionId = stateParamsService.executionId;
+    newViewState.activeStageId = Number($stateParams.stage);
+    newViewState.executionId = $stateParams.executionId;
     this.setState({
       viewState: newViewState,
       showingDetails: this.invalidateShowingDetails()
@@ -108,17 +106,17 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   };
 
   private invalidateShowingDetails(): boolean {
-    return (this.props.standalone === true || (this.props.execution.id === stateParamsService.executionId &&
-      stateService.includes('**.execution.**')));
+    return (this.props.standalone === true || (this.props.execution.id === $stateParams.executionId &&
+      $state.includes('**.execution.**')));
   }
 
   public isActive(stageIndex: number): boolean {
-    return this.state.showingDetails && Number(stateParamsService.stage) === stageIndex;
+    return this.state.showingDetails && Number($stateParams.stage) === stageIndex;
   }
 
   public toggleDetails = (stageIndex?: number): void => {
-    if (this.props.execution.id === stateService.params.executionId && stateService.current.name.includes('.executions.execution') && stageIndex === undefined) {
-      stateService.go('^');
+    if (this.props.execution.id === $state.params.executionId && $state.current.name.includes('.executions.execution') && stageIndex === undefined) {
+      $state.go('^');
       return;
     }
     const index = stageIndex || 0;
@@ -129,15 +127,15 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       step: stageSummary.firstActiveStage
     };
 
-    if (stateService.includes('**.execution', params)) {
+    if ($state.includes('**.execution', params)) {
       if (!this.props.standalone) {
-        stateService.go('^');
+        $state.go('^');
       }
     } else {
-      if (stateService.current.name.includes('.executions.execution') || this.props.standalone) {
-        stateService.go('.', params);
+      if ($state.current.name.includes('.executions.execution') || this.props.standalone) {
+        $state.go('.', params);
       } else {
-        stateService.go('.execution', params);
+        $state.go('.execution', params);
       }
     }
   }
@@ -157,7 +155,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       body: '<p>This will permanently delete the execution history.</p>',
       submitMethod: () => executionService.deleteExecution(this.props.application, this.props.execution.id).then( () => {
         if (this.props.standalone) {
-          stateService.go('^.^.executions');
+          $state.go('^.^.executions');
         }
       })
     });
@@ -193,8 +191,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   public componentDidMount(): void {
     this.mounted = true;
-    this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
     this.runningTime = new OrchestratedItemRunningTime(this.props.execution, (time: number) => this.setState({ runningTimeInMs: time }));
+    this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => this.updateViewStateDetails());
   }
 
   public componentWillReceiveProps(nextProps: IExecutionProps): void {
@@ -207,14 +205,12 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   public componentWillUnmount(): void {
     this.mounted = false;
-    this.stateChangeSuccessDeregister();
     this.runningTime.reset();
-    if (this.applicationRefreshUnsubscribe) {
-      this.applicationRefreshUnsubscribe();
-      this.applicationRefreshUnsubscribe = undefined;
-    }
     if (this.activeRefresher) {
       this.activeRefresher.unsubscribe();
+    }
+    if (this.stateChangeSuccessSubscription) {
+      this.stateChangeSuccessSubscription.unsubscribe();
     }
   }
 

@@ -45,6 +45,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     this.InsightFilterStateModel = InsightFilterStateModel;
 
+    this.executionFilterModel = executionFilterModel;
     this.filter = executionFilterModel.sortFilter;
 
     this.clearFilters = () => {
@@ -118,7 +119,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     this.application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
 
     this.toggleExpansion = (expand) => {
-      $scope.$broadcast('toggle-expansion', expand);
+      this.executionFilterModel.expandSubject.next(expand);
     };
 
 

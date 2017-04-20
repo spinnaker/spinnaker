@@ -17,6 +17,7 @@ export interface IPipeline {
   strategy: boolean;
   triggers: ITrigger[];
   parameterConfig: IParameter[];
+  disabled?: boolean;
 }
 
 export interface IParameter {
@@ -29,4 +30,17 @@ export interface IParameter {
 
 export interface IParameterOption {
   value: string;
+}
+
+
+export interface IPipelineCommand {
+  pipeline: IPipeline;
+  trigger: ITrigger;
+  notificationEnabled: boolean;
+  notification: {
+    type: string;
+    address: string;
+    when: string[];
+  }
+  pipelineName: string;
 }

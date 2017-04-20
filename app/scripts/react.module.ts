@@ -5,7 +5,9 @@ import * as ReactGA from 'react-ga';
 import {SETTINGS} from 'core/config/settings';
 
 // angular services to make importable
-import {StateServiceInject} from 'core/state.service';
+import {STATE_EVENTS, StateEventsInject} from 'core/state.events';
+import {UIROUTER_IMPORTS} from 'core/uirouter';
+import {ModalServiceInject} from 'core/modal.service';
 
 // react component wrappers around angular components
 import {AccountLabelColorInject} from 'core/account/AccountLabelColor';
@@ -23,9 +25,12 @@ if (SETTINGS.analytics.ga) {
 export const REACT_MODULE = 'spinnaker.react';
 module(REACT_MODULE, [
   'bcherny/ngimport',
+  STATE_EVENTS,
+  UIROUTER_IMPORTS
 ]).run(function ($injector: any) {
   // Make angular services importable
-  StateServiceInject($injector);
+  StateEventsInject($injector);
+  ModalServiceInject($injector);
 
   // Convert angular components to react
   AccountLabelColorInject($injector);

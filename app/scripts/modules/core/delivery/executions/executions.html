@@ -17,7 +17,7 @@
     </a>
     <execution-filters ng-if="!vm.viewState.loading" application="vm.application"></execution-filters>
   </div>
-  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded}">
+  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded, 'show-durations': vm.filter.showStageDuration}">
     <div class="execution-groups-header" ng-if="!vm.viewState.loading">
       <h3>Pipelines</h3>
       <div class="form-group pull-right">
