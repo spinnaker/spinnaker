@@ -17,6 +17,7 @@ class Keys {
 
   static enum Namespace {
 
+    SERVER_GROUPS,
     NETWORKS,
     SUBNETS,
     IMAGES,
@@ -76,6 +77,19 @@ class Keys {
           account: parts[4]
         ]
         break
+      case Namespace.SERVER_GROUPS.ns:
+        def names = Names.parseName(parts[5])
+        result << [
+          application: names.app,
+          cluster    : parts[2],
+          account    : parts[3],
+          region     : parts[4],
+          stack      : names.stack,
+          detail     : names.detail,
+          serverGroup: parts[5],
+          name       : parts[5]
+        ]
+        break
       case Namespace.IMAGES.ns:
         result << [
           account: parts[2],
@@ -130,6 +144,11 @@ class Keys {
                              String region,
                              String account) {
     "$OracleBMCSCloudProvider.ID:${Namespace.SUBNETS}:${subnetId}:${region}:${account}"
+  }
+
+  static String getServerGroupKey(String account, String region, String serverGroupName) {
+    Names names = Names.parseName(serverGroupName)
+    "$OracleBMCSCloudProvider.ID:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${serverGroupName}"
   }
 
 }

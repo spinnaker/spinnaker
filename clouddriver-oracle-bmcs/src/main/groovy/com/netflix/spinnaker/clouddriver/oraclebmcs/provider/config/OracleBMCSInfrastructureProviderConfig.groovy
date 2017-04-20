@@ -17,6 +17,7 @@ import com.netflix.spinnaker.clouddriver.oraclebmcs.OracleBMCSConfiguration
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.OracleBMCSInfrastructureProvider
 import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.agent.*
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
+import com.netflix.spinnaker.clouddriver.oraclebmcs.service.servergroup.OracleBMCSServerGroupService
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import com.netflix.spinnaker.clouddriver.security.ProviderUtils
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
@@ -35,7 +36,8 @@ class OracleBMCSInfrastructureProviderConfig {
   OracleBMCSInfrastructureProvider oracleBMCSInfrastructureProvider(String clouddriverUserAgentApplicationName,
                                                                     AccountCredentialsRepository accountCredentialsRepository,
                                                                     ObjectMapper objectMapper,
-                                                                    Registry registry) {
+                                                                    Registry registry,
+                                                                    OracleBMCSServerGroupService oracleBMCSServerGroupService) {
     def oracleBMCSInfrastructureProvider =
       new OracleBMCSInfrastructureProvider(Collections.newSetFromMap(new ConcurrentHashMap<Agent, Boolean>()))
 
@@ -43,7 +45,8 @@ class OracleBMCSInfrastructureProviderConfig {
       oracleBMCSInfrastructureProvider,
       accountCredentialsRepository,
       objectMapper,
-      registry
+      registry,
+      oracleBMCSServerGroupService
     )
 
     return oracleBMCSInfrastructureProvider
@@ -55,6 +58,7 @@ class OracleBMCSInfrastructureProviderConfig {
   }
 
   class OracleBMCSInfrastructureProviderSynchronizerTypeWrapper implements ProviderSynchronizerTypeWrapper {
+
     @Override
     Class getSynchronizerType() {
       return OracleBMCSInfrastructureProviderSynchronizer
@@ -70,7 +74,8 @@ class OracleBMCSInfrastructureProviderConfig {
     OracleBMCSInfrastructureProvider oracleBMCSInfrastructureProvider,
     AccountCredentialsRepository accountCredentialsRepository,
     ObjectMapper objectMapper,
-    Registry registry) {
+    Registry registry,
+    OracleBMCSServerGroupService oracleBMCSServerGroupService) {
     def scheduledAccounts = ProviderUtils.getScheduledAccounts(oracleBMCSInfrastructureProvider)
     def allAccounts = ProviderUtils.buildThreadSafeSetOfAccounts(accountCredentialsRepository,
       OracleBMCSNamedAccountCredentials)
@@ -97,6 +102,11 @@ class OracleBMCSInfrastructureProviderConfig {
         newlyAddedAgents << new OracleBMCSSubnetCachingAgent(clouddriverUserAgentApplicationName,
           credentials,
           objectMapper)
+
+        newlyAddedAgents << new OracleBMCSServerGroupCachingAgent(clouddriverUserAgentApplicationName,
+          credentials,
+          objectMapper,
+          oracleBMCSServerGroupService)
 
         newlyAddedAgents << new OracleBMCSImageCachingAgent(clouddriverUserAgentApplicationName,
           credentials,
