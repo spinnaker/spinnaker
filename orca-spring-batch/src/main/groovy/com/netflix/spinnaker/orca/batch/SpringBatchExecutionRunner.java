@@ -222,7 +222,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       .flatMap(downstreamStage -> {
         FlowBuilder<Flow> flowBuilder = flowBuilder(format("ChildExecution.%s.%s", downstreamStage.getRefId(), downstreamStage.getId()));
         flowBuilder = buildStepsForStageAndDownstream(downstreamStage, taskIdGenerators, alreadyBuilt, flowBuilder);
-        if (((FlowBuilderWrapper)flowBuilder).empty) {
+        if (((FlowBuilderWrapper) flowBuilder).empty) {
           /*
            * No sense building downstream flows for stages that have been previously built.
            *
@@ -384,13 +384,17 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   }
 
   private Tasklet buildTaskletForTask(Task task) {
-    Class<? extends com.netflix.spinnaker.orca.Task> type = task.getImplementingClass();
-    return tasks
-      .stream()
-      .filter(it -> type.isAssignableFrom(it.getClass()))
-      .findFirst()
-      .map(taskTaskletAdapter::decorate)
-      .orElseThrow(() -> new IllegalStateException(format("No Task implementing %s found", type.getName())));
+    try {
+      Class<? extends com.netflix.spinnaker.orca.Task> type = (Class<? extends com.netflix.spinnaker.orca.Task>) Class.forName(task.getImplementingClass());
+      return tasks
+        .stream()
+        .filter(it -> type.isAssignableFrom(it.getClass()))
+        .findFirst()
+        .map(taskTaskletAdapter::decorate)
+        .orElseThrow(() -> new IllegalStateException(format("No Task implementing %s found", type.getName())));
+    } catch (ClassNotFoundException e) {
+      throw new IllegalStateException(format("Task implementation %s not found", task.getImplementingClass()));
+    }
   }
 
   private <E extends Execution> String jobNameFor(E execution) {
