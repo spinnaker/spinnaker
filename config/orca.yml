@@ -21,6 +21,10 @@ echo:
 igor:
     baseUrl: ${services.igor.baseUrl:8088}
 
+services:
+  fiat:
+    baseUrl: localhost:7003
+
 # TODO(duftler): Remove this once flex is conditionally-enabled in orca.
 flex:
   baseUrl: http://not-a-host
