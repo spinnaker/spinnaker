@@ -69,10 +69,10 @@ class PipelineRestartingSpec extends Specification {
     pipeline.stages[0].tasks << new TaskModel(
       id: 1, name: "task1", status: SUCCEEDED,
       startTime: currentTimeMillis(),
-      endTime: currentTimeMillis(), implementingClass: Task1)
+      endTime: currentTimeMillis(), implementingClass: Task1.name)
     pipeline.stages[0].tasks << new TaskModel(
       id: 2, name: "task2", status: RUNNING,
-      startTime: currentTimeMillis(), implementingClass: Task2)
+      startTime: currentTimeMillis(), implementingClass: Task2.name)
     repository.store(pipeline)
 
     when:

@@ -244,7 +244,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
     task.setId(taskId);
     task.setName(taskDef.getName());
     task.setStatus(NOT_STARTED);
-    task.setImplementingClass(taskDef.getImplementingClass());
+    task.setImplementingClass(taskDef.getImplementingClass().getName());
     if (isEnd) {
       switch (type) {
         case FULL:

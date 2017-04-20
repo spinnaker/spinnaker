@@ -77,7 +77,7 @@ class RollingRestartSpec extends Specification {
         startTime: currentTimeMillis(),
         endTime: currentTimeMillis(),
         loopStart: true,
-        implementingClass: StartTask)
+        implementingClass: StartTask.name)
       tasks << new TaskModel(
         id: 2,
         name: "end",
@@ -85,13 +85,13 @@ class RollingRestartSpec extends Specification {
         startTime: currentTimeMillis(),
         endTime: currentTimeMillis(),
         loopEnd: true,
-        implementingClass: EndTask)
+        implementingClass: EndTask.name)
       tasks << new TaskModel(
         id: 3,
         name: "final",
         status: NOT_STARTED,
         startTime: currentTimeMillis(),
-        implementingClass: FinalTask)
+        implementingClass: FinalTask.name)
     }
     repository.retrievePipeline(pipeline.id) >> pipeline
 

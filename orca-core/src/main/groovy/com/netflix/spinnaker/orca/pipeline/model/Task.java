@@ -26,7 +26,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 @Data
 public class Task {
   String id;
-  Class<? extends com.netflix.spinnaker.orca.Task> implementingClass;
+  String implementingClass;
   String name;
   Long startTime;
   Long endTime;
