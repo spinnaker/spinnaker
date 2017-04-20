@@ -94,6 +94,10 @@ class BomGenerator(Annotator):
     self.__alias = options.bom_alias
     super(BomGenerator, self).__init__(options)
 
+  @property
+  def base_dir(self):
+    return self.__base_dir
+
   @classmethod
   def init_argument_parser(cls, parser):
     """Initialize command-line arguments."""

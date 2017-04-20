@@ -63,9 +63,9 @@ class BomPublisher(BomGenerator):
   def unpack_bom(self):
     """Load the release candidate BOM into memory.
     """
-    bom_yaml_string = run_quick('hal versions bom {0} --color false'
+    bom_yaml_string = run_quick('hal version bom {0} --color false --quiet'
                                 .format(self.__rc_version), echo=False).stdout.strip()
-    print bom_yaml_string
+    print 'bom yaml string pulled by hal: \n\n{0}\n\n'.format(bom_yaml_string)
     self.__bom_dict = yaml.load(bom_yaml_string)
     print self.__bom_dict
 
@@ -120,11 +120,12 @@ class BomPublisher(BomGenerator):
     # https://github.com/nebula-plugins/nebula-release-plugin#extension-provided
     stable_branch = '.'.join([major, minor, 'X'])
     for comp in COMPONENTS:
+      comp_path = os.path.join(self.base_dir, comp)
       if self.__patch_release:
-        check_run_quick('git -C {0} checkout {1}'.format(comp, stable_branch))
+        check_run_quick('git -C {0} checkout {1}'.format(comp_path, stable_branch))
       else:
         # Create new release branch.
-        check_run_quick('git -C {0} checkout -b {1}'.format(comp, stable_branch))
+        check_run_quick('git -C {0} checkout -b {1}'.format(comp_path, stable_branch))
 
       version_tag_build = ''
       if comp == 'spinnaker-monitoring':
@@ -137,9 +138,9 @@ class BomPublisher(BomGenerator):
       repo_to_push = ('git@github.com:{owner}/{comp}.git'
                       .format(owner=self.__github_publisher, comp=comp))
       check_run_quick('git -C {comp} remote add release {url}'
-                      .format(comp=comp, url=repo_to_push))
+                      .format(comp=comp_path, url=repo_to_push))
       check_run_quick('git -C {comp} push release {branch}'
-                      .format(comp=comp,  branch=stable_branch))
+                      .format(comp=comp_path,  branch=stable_branch))
 
       repo = self.__github.get_repo('{owner}/{comp}'.format(owner=self.__github_publisher, comp=comp))
       paginated_tags = repo.get_tags()
@@ -149,7 +150,7 @@ class BomPublisher(BomGenerator):
         print ('pushing version tag {tag} to {owner}/{comp}'
                .format(tag=version_tag, owner=self.__github_publisher, comp=comp))
         check_run_quick('git -C {comp} push release {tag}'
-                        .format(comp=comp,  tag=version_tag))
+                        .format(comp=comp_path,  tag=version_tag))
 
   @classmethod
   def main(cls):
