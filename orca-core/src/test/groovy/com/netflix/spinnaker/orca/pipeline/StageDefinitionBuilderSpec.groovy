@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import spock.lang.Specification
@@ -50,7 +50,7 @@ class StageDefinitionBuilderSpec extends Specification {
       }
 
       stage.tasks = [
-        new DefaultTask(startTime: 1L, endTime: 2L, status: SUCCEEDED)
+        new Task(startTime: 1L, endTime: 2L, status: SUCCEEDED)
       ]
     }
 

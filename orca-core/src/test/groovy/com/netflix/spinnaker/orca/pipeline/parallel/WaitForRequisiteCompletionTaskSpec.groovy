@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.pipeline.parallel
 
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -52,23 +52,22 @@ class WaitForRequisiteCompletionTaskSpec extends Specification {
     result.status == expectedStatus
 
     where:
-    requisiteIds | tasks                                      | syntheticTasks                         | syntheticStatus || expectedStatus
-    []           | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | []                                         | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: FAILED_CONTINUE)] | []                                     | SUCCEEDED       || SUCCEEDED
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | RUNNING         || RUNNING
-    ["1"]        | [new DefaultTask(status: SUCCEEDED)]       | [new DefaultTask(status: NOT_STARTED)] | SUCCEEDED       || RUNNING
-    ["1"]        | []                                         | []                                     | RUNNING         || RUNNING
-    ["1"]        | [new DefaultTask(status: NOT_STARTED)]     | []                                     | SUCCEEDED       || RUNNING
-    ["1"]        | [new DefaultTask(status: RUNNING)]         | []                                     | SUCCEEDED       || RUNNING
-    ["1", "2"]   | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
-    ["2"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
-    ["3"]        | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
-    ["1", "3"]   | [new DefaultTask(status: SUCCEEDED)]       | []                                     | SUCCEEDED       || RUNNING
+    requisiteIds | tasks                               | syntheticTasks                  | syntheticStatus || expectedStatus
+    []           | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || SUCCEEDED
+    ["1"]        | []                                  | []                              | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new Task(status: FAILED_CONTINUE)] | []                              | SUCCEEDED       || SUCCEEDED
+    ["1"]        | [new Task(status: SUCCEEDED)]       | []                              | RUNNING         || RUNNING
+    ["1"]        | [new Task(status: SUCCEEDED)]       | [new Task(status: NOT_STARTED)] | SUCCEEDED       || RUNNING
+    ["1"]        | []                                  | []                              | RUNNING         || RUNNING
+    ["1"]        | [new Task(status: NOT_STARTED)]     | []                              | SUCCEEDED       || RUNNING
+    ["1"]        | [new Task(status: RUNNING)]         | []                              | SUCCEEDED       || RUNNING
+    ["1", "2"]   | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || RUNNING
+    ["2"]        | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || RUNNING
+    ["3"]        | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || RUNNING
+    ["1", "3"]   | [new Task(status: SUCCEEDED)]       | []                              | SUCCEEDED       || RUNNING
   }
-
 
   @Unroll
   def "should fail with an exception if any requisite stages completed terminally"() {

@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.batch.adapters
 
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-
 import java.time.Clock
 import java.time.Instant
 import com.netflix.spectator.api.NoopRegistry
@@ -25,10 +23,11 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.RetryableTaskTasklet
 import com.netflix.spinnaker.orca.batch.exceptions.TimeoutException
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import org.springframework.batch.core.StepExecution
 import org.springframework.batch.core.scope.context.ChunkContext
@@ -103,8 +102,8 @@ class RetryableTaskTaskletSpec extends Specification {
 
     and:
     def stage = new Stage<>(new Pipeline(), null, [:])
-    stage.tasks << new DefaultTask(status: SUCCEEDED)
-    stage.tasks << new DefaultTask(status: RUNNING)
+    stage.tasks << new Task(status: SUCCEEDED)
+    stage.tasks << new Task(status: RUNNING)
     stage.execution.status = PAUSED
     def tasklet = new RetryableTaskTasklet(task, null, null, new NoopRegistry(), stageNavigator, new ContextParameterProcessor(), clock)
 

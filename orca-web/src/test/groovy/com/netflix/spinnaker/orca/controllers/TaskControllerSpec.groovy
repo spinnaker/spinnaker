@@ -21,10 +21,10 @@ import java.time.Instant
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.json.JsonSlurper
 import org.springframework.http.MediaType
@@ -92,7 +92,7 @@ class TaskControllerSpec extends Specification {
 
     then:
     executionRepository.retrieveOrchestrations() >> rx.Observable.from([new Orchestration(
-      stages: [new Stage<>(tasks: [new DefaultTask(name: 'jobOne'), new DefaultTask(name: 'jobTwo')])])])
+      stages: [new Stage<>(tasks: [new Task(name: 'jobOne'), new Task(name: 'jobTwo')])])])
     with(new JsonSlurper().parseText(response.contentAsString).first()) {
       steps.name == ['jobOne', 'jobTwo']
     }

@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.listeners
 
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
@@ -33,7 +32,7 @@ class StageStatusPropagationListenerSpec extends Specification {
     given:
     def listener = new StageStatusPropagationListener()
     def stage = new Stage<>(new Pipeline(), "test")
-    def task = new DefaultTask()
+    def task = new Task()
 
     and:
     stage.status = stageStatus
@@ -90,6 +89,6 @@ class StageStatusPropagationListenerSpec extends Specification {
   }
 
   private Task t(String name, ExecutionStatus status) {
-    return new DefaultTask(name: name, status: status)
+    return new Task(name: name, status: status)
   }
 }

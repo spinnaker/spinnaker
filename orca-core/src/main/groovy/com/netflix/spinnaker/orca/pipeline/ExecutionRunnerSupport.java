@@ -24,7 +24,10 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition;
-import com.netflix.spinnaker.orca.pipeline.model.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
+import com.netflix.spinnaker.orca.pipeline.model.Task;
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask;
 import lombok.extern.slf4j.Slf4j;
 import static com.google.common.collect.Lists.reverse;
@@ -226,7 +229,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
   }
 
   private <T extends Execution<T>> Task createTask(Stage<T> stage, TaskDefinition taskDef, TaskNode.GraphType type, boolean isStart, boolean isEnd, String taskId) {
-    DefaultTask task = new DefaultTask();
+    Task task = new Task();
     if (isStart) {
       switch (type) {
         case FULL:

@@ -18,10 +18,10 @@ package com.netflix.spinnaker.orca.notifications.scheduling
 
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
@@ -94,7 +94,7 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
       def stage = new Stage<>(new Pipeline(), "")
       stage.startTime = startTime.incrementAndGet()
       stage.status = ExecutionStatus.SUCCEEDED
-      stage.tasks = [new DefaultTask()]
+      stage.tasks = [new Task()]
 
       def execution = new Pipeline(stages: [stage])
       execution.id = stage.startTime as String

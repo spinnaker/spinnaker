@@ -19,9 +19,9 @@ package com.netflix.spinnaker.orca.applications.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -62,7 +62,7 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
 
     and:
     def stage = new Stage<>(new Pipeline(), "VerifyApplication", config)
-    stage.tasks = [new DefaultTask(name: "T1"), new DefaultTask(name: "T2")]
+    stage.tasks = [new Task(name: "T1"), new Task(name: "T2")]
 
     when:
     def taskResult = task.execute(stage)

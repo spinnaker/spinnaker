@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline
 
-import com.netflix.spinnaker.orca.pipeline.model.DefaultTask
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -38,7 +38,7 @@ class PipelineSpec extends Specification {
   void setup() {
     pipeline.stages.findAll { it.tasks.isEmpty() }.each {
       // ensure each stage has at least one task (otherwise it will get skipped when calculating pipeline status)
-      it.tasks << new DefaultTask()
+      it.tasks << new Task()
     }
   }
 
