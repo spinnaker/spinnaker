@@ -3,13 +3,14 @@ import { angular2react } from 'angular2react';
 
 import { IExecution, IPipeline } from 'core/domain/index';
 import { IExecutionViewState } from './pipelineGraph.service';
+import { IPipelineNode } from './pipelineGraph.service';
 import { PipelineGraphComponent } from './pipeline.graph.component';
 
 interface IPipelineGraphProps {
   pipeline?: IPipeline;
   execution: IExecution;
   viewState: IExecutionViewState;
-  onNodeClick: (stageIndex: number) => void;
+  onNodeClick: (node: IPipelineNode) => void;
   shouldValidate?: boolean;
 }
 

@@ -6,6 +6,7 @@ import * as ReactGA from 'react-ga';
 import { Application } from 'core/application/application.model';
 import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IExecution } from 'core/domain/IExecution';
+import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IRestartDetails } from 'core/domain/IExecutionStage';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { confirmationModalService } from 'core/confirmationModal/confirmationModal.service';
@@ -217,6 +218,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     }
   }
 
+  private handleNodeClick = (node: IPipelineNode) => this.toggleDetails(node.index);
+
   private handleSourceNoStagesClick = () => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked (no stages found)'});
 
   private handlePauseClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -332,7 +335,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
           <div className="execution-graph">
             { this.props.execution.parallel && (
               <PipelineGraph execution={this.props.execution}
-                             onNodeClick={this.toggleDetails}
+                             onNodeClick={this.handleNodeClick}
                              viewState={this.state.viewState}/>
             )}
           </div>
