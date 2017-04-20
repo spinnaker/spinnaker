@@ -4,6 +4,7 @@ import {extend} from 'lodash';
 
 import {ICache} from 'core/cache/deckCache.service';
 import {VIEW_STATE_CACHE_SERVICE, ViewStateCacheService} from 'core/cache/viewStateCache.service';
+import {Subject} from 'rxjs/Subject';
 
 export class ExecutionFilterModel {
   // Store count globally for 180 days
@@ -21,6 +22,7 @@ export class ExecutionFilterModel {
   public addTags: () => void;
   public clearFilters: () => void;
   public applyParamsToUrl: () => void;
+  public groupsUpdated: Subject<void> = new Subject<void>();
 
   static get $inject(): string[] { return ['$rootScope', 'filterModelService', 'urlParser', 'viewStateCache']; }
 

@@ -52,6 +52,7 @@ export class ExecutionFilterService {
       waypointService.restoreToWaypoint(application.name);
       this.executionFilterModel.addTags();
       this.lastApplication = application;
+      executionFilterModel.groupsUpdated.next();
       return groups;
     }, 25);
   }
