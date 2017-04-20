@@ -121,10 +121,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       return;
     }
     const index = stageIndex || 0;
+    const stageSummary = this.props.execution.stageSummaries[index] || { firstActiveStage: 0 };
     const params = {
       executionId: this.props.execution.id,
       stage: index,
-      step: this.props.execution.stageSummaries[index].firstActiveStage
+      step: stageSummary.firstActiveStage
     };
 
     if (stateService.includes('**.execution', params)) {
