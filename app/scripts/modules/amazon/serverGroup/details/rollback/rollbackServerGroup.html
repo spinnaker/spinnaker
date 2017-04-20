@@ -42,13 +42,16 @@
           <ol>
             <li>Enable <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em></li>
             <li>Resize <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> to [
-              <strong>min</strong>: {{serverGroup.capacity.min}},
+              <strong>min</strong>: {{serverGroup.capacity.desired}},
               <strong>max</strong>: {{ serverGroup.capacity.max }},
               <strong>desired</strong>: {{ serverGroup.capacity.desired }}
-            ]</li>
+            ]<br/>(minimum capacity pinned at {{serverGroup.capacity.desired}} to prevent autoscaling down during rollback)
+            </li>
             <li>Disable {{ serverGroup.name }}</li>
+            <li>Restore minimum capacity of <em>{{ command.rollbackContext.restoreServerGroupName || 'previous server group' }}</em> [
+              <strong>min</strong>: {{ serverGroup.capacity.min }}
+            ]</li>
           </ol>
-
           <p>
             This rollback will affect server groups in {{ serverGroup.account }} ({{ serverGroup.region }}).
           </p>
