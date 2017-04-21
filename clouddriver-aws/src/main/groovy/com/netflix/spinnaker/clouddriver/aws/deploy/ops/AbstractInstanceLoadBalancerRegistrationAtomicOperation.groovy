@@ -20,6 +20,9 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.Instance
 import com.amazonaws.services.elasticloadbalancing.model.RegisterInstancesWithLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeregisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -31,7 +34,8 @@ import groovy.transform.PackageScope
 import org.springframework.beans.factory.annotation.Autowired
 
 abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implements AtomicOperation<Void> {
-  abstract RegistrationAction getRegistrationAction()
+  abstract boolean isRegister()
+
   abstract String getPhaseName()
 
   InstanceLoadBalancerRegistrationDescription description
@@ -45,7 +49,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
 
   @Override
   Void operate(List priorOutputs) {
-    def performingAction = getRegistrationAction().actionVerb()
+    def performingAction = isRegister() ? 'Registering' : 'Deregistering'
     def task = getTask()
     def asg = null
 
@@ -63,7 +67,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
       throw new IllegalStateException("loadbalancers not found: $loadBalancers.unknownLoadBalancers")
     }
 
-    if (!loadBalancers.classicLoadBalancers) {
+    if (!(loadBalancers.classicLoadBalancers || loadBalancers.targetGroupArns)) {
       // instances may exist there are no load balancers to act against
       task.updateStatus phaseName, "${performingAction} instances not required for Instances ${description.instanceIds.join(", ")}, no load balancers are found"
       return
@@ -93,7 +97,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
       def amazonELB = regionScopedProvider.getAmazonElasticLoadBalancing()
       loadBalancers.classicLoadBalancers.each {
         task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in ${it}."
-        if (getRegistrationAction() == RegistrationAction.REGISTER) {
+        if (isRegister()) {
           amazonELB.registerInstancesWithLoadBalancer(new RegisterInstancesWithLoadBalancerRequest(
             it,
             instances
@@ -105,6 +109,18 @@ abstract class AbstractInstanceLoadBalancerRegistrationAtomicOperation implement
           ))
         }
         task.updateStatus phaseName, "Finished ${performingAction.toLowerCase()} instances (${instances*.instanceId.join(", ")}) in ${it}."
+      }
+    }
+    if (loadBalancers.targetGroupArns) {
+      def targets = instanceIds.collect { new TargetDescription().withId(it) }
+      def elbv2 = regionScopedProvider.getAmazonElasticLoadBalancingV2()
+      loadBalancers.targetGroupArns.each {
+        task.updateStatus phaseName, "${performingAction} instances ($instanceIds) in target group $it"
+        if (isRegister()) {
+          elbv2.registerTargets(new RegisterTargetsRequest().withTargetGroupArn(it).withTargets(targets))
+        } else {
+          elbv2.deregisterTargets(new DeregisterTargetsRequest().withTargetGroupArn(it).withTargets(targets))
+        }
       }
     }
   }

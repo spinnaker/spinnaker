@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.aws.deploy.description
+package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
-class DeleteAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
-  String loadBalancerName
-  Set<String> regions
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
+
+class RegisterInstancesWithLoadBalancerAtomicOperation extends AbstractInstanceLoadBalancerRegistrationAtomicOperation {
+  RegisterInstancesWithLoadBalancerAtomicOperation(InstanceLoadBalancerRegistrationDescription description) {
+    super(description)
+  }
+
+  @Override
+  boolean isRegister() {
+    return true
+  }
+
+  @Override
+  String getPhaseName() {
+    return "REGISTER_INSTANCES_WITH_LB"
+  }
 }

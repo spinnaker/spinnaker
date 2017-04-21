@@ -32,7 +32,6 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.BasicAmazonDeployDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.TargetGroupLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.scalingpolicy.ScalingPolicyCopier
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonAsgLifecycleHook
@@ -105,7 +104,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       // Get the properly typed version of the description's subnetType
       def subnetType = description.subnetType
 
-      // Get the list of classic load balancers that were created as part of this conglomerate job to apply to the ASG.
+      // Get the list of load balancers that were created as part of this conglomerate job to apply to the ASG.
       List<UpsertAmazonLoadBalancerResult.LoadBalancer> suppliedLoadBalancers = (List<UpsertAmazonLoadBalancerResult.LoadBalancer>) priorOutputs.findAll {
         it instanceof UpsertAmazonLoadBalancerResult
       }?.loadBalancers?.getAt(region)
@@ -117,14 +116,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       def regionScopedProvider = regionScopedProviderFactory.forRegion(description.credentials, region)
 
-      def loadBalancers = loadBalancerLookupHelper().getLoadBalancersByName(regionScopedProvider, description.loadBalancers)
+      def loadBalancers = lookupHelper().getLoadBalancersByName(regionScopedProvider, description.loadBalancers)
       if (loadBalancers.unknownLoadBalancers) {
-        throw new IllegalStateException("Unable to find classic load balancers named $loadBalancers.unknownLoadBalancers")
-      }
-
-      def targetGroups = targetGroupLookupHelper().getTargetGroupsByName(regionScopedProvider, description.targetGroups)
-      if (targetGroups.unknownTargetGroups) {
-        throw new IllegalStateException("Unable to find target groups named $targetGroups.unknownTargetGroups")
+        throw new IllegalStateException("Unable to find load balancers named $loadBalancers.unknownLoadBalancers")
       }
 
       def amazonEC2 = regionScopedProvider.amazonEC2
@@ -259,7 +253,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         availabilityZones: availabilityZones,
         subnetType: subnetType,
         classicLoadBalancers: loadBalancers.classicLoadBalancers,
-        targetGroupArns: targetGroups.targetGroupARNs,
+        targetGroupArns: loadBalancers.targetGroupArns,
         cooldown: description.cooldown,
         enabledMetrics: description.enabledMetrics,
         healthCheckGracePeriod: description.healthCheckGracePeriod,
@@ -302,14 +296,8 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
   @VisibleForTesting
   @PackageScope
-  LoadBalancerLookupHelper loadBalancerLookupHelper() {
+  LoadBalancerLookupHelper lookupHelper() {
     return new LoadBalancerLookupHelper()
-  }
-
-  @VisibleForTesting
-  @PackageScope
-  TargetGroupLookupHelper targetGroupLookupHelper() {
-    return new TargetGroupLookupHelper()
   }
 
   @VisibleForTesting

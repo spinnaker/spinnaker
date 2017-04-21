@@ -38,12 +38,12 @@ class AmazonLoadBalancer implements LoadBalancer {
 
   @JsonAnyGetter
   public Map<String,Object> any() {
-    return dynamicProperties
+    return dynamicProperties;
   }
 
   @JsonAnySetter
   public void set(String name, Object value) {
-    dynamicProperties.put(name, value)
+    dynamicProperties.put(name, value);
   }
 
   @Override

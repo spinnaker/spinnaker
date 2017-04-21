@@ -76,7 +76,6 @@ class CopyLastAsgAtomicOperationUnitSpec extends Specification {
     def expectedDeployDescription = { region ->
       new BasicAmazonDeployDescription(application: 'asgard', stack: 'stack', keyPair: 'key-pair-name',
         securityGroups: ['someGroupName', 'sg-12345a'], availabilityZones: [(region): null],
-        targetGroups: [],
         capacity: new BasicAmazonDeployDescription.Capacity(min: 1, max: 3, desired: 5),
         tags: [Name: 'name-tag'],
         source: new BasicAmazonDeployDescription.Source(
