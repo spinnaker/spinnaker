@@ -7,7 +7,7 @@ halconfig:
 
 spinnaker:
   artifacts:
-    debian: https://dl.bintray.com/spinnaker-team/spinnakerbuild
+    debian: https://dl.bintray.com/spinnaker-releases/debians
     docker: gcr.io/spinnaker-marketplace
   config:
     input:
