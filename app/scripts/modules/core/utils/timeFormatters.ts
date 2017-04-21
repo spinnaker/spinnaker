@@ -1,7 +1,10 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { module } from 'angular';
 import * as moment from 'moment';
+import { react2angular } from 'react2angular';
 
 import { SETTINGS } from 'core/config/settings';
+
+import { SystemTimezone } from './SystemTimezone';
 
 const isInputValid = (input: any) => !(!input || isNaN(input) || input < 0);
 
@@ -25,7 +28,7 @@ export function timestamp(input: any) {
   if (!isInputValid(input)) {
     return '-';
   }
-  const tz = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
+  const tz = SETTINGS.defaultTimeZone;
   const thisMoment = moment.tz(parseInt(input, 10), tz);
   return thisMoment.isValid() ? thisMoment.format('YYYY-MM-DD HH:mm:ss z') : '-';
 }
@@ -67,18 +70,6 @@ export function timePickerTime(input: any) {
   return '-';
 }
 
-export class SystemTimeZoneController implements IComponentController {
-  public tz: string;
-  constructor() {
-    const zone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
-    this.tz = moment.tz(new Date().getTime(), zone).zoneAbbr();
-  }
-}
-export class SystemTimeZoneComponent implements IComponentOptions {
-  public controller: any = SystemTimeZoneController;
-  public template = `<span ng-bind="$ctrl.tz"></span>`;
-}
-
 export const TIME_FORMATTERS = 'spinnaker.core.utils.timeFormatters';
 module(TIME_FORMATTERS, [])
   .filter('timestamp', () => timestamp)
@@ -86,4 +77,4 @@ module(TIME_FORMATTERS, [])
   .filter('duration', () => duration)
   .filter('fastPropertyTime', () => fastPropertyTime)
   .filter('timePickerTime', () => timePickerTime)
-  .component('systemTimezone', new SystemTimeZoneComponent());
+  .component('systemTimezone', react2angular(SystemTimezone));

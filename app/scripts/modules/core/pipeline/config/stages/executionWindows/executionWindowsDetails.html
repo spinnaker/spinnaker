@@ -1,44 +1,12 @@
 <div ng-controller="ExecutionWindowsDetailsCtrl as ctrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'windowConfig'">
-    <div class="row">
-      <div class="col-md-12">
-        <h5>Execution Windows Configuration</h5>
-        <strong>Stage execution can only run:</strong>
-        <dl class="dl-narrow dl-horizontal">
-          <div ng-repeat="window in stage.context.restrictedExecutionWindow.whitelist">
-            <dt>From</dt>
-            <dd>
-              {{ {hours: window.startHour, minutes: window.startMin} | timePickerTime }}
-              <strong>&nbsp;to&nbsp;</strong>
-              {{ {hours: window.endHour, minutes: window.endMin} | timePickerTime }}
-              <strong>&nbsp;<system-timezone></system-timezone></strong>
-            </dd>
-          </div>
-          <dt>On</dt>
-          <dd>{{ ::dayText }}</dd>
-        </dl>
-      </div>
-    </div>
-    <div class="row" ng-if="stage.context.skipRemainingWait">
-      <div class="col-md-12">
-        (skipped
-        <span ng-if="stage.context.lastModifiedBy">by {{stage.context.lastModifiedBy}}</span>)
-      </div>
-    </div>
-    <div class="row" ng-if="stage.isSuspended">
-      <div class="col-md-12">
-        <button class="btn btn-xs btn-primary" ng-click="ctrl.finishWaiting()">
-          <span style="margin-right: 5px" class="small glyphicon glyphicon-fast-forward"></span>
-          Skip remaining window
-        </button>
-      </div>
-    </div>
+    <execution-window-actions application="application" execution="execution" stage="stage"></execution-window-actions>
   </div>
 
-    <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
-      <div class="row">
-        <execution-step-details item="stage"></execution-step-details>
-      </div>
+  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+    <div class="row">
+      <execution-step-details item="stage"></execution-step-details>
     </div>
+  </div>
 </div>

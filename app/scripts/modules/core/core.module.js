@@ -24,18 +24,19 @@ import {REPLACE_FILTER} from './filter/replace.filter';
 
 require('../../../fonts/spinnaker/icons.css');
 
-require('Select2');
-require('jquery-ui');
+import 'Select2';
+import 'jquery-ui';
 // Must come after jquery-ui - we want the bootstrap tooltip, JavaScript is fun
-require('bootstrap/dist/js/bootstrap.js');
-require('bootstrap/dist/css/bootstrap.css');
-require('select2-bootstrap-css/select2-bootstrap.css');
-require('Select2/select2.css');
-require('ui-select/dist/select.css');
+import 'bootstrap/dist/js/bootstrap.js';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'select2-bootstrap-css/select2-bootstrap.css';
+import 'Select2/select2.css';
+import 'ui-select/dist/select.css';
 
-require('source-sans-pro');
+import 'source-sans-pro';
 
-require('font-awesome/css/font-awesome.css');
+import 'font-awesome/css/font-awesome.css';
+import 'react-select/dist/react-select.css';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);

@@ -253,7 +253,7 @@ class ExecutionWindowAtlasGraphController implements ng.IComponentController {
 
   private createWindow(window: IExecutionWindow, dayOffset: number): IWindowData {
     const today = new Date();
-    const zone: string = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
+    const zone: string = SETTINGS.defaultTimeZone;
 
     const start = momentTimezone.tz(today, zone)
         .hour(window.displayStart.getHours())
