@@ -58,11 +58,20 @@
       </tfoot>
     </table>
   </stage-config-field>
-  <stage-config-field label="Wait for completion" help-key="pipeline.config.webhook.waitForCompletion">
-    <input type="checkbox" class="input-sm" name="waitForCompletion"
-           ng-model="$ctrl.viewState.waitForCompletion"
-           ng-change="$ctrl.waitForCompletionChanged()"/>
-  </stage-config-field>
+  <div class="form-group">
+    <div class="col-md-8 col-md-offset-1">
+      <div class="checkbox pull-left">
+        <label>
+          <input type="checkbox"
+                 name="waitForCompletion"
+                 ng-model="$ctrl.viewState.waitForCompletion"
+                 ng-change="$ctrl.waitForCompletionChanged()"/>
+          <strong>Wait for completion</strong>
+          <help-field key="pipeline.config.webhook.waitForCompletion"></help-field>
+        </label>
+      </div>
+    </div>
+  </div>
   <div ng-class="{collapse: $ctrl.viewState.waitForCompletion !== true, 'collapse.in': !$ctrl.viewState.waitForCompletion === true}">
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Status URL</div>
@@ -105,7 +114,7 @@
             <input type="text"
                    class="form-control input-sm"
                    ng-model="$ctrl.stage.statusUrlJsonPath"
-                   required />
+                   required/>
           </stage-config-field>
         </div>
       </div>
