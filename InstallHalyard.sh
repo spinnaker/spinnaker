@@ -5,7 +5,7 @@
 set -e
 set -o pipefail
 
-REPOSITORY_URL="https://dl.bintray.com/spinnaker-team/spinnakerbuild"
+REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
 VERSION=""
 
 VAULT_VERSION=0.7.0
