@@ -8,6 +8,9 @@ import {ICache} from 'core/cache/deckCache.service';
 import {IStage} from 'core/domain/IStage';
 import {IPipeline} from 'core/domain/IPipeline';
 
+export interface ITriggerPipelineResponse {
+  ref: string;
+}
 export class PipelineConfigService {
 
   private configViewStateCache: ICache;
@@ -66,7 +69,7 @@ export class PipelineConfigService {
     return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(pipeline.id).data(pipeline).put();
   }
 
-  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): ng.IPromise<void> {
+  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): ng.IPromise<ITriggerPipelineResponse> {
     body.user = this.authenticationService.getAuthenticatedUser().name;
     return this.API.one('pipelines').one(applicationName).one(pipelineName).data(body).post();
   }

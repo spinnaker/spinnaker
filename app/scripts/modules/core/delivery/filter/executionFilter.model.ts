@@ -3,6 +3,7 @@ import {IState} from 'angular-ui-router';
 import {extend} from 'lodash';
 
 import {ICache} from 'core/cache/deckCache.service';
+import {IExecutionGroup} from 'core/domain';
 import {VIEW_STATE_CACHE_SERVICE, ViewStateCacheService} from 'core/cache/viewStateCache.service';
 import {Subject} from 'rxjs/Subject';
 
@@ -18,11 +19,15 @@ export class ExecutionFilterModel {
   private filterModel: any = this;
   // The following get set in filterModelService.configureFilterModel(this, filterModelConfig);
   public sortFilter: any;
-  public groups: any;
+  public groups: IExecutionGroup[];
   public addTags: () => void;
   public clearFilters: () => void;
   public applyParamsToUrl: () => void;
   public groupsUpdated: Subject<void> = new Subject<void>();
+
+  // This is definitely not the best way to do this, but already have a Subject in here, so just using the same
+  // mechanism for now.
+  public expandSubject: Subject<boolean> = new Subject<boolean>();
 
   static get $inject(): string[] { return ['$rootScope', 'filterModelService', 'urlParser', 'viewStateCache']; }
 

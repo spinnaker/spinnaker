@@ -24,3 +24,12 @@ export interface IExecution extends IOrchestratedItem {
   parallel?: boolean;
   buildInfo?: any;
 }
+
+export interface IExecutionGroup {
+  heading: string;
+  executions: IExecution[];
+  config?: any;
+  runningExecutions?: IExecution[];
+  targetAccounts?: string[];
+}
+

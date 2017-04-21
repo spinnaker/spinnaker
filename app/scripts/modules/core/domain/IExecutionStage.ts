@@ -19,7 +19,6 @@ export interface IExecutionStage extends IOrchestratedItem, IStage {
   id: string;
   tasks: IStageStep[];
   context: IExecutionContext;
-  firstActiveStage?: number;
 }
 
 export interface IExecutionStageSummary extends IExecutionStage {
@@ -29,4 +28,5 @@ export interface IExecutionStageSummary extends IExecutionStage {
   index: number;
   status: string;
   hasNotStarted: boolean;
+  firstActiveStage?: number;
 }

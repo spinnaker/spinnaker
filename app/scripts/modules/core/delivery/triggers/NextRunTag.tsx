@@ -64,8 +64,9 @@ export class NextRunTag extends React.Component<IProps, IState> {
 
   public render(): React.ReactElement<NextRunTag> {
     const nextDuration = moment(this.state.nextScheduled).fromNow();
+    const visible = !this.props.pipeline.disabled && this.state.hasNextScheduled;
     return (
-      <span style={{visibility: this.state.hasNextScheduled ? 'visible' : 'hidden'}}>
+      <span style={{visibility: visible ? 'visible' : 'hidden'}} className="next-run-tag">
         <Popover value={`Next run: ${timestamp(this.state.nextScheduled)} (${nextDuration})`} placement="left">
           <span className="glyphicon glyphicon-time" onMouseEnter={this.handleMouseEnter}/>
         </Popover>

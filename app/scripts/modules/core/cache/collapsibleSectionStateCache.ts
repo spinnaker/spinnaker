@@ -1,6 +1,6 @@
-import { ICache, ICacheFactory } from './deckCache.service';
 import { module } from 'angular';
 
+import { ICache, ICacheFactory } from './deckCache.service';
 
 export class CollapsibleSectionStateCache {
   private stateCache: ICache;

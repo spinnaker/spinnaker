@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 
 import { IExecution } from 'core/domain/index';
-import { stateService } from 'core/state.service';
+import { $state } from 'core/uirouter';
 
 import './ExecutionBuildNumber.less';
 
@@ -19,7 +19,7 @@ export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberP
     ReactGA.event({category: 'Pipeline', action: 'Execution build number clicked - parent pipeline'});
     const toStateParams = {application: this.props.execution.trigger.parentPipelineApplication, executionId: this.props.execution.trigger.parentPipelineId};
     const toStateOptions = {inherit: false, reload: 'home.applications.application.pipelines.executionDetails'};
-    stateService.go('^.executionDetails.execution', toStateParams, toStateOptions);
+    $state.go('^.executionDetails.execution', toStateParams, toStateOptions);
   }
 
   private handleBuildInfoClick = (event: React.MouseEvent<HTMLElement>) => {

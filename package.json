@@ -26,6 +26,7 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
+    "@types/prop-types": "^15.5.1",
     "@types/react-select": "^1.0.45",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "1.6.3",
@@ -54,6 +55,7 @@
     "moment-timezone": "^0.4.0",
     "n3-charts": "^2.0.18",
     "ngimport": "^0.6.0",
+    "prop-types": "^15.5.8",
     "react": "~15.4.2",
     "react-bootstrap": "^0.30.8",
     "react-dom": "~15.4.2",
