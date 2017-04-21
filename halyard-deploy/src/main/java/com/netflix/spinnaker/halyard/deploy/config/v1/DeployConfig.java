@@ -35,7 +35,7 @@ public class DeployConfig {
   }
 
   @Bean
-  String debianRepository(@Value("${spinnaker.artifacts.debianRepository:https://dl.bintray.com/spinnaker-team/spinnakerbuild}") String debianRepository) {
+  String debianRepository(@Value("${spinnaker.artifacts.debianRepository:https://dl.bintray.com/spinnaker-releases/debians}") String debianRepository) {
     return debianRepository;
   }
 
