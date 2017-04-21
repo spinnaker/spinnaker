@@ -66,7 +66,13 @@ function configure(IS_TEST) {
         host: process.env.DECK_HOST || 'localhost',
         https: process.env.DECK_HTTPS === 'true'
       },
-    watch: IS_TEST
+    watch: IS_TEST,
+    externals: {
+      'cheerio': 'window',
+      'react/addons': 'react',
+      'react/lib/ExecutionEnvironment': 'react',
+      'react/lib/ReactContext': 'react',
+    },
   };
 
   if (process.env.DECK_CERT) {

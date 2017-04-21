@@ -4,7 +4,7 @@ Error.stackTraceLimit = Infinity;
 global.$ = global.jQuery = require('jquery');
 
 // angular 1 test harnesss
-require('angular');
+const angular = require('angular');
 require('angular-mocks');
 
 // polyfills
@@ -14,5 +14,8 @@ require('rxjs/Rx');
 
 require('./settings.js');
 
-const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts)$/);
+require('ngimport');
+beforeEach(angular.mock.module('bcherny/ngimport'));
+
+const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts|tsx)$/);
 testContext.keys().forEach(testContext);
