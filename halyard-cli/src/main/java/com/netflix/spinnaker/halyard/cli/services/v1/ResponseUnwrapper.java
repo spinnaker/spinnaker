@@ -81,10 +81,10 @@ public class ResponseUnwrapper {
     }
 
     int taskCountGrowth = tasks.size() - lastChildCount;
-    IntStream.range(0, taskCountGrowth * 2).forEach(i -> AnsiPrinter.println(""));
+    IntStream.range(0, taskCountGrowth * 2).forEach(i -> AnsiPrinter.out.println(""));
 
     AnsiSnippet snippet = new AnsiSnippet("").addMove(AnsiMove.UP, tasks.size() * 2);
-    AnsiPrinter.print(snippet.toString());
+    AnsiPrinter.out.print(snippet.toString());
 
     for (DaemonTask task : tasks) {
       formatLastEvent(task);
@@ -148,28 +148,7 @@ public class ResponseUnwrapper {
       }
     }
 
-    AnsiPrinter.println(builder.toString());
-  }
-
-  private static void formatEvent(DaemonEvent event) {
-    String stage = event.getStage();
-    String message = event.getMessage();
-    String detail = event.getDetail();
-    AnsiSnippet clear = new AnsiSnippet("\r").setErase(AnsiErase.ERASE_LINE);
-    AnsiPrinter.print(clear.toString());
-
-    if (!StringUtils.isEmpty(message)) {
-      AnsiSnippet messageSnippet = new AnsiSnippet("- " + message);
-      AnsiPrinter.println(messageSnippet.toString());
-    }
-
-    if (!StringUtils.isEmpty(detail)) {
-      stage = stage + " (" + detail + ")";
-    }
-
-    AnsiSnippet stageSnippet = new AnsiSnippet("~ " + stage)
-        .addStyle(AnsiStyle.BOLD);
-    AnsiPrinter.print(stageSnippet.toString());
+    AnsiPrinter.out.println(builder.toString());
   }
 
   private static void formatProblemSet(ProblemSet problemSet) {
@@ -178,12 +157,12 @@ public class ResponseUnwrapper {
     }
 
     AnsiSnippet snippet = new AnsiSnippet("\r").setErase(AnsiErase.ERASE_LINE);
-    AnsiPrinter.print(snippet.toString());
+    AnsiPrinter.err.print(snippet.toString());
 
     Map<String, List<Problem>> locationGroup = problemSet.groupByLocation();
     for (Entry<String, List<Problem>> entry: locationGroup.entrySet()) {
 
-      AnsiUi.location(entry.getKey());
+      AnsiUi.problemLocation(entry.getKey());
       for (Problem problem : entry.getValue()) {
         Severity severity = problem.getSeverity();
         String message = problem.getMessage();

@@ -37,7 +37,7 @@ public class Main {
       AnsiUi.error("Illegal argument: " + e.getMessage());
       System.exit(1);
     } catch (ParameterException e) {
-      System.out.println(e.getMessage());
+      System.err.println(e.getMessage());
       System.exit(1);
     }
 

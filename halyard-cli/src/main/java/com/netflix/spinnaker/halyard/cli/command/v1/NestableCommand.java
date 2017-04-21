@@ -280,7 +280,7 @@ public abstract class NestableCommand {
       }
     }
 
-    AnsiPrinter.println(story.toString());
+    AnsiPrinter.out.println(story.toString());
   }
 
   private void parameterDoc(StringBuilder result, ParameterDescription parameterDescription) {

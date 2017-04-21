@@ -16,20 +16,43 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
+import java.io.PrintStream;
+
 public class AnsiPrinter {
-  public static void println(String ansiText) {
-    try {
-      System.out.print(ansiText);
-    } finally {
-      System.out.println(AnsiSpecial.RESET.format());
+  public static AnsiStreamPrinter out = new StdoutPrinter();
+  public static AnsiStreamPrinter err = new StderrPrinter();
+
+  public interface AnsiStreamPrinter {
+    PrintStream getPrintStream();
+
+    default void println(String ansiText) {
+      try {
+        getPrintStream().print(ansiText);
+      } finally {
+        getPrintStream().println(AnsiSpecial.RESET.format());
+      }
+    }
+
+    default void print(String ansiText) {
+      try {
+        getPrintStream().print(ansiText);
+      } finally {
+        getPrintStream().print(AnsiSpecial.RESET.format());
+      }
     }
   }
 
-  public static void print(String ansiText) {
-    try {
-      System.out.print(ansiText);
-    } finally {
-      System.out.print(AnsiSpecial.RESET.format());
+  private static class StderrPrinter implements AnsiStreamPrinter {
+    @Override
+    public PrintStream getPrintStream() {
+      return System.err;
+    }
+  }
+
+  private static class StdoutPrinter implements AnsiStreamPrinter {
+    @Override
+    public PrintStream getPrintStream() {
+      return System.out;
     }
   }
 }

@@ -49,7 +49,7 @@ public class OperationHandler<T> implements Supplier<T> {
 
     String result = AnsiFormatUtils.format(format, res);
     if (!result.isEmpty()) {
-      AnsiPrinter.println(result);
+      AnsiPrinter.out.println(result);
     }
 
     return res;

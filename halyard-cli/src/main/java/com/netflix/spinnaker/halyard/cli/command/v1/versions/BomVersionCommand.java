@@ -90,6 +90,6 @@ public class BomVersionCommand extends AbstractConfigCommand {
       result = bom.getArtifactVersion(artifactName);
     }
 
-    AnsiPrinter.println(result);
+    AnsiPrinter.out.println(result);
   }
 }

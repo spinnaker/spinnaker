@@ -21,7 +21,7 @@ package com.netflix.spinnaker.halyard.cli.ui.v1;
  */
 public class AnsiUi {
   public static void raw(String message) {
-    AnsiPrinter.println(new AnsiSnippet(message).toString());
+    AnsiPrinter.out.println(new AnsiSnippet(message).toString());
   }
 
   public static void listItem(String message) {
@@ -34,10 +34,10 @@ public class AnsiUi {
 
     builder.addSnippet(message);
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.out.println(builder.toString());
   }
 
-  public static void location(String message) {
+  public static void problemLocation(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
         .setIndentFirstLine(false)
         .setIndentWidth(2);
@@ -49,7 +49,7 @@ public class AnsiUi {
 
     builder.addSnippet(":");
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.err.println(builder.toString());
   }
 
   public static void warning(String message) {
@@ -63,7 +63,7 @@ public class AnsiUi {
 
     builder.addSnippet(message);
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.err.println(builder.toString());
   }
 
   public static void error(String message) {
@@ -77,7 +77,7 @@ public class AnsiUi {
 
     builder.addSnippet(message);
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.err.println(builder.toString());
   }
 
   public static void remediation(String message) {
@@ -91,7 +91,7 @@ public class AnsiUi {
 
     builder.addSnippet(message);
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.err.println(builder.toString());
   }
 
   public static void success(String message) {
@@ -105,7 +105,7 @@ public class AnsiUi {
 
     builder.addSnippet(message);
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.out.println(builder.toString());
   }
 
   public static void failure(String message) {
@@ -119,6 +119,6 @@ public class AnsiUi {
 
     builder.addSnippet(message);
 
-    AnsiPrinter.println(builder.toString());
+    AnsiPrinter.err.println(builder.toString());
   }
 }
