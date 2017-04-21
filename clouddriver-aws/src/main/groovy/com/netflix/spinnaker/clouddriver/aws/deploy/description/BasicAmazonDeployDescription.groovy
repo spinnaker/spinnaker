@@ -87,7 +87,6 @@ class BasicAmazonDeployDescription extends AbstractAmazonCredentialsDescription 
   List<AmazonBlockDevice> blockDevices
   Boolean useAmiBlockDeviceMappings
   List<String> loadBalancers
-  List<String> targetGroups
   List<String> securityGroups
   List<AmazonAsgLifecycleHook> lifecycleHooks = []
   Map<String, List<String>> availabilityZones = [:]

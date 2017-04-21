@@ -22,6 +22,7 @@ import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFrom
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
+import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -48,6 +49,7 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     setup:
     def asg = Mock(AutoScalingGroup) {
       1 * getLoadBalancerNames() >> ["lb1"]
+      1 * getTargetGroupARNs() >> []
       1 * getInstances() >> [new Instance().withInstanceId("i-123456")]
       0 * _._
     }
@@ -67,6 +69,7 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     setup:
     def asg = Mock(AutoScalingGroup) {
       1 * getLoadBalancerNames() >> []
+      1 * getTargetGroupARNs() >> []
       1 * getInstances() >> description.instanceIds.collect { new Instance().withInstanceId(it) }
       0 * _._
     }
@@ -91,6 +94,7 @@ class DeregisterInstancesFromLoadBalancerAtomicOperationUnitSpec extends Instanc
     then:
     0 * asgService.getAutoScalingGroup(_)
     2 * loadBalancing.describeLoadBalancers(_) >> { DescribeLoadBalancersRequest req -> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName(req.loadBalancerNames[0]))}
+    2 * loadBalancingV2.describeLoadBalancers(_) >> { throw new LoadBalancerNotFoundException("nope") }
     2 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { DeregisterInstancesFromLoadBalancerRequest req ->
       assert req.instances*.instanceId == description.instanceIds
       assert description.loadBalancerNames.contains(req.loadBalancerName)

@@ -16,25 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerAtomicOperation
 import org.springframework.stereotype.Component
 
-@AmazonOperation(AtomicOperations.DELETE_LOAD_BALANCER)
-@Component("deleteAmazonLoadBalancerDescription")
-class DeleteAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
+@AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
+@Component("upsertAmazonLoadBalancerDescription")
+class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
-  DeleteAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
-    new DeleteAmazonLoadBalancerAtomicOperation(convertDescription(input))
+  UpsertAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
+    new UpsertAmazonLoadBalancerAtomicOperation(convertDescription(input))
   }
 
   @Override
-  DeleteAmazonLoadBalancerDescription convertDescription(Map input) {
-    def converted = objectMapper.convertValue(input, DeleteAmazonLoadBalancerDescription)
+  UpsertAmazonLoadBalancerDescription convertDescription(Map input) {
+    def converted = objectMapper.convertValue(input, UpsertAmazonLoadBalancerDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

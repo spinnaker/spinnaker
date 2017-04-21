@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.DescribeSubnetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.netflix.frigga.Names
 import com.netflix.frigga.autoscaling.AutoScalingGroupNameBuilder
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.LoadBalancerLookupHelper
 import com.netflix.spinnaker.clouddriver.aws.deploy.userdata.LocalFileUserDataProperties
 import com.netflix.spinnaker.clouddriver.aws.deploy.validators.BasicAmazonDeployDescriptionValidator
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
@@ -37,8 +38,12 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHa
 import com.netflix.spinnaker.clouddriver.aws.model.SubnetData
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.validation.Errors
+
+import java.util.regex.Pattern
 
 class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
+  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
   private static final String BASE_PHASE = "COPY_LAST_ASG"
 
   private static Task getTask() {
@@ -144,11 +149,13 @@ class CopyLastAsgAtomicOperation implements AtomicOperation<DeploymentResult> {
         newDescription.availabilityZones = [(targetRegion): description.availabilityZones[targetRegion] ?: ancestorAsg.availabilityZones]
         newDescription.instanceType = description.instanceType ?: ancestorLaunchConfiguration.instanceType
         newDescription.loadBalancers = description.loadBalancers != null ? description.loadBalancers : ancestorAsg.loadBalancerNames
-        newDescription.targetGroups = description.targetGroups
-        if (newDescription.targetGroups == null) {
+        if (ancestorAsg.targetGroupARNs && sourceIsTarget) {
           def targetGroups = sourceRegionScopedProvider.amazonElasticLoadBalancingV2.describeTargetGroups(new DescribeTargetGroupsRequest().withTargetGroupArns(ancestorAsg.targetGroupARNs)).targetGroups
-          def targetGroupNames = targetGroups.collect { it.targetGroupName }
-          newDescription.targetGroups = targetGroupNames
+          def v2lbnames = targetGroups.collect { it.loadBalancerArns.findResults {
+            def matcher = ALB_ARN_PATTERN.matcher(it)
+            matcher.matches() ? matcher.group(1) : null
+          } ?: []}.flatten()
+          newDescription.loadBalancers = (newDescription.loadBalancers ?: []) + v2lbnames
         }
 
         newDescription.securityGroups = description.securityGroups != null ? description.securityGroups : translateSecurityGroupIds(ancestorLaunchConfiguration.securityGroups)

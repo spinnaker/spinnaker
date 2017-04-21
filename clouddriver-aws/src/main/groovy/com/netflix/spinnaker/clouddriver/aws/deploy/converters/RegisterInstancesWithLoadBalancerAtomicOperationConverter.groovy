@@ -16,25 +16,25 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.RegisterInstancesWithLoadBalancerAtomicOperation
 import org.springframework.stereotype.Component
 
-@AmazonOperation(AtomicOperations.DELETE_LOAD_BALANCER)
-@Component("deleteAmazonLoadBalancerDescription")
-class DeleteAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
+@AmazonOperation(AtomicOperations.REGISTER_INSTANCES_WITH_LOAD_BALANCER)
+@Component("registerInstancesWithLoadBalancerDescription")
+class RegisterInstancesWithLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   @Override
-  DeleteAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
-    new DeleteAmazonLoadBalancerAtomicOperation(convertDescription(input))
+  AtomicOperation convertOperation(Map input) {
+    new RegisterInstancesWithLoadBalancerAtomicOperation(convertDescription(input))
   }
 
   @Override
-  DeleteAmazonLoadBalancerDescription convertDescription(Map input) {
-    def converted = objectMapper.convertValue(input, DeleteAmazonLoadBalancerDescription)
+  InstanceLoadBalancerRegistrationDescription convertDescription(Map input) {
+    def converted = objectMapper.convertValue(input, InstanceLoadBalancerRegistrationDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted
   }

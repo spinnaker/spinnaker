@@ -24,7 +24,7 @@ import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import org.springframework.beans.factory.annotation.Autowired
 
-class DeleteAmazonLoadBalancerClassicAtomicOperation implements AtomicOperation<Void> {
+class DeleteAmazonLoadBalancerAtomicOperation implements AtomicOperation<Void> {
 
   private static final String BASE_PHASE = "DELETE_ELB"
 
@@ -37,13 +37,13 @@ class DeleteAmazonLoadBalancerClassicAtomicOperation implements AtomicOperation<
 
   private final DeleteAmazonLoadBalancerDescription description
 
-  DeleteAmazonLoadBalancerClassicAtomicOperation(DeleteAmazonLoadBalancerDescription description) {
+  DeleteAmazonLoadBalancerAtomicOperation(DeleteAmazonLoadBalancerDescription description) {
     this.description = description
   }
 
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing Delete Amazon Load Balancer Classic Operation..."
+    task.updateStatus BASE_PHASE, "Initializing Delete Amazon Load Balancer Operation..."
     for (region in description.regions) {
       def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancing(description.credentials, region, true)
       DeleteLoadBalancerRequest request = new DeleteLoadBalancerRequest(loadBalancerName: description.loadBalancerName)

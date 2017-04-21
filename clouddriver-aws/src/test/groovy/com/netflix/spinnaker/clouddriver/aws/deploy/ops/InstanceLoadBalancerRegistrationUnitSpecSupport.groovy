@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.elasticloadbalancing.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing as AmazonElasticLoadBalancingV2
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceLoadBalancerRegistrationDescription
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -27,9 +28,9 @@ import spock.lang.Specification
 class InstanceLoadBalancerRegistrationUnitSpecSupport extends Specification {
   @Shared
   def description = new InstanceLoadBalancerRegistrationDescription([
-    asgName: "oort-main-v000",
-    region: "us-west-1",
-    credentials: TestCredential.named('test')
+      asgName: "oort-main-v000",
+      region: "us-west-1",
+      credentials: TestCredential.named('test')
   ])
 
   @Shared
@@ -41,15 +42,20 @@ class InstanceLoadBalancerRegistrationUnitSpecSupport extends Specification {
   @Shared
   AmazonElasticLoadBalancing loadBalancing
 
+  @Shared
+  AmazonElasticLoadBalancingV2 loadBalancingV2
+
   def setup() {
     asgService = Mock(AsgService)
     loadBalancing = Mock(AmazonElasticLoadBalancing)
+    loadBalancingV2 = Mock(AmazonElasticLoadBalancingV2)
     wireOpMocks(op)
   }
 
   def wireOpMocks(AbstractInstanceLoadBalancerRegistrationAtomicOperation op) {
     def rsp = Stub(RegionScopedProviderFactory.RegionScopedProvider)
     rsp.getAsgService() >> asgService
+    rsp.getAmazonElasticLoadBalancingV2() >> loadBalancingV2
     rsp.getAmazonElasticLoadBalancing() >> loadBalancing
 
     def rspf = Mock(RegionScopedProviderFactory)
