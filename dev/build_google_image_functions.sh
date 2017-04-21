@@ -99,6 +99,8 @@ function image_from_prototype_disk() {
   local target_image="$1"
   local prototype_disk="$2"
 
+  delete_image_if_exists $target_image
+
   echo "`date`: Creating image '$target_image' in project '$PROJECT'"
   if [[ $prototype_disk = gs://*.tar.gz ]]; then
     echo "Creating from URI $prototype_disk"
@@ -113,6 +115,25 @@ function image_from_prototype_disk() {
         --account $ACCOUNT \
         --source-disk $prototype_disk \
         --source-disk-zone $ZONE
+  fi
+}
+
+
+function delete_image_if_exists() {
+  local target_image="$1"
+
+  gcloud compute images describe $target_image \
+      --project $PROJECT \
+      --account $ACCOUNT &> /dev/null
+
+  if [[ $? ]]; then
+    echo "`date`: Image '$target_image' does not exist yet"
+  else
+    echo "`date`: Deleting preexisting '$target_image' in '$PROJECT'"
+    gcloud compute images delete $target_image \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --quiet
   fi
 }
 
