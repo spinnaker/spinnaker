@@ -719,7 +719,7 @@ if [[ "$INSTALL_CASSANDRA" != "false" ]]; then
   cqlsh -f "/opt/spinnaker/cassandra/create_echo_keyspace.cql"
   cqlsh -f "/opt/spinnaker/cassandra/create_front50_keyspace.cql"
 else
-  /opt/spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=true --change_local=false
+  /opt/spinnaker/install/change_cassandra.sh --echo=inMemory --front50=gcs --change_defaults=true --change_local=true
 fi
 
 # Write values to /etc/default/spinnaker.

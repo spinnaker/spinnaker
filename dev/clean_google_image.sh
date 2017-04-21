@@ -38,6 +38,14 @@ echo "FYI, disk Usage is `df -kh .`"
 # But leave spinnaker.
 etc_files="group gshadow passwd shadow subgid subuid"
 for user in $(ls home); do
+  if [[ -f home/${user}/keep_user ]]; then
+    # If we want to keep non-standard users, then
+    # mark them with a keep_user in their root directory.
+    # We'll remove the marker here, but keep the user intact.
+    rm -f home/${user}/keep_user
+    continue
+  fi
+
   if [[ "$user" != "spinnaker" && "$user" != "ubuntu" ]]; then
     for file in $etc_files; do
       sed /^$user:.*/d -i etc/${file} || true

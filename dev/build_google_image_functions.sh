@@ -122,13 +122,9 @@ function image_from_prototype_disk() {
 function delete_image_if_exists() {
   local target_image="$1"
 
-  gcloud compute images describe $target_image \
+  if gcloud compute images describe $target_image \
       --project $PROJECT \
-      --account $ACCOUNT &> /dev/null
-
-  if [[ $? ]]; then
-    echo "`date`: Image '$target_image' does not exist yet"
-  else
+      --account $ACCOUNT &> /dev/null; then
     echo "`date`: Deleting preexisting '$target_image' in '$PROJECT'"
     gcloud compute images delete $target_image \
       --project $PROJECT \

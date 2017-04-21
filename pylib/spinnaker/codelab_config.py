@@ -14,7 +14,7 @@
 
 from spinnaker.yaml_util import YamlBindings
 
-def configure_codelab_igor_jenkins():
+def configure_codelab_igor_jenkins(password):
   """Configures Igor to be enabled and to point to the codelab jenkins instance.
 
   """
@@ -24,9 +24,9 @@ def configure_codelab_igor_jenkins():
       'jenkins': {
         'defaultMaster': {
           'name': 'CodelabJenkins',
-          'baseUrl': 'http://localhost:9090',
+          'baseUrl': 'http://localhost:5656',
           'username': 'admin',
-          'password': 'admin'
+          'password': password
         }
       },
       'igor': {
@@ -49,5 +49,5 @@ def disable_destructive_action_challenge():
   )
 
 if __name__ == '__main__':
-  configure_codelab_igor_jenkins()
+  configure_codelab_igor_jenkins('admin')
   disable_destructive_action_challenge()
