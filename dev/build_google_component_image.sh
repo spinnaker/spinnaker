@@ -211,7 +211,7 @@ function create_component_image() {
   local comp=$1
   COMP_VERSION="$(hal version bom $VERSION --artifact-name ${comp} --quiet --color false)"
   # Target image is named spinnaker-${comp}-${comp-version} with dashes replacing dots.
-  TARGET_IMAGE="$(echo spinnaker-${comp}-${COMP_VERSION} | sed 's/\./\-/g')"
+  TARGET_IMAGE="$(echo spinnaker-${comp}-${COMP_VERSION} | sed 's/[\.:]/\-/g')"
   echo $TARGET_IMAGE
   CLEANER_INSTANCE="clean-${TARGET_IMAGE}"
   BUILD_INSTANCE="build-${TARGET_IMAGE}"
