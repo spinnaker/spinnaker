@@ -1,7 +1,6 @@
 import {IPromise} from 'angular';
 import * as React from 'react';
 import * as Select from 'react-select';
-import 'react-select/dist/react-select.css';
 
 import {IExecution} from 'core/domain/IExecution';
 import {IExecutionStage} from 'core/domain/IExecutionStage';
@@ -30,7 +29,7 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
       judgmentDecision: null,
       judgmentInput: {},
       error: false,
-    }
+    };
   }
 
   private provideJudgment(judgmentDecision: string): IPromise<void> {

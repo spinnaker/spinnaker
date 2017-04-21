@@ -32,7 +32,7 @@ export class NextRunTag extends React.Component<IProps, IState> {
         const hours = parts[2];
         if (!isNaN(parseInt(hours, 10))) {
           const allHours = hours.split('/');
-          const tz = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
+          const tz = SETTINGS.defaultTimeZone;
           let offset = moment.tz.zone(tz).offset(Date.now());
           if (offset) {
             offset /= 60;
