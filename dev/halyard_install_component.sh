@@ -64,7 +64,7 @@ function process_args() {
   done
 }
 
-EXTERNAL_SERVICES=(vault-server consul-server redis)
+EXTERNAL_ARTIFACTS=(vault consul redis)
 
 function contains() {
   local e
@@ -82,7 +82,7 @@ function main() {
   hal config deploy edit --type BakeDebian
 
   local service_names
-  if contains $COMPONENT "${EXTERNAL_SERVICES[@]}"; then
+  if contains $COMPONENT "${EXTERNAL_ARTIFACTS[@]}"; then
     service_names=($COMPONENT)
   else 
     service_names=($COMPONENT monitoring-daemon vault-client consul-client)
