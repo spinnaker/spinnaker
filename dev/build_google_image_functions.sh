@@ -14,9 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CLEAN_GOOGLE_IMAGE_SCRIPT="$(dirname $0)/clean_google_image.sh"
-EXTRACT_DISK_TO_GCS_SCRIPT="$(dirname $0)/extract_disk_to_gcs.sh"
-SSH_KEY_FILE=$HOME/.ssh/google_empty
+CLEAN_GOOGLE_IMAGE_SCRIPT=${CLEAN_GOOGLE_IMAGE_SCRIPT:"$(dirname $0)/clean_google_image.sh"}
+EXTRACT_DISK_TO_GCS_SCRIPT=${EXTRACT_DISK_TO_GCS_SCRIPT:"$(dirname $0)/extract_disk_to_gcs.sh"}
+SSH_KEY_FILE=${SSH_KEY_FILE:"$HOME/.ssh/google_empty"}
 
 
 function create_empty_ssh_key() {
