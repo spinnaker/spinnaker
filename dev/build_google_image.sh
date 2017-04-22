@@ -339,7 +339,7 @@ function create_prototype_disk() {
       args="$args --monitoring undef"
   fi
 
-  command="sudo ./install-spinnaker-${TIME_DECORATOR}.sh ${args}"
+  command="sudo ./$(basename $install_script_path) ${args}"
   command="$command && sudo service spinnaker stop"
 
   echo "`date`: Installing Spinnaker onto '$PROTOTYPE_INSTANCE'"

@@ -55,9 +55,11 @@ apt-get install -y git
 wget http://pkg.jenkins-ci.org/debian/binary/jenkins_2.1_all.deb
 # dpkg partially installs jenkins and fails
 dpkg -i jenkins_2.1_all.deb || true
+rm -f jenkins_2.1_all.deb
+
 # finish installing jenkins and its dependencies
 apt-get -f -y install
-sed -i "s/HTTP_PORT=.*/HTTP_PORT=9090/" /etc/default/jenkins
+sed -i "s/HTTP_PORT=.*/HTTP_PORT=5656/" /etc/default/jenkins
 
 # as jenkins, configure aptly
 cd /home/jenkins
@@ -96,13 +98,13 @@ server {
 EOF
 service nginx restart
 
-wget https://storage.googleapis.com/codelab-startup-script/first_codelab_boot.sh -O /opt/spinnaker/install/first_codelab_boot.sh
-chmod +x /opt/spinnaker/install/first_codelab_boot.sh
-
 # configure nested properties in igor -- harder than a `sed` one-liner
-curl -s -O https://raw.githubusercontent.com/spinnaker/spinnaker/master/pylib/spinnaker/codelab_config.py
-PYTHONPATH=/opt/spinnaker/pylib python codelab_config.py
-rm codelab_config.py
+PYTHONPATH=/opt/spinnaker/pylib python pylib/spinnaker/codelab_config.py
+echo "debianRepository: http://$(hostname):9999/ trusty main" \
+    > /opt/spinnaker/config/rosco-local.yml
+
+# Until we update the documentation and tutorials...
+ln -s /opt/spinnaker/install/first_google_boot.sh /opt/spinnaker/install/first_codelab_boot.sh
 
 service spinnaker restart
 service apache2 restart
