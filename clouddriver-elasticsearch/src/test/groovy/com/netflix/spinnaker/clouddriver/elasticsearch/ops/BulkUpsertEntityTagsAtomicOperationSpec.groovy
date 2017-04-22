@@ -172,7 +172,10 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
 
   void 'should preserve existing tags when merging'() {
     given:
-    def tag = new UpsertEntityTagsDescription()
+    def tag = new UpsertEntityTagsDescription(
+      tags: Collections.singletonList(buildTags(["tag1": "updated tag"])[0])
+    )
+
     description.entityTags = [tag]
     EntityTags current = new EntityTags(
       tags: buildTags([tag1: "old tag", tag2: "unchanged tag"]),
@@ -186,7 +189,6 @@ class BulkUpsertEntityTagsAtomicOperationSpec extends Specification {
       entityId: "orca-v001",
       attributes: [account: "test", region: "us-east-1"]
     )
-    tag.tags = buildTags(["tag1": "updated tag"])
 
     def now = new Date()
 

@@ -35,6 +35,13 @@ class EntityTags {
   Collection<EntityTagMetadata> tagsMetadata = []
   EntityRef entityRef
 
+  void setTags(Collection<EntityTag> tags) {
+    Objects.requireNonNull(tags)
+
+    // tag collection must be mutable (see putEntityTagIfAbsent())
+    this.tags = new ArrayList<>(tags)
+  }
+
   @JsonIgnore
   void putEntityTagMetadata(EntityTagMetadata updatedEntityTagMetadata) {
     def existingTagsMetadata = tagsMetadata.find { it.name.equalsIgnoreCase(updatedEntityTagMetadata.name) }
