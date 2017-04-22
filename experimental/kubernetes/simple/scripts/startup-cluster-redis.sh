@@ -2,19 +2,19 @@ echo "Bootstrapping redis master..."
 echo
 
 # Create a bootstrap master
-kubectl create -f pods/data-redis-master.yaml
+kubectl create -f $SPIN_SCRIPT_PATH/pods/data-redis-master.yaml
 
 # Create a service to track the servers
-kubectl create -f svcs/data-redis-server.yaml
+kubectl create -f $SPIN_SCRIPT_PATH/svcs/data-redis-server.yaml
 
 # Create a service to track the sentinels
-kubectl create -f svcs/data-redis-sentinel.yaml
+kubectl create -f $SPIN_SCRIPT_PATH/svcs/data-redis-sentinel.yaml
 
 # Create a replica set for redis servers
-kubectl create -f rs/data-redis-server.yaml
+kubectl create -f $SPIN_SCRIPT_PATH/rs/data-redis-server.yaml
 
 # Create a replica set for redis sentinels
-kubectl create -f rs/data-redis-sentinel.yaml
+kubectl create -f $SPIN_SCRIPT_PATH/rs/data-redis-sentinel.yaml
 
 echo
 echo "Waiting a bit for all resources to be ready..."

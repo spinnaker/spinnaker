@@ -1,7 +1,8 @@
-bash scripts/startup-namespace.sh
+export SPIN_SCRIPT_PATH=~/spinnaker/experimental/kubernetes/simple
+bash $SPIN_SCRIPT_PATH/scripts/startup-namespace.sh
 
-bash scripts/startup-redis.sh
+bash $SPIN_SCRIPT_PATH/scripts/startup-redis.sh
 
-bash scripts/startup-config.sh
+bash $SPIN_SCRIPT_PATH/scripts/startup-config.sh
 
-bash scripts/startup-spinnaker.sh
+bash $SPIN_SCRIPT_PATH/scripts/startup-spinnaker.sh
