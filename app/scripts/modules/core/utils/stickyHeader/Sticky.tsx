@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Subscription } from 'rxjs/Subscription';
 import { $log } from 'ngimport';
 import { omit, throttle } from 'lodash';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { IStickyContext, StickyContainer } from './StickyContainer';
 
@@ -16,8 +17,9 @@ interface IState {
   top: number;
   zIndex: number;
   isSticky: boolean;
-};
+}
 
+@autoBindMethods
 export class Sticky extends React.Component<IProps, IState> {
   public static defaultProps: Partial<IProps> = {
     topOffset: 0
@@ -58,7 +60,7 @@ export class Sticky extends React.Component<IProps, IState> {
         this.addEventListeners(this.recomputeState);
         this.recomputeState();
       }
-    })
+    });
 
     this.recomputeState = throttle(this.recomputeState, 50, {trailing: true});
   }
@@ -138,7 +140,7 @@ export class Sticky extends React.Component<IProps, IState> {
     }
   }
 
-  private refCallback = (element: HTMLElement): void => {
+  private refCallback(element: HTMLElement): void {
     this.stickyElement = element;
   }
 

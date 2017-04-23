@@ -43,6 +43,7 @@
     "angular-ui-sortable": "^0.17.0",
     "angular2react": "^2.0.0",
     "bootstrap": "3.3.7",
+    "class-autobind-decorator": "^2.2.1",
     "clipboard": "^1.5.12",
     "d3-scale": "^1.0.4",
     "d3-shape": "^1.0.4",

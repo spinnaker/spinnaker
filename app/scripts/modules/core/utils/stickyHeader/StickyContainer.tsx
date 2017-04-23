@@ -1,11 +1,13 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
 import { Subject } from 'rxjs/Subject';
+import autoBindMethods from 'class-autobind-decorator';
 
 export interface IStickyContext {
   'stickyContainer': StickyContainer
 }
 
+@autoBindMethods
 export class StickyContainer extends React.Component<any, any> {
   public static childContextTypes = {
     stickyContainer: PropTypes.any
@@ -18,7 +20,7 @@ export class StickyContainer extends React.Component<any, any> {
     super(props, context);
   }
 
-  public refCallback = (element: HTMLDivElement): void => {
+  public refCallback(element: HTMLDivElement): void {
     if (!this.elementMountedAlready) {
       this.elementMounted.next(element);
       this.elementMountedAlready = true;

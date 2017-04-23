@@ -1,15 +1,18 @@
 import * as React from 'react';
+import autoBindMethods from 'class-autobind-decorator';
 
 interface ToggleProps {
   bsRole: string;
   onClick?: React.EventHandler<React.MouseEvent<HTMLAnchorElement>>;
 }
+
+@autoBindMethods
 export class CustomToggle extends React.Component<ToggleProps, {}> {
   constructor(props: ToggleProps) {
     super(props);
   }
 
-  private handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  private handleClick(e: React.MouseEvent<HTMLAnchorElement>): void {
     e.preventDefault();
     this.props.onClick(e);
   }
@@ -21,7 +24,7 @@ export class CustomToggle extends React.Component<ToggleProps, {}> {
       </a>
     );
   }
-};
+}
 
 interface MenuProps {
   bsRole: string;

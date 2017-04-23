@@ -1,6 +1,8 @@
 import * as React from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import * as Select from 'react-select';
+import autoBindMethods from 'class-autobind-decorator';
+
 import {$log} from 'ngimport';
 import {IHttpPromiseCallbackArg} from 'angular';
 import {cloneDeep} from 'lodash';
@@ -35,6 +37,7 @@ export interface ICreatePipelineModalProps {
   pipelineSavedCallback: (pipelineId: string) => void;
 }
 
+@autoBindMethods
 export class CreatePipelineModal extends React.Component<ICreatePipelineModalProps, ICreatePipelineModalState> {
 
   constructor(props: ICreatePipelineModalProps) {
@@ -42,7 +45,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     this.state = this.getDefaultState();
   }
 
-  private getDefaultTemplate = (): Partial<IPipeline> => {
+  private getDefaultTemplate(): Partial<IPipeline> {
     return {
       name: 'None',
       stages: [],
@@ -53,9 +56,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       parallel: true,
       executionEngine: 'v2',
     };
-  };
+  }
 
-  private getDefaultState = (): ICreatePipelineModalState => {
+  private getDefaultState(): ICreatePipelineModalState {
     const defaultTemplate = this.getDefaultTemplate();
     const templates: Partial<IPipeline>[] = [defaultTemplate].concat(this.props.application.getDataSource('pipelineConfigs').data);
     const templateOptions: Select.Option[] = templates.map(template => ({value: template.name, label: template.name}));
@@ -73,9 +76,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       existingNames: existingNames,
       command: {parallel: true, strategy: false, name: '', template: defaultTemplate},
     };
-  };
+  }
 
-  public submit = (): void => {
+  public submit(): void {
     const command = cloneDeep(this.state.command);
     const template: Partial<IPipeline> = command.strategy ? this.getDefaultTemplate() : command.template;
 
@@ -91,9 +94,9 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     this.setState({submitting: true});
     pipelineConfigService.savePipeline(template as IPipeline)
       .then(() => this.onSaveSuccess(template as IPipeline), this.onSaveFailure);
-  };
+  }
 
-  private onSaveSuccess = (template: IPipeline): void => {
+  private onSaveSuccess(template: IPipeline): void {
     const application = this.props.application;
     template.isNew = true;
     application.getDataSource('pipelineConfigs').refresh().then(() => {
@@ -112,40 +115,40 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         this.props.pipelineSavedCallback(newPipeline.id);
       }
     });
-  };
+  }
 
-  private onSaveFailure = (response: IHttpPromiseCallbackArg<{message: string}>): void => {
+  private onSaveFailure(response: IHttpPromiseCallbackArg<{message: string}>): void {
     $log.warn(response);
     this.setState({
       submitting: false,
       saveError: true,
       errorMessage: (response && response.data && response.data.message) || 'No message provided',
     });
-  };
+  }
 
-  public close = (): void => {
+  public close(): void {
     this.setState(this.getDefaultState());
     this.props.showCallback(false);
-  };
+  }
 
-  private handleTypeChange = (option: Select.Option): void => {
+  private handleTypeChange(option: Select.Option): void {
     this.setState({command: Object.assign({}, this.state.command, {strategy: option.value})});
-  };
+  }
 
-  private handleNameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  private handleNameChange(e: React.ChangeEvent<HTMLInputElement>): void {
     this.setState({command: Object.assign({}, this.state.command, {name: e.target.value})});
-  };
+  }
 
-  private handleTemplateChange = (option: Select.Option): void => {
+  private handleTemplateChange(option: Select.Option): void {
     const template = this.state.templates.find(t => t.name === option.value);
     this.setState({command: Object.assign({}, this.state.command, {template})});
-  };
+  }
 
-  private handleErrorDismiss = (): void => {
+  private handleErrorDismiss(): void {
     this.setState({saveError: false});
-  };
+  }
 
-  private templateOptionRenderer = (option: Select.Option) => {
+  private templateOptionRenderer(option: Select.Option) {
     const template = this.state.templates.find(t => t.name === option.value);
     return (
       <div>
@@ -160,7 +163,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         )}
       </div>
     );
-  };
+  }
 
   public validateNameCharacters(): boolean {
     return /^[^\\\^/^?^%^#]*$/.test(this.state.command.name); // Verify name does not include: \, ^, ?, %, #

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { IExecutionStageSummary } from 'core/domain/IExecutionStage';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
@@ -19,6 +20,7 @@ interface IExecutionMarkerState {
   runningTimeInMs: number;
 }
 
+@autoBindMethods
 export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExecutionMarkerState> {
   private runningTime: OrchestratedItemRunningTime;
 
@@ -42,7 +44,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     this.runningTime.reset();
   }
 
-  private handleStageClick = () => {
+  private handleStageClick(): void {
     ReactGA.event({category: 'Pipeline', action: 'Stage clicked (bar)'});
     this.props.onClick(this.props.stage.index);
   }

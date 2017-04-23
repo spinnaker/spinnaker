@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as moment from 'moment';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { IPipeline, ICronTrigger } from 'core/domain';
 import { Popover } from 'core/presentation/Popover';
@@ -9,13 +10,14 @@ import { timestamp } from 'core/utils/timeFormatters';
 
 interface IProps {
   pipeline: IPipeline;
-};
+}
 
 interface IState {
   nextScheduled: number;
   hasNextScheduled: boolean;
-};
+}
 
+@autoBindMethods
 export class NextRunTag extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -60,7 +62,9 @@ export class NextRunTag extends React.Component<IProps, IState> {
     };
   }
 
-  private handleMouseEnter = () => this.setState(this.updateSchedule());
+  private handleMouseEnter() {
+    this.setState(this.updateSchedule());
+  }
 
   public render(): React.ReactElement<NextRunTag> {
     const nextDuration = moment(this.state.nextScheduled).fromNow();

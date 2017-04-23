@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { CustomToggle, CustomMenu } from 'core/widgets/CustomDropdown';
 import { ISlackConfig, NetflixSettings } from '../netflix.settings';
@@ -9,6 +10,7 @@ import './feedback.less';
 
 interface IFeedbackProps {
 }
+
 interface IFeedbackState {
   slackConfig: ISlackConfig;
   open: boolean;
@@ -16,6 +18,7 @@ interface IFeedbackState {
   showModal: boolean;
 }
 
+@autoBindMethods
 export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
   constructor(props: IFeedbackProps) {
     super(props);
@@ -31,11 +34,11 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
     this.setState({open: open});
   }
 
-  public showModal = (): void => {
+  public showModal(): void {
     this.setModal(true);
   }
 
-  public setModal = (show: boolean) => {
+  public setModal(show: boolean): void {
     this.setState({showModal: show});
   }
 

@@ -3,6 +3,7 @@ import * as ReactGA from 'react-ga';
 import { clone } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs/Subscription';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { Application } from 'core/application/application.model';
 import { IExecution , IRestartDetails } from 'core/domain';
@@ -45,6 +46,7 @@ interface IExecutionState {
   runningTimeInMs: number;
 }
 
+@autoBindMethods
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
   private activeRefresher: any;
   private stateChangeSuccessSubscription: Subscription;
@@ -114,7 +116,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return this.state.showingDetails && Number($stateParams.stage) === stageIndex;
   }
 
-  public toggleDetails = (stageIndex?: number): void => {
+  public toggleDetails(stageIndex?: number): void {
     if (this.props.execution.id === $state.params.executionId && $state.current.name.includes('.executions.execution') && stageIndex === undefined) {
       $state.go('^');
       return;
@@ -214,37 +216,46 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     }
   }
 
-  private handleNodeClick = (node: IPipelineNode) => this.toggleDetails(node.index);
+  private handleNodeClick(node: IPipelineNode): void {
+    this.toggleDetails(node.index);
+  }
 
-  private handleSourceNoStagesClick = () => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked (no stages found)'});
+  private handleSourceNoStagesClick(): void {
+    ReactGA.event({category: 'Pipeline', action: 'Execution source clicked (no stages found)'});
+  }
 
-  private handlePauseClick = (event: React.MouseEvent<HTMLElement>) => {
+  private handlePauseClick(event: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Pipeline', action: 'Execution pause clicked'});
     this.pauseExecution();
     event.stopPropagation();
   }
 
-  private handleResumeClick = (event: React.MouseEvent<HTMLElement>) => {
+  private handleResumeClick(event: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Pipeline', action: 'Execution resume clicked'});
     this.resumeExecution();
     event.stopPropagation();
   }
 
-  private handleDeleteClick = (event: React.MouseEvent<HTMLElement>) => {
+  private handleDeleteClick(event: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Pipeline', action: 'Execution delete clicked'});
     this.deleteExecution();
     event.stopPropagation();
   }
 
-  private handleCancelClick = (event: React.MouseEvent<HTMLElement>) => {
+  private handleCancelClick(event: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Pipeline', action: 'Execution cancel clicked'});
     this.cancelExecution();
     event.stopPropagation();
   }
 
-  private handleSourceClick = () => ReactGA.event({category: 'Pipeline', action: 'Execution source clicked'});
+  private handleSourceClick(): void {
+    ReactGA.event({category: 'Pipeline', action: 'Execution source clicked'});
+  }
 
-  private handlePermalinkClick = () => ReactGA.event({category: 'Pipeline', action: 'Permalink clicked'});
+  private handlePermalinkClick(): void {
+    ReactGA.event({category: 'Pipeline', action: 'Permalink clicked'});
+  }
+
   public render() {
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountLabelColor key={account} account={account}/>

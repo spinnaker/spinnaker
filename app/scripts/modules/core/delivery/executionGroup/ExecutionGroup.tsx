@@ -4,6 +4,7 @@ import { $timeout } from 'ngimport';
 import { IPromise } from 'angular';
 import { Subscription } from 'rxjs/Subscription';
 import { find, flatten, uniq } from 'lodash';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { AccountLabelColor } from 'core/account/AccountLabelColor';
 import { Application } from 'core/application/application.model';
@@ -39,6 +40,7 @@ interface IState {
   showAccounts: boolean;
 }
 
+@autoBindMethods
 export class ExecutionGroup extends React.Component<IProps, IState> {
   private strategyConfig: any;
   private expandUpdatedSubscription: Subscription;
@@ -144,18 +146,18 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
     }
   }
 
-  private handleHeadingClicked = () => {
+  private handleHeadingClicked(): void {
     ReactGA.event({category: 'Pipeline', action: `Group ${this.state.open ? 'collapsed' : 'expanded'}`, label: this.props.group.heading});
     this.toggle();
   }
 
-  private handleConfigureClicked = (e: React.MouseEvent<HTMLElement>) => {
+  private handleConfigureClicked(e: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Pipeline', action: 'Configure pipeline button clicked', label: this.props.group.heading});
     this.configure(this.props.group.config.id);
     e.stopPropagation();
   }
 
-  private handleTriggerClicked = (e: React.MouseEvent<HTMLElement>) => {
+  private handleTriggerClicked(e: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Pipeline', action: 'Trigger pipeline button clicked', label: this.props.group.heading});
     this.triggerPipeline();
     e.stopPropagation();

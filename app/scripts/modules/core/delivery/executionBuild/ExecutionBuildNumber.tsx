@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
+import autoBindMethods from 'class-autobind-decorator';
 
 import { IExecution } from 'core/domain/index';
 import { $state } from 'core/uirouter';
@@ -10,19 +11,20 @@ interface IExecutionBuildNumberProps {
   execution: IExecution;
 }
 
+@autoBindMethods
 export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberProps, void> {
   constructor(props: IExecutionBuildNumberProps) {
     super(props);
   }
 
-  private handleParentPipelineClick = () => {
+  private handleParentPipelineClick() {
     ReactGA.event({category: 'Pipeline', action: 'Execution build number clicked - parent pipeline'});
     const toStateParams = {application: this.props.execution.trigger.parentPipelineApplication, executionId: this.props.execution.trigger.parentPipelineId};
     const toStateOptions = {inherit: false, reload: 'home.applications.application.pipelines.executionDetails'};
     $state.go('^.executionDetails.execution', toStateParams, toStateOptions);
   }
 
-  private handleBuildInfoClick = (event: React.MouseEvent<HTMLElement>) => {
+  private handleBuildInfoClick(event: React.MouseEvent<HTMLElement>) {
     ReactGA.event({category: 'Pipeline', action: 'Execution build number clicked - build info'});
     event.stopPropagation();
   }

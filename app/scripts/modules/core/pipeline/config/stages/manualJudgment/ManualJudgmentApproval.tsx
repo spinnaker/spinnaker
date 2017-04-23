@@ -1,6 +1,7 @@
 import {IPromise} from 'angular';
 import * as React from 'react';
 import * as Select from 'react-select';
+import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution} from 'core/domain/IExecution';
 import {IExecutionStage} from 'core/domain/IExecutionStage';
@@ -21,6 +22,7 @@ interface IState {
   error: boolean;
 }
 
+@autoBindMethods
 export class ManualJudgmentApproval extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -55,11 +57,17 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
       (this.state.submitting && this.state.judgmentDecision === decision);
   }
 
-  private handleJudgementChanged = (option: Select.Option) => this.setState({judgmentInput: {value: option.value as string}});
+  private handleJudgementChanged(option: Select.Option): void {
+    this.setState({ judgmentInput: { value: option.value as string } });
+  }
 
-  private handleContinueClick = () => this.provideJudgment('continue');
+  private handleContinueClick(): void {
+    this.provideJudgment('continue');
+  }
 
-  private handleStopClick = () => this.provideJudgment('stop');
+  private handleStopClick(): void {
+    this.provideJudgment('stop');
+  }
 
   public render(): React.ReactElement<ManualJudgmentApproval> {
     const stage: IExecutionStage = this.props.stage,
