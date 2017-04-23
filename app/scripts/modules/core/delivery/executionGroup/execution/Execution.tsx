@@ -105,7 +105,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       viewState: newViewState,
       showingDetails: this.invalidateShowingDetails()
     });
-  };
+  }
 
   private invalidateShowingDetails(): boolean {
     return (this.props.standalone === true || (this.props.execution.id === $stateParams.executionId &&
@@ -161,7 +161,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         }
       })
     });
-  };
+  }
 
   public cancelExecution(): void {
     const hasDeployStage = this.props.execution.stages && this.props.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
@@ -264,9 +264,12 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     const executionMarkerWidth = `${100 / this.props.execution.stageSummaries.length}%`;
     const executionMarkers = this.props.execution.stageSummaries.map((stage) => (
       <ExecutionMarker key={stage.refId}
+                       application={this.props.application}
+                       execution={this.props.execution}
                        stage={stage}
                        onClick={this.toggleDetails}
                        active={this.isActive(stage.index)}
+                       previousStageActive={this.isActive(stage.index - 1)}
                        width={executionMarkerWidth}/>
     ));
 

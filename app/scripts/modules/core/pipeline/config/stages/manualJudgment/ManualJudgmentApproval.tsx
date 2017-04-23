@@ -1,6 +1,8 @@
 import {IPromise} from 'angular';
 import * as React from 'react';
 import * as Select from 'react-select';
+import * as DOMPurify from 'dompurify';
+import 'react-select/dist/react-select.css';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution} from 'core/domain/IExecution';
@@ -69,6 +71,12 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
     this.provideJudgment('stop');
   }
 
+  private getInstructions(): any {
+    return {
+      __html: DOMPurify.sanitize(this.props.stage.context.instructions)
+    };
+  }
+
   public render(): React.ReactElement<ManualJudgmentApproval> {
     const stage: IExecutionStage = this.props.stage,
           status: string = stage.status;
@@ -76,16 +84,22 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
     const options: Select.Option[] = (stage.context.judgmentInputs || [])
       .map((o: {value: string}) => { return {value: o.value, label: o.value}; });
 
-    const buttonMargin: any = { margin: '0 15px' };
-
     const showOptions = status !== 'SKIPPED' && (!stage.context.judgmentStatus || status === 'RUNNING');
+
+    const hasInstructions = !!stage.context.instructions;
 
     return (
       <div>
+        { hasInstructions && (
+          <div>
+            <div><b>Instructions</b></div>
+            <p dangerouslySetInnerHTML={this.getInstructions()}/>
+          </div>
+        )}
         { showOptions && (
           <div>
             { options.length > 0 && (
-              <div className="form-group col-md-12">
+              <div>
                 <p><b>Judgment Input</b></p>
                 <Select options={options}
                         clearable={false}
@@ -93,27 +107,28 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
                         onChange={this.handleJudgementChanged}/>
               </div>
             )}
-            <button className="btn btn-primary"
-                    style={buttonMargin}
-                    disabled={this.state.submitting || stage.context.judgmentStatus}
-                    onClick={this.handleContinueClick}>
-              { this.isSubmitting('continue') && (
-                <ButtonBusyIndicator/>
-              )}
-              Continue
-            </button>
-            <button className="btn btn-danger"
-                    onClick={this.handleStopClick}
-                    disabled={this.state.submitting || stage.context.judgmentStatus}>
-              { this.isSubmitting('stop') && (
-                <ButtonBusyIndicator/>
-              )}
-              Stop
-            </button>
+            <div className="action-buttons">
+              <button className="btn btn-primary"
+                      disabled={this.state.submitting || stage.context.judgmentStatus}
+                      onClick={this.handleContinueClick}>
+                { this.isSubmitting('continue') && (
+                  <ButtonBusyIndicator/>
+                )}
+                Continue
+              </button>
+              <button className="btn btn-danger"
+                      onClick={this.handleStopClick}
+                      disabled={this.state.submitting || stage.context.judgmentStatus}>
+                { this.isSubmitting('stop') && (
+                  <ButtonBusyIndicator/>
+                )}
+                Stop
+              </button>
+            </div>
           </div>
         )}
         { this.state.error && (
-          <div className="col-md-12 error-message">
+          <div className="error-message">
             There was an error recording your decision. Please try again.
           </div>
         )}

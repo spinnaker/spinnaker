@@ -1,7 +1,7 @@
 import * as React from 'react';
+import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution, IExecutionStage} from 'core/domain';
-import {ButtonBusyIndicator} from 'core/forms/buttonBusyIndicator/ButtonBusyIndicator';
 import {Application} from 'core/application/application.model';
 import {confirmationModalService} from 'core/confirmationModal/confirmationModal.service';
 import {executionService} from 'core/delivery/service/execution.service';
@@ -16,7 +16,6 @@ interface IProps {
 }
 
 interface IState {
-  submitting: boolean;
   dayText: string;
 }
 
@@ -27,6 +26,7 @@ interface IExecutionWindowWhitelistEntry {
   endMin: number;
 }
 
+@autoBindMethods
 export class ExecutionWindowActions extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
@@ -36,12 +36,12 @@ export class ExecutionWindowActions extends React.Component<IProps, IState> {
       dayText = this.replaceDays(days).join(', ');
     }
     this.state = {
-      submitting: false,
       dayText: dayText,
     };
   }
 
-  private finishWaiting = (): void => {
+  private finishWaiting(e: React.MouseEvent<HTMLElement>): void {
+    (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const stage = this.props.stage,
           executionId = this.props.execution.id;
 
@@ -56,12 +56,11 @@ export class ExecutionWindowActions extends React.Component<IProps, IState> {
       buttonText: 'Skip',
       body: '<p>The pipeline will proceed immediately, continuing to the next step in the stage.</p>',
       submitMethod: () => {
-        this.setState({submitting: true});
         return executionService.patchExecution(executionId, stage.id, data)
           .then(() => executionService.waitUntilExecutionMatches(executionId, matcher));
       }
     });
-  };
+  }
 
   private replaceDays(days: number[]): string[] {
     const daySet = new Set(days);
@@ -101,13 +100,12 @@ export class ExecutionWindowActions extends React.Component<IProps, IState> {
           </div>
         )}
         {stage.isSuspended && (
-          <button className="btn btn-xs btn-primary" onClick={this.finishWaiting}>
-            {this.state.submitting && (<ButtonBusyIndicator/>)}
-            {!this.state.submitting && (
+          <div className="action-buttons">
+            <button className="btn btn-xs btn-primary" onClick={this.finishWaiting}>
               <span style={{marginRight: '5px'}} className="small glyphicon glyphicon-fast-forward"/>
-            )}
-            Skip remaining window
-          </button>
+              Skip remaining window
+            </button>
+          </div>
         )}
       </div>
     );

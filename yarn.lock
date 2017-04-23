@@ -217,6 +217,10 @@
     "@types/cheerio" "*"
     "@types/react" "*"
 
+"@types/dompurify@^0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@types/dompurify/-/dompurify-0.0.29.tgz#3a774b80a709848e560fbf9ea62d5f716e79b6f2"
+
 "@types/geojson@*":
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/@types/geojson/-/geojson-1.0.2.tgz#b02d10ab028e2928ac592a051aaa4981a1941d03"
@@ -2103,6 +2107,10 @@ domhandler@^2.3.0:
   resolved "https://registry.yarnpkg.com/domhandler/-/domhandler-2.3.0.tgz#2de59a0822d5027fabff6f032c2b25a2a8abe738"
   dependencies:
     domelementtype "1"
+
+dompurify@^0.8.5:
+  version "0.8.5"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-0.8.5.tgz#5bc591b61e222243cc827ca382d7a2e2660c1a44"
 
 domutils@1.1:
   version "1.1.6"

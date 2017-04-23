@@ -5,6 +5,7 @@ import _ from 'lodash';
 let angular = require('angular');
 
 import {ExecutionBarLabel} from 'core/pipeline/config/stages/core/ExecutionBarLabel';
+import {ExecutionMarkerIcon} from 'core/pipeline/config/stages/core/ExecutionMarkerIcon';
 import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
@@ -275,6 +276,8 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       var stageConfig = pipelineConfig.getStageConfig(stage);
       if (stageConfig) {
         stage.labelTemplate = stageConfig.executionLabelTemplate || ExecutionBarLabel;
+        stage.markerIcon = stageConfig.markerIcon || ExecutionMarkerIcon;
+        stage.useCustomTooltip = !!stageConfig.useCustomTooltip;
         stage.extraLabelLines = stageConfig.extraLabelLines;
       }
     }
@@ -324,6 +327,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       summary.masterStageIndex = summary.stages.includes(summary.masterStage) ? summary.stages.indexOf(summary.masterStage) : 0;
       filterStages(summary);
       setFirstActiveStage(summary);
+      setExecutionWindow(summary);
       transformStage(summary);
       styleStage(summary);
       orchestratedItemTransformer.defineProperties(summary);
@@ -333,6 +337,12 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       const stageConfig = pipelineConfig.getStageConfig(summary.masterStage);
       if (stageConfig && stageConfig.stageFilter) {
         summary.stages = summary.stages.filter(stageConfig.stageFilter);
+      }
+    }
+
+    function setExecutionWindow(summary) {
+      if (summary.stages.some(s => s.type === 'restrictExecutionDuringTimeWindow' && s.isSuspended)) {
+        summary.inSuspendedExecutionWindow = true;
       }
     }
 

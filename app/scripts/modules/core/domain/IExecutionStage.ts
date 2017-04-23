@@ -1,6 +1,8 @@
 import {IOrchestratedItem} from './IOrchestratedItem';
 import {IStage} from './IStage';
 import {IStageStep} from './IStageStep';
+import {Application} from '../application/application.model';
+import {IExecution} from './IExecution';
 
 export interface IRestartDetails {
   restartedBy: string;
@@ -22,9 +24,13 @@ export interface IExecutionStage extends IOrchestratedItem, IStage {
 }
 
 export interface IExecutionStageSummary extends IExecutionStage {
-  masterStage: IStage;
-  labelTemplate: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+  masterStage: IExecutionStage;
+  stages: IExecutionStage[];
+  labelTemplate: React.ComponentClass<{ stage: IExecutionStageSummary, application?: Application, execution?: IExecution, executionMarker?: boolean }>;
+  markerIcon: React.ComponentClass<{ stage: IExecutionStageSummary }>;
   extraLabelLines?: (stage: IExecutionStageSummary) => number;
+  useCustomTooltip?: boolean;
+  inSuspendedExecutionWindow?: boolean;
   index: number;
   status: string;
   hasNotStarted: boolean;

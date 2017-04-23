@@ -2,22 +2,27 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { IExecutionStageSummary } from 'core/domain/IExecutionStage';
+import { IExecution, IExecutionStageSummary } from 'core/domain';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
-import { Tooltip } from 'core/presentation/Tooltip';
 import { duration } from 'core/utils/timeFormatters';
+
+import { Application } from 'core/application/application.model';
+import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 
 import './executionMarker.less';
 
 interface IExecutionMarkerProps {
   stage: IExecutionStageSummary;
+  application: Application;
+  execution: IExecution;
   active?: boolean;
+  previousStageActive?: boolean;
   width: string;
   onClick: (stageIndex: number) => void;
 }
 
 interface IExecutionMarkerState {
-  runningTimeInMs: number;
+  duration: string;
 }
 
 @autoBindMethods
@@ -28,12 +33,12 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
     super(props);
 
     this.state = {
-      runningTimeInMs: props.stage.runningTimeInMs
+      duration: duration(props.stage.runningTimeInMs)
     };
   }
 
   public componentDidMount() {
-    this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setState({ runningTimeInMs: time }));
+    this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setState({ duration: duration(time) }));
   }
 
   public componentWillReceiveProps() {
@@ -50,25 +55,37 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
   }
 
   public render() {
-    const stage = this.props.stage;
+    const {stage, application, execution, active, previousStageActive, width} = this.props;
     const markerClassName = [
       'clickable',
       'stage',
       'execution-marker',
       `stage-type-${stage.type.toLowerCase()}`,
       `execution-marker-${stage.status.toLowerCase()}`,
-      this.props.active ? 'active' : '',
+      active ? 'active' : '',
+      previousStageActive ? 'after-active' : '',
       stage.isRunning ? 'glowing' : ''
       ].join(' ');
 
-    const TooltipTemplate = stage.labelTemplate;
+    const TooltipComponent = stage.labelTemplate;
+    const MarkerIcon = stage.markerIcon;
+    const stageContents = (
+      <div className={markerClassName}
+           style={{width: width, backgroundColor: stage.color}}
+           onClick={this.handleStageClick}>
+        <MarkerIcon stage={stage}/>
+        <span className="duration">{this.state.duration}</span>
+      </div>);
+    if (stage.useCustomTooltip) {
+      return (
+        <TooltipComponent application={application} execution={execution} stage={stage} executionMarker={true}>
+          {stageContents}
+        </TooltipComponent>
+      );
+    }
     return (
-      <Tooltip key={stage.refId} template={(<TooltipTemplate stage={stage}/>)}>
-        <div className={markerClassName}
-          style={{width: this.props.width, backgroundColor: stage.color}}
-          onClick={this.handleStageClick}>
-          <span className="duration">{duration(stage.runningTimeInMs)}</span>
-        </div>
-      </Tooltip>);
+      <ExecutionBarLabel application={application} execution={execution} stage={stage} executionMarker={true}>
+        {stageContents}
+      </ExecutionBarLabel>);
   }
 }

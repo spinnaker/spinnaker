@@ -1,15 +1,18 @@
 import * as React from 'react';
 import { has } from 'lodash';
+import autoBindMethods from 'class-autobind-decorator';
 
+import { Application } from 'core/application/application.model';
 import { ExecutionBuildNumber } from 'core/delivery/executionBuild/ExecutionBuildNumber';
 import { ExecutionMarker } from 'core/delivery/executionGroup/execution/ExecutionMarker';
-import { IExecution } from 'core/domain/index';
+import { IExecution } from 'core/domain';
 import { $state } from 'core/uirouter';
 import { timestamp } from 'core/utils/timeFormatters';
 
 import './projectPipeline.less';
 
 interface IProjectPipelineProps {
+  application: Application;
   execution: IExecution;
 }
 
@@ -19,6 +22,7 @@ interface IProjectPipelineState {
   stageWidth: string;
 }
 
+@autoBindMethods
 export class ProjectPipeline extends React.Component<IProjectPipelineProps, IProjectPipelineState> {
   constructor(props: IProjectPipelineProps) {
     super(props);
@@ -29,21 +33,27 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
     };
   }
 
-  private handleExecutionTitleClick = () => $state.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
+  private handleExecutionTitleClick(): void {
+    $state.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
+  }
 
-  private handleStageClick = (stageIndex: number) => $state.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
+  private handleStageClick(stageIndex: number) {
+    $state.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
+  }
 
   public render() {
-    const stages = this.props.execution.stageSummaries.map((stage) => <ExecutionMarker key={stage.refId} stage={stage} onClick={this.handleStageClick} width={this.state.stageWidth}/>);
+    const execution = this.props.execution,
+          stages = execution.stageSummaries.map((stage) =>
+      <ExecutionMarker key={stage.refId} {...this.props} stage={stage} onClick={this.handleStageClick} width={this.state.stageWidth}/>);
 
     return (
       <div>
         <h5 className="execution-title">
           <a onClick={this.handleExecutionTitleClick}>
-            {`${this.props.execution.application.toUpperCase()}: ${this.props.execution.name}`}
+            {`${execution.application.toUpperCase()}: ${execution.name}`}
           </a>
         </h5>
-        &nbsp;(<ExecutionBuildNumber execution={this.props.execution}/>{ this.state.hasBuildInfo && (<span>, </span>) }started {timestamp(this.props.execution.startTime)})
+        &nbsp;(<ExecutionBuildNumber execution={execution}/>{ this.state.hasBuildInfo && (<span>, </span>) }started {timestamp(this.props.execution.startTime)})
         <div className="execution-bar">
           {stages}
         </div>

@@ -15,8 +15,8 @@
   &:hover, &.active {
     opacity: 1;
   }
-  &:first-child {
-    border-left-width: 0;
+  &.after-active {
+    border-left-color: transparent;
   }
   &.active {
     border-color: #222222;
@@ -25,9 +25,6 @@
     }
     &:last-child {
       border-right-width: 1px;
-    }
-    & + .stage {
-      border-left-color: transparent;
     }
   }
   &.glowing {

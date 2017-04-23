@@ -94,10 +94,15 @@ execution-status {
   width: calc(~"100% - 235px");
   vertical-align: top;
   .stage {
+    .fa { // .fa is "font-awesome" - the only icon set we're using for custom stage icons
+      display: inline-block;
+      margin-right: 3px;
+    }
     .duration {
       font-weight: 600;
       line-height: 20px;
       visibility: hidden;
+      width: 0;
       display: inline-block;
     }
   }
@@ -106,6 +111,7 @@ execution-status {
   .stage {
     .duration {
       visibility: visible;
+      width: auto;
     }
     min-width: 50px;
   }

@@ -1,4 +1,5 @@
-<div ng-controller="ExecutionWindowsDetailsCtrl as ctrl">
+<!-- We should not have to check stage type, but...we do, because the component will be rendered briefly when navigating to a different stage -->
+<div ng-controller="ExecutionWindowsDetailsCtrl as ctrl" ng-if="stage.type === 'restrictExecutionDuringTimeWindow'">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'windowConfig'">
     <execution-window-actions application="application" execution="execution" stage="stage"></execution-window-actions>

@@ -1,6 +1,8 @@
 'use strict';
 
 import {SETTINGS} from 'core/config/settings';
+import {ManualJudgmentExecutionLabel} from './ManualJudgmentExecutionLabel';
+import {ManualJudgmentMarkerIcon} from './ManualJudgmentMarkerIcon';
 
 let angular = require('angular');
 
@@ -15,6 +17,9 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       controllerAs: 'manualJudgmentStageCtrl',
       templateUrl: require('./manualJudgmentStage.html'),
       executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
+      executionLabelTemplate: ManualJudgmentExecutionLabel,
+      useCustomTooltip: true,
+      markerIcon: ManualJudgmentMarkerIcon,
       strategy: true,
       defaultTimeoutMs: 72 * 60 * 60 * 1000,
       disableNotifications: true,

@@ -1,6 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
+
+import {WaitExecutionLabel} from './WaitExecutionLabel';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
   .config(function(pipelineConfigProvider) {
@@ -10,6 +12,8 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
       key: 'wait',
       templateUrl: require('./waitStage.html'),
       executionDetailsUrl: require('./waitExecutionDetails.html'),
+      executionLabelTemplate: WaitExecutionLabel,
+      useCustomTooltip: true,
       strategy: true,
       controller: 'WaitStageCtrl',
       validators: [
