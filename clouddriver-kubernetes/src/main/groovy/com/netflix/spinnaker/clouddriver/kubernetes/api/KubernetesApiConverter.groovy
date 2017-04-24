@@ -747,7 +747,7 @@ class KubernetesApiConverter {
     }
 
     def kubernetesTcpSocketAction = new KubernetesTcpSocketAction()
-    kubernetesTcpSocketAction.port = tcpSocket.port?.intVal
+    kubernetesTcpSocketAction.port = tcpSocket.port?.intVal ?: 0
     return kubernetesTcpSocketAction
   }
 
@@ -759,7 +759,7 @@ class KubernetesApiConverter {
     def kubernetesHttpGetAction = new KubernetesHttpGetAction()
     kubernetesHttpGetAction.host = httpGet.host
     kubernetesHttpGetAction.path = httpGet.path
-    kubernetesHttpGetAction.port = httpGet.port?.intVal
+    kubernetesHttpGetAction.port = httpGet.port?.intVal ?: 0
     kubernetesHttpGetAction.uriScheme = httpGet.scheme
     kubernetesHttpGetAction.httpHeaders = httpGet.httpHeaders?.collect() {
       new KeyValuePair(name: it.name, value: it.value)
