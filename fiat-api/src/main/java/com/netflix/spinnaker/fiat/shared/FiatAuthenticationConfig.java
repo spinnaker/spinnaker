@@ -60,6 +60,7 @@ public class FiatAuthenticationConfig {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
     objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+    objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
         .setClient(okClient)

@@ -22,22 +22,19 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.val;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class ServiceAccount extends BaseAccessControlled implements Viewable {
+public class ServiceAccount implements Resource, Viewable {
   private final ResourceType resourceType = ResourceType.SERVICE_ACCOUNT;
 
   private String name;
   private List<String> memberOf = new ArrayList<>();
-  private Permissions permissions = Permissions.EMPTY;
 
   public UserPermission toUserPermission() {
     val roles = memberOf.stream()
@@ -45,20 +42,15 @@ public class ServiceAccount extends BaseAccessControlled implements Viewable {
                         .collect(Collectors.toSet());
     return new UserPermission().setId(name).setRoles(roles);
   }
-  
-  @JsonIgnore
-  public List<String> getRequiredGroupMembership() {
-    // There is a potential here for a naming collision where service account
-    // "my-svc-account@abc.com" and "my-svc-account@xyz.com" each allow one another's users to use
-    // their service account. In practice, though, I don't think this will be an issue.
-    return Collections.singletonList(StringUtils.substringBefore(name, "@"));
-  }
 
   public ServiceAccount setMemberOf(List<String> membership) {
     if (membership == null) {
       membership = new ArrayList<>();
     }
-    memberOf = membership.stream().map(String::toLowerCase).collect(Collectors.toList());
+    memberOf = membership.stream()
+                         .map(String::trim)
+                         .map(String::toLowerCase)
+                         .collect(Collectors.toList());
     return this;
   }
 
@@ -72,9 +64,11 @@ public class ServiceAccount extends BaseAccessControlled implements Viewable {
   @NoArgsConstructor
   public static class View extends BaseView {
     private String name;
+    private List<String> memberOf;
 
     public View(ServiceAccount serviceAccount) {
       this.name = serviceAccount.name;
+      this.memberOf = serviceAccount.memberOf;
     }
   }
 }

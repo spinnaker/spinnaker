@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,7 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.resources.Resource;
-import com.netflix.spinnaker.fiat.model.resources.Role;
+public interface HealthTrackable {
 
-import java.util.Collection;
-import java.util.Set;
-
-public interface ResourceProvider<R extends Resource> {
-
-  Set<R> getAll() throws ProviderException;
-
-  Set<R> getAllRestricted(Set<Role> roles) throws ProviderException;
-
-  Set<R> getAllUnrestricted() throws ProviderException;
+  ProviderHealthTracker getHealthTracker();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Google, Inc.
+ * Copyright 2017 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.fiat.providers;
+package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.fiat.model.resources.Resource;
-import com.netflix.spinnaker.fiat.model.resources.Role;
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Collection;
-import java.util.Set;
+@Data
+@ConfigurationProperties("fiat.cache")
+public class ProviderCacheConfig {
 
-public interface ResourceProvider<R extends Resource> {
-
-  Set<R> getAll() throws ProviderException;
-
-  Set<R> getAllRestricted(Set<Role> roles) throws ProviderException;
-
-  Set<R> getAllUnrestricted() throws ProviderException;
+  private int expiresAfterWriteSeconds = 20;
 }

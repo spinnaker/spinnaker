@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
-import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
@@ -25,10 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,11 +34,16 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> implements ResourceProvider<ServiceAccount> {
 
+  private final Front50Service front50Service;
+
   @Autowired
-  private Front50Service front50Service;
+  public DefaultServiceAccountProvider(Front50Service front50Service) {
+    super();
+    this.front50Service = front50Service;
+  }
 
   @Override
-  public Set<ServiceAccount> getAll() throws ProviderException {
+  protected Set<ServiceAccount> loadAll() throws ProviderException {
     try {
       val returnVal = front50Service
           .getAllServiceAccounts()
@@ -48,26 +51,19 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> 
           .collect(Collectors.toSet());
       success();
       return returnVal;
-    } catch (RetrofitError re) {
+    } catch (Exception e) {
       failure();
-      throw new ProviderException(re);
+      throw e;
     }
   }
 
-  /**
-   * Return the set of service accounts to which a user with the specified collection of groups
-   * has access.
-   * Service accounts are usually defined using a full email address, but the specified groups are
-   * normally just the first part before the "@" symbol. This implementation strips everything
-   * after the "@" symbol for the purposes of service account/group matching.
-   * @param roles
-   */
   @Override
-  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles) {
-    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
+  public Set<ServiceAccount> getAllRestricted(@NonNull Set<Role> roles) throws ProviderException {
+    List<String> roleNames = roles.stream().map(Role::getName).collect(Collectors.toList());
     return getAll()
         .stream()
-        .filter(svcAcct -> !Collections.disjoint(svcAcct.getRequiredGroupMembership(), groupNames))
+        .filter(svcAcct -> !svcAcct.getMemberOf().isEmpty())
+        .filter(svcAcct -> roleNames.containsAll(svcAcct.getMemberOf()))
         .collect(Collectors.toSet());
   }
 

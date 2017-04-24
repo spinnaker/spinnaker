@@ -28,7 +28,6 @@ import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider
-import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -54,7 +53,9 @@ class DefaultPermissionsResolverSpec extends Specification {
   DefaultAccountProvider accountProvider = new DefaultAccountProvider(clouddriverService)
 
   @Shared ServiceAccount group1SvcAcct = new ServiceAccount().setName("group1")
-  @Shared ServiceAccount group2SvcAcct = new ServiceAccount().setName("group2@domain.com")
+                                                             .setMemberOf(["group1"])
+  @Shared ServiceAccount group2SvcAcct = new ServiceAccount().setName("group2")
+                                                             .setMemberOf(["group2"])
 
   @Shared
   Front50Service front50Service = Mock(Front50Service) {
@@ -62,13 +63,11 @@ class DefaultPermissionsResolverSpec extends Specification {
   }
 
   @Shared
-  DefaultServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider(
-      front50Service: front50Service
-  )
+  DefaultServiceAccountProvider serviceAccountProvider = new DefaultServiceAccountProvider(front50Service)
 
   @Shared
   ResourceProvider<Application> applicationProvider = Mock(ResourceProvider) {
-    getAll(*_) >> []
+    getAllRestricted(*_) >> []
   }
 
   @Shared
@@ -111,11 +110,19 @@ class DefaultPermissionsResolverSpec extends Specification {
     thrown IllegalArgumentException
 
     when:
-    def result = resolver.resolve(testUserId)
+    def result = resolver.resolve("unknownUser")
+
+    then:
+    1 * userRolesProvider.loadRoles("unknownUser") >> []
+    def expected = new UserPermission().setId("unknownUser")
+    result == expected
+
+    when:
+    result = resolver.resolve(testUserId)
+    expected = new UserPermission().setId(testUserId)
 
     then:
     1 * userRolesProvider.loadRoles(testUserId) >> []
-    def expected = new UserPermission().setId(testUserId)
     result == expected
 
     when:
@@ -139,8 +146,6 @@ class DefaultPermissionsResolverSpec extends Specification {
     result == expected
   }
 
-  @Ignore
-  // TODO(ttomsu): Fix this test when revamping service accounts
   def "should resolve all user's permissions"() {
     setup:
     UserRolesProvider userRolesProvider = Mock(UserRolesProvider)

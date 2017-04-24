@@ -55,7 +55,7 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
   @Autowired
   @Setter
-  private List<ResourceProvider<? extends Resource.AccessControlled>> resourceProviders;
+  private List<ResourceProvider<? extends Resource>> resourceProviders;
 
   @Autowired
   @Setter
@@ -111,9 +111,6 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
   public Map<String, UserPermission> resolve(@NonNull Collection<ExternalUser> users) {
     val userToRoles = getAndMergeUserRoles(users);
 
-    // This is the reverse index of each resourceProvider's getAllRestricted() call.
-    AccessControlLists acls = buildAcls();
-
     return userToRoles
         .entrySet()
         .stream()
@@ -123,23 +120,9 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
 
           return new UserPermission().setId(username)
                                      .setRoles(userRoles)
-                                     .addResources(acls.canAccess(userRoles));
+                                     .addResources(getResources(userRoles));
         })
         .collect(Collectors.toMap(UserPermission::getId, Function.identity()));
-  }
-
-  private AccessControlLists buildAcls() {
-    AccessControlLists acls = new AccessControlLists();
-
-    for (ResourceProvider<? extends Resource.AccessControlled> provider : resourceProviders) {
-      try {
-        provider.getAll().forEach(acls::add);
-      } catch (ProviderException pe) {
-        throw new PermissionResolutionException(pe);
-      }
-    }
-
-    return acls;
   }
 
   private Map<String, Collection<Role>> getAndMergeUserRoles(@NonNull Collection<ExternalUser> users) {
@@ -165,22 +148,16 @@ public class DefaultPermissionsResolver implements PermissionsResolver {
     return userToRoles;
   }
 
-  static class AccessControlLists {
-    // This object indexes:
-    // role (group name) -> resources (account, application, etc)
-    Multimap<Role, Resource.AccessControlled> acl = ArrayListMultimap.create();
-
-    void add(Resource.AccessControlled resource) {
-      resource.getPermissions()
-              .allGroups()
-              .forEach(group -> acl.put(new Role(group), resource));
-    }
-
-    Collection<Resource> canAccess(Set<Role> roles) {
-      return roles.stream()
-                  .filter(role -> acl.containsKey(role))
-                  .flatMap(role -> acl.get(role).stream())
-                  .collect(Collectors.toSet());
-    }
+  private Set<Resource> getResources(Set<Role> roles) {
+    return resourceProviders
+        .stream()
+        .flatMap(provider -> {
+          try {
+            return provider.getAllRestricted(roles).stream();
+          } catch (ProviderException pe) {
+            throw new PermissionResolutionException(pe);
+          }
+        })
+        .collect(Collectors.toSet());
   }
 }

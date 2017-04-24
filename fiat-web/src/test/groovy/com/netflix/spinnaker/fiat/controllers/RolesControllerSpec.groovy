@@ -18,9 +18,9 @@ package com.netflix.spinnaker.fiat.controllers
 
 import com.netflix.spinnaker.config.FiatSystemTest
 import com.netflix.spinnaker.config.TestUserRoleProviderConfig.TestUserRoleProvider
-import com.netflix.spinnaker.fiat.model.Authorization
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
+import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -68,7 +68,7 @@ class RolesControllerSpec extends Specification {
     this.mockMvc = MockMvcBuilders
         .webAppContextSetup(this.wac)
         .defaultRequest(get("/").content().contentType("application/json"))
-        .build();
+        .build()
   }
 
   def "should put user in the repo"() {
@@ -92,20 +92,18 @@ class RolesControllerSpec extends Specification {
 
     when:
     mockMvc.perform(post("/roles/roleAUser@group.com")).andExpect(status().isOk())
-    def restrictedAppWithAuth = restrictedApp
     expected = new UserPermission().setId("roleAUser@group.com")
                                    .setRoles([roleA] as Set)
-                                   .setApplications([restrictedAppWithAuth] as Set)
+                                   .setApplications([restrictedApp] as Set)
 
     then:
     permissionsRepository.get("roleAUser@group.com").get() == expected
 
     when:
     mockMvc.perform(put("/roles/roleBUser@group.com").content('["roleB"]')).andExpect(status().isOk())
-    def restrictedAccountWithAuth = restrictedAccount
     expected = new UserPermission().setId("roleBUser@group.com")
                                    .setRoles([roleB] as Set)
-                                   .setAccounts([restrictedAccountWithAuth] as Set)
+                                   .setAccounts([restrictedAccount] as Set)
 
     then:
     permissionsRepository.get("roleBUser@group.com").get() == expected
@@ -114,8 +112,8 @@ class RolesControllerSpec extends Specification {
     mockMvc.perform(put("/roles/roleAroleBUser@group.com").content('["roleB"]')).andExpect(status().isOk())
     expected = new UserPermission().setId("roleAroleBUser@group.com")
                                    .setRoles([roleA, roleB] as Set)
-                                   .setApplications([restrictedAppWithAuth] as Set)
-                                   .setAccounts([restrictedAccountWithAuth] as Set)
+                                   .setApplications([restrictedApp] as Set)
+                                   .setAccounts([restrictedAccount] as Set)
 
     then:
     permissionsRepository.get("roleAroleBUser@group.com").get() == expected

@@ -79,6 +79,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     Account account1 = new Account().setName("account")
     Application app1 = new Application().setName("app")
     ServiceAccount serviceAccount1 = new ServiceAccount().setName("serviceAccount")
+                                                         .setMemberOf(["role1"])
     Role role1 = new Role("role1")
 
     when:
@@ -98,7 +99,7 @@ class RedisPermissionsRepositorySpec extends Specification {
     jedis.hgetAll("unittests:permissions:testUser:applications") ==
         ['app': '{"name":"app","permissions":{}}']
     jedis.hgetAll("unittests:permissions:testUser:service_accounts") ==
-        ['serviceAccount': '{"name":"serviceAccount","memberOf":[],"permissions":{}}']
+        ['serviceAccount': '{"name":"serviceAccount","memberOf":["role1"]}']
     jedis.hgetAll("unittests:permissions:testUser:roles") ==
         ['role1': '{"name":"role1"}']
   }

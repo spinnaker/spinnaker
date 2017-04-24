@@ -38,12 +38,13 @@ public class DefaultApplicationProvider extends BaseProvider<Application> implem
 
   @Autowired
   public DefaultApplicationProvider(Front50Service front50Service, ClouddriverService clouddriverService) {
+    super();
     this.front50Service = front50Service;
     this.clouddriverService = clouddriverService;
   }
 
   @Override
-  public Set<Application> getAll() throws ProviderException {
+  protected Set<Application> loadAll() throws ProviderException {
     try {
       Map<String, Application> appByName = front50Service
           .getAllApplicationPermissions()
@@ -60,9 +61,9 @@ public class DefaultApplicationProvider extends BaseProvider<Application> implem
       success();
 
       return new HashSet<>(appByName.values());
-    } catch (RetrofitError re) {
+    } catch (Exception e) {
       failure();
-      throw new ProviderException(re);
+      throw e;
     }
   }
 }

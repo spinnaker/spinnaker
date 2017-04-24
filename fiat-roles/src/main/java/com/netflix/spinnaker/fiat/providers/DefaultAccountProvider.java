@@ -36,18 +36,19 @@ public class DefaultAccountProvider extends BaseProvider<Account> implements Res
 
   @Autowired
   public DefaultAccountProvider(ClouddriverService clouddriverService) {
+    super();
     this.clouddriverService = clouddriverService;
   }
 
   @Override
-  public Set<Account> getAll() throws ProviderException {
+  protected Set<Account> loadAll() throws ProviderException {
     try {
       val returnVal = clouddriverService.getAccounts().stream().collect(Collectors.toSet());
       success();
       return returnVal;
-    } catch (RetrofitError re) {
+    } catch (Exception e) {
       failure();
-      throw new ProviderException(re);
+      throw e;
     }
   }
 }

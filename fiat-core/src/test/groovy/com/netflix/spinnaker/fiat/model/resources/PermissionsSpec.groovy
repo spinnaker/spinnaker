@@ -72,6 +72,21 @@ class PermissionsSpec extends Specification {
     permissionJson ==  mapper.writeValueAsString(b.build())
   }
 
+  def "can deserialize to builder from serialized Permissions"() {
+    setup:
+    Permissions.Builder b1 = new Permissions.Builder().add(W, "batman").add(R, "robin")
+    Permissions p1 = b1.build()
+
+    when:
+    def serialized = mapper.writeValueAsString(p1)
+    Permissions.Builder b2 = mapper.readValue(serialized, Permissions.Builder)
+    Permissions p2 = b2.build()
+
+    then:
+    p1 == p2
+    b1 == b2
+  }
+
   def "should trim and lower"() {
     when:
     Permissions.Builder b = new Permissions.Builder()

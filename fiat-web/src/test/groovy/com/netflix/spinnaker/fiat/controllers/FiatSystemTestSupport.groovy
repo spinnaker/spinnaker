@@ -44,8 +44,8 @@ class FiatSystemTestSupport {
                                            .setPermissions(new Permissions.Builder().add(R, roleB.name)
                                                                                     .build())
 
-  ServiceAccount serviceAccount = new ServiceAccount().setName("svcAcct@group.com")
-  Role roleServiceAccount = new Role(serviceAccount.requiredGroupMembership.first())
+  ServiceAccount serviceAccount = new ServiceAccount().setName("svcAcct").setMemberOf(["svcAcct"])
+  Role roleServiceAccount = new Role(serviceAccount.memberOf.first())
 
   UserPermission unrestrictedUser = new UserPermission().setId(UnrestrictedResourceConfig.UNRESTRICTED_USERNAME)
                                                         .setAccounts([unrestrictedAccount] as Set)

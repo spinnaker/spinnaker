@@ -208,7 +208,7 @@ class AuthorizeControllerSpec extends Specification {
     expected = objectMapper.writeValueAsString(serviceAccount.getView([] as Set))
 
     then:
-    mockMvc.perform(get("/authorize/roleServiceAccountUser/serviceAccounts/svcAcct%40group.com"))
+    mockMvc.perform(get("/authorize/roleServiceAccountUser/serviceAccounts/svcAcct"))
            .andExpect(status().isOk())
            .andExpect(content().json(expected))
   }

@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.fiat.providers.BaseProvider;
-import com.netflix.spinnaker.fiat.providers.ProviderException;
-import com.netflix.spinnaker.fiat.providers.ResourceProvider;
+import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,16 +35,16 @@ public class ResourceProvidersHealthIndicator extends AbstractHealthIndicator {
 
   @Autowired
   @Setter
-  List<BaseProvider> providers;
+  List<HealthTrackable> providers;
 
   private AtomicBoolean previousHealthCheckIsUp = new AtomicBoolean(false);
 
   @Override
   protected void doHealthCheck(Health.Builder builder) throws Exception {
     boolean isDown = false;
-    for (BaseProvider provider : providers) {
-      builder.withDetail(provider.getClass().getSimpleName(), provider.getHealthView());
-      isDown = isDown || !provider.isProviderHealthy();
+    for (HealthTrackable provider : providers) {
+      builder.withDetail(provider.getClass().getSimpleName(), provider.getHealthTracker().getHealthView());
+      isDown = isDown || !provider.getHealthTracker().isProviderHealthy();
     }
 
     if (isDown) {

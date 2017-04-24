@@ -16,64 +16,44 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.netflix.spinnaker.fiat.config.ProviderCacheConfig;
 import com.netflix.spinnaker.fiat.model.resources.Resource;
 import com.netflix.spinnaker.fiat.model.resources.Role;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
-import lombok.Setter;
-import lombok.val;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public abstract class BaseProvider<R extends Resource.AccessControlled> implements ResourceProvider<R> {
+@Slf4j
+public abstract class BaseProvider<R extends Resource> implements ResourceProvider<R>, HealthTrackable {
 
-  @Value("${unhealthy.threshold:5}")
-  @Setter
-  private int unhealthyThreshold;
+  private static final Integer CACHE_KEY = 0;
 
-  private AtomicInteger failureCountSinceLastSuccess = new AtomicInteger(-1);
+  @Getter
+  private ProviderHealthTracker healthTracker = new ProviderHealthTracker();
 
-  void failure() {
-    // Increment the failure count only if there has been at least 1 success() call. Otherwise,
-    // leave the default, which is considered unhealthy.
-    if (!failureCountSinceLastSuccess.compareAndSet(-1, -1)) {
-      failureCountSinceLastSuccess.incrementAndGet();
-    }
-  }
-
-  void success() {
-    failureCountSinceLastSuccess.set(0);
-  }
-
-  public boolean isProviderHealthy() {
-    int count = failureCountSinceLastSuccess.get();
-    return 0 <= count && count < unhealthyThreshold;
-  }
-
-  public HealthView getHealthView() {
-    return new HealthView();
-  }
-
-  @Data
-  class HealthView {
-    boolean providerHealthy = BaseProvider.this.isProviderHealthy();
-    int failureCountSinceLastSuccess = BaseProvider.this.failureCountSinceLastSuccess.get();
-  }
-
+  private Cache<Integer, Set<R>> cache = buildCache(20);
 
   @Override
   @SuppressWarnings("unchecked")
-  public Set<R> getAllRestricted(@NonNull Set<Role> roles) throws ProviderException {
-    val groupNames = roles.stream().map(Role::getName).collect(Collectors.toList());
+  public Set<R> getAllRestricted(@NonNull Set<Role> roles)
+      throws ProviderException {
     return (Set<R>) getAll()
         .stream()
+        .filter(resource -> resource instanceof Resource.AccessControlled)
+        .map(resource -> (Resource.AccessControlled) resource)
         .filter(resource -> resource.getPermissions().isRestricted())
         .filter(resource -> resource.getPermissions().isAuthorized(roles))
         .collect(Collectors.toSet());
-
   }
 
   @Override
@@ -81,7 +61,41 @@ public abstract class BaseProvider<R extends Resource.AccessControlled> implemen
   public Set<R> getAllUnrestricted() throws ProviderException {
     return (Set<R>) getAll()
         .stream()
+        .filter(resource -> resource instanceof Resource.AccessControlled)
+        .map(resource -> (Resource.AccessControlled) resource)
         .filter(resource -> !resource.getPermissions().isRestricted())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<R> getAll() throws ProviderException {
+    try {
+      return ImmutableSet.copyOf(cache.get(CACHE_KEY, this::loadAll));
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw new ProviderException(e.getCause());
+    }
+  }
+
+  @Autowired
+  public void setProviderCacheConfig(ProviderCacheConfig config) {
+    this.cache = buildCache(config.getExpiresAfterWriteSeconds());
+  }
+
+  private Cache<Integer, Set<R>> buildCache(int expireAfterWrite) {
+    return CacheBuilder
+        .newBuilder()
+        .expireAfterWrite(expireAfterWrite, TimeUnit.SECONDS)
+        .maximumSize(1) // Using this cache loader just for the ability to refresh every X seconds.
+        .build();
+  }
+
+  protected abstract Set<R> loadAll() throws ProviderException;
+
+  protected void success() {
+    getHealthTracker().success();
+  }
+
+  protected void failure() {
+    getHealthTracker().failure();
   }
 }

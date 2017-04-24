@@ -111,29 +111,13 @@ class BaseProviderSpec extends Specification {
     thrown IllegalArgumentException
   }
 
-  def "should start and remain unhealthy until first success"() {
-    setup:
-    @Subject provider = new TestResourceProvider(unhealthyThreshold: 2)
-
-    expect:
-    !provider.isProviderHealthy()
-    provider.failure()
-    !provider.isProviderHealthy()
-
-    provider.success()
-    provider.isProviderHealthy()
-
-    provider.failure()
-    provider.isProviderHealthy()
-    provider.failure()
-    !provider.isProviderHealthy()
-
-    provider.success()
-    provider.isProviderHealthy()
-  }
-
   class TestResourceProvider extends BaseProvider<TestResource> {
     Set<TestResource> all = new HashSet<>()
+
+    @Override
+    protected Set<TestResource> loadAll() throws ProviderException {
+      return all
+    }
   }
 
   @Builder(builderStrategy = SimpleStrategy, prefix = "set")

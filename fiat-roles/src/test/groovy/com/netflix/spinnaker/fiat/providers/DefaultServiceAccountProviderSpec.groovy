@@ -19,34 +19,35 @@ package com.netflix.spinnaker.fiat.providers
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
+import org.apache.commons.collections4.CollectionUtils
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 class DefaultServiceAccountProviderSpec extends Specification {
 
   @Shared
-  ServiceAccount abcAcct = new ServiceAccount(name: "abc")
+  ServiceAccount aAcct = new ServiceAccount(name: "a", memberOf: ["a"])
 
   @Shared
-  ServiceAccount xyzAcct = new ServiceAccount(name: "xyz@domain.com")
+  ServiceAccount bAcct = new ServiceAccount(name: "b", memberOf: ["a", "b"])
 
   @Shared
   Front50Service front50Service = Mock(Front50Service) {
-    getAllServiceAccounts() >> [abcAcct, xyzAcct]
+    getAllServiceAccounts() >> [aAcct, bAcct]
   }
 
   @Subject
-  DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(
-      front50Service: front50Service
-  )
+  DefaultServiceAccountProvider provider = new DefaultServiceAccountProvider(front50Service)
 
+  @Unroll
   def "should return all accounts the specified groups has access to"() {
     when:
-    def result = provider.getAllRestricted(input.collect {new Role(it)} as Set)
+    def result = provider.getAllRestricted(input.collect { new Role(it) } as Set)
 
     then:
-    result.containsAll(values)
+    CollectionUtils.disjunction(result, expected).isEmpty()
 
     when:
     provider.getAllRestricted(null)
@@ -55,10 +56,12 @@ class DefaultServiceAccountProviderSpec extends Specification {
     thrown IllegalArgumentException
 
     where:
-    input                 || values
-    []                    || []
-    ["abc"]               || [abcAcct]
-    ["abc", "xyz"]        || [abcAcct, xyzAcct]
-    ["abc", "xyz", "def"] || [abcAcct, xyzAcct]
+    input           || expected
+    []              || []
+    ["a"]           || [aAcct]
+    ["b"]           || []
+    ["c"]           || []
+    ["a", "b"]      || [aAcct, bAcct]
+    ["a", "b", "c"] || [aAcct, bAcct]
   }
 }
