@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import java.util.*;
+import java.util.stream.Stream;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -111,24 +112,32 @@ public interface StageDefinitionBuilder {
         })
         .collect(toList());
 
-      childStages.forEach((Stage<T> childStage) -> {
-        StageDefinitionBuilder stageBuilder = allStageBuilders
-          .stream()
-          .filter(it -> it.getType().equals(childStage.getType()))
-          .findFirst()
-          .orElse(self);
-        stageBuilder.prepareStageForRestart(executionRepository, childStage, allStageBuilders);
+      List<String> restartingStageAndChildren = Stream.concat(Stream.of(stage), childStages.stream()).map(Stage::getId).collect(toList());
+      List<Stage<T>> syntheticStages = stages
+        .stream()
+        .filter(it -> it.getStatus().isComplete() && restartingStageAndChildren.contains(it.getParentStageId()))
+        .collect(toList());
 
-        // the default `prepareStageForRestart` behavior sets a stage back to RUNNING, that's not appropriate for child stages
-        childStage.setStatus(ExecutionStatus.NOT_STARTED);
-        List<Task> childStageTasks = childStage.getTasks();
-        childStageTasks.forEach(it -> {
-          it.setStartTime(null);
-          it.setEndTime(null);
-          it.setStatus(ExecutionStatus.NOT_STARTED);
+      Stream
+        .concat(childStages.stream(), syntheticStages.stream())
+        .forEach(childStage -> {
+          StageDefinitionBuilder stageBuilder = allStageBuilders
+            .stream()
+            .filter(it -> it.getType().equals(childStage.getType()))
+            .findFirst()
+            .orElse(self);
+          stageBuilder.prepareStageForRestart(executionRepository, childStage, allStageBuilders);
+
+          // the default `prepareStageForRestart` behavior sets a stage back to RUNNING, that's not appropriate for child stages
+          childStage.setStatus(ExecutionStatus.NOT_STARTED);
+          List<Task> childStageTasks = childStage.getTasks();
+          childStageTasks.forEach(it -> {
+            it.setStartTime(null);
+            it.setEndTime(null);
+            it.setStatus(ExecutionStatus.NOT_STARTED);
+          });
+          executionRepository.storeStage(childStage);
         });
-        executionRepository.storeStage(childStage);
-      });
 
       List<Task> tasks = stage.getTasks();
       tasks

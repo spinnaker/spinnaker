@@ -150,7 +150,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
   /**
    * Gets the last stage preceding this stage that has the specified type.
    */
-  public Stage preceding(String type) {
+  public Stage<T> preceding(String type) {
     int i = getExecution()
       .getStages()
       .indexOf(this);
@@ -162,6 +162,14 @@ public class Stage<T extends Execution<T>> implements Serializable {
       .filter(it -> it.getType().equals(type))
       .findFirst()
       .orElse(null);
+  }
+
+  public Collection<Stage<T>> children() {
+    return getExecution()
+      .getStages()
+      .stream()
+      .filter(it -> getId().equals(it.getParentStageId()))
+      .collect(toList());
   }
 
   @JsonIgnore

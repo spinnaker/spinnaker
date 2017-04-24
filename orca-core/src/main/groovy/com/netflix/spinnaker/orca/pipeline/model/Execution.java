@@ -53,10 +53,18 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
   AuthenticationDetails authentication;
   PausedDetails paused;
 
-  public Stage namedStage(String type) {
+  public Stage<T> namedStage(String type) {
     return stages
       .stream()
       .filter(it -> it.getType().equals(type))
+      .findFirst()
+      .orElse(null);
+  }
+
+  public Stage<T> stageById(String stageId) {
+    return stages
+      .stream()
+      .filter(it -> it.getId().equals(stageId))
       .findFirst()
       .orElse(null);
   }
