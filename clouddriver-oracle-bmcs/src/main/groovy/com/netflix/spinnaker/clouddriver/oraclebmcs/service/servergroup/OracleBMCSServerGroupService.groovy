@@ -12,9 +12,6 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.oraclebmcs.model.OracleBMCSServerGroup
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
 
-/**
- * Created by slord on 16/01/2017.
- */
 interface OracleBMCSServerGroupService {
 
   public List<OracleBMCSServerGroup> listAllServerGroups(OracleBMCSNamedAccountCredentials creds)

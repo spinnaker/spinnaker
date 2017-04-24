@@ -10,9 +10,6 @@ package com.netflix.spinnaker.clouddriver.oraclebmcs.service.servergroup
 
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
 
-/**
- * Created by slord on 12/04/2017.
- */
 class OracleBMCSPersistenceContext {
 
   OracleBMCSNamedAccountCredentials creds

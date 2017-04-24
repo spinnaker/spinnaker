@@ -12,9 +12,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 
-/**
- * Created by slord on 11/01/2017.
- */
 class OracleBMCSAtomicOperationConverterHelper {
 
   static <T> T convertDescription(Map input,
