@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
         executionDetailsUrl: require('./acaTaskExecutionDetails.html'),
         executionSummaryUrl: require('./acaTaskExecutionSummary.html'),
         stageFilter: (stage) => ['monitorAcaTask', 'acaTask'].includes(stage.type),
-        executionLabelTemplate: CanaryExecutionLabel,
+        executionLabelComponent: CanaryExecutionLabel,
         controller: 'AcaTaskStageCtrl',
         controllerAs: 'acaTaskStageCtrl',
         validators: [

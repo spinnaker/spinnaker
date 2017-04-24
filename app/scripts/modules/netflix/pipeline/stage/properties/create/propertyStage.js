@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
         templateUrl: require('./propertyStage.html'),
         executionDetailsUrl: require('./propertyExecutionDetails.html'),
         executionSummaryUrl: require('./propertyExecutionSummary.html'),
-        executionLabelTemplate: PropertyExecutionLabel,
+        executionLabelComponent: PropertyExecutionLabel,
         controller: 'PropertyStageCtrl',
         controllerAs: 'propertyStage',
         accountExtractor: (stage) => stage.context.scope.env,

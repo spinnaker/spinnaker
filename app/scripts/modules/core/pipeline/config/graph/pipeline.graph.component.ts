@@ -5,7 +5,7 @@ import { IExecution, IPipeline } from 'core/domain/index';
 import { IPipelineValidationResults, PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from '../validation/pipelineConfig.validator';
 import { IExecutionViewState, IPipelineLink, IPipelineNode, PIPELINE_GRAPH_SERVICE, PipelineGraphService } from './pipelineGraph.service';
 import { UUIDGenerator } from 'core/utils/uuid.service';
-import { LABEL_TEMPLATE_COMPONENT } from 'core/presentation/labelTemplate.component';
+import { LABEL_COMPONENT } from 'core/presentation/label.component';
 
 require('./pipelineGraph.less');
 
@@ -437,6 +437,6 @@ export const PIPELINE_GRAPH_COMPONENT = 'spinnaker.core.pipeline.config.graph.co
 module(PIPELINE_GRAPH_COMPONENT, [
   PIPELINE_GRAPH_SERVICE,
   PIPELINE_CONFIG_VALIDATOR,
-  LABEL_TEMPLATE_COMPONENT
+  LABEL_COMPONENT
 ])
   .component('pipelineGraph', new PipelineGraphComponent());

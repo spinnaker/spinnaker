@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentSta
       controllerAs: 'manualJudgmentStageCtrl',
       templateUrl: require('./manualJudgmentStage.html'),
       executionDetailsUrl: require('./manualJudgmentExecutionDetails.html'),
-      executionLabelTemplate: ManualJudgmentExecutionLabel,
+      executionLabelComponent: ManualJudgmentExecutionLabel,
       useCustomTooltip: true,
       markerIcon: ManualJudgmentMarkerIcon,
       strategy: true,

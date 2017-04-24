@@ -275,7 +275,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
     function styleStage(stage) {
       var stageConfig = pipelineConfig.getStageConfig(stage);
       if (stageConfig) {
-        stage.labelTemplate = stageConfig.executionLabelTemplate || ExecutionBarLabel;
+        stage.labelComponent = stageConfig.executionLabelComponent || ExecutionBarLabel;
         stage.markerIcon = stageConfig.markerIcon || ExecutionMarkerIcon;
         stage.useCustomTooltip = !!stageConfig.useCustomTooltip;
         stage.extraLabelLines = stageConfig.extraLabelLines;

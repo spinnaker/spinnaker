@@ -67,7 +67,7 @@ export class ExecutionMarker extends React.Component<IExecutionMarkerProps, IExe
       stage.isRunning ? 'glowing' : ''
       ].join(' ');
 
-    const TooltipComponent = stage.labelTemplate;
+    const TooltipComponent = stage.labelComponent;
     const MarkerIcon = stage.markerIcon;
     const stageContents = (
       <div className={markerClassName}

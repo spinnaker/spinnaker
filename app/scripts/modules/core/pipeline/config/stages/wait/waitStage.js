@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
       key: 'wait',
       templateUrl: require('./waitStage.html'),
       executionDetailsUrl: require('./waitExecutionDetails.html'),
-      executionLabelTemplate: WaitExecutionLabel,
+      executionLabelComponent: WaitExecutionLabel,
       useCustomTooltip: true,
       strategy: true,
       controller: 'WaitStageCtrl',

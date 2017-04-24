@@ -53,7 +53,7 @@ export interface IPipelineNode {
   executionStage?: boolean;
   hasNotStarted?: boolean;
   status?: string;
-  labelTemplate?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
+  labelComponent?: React.ComponentClass<{ stage: IExecutionStageSummary }>;
   executionId?: string;
 }
 
@@ -70,7 +70,7 @@ export class PipelineGraphService {
         parentIds: Object.assign([], (stage.requisiteStageRefIds || [])),
         stage: stage,
         masterStage: stage.masterStage,
-        labelTemplate: stage.labelTemplate,
+        labelComponent: stage.labelComponent,
         extraLabelLines: stage.extraLabelLines ? stage.extraLabelLines(stage) : 0,
         parents: [],
         children: [],

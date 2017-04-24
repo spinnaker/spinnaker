@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [
       controllerAs: 'jenkinsStageCtrl',
       templateUrl: require('./jenkinsStage.html'),
       executionDetailsUrl: require('./jenkinsExecutionDetails.html'),
-      executionLabelTemplate: JenkinsExecutionLabel,
+      executionLabelComponent: JenkinsExecutionLabel,
       extraLabelLines: (stage) => {
         if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
           return 0;

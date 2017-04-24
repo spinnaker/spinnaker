@@ -156,7 +156,7 @@ module(TRAVIS_STAGE, [
     controllerAs: '$ctrl',
     templateUrl: require('./travisStage.html'),
     executionDetailsUrl: require('./travisExecutionDetails.html'),
-    executionLabelTemplate: TravisExecutionLabel,
+    executionLabelComponent: TravisExecutionLabel,
     extraLabelLines: (stage: IStage) => {
       if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
         return 0;

@@ -22,7 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
       description: 'Bakes an image in the specified region',
       templateUrl: require('./bakeStage.html'),
       executionDetailsUrl: require('./bakeExecutionDetails.html'),
-      executionLabelTemplate: BakeExecutionLabel,
+      executionLabelComponent: BakeExecutionLabel,
       extraLabelLines: (stage) => {
         return stage.masterStage.context.allPreviouslyBaked || stage.masterStage.context.somePreviouslyBaked ? 1 : 0;
       },

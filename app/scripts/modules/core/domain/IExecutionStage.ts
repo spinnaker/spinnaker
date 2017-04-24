@@ -26,7 +26,7 @@ export interface IExecutionStage extends IOrchestratedItem, IStage {
 export interface IExecutionStageSummary extends IExecutionStage {
   masterStage: IExecutionStage;
   stages: IExecutionStage[];
-  labelTemplate: React.ComponentClass<{ stage: IExecutionStageSummary, application?: Application, execution?: IExecution, executionMarker?: boolean }>;
+  labelComponent: React.ComponentClass<{ stage: IExecutionStageSummary, application?: Application, execution?: IExecution, executionMarker?: boolean }>;
   markerIcon: React.ComponentClass<{ stage: IExecutionStageSummary }>;
   extraLabelLines?: (stage: IExecutionStageSummary) => number;
   useCustomTooltip?: boolean;
