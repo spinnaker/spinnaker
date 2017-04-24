@@ -33,10 +33,10 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
       );
     }
     if (executionMarker) {
+      const LabelComponent = stage.labelComponent;
       const tooltip = (
         <Tooltip id={stage.id}>
-          {stage.name}
-          {inSuspendedExecutionWindow && (<div>(waiting for execution window)</div>)}
+          <LabelComponent application={application} execution={execution} stage={stage}/>
         </Tooltip>
       );
       return (

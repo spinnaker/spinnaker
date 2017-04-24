@@ -6,7 +6,7 @@ import {IExecutionStageSummary} from 'core/domain/index';
 
 export class CanaryExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }, any> {
   public render() {
-    const canary = get<any>(this.props, 'stage.masterStage.context', {});
+    const canary = get<any>(this.props, 'stage.masterStage.context.canary', {});
     const canaryHealth = canary.health || {};
     const canaryResult = canary.canaryResult || {};
     return (
