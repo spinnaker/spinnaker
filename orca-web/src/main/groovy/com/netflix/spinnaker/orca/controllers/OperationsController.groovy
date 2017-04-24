@@ -27,11 +27,17 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletResponse
 
@@ -61,6 +67,9 @@ class OperationsController {
 
   @Autowired(required = false)
   List<PipelinePreprocessor> pipelinePreprocessors
+
+  @Autowired(required = false)
+  WebhookService webhookService
 
   @RequestMapping(value = "/orchestrate", method = RequestMethod.POST)
   Map<String, String> orchestrate(@RequestBody Map pipeline, HttpServletResponse response) {
@@ -179,14 +188,31 @@ class OperationsController {
     startTask([application: input.application, name: input.description, appConfig: input.appConfig, stages: input.job])
   }
 
+  @RequestMapping(value = "/webhooks/preconfigured")
+  List<Map<String, Object>> preconfiguredWebhooks() {
+    if (!webhookService) {
+      return []
+    }
+    def webhooks = webhookService.preconfiguredWebhooks
+    return webhooks.collect {
+      [ label: it.label,
+        description: it.description,
+        type: it.type,
+        waitForCompletion: it.waitForCompletion,
+        preconfiguredProperties: it.preconfiguredProperties,
+        noUserConfigurableFields: it.noUserConfigurableFields()
+      ]
+    }
+  }
+
   private void convertLinearToParallel(Map<String, Serializable> pipelineConfig) {
     def stages = (List<Map<String, Object>>) pipelineConfig.stages
     stages.eachWithIndex { Map<String, Object> stage, int index ->
-      stage.put("refId", String.valueOf(index));
+      stage.put("refId", String.valueOf(index))
       if (index > 0) {
-        stage.put("requisiteStageRefIds", Collections.singletonList(String.valueOf(index - 1)));
+        stage.put("requisiteStageRefIds", Collections.singletonList(String.valueOf(index - 1)))
       } else {
-        stage.put("requisiteStageRefIds", Collections.emptyList());
+        stage.put("requisiteStageRefIds", Collections.emptyList())
       }
     }
 

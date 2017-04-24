@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.webhook
+package com.netflix.spinnaker.orca.webhook.service
 
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
+import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -44,10 +45,14 @@ class WebhookServiceSpec extends Specification {
   @Shared
   def userConfiguredUrlRestrictions = new UserConfiguredUrlRestrictions.Builder().withRejectLocalhost(false).build()
 
+  def preconfiguredWebhookProperties = new PreconfiguredWebhookProperties()
+
   def server = MockRestServiceServer.createServer(restTemplate)
 
   @Subject
-  def webhookService = new WebhookService(restTemplate: restTemplate, userConfiguredUrlRestrictions: userConfiguredUrlRestrictions)
+  def webhookService = new WebhookService(restTemplate: restTemplate,
+    userConfiguredUrlRestrictions: userConfiguredUrlRestrictions,
+    preconfiguredWebhookProperties: preconfiguredWebhookProperties)
 
   @Unroll
   def "Webhook is being called with correct parameters"() {
@@ -111,5 +116,21 @@ class WebhookServiceSpec extends Specification {
 
     where:
     customHeaders << [[Authorization: "Basic password"], [:], null]
+  }
+
+  def "Preconfigured webhooks should only include enabled webhooks"() {
+    setup:
+    def webhook1 = new PreconfiguredWebhookProperties.PreconfiguredWebhook(label: "1", enabled: true)
+    def webhook2 = new PreconfiguredWebhookProperties.PreconfiguredWebhook(label: "2", enabled: false)
+    def webhook3 = new PreconfiguredWebhookProperties.PreconfiguredWebhook(label: "3", enabled: true)
+    preconfiguredWebhookProperties.preconfigured << webhook1
+    preconfiguredWebhookProperties.preconfigured << webhook2
+    preconfiguredWebhookProperties.preconfigured << webhook3
+
+    when:
+    def preconfiguredWebhooks = webhookService.preconfiguredWebhooks
+
+    then:
+    preconfiguredWebhooks == [webhook1, webhook3]
   }
 }

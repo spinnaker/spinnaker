@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.webhook
+package com.netflix.spinnaker.orca.webhook.service
 
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
+import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -30,10 +31,13 @@ import org.springframework.web.client.RestTemplate
 class WebhookService {
 
   @Autowired
-  RestTemplate restTemplate
+  private RestTemplate restTemplate
 
   @Autowired
-  UserConfiguredUrlRestrictions userConfiguredUrlRestrictions
+  private UserConfiguredUrlRestrictions userConfiguredUrlRestrictions
+
+  @Autowired
+  private PreconfiguredWebhookProperties preconfiguredWebhookProperties
 
   ResponseEntity<Object> exchange(HttpMethod httpMethod, String url, Object payload, Object customHeaders) {
     URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
@@ -49,9 +53,19 @@ class WebhookService {
     return restTemplate.exchange(validatedUri, HttpMethod.GET, httpEntity, Object)
   }
 
+  List<PreconfiguredWebhookProperties.PreconfiguredWebhook> getPreconfiguredWebhooks() {
+    return preconfiguredWebhookProperties.preconfigured.findAll { it.enabled }
+  }
+
   private static HttpHeaders buildHttpHeaders(Object customHeaders) {
     HttpHeaders headers = new HttpHeaders()
-    customHeaders?.each { key, value -> headers.add(key as String, value as String) }
+    customHeaders?.each { key, value ->
+      if (value instanceof List<String>) {
+        headers.put(key as String, value as List<String>)
+      } else {
+        headers.add(key as String, value as String)
+      }
+    }
     return headers
   }
 }

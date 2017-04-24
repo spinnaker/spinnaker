@@ -141,3 +141,10 @@ val rollingPushStage = object : StageDefinitionBuilder {
       .withTask("afterLoop", DummyTask::class.java)
   }
 }
+
+val webhookStage = object : StageDefinitionBuilder {
+  override fun getType() = "webhook"
+  override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
+    builder.withTask("createWebhook", DummyTask::class.java)
+  }
+}

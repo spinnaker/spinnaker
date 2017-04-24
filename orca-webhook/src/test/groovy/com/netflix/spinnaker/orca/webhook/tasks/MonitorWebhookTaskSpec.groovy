@@ -20,7 +20,7 @@ package com.netflix.spinnaker.orca.webhook.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.webhook.WebhookService
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import spock.lang.Specification

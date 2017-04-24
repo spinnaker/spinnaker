@@ -38,3 +38,37 @@ tasks:
 logging:
   config: classpath:logback-defaults.xml
 
+# This configuration lets you configure Webhook stages that will appear as native stages in the Deck UI.
+# Properties that are set here will not be displayed in the GUI
+#webhook:
+#  preconfigured:
+#    - label: Some Webhook
+#      description: This is a webhook stage, but it appears as a native stage in Spinnaker
+#      type: customWebhook # Should be unique
+#      # The following properties are all optional:
+#      enabled: true # default true
+#      url: https://my.webhook.com/event
+#      headers:
+#        Accept:
+#          - application/json
+#        AnotherHeader:
+#          - valueOne
+#          - valueTwo
+#      method: POST
+#      payload: |
+#        {
+#          "text": "Version ${trigger.buildInfo.artifacts[0].version} deployed"
+#        }
+#      waitForCompletion: true
+#      # The rest of the properties are only used if waitForCompletion == true
+#      statusUrlResolution: webhookResponse # getMethod, locationHeader, webhookResponse
+#      statusUrlJsonPath: $.statusUrl # Only used if statusUrlResolution == webhookResponse
+#      statusJsonPath: $.status
+#      progressJsonPath: $.progress
+#      successStatuses: SUCCESS,COMPLETED
+#      canceledStatuses: CANCELED
+#      terminalStatuses: TERMINATED
+#    - label: Another Webhook
+#      description: This is also a webhook stage, but it has no properties set
+#      type: anotherCustomWebhook
+#      enabled: false

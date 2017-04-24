@@ -23,7 +23,7 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.webhook.WebhookService
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 

@@ -25,6 +25,6 @@ interface StageBuilderAware {
   val stageDefinitionBuilders: Collection<StageDefinitionBuilder>
 
   fun Stage<*>.builder(): StageDefinitionBuilder =
-    stageDefinitionBuilders.find { it.type == getType() }
+    stageDefinitionBuilders.find { it.type == getType() || getContext().get("alias") == it.type }
       ?: throw NoSuchStageDefinitionBuilder(getType())
 }

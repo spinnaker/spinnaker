@@ -63,7 +63,8 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         stageWithParallelBranches,
         rollingPushStage,
         zeroTaskStage,
-        stageWithSyntheticAfterAndNoTasks
+        stageWithSyntheticAfterAndNoTasks,
+        webhookStage
       ),
       publisher,
       clock,
@@ -418,6 +419,48 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       it("starts the 'wait for execution window' stage") {
         verify(queue).push(check<StartStage> {
           it.stageId shouldEqual pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id
+        })
+      }
+    }
+
+    context("with a stage type alias") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          type = "bar"
+          context["alias"] = webhookStage.type
+        }
+      }
+      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+
+      beforeGroup {
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("starts the stage") {
+        verify(repository).storeStage(check {
+          it.getType() shouldEqual "bar"
+          it.getStatus() shouldEqual RUNNING
+          it.getStartTime() shouldEqual clock.millis()
+        })
+      }
+
+      it("attaches a task to the stage") {
+        verify(repository).storeStage(check {
+          it.getTasks().size shouldEqual 1
+          it.getTasks().first().apply {
+            id shouldEqual "1"
+            name shouldEqual "createWebhook"
+            implementingClass shouldEqual DummyTask::class.java.name
+            isStageStart shouldEqual true
+            isStageEnd shouldEqual true
+          }
         })
       }
     }

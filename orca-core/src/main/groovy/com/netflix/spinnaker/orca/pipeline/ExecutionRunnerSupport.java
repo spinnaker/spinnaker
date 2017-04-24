@@ -16,13 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import com.netflix.spinnaker.orca.pipeline.TaskNode.TaskDefinition;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -30,6 +23,15 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
 import com.netflix.spinnaker.orca.pipeline.model.Task;
 import com.netflix.spinnaker.orca.pipeline.tasks.NoOpTask;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import static com.google.common.collect.Lists.reverse;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage;
@@ -258,9 +260,9 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
   }
 
   private <T extends Execution<T>> StageDefinitionBuilder findBuilderForStage(Stage<T> stage) {
-    return stageDefinitionBuilders
-      .stream()
-      .filter(builder -> builder.getType().equals(stage.getType()))
+    return stageDefinitionBuilders.stream()
+      .filter(builder -> builder.getType().equals(stage.getType())
+        || (stage.getContext() != null && stage.getContext().get("alias") != null && builder.getType().equals(stage.getContext().get("alias"))))
       .findFirst()
       .orElseThrow(() -> new NoSuchStageDefinitionBuilder(stage.getType()));
   }

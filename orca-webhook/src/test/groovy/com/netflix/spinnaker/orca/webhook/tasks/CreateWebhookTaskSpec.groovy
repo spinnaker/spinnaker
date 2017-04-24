@@ -20,7 +20,7 @@ package com.netflix.spinnaker.orca.webhook.tasks
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.webhook.WebhookService
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
@@ -130,7 +130,7 @@ class CreateWebhookTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.TERMINAL
-    result.stageOutputs as Map == [statusCode: HttpStatus.BAD_REQUEST, buildInfo: [error: "Oh noes, you can't do this"], error: "The request did not return a 2xx status"]
+    result.stageOutputs as Map == [statusCode: HttpStatus.BAD_REQUEST, buildInfo: [error: "Oh noes, you can't do this"], error: "The request did not return a 2xx/3xx status"]
   }
 
   def "if statusUrlResolution is getMethod, should return SUCCEEDED status"() {

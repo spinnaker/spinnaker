@@ -23,10 +23,11 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.webhook.WebhookService
+import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import org.apache.http.HttpHeaders
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 
 @Component
@@ -48,12 +49,13 @@ class CreateWebhookTask implements RetryableTask {
 
     def response = webhookService.exchange(method, url, payload, customHeaders)
 
+    def statusCode = response.statusCode
     def outputs = [:]
-    outputs << [statusCode: response.statusCode]
+    outputs << [statusCode: statusCode]
     if (response.body) {
       outputs << [buildInfo: response.body]
     }
-    if (response.statusCode.is2xxSuccessful()) {
+    if (statusCode.is2xxSuccessful() || statusCode.is3xxRedirection()) {
       if (waitForCompletion) {
         def statusUrl = null
         def statusUrlResolution = stage.context.statusUrlResolution
@@ -84,7 +86,7 @@ class CreateWebhookTask implements RetryableTask {
       }
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs)
     } else {
-      return new TaskResult(ExecutionStatus.TERMINAL, outputs + [error: "The request did not return a 2xx status"])
+      return new TaskResult(ExecutionStatus.TERMINAL, outputs + [error: "The request did not return a 2xx/3xx status"])
     }
   }
 
