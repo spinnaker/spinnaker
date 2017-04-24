@@ -29,7 +29,7 @@ import java.util.Map;
 @Configuration
 @ComponentScan({"com.netflix.spinnaker.config", "com.netflix.spinnaker.halyard",})
 @EnableAutoConfiguration
-class Main extends SpringBootServletInitializer {
+public class Main extends SpringBootServletInitializer {
   private static final Map<String, Object> DEFAULT_PROPS = buildDefaults();
 
   private static Map<String, Object> buildDefaults() {

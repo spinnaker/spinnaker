@@ -33,7 +33,7 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class GroupMembership extends Node {
-  private RoleProviderType roleProviderType = RoleProviderType.GOOGLE;
+  private RoleProviderType roleProviderType;
   private GoogleRoleProvider google = new GoogleRoleProvider();
 
   @Override

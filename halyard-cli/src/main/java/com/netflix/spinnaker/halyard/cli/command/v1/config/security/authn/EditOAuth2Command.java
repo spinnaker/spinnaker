@@ -48,11 +48,29 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
   )
   private OAuth2.Provider provider;
 
+  @Parameter(
+      names = "--preEstablishedRedirectUri",
+      description = "The externally accessible URL for Gate. For use with load balancers that " +
+          "do any kind of address manipulation for Gate traffic, such as an SSL terminating load " +
+          "balancer."
+  )
+  private String preEstablishedRedirectUri;
+
   @Override
   protected AuthnMethod editAuthnMethod(OAuth2 authnMethod) {
     OAuth2.Client client = authnMethod.getClient();
     client.setClientId(isSet(clientId) ? clientId : client.getClientId());
     client.setClientSecret(isSet(clientSecret) ? clientSecret : client.getClientSecret());
+
+    if (isSet(preEstablishedRedirectUri)) {
+      if (preEstablishedRedirectUri.isEmpty()) {
+        client.setPreEstablishedRedirectUri(null);
+        client.setUseCurrentUri(null);
+      } else {
+        client.setPreEstablishedRedirectUri(preEstablishedRedirectUri);
+        client.setUseCurrentUri(false);
+      }
+    }
 
     authnMethod.setProvider(provider != null ? provider : authnMethod.getProvider());
 

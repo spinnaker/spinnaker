@@ -161,7 +161,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 1.0.0-SNAPSHOT
+  Version: 0.20.0-SNAPSHOT
 
 If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
 
@@ -631,6 +631,7 @@ hal config security oauth2 edit [parameters]
  * `--client-id`: The OAuth client ID you have configured with your OAuth provider.
  * `--client-secret`: The OAuth client secret you have configured with your OAuth provider.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--preEstablishedRedirectUri`: The externally accessible URL for Gate. For use with load balancers that do any kind of address manipulation for Gate traffic, such as an SSL terminating load balancer.
  * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
 
 ---

@@ -44,6 +44,4 @@ public class Authz extends Node {
 
   private GroupMembership groupMembership = new GroupMembership();
   private boolean enabled;
-
-  public void setEnabled(boolean _ignored) {}
 }

@@ -64,7 +64,8 @@ public class OAuth2 extends AuthnMethod {
 
     Client newClient = new Client()
         .setClientId(client.getClientId())
-        .setClientSecret(client.getClientSecret());
+        .setClientSecret(client.getClientSecret())
+        .setPreEstablishedRedirectUri(client.getPreEstablishedRedirectUri());
     Resource newResource = new Resource();
     UserInfoMapping newUserInfoMapping = new UserInfoMapping();
 
@@ -121,6 +122,8 @@ public class OAuth2 extends AuthnMethod {
     private String userAuthorizationUri;
     private String clientAuthenticationScheme;
     private String scope;
+    private String preEstablishedRedirectUri;
+    private Boolean useCurrentUri;
   }
 
   @Data
