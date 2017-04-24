@@ -15,18 +15,20 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.JarResourceBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConsulBootstrapGoogleProfileFactory extends JarResourceBackedProfileFactory {
+public class VaultMountConfigProfileFactory extends JarResourceBackedProfileFactory {
   @Override
   protected String getResourceName() {
-    return "/services/consul/server/startup/google/bootstrap-consul.sh";
+    return "/services/vault/client/startup/mount-config.py";
   }
 
   @Override

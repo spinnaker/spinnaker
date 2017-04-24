@@ -15,59 +15,51 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@EqualsAndHashCode(callSuper = true)
 @Component
-@Data
-public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
-  private String template = String.join("\n",
-      "{",
-      "    \"server\": false,",
-      "    \"datacenter\": \"spinnaker\",",
-      "    \"data_dir\": \"/var/consul\",",
-      "    \"log_level\": \"INFO\",",
-      "    \"enable_syslog\": true,",
-      "    \"ports\": {",
-      "        \"dns\": 53,",
-      "        \"{%scheme%}\": {%port%}",
-      "    },",
-      "    \"recursors\": [ \"8.8.8.8\" ]",
-      "}"
-  );
+public class ApachePortsProfileFactory extends TemplateBackedProfileFactory {
+  private static String PORTS_TEMPLATE = String.join("\n",
+      "Listen {%deck-host%}:{%deck-port%}",
+      "",
+      "<IfModule ssl_module>",
+      "  Listen 443",
+      "  SSLPassPhraseDialog exec:/etc/apache2/passphrase",
+      "</IfModule>",
+      "",
+      "<IfModule mod_gnutls.c>",
+      "  Listen 443",
+      "</IfModule>");
+
+  @Override
+  protected String getTemplate() {
+    return PORTS_TEMPLATE;
+  }
 
   @Override
   protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     Map<String, String> bindings = new HashMap<>();
-    ServiceSettings consul = endpoints.getServices().getConsulClient();
-    bindings.put("scheme", consul.getScheme());
-    bindings.put("port", consul.getPort() + "");
+    bindings.put("deck-host", endpoints.getServices().getDeck().getHost());
+    bindings.put("deck-port", endpoints.getServices().getDeck().getPort() + "");
     return bindings;
   }
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.CONSUL;
+    return SpinnakerArtifact.DECK;
   }
 
   @Override
   protected String commentPrefix() {
-    return "// ";
-  }
-
-  @Override
-  protected boolean showEditWarning() {
-    return false;
+    return "## ";
   }
 }

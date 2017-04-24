@@ -22,8 +22,8 @@ import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ConsulBootstrapGoogleProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ConsulServerStartupProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulServerBootstrapGoogleProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulServerStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulServerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
@@ -56,7 +56,7 @@ public class BakeDebianConsulServerService extends ConsulServerService implement
   ConsulServerStartupProfileFactory consulServerStartupProfileFactory;
 
   @Autowired
-  ConsulBootstrapGoogleProfileFactory consulBootstrapGoogleProfileFactory;
+  ConsulServerBootstrapGoogleProfileFactory consulServerBootstrapGoogleProfileFactory;
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
@@ -78,7 +78,7 @@ public class BakeDebianConsulServerService extends ConsulServerService implement
     result.add(consulServerStartupProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
     name = "google/bootstrap-consul.sh";
     path = Paths.get(startupScriptPath, name).toString();
-    result.add(consulBootstrapGoogleProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    result.add(consulServerBootstrapGoogleProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
     return result;
   }
 

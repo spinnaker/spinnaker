@@ -91,7 +91,7 @@ abstract public class ProfileFactory {
    * @param node is the node to find required files in.
    * @return the list of files required by the node to function.
    */
-  List<String> processRequiredFiles(Node node) {
+  protected List<String> processRequiredFiles(Node node) {
     List<String> files = new ArrayList<>();
 
     Consumer<Node> fileFinder = n -> files.addAll(n.localFiles().stream().map(f -> {

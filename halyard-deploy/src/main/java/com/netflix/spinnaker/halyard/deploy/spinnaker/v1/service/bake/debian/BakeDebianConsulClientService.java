@@ -23,14 +23,16 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulClientMembersGoogleProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulClientStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -47,6 +49,15 @@ public class BakeDebianConsulClientService extends ConsulClientService implement
 
   final String upstartServiceName = "consul";
 
+  @Autowired
+  String startupScriptPath;
+
+  @Autowired
+  ConsulClientMembersGoogleProfileFactory consulClientMembersGoogleProfileFactory;
+
+  @Autowired
+  ConsulClientStartupProfileFactory consulClientStartupProfileFactory;
+
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings()
@@ -56,7 +67,14 @@ public class BakeDebianConsulClientService extends ConsulClientService implement
 
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    return new ArrayList<>();
+    List<Profile> result = new ArrayList<>();
+    String name = "startup-consul.sh";
+    String path = Paths.get(startupScriptPath, name).toString();
+    result.add(consulClientStartupProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    name = "google/get-members.sh";
+    path = Paths.get(startupScriptPath, name).toString();
+    result.add(consulClientMembersGoogleProfileFactory.getProfile(name, path, deploymentConfiguration, endpoints));
+    return result;
   }
 
   @Override

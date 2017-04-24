@@ -15,47 +15,35 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.JarResourceBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @Component
-public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory {
-  private static String PASSPHRASE_TEMPLATE = "#!/usr/bin/env bash\n"
-      + "echo {%passphrase%}\n";
-
+public class ConsulServerStartupProfileFactory extends JarResourceBackedProfileFactory {
   @Override
-  protected String getTemplate() {
-    return PASSPHRASE_TEMPLATE;
-  }
-
-  @Override
-  protected boolean showEditWarning() {
-    return false;
-  }
-
-  @Override
-  protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    Map<String, String> bindings = new HashMap<>();
-    ApacheSsl ssl = deploymentConfiguration.getSecurity().getUiSecurity().getSsl();
-    bindings.put("passphrase", ssl.getSslCertificatePassphrase());
-    return bindings;
+  protected String getResourceName() {
+    return "/services/consul/server/startup/startup-consul.sh";
   }
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.DECK;
+    return SpinnakerArtifact.CONSUL;
   }
 
   @Override
   protected String commentPrefix() {
     return "## ";
+  }
+
+  @Override
+  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    super.setProfile(profile, deploymentConfiguration, endpoints);
+    profile.setExecutable(true);
   }
 }

@@ -22,7 +22,7 @@ cat > /etc/consul.d/server.json <<EOL
     "bootstrap": false,
     "bootstrap_expect": 3,
     "server": true,
-    "datacenter": "dc1",
+    "datacenter": "spinnaker",
     "data_dir": "/var/consul",
     "log_level": "INFO",
     "enable_syslog": true

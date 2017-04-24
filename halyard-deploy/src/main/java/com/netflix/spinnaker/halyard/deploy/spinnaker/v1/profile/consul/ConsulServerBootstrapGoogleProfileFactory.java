@@ -15,23 +15,25 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.JarResourceBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConsulServerStartupProfileFactory extends JarResourceBackedProfileFactory {
+public class ConsulServerBootstrapGoogleProfileFactory extends JarResourceBackedProfileFactory {
   @Override
   protected String getResourceName() {
-    return "/services/consul/server/startup/startup-consul.sh";
+    return "/services/consul/server/startup/google/bootstrap-consul.sh";
   }
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.CONSUL;
+    return SpinnakerArtifact.VAULT;
   }
 
   @Override

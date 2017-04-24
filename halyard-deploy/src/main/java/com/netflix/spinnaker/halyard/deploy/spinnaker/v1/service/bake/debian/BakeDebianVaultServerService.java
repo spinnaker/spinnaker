@@ -21,11 +21,9 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.VaultMountConfigProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.VaultMountGoogleConfigProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.VaultStartupProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultMountConfigProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultMountGoogleConfigProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.vault.VaultStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
 import lombok.Data;
@@ -33,10 +31,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)

@@ -15,23 +15,25 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.JarResourceBackedProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-public class VaultMountGoogleConfigProfileFactory extends JarResourceBackedProfileFactory {
+public class ConsulClientStartupProfileFactory extends JarResourceBackedProfileFactory {
   @Override
   protected String getResourceName() {
-    return "/services/vault/client/startup/google/mount-config.sh";
+    return "/services/consul/client/startup/startup-consul.sh";
   }
 
   @Override
   public SpinnakerArtifact getArtifact() {
-    return SpinnakerArtifact.VAULT;
+    return SpinnakerArtifact.CONSUL;
   }
 
   @Override
