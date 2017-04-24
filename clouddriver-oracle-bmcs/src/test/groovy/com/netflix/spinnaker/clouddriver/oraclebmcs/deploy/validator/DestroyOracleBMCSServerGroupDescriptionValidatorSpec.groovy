@@ -8,39 +8,40 @@
  */
 package com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.validator
 
-import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.description.ResizeOracleBMCSServerGroupDescription
+import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.description.DestroyOracleBMCSServerGroupDescription
 import org.springframework.validation.Errors
 import spock.lang.Shared
 import spock.lang.Specification
 
-class ResizeOracleBMCSServerGroupDescriptionValidatorSpec extends Specification {
+class DestroyOracleBMCSServerGroupDescriptionValidatorSpec extends Specification {
 
-  @Shared ResizeOracleBMCSServerGroupDescriptionValidator validator
+  @Shared
+  DestroyOracleBMCSServerGroupDescriptionValidator validator
 
   void setupSpec() {
-    validator = new ResizeOracleBMCSServerGroupDescriptionValidator()
+    validator = new DestroyOracleBMCSServerGroupDescriptionValidator()
   }
 
   void "invalid description fails validation"() {
     setup:
-    def description = new ResizeOracleBMCSServerGroupDescription()
+    def description = new DestroyOracleBMCSServerGroupDescription()
     def errors = Mock(Errors)
 
     when:
     validator.validate([], description, errors)
 
     then:
-    1 * errors.rejectValue("serverGroupName", "resizeServerGroupDescription.serverGroupName.empty")
-    1 * errors.rejectValue("region", "resizeServerGroupDescription.region.empty")
-    1 * errors.rejectValue("accountName", "resizeServerGroupDescription.accountName.empty")
+    1 * errors.rejectValue("accountName", "destroyServerGroupDescription.accountName.empty")
+    1 * errors.rejectValue("region", "destroyServerGroupDescription.region.empty")
+    1 * errors.rejectValue("serverGroupName", "destroyServerGroupDescription.serverGroupName.empty")
   }
 
-  void "pass validation with proper description inputs"() {
+  void "valid description passes validation"() {
     setup:
-    def description = new ResizeOracleBMCSServerGroupDescription(
-      serverGroupName: "spinnaker-test-v000",
+    def description = new DestroyOracleBMCSServerGroupDescription(
+      accountName: "DEFAULT",
       region: "us-phoenix-1",
-      accountName: "DEFAULT"
+      serverGroupName: "my-group-01"
     )
 
     def errors = Mock(Errors)
