@@ -241,11 +241,11 @@ class Annotator(object):
     This is so that gradle will use the latest resolved semantic version from
     our tag pattern when it builds the package.
     """
+    print ('Deleting {0} unwanted git tags locally from {1}'
+           .format(len(self.__tags_to_delete), self.path))
     for bad_hash_tag in self.__tags_to_delete:
-      # NOTE: The following command prints output to STDOUT, so we don't
-      # explicitly log anything.
       run_quick('git -C {path} tag -d {tag}'
-                .format(path=self.path, tag=bad_hash_tag.tag))
+                .format(path=self.path, tag=bad_hash_tag.tag), echo=False)
 
   def checkout_branch(self):
     """Checks out a branch.
@@ -253,16 +253,22 @@ class Annotator(object):
     run_quick('git -C {path} checkout {branch}'.format(path=self.path,
                                                        branch=self.branch))
 
+  def get_head_commit(self):
+    """Retrieves the head commit hash.
+    """
+    head_commit_res = run_quick('git -C {path} rev-parse HEAD'
+                                .format(path=self.path),
+                                echo=False)
+    return head_commit_res.stdout.strip()
+
+
   def __is_head_current(self):
     """Checks if the current version is at HEAD.
 
     Returns:
       [Boolean]: True if the current version tag is on HEAD, else False.
     """
-    head_commit_res = run_quick('git -C {path} rev-parse HEAD'
-                                    .format(path=self.path),
-                                echo=False)
-    head_commit = head_commit_res.stdout.strip()
+    head_commit = self.get_head_commit()
     return self.__current_version.hash == head_commit
 
   def __determine_current_version(self):
