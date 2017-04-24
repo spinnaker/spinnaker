@@ -1,9 +1,6 @@
-/// <reference path="../../../../../../test/helpers/custom-matchers.d.ts" />
-
 import * as $ from 'jquery';
 import {mock} from 'angular';
 
-import {matchers} from '../../../../../../test/helpers/customMatchers';
 import {PAGE_NAVIGATOR_COMPONENT} from './pageNavigator.component';
 import {INavigationPage} from './pageNavigationState';
 import {ScrollToService} from '../../utils/scrollTo/scrollTo.service';
@@ -25,8 +22,6 @@ describe('Component: Page Navigator', () => {
     $timeout = _$timeout_;
     scrollToService = _scrollToService_;
   }));
-
-  beforeEach(() => jasmine.addMatchers(matchers));
 
   const initialize = (pages: INavigationPage[]) => {
     $scope['pages'] = pages;

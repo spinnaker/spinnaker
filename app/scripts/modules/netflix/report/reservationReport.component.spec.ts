@@ -1,6 +1,5 @@
 import {ICompileService, IHttpBackendService, IQService, IRootScopeService, mock} from 'angular';
 
-import {matchers} from '../../../../../test/helpers/customMatchers';
 import {SETTINGS} from 'core/config/settings';
 import {RESERVATION_REPORT_COMPONENT} from './reservationReport.component';
 import {ReservationReportReader} from 'netflix/report/reservationReport.read.service';
@@ -10,9 +9,6 @@ describe('Directives: reservation report', function () {
 
   require('./reservationReport.component.html');
   beforeEach(mock.module(RESERVATION_REPORT_COMPONENT));
-  beforeEach(() => {
-    jasmine.addMatchers(matchers);
-  });
 
   let http: IHttpBackendService;
   let scope: IRootScopeService;

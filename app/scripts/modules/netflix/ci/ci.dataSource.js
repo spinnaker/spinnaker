@@ -1,20 +1,21 @@
 import {DataSourceConfig} from 'core/application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
 import {NetflixSettings} from '../netflix.settings';
+import {CI_BUILD_READ_SERVICE} from './services/ciBuild.read.service';
 
 let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
-    require('./services/build.read.service'),
+    CI_BUILD_READ_SERVICE
   ])
-  .run(function($q, applicationDataSourceRegistry, buildService) {
+  .run(function($q, applicationDataSourceRegistry, ciBuildReader) {
 
     if (NetflixSettings.feature.netflixMode) {
       let loadRunningBuilds = (application) => {
         let attr = application.attributes;
-        return buildService.getRunningBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug);
+        return ciBuildReader.getRunningBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug);
       };
 
       let buildsLoaded = (application, data) => {
@@ -24,7 +25,7 @@ module.exports = angular
       let loadBuilds = (application) => {
         const attr = application.attributes;
         if ([attr.repoType, attr.repoProjectKey, attr.repoSlug].every((attr) => _.trim(attr))) {
-          return buildService.getBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug);
+          return ciBuildReader.getBuilds(attr.repoType, attr.repoProjectKey, attr.repoSlug);
         }
         return $q.when([]);
       };

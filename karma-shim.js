@@ -17,5 +17,7 @@ require('./settings.js');
 require('ngimport');
 beforeEach(angular.mock.module('bcherny/ngimport'));
 
-const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts|tsx)$/);
+require('./test/helpers/customMatchers');
+
+const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts)$/);
 testContext.keys().forEach(testContext);

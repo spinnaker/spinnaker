@@ -42,6 +42,7 @@
     "transpiled"
   ],
   "include": [
+    "test/helpers/custom-matchers.d.ts",
     "app/scripts/modules/**/*.ts",
     "app/scripts/modules/**/*.tsx"
   ]

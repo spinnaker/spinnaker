@@ -1,16 +1,17 @@
 'use strict';
 
 import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
+import {CI_BUILD_READ_SERVICE} from '../services/ciBuild.read.service';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.detail.controller', [
     require('angular-ui-router'),
-    require('../services/build.read.service'),
+    CI_BUILD_READ_SERVICE,
     SCHEDULER_FACTORY,
   ])
-  .controller('CiDetailCtrl', function ($scope, $state, $stateParams, buildService, schedulerFactory, app) {
+  .controller('CiDetailCtrl', function ($scope, $state, $stateParams, ciBuildReader, schedulerFactory, app) {
     const dataSource = app.getDataSource('ci');
     this.viewState = {
       isDownloadable: () => $state.params.tab === 'output',
@@ -18,7 +19,7 @@ module.exports = angular
     };
 
     let getDetails = () => {
-      buildService.getBuildDetails($stateParams.buildId).then((response) => {
+      ciBuildReader.getBuildDetails($stateParams.buildId).then((response) => {
         if ($state.includes('**.ci.detail')) {
           $state.go('.detailTab', {buildId: $stateParams.buildId, tab: 'output'}, {location: 'replace'});
         }
@@ -39,7 +40,7 @@ module.exports = angular
       }
     });
 
-    this.downloadLink = buildService.getBuildRawLogLink($stateParams.buildId);
+    this.downloadLink = ciBuildReader.getBuildRawLogLink($stateParams.buildId);
     getDetails();
 
     $scope.$on('$destroy', () => activeRefresher.unsubscribe());

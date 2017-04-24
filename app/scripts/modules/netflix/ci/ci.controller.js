@@ -1,17 +1,16 @@
 'use strict';
 
 import _ from 'lodash';
-import {CI_FILTER_MODEL} from './ci.filter.model';
-
 let angular = require('angular');
 
-require('./ci.less');
+import {CiFilterModel} from './ciFilter.model';
+
+import './ci.less';
 
 module.exports = angular.module('spinnaker.netflix.ci.controller', [
-  CI_FILTER_MODEL,
   require('angular-ui-router'),
 ])
-  .controller('NetflixCiCtrl', function ($scope, $state, app, CiFilterModel) {
+  .controller('NetflixCiCtrl', function ($scope, $state, app) {
     const dataSource = app.getDataSource('ci');
     let attr = app.attributes;
 

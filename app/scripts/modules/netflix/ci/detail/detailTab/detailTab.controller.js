@@ -3,16 +3,17 @@
 import {Subject} from 'rxjs';
 
 import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
+import {CI_BUILD_READ_SERVICE, CiBuildReader} from '../../services/ciBuild.read.service';
 
 const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.ci.detail.detailTab.controller', [
     require('angular-ui-router'),
-    require('../../services/build.read.service'),
+    CI_BUILD_READ_SERVICE,
     SCHEDULER_FACTORY,
   ])
-  .controller('CiDetailTabCtrl', function ($scope, $state, $stateParams, buildService, schedulerFactory, app) {
+  .controller('CiDetailTabCtrl', function ($scope, $state, $stateParams, ciBuildReader, schedulerFactory, app) {
     const dataSource = app.getDataSource('ci');
 
     this.viewState = {
@@ -61,13 +62,13 @@ module.exports = angular
     this.getOutput = () => {
       this.viewState.loadingMore = true;
       this.viewState.showLoadMore = false;
-      return buildService.getBuildOutput($stateParams.buildId, this.content.length).then((response) => {
+      return ciBuildReader.getBuildOutput($stateParams.buildId, this.content.length).then((response) => {
         if (response.data.length) {
           this.content.push(...response.data);
           this.viewState.loading = false;
         }
         this.viewState.loadingMore = false;
-        if (!this.viewState.isRunning && response.data.length && this.content.length % (buildService.MAX_LINES + 1) === 0) {
+        if (!this.viewState.isRunning && response.data.length && this.content.length % (CiBuildReader.MAX_LINES + 1) === 0) {
           this.viewState.showLoadMore = true;
         } else {
           this.viewState.showLoadMore = false;
@@ -87,7 +88,7 @@ module.exports = angular
     dataSource.onRefresh($scope, setRunningFlag);
 
     if ($stateParams.tab === 'config') {
-      buildService.getBuildConfig($stateParams.buildId).then((response) => {
+      ciBuildReader.getBuildConfig($stateParams.buildId).then((response) => {
         this.viewState.loading = false;
         this.content = response.data;
       });
