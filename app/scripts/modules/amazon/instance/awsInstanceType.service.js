@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
 
     var m4 = {
       type: 'm4',
-      description: 'This family includes the m3 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
+      description: 'This family includes the m4 instance types and provides a balance of compute, memory, and network resources, and it is a good choice for many applications.',
       instanceTypes: [
         {
           name: 'm4.large',
@@ -61,7 +61,7 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
           cpu: 2,
           memory: 4,
           storage: { type: 'EBS' },
-          costFactor: 2
+          costFactor: 1
         }
       ]
     };
@@ -98,57 +98,41 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
     };
 
 
-    var r3 = {
-      type: 'r3',
-      description: 'r3 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
+    var r4 = {
+      type: 'r4',
+      description: 'r4 instances are optimized for memory-intensive applications and have the lowest cost per GiB of RAM among Amazon EC2 instance types.',
       instanceTypes: [
         {
-          name: 'r3.large',
+          name: 'r4.large',
           label: 'Large',
           cpu: 2,
           memory: 15.25,
-          storage: {
-            type: 'SSD',
-            size: 32,
-            count: 1
-          },
+          storage: { type: 'EBS' },
           costFactor: 1
         },
         {
-          name: 'r3.xlarge',
+          name: 'r4.xlarge',
           label: 'XLarge',
           cpu: 4,
           memory: 30.5,
-          storage: {
-            type: 'SSD',
-            size: 80,
-            count: 1
-          },
+          storage: { type: 'EBS' },
           costFactor: 2
         },
         {
-          name: 'r3.2xlarge',
+          name: 'r4.2xlarge',
           label: '2XLarge',
           cpu: 8,
           memory: 61,
-          storage: {
-            type: 'SSD',
-            size: 160,
-            count: 1
-          },
-          costFactor: 3
+          storage: { type: 'EBS' },
+          costFactor: 2
         },
         {
-          name: 'r3.4xlarge',
+          name: 'r4.4xlarge',
           label: '4XLarge',
           cpu: 16,
           memory: 122,
-          storage: {
-            type: 'SSD',
-            size: 320,
-            count: 1
-          },
-          costFactor: 4
+          storage: { type: 'EBS' },
+          costFactor: 3
         }
       ]
     };
@@ -163,7 +147,7 @@ module.exports = angular.module('spinnaker.aws.instanceType.service', [
       {
         type: 'memory',
         label: 'High Memory',
-        families: [ r3 ],
+        families: [ r4 ],
         icon: 'hdd'
       },
       {
