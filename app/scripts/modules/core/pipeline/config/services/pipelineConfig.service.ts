@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import {IPromise, IQService, module} from 'angular';
 import {sortBy, uniq} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
@@ -17,7 +17,7 @@ export class PipelineConfigService {
 
   static get $inject() { return ['$q', 'API', 'authenticationService', 'viewStateCache']; }
 
-  public constructor(private $q: ng.IQService,
+  public constructor(private $q: IQService,
                      private API: Api,
                      private authenticationService: AuthenticationService,
                      viewStateCache: ViewStateCacheService) {
@@ -28,7 +28,7 @@ export class PipelineConfigService {
     return `${applicationName}:${pipelineName}`;
   }
 
-  public getPipelinesForApplication(applicationName: string): ng.IPromise<IPipeline[]> {
+  public getPipelinesForApplication(applicationName: string): IPromise<IPipeline[]> {
     return this.API.one('applications').one(applicationName).all('pipelineConfigs').getList()
       .then((pipelines: IPipeline[]) => {
         pipelines.forEach(p => p.stages = p.stages || []);
@@ -36,7 +36,7 @@ export class PipelineConfigService {
       });
   }
 
-  public getStrategiesForApplication(applicationName: string) {
+  public getStrategiesForApplication(applicationName: string): IPromise<IPipeline[]> {
     return this.API.one('applications').one(applicationName).all('strategyConfigs').getList()
       .then((pipelines: IPipeline[]) => {
       pipelines.forEach(p => p.stages = p.stages || []);
@@ -44,15 +44,15 @@ export class PipelineConfigService {
     });
   }
 
-  public getHistory(id: string, count = 20): ng.IPromise<IPipeline[]> {
+  public getHistory(id: string, count = 20): IPromise<IPipeline[]> {
     return this.API.one('pipelineConfigs', id).all('history').withParams({count: count}).getList();
   }
 
-  public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): ng.IPromise<void> {
+  public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
     return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
   }
 
-  public savePipeline(pipeline: IPipeline): ng.IPromise<void> {
+  public savePipeline(pipeline: IPipeline): IPromise<void> {
     delete pipeline.isNew;
     pipeline.stages.forEach(function(stage) {
       delete stage.isNew;
@@ -63,13 +63,13 @@ export class PipelineConfigService {
     return this.API.one( pipeline.strategy ? 'strategies' : 'pipelines').data(pipeline).post();
   }
 
-  public renamePipeline(applicationName: string, pipeline: IPipeline, currentName: string, newName: string): ng.IPromise<void> {
+  public renamePipeline(applicationName: string, pipeline: IPipeline, currentName: string, newName: string): IPromise<void> {
     this.configViewStateCache.remove(this.buildViewStateCacheKey(applicationName, currentName));
     pipeline.name = newName;
     return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(pipeline.id).data(pipeline).put();
   }
 
-  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): ng.IPromise<ITriggerPipelineResponse> {
+  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<ITriggerPipelineResponse> {
     body.user = this.authenticationService.getAuthenticatedUser().name;
     return this.API.one('pipelines').one(applicationName).one(pipelineName).data(body).post();
   }
@@ -112,17 +112,17 @@ export class PipelineConfigService {
     return uniq(upstreamStages);
   }
 
-  public startAdHocPipeline(body: any): ng.IPromise<void> {
+  public startAdHocPipeline(body: any): IPromise<void> {
     body.user = this.authenticationService.getAuthenticatedUser().name;
     return this.API.one('pipelines').one('start').data(body).post();
   }
 
-  private sortPipelines(pipelines: IPipeline[]): ng.IPromise<IPipeline[]> {
+  private sortPipelines(pipelines: IPipeline[]): IPromise<IPipeline[]> {
 
     const sorted = sortBy(pipelines, ['index', 'name']);
 
     // if there are pipelines with a bad index, fix that
-    const toReindex: ng.IPromise<void>[] = [];
+    const toReindex: IPromise<void>[] = [];
     if (sorted && sorted.length) {
       sorted.forEach((pipeline, index) => {
         if (pipeline.index !== index) {

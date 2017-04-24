@@ -8,6 +8,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { AccountLabelColor } from 'core/account/AccountLabelColor';
 import { Application } from 'core/application/application.model';
+import { IPipeline } from 'core/domain/IPipeline';
 import { Execution } from './execution/Execution';
 import { IExecution, IExecutionGroup, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/delivery/triggers/NextRunTag';
@@ -31,7 +32,7 @@ interface IProps {
 
 interface IState {
   deploymentAccounts: string[];
-  pipelineConfig: any;
+  pipelineConfig: IPipeline;
   triggeringExecution: boolean;
   open: boolean;
   poll: IPromise<any>;
@@ -42,16 +43,16 @@ interface IState {
 
 @autoBindMethods
 export class ExecutionGroup extends React.Component<IProps, IState> {
-  private strategyConfig: any;
+  private strategyConfig: IPipeline;
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
 
   constructor(props: IProps) {
     super(props);
 
-    this.strategyConfig = find(this.props.application.strategyConfigs.data, { name: this.props.group.heading });
+    this.strategyConfig = find(this.props.application.strategyConfigs.data, { name: this.props.group.heading }) as IPipeline;
 
-    const pipelineConfig = find(this.props.application.pipelineConfigs.data, { name: this.props.group.heading });
+    const pipelineConfig = find(this.props.application.pipelineConfigs.data, { name: this.props.group.heading }) as IPipeline;
     const sectionCacheKey = this.getSectionCacheKey();
 
     this.state = {
@@ -191,8 +192,8 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
                 </h4>
                 { this.state.canConfigure && (
                   <div className="text-right execution-group-actions">
-                    <TriggersTag pipeline={pipelineConfig}/>
-                    <NextRunTag pipeline={pipelineConfig}/>
+                    { pipelineConfig && <TriggersTag pipeline={pipelineConfig}/>}
+                    { pipelineConfig && <NextRunTag pipeline={pipelineConfig}/>}
                     <h4>
                       <a className="btn btn-xs btn-link" onClick={this.handleConfigureClicked}>
                         <span className="glyphicon glyphicon-cog"/>
