@@ -14,43 +14,28 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.config.model.v1.node;
+package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public abstract class PersistentStore extends Node {
+public class AzsPersistentStore extends PersistentStore {
+  private String storageAccountName;
+  private String storageAccountKey;
+  private String storageContainerName;
+
   @Override
-  public String getNodeName() {
-    return persistentStoreType().getId();
+  public PersistentStoreType persistentStoreType() {
+    return PersistentStoreType.AZS;
   }
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
-  }
-
-  @Override
-  public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeEmptyIterator();
-  }
-
-  abstract public PersistentStoreType persistentStoreType();
-
-  public enum PersistentStoreType {
-    S3("s3"),
-    AZS("azs"),
-    GCS("gcs");
-
-    @Getter
-    String id;
-
-    PersistentStoreType(String id) {
-      this.id = id;
-    }
   }
 }

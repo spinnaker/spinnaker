@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.AzsPersistentStore
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore
 import spock.lang.Specification
@@ -28,6 +29,7 @@ class PersistentStorageSpec extends Specification {
     def iterator = persistentStorage.getChildren()
     def s3 = false
     def gcs = false
+    def azs = false
 
     when:
     def child = iterator.getNext()
@@ -40,11 +42,16 @@ class PersistentStorageSpec extends Specification {
         s3 = true
       }
 
+      if (child instanceof AzsPersistentStore) {
+        azs = true
+      }
+
       child = iterator.getNext()
     }
 
     then:
     gcs
     s3
+    azs
   }
 }

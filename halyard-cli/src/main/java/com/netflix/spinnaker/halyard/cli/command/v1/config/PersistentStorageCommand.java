@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.EditPersistentStorageCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.azs.AzsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.gcs.GcsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.s3.S3Command;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -38,6 +39,7 @@ public class PersistentStorageCommand extends AbstractConfigCommand {
   public PersistentStorageCommand() {
     registerSubcommand(new GcsCommand());
     registerSubcommand(new S3Command());
+    registerSubcommand(new AzsCommand());
     registerSubcommand(new EditPersistentStorageCommand());
   }
 

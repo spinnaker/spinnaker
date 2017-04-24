@@ -141,6 +141,8 @@
  * [**hal config storage edit**](#hal-config-storage-edit)
  * [**hal config storage gcs**](#hal-config-storage-gcs)
  * [**hal config storage gcs edit**](#hal-config-storage-gcs-edit)
+ * [**hal config storage azs**](#hal-config-storage-azs)
+ * [**hal config storage azs edit**](#hal-config-storage-azs-edit)
  * [**hal config generate**](#hal-config-generate)
  * [**hal config version**](#hal-config-version)
  * [**hal config version edit**](#hal-config-version-edit)
@@ -2301,6 +2303,7 @@ hal config storage [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
+ * `azs`: Manage and view Spinnaker configuration for the "azs" persistent store.
  * `edit`: Edit Spinnaker's persistent storage.
  * `gcs`: Manage and view Spinnaker configuration for the "gcs" persistent store.
  * `s3`: Manage and view Spinnaker configuration for the "s3" persistent store.
@@ -2375,6 +2378,35 @@ hal config storage gcs edit [parameters]
  * `--location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--root-folder`: (*Default*: `spinnaker`) The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
+
+---
+## hal config storage azs
+
+Manage and view Spinnaker configuration for the "azs" persistent store.
+
+#### Usage
+```
+hal config storage azs [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `edit`: Edit configuration for the "azs" persistent store.
+
+---
+## hal config storage azs edit
+
+Edit configuration for the "azs" persistent store.
+
+#### Usage
+```
+hal config storage azs edit [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--storage-account-key`: The key to access the Azure Storage Account used for Spinnaker's persistent data.
+ * `--storage-account-name`: The name of an Azure Storage Account used for Spinnaker's persistent data.
+ * `--storage-container-name`: (*Default*: `spinnaker`) The container name in the chosen storage account to place all of Spinnaker's persistent data.
 
 ---
 ## hal config generate
