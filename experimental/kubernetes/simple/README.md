@@ -211,3 +211,14 @@ mechanism (Redis), run
 ```
 $ bash scripts/cleanup-spinnaker.sh # This deletes everything with application name spin
 ```
+
+
+
+## Common Pitfalls
+
+1. If you are running on GKE, and its UI isn't working. Check all logs from `clouddriver` Pod. If the errors are relating kubernates accounts, many relate to [this issue](http://www.spinnaker.io/docs/troubleshooting-guide#section-my-gke-google-container-engine-cluster-isn-t-showing-up-as-a-kubernetes-account-). After the change, make sure you re-fetch the credentials by `gcloud container clusters get-credentials $CLUSTER_NAME` again. 
+2. If Spinnaker's UI isn't working properly, and if your browser console has `Access-Control-Allow-Origin` errors, try including the following block in your spinnaker-local.yml. You need to run `scripts/update-config.sh` to update config and restart `gate` service to make this change to take effect
+```
+cors:
+  allowedOriginsPattern: http://localhost:9000
+``` 
