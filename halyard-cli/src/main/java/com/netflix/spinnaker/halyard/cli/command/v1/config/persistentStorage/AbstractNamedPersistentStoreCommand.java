@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2017 Microsoft, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,41 +14,32 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.EditPersistentStorageCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.gcs.GcsCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.s3.S3Command;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class PersistentStorageCommand extends AbstractConfigCommand {
+public abstract class AbstractNamedPersistentStoreCommand extends AbstractPersistentStoreCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "storage";
+  private String commandName = getPersistentStoreType();
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Show Spinnaker's persistent storage configuration.";
-
-  public PersistentStorageCommand() {
-    registerSubcommand(new GcsCommand());
-    registerSubcommand(new S3Command());
-    registerSubcommand(new EditPersistentStorageCommand());
-  }
+  private String description = "Manage and view Spinnaker configuration for the \"" + getPersistentStoreType() + "\" persistent store.";
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
-
-    new OperationHandler<PersistentStorage>()
-        .setOperation(Daemon.getPersistentStorage(currentDeployment, !noValidate))
-        .setFailureMesssage("Failed to load persistent storage.")
-        .setSuccessMessage("Configured persistent storage: ")
+    String persistentStoreType = getPersistentStoreType();
+    new OperationHandler<PersistentStore>()
+        .setFailureMesssage("Failed to get persistent store \"" + persistentStoreType + "\".")
+        .setSuccessMessage("Successfully got persistent store \"" + persistentStoreType + "\".")
+        .setOperation(Daemon.getPersistentStore(currentDeployment, persistentStoreType, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
         .get();
   }

@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.services.v1.PersistentStorageService;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
@@ -57,7 +58,7 @@ public class PersistentStorageController {
       builder.setValidateResponse(() -> persistentStorageService.validatePersistentStorage(deploymentName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Get storage settings");
+    return DaemonTaskHandler.submitTask(builder::build, "Get persistent storage settings");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.PUT)
@@ -82,6 +83,49 @@ public class PersistentStorageController {
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 
-    return DaemonTaskHandler.submitTask(builder::build, "Edit storage settings");
+    return DaemonTaskHandler.submitTask(builder::build, "Edit persistent storage settings");
+  }
+
+  @RequestMapping(value = "/{persistentStoreType:.+}", method = RequestMethod.GET)
+  DaemonTask<Halconfig, PersistentStore> getPersistentStore(@PathVariable String deploymentName,
+      @PathVariable String persistentStoreType,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    DaemonResponse.StaticRequestBuilder<PersistentStore> builder = new DaemonResponse.StaticRequestBuilder<>();
+
+    builder.setBuildResponse(() -> persistentStorageService.getPersistentStore(deploymentName, persistentStoreType));
+    builder.setSeverity(severity);
+
+    if (validate) {
+      builder.setValidateResponse(() -> persistentStorageService.validatePersistentStore(deploymentName, persistentStoreType));
+    }
+
+    return DaemonTaskHandler.submitTask(builder::build, "Get persistent store");
+  }
+
+  @RequestMapping(value = "/{persistentStoreType:.+}", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> setPersistentStore(@PathVariable String deploymentName,
+      @PathVariable String persistentStoreType,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawPersistentStore) {
+    PersistentStore persistentStore = objectMapper.convertValue(rawPersistentStore, PersistentStorage.translatePersistentStoreType(persistentStoreType));
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+
+    builder.setUpdate(() -> persistentStorageService.setPersistentStore(deploymentName, persistentStore));
+    builder.setSeverity(severity);
+
+    Supplier<ProblemSet> doValidate = ProblemSet::new;
+
+    if (validate) {
+      doValidate = () -> persistentStorageService.validatePersistentStore(deploymentName, persistentStoreType);
+    }
+
+    builder.setValidate(doValidate);
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return DaemonTaskHandler.submitTask(builder::build, "Edit persistent store");
   }
 }

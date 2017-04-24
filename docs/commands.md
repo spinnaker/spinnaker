@@ -136,7 +136,11 @@
  * [**hal config metric-stores stackdriver enable**](#hal-config-metric-stores-stackdriver-enable)
  * [**hal config metric-stores stackdriver disable**](#hal-config-metric-stores-stackdriver-disable)
  * [**hal config storage**](#hal-config-storage)
+ * [**hal config storage s3**](#hal-config-storage-s3)
+ * [**hal config storage s3 edit**](#hal-config-storage-s3-edit)
  * [**hal config storage edit**](#hal-config-storage-edit)
+ * [**hal config storage gcs**](#hal-config-storage-gcs)
+ * [**hal config storage gcs edit**](#hal-config-storage-gcs-edit)
  * [**hal config generate**](#hal-config-generate)
  * [**hal config version**](#hal-config-version)
  * [**hal config version edit**](#hal-config-version-edit)
@@ -278,7 +282,7 @@ hal config [subcommands]
  * `metric-stores`: Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
  * `provider`: Configure, validate, and view the specified provider.
  * `security`: Configure Spinnaker's security. This includes external SSL, authentication mechanisms, and authorization policies.
- * `storage`: Show Spinnaker's persistent storage options.
+ * `storage`: Show Spinnaker's persistent storage configuration.
  * `version`: Configure & view the current deployment of Spinnaker's version.
 
 ---
@@ -2288,7 +2292,7 @@ hal config metric-stores stackdriver disable [parameters]
 ---
 ## hal config storage
 
-Show Spinnaker's persistent storage options.
+Show Spinnaker's persistent storage configuration.
 
 #### Usage
 ```
@@ -2297,19 +2301,76 @@ hal config storage [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `edit`: Configure Spinnaker's persistent storage options.
+ * `edit`: Edit Spinnaker's persistent storage.
+ * `gcs`: Manage and view Spinnaker configuration for the "gcs" persistent store.
+ * `s3`: Manage and view Spinnaker configuration for the "s3" persistent store.
+
+---
+## hal config storage s3
+
+Manage and view Spinnaker configuration for the "s3" persistent store.
+
+#### Usage
+```
+hal config storage s3 [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `edit`: Edit configuration for the "s3" persistent store.
+
+---
+## hal config storage s3 edit
+
+Edit configuration for the "s3" persistent store.
+
+#### Usage
+```
+hal config storage s3 edit [parameters]
+```
+#### Parameters
+ * `--bucket`: The name of a storage bucket that your specified account has access to.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--root-folder`: (*Default*: `spinnaker`) The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
 
 ---
 ## hal config storage edit
 
-Configure Spinnaker's persistent storage options.
+Edit Spinnaker's persistent storage.
 
 #### Usage
 ```
 hal config storage edit [parameters]
 ```
 #### Parameters
- * `--account-name`: The Spinnaker account that has access to either a GCS or S3 bucket. This account does _not_ have to be separate from the accounts used to manage/deploy infrastructure, but it can be.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--type`: (*Required*) The type of the persistent store to use for Spinnaker.
+
+---
+## hal config storage gcs
+
+Manage and view Spinnaker configuration for the "gcs" persistent store.
+
+#### Usage
+```
+hal config storage gcs [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `edit`: Edit configuration for the "gcs" persistent store.
+
+---
+## hal config storage gcs edit
+
+Edit configuration for the "gcs" persistent store.
+
+#### Usage
+```
+hal config storage gcs edit [parameters]
+```
+#### Parameters
+ * `--account-name`: The Spinnaker account that has access to a GCS bucket. This account does _not_ have to be separate from the accounts used to manage/deploy infrastructure, but it can be.
  * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
  * `--location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location.
  * `--no-validate`: (*Default*: `false`) Skip validation.

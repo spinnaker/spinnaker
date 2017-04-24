@@ -57,7 +57,7 @@ public class DeploymentConfiguration extends Node {
   DeploymentEnvironment deploymentEnvironment = new DeploymentEnvironment();
 
   /**
-   * GCS/S3 configuration for front50.
+   * Persistent storage configuration for front50.
    */
   PersistentStorage persistentStorage = new PersistentStorage();
 

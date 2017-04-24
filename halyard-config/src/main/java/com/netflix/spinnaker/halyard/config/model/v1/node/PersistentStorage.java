@@ -1,22 +1,22 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Optional;
 
-/**
- * This is the configuration for S3/GCS storage options.
- */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@Slf4j
 public class PersistentStorage extends Node {
+  String persistentStoreType;
+  S3PersistentStore s3 = new S3PersistentStore();
+  GcsPersistentStore gcs = new GcsPersistentStore();
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
@@ -29,27 +29,19 @@ public class PersistentStorage extends Node {
 
   @Override
   public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeEmptyIterator();
+    return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  protected List<String> accountNameOptions(ConfigProblemSetBuilder psBuilder) {
-    DeploymentConfiguration context = parentOfType(DeploymentConfiguration.class);
-    List<String> accounts = new ArrayList<>();
-    GoogleProvider googleProvider = context.getProviders().getGoogle();
+  public static Class<? extends PersistentStore> translatePersistentStoreType(String persistentStoreType) {
+    Optional<? extends Class<?>> res = Arrays.stream(PersistentStorage.class.getDeclaredFields())
+        .filter(f -> f.getName().equals(persistentStoreType))
+        .map(Field::getType)
+        .findFirst();
 
-    if (googleProvider != null) {
-      accounts.addAll(googleProvider
-          .getAccounts()
-          .stream()
-          .map(Account::getName)
-          .collect(Collectors.toList()));
+    if (res.isPresent()) {
+      return (Class<? extends PersistentStore>) res.get();
+    } else {
+      throw new IllegalArgumentException("No persistent store with name \"" + persistentStoreType + "\" handled by halyard.");
     }
-
-    return accounts;
   }
-
-  private String accountName;
-  private String bucket;
-  private String rootFolder;
-  private String location;
 }

@@ -16,21 +16,27 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class Front50ProfileFactory extends SpringProfileFactory {
   @Autowired
   AccountService accountService;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -39,73 +45,53 @@ public class Front50ProfileFactory extends SpringProfileFactory {
 
   @Override
   public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    String deploymentName = deploymentConfiguration.getName();
+
+    PersistentStorage persistentStorage = deploymentConfiguration.getPersistentStorage();
+    Map persistentStorageMap = objectMapper.convertValue(persistentStorage, Map.class);
+    persistentStorageMap.remove("persistentStoreType");
+
+    NodeIterator children = persistentStorage.getChildren();
+    Node child = children.getNext();
+    while (child != null) {
+      if (child instanceof PersistentStore) {
+        PersistentStore persistentStore = (PersistentStore) child;
+
+        PersistentStore.PersistentStoreType persistentStoreType = persistentStore.persistentStoreType();
+        Map persistentStoreMap = (Map) persistentStorageMap.get(persistentStoreType.getId());
+        persistentStoreMap.put("enabled", persistentStoreType.getId().equalsIgnoreCase(persistentStorage.getPersistentStoreType()));
+
+        if (persistentStore instanceof GcsPersistentStore) {
+          String accountName = ((GcsPersistentStore) persistentStore).getAccountName();
+
+          String project = null;
+          String jsonPath = null;
+          if (accountName != null && !accountName.isEmpty()) {
+            CommonGoogleAccount account;
+            try {
+              account = (CommonGoogleAccount) accountService.getProviderAccount(deploymentName, "google", accountName);
+            } catch (ConfigNotFoundException e) {
+              throw new RuntimeException("Validation failure: GcsPersistentStore specified a Google account \"" + accountName + "\" that could not be found.");
+            }
+
+            project = account.getProject();
+            jsonPath = account.getJsonPath();
+          }
+
+          persistentStoreMap.put("project", project);
+          persistentStoreMap.put("jsonPath", jsonPath);
+          persistentStoreMap.remove("accountName");
+          persistentStoreMap.remove("location");
+        }
+      }
+
+      child = children.getNext();
+    }
+
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    PersistentStorage storage = deploymentConfiguration.getPersistentStorage();
-    Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), storage.getAccountName());
-    Front50Credentials credentials = new Front50Credentials();
-
-    if (account == null) {
-      throw new RuntimeException("Validation failure: Account name expected in PersistentStorage configuration.");
-    }
-
-    if (account instanceof CommonGoogleAccount) {
-      credentials.getSpinnaker().setGcs(new Front50Credentials.Spinnaker.GCS(storage, (CommonGoogleAccount) account));
-      profile.appendContents(yamlToString(credentials))
-          .setRequiredFiles(processRequiredFiles(account));
-    } else {
-      throw new RuntimeException("Validation failure: GCE or Appengine account name expected in PersistentStorage configuration.");
-    }
-
-    profile.appendContents(profile.getBaseContents());
-  }
-
-  @Data
-  private static class Front50Credentials {
-    Spinnaker spinnaker = new Spinnaker();
-
-    @Data
-    static class Spinnaker {
-      GCS gcs = new GCS();
-      S3 s3 = new S3();
-      Cassandra cassandra = new Cassandra();
-
-      @Data
-      static class Cassandra {
-        private boolean enabled = false;
-      }
-
-      @Data
-      static class GCS {
-        private boolean enabled = false;
-        private String bucket;
-        private String bucketLocation;
-        private String rootFolder;
-        private String project;
-        private String jsonPath;
-
-        GCS() { }
-
-        GCS(PersistentStorage storage, CommonGoogleAccount account) {
-          this.enabled = true;
-          this.bucket = storage.getBucket();
-          this.rootFolder = storage.getRootFolder();
-          this.project = account.getProject();
-          this.jsonPath = account.getJsonPath();
-        }
-      }
-
-      @Data
-      static class S3 {
-        private boolean enabled = false;
-        private String bucket;
-        private String rootFolder;
-
-        S3() {}
-
-        S3(PersistentStorage storage) {
-          // TODO(lwander) find someone to handle https://github.com/spinnaker/halyard/issues/116
-        }
-      }
-    }
+    List<String> files = processRequiredFiles(persistentStorage);
+    profile.appendContents(yamlToString(persistentStorageMap))
+        .appendContents(profile.getBaseContents())
+        .setRequiredFiles(files);
   }
 }

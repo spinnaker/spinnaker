@@ -107,6 +107,13 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body PersistentStorage persistentStorage);
 
+  @PUT("/v1/config/deployments/{deploymentName}/persistentStorage/{persistentStoreType}/")
+  DaemonTask<Halconfig, Void> setPersistentStore(
+      @Path("deploymentName") String deploymentName,
+      @Path("persistentStoreType") String persistentStoreType,
+      @Query("validate") boolean validate,
+      @Body PersistentStore persistentStore);
+
   @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
   DaemonTask<Halconfig, Object> getProvider(
       @Path("deploymentName") String deploymentName,
@@ -326,6 +333,12 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate,
       @Body boolean enabled);
+
+  @GET("/v1/config/deployments/{deploymentName}/persistentStorage/{persistentStoreType}/")
+  DaemonTask<Halconfig, PersistentStore> getPersistentStore(
+      @Path("deploymentName") String deploymentName,
+      @Path("persistentStoreType") String persistentStoreType,
+      @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
   DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(

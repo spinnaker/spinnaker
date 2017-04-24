@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1
 
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore
 import spock.lang.Specification
 
 class PersistentStorageServiceSpec extends Specification {
   final String DEPLOYMENT = "default"
   final String ACCOUNT_NAME = "my-account"
+  final String STORE_NAME = "gcs"
   final HalconfigParserMocker mocker = new HalconfigParserMocker()
 
   PersistentStorageService makePersistentStorageService(String config) {
@@ -46,7 +48,7 @@ deploymentConfigurations:
   version: 1
   providers: null
   persistentStorage:
-    accountName: $ACCOUNT_NAME
+    persistentStoreType: $STORE_NAME
 """
     def persistentStorageService = makePersistentStorageService(config)
 
@@ -55,7 +57,7 @@ deploymentConfigurations:
 
     then:
     result != null
-    result.accountName == ACCOUNT_NAME
+    result.getPersistentStoreType() == STORE_NAME
   }
 
   def "load a non-existent persistentStorage node"() {
@@ -92,6 +94,48 @@ deploymentConfigurations:
 
     when:
     def result = persistentStorageService.getPersistentStorage(deployment2)
+
+    then:
+    result != null
+  }
+
+  def "load an existent persistentStore node"() {
+    setup:
+    String config = """
+halyardVersion: 1
+currentDeployment: $DEPLOYMENT
+deploymentConfigurations:
+- name: $DEPLOYMENT
+  version: 1
+  providers: null
+  persistentStorage:
+    $STORE_NAME:
+      accountName: $ACCOUNT_NAME
+"""
+    def persistentStorageService = makePersistentStorageService(config)
+
+    when:
+    def result = (GcsPersistentStore) persistentStorageService.getPersistentStore(DEPLOYMENT, STORE_NAME)
+
+    then:
+    result != null
+    result.accountName == ACCOUNT_NAME
+  }
+
+  def "load a non-existent persistentStore node"() {
+    setup:
+    String config = """
+halyardVersion: 1
+currentDeployment: $DEPLOYMENT
+deploymentConfigurations:
+- name: $DEPLOYMENT
+  version: 1
+  providers: null
+"""
+    def persistentStorageService = makePersistentStorageService(config)
+
+    when:
+    def result = persistentStorageService.getPersistentStore(DEPLOYMENT, STORE_NAME)
 
     then:
     result != null

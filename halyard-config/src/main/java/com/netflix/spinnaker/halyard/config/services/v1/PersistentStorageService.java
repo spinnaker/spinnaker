@@ -16,9 +16,16 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
+import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
+import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
+import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -49,7 +56,26 @@ public class PersistentStorageService {
       case 1:
         return matching.get(0);
       default:
-        throw new RuntimeException("It shouldn't be possible to have multiple persistent storage nodes. This is a bug.");
+        throw new RuntimeException("It shouldn't be possible to have multiple persistentStorage nodes. This is a bug.");
+    }
+  }
+
+  public PersistentStore getPersistentStore(String deploymentName, String persistentStoreType) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setPersistentStore(persistentStoreType);
+
+    List<PersistentStore> matching = lookupService.getMatchingNodesOfType(filter, PersistentStore.class);
+
+    switch (matching.size()) {
+      case 0:
+        throw new ConfigNotFoundException(new ConfigProblemBuilder(Problem.Severity.FATAL,
+            "No persistent store with name \"" + persistentStoreType + "\" could be found")
+            .setRemediation("Create a new persistent store with name \"" + persistentStoreType + "\"").build());
+      case 1:
+        return matching.get(0);
+      default:
+        throw new IllegalConfigException(new ConfigProblemBuilder(Problem.Severity.FATAL,
+            "More than one persistent store with name \"" + persistentStoreType + "\" found")
+            .setRemediation("Manually delete or rename duplicate persistent stores with name \"" + persistentStoreType + "\" in your halconfig file").build());
     }
   }
 
@@ -58,10 +84,32 @@ public class PersistentStorageService {
     deploymentConfiguration.setPersistentStorage(newPersistentStorage);
   }
 
+  public void setPersistentStore(String deploymentName, PersistentStore newPersistentStore) {
+    PersistentStorage persistentStorage = getPersistentStorage(deploymentName);
+    switch (newPersistentStore.persistentStoreType()) {
+      case S3:
+        persistentStorage.setS3((S3PersistentStore) newPersistentStore);
+        break;
+      case GCS:
+        persistentStorage.setGcs((GcsPersistentStore) newPersistentStore);
+        break;
+      default:
+        throw new RuntimeException("Unknown persistent store " + newPersistentStore.persistentStoreType());
+    }
+  }
+
   public ProblemSet validatePersistentStorage(String deploymentName) {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setPersistentStorage();
+
+    return validateService.validateMatchingFilter(filter);
+  }
+
+  public ProblemSet validatePersistentStore(String deploymentName, String persistentStoreType) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName)
+        .setPersistentStore(persistentStoreType);
 
     return validateService.validateMatchingFilter(filter);
   }

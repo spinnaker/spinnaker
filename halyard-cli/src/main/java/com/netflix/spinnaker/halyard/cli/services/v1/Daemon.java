@@ -93,14 +93,28 @@ public class Daemon {
 
   public static Supplier<PersistentStorage> getPersistentStorage(String deploymentName, boolean validate) {
     return () -> {
-      Object rawStorage = ResponseUnwrapper.get(getService().getPersistentStorage(deploymentName, validate));
-      return getObjectMapper().convertValue(rawStorage, PersistentStorage.class);
+      Object rawPersistentStorage = ResponseUnwrapper.get(getService().getPersistentStorage(deploymentName, validate));
+      return getObjectMapper().convertValue(rawPersistentStorage, PersistentStorage.class);
+    };
+  }
+
+  public static Supplier<PersistentStore> getPersistentStore(String deploymentName, String persistentStoreType, boolean validate) {
+    return () -> {
+      Object rawPersistentStore = ResponseUnwrapper.get(getService().getPersistentStore(deploymentName, persistentStoreType, validate));
+      return getObjectMapper().convertValue(rawPersistentStore, PersistentStorage.translatePersistentStoreType(persistentStoreType));
     };
   }
 
   public static Supplier<Void> setPersistentStorage(String deploymentName, boolean validate, PersistentStorage persistentStorage) {
     return () -> {
       ResponseUnwrapper.get(getService().setPersistentStorage(deploymentName, validate, persistentStorage));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setPersistentStore(String deploymentName, String persistentStoreType, boolean validate, PersistentStore persistentStore) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setPersistentStore(deploymentName, persistentStoreType, validate, persistentStore));
       return null;
     };
   }
