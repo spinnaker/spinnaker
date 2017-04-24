@@ -38,7 +38,7 @@ abstract public class AbstractConfigCommand extends NestableCommand {
   }
 
   protected static boolean isSet(String s) {
-    return s != null && !s.isEmpty();
+    return s != null;
   }
 
   /**
