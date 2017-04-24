@@ -20,6 +20,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -34,9 +36,10 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class GoogleAccount extends CommonGoogleAccount implements Cloneable {
+public class GoogleAccount extends CommonGoogleAccount implements Cloneable, SupportsConsul {
   private boolean alphaListed;
   private List<String> imageProjects = new ArrayList<>();
+  private ConsulConfig consul = new ConsulConfig();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

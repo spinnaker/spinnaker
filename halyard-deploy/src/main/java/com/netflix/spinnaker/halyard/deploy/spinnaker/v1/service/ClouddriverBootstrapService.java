@@ -18,11 +18,14 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
+import com.netflix.discovery.converters.Auto;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ClouddriverBootstrapProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
 import java.util.List;
@@ -32,6 +35,9 @@ import java.util.List;
 abstract public class ClouddriverBootstrapService extends ClouddriverService {
   final boolean monitored = false;
   final boolean sidecar = false;
+
+  @Autowired
+  ClouddriverBootstrapProfileFactory clouddriverBootstrapProfileFactory;
 
   @Override
   public Type getType() {
@@ -44,7 +50,7 @@ abstract public class ClouddriverBootstrapService extends ClouddriverService {
 
     String filename = "clouddriver-bootstrap.yml";
     String path = Paths.get(OUTPUT_PATH, filename).toString();
-    Profile profile = clouddriverProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile = clouddriverBootstrapProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;
