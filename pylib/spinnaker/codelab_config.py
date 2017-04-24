@@ -21,16 +21,18 @@ def configure_codelab_igor_jenkins(password):
   YamlBindings.update_yml_source(
     '/opt/spinnaker/config/spinnaker-local.yml',
     {
-      'jenkins': {
-        'defaultMaster': {
-          'name': 'CodelabJenkins',
-          'baseUrl': 'http://localhost:5656',
-          'username': 'admin',
-          'password': password
+      'services': {
+        'jenkins': {
+          'defaultMaster': {
+            'name': 'CodelabJenkins',
+            'baseUrl': 'http://localhost:5656',
+            'username': 'admin',
+            'password': password
+          }
+        },
+        'igor': {
+          'enabled': 'true'
         }
-      },
-      'igor': {
-        'enabled': 'true'
       }
     }
   )
@@ -39,14 +41,13 @@ def disable_destructive_action_challenge():
   """Disables destructive action challenge for codelab.
 
   """
-  YamlBindings.update_yml_source(
-    '/opt/spinnaker/config/clouddriver.yml',
-    {
-      'credentials': {
-        'challengeDestructiveActionsEnvironments': ''
-      }
-    }
-  )
+  with open('/opt/spinnaker/config/clouddriver-local.yml', 'w') as fd:
+    fd.write("""
+'credentials': {
+   'challengeDestructiveActionsEnvironments': ''
+}
+"""
+
 
 if __name__ == '__main__':
   configure_codelab_igor_jenkins('admin')

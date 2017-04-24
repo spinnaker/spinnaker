@@ -75,6 +75,8 @@ cd /var/lib/jenkins
 sudo -u jenkins -H sh -c 'wget https://storage.googleapis.com/codelab-jenkins-configuration/jenkins_dir.tar.gz'
 sudo -u jenkins -H sh -c 'tar -zxvf jenkins_dir.tar.gz'
 sudo -u jenkins -H sh -c 'git clone https://github.com/kenzanlabs/hello-karyon-rxnetty.git'
+sudo -u jenkins -H sh -c 'cd /var/lib/jenkins/jobs/Hello-Build; rm -rf builds lastStable lastSuccessful scm-polling.log nextBuildNumber; echo 1 >> nextBuildNumber'
+
 service jenkins restart
 
 # configure nginx to serve the aptly repo and start it
