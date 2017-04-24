@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
@@ -84,6 +85,11 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     bindings.put("google.default.account", googleProvider.getPrimaryAccount());
     bindings.put("google.default.region", "us-central1");
     bindings.put("google.default.zone", "us-central1-f");
+
+    // Configure Azure
+    AzureProvider azureProvider = deploymentConfiguration.getProviders().getAzure();
+    bindings.put("azure.default.account", azureProvider.getPrimaryAccount());
+    bindings.put("azure.default.region", "westus");
 
     // Configure Appengine
     AppengineProvider appengineProvider = deploymentConfiguration.getProviders().getAppengine();
