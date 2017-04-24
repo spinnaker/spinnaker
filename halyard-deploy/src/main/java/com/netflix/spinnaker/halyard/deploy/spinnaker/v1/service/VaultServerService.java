@@ -26,15 +26,16 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
+import com.squareup.okhttp.Response;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
-import retrofit.http.Body;
-import retrofit.http.GET;
-import retrofit.http.PUT;
+import retrofit.http.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -70,6 +71,10 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
   @Autowired
   HalconfigDirectoryStructure halconfigDirectoryStructure;
 
+  public static String getSpinnakerSecretName(String secretName) {
+    return String.join("/", "spinnaker", secretName);
+  }
+
   public interface Vault {
     @GET("/v1/sys/init")
     InitStatus initStatus();
@@ -82,6 +87,12 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
 
     @PUT("/v1/sys/unseal")
     SealStatus unseal(@Body UnsealRequest unsealRequest);
+
+    @PUT("/v1/secret/{secretName}")
+    @Headers({
+        "Content-type: application/json"
+    })
+    Response putSecret(@Header("X-Vault-Token") String token, @Path(value = "secretName", encode = false) String secretName, @Body Object contents);
   }
 
   @Data
@@ -128,7 +139,24 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     List<String> errors = new ArrayList<>();
   }
 
-  protected String getToken(String deploymentName, Vault vault) {
+  public String writeVaultConfig(String deploymentName, Vault vault, String secretName, VaultConfigMount configMount) {
+    secretName = getSpinnakerSecretName(secretName);
+    writeSecret(deploymentName, vault, secretName, configMount);
+    return secretName;
+  }
+
+  public String writeVaultConfigMountSet(String deploymentName, Vault vault, String secretName, VaultConfigMountSet configMountSet) {
+    secretName = getSpinnakerSecretName(secretName);
+    writeSecret(deploymentName, vault, secretName, configMountSet);
+    return secretName;
+  }
+
+  private void writeSecret(String deploymentName, Vault vault, String secretName, Object secret) {
+    String token = getToken(deploymentName, vault);
+    vault.putSecret(token, secretName, secret);
+  }
+
+  public String getToken(String deploymentName, Vault vault) {
     String result = "";
     InitStatus initStatus;
 

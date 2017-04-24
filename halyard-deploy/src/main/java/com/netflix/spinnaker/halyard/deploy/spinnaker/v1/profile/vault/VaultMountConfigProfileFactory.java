@@ -32,6 +32,11 @@ public class VaultMountConfigProfileFactory extends JarResourceBackedProfileFact
   }
 
   @Override
+  protected boolean showEditWarning() {
+    return false;
+  }
+
+  @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.VAULT;
   }

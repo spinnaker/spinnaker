@@ -19,35 +19,48 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverBootstrapService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @EqualsAndHashCode(callSuper = true)
-@Component
 @Data
-public class GoogleMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
+@Component
+public class GoogleClouddriverBootstrapService extends ClouddriverBootstrapService implements GoogleDistributedService<ClouddriverBootstrapService.Clouddriver> {
+  final DeployPriority deployPriority = new DeployPriority(6);
+  final boolean requiredToBootstrap = true;
+
   @Autowired
   private String dockerRegistry;
 
   @Autowired
+  GoogleMonitoringDaemonService monitoringDaemonService;
+
+  @Autowired
   ArtifactService artifactService;
+
+  @Autowired
+  ServiceInterfaceFactory serviceInterfaceFactory;
+
+  @Autowired
+  String googleImageProject;
+
+  @Autowired
+  String startupScriptPath;
+
+  @Autowired
+  GoogleVaultServerService vaultServerService;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
+        .setLocation("us-central1-f")
+        .setEnabled(true);
     return settings;
   }
-
-  private String getArtifactId(String deploymentName) {
-    String artifactName = getArtifact().getName();
-    String version = artifactService.getArtifactVersion(deploymentName, getArtifact());
-    return String.join(":", artifactName, version);
-  }
-
-  final boolean requiredToBootstrap = false;
 }

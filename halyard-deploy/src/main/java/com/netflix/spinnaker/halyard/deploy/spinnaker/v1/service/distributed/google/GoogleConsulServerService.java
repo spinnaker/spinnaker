@@ -22,7 +22,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAcco
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulServerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
@@ -57,7 +56,7 @@ public class GoogleConsulServerService extends ConsulServerService implements Go
   String startupScriptPath;
 
   @Autowired
-  VaultService vaultService;
+  GoogleVaultServerService vaultServerService;
 
   @Autowired
   public List<String> getScopes() {

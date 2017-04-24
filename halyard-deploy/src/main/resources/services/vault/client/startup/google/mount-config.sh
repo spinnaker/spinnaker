@@ -32,4 +32,4 @@ if [ -z "$SECRET" ]; then
   exit 1
 fi
 
-../mount-config.py --token $TOKEN --address $ADDRESS --secret $SECRET
+{%startup-script-path%}mount-config.py --token $TOKEN --address $ADDRESS --secret $SECRET

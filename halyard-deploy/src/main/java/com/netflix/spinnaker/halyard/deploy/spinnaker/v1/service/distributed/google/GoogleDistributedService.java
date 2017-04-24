@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
 import com.netflix.frigga.Names;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -28,13 +27,16 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConnectionDetails;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
 import java.net.URI;
@@ -46,7 +48,7 @@ import java.util.stream.Collectors;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
 public interface GoogleDistributedService<T> extends DistributedService<T, GoogleAccount> {
-  VaultService getVaultService();
+  GoogleVaultServerService getVaultServerService();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
   String getGoogleImageProject();
@@ -85,10 +87,36 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         String.join("-", "spinnaker", artifactName, version.replace(".", "-")));
   }
 
+  default VaultConnectionDetails buildConnectionDetails(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, String secretName) {
+    GoogleVaultServerService vaultService = getVaultServerService();
+    VaultServerService.Vault vault = vaultService.connect(details, runtimeSettings);
+    String deploymentName = details.getDeploymentName();
+
+    ServiceSettings vaultSettings = runtimeSettings.getServiceSettings(vaultService);
+    RunningServiceDetails vaultDetails = vaultService.getRunningServiceDetails(details, vaultSettings);
+    Integer latestVaultVersion = vaultDetails.getLatestEnabledVersion();
+    if (latestVaultVersion == null) {
+      throw new IllegalStateException("No vault services have been started yet. This is a bug.");
+    }
+
+    List<RunningServiceDetails.Instance> instances = vaultDetails.getInstances().get(vaultDetails.getLatestEnabledVersion());
+    if (instances.isEmpty()) {
+      throw new IllegalStateException("Current vault service has no running instances. This is a bug.");
+    }
+
+    String instanceId = instances.get(0).getId();
+    String address = new URIBuilder().setScheme("http").setHost(instanceId).setPort(vaultSettings.getPort()).toString();
+
+    String token = vaultService.getToken(details.getDeploymentName(), vault);
+
+    return new VaultConnectionDetails().setAddress(address).setSecret(secretName).setToken(token);
+  }
+
   @Override
   default List<ConfigSource> stageProfiles(AccountDeploymentDetails<GoogleAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
 
+    String deploymentName = details.getDeploymentName();
     SpinnakerService thisService = getService();
     ServiceSettings thisServiceSettings = resolvedConfiguration.getServiceSettings(thisService);
     Integer version = getLatestEnabledServiceVersion(details, thisServiceSettings);
@@ -103,8 +131,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     List<ConfigSource> configSources = new ArrayList<>();
     ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
     String stagingPath = getSpinnakerStagingPath();
-    VaultService vaultService = getVaultService();
-    DeploymentConfiguration deploymentConfiguration = details.getDeploymentConfiguration();
+    GoogleVaultServerService vaultService = getVaultServerService();
+    VaultServerService.Vault vault = vaultService.connect(details, resolvedConfiguration.getRuntimeSettings());
 
     if (thisServiceSettings.isMonitored() && monitoringSettings.isEnabled()) {
       Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
@@ -117,7 +145,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       String secretName = secretName(profile.getName(), version);
       String mountPoint = Paths.get(profile.getOutputFile()).toString();
       Path stagedFile = Paths.get(profile.getStagedFile(stagingPath));
-      vaultService.publishSecret(deploymentConfiguration, secretName, stagedFile);
+      VaultConfigMount vaultConfigMount = VaultConfigMount.fromLocalFile(stagedFile.toFile(), mountPoint);
+      secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
 
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
 
@@ -129,7 +158,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       secretName = secretName(profile.getName(), version);
       mountPoint = Paths.get(profile.getOutputFile()).toString();
       stagedFile = Paths.get(profile.getStagedFile(stagingPath));
-      vaultService.publishSecret(deploymentConfiguration, secretName, stagedFile);
+      vaultConfigMount = VaultConfigMount.fromLocalFile(stagedFile.toFile(), mountPoint);
+      secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
 
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
@@ -144,7 +174,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       String mountPoint = profile.getOutputFile();
       String secretName = secretName("profile-" + profile.getName(), version);
       Path stagedFile = Paths.get(profile.getStagedFile(stagingPath));
-      vaultService.publishSecret(deploymentConfiguration, secretName, stagedFile);
+      VaultConfigMount vaultConfigMount = VaultConfigMount.fromLocalFile(stagedFile.toFile(), mountPoint);
+      secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
 
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
@@ -152,7 +183,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     for (String file : requiredFiles) {
       String mountPoint = Paths.get(file).toString();
       String secretName = secretName("dependencies-" + file, version);
-      vaultService.publishSecret(deploymentConfiguration, secretName, Paths.get(file));
+      VaultConfigMount vaultConfigMount = VaultConfigMount.fromLocalFile(Paths.get(file).toFile(), mountPoint);
+      secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
 
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
@@ -176,18 +208,28 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       boolean recreate) {
     int version = 0;
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
-    if (!recreate) {
-      RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-      if (runningServiceDetails.getLatestEnabledVersion() != null) {
-        DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart.");
-        return;
-      }
-    }
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
 
+
+    String deploymentName = details.getDeploymentName();
     GoogleAccount account = details.getAccount();
+    Compute compute = GoogleProviderUtils.getCompute(details);
     String project = account.getProject();
 
-    Compute compute = GoogleProviderUtils.getCompute(details);
+    boolean exists = runningServiceDetails.getLatestEnabledVersion() != null;
+    if (!recreate && exists) {
+      DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart.");
+      return;
+    } else if (exists) {
+      DaemonTaskHandler.message("Recreating existing " + getServiceName() + "...");
+      try {
+        // TODO delete corresponding instance template here too (right now it's useful to keep for debugging, though).
+        Operation operation = compute.instanceGroupManagers().delete(project, settings.getLocation(), getVersionedName(version)).execute();
+        GoogleProviderUtils.waitOnZoneOperation(compute, project, settings.getLocation(), operation);
+      } catch (IOException e) {
+        throw new HalException(FATAL, "Failed to delete service " + getServiceName(), e);
+      }
+    }
 
     InstanceGroupManager manager = new InstanceGroupManager();
 
@@ -199,7 +241,36 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         .setKey("startup-script")
         .setValue(getStartupScript());
 
-    Metadata metadata = new Metadata().setItems(Collections.singletonList(items));
+    List<Metadata.Items> metadataItems = new ArrayList<>();
+    metadataItems.add(items);
+
+    if (!configSources.isEmpty()) {
+      GoogleVaultServerService vaultService = getVaultServerService();
+      VaultServerService.Vault vault = vaultService.connect(details, resolvedConfiguration.getRuntimeSettings());
+
+      String secretName = secretName("config-mounts", version);
+      VaultConfigMountSet mountSet = VaultConfigMountSet.fromConfigSources(configSources);
+      secretName = vaultService.writeVaultConfigMountSet(deploymentName, vault, secretName, mountSet);
+
+      VaultConnectionDetails connectionDetails = buildConnectionDetails(details, resolvedConfiguration.getRuntimeSettings(), secretName);
+
+      items = new Metadata.Items()
+          .setKey("vault_address")
+          .setValue(connectionDetails.getAddress());
+      metadataItems.add(items);
+
+      items = new Metadata.Items()
+          .setKey("vault_token")
+          .setValue(connectionDetails.getToken());
+      metadataItems.add(items);
+
+      items = new Metadata.Items()
+          .setKey("vault_secret")
+          .setValue(connectionDetails.getSecret());
+      metadataItems.add(items);
+    }
+
+    Metadata metadata = new Metadata().setItems(metadataItems);
 
     AccessConfig accessConfig = new AccessConfig()
         .setName("External NAT")

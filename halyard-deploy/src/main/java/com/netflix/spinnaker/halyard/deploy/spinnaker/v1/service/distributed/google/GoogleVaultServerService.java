@@ -59,9 +59,6 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
   @Autowired
   String startupScriptPath;
 
-  @Autowired
-  VaultService vaultService;
-
   @Override
   public void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
@@ -86,6 +83,11 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     /* vault server may not stage profiles, since it acts as our config server */
     return new ArrayList<>();
+  }
+
+  @Override
+  public GoogleVaultServerService getVaultServerService() {
+    return this;
   }
 
   public String getArtifactId(String deploymentName) {

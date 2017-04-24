@@ -2,4 +2,4 @@
 
 echo "Mounting config for the $1 provider"
 
-./$1/mount-config.sh
+{%startup-script-path%}$1/mount-config.sh

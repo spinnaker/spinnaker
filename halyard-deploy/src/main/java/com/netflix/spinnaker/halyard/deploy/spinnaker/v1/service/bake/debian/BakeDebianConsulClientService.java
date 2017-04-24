@@ -85,4 +85,10 @@ public class BakeDebianConsulClientService extends ConsulClientService implement
         .setBindings(bindings)
         .toString();
   }
+
+  @Override
+  public String getStartupCommand() {
+    return Paths.get(startupScriptPath, "startup-consul.sh").toString() + " \\$@";
+  }
+
 }

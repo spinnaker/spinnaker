@@ -6,10 +6,16 @@ import json
 import logging
 import subprocess
 import sys
+import os
+import grp
+import pwd
 
-def authenticate(token):
-    subprocess.check_call(["vault", "auth", token])
-    log.info("Successfully authenticated against the vault server")
+def mkdirs(path):
+    subprocess.check_call(["mkdir", "-p", path])
+
+def authenticate(address, token):
+    subprocess.check_call(["vault", "auth", "-address", address, token])
+    logging.info("Successfully authenticated against the vault server")
 
 def read_secret(address, name):
     try:
@@ -18,8 +24,8 @@ def read_secret(address, name):
             "-format", "json",
             "secret/spinnaker/{}".format(name)])
         )
-    except Error as err:
-        log.critical("Failed to load secret {name}: {err}".format(
+    except Exception as err:
+        logging.fatal("Failed to load secret {name}: {err}".format(
             name=name,
             err=err)
         )
@@ -62,19 +68,31 @@ def main():
 
     args = parser.parse_args()
 
-    authenticate(args.token)
+    authenticate(args.address, args.token)
     config_mount = read_secret(args.address, args.secret)
 
+    spinnaker_user = pwd.getpwnam("spinnaker").pw_uid
+    spinnaker_group = grp.getgrnam("spinnaker").gr_gid
+
     for config in config_mount["configs"]:
-        secret_id = "{secret}/{name}".format(secret=args.secret, name=config)
+        secret_id = "{name}".format(name=config)
         mount = read_secret(args.address, secret_id)
 
         file_name = mount["file"]
         contents = base64.b64decode(mount["contents"])
+
+        dir_name = os.path.dirname(file_name)
+        if not os.path.isdir(dir_name):
+            os.mkdirs(dir_name)
+
+        os.chown(dir_name, spinnaker_user, spinnaker_group)
+
         with open(file_name, "w") as f:
             logging.info("Writing config to {}".format(file_name))
 
             f.write(contents)
+
+        os.chown(dir_name, spinnaker_user, spinnaker_group)
 
 
 if __name__ == "__main__":

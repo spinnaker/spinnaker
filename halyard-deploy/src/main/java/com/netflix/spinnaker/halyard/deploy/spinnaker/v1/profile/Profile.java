@@ -81,12 +81,20 @@ public class Profile {
   }
 
   public Profile preppendContents(String contents) {
-    this.contents = contents + "\n" + this.contents;
+    if (this.contents.isEmpty()) {
+      this.contents = contents;
+    } else {
+      this.contents = contents + "\n" + this.contents;
+    }
     return this;
   }
 
   public Profile appendContents(String contents) {
-    this.contents += "\n" + contents;
+    if (this.contents.isEmpty()) {
+      this.contents = contents;
+    } else {
+      this.contents += "\n" + contents;
+    }
     return this;
   }
 }

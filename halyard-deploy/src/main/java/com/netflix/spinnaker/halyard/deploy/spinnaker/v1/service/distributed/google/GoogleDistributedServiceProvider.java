@@ -25,7 +25,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class GoogleDistributedServiceProvider extends DistributedServiceProvider<KubernetesAccount> {
   @Autowired
+  GoogleClouddriverBootstrapService clouddriverBootstrapService;
+
+  @Autowired
   GoogleConsulServerService consulServerService;
+
+  @Autowired
+  GoogleMonitoringDaemonService monitoringDaemonService;
 
   @Autowired
   GoogleVaultServerService vaultServerService;

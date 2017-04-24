@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
-import com.netflix.discovery.converters.Auto;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ClouddriverBootstrapProfileFactory;

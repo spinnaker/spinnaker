@@ -71,7 +71,7 @@ public class BakeDebianVaultClientService extends VaultClientService implements 
 
   @Override
   public String getStartupCommand() {
-    return Paths.get(startupScriptPath, "startup-vault.sh").toString() + " $@";
+    return Paths.get(startupScriptPath, "startup-vault.sh").toString() + " \\$@";
   }
 
   @Override

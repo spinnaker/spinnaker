@@ -22,13 +22,32 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.JarResourceBackedProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class ConsulClientStartupProfileFactory extends JarResourceBackedProfileFactory {
+  @Autowired
+  String startupScriptPath;
+
   @Override
   protected String getResourceName() {
     return "/services/consul/client/startup/startup-consul.sh";
+  }
+
+  @Override
+  protected boolean showEditWarning() {
+    return false;
+  }
+
+  @Override
+  protected Map<String, String> getBindings() {
+    Map<String, String> result = new HashMap<>();
+    result.put("startup-script-path", startupScriptPath);
+    return result;
   }
 
   @Override
