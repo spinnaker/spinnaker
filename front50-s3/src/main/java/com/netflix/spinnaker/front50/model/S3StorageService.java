@@ -16,16 +16,10 @@
 
 package com.netflix.spinnaker.front50.model;
 
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ListVersionsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.model.VersionListing;
+import com.amazonaws.services.s3.model.*;
+import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
@@ -36,10 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class S3StorageService implements StorageService {
@@ -50,22 +41,40 @@ public class S3StorageService implements StorageService {
   private final String bucket;
   private final String rootFolder;
   private final Boolean readOnlyMode;
+  private final String region;
 
   public S3StorageService(ObjectMapper objectMapper,
                           AmazonS3 amazonS3,
                           String bucket,
                           String rootFolder,
-                          Boolean readOnlyMode) {
+                          Boolean readOnlyMode,
+                          String region) {
     this.objectMapper = objectMapper;
     this.amazonS3 = amazonS3;
     this.bucket = bucket;
     this.rootFolder = rootFolder;
     this.readOnlyMode = readOnlyMode;
+    this.region = region;
   }
 
   @Override
   public void ensureBucketExists() {
-    // do nothing
+    HeadBucketRequest request = new HeadBucketRequest(bucket);
+    try {
+      amazonS3.headBucket(request);
+    } catch (AmazonServiceException e) {
+      if (e.getStatusCode() == 404) {
+        if (StringUtils.isNullOrEmpty(region)) {
+          log.info("Creating bucket " + bucket + " in default region");
+          amazonS3.createBucket(bucket);
+        } else {
+          log.info("Creating bucket " + bucket + " in region " + region + "...");
+          amazonS3.createBucket(bucket, region);
+        }
+      } else {
+        throw e;
+      }
+    }
   }
 
   @Override

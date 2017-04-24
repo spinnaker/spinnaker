@@ -97,7 +97,9 @@ public class S3Config {
     ObjectMapper awsObjectMapper = new ObjectMapper();
     AmazonObjectMapperConfigurer.configure(awsObjectMapper);
 
-    return new S3StorageService(awsObjectMapper, amazonS3, s3Properties.getBucket(), s3Properties.getRootFolder(), s3Properties.isFailoverEnabled());
+    S3StorageService service = new S3StorageService(awsObjectMapper, amazonS3, s3Properties.getBucket(), s3Properties.getRootFolder(), s3Properties.isFailoverEnabled(), s3Properties.getRegion());
+    service.ensureBucketExists();
+    return service;
   }
 
   @Bean
