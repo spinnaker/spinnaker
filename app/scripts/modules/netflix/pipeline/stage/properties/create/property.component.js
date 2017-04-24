@@ -18,23 +18,23 @@ module.exports =
     templateUrl: require('./property.component.html'),
   })
   .controller('PropertyController', function () {
-    let vm = this;
+    this.filteredProperties = [];
 
-    vm.remove = function(property) {
-      var index = vm.stage.persistedProperties.indexOf(property);
-      vm.stage.persistedProperties.splice(index, 1);
+    this.remove = (property) => {
+      const index = this.stage.persistedProperties.indexOf(property);
+      this.stage.persistedProperties.splice(index, 1);
     };
 
-    vm.getValueRowCount = (inputValue) => {
+    this.getValueRowCount = (inputValue) => {
       return inputValue ? inputValue.split(/\n/).length : 1;
     };
 
-    vm.getPropertyList = _.debounce((search) => {
-      let newPropKeyList = vm.propertyList.map(prop => prop.key);
+    this.refreshOptions = (search) => {
+      const newPropKeyList = this.propertyList.map(prop => prop.key);
       if (search && !newPropKeyList.includes(search)) {
         newPropKeyList.unshift(search);
       }
-      return _.uniq(newPropKeyList);
-    }, 200);
+      this.filteredProperties = _.uniq(newPropKeyList);
+    };
 
   });

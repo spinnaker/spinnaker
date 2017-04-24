@@ -21,7 +21,9 @@
         </ui-select-match>
 
         <ui-select-choices
-          repeat="property in propertyCtrl.getPropertyList($select.search) | filter: $select.search">
+          refresh="propertyCtrl.refreshOptions($select.search)"
+          refresh-delay="0"
+          repeat="property in propertyCtrl.filteredProperties | filter: $select.search">
           <div ng-bind-html="property | highlight: $select.search"></div>
         </ui-select-choices>
 
