@@ -36,7 +36,13 @@ var openstack = {
     account: '{%openstack.default.account%}',
     region: '{%openstack.default.region%}'
   }
-}
+};
+var azure = {
+  defaults: {
+    account: '{%azure.default.account%}',
+    region: '{%azure.default.region%}'
+  }
+};
 var entityTagsEnabled = false;
 var netflixMode = false;
 
@@ -53,12 +59,7 @@ window.spinnakerSettings = {
   defaultCategory: 'serverGroup',
   defaultInstancePort: 80,
   providers: {
-    azure: {
-      defaults: {
-        account: 'azure-test',
-        region: 'westus'
-      },
-    },
+    azure: azure,
     aws: {
       defaults: {
         account: 'test',
