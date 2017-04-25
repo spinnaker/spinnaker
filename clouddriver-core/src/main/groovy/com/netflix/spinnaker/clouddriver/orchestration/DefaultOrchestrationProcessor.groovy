@@ -147,7 +147,7 @@ class DefaultOrchestrationProcessor implements OrchestrationProcessor {
       }
     }
 
-    def timedCallable = TimedCallable.forClosure(registry, orchestrationsId, propagate(operationClosure, true))
+    def timedCallable = TimedCallable.forCallable(registry, orchestrationsId, propagate(operationClosure, true))
     executorService.submit(timedCallable)
 
     task
