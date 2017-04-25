@@ -63,7 +63,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
 
     ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
     if (!resolvedAmi) {
-      throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
+      throw new IllegalArgumentException("unable to resolve AMI imageId from '$description.amiName': If this is a private AMI owned by a third-party, you will need to contact them to share the AMI to your desired account(s)")
     }
 
     // If the AMI is public, this is a no-op
