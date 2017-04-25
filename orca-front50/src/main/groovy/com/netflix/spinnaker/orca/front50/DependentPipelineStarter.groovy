@@ -30,6 +30,8 @@ import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.stereotype.Component
 
+import java.util.concurrent.Callable
+
 @Component
 @Slf4j
 class DependentPipelineStarter implements ApplicationContextAware {
@@ -86,24 +88,15 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('running pipeline {}:{}', pipelineConfig.id, json)
 
-    def pipeline
 
     log.debug("Source thread: MDC user: " + AuthenticatedRequest.getAuthenticationHeaders() +
                   ", principal: " + principal?.toString())
     def runnable = AuthenticatedRequest.propagate({
       log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-      pipeline = pipelineLauncher().start(json)
-    }, true, principal) as Runnable
+      return pipelineLauncher().start(json)
+    } as Callable<Pipeline>, true, principal) as Callable<Pipeline>
 
-    def t1 = new Thread(runnable)
-    t1.start()
-
-    try {
-      t1.join()
-    } catch (InterruptedException e) {
-      e.printStackTrace()
-    }
-
+    def pipeline = runnable.call()
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
   }
