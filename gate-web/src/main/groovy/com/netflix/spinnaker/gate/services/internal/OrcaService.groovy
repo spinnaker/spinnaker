@@ -61,6 +61,10 @@ interface OrcaService {
   Map getActiveExecutionsByInstance()
 
   @Headers("Accept: application/json")
+  @GET("/pipelines")
+  List getLatestExecutionsByConfigIds(@Query("pipelineConfigIds") String pipelineConfigIds, @Query("limit") Integer limit, @Query("statuses") String statuses)
+
+  @Headers("Accept: application/json")
   @GET("/pipelines/{id}")
   Map getPipeline(@Path("id") String id)
 
