@@ -38,6 +38,10 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
     $scope.stage.extendedAttributes = $scope.stage.extendedAttributes || {};
     $scope.stage.region = 'global';
 
+    if (!$scope.stage.cloudProvider) {
+      $scope.stage.cloudProvider = 'gce';
+    }
+
     if (!$scope.stage.user) {
       $scope.stage.user = authenticationService.getAuthenticatedUser().name;
     }
