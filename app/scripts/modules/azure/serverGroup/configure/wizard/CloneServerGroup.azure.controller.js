@@ -130,20 +130,6 @@ module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
       }
     }
 
-    this.isValid = function () {
-      return $scope.command &&
-        ($scope.command.application !== null) &&
-        ($scope.command.credentials !== null) &&
-        ($scope.command.region !== null) &&
-        $scope.serverGroupWizardForm.$valid &&
-        v2modalWizardService.isComplete();
-    };
-
-    this.showSubmitButton = function () {
-      //return v2modalWizardService.allPagesVisited();
-      return true;
-    };
-
     this.submit = function () {
       if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);

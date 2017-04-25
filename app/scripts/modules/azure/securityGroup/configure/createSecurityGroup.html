@@ -1,4 +1,4 @@
-<form name="form" class="form-horizontal" novalidate>
+<form name="form" class="form-horizontal" novalidate validate-on-submit>
   <v2-modal-wizard heading="Create New Security Group" task-monitor="taskMonitor" dismiss="$dismiss()">
     <v2-wizard-page key="Location" label="Location">
       <ng-include src="pages.location"></ng-include>
@@ -10,8 +10,8 @@
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel
     </button>
-    <submit-button is-disabled="form.$invalid || state.submitting"
-                    submitting="state.submitting" on-click="ctrl.upsert()" is-new="isNew">
+    <submit-button is-disabled="state.submitting"
+                    submitting="state.submitting" on-click="form.$valid && ctrl.upsert()" is-new="isNew">
     </submit-button>
   </div>
 </form>

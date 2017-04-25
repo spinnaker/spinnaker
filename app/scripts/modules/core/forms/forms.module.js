@@ -12,5 +12,6 @@ module.exports = angular.module('spinnaker.core.forms', [
   require('./ignoreEmptyDelete.directive.js'),
   BUTTON_BUSY_INDICATOR_COMPONENT,
   require('./mapEditor/mapEditor.component.js'),
+  require('./validateOnSubmit/validateOnSubmit.directive.js'),
   NUMBER_LIST_COMPONENT
 ]);

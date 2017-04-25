@@ -24,7 +24,7 @@
     </div>
   </div>
   <div class="form-group">
-    <div class="col-md-4 sm-label-right">Description(optional)</div>
+    <div class="col-md-4 sm-label-right">Description</div>
     <div class="col-md-8">
       <input type="text" class="form-control input-sm" ng-model="securityGroup.description" />
     </div>
@@ -32,7 +32,7 @@
   <div class="form-group">
     <div class="col-md-4 sm-label-right">Account</div>
     <div class="col-md-8">
-      <account-select-field component="securityGroup" field="credentials" accounts="accounts" provider="'azure'" on-change="ctrl.accountUpdated()"></account-select-field>
+      <account-select-field required component="securityGroup" field="credentials" accounts="accounts" provider="'azure'" on-change="ctrl.accountUpdated()"></account-select-field>
     </div>
   </div>
   <div class="form-group">
