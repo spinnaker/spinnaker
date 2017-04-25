@@ -36,8 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired
 class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
   private static final String BASE_PHASE = "ALLOW_LAUNCH"
 
-  private static final int MAX_TARGET_DESCRIBE_ATTEMPTS = 2
-
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -68,8 +66,15 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
       throw new IllegalArgumentException("unable to resolve AMI imageId from $description.amiName")
     }
 
+    // If the AMI is public, this is a no-op
+    if (resolvedAmi.isPublic) {
+      task.updateStatus BASE_PHASE, "AMI is public, no need to allow launch"
+      return resolvedAmi
+    }
+
     // If the AMI was created/owned by a different account, switch to using that for modifying the image
     if (resolvedAmi.ownerId != sourceCredentials.accountId) {
+      if (resolvedAmi.getRegion())
       sourceCredentials = accountCredentialsProvider.all.find { accountCredentials ->
         accountCredentials instanceof NetflixAmazonCredentials &&
           ((AmazonCredentials) accountCredentials).accountId == resolvedAmi.ownerId
@@ -85,7 +90,7 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     OperationPoller.retryWithBackoff({o ->
       sourceAmazonEC2.modifyImageAttribute(new ModifyImageAttributeRequest().withImageId(resolvedAmi.amiId).withLaunchPermission(
         new LaunchPermissionModifications().withAdd(new LaunchPermission().withUserId(targetCredentials.accountId))))
-    }, 500, 3);
+    }, 500, 3)
 
     if (sourceCredentials == targetCredentials) {
       task.updateStatus BASE_PHASE, "Tag replication not required"

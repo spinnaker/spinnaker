@@ -41,7 +41,7 @@ class AmiIdResolver {
     }
     Image resolvedImage = amazonEC2.describeImages(req)?.images?.getAt(0)
     if (resolvedImage) {
-      return new ResolvedAmiResult(nameOrId, region, resolvedImage.imageId, resolvedImage.virtualizationType, resolvedImage.ownerId, resolvedImage.blockDeviceMappings)
+      return new ResolvedAmiResult(nameOrId, region, resolvedImage.imageId, resolvedImage.virtualizationType, resolvedImage.ownerId, resolvedImage.blockDeviceMappings, resolvedImage.public)
     }
 
     return null

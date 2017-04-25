@@ -30,4 +30,5 @@ class ResolvedAmiResult {
   String virtualizationType
   String ownerId
   List<BlockDeviceMapping> blockDeviceMappings
+  Boolean isPublic
 }

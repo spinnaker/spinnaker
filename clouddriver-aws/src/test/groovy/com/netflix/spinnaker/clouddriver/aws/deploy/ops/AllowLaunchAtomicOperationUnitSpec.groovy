@@ -216,6 +216,44 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
 
   }
 
+  void "should return resolved public AMI without performing additional operations"() {
+    setup:
+    def ownerCredentials = TestCredential.named('owner')
+    def targetCredentials = TestCredential.named('target')
+    def ownerAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+
+    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-1', credentials: ownerCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = Mock(AmazonClientProvider)
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
+
+    when:
+    op.operate([])
+
+    then:
+
+    with(op.accountCredentialsProvider) {
+      1 * getCredentials('target') >> targetCredentials
+    }
+
+    with(op.amazonClientProvider) {
+      1 * getAmazonEC2(targetCredentials, _, true) >> targetAmazonEc2
+      1 * getAmazonEC2(ownerCredentials, _, true) >> ownerAmazonEc2
+    }
+
+    with(ownerAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(
+        new Image()
+          .withImageId("ami-123456")
+          .withOwnerId(ownerCredentials.accountId)
+          .withPublic(true))
+    }
+
+    0 * _
+
+  }
+
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->
     new DescribeTagsResult(tags: tags.collect {new TagDescription(key: it.key, value: it.value) })
   }
