@@ -8,7 +8,7 @@ import {SERVICE_ACCOUNT_SERVICE, ServiceAccountService} from 'core/serviceAccoun
 
 class GitTriggerController {
 
-  public fiatEnabled = false;
+  public fiatEnabled: boolean = SETTINGS.feature.fiatEnabled;
   public serviceAccounts: string[] = [];
   public gitTriggerTypes = SETTINGS.gitSources || ['stash', 'github', 'bitbucket'];
   public displayText: any = {
