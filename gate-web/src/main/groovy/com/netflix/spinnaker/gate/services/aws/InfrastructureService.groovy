@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.aws
 
+import java.util.concurrent.Callable
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
@@ -32,8 +33,8 @@ class InfrastructureService {
   @Autowired
   ClouddriverService clouddriverService
 
-  private static <T extends List> HystrixCommand<T> command(String type, Closure<T> work) {
-    (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, work)
+  private static HystrixCommand<List> command(String type, Callable<List> work) {
+    (HystrixCommand<List>)HystrixFactory.newListCommand(GROUP, type, work)
   }
 
   List<Map> getInstanceTypes() {

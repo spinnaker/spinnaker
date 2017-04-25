@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services
 
+import java.util.concurrent.Callable
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
@@ -32,12 +33,12 @@ class NetworkService {
   @Autowired
   ClouddriverService clouddriverService
 
-  private static <T extends List> HystrixCommand<T> listCommand(String type, Closure<T> work) {
-    (HystrixCommand<T>)HystrixFactory.newListCommand(GROUP, type, work)
+  private static HystrixCommand<List> listCommand(String type, Callable<List> work) {
+    HystrixFactory.newListCommand(GROUP, type, work)
   }
 
-  private static <T extends Map> HystrixCommand<T> mapCommand(String type, Closure<T> work) {
-    (HystrixCommand<T>)HystrixFactory.newMapCommand(GROUP, type, work)
+  private static HystrixCommand<Map> mapCommand(String type, Callable<Map> work) {
+    HystrixFactory.newMapCommand(GROUP, type, work)
   }
 
   Map getNetworks() {

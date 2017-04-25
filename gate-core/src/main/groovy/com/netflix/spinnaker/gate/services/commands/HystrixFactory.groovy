@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.commands
 
+import java.util.concurrent.Callable
 import com.netflix.hystrix.HystrixCommandGroupKey
 import com.netflix.hystrix.HystrixCommandProperties
 import static com.netflix.spinnaker.security.AuthenticatedRequest.propagate
@@ -29,56 +30,56 @@ class HystrixFactory {
     HystrixCommandGroupKey.Factory.asKey(name)
   }
 
-  public static ListCommand newListCommand(String groupKey,
+  public static <T> ListCommand newListCommand(String groupKey,
                                            String commandKey,
-                                           Closure<? extends List> work,
-                                           Closure<? extends List> fallback = { null }) {
+                                           Callable<List<T>> work,
+                                           Callable<List<T>> fallback = { null }) {
     new ListCommand(groupKey, commandKey, propagate(work, false), fallback)
   }
 
-  public static MapCommand newMapCommand(String groupKey,
+  public static <K, V> MapCommand<K, V> newMapCommand(String groupKey,
                                          String commandKey,
-                                         Closure<? extends Map> work,
-                                         Closure<? extends Map> fallback = { null }) {
+                                         Callable<Map<K, V>> work,
+                                         Callable<Map<K, V>> fallback = { null }) {
     new MapCommand(groupKey, commandKey, propagate(work, false), fallback)
   }
 
   public static StringCommand newStringCommand(String groupKey,
                                         String commandKey,
-                                        Closure<? extends String> work,
-                                        Closure<? extends String> fallback = { null }) {
+                                        Callable<String> work,
+                                        Callable<String> fallback = { null }) {
 
     new StringCommand(groupKey, commandKey, propagate(work, false), fallback )
   }
 
   public static VoidCommand newVoidCommand(String groupKey,
                                         String commandKey,
-                                        Closure<?> work,
-                                        Closure<?> fallback = { null }) {
+                                        Callable<Void> work,
+                                        Callable<Void> fallback = { null }) {
 
     new VoidCommand(groupKey, commandKey, propagate(work, false), fallback )
   }
 
-  static class ListCommand extends AbstractHystrixCommand<List> {
-    ListCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
+  static class ListCommand<T> extends AbstractHystrixCommand<List<T>> {
+    ListCommand(String groupKey, String commandKey, Callable<List<T>> work, Callable<List<T>> fallback) {
       super(groupKey, commandKey, work, fallback)
     }
   }
 
-  static class MapCommand extends AbstractHystrixCommand<Map> {
-    MapCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
+  static class MapCommand<K, V> extends AbstractHystrixCommand<Map<K, V>> {
+    MapCommand(String groupKey, String commandKey, Callable<Map<K, V>> work, Callable<Map<K, V>> fallback) {
       super(groupKey, commandKey, work, fallback)
     }
   }
 
   static class StringCommand extends AbstractHystrixCommand<String> {
-    StringCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
+    StringCommand(String groupKey, String commandKey, Callable<String> work, Callable<String> fallback) {
       super(groupKey, commandKey, work, fallback)
     }
   }
 
   static class VoidCommand extends AbstractHystrixCommand<Void> {
-    VoidCommand(String groupKey, String commandKey, Closure work, Closure fallback) {
+    VoidCommand(String groupKey, String commandKey, Callable<Void> work, Callable<Void> fallback) {
       super(groupKey, commandKey, work, fallback)
     }
   }

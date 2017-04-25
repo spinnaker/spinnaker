@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.commands
 
+import java.util.concurrent.Callable
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.hystrix.HystrixCommandKey
 import com.netflix.spinnaker.gate.retrofit.UpstreamBadRequest
@@ -23,10 +24,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.http.HttpStatus
 import retrofit.RetrofitError
-
 import static HystrixFactory.createHystrixCommandPropertiesSetter
 import static HystrixFactory.toGroupKey
-import static retrofit.RetrofitError.Kind.HTTP
 
 @Slf4j
 @CompileStatic
@@ -35,13 +34,13 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
   private final String groupKey
   private final String commandKey
 
-  protected final Closure work
-  protected final Closure fallback
+  protected final Callable<T> work
+  protected final Callable<T> fallback
 
   public AbstractHystrixCommand(String groupKey,
                                 String commandKey,
-                                Closure work,
-                                Closure fallback) {
+                                Callable<T> work,
+                                Callable<T> fallback) {
     super(HystrixCommand.Setter.withGroupKey(toGroupKey(groupKey))
         .andCommandKey(HystrixCommandKey.Factory.asKey(commandKey))
         .andCommandPropertiesDefaults(createHystrixCommandPropertiesSetter()))
@@ -54,14 +53,14 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
   @Override
   protected T run() throws Exception {
     try {
-      return work()
+      return work.call()
     } catch (RetrofitError error) {
       throw UpstreamBadRequest.classifyError(error, HttpStatus.values().findAll { it.is4xxClientError() }*.value() as Collection<Integer>)
     }
   }
 
   protected T getFallback() {
-    return (fallback.call() as T)
+    return fallback.call()
   }
 
   @Override
