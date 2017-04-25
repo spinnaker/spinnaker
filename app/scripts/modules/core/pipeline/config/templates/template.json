@@ -1,0 +1,206 @@
+{
+  "schema": "1",
+  "id": "mergedTemplate",
+  "source": "https://raw.githubusercontent.com/robzienert/pipeline-templates/master/netflix/spinnaker/deployToEnvRoot.yml",
+  "metadata": {
+    "name": "Deploy to Target Env from Image Tags",
+    "description": "Defines a deploy pipeline to a target account, sourcing the deployment\nartifact from an find image from tags stage.",
+    "owner": "example@example.com"
+  },
+  "protect": false,
+  "variables": [
+    {
+      "name": "targetCredentials",
+      "group": "Basic Settings",
+      "description": "The account credentials where the application will be deployed to",
+      "type": "string",
+      "defaultValue": "mgmt",
+      "example": null
+    },
+    {
+      "name": "clusters",
+      "group": "Basic Settings",
+      "description": "A list of cluster-specific configuration options",
+      "type": "object",
+      "defaultValue": null,
+      "example": "- name: orca-test\n  region: us-west-2\n  availabilityZones: [] # Omitted from example\n  capacity: 1\n  keyPair: example-keypair\n  loadBalancers:\n  - orca-test\n  securityGroups: [] # Omitted from example\n  strategy: highlander\n  instanceType: m3.xlarge\n"
+    },
+    {
+      "name": "deployToFailover",
+      "group": "Not Basic Settings",
+      "description": "Whether or not to deploy into the failover region.",
+      "type": "string",
+      "defaultValue": false,
+      "example": null
+    },
+    {
+      "name": "findImageRegion",
+      "group": "Ungrouped",
+      "description": "The region to find the AMI in",
+      "type": "string",
+      "defaultValue": null,
+      "example": null
+    }
+  ],
+  "configuration": {
+    "concurrentExecutions": {
+      "parallel": true,
+      "limitConcurrent": true
+    },
+    "triggers": null,
+    "parameters": null,
+    "notifications": null
+  },
+  "stages": [
+    {
+      "id": "manualJudgment",
+      "name": "Approve {{ targetCredentials }}",
+      "inject": null,
+      "dependsOn": [],
+      "type": "manualJudgment",
+      "config": {
+        "failPipeline": true,
+        "instructions": "Do you approve of this pipeline, which will push {{ application }} to {{ targetCredentials }}?",
+        "judgmentInputs": [],
+        "notifications": [
+          {
+            "address": "spinnaker",
+            "level": "stage",
+            "type": "slack",
+            "when": [
+              "manualJudgment"
+            ]
+          }
+        ],
+        "propagateAuthenticationContext": true,
+        "sendNotifications": true
+      },
+      "notifications": null,
+      "comments": null,
+      "when": null,
+      "inheritanceControl": null,
+      "requisiteStageRefIds": []
+    },
+    {
+      "id": "deploy",
+      "name": "Deploy",
+      "inject": null,
+      "dependsOn": [
+        "manualJudgment"
+      ],
+      "type": "deploy",
+      "config": {
+        "clusters": "{% for c in clusters %}\n- {% module deployCluster \n  account=targetCredentials,\n  cluster=c.name,\n  region=c.region,\n  availabilityZones=c.availabilityZones,\n  capacity=c.capacity,\n  keyPair=c.keyPair,\n  loadBalancers=c.loadBalancers,\n  securityGroups=c.securityGroups,\n  strategy=c.strategy,\n  instanceType=c.instanceType %}\n{% endfor %}\n"
+      },
+      "notifications": null,
+      "comments": null,
+      "when": null,
+      "inheritanceControl": null,
+      "requisiteStageRefIds": []
+    },
+    {
+      "id": "findImages",
+      "name": "Find Image from Tags",
+      "inject": {
+        "first": true,
+        "last": false,
+        "before": null,
+        "after": null
+      },
+      "dependsOn": [],
+      "type": "findImageFromTags",
+      "config": {
+        "cloudProvider": "aws",
+        "cloudProviderType": "aws",
+        "packageName": "{{ application }}",
+        "regions": [
+          "{{ findImageRegion }}"
+        ],
+        "tags": {
+          "stack": "test"
+        }
+      },
+      "notifications": null,
+      "comments": null,
+      "when": null,
+      "inheritanceControl": null,
+      "requisiteStageRefIds": []
+    }
+  ],
+  "modules": [
+    {
+      "id": "deployCluster",
+      "usage": null,
+      "variables": [
+        {
+          "name": "account"
+        },
+        {
+          "name": "cluster"
+        },
+        {
+          "name": "region"
+        },
+        {
+          "name": "availabilityZones",
+          "type": "list"
+        },
+        {
+          "name": "capacity"
+        },
+        {
+          "name": "keyPair"
+        },
+        {
+          "name": "loadBalancers",
+          "type": "list"
+        },
+        {
+          "name": "securityGroups",
+          "type": "list"
+        },
+        {
+          "name": "strategy"
+        },
+        {
+          "name": "instanceType"
+        }
+      ],
+      "definition": {
+        "account": "{{ account }}",
+        "application": "{{ application }}",
+        "availabilityZones": "{{ region }}:\n{% for az in availabilityZones %}\n- {{ az }}\n{% endfor %}\n",
+        "capacity": {
+          "desired": "{{ capacity }}",
+          "max": "{{ capacity }}",
+          "min": "{{ capacity }}"
+        },
+        "cloudProvider": "aws",
+        "cooldown": 300,
+        "ebsOptimized": false,
+        "freeFormDetails": "{{ cluster|frigga('detail') }}",
+        "healthCheckGracePeriod": 0,
+        "healthCheckType": "EC2",
+        "iamRole": "{{ application }}ExampleRole",
+        "instanceMonitoring": true,
+        "instanceType": "{{ instanceType }}",
+        "keyPair": "{{ keyPair }}",
+        "loadBalancers": "{% for lb in loadBalancers %}\n- {{ lb }}\n{% endfor %}\n",
+        "maxRemainingAsgs": "{% if application == 'orca' %}3{% else %}1{% endif %}",
+        "provider": "aws",
+        "securityGroups": "{% for sg in securityGroups %}\n- {{ sg }}\n{% endfor %}\n",
+        "stack": "{{ cluster|frigga('stack') }}",
+        "strategy": "{{ strategy }}",
+        "subnetType": "example",
+        "suspendedProcesses": [],
+        "tags": {},
+        "targetHealthyDeployPercentage": 100,
+        "terminationPolicies": [
+          "Default"
+        ],
+        "useSourceCapacity": false
+      }
+    }
+  ],
+  "schemaVersion": "1"
+}

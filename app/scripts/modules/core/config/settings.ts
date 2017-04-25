@@ -35,6 +35,7 @@ export interface IFeatures {
   jobs?: boolean;
   snapshots?: boolean;
   dockerBake?: boolean;
+  pipelineTemplates?: boolean;
   [key: string]: any;
 }
 

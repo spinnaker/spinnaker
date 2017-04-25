@@ -21,6 +21,7 @@ import {UNMATCHED_STAGE_TYPE_STAGE} from './pipeline/config/stages/unmatchedStag
 import {SETTINGS} from 'core/config/settings';
 import {INSIGHT_NGMODULE} from './insight/insight.module';
 import {REPLACE_FILTER} from './filter/replace.filter';
+import {CONFIGURE_PIPELINE_TEMPLATE_MODAL} from './pipeline/config/templates/configurePipelineTemplateModal.component';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -68,6 +69,7 @@ module.exports = angular
     require('./cache/caches.module.js'),
     CANCEL_MODAL_SERVICE,
     CLOUD_PROVIDER_LOGO,
+    CONFIGURE_PIPELINE_TEMPLATE_MODAL,
     CORE_DIFF_MODULE,
     require('./cloudProvider/cloudProviderLabel.directive.js'),
     require('./cloudProvider/serviceDelegate.service.js'),
