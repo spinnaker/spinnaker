@@ -9,6 +9,7 @@
 package com.netflix.spinnaker.clouddriver.oraclebmcs.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.model.Instance
@@ -18,6 +19,7 @@ import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAcco
 import groovy.transform.Canonical
 
 @Canonical
+@JsonIgnoreProperties(ignoreUnknown = true)
 class OracleBMCSServerGroup {
 
   String name
