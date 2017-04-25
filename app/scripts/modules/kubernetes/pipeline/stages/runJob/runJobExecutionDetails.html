@@ -9,7 +9,12 @@
           <dt>Namespace</dt>
           <dd>{{stage.context.namespace}}</dd>
           <dt>Image</dt>
-          <dd>{{[stage.context.container.imageDescription.repository, stage.context.container.imageDescription.tag].join(':')}}</dd>
+          <dd ng-if="!stage.context.container.imageDescription.fromTrigger">
+            {{[stage.context.container.imageDescription.repository, stage.context.container.imageDescription.tag].join(':')}}
+          </dd>
+          <dd ng-if="stage.context.container.imageDescription.fromTrigger">
+            {{[stage.context.container.imageDescription.repository, execution.trigger.tag].join(':')}}
+          </dd>
         </dl>
       </div>
     </div>

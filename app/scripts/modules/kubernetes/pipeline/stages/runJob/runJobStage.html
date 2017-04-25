@@ -19,17 +19,43 @@
   </stage-config-field>
 
   <stage-config-field label="Image">
-    <docker-image-and-tag-selector
-      specify-tag-by-regex="false"
-      account="ctrl.stage.container.imageDescription.account"
-      organization="ctrl.stage.container.imageDescription.organization"
-      registry="ctrl.stage.container.imageDescription.registry"
-      repository="ctrl.stage.container.imageDescription.repository"
-      tag="ctrl.stage.container.imageDescription.tag"
-      show-registry="true"
-      on-change="ctrl.onChange"></docker-image-and-tag-selector>
+    <div class="form-group" ng-if="ctrl.hasDockerPipelineTriggers()">
+      <div>
+        <label class="sm-label">
+          Resolve from Trigger
+        </label>
+        <input type="checkbox"
+               style="margin-left: 20px"
+               ng-model="ctrl.stage.container.imageDescription.fromTrigger"/>
+      </div>
+    </div>
+    <div ng-if="!ctrl.stage.container.imageDescription.fromTrigger">
+      <docker-image-and-tag-selector
+        specify-tag-by-regex="false"
+        account="ctrl.stage.container.imageDescription.account"
+        organization="ctrl.stage.container.imageDescription.organization"
+        registry="ctrl.stage.container.imageDescription.registry"
+        repository="ctrl.stage.container.imageDescription.repository"
+        tag="ctrl.stage.container.imageDescription.tag"
+        show-registry="true"
+        on-change="ctrl.onChange"></docker-image-and-tag-selector>
+    </div>
+    <div ng-if="ctrl.stage.container.imageDescription.fromTrigger" class="form-group">
+        <div class="sm-label-right col-md-3">
+        Trigger
+        </div>
+        <div class="col-md-9">
+          <ui-select ng-model="ctrl.container"
+                    class="form-control input-sm"
+                    ng-change="ctrl.updateContainerImage()" required>
+            <ui-select-match>{{ctrl.container}}</ui-select-match>
+            <ui-select-choices repeat="image in ctrl.triggerImages() | filter: $select.search | orderBy">
+              <span ng-bind-html="image | highlight: $select.search"></span>
+            </ui-select-choices>
+          </ui-select>
+        </div>
+    </div>
   </stage-config-field>
-
   <stage-config-field label="Commands" help-key="kubernetes.containers.command">
     <kubernetes-container-commands commands="ctrl.stage.container.command">
     </kubernetes-container-commands>
