@@ -122,7 +122,7 @@ abstract public class ProfileFactory {
       } catch (IllegalAccessException e) {
         throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
       } catch (IOException e) {
-        throw new HalException(new ProblemBuilder(FATAL, "Failed to backup user file: " + e.getMessage()).build());
+        throw new HalException(FATAL, "Failed to backup user file: " + e.getMessage(), e);
       } finally {
         f.setAccessible(false);
       }

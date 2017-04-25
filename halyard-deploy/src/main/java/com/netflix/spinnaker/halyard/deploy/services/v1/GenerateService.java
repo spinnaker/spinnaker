@@ -117,6 +117,7 @@ public class GenerateService {
         continue;
       }
 
+      DaemonTaskHandler.message("Building profiles for " + service.getCanonicalName());
       List<Profile> profiles = service.getProfiles(deploymentConfiguration, runtimeSettings);
 
       String pluralModifier = profiles.size() == 1 ? "" : "s";
