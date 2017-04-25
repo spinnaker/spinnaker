@@ -23,8 +23,10 @@ import com.netflix.spinnaker.clouddriver.consul.config.ConsulConfig
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulHealth
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulService
+import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 
+@Slf4j
 class ConsulProviderUtils {
   static ConsulNode getHealths(ConsulConfig config, String agent) {
     def healths = []
@@ -39,6 +41,8 @@ class ConsulProviderUtils {
       } ?: []
       running = true
     } catch (RetrofitError e) {
+      // Instance can't be connected to on hostname:port/v1/agent/checks
+      log.debug(e)
     }
     return new ConsulNode(healths: healths, running: running, services: services)
   }
