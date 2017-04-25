@@ -22,7 +22,7 @@ def read_secret(address, name):
         secret_data = json.loads(subprocess.check_output(["vault", "read", 
             "-address", address, 
             "-format", "json",
-            "secret/spinnaker/{}".format(name)])
+            "secret/{}".format(name)])
         )
     except Exception as err:
         logging.fatal("Failed to load secret {name}: {err}".format(
@@ -83,7 +83,7 @@ def main():
 
         dir_name = os.path.dirname(file_name)
         if not os.path.isdir(dir_name):
-            os.mkdirs(dir_name)
+            mkdirs(dir_name)
 
         os.chown(dir_name, spinnaker_user, spinnaker_group)
 
