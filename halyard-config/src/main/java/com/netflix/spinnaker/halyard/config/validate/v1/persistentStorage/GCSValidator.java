@@ -19,11 +19,8 @@ package com.netflix.spinnaker.halyard.config.validate.v1.persistentStorage;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.GcsStorageService;
 import com.netflix.spinnaker.front50.model.StorageService;
-import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
@@ -40,23 +37,12 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
 
   @Override
   public void validate(ConfigProblemSetBuilder ps, GcsPersistentStore n) {
-    String accountName = n.getAccountName();
-
-    String deploymentName = n.parentOfType(DeploymentConfiguration.class).getName();
-    CommonGoogleAccount account;
-    try {
-      account = (CommonGoogleAccount) accountService.getProviderAccount(deploymentName, "google", accountName);
-    } catch (ConfigNotFoundException e) {
-      ps.addProblem(Severity.ERROR, "You must specify a valid Google account to use GCS as a persistent object store.", "accountName");
-      return;
-    }
-
-    String jsonPath = account.getJsonPath();
+    String jsonPath = n.getJsonPath();
     StorageService storageService = new GcsStorageService(
         n.getBucket(),
-        n.getLocation(),
+        n.getBucketLocation(),
         n.getRootFolder(),
-        account.getProject(),
+        n.getProject(),
         jsonPath != null ? jsonPath : "",
         "halyard",
         registry);

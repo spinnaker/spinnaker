@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.gc
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
@@ -32,12 +33,17 @@ public class GcsEditCommand extends AbstractPersistentStoreEditCommand<GcsPersis
   }
 
   @Parameter(
-      names = "--account-name",
-      description = "The Spinnaker account that has access to a GCS bucket. This account "
-          + "does _not_ have to be separate from the accounts used to manage/deploy infrastructure, but "
-          + "it can be."
+      names = "--project",
+      description = "The Google Cloud Platform project you are using to host the GCS bucket as a backing store."
   )
-  private String accountName;
+  private String project;
+
+  @Parameter(
+      names = "--json-path",
+      converter = PathExpandingConverter.class,
+      description = "A path to a JSON service account with permission to read and write to the bucket to be used as a backing store."
+  )
+  private String jsonPath;
 
   @Parameter(
       names = "--bucket",
@@ -54,18 +60,19 @@ public class GcsEditCommand extends AbstractPersistentStoreEditCommand<GcsPersis
   private String rootFolder = "spinnaker";
 
   @Parameter(
-      names = "--location",
+      names = "--bucket-location",
       description = "This is only required if the bucket you specify doesn't exist yet. In that case, the "
-          + "bucket will be created in that location."
+          + "bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location."
   )
-  private String location;
+  private String bucketLocation;
 
   @Override
   protected GcsPersistentStore editPersistentStore(GcsPersistentStore persistentStore) {
-    persistentStore.setAccountName(isSet(accountName) ? accountName : persistentStore.getAccountName());
+    persistentStore.setProject(isSet(project) ? project : persistentStore.getProject());
+    persistentStore.setJsonPath(isSet(jsonPath) ? jsonPath : persistentStore.getJsonPath());
     persistentStore.setBucket(isSet(bucket) ? bucket : persistentStore.getBucket());
     persistentStore.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStore.getRootFolder());
-    persistentStore.setLocation(isSet(location) ? location : persistentStore.getLocation());
+    persistentStore.setBucketLocation(isSet(bucketLocation) ? bucketLocation : persistentStore.getBucketLocation());
 
     if (persistentStore.getBucket() == null) {
       String bucketName = "spin-" + UUID.randomUUID().toString();

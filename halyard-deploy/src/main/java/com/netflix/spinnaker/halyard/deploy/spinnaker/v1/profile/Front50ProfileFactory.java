@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,9 +46,8 @@ public class Front50ProfileFactory extends SpringProfileFactory {
 
   @Override
   public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    String deploymentName = deploymentConfiguration.getName();
-
     PersistentStorage persistentStorage = deploymentConfiguration.getPersistentStorage();
+    List<String> files = processRequiredFiles(persistentStorage);
     Map persistentStorageMap = objectMapper.convertValue(persistentStorage, Map.class);
     persistentStorageMap.remove("persistentStoreType");
 
@@ -60,37 +60,16 @@ public class Front50ProfileFactory extends SpringProfileFactory {
         PersistentStore.PersistentStoreType persistentStoreType = persistentStore.persistentStoreType();
         Map persistentStoreMap = (Map) persistentStorageMap.get(persistentStoreType.getId());
         persistentStoreMap.put("enabled", persistentStoreType.getId().equalsIgnoreCase(persistentStorage.getPersistentStoreType()));
-
-        if (persistentStore instanceof GcsPersistentStore) {
-          String accountName = ((GcsPersistentStore) persistentStore).getAccountName();
-
-          String project = null;
-          String jsonPath = null;
-          if (accountName != null && !accountName.isEmpty()) {
-            CommonGoogleAccount account;
-            try {
-              account = (CommonGoogleAccount) accountService.getProviderAccount(deploymentName, "google", accountName);
-            } catch (ConfigNotFoundException e) {
-              throw new RuntimeException("Validation failure: GcsPersistentStore specified a Google account \"" + accountName + "\" that could not be found.");
-            }
-
-            project = account.getProject();
-            jsonPath = account.getJsonPath();
-          }
-
-          persistentStoreMap.put("project", project);
-          persistentStoreMap.put("jsonPath", jsonPath);
-          persistentStoreMap.remove("accountName");
-          persistentStoreMap.remove("location");
-        }
       }
 
       child = children.getNext();
     }
 
+    Map<String, Object> spinnakerObjectMap = new HashMap<>();
+    spinnakerObjectMap.put("spinnaker", persistentStorageMap);
+
     super.setProfile(profile, deploymentConfiguration, endpoints);
-    List<String> files = processRequiredFiles(persistentStorage);
-    profile.appendContents(yamlToString(persistentStorageMap))
+    profile.appendContents(yamlToString(spinnakerObjectMap))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }

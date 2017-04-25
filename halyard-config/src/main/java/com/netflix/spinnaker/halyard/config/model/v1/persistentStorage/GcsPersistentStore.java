@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.persistentStorage;
 
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -25,10 +26,11 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class GcsPersistentStore extends PersistentStore {
-  private String accountName;
+  @LocalFile private String jsonPath;
+  private String project;
   private String bucket;
   private String rootFolder;
-  private String location;
+  private String bucketLocation;
 
   @Override
   public PersistentStoreType persistentStoreType() {

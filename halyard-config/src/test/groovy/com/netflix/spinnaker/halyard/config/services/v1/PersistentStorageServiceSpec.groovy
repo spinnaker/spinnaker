@@ -21,7 +21,7 @@ import spock.lang.Specification
 
 class PersistentStorageServiceSpec extends Specification {
   final String DEPLOYMENT = "default"
-  final String ACCOUNT_NAME = "my-account"
+  final String PROJECT = "my-project"
   final String STORE_NAME = "gcs"
   final HalconfigParserMocker mocker = new HalconfigParserMocker()
 
@@ -110,7 +110,7 @@ deploymentConfigurations:
   providers: null
   persistentStorage:
     $STORE_NAME:
-      accountName: $ACCOUNT_NAME
+      project: $PROJECT
 """
     def persistentStorageService = makePersistentStorageService(config)
 
@@ -119,7 +119,7 @@ deploymentConfigurations:
 
     then:
     result != null
-    result.accountName == ACCOUNT_NAME
+    result.project == PROJECT
   }
 
   def "load a non-existent persistentStore node"() {
