@@ -72,7 +72,7 @@ public abstract class BaseProvider<R extends Resource> implements ResourceProvid
     try {
       return ImmutableSet.copyOf(cache.get(CACHE_KEY, this::loadAll));
     } catch (ExecutionException | UncheckedExecutionException e) {
-      throw new ProviderException(e.getCause());
+      throw new ProviderException(this.getClass(), e.getCause());
     }
   }
 

@@ -18,22 +18,15 @@ package com.netflix.spinnaker.fiat.providers;
 
 public class ProviderException extends RuntimeException {
 
-  public ProviderException() {
-  }
+  private Class provider;
 
-  public ProviderException(String message) {
-    super(message);
-  }
-
-  public ProviderException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public ProviderException(Throwable cause) {
+  public ProviderException(Class provider, Throwable cause) {
     super(cause);
+    this.provider = provider;
   }
 
-  public ProviderException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
+  @Override
+  public String getMessage() {
+    return "(Provider: " + provider.getSimpleName() + ") " + super.getMessage();
   }
 }
