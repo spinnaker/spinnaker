@@ -32,7 +32,7 @@ export interface ITag {
   commitId: string;
 }
 
-export class ScmReadService {
+export class ScmReader {
 
   static get $inject() { return ['API']; }
   constructor(private API: Api) {}
@@ -58,5 +58,5 @@ export class ScmReadService {
   }
 }
 
-export const SCM_SERVICE = 'spinnaker.netflix.ci.scm.read.service';
-module(SCM_SERVICE, [API_SERVICE]).service('scmReader', ScmReadService);
+export const SCM_READ_SERVICE = 'spinnaker.netflix.ci.scm.read.service';
+module(SCM_READ_SERVICE, [API_SERVICE]).service('scmReader', ScmReader);

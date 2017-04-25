@@ -1,5 +1,5 @@
 import {IComponentController, IComponentOptions, module} from 'angular';
-import {IBranch, ScmReadService, SCM_SERVICE, ITag, ICommit} from '../services/scm.read.service';
+import {IBranch, ScmReader, SCM_READ_SERVICE, ITag, ICommit} from '../services/scm.read.service';
 import {IGitTrigger} from 'core/domain/ITrigger';
 
 interface IViewState {
@@ -32,7 +32,7 @@ class NetflixCiTriggerHandlerController implements IComponentController {
   public buildSources = ['branch', 'commit', 'tag'];
 
   static get $inject() { return ['scmReader']; }
-  constructor(private scmReader: ScmReadService) {}
+  constructor(private scmReader: ScmReader) {}
 
   public $onInit(): void {
     const trigger: IGitTrigger = this.command.trigger;
@@ -145,6 +145,6 @@ class NetflixCiTriggerHandlerComponent implements IComponentOptions {
 
 export const NETFLIX_CI_TRIGGER_HANDLER_COMPONENT = 'spinnaker.netflix.ci.trigger.handler.component';
 module(NETFLIX_CI_TRIGGER_HANDLER_COMPONENT, [
-  SCM_SERVICE,
+  SCM_READ_SERVICE,
 ])
   .component('netflixCiTriggerHandler', new NetflixCiTriggerHandlerComponent());

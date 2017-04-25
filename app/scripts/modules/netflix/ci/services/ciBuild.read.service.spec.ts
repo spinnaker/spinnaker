@@ -2,7 +2,7 @@ import * as moment from 'moment';
 import {IHttpBackendService, mock} from 'angular';
 
 import {SETTINGS} from 'core/config/settings';
-import {Api, API_SERVICE} from 'core/api/api.service';
+import {API_SERVICE} from 'core/api/api.service';
 import {
   CI_BUILD_READ_SERVICE, CiBuildReader, ICiBuild
 } from 'netflix/ci/services/ciBuild.read.service';
@@ -12,15 +12,12 @@ describe('CiBuildReader', () => {
 
   const CI_BUILD_URL = `${SETTINGS.gateUrl}/ci/builds`;
   let $http: IHttpBackendService;
-  let API: Api;
   let ciBuildReader: CiBuildReader;
 
   beforeEach(mock.module(API_SERVICE, CI_BUILD_READ_SERVICE));
   beforeEach(mock.inject((_$httpBackend_: IHttpBackendService,
-                          _API_: Api,
                           _ciBuildReader_: CiBuildReader) => {
     $http = _$httpBackend_;
-    API = _API_;
     ciBuildReader = _ciBuildReader_;
   }));
 
