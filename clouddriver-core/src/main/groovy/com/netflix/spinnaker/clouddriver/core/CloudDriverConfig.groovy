@@ -62,6 +62,7 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -221,6 +222,7 @@ class CloudDriverConfig {
   }
 
   @Bean
+  @ConditionalOnProperty('redis.connection')
   CoreProvider coreProvider(JedisSource jedisSource, ApplicationContext applicationContext) {
     return new CoreProvider([
       new CleanupPendingOnDemandCachesAgent(jedisSource, applicationContext)
