@@ -49,7 +49,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     $scope.viewState = configViewStateCache.get(buildCacheKey()) || {
       section: 'triggers',
       stageIndex: 0,
-      saving: false,
     };
 
     let setOriginal = (pipeline) => $scope.viewState.original = angular.toJson(pipeline);
@@ -349,14 +348,13 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     function cacheViewState() {
-      var toCache = angular.copy($scope.viewState);
-      delete toCache.original;
+      const toCache = { section: $scope.viewState.section, stageIndex: $scope.viewState.stageIndex };
       configViewStateCache.put(buildCacheKey(), toCache);
     }
 
     $scope.$watch('pipeline', markDirty, true);
     $scope.$watch('viewState.original', markDirty);
-    $scope.$watch('viewState', cacheViewState, true);
+    $scope.$watchGroup(['viewState.section', 'viewState.stageIndex'], cacheViewState);
 
     this.navigateTo({section: $scope.viewState.section, index: $scope.viewState.stageIndex});
 

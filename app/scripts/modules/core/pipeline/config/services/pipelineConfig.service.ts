@@ -21,7 +21,7 @@ export class PipelineConfigService {
                      private API: Api,
                      private authenticationService: AuthenticationService,
                      viewStateCache: ViewStateCacheService) {
-    this.configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 1 });
+    this.configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 2 });
   }
 
   private buildViewStateCacheKey(applicationName: string, pipelineName: string): string {
