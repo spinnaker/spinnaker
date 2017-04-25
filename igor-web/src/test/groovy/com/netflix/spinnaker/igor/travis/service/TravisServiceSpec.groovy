@@ -37,7 +37,7 @@ class TravisServiceSpec extends Specification{
 
     void setup() {
         client = Mock(TravisClient)
-        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', client, null)
+        service = new TravisService('travis-ci', 'http://my.travis.ci', 'someToken', client, null, Collections.emptyList())
 
         AccessToken accessToken = new AccessToken()
         accessToken.accessToken = "someToken"

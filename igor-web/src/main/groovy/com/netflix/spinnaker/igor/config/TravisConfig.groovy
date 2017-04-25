@@ -54,14 +54,14 @@ class TravisConfig {
             String travisName = "travis-${host.name}"
             log.info "bootstrapping ${host.address} as ${travisName}"
 
-            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, travisClient(host.address, igorConfigurationProperties.client.timeout), travisCache)]
+            [(travisName): travisService(travisName, host.baseUrl, host.githubToken, travisClient(host.address, igorConfigurationProperties.client.timeout), travisCache, travisProperties?.regexes)]
         })
         buildMasters.map.putAll travisMasters
         travisMasters
     }
 
-    static TravisService travisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache) {
-        return new TravisService(travisHostId, baseUrl, githubToken, travisClient, travisCache)
+    static TravisService travisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache, Iterable<String> artifactRexeges) {
+        return new TravisService(travisHostId, baseUrl, githubToken, travisClient, travisCache, artifactRexeges)
     }
 
     static TravisClient travisClient(String address, int timeout = 30000) {

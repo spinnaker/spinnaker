@@ -45,9 +45,15 @@ travis:
     baseUrl: https://travis-ci.org
     address: https://api.travis-ci.org
     githubToken: 6a7729bdba8c4f9abc58b175213d83f072d1d832
+  regexes:
+  - /Upload https?:\/\/.+\/(.+\.(deb|rpm))/
 ```
 
 Currently Travis is used within Spinnaker to trigger pipelines and provide artifact information for the bake stages.
+
+When parsing artifact information from Travis builds, Igor uses a default regex
+that will match on output from the `art` CLI tool.  Different regexes than the
+default may be configured using the `regexes` list.
 
 ## Git Repositories
 

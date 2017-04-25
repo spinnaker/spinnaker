@@ -54,15 +54,17 @@ class TravisService implements BuildService {
     final GithubAuth gitHubAuth
     final TravisClient travisClient
     final TravisCache travisCache
+    final private Set<String> artifactRegexes
     protected AccessToken accessToken
     private Accounts accounts
 
-    TravisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache) {
+    TravisService(String travisHostId, String baseUrl, String githubToken, TravisClient travisClient, TravisCache travisCache, Iterable<String> artifactRegexes) {
         this.groupKey     = "${travisHostId}"
         this.gitHubAuth   = new GithubAuth(githubToken)
         this.travisClient = travisClient
         this.baseUrl      = baseUrl
         this.travisCache  = travisCache
+        this.artifactRegexes = artifactRegexes == null ? Collections.EMPTY_LIST : new HashSet<>(artifactRegexes)
     }
 
     @Override
@@ -253,7 +255,7 @@ class TravisService implements BuildService {
 
     GenericBuild getGenericBuild(Build build, String repoSlug) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl)
-        genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build))
+        genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build), artifactRegexes)
         return genericBuild
     }
 

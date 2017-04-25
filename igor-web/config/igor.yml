@@ -19,12 +19,21 @@ endpoints.health.sensitive: false
 
 #travis:
 #  enabled: true
+#
 #  Repository sync makes a call to travis telling travis to sync repos against github.
 #  This makes new repos with builds in travis the github user has access to tracked by spinnaker.
 #  repositorySyncEnabled: true
+#
 #  Travis names are prefixed with travis- inside igor.
 #  masters:
 #    - name: ci # This will show as travis-ci inside spinnaker.
 #      baseUrl: https://travis-ci.org
 #      address: https://api.travis-ci.org
 #      githubToken: XXXXXX
+#
+#  Additional regexes to use when parsing build logs in search for uploaded
+#  artifacts, besides the default regexes which match on the output of the
+#  `art` CLI.  The provided example would match on the output from Gradle's
+#  maven-publish plugin.
+#  regexes:
+#  - Upload https?:\/\/.+\/(.+\.(deb|rpm))$

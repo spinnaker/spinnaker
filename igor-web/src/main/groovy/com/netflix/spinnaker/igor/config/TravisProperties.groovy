@@ -31,6 +31,9 @@ class TravisProperties {
     @Valid
     List<TravisHost> masters
 
+    @Valid
+    List<String> regexes
+
     static class TravisHost {
         @NotEmpty
         String name
