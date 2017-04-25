@@ -7,6 +7,7 @@ set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
 VERSION=""
+RELEASE_TRACK=nightly
 
 VAULT_VERSION=0.7.0
 VAULT_ARCH=linux_amd64
@@ -147,7 +148,7 @@ function add_apt_repositories() {
       echo "$gpg" | apt-key add -
     fi
   fi
-  echo "deb $REPOSITORY_URL $DISTRIB_CODENAME spinnaker" | tee /etc/apt/sources.list.d/spinnaker.list > /dev/null
+  echo "deb $REPOSITORY_URL ${DISTRIB_CODENAME}-${RELEASE_TRACK} spinnaker" | tee /etc/apt/sources.list.d/halyard.list > /dev/null
   # Java 8
   # https://launchpad.net/~openjdk-r/+archive/ubuntu/ppa
   add-apt-repository -y ppa:openjdk-r/ppa
@@ -188,10 +189,10 @@ function install_halyard() {
         version="${package}_${VERSION}_all.deb"
         debfile=$version
       else 
-        version=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
+        version=`curl $REPOSITORY_URL/dists/${DISTRIB_CODENAME}-${RELEASE_TRACK}/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $package | awk '{print $2}' | awk -F'/' '{print $NF}' | sort -t. -k 1,1n -k 2,2n -k 3,3n | tail -1`
         debfile=`echo $version | awk -F "/" '{print $NF}'`
       fi
-      filelocation=`curl $REPOSITORY_URL/dists/$DISTRIB_CODENAME/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $version | awk '{print $2}'`
+      filelocation=`curl $REPOSITORY_URL/dists/${DISTRIB_CODENAME}-${RELEASE_TRACK}/spinnaker/binary-amd64/Packages | grep "^Filename" | grep $version | awk '{print $2}'`
       curl -L -o /tmp/$debfile $REPOSITORY_URL/$filelocation
       dpkg -i /tmp/$debfile && rm -f /tmp/$debfile
     else
