@@ -481,6 +481,20 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> publishLatest(String latest) {
+    return () -> {
+      ResponseUnwrapper.get(getService().publishLatest(latest, ""));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> publishVersion(Versions.Version version) {
+    return () -> {
+      ResponseUnwrapper.get(getService().publishVersion(version));
+      return null;
+    };
+  }
+
   public static Supplier<Void> publishBom(String bomPath) {
     return () -> {
       ResponseUnwrapper.get(getService().publishBom(bomPath,""));

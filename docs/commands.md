@@ -4,6 +4,8 @@
  * [**hal admin publish**](#hal-admin-publish)
  * [**hal admin publish bom**](#hal-admin-publish-bom)
  * [**hal admin publish profile**](#hal-admin-publish-profile)
+ * [**hal admin publish version**](#hal-admin-publish-version)
+ * [**hal admin publish latest**](#hal-admin-publish-latest)
  * [**hal config**](#hal-config)
  * [**hal config features**](#hal-config-features)
  * [**hal config features edit**](#hal-config-features-edit)
@@ -161,7 +163,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 0.20.0-SNAPSHOT
+  Version: 1.0.0-SNAPSHOT
 
 If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
 
@@ -239,7 +241,9 @@ hal admin publish [subcommands]
 ```
 #### Subcommands
  * `bom`: Publish a Bill of Materials (BOM).
+ * `latest`: Publish a version of Spinnaker to the global versions.yml tracking file.
  * `profile`: Publish a base halconfig profile for a specific Spinnaker artifact.
+ * `version`: Publish a version of Spinnaker to the global versions.yml tracking file.
 
 ---
 ## hal admin publish bom
@@ -266,6 +270,29 @@ hal admin publish profile ARTIFACT-NAME [parameters]
 `ARTIFACT-NAME`: The name of the artifact whose profile is being published (e.g. clouddriver).
  * `--bom-path`: (*Required*) The path to the BOM owning the artifact to publish.
  * `--profile-path`: (*Required*) The path to the artifact profile to publish.
+
+---
+## hal admin publish version
+
+Publish a version of Spinnaker to the global versions.yml tracking file.
+
+#### Usage
+```
+hal admin publish version [parameters]
+```
+#### Parameters
+ * `--alias`: (*Required*) The alias this version of Spinnaker goes by.
+ * `--changelog`: (*Required*) A link to this Spinnaker release's changelog.
+
+---
+## hal admin publish latest
+
+Publish a version of Spinnaker to the global versions.yml tracking file.
+
+#### Usage
+```
+hal admin publish latest VERSION
+```
 
 ---
 ## hal config

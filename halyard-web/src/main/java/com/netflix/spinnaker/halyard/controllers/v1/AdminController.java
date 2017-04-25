@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -30,6 +31,31 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
   @Autowired
   ArtifactService artifactService;
+
+  @RequestMapping(value = "/publishLatest", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> publishLatest(
+      @RequestParam String latest,
+      @RequestBody String _ignored) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> {
+      artifactService.publishLatest(latest);
+      return null;
+    });
+
+    return DaemonTaskHandler.submitTask(builder::build, "Update the latest version");
+  }
+
+  @RequestMapping(value = "/publishVersion", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> publishVersion(
+      @RequestBody Versions.Version version) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> {
+      artifactService.publishVersion(version);
+      return null;
+    });
+
+    return DaemonTaskHandler.submitTask(builder::build, "Publish a new version");
+  }
 
   @RequestMapping(value = "/publishBom", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> publishBom(

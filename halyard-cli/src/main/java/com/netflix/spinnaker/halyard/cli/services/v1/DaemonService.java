@@ -449,4 +449,13 @@ public interface DaemonService {
   DaemonTask<Halconfig, Void> publishBom(
       @Query("bomPath") String bomPath,
       @Body String _ignore);
+
+  @PUT("/v1/admin/publishVersion")
+  DaemonTask<Halconfig, Void> publishVersion(
+      @Body Versions.Version version);
+
+  @PUT("/v1/admin/publishLatest")
+  DaemonTask<Halconfig, Void> publishLatest(
+      @Query("latest") String latest,
+      @Body String _ignore);
 }

@@ -84,6 +84,10 @@ public class WriteableProfileRegistry {
     writeTextObject(name, contents);
   }
 
+  public void writeVersions(String versions) {
+    writeTextObject("versions.yml", versions);
+  }
+
   private void writeTextObject(String name, String contents) {
     try {
       byte[] bytes = contents.getBytes();

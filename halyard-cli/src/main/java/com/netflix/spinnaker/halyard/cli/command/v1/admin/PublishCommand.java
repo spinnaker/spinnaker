@@ -33,7 +33,9 @@ public class PublishCommand extends NestableCommand {
   public PublishCommand() {
     super();
     registerSubcommand(new PublishBomCommand());
+    registerSubcommand(new PublishLatestCommand());
     registerSubcommand(new PublishProfileCommand());
+    registerSubcommand(new PublishVersionCommand());
   }
 
   @Override

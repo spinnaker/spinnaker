@@ -24,6 +24,8 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
 import com.netflix.spinnaker.halyard.core.registry.v1.WriteableProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
@@ -43,7 +47,7 @@ public class ArtifactService {
   WriteableProfileRegistry writeableProfileRegistry;
 
   @Autowired
-  Yaml yaml;
+  Yaml yamlParser;
 
   @Autowired
   StrictObjectMapper strictObjectMapper;
@@ -64,6 +68,43 @@ public class ArtifactService {
     return getBillOfMaterials(deploymentName).getArtifactVersion(artifact.getName());
   }
 
+  private void deleteVersion(Versions versionsCollection, String version) {
+    versionsCollection.setVersions(versionsCollection.getVersions()
+        .stream()
+        .filter(other -> !other.getVersion().equals(version))
+        .collect(Collectors.toList()));
+  }
+
+  public void publishVersion(Version version) {
+    if (writeableProfileRegistry == null) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+    }
+
+    Versions versionsCollection = versionsService.getVersions();
+    deleteVersion(versionsCollection, version.getVersion());
+    versionsCollection.getVersions().add(version);
+
+    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+  }
+
+  public void publishLatest(String latest) {
+    if (writeableProfileRegistry == null) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+    }
+
+    Versions versionsCollection = versionsService.getVersions();
+    boolean hasLatest = versionsCollection.getVersions().stream().anyMatch(v -> v.getVersion().equals(latest));
+    if (!hasLatest) {
+      throw new HalException(FATAL, "Version " + latest + " does not exist in the list of published versions");
+    }
+
+    versionsCollection.setLatest(latest);
+
+    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+  }
+
   public void writeBom(String bomPath) {
     if (writeableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
@@ -77,7 +118,7 @@ public class ArtifactService {
     try {
       bomContents = IOUtils.toString(new FileInputStream(bomPath));
       bom = strictObjectMapper.convertValue(
-          yaml.load(bomContents),
+          yamlParser.load(bomContents),
           BillOfMaterials.class);
       version = bom.getVersion();
     } catch (IOException e) {
@@ -105,7 +146,7 @@ public class ArtifactService {
 
     try {
       bom = strictObjectMapper.convertValue(
-          yaml.load(IOUtils.toString(new FileInputStream(bomPath))),
+          yamlParser.load(IOUtils.toString(new FileInputStream(bomPath))),
           BillOfMaterials.class);
     } catch (IOException e) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
