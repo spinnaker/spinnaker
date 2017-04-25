@@ -151,10 +151,12 @@ class TaskController {
   @RequestMapping(value = "/pipelines", method = RequestMethod.GET)
   List<Pipeline> listLatestPipelines(
     @RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
+    @RequestParam(value = "limit", required = false) Integer limit,
     @RequestParam(value = "statuses", required = false) String statuses) {
     statuses = statuses ?: ExecutionStatus.values()*.toString().join(",")
+    limit = limit ?: 1
     def executionCriteria = new ExecutionRepository.ExecutionCriteria(
-      limit: 1,
+      limit: limit,
       statuses: (statuses.split(",") as Collection)
     )
 
