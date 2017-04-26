@@ -88,15 +88,27 @@ class DependentPipelineStarter implements ApplicationContextAware {
 
     log.info('running pipeline {}:{}', pipelineConfig.id, json)
 
+    def pipeline
 
     log.debug("Source thread: MDC user: " + AuthenticatedRequest.getAuthenticationHeaders() +
                   ", principal: " + principal?.toString())
-    def runnable = AuthenticatedRequest.propagate({
+    def callable = AuthenticatedRequest.propagate({
       log.debug("Destination thread user: " + AuthenticatedRequest.getAuthenticationHeaders())
-      return pipelineLauncher().start(json)
-    } as Callable<Pipeline>, true, principal) as Callable<Pipeline>
+      pipeline = pipelineLauncher().start(json)
+    } as Callable<Void>, true, principal)
 
-    def pipeline = runnable.call()
+    //This needs to run in a separate thread to not bork the batch TransactionManager
+    //TODO(rfletcher) - should be safe to kill this off once nu-orca merges down
+    def t1 = Thread.start {
+      callable.call()
+    }
+
+    try {
+      t1.join()
+    } catch (InterruptedException e) {
+      e.printStackTrace()
+    }
+
     log.info('executing dependent pipeline {}', pipeline.id)
     return pipeline
   }
