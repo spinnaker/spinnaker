@@ -16,23 +16,25 @@
  * [**hal config security ui ssl edit**](#hal-config-security-ui-ssl-edit)
  * [**hal config security ui ssl enable**](#hal-config-security-ui-ssl-enable)
  * [**hal config security ui ssl disable**](#hal-config-security-ui-ssl-disable)
- * [**hal config security roles**](#hal-config-security-roles)
- * [**hal config security roles provider**](#hal-config-security-roles-provider)
- * [**hal config security roles provider google**](#hal-config-security-roles-provider-google)
- * [**hal config security roles provider google edit**](#hal-config-security-roles-provider-google-edit)
- * [**hal config security roles edit**](#hal-config-security-roles-edit)
- * [**hal config security roles enable**](#hal-config-security-roles-enable)
- * [**hal config security roles disable**](#hal-config-security-roles-disable)
  * [**hal config security api**](#hal-config-security-api)
  * [**hal config security api edit**](#hal-config-security-api-edit)
  * [**hal config security api ssl**](#hal-config-security-api-ssl)
  * [**hal config security api ssl edit**](#hal-config-security-api-ssl-edit)
  * [**hal config security api ssl enable**](#hal-config-security-api-ssl-enable)
  * [**hal config security api ssl disable**](#hal-config-security-api-ssl-disable)
- * [**hal config security oauth2**](#hal-config-security-oauth2)
- * [**hal config security oauth2 edit**](#hal-config-security-oauth2-edit)
- * [**hal config security oauth2 enable**](#hal-config-security-oauth2-enable)
- * [**hal config security oauth2 disable**](#hal-config-security-oauth2-disable)
+ * [**hal config security authn**](#hal-config-security-authn)
+ * [**hal config security authn oauth2**](#hal-config-security-authn-oauth2)
+ * [**hal config security authn oauth2 edit**](#hal-config-security-authn-oauth2-edit)
+ * [**hal config security authn oauth2 enable**](#hal-config-security-authn-oauth2-enable)
+ * [**hal config security authn oauth2 disable**](#hal-config-security-authn-oauth2-disable)
+ * [**hal config security authz**](#hal-config-security-authz)
+ * [**hal config security authz roles**](#hal-config-security-authz-roles)
+ * [**hal config security authz roles provider**](#hal-config-security-authz-roles-provider)
+ * [**hal config security authz roles provider google**](#hal-config-security-authz-roles-provider-google)
+ * [**hal config security authz roles provider google edit**](#hal-config-security-authz-roles-provider-google-edit)
+ * [**hal config security authz roles edit**](#hal-config-security-authz-roles-edit)
+ * [**hal config security authz roles enable**](#hal-config-security-authz-roles-enable)
+ * [**hal config security authz roles disable**](#hal-config-security-authz-roles-disable)
  * [**hal config provider**](#hal-config-provider)
  * [**hal config provider appengine**](#hal-config-provider-appengine)
  * [**hal config provider appengine disable**](#hal-config-provider-appengine-disable)
@@ -356,8 +358,8 @@ hal config security [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
  * `api`: Configure and view the API server's addressable URL and CORS policies.
- * `oauth2`: Configure the oauth2 method for authenticating.
- * `roles`: Configure authorization via a roles provider.
+ * `authn`: Configure your authentication settings for Spinnaker.
+ * `authz`: Configure your authorization settings for Spinnaker.
  * `ui`: Configure and view the UI server's addressable URL.
 
 ---
@@ -439,103 +441,6 @@ Disable SSL for the UI gateway.
 #### Usage
 ```
 hal config security ui ssl disable [parameters]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config security roles
-
-Configure authorization via a roles provider.
-
-#### Usage
-```
-hal config security roles [parameters] [subcommands]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
- * `disable`: Set Spinnaker's role-based authorization to disabled
- * `edit`: Edit your roles provider settings.
- * `enable`: Set Spinnaker's role-based authorization to enabled
- * `provider`: Configure a roles provider.
-
----
-## hal config security roles provider
-
-Configure a roles provider.
-
-#### Usage
-```
-hal config security roles provider [parameters] [subcommands]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
- * `google`: Configure the google role provider.
-
----
-## hal config security roles provider google
-
-Configure the google role provider.
-
-#### Usage
-```
-hal config security roles provider google [parameters] [subcommands]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
- * `edit`: Edit the google role provider.
-
----
-## hal config security roles provider google edit
-
-Edit the google role provider.
-
-#### Usage
-```
-hal config security roles provider google edit [parameters]
-```
-#### Parameters
- * `--admin-username`: Your role provider's admin username e.g. ttomsu@spinnaker-test.net
- * `--credential-path`: A path to a valid json service account that can authenticate against the Google role provider.
- * `--domain`: The domain your role provider is configured for e.g. spinnaker-test.net.
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config security roles edit
-
-Edit your roles provider settings.
-
-#### Usage
-```
-hal config security roles edit [parameters]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--type`: Set a roles provider type
-
----
-## hal config security roles enable
-
-Set Spinnaker's role-based authorization to enabled
-
-#### Usage
-```
-hal config security roles enable [parameters]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-
----
-## hal config security roles disable
-
-Set Spinnaker's role-based authorization to disabled
-
-#### Usage
-```
-hal config security roles disable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -630,13 +535,27 @@ hal config security api ssl disable [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
-## hal config security oauth2
+## hal config security authn
+
+This set of commands allows you to configure how users can authenticate against Spinnaker.
+
+#### Usage
+```
+hal config security authn [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `oauth2`: Configure the oauth2 method for authenticating.
+
+---
+## hal config security authn oauth2
 
 Configure the oauth2 method for authenticating.
 
 #### Usage
 ```
-hal config security oauth2 [parameters] [subcommands]
+hal config security authn oauth2 [parameters] [subcommands]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -646,13 +565,13 @@ hal config security oauth2 [parameters] [subcommands]
  * `enable`: Set the oauth2 method as enabled
 
 ---
-## hal config security oauth2 edit
+## hal config security authn oauth2 edit
 
 Edit the oauth2 authentication method.
 
 #### Usage
 ```
-hal config security oauth2 edit [parameters]
+hal config security authn oauth2 edit [parameters]
 ```
 #### Parameters
  * `--client-id`: The OAuth client ID you have configured with your OAuth provider.
@@ -662,25 +581,136 @@ hal config security oauth2 edit [parameters]
  * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
 
 ---
-## hal config security oauth2 enable
+## hal config security authn oauth2 enable
 
 Set the oauth2 method as enabled
 
 #### Usage
 ```
-hal config security oauth2 enable [parameters]
+hal config security authn oauth2 enable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
-## hal config security oauth2 disable
+## hal config security authn oauth2 disable
 
 Set the oauth2 method as disabled
 
 #### Usage
 ```
-hal config security oauth2 disable [parameters]
+hal config security authn oauth2 disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security authz
+
+This set of commands allows you to configure what resources users of Spinnaker can read and modify.
+
+#### Usage
+```
+hal config security authz [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `roles`: Configure authorization via a roles provider.
+
+---
+## hal config security authz roles
+
+Configure authorization via a roles provider.
+
+#### Usage
+```
+hal config security authz roles [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Set Spinnaker's role-based authorization to disabled
+ * `edit`: Edit your roles provider settings.
+ * `enable`: Set Spinnaker's role-based authorization to enabled
+ * `provider`: Configure a roles provider.
+
+---
+## hal config security authz roles provider
+
+Configure a roles provider.
+
+#### Usage
+```
+hal config security authz roles provider [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `google`: Configure the google role provider.
+
+---
+## hal config security authz roles provider google
+
+Configure the google role provider.
+
+#### Usage
+```
+hal config security authz roles provider google [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `edit`: Edit the google role provider.
+
+---
+## hal config security authz roles provider google edit
+
+Edit the google role provider.
+
+#### Usage
+```
+hal config security authz roles provider google edit [parameters]
+```
+#### Parameters
+ * `--admin-username`: Your role provider's admin username e.g. ttomsu@spinnaker-test.net
+ * `--credential-path`: A path to a valid json service account that can authenticate against the Google role provider.
+ * `--domain`: The domain your role provider is configured for e.g. spinnaker-test.net.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security authz roles edit
+
+Edit your roles provider settings.
+
+#### Usage
+```
+hal config security authz roles edit [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--type`: Set a roles provider type
+
+---
+## hal config security authz roles enable
+
+Set Spinnaker's role-based authorization to enabled
+
+#### Usage
+```
+hal config security authz roles enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security authz roles disable
+
+Set Spinnaker's role-based authorization to disabled
+
+#### Usage
+```
+hal config security authz roles disable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
