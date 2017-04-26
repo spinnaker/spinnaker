@@ -509,7 +509,7 @@ public abstract class NestableCommand {
     return null;
   }
 
-  private Map<String, NestableCommand> subcommands = new HashMap<>();
+  private Map<String, NestableCommand> subcommands = new TreeMap<>();
 
   protected void registerSubcommand(NestableCommand subcommand) {
     String subcommandName = subcommand.getCommandName();
