@@ -157,7 +157,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
         askForReason: true,
         platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
         platformHealthType: 'Openstack',
-        body: this.getBodyTemplate(serverGroup, app),
         onTaskComplete: () => {
           if ($state.includes('**.serverGroup', stateParams)) {
             $state.go('^');

@@ -59,8 +59,8 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
   }
 
   function updateDone() {
-    if( ctrl.backingCache && infrastructureCaches[ctrl.backingCache] ) {
-      coveredThreshold = infrastructureCaches[ctrl.backingCache].getStats().ageMax;
+    if( ctrl.backingCache && infrastructureCaches.get(ctrl.backingCache) ) {
+      coveredThreshold = infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
     }
     ctrl.updatingOptions = false;
   }
@@ -75,7 +75,7 @@ function SelectFieldController($scope, $element, $attrs, $timeout, $q, $rootScop
   }
 
   var stopWatchingRefreshTime = ctrl.backingCache ? $rootScope.$watch(function() {
-    return infrastructureCaches[ctrl.backingCache].getStats().ageMax;
+    return infrastructureCaches.get(ctrl.backingCache).getStats().ageMax;
   }, function(ageMax) {
     if (ageMax) {
       ctrl.lastRefresh = ageMax;
