@@ -56,7 +56,7 @@ interface Front50Service {
   List<EntityTags> getAllEntityTagsById(@Query("ids") List<String> entityIds)
 
   @GET('/v2/tags?prefix=')
-  Collection<EntityTags> getAllEntityTags()
+  Collection<EntityTags> getAllEntityTags(@Query("refresh") boolean refresh)
 
   @DELETE('/v2/tags/{id}')
   Response deleteEntityTags(@Path('id') String id)

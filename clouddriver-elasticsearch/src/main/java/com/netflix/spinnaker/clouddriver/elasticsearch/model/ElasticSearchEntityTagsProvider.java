@@ -254,7 +254,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
       throw new ElasticSearchException("Unable to re-create index '" + activeElasticSearchIndex + "'");
     }
 
-    Collection<EntityTags> entityTags = front50Service.getAllEntityTags();
+    Collection<EntityTags> entityTags = front50Service.getAllEntityTags(false);
 
     log.info("Indexing {} entity tags", entityTags.size());
     bulkIndex(
@@ -268,7 +268,7 @@ public class ElasticSearchEntityTagsProvider implements EntityTagsProvider {
 
   @Override
   public Map metadata() {
-    Collection<EntityTags> allEntityTagsFront50 = front50Service.getAllEntityTags();
+    Collection<EntityTags> allEntityTagsFront50 = front50Service.getAllEntityTags(false);
     Map<String, List<EntityTags>> entityTagsByEntityTypeFront50 = allEntityTagsFront50
       .stream()
       .collect(Collectors.groupingBy(e ->
