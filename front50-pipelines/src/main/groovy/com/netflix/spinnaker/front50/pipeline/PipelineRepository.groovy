@@ -89,9 +89,14 @@ class PipelineRepository implements PipelineDAO {
     }
 
     List<Pipeline> all() {
-        def result = runQuery("""SELECT id, name, definition FROM pipeline;""", true)
-        resolvePipelines(result)
+        return all(true)
     }
+
+  @Override
+  Collection<Pipeline> all(boolean refresh) {
+    def result = runQuery("""SELECT id, name, definition FROM pipeline;""", true)
+    resolvePipelines(result)
+  }
 
   @Override
   Collection<Pipeline> history(String id, int maxResults) {

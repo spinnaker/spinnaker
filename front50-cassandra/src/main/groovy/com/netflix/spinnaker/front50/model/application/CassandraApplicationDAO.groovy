@@ -107,6 +107,11 @@ class CassandraApplicationDAO implements ApplicationDAO {
 
   @Override
   Set<Application> all() {
+    return all(true)
+  }
+
+  @Override
+  Collection<Application> all(boolean refresh) {
     def applications = unmarshallResults(runQuery('SELECT * FROM application;'))
     if (!applications) {
       throw new NotFoundException("No applications available")

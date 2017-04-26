@@ -128,17 +128,25 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   }
 
   public Collection<T> all() {
-    long lastModified = readLastModified();
-    if (lastModified > lastRefreshedTime.get() || allItemsCache.get() == null) {
-        // only refresh if there was a modification since our last refresh cycle
-        log.debug("all() forcing refresh");
-        long startTime = System.nanoTime();
-        refresh();
-        long elapsed = System.nanoTime() - startTime;
-        autoRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
+    return all(true);
+  }
+
+  public Collection<T> all(boolean refresh) {
+    if (!refresh) {
+      return new ArrayList<>(allItemsCache.get());
     }
 
-    return allItemsCache.get().stream().collect(Collectors.toList());
+    long lastModified = readLastModified();
+    if (lastModified > lastRefreshedTime.get() || allItemsCache.get() == null) {
+      // only refresh if there was a modification since our last refresh cycle
+      log.debug("all() forcing refresh");
+      long startTime = System.nanoTime();
+      refresh();
+      long elapsed = System.nanoTime() - startTime;
+      autoRefreshTimer.record(elapsed, TimeUnit.NANOSECONDS);
+    }
+
+    return new ArrayList<>(allItemsCache.get());
   }
 
   public Collection<T> all(String prefix, int maxResults) {

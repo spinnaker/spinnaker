@@ -102,6 +102,11 @@ class CassandraProjectDAO implements ProjectDAO {
 
   @Override
   Set<Project> all() {
+    all(true)
+  }
+
+  @Override
+  Collection<Project> all(boolean refresh) {
     return unmarshallResults(runQuery('SELECT * FROM project;'))
   }
 

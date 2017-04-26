@@ -48,8 +48,13 @@ class RedisProjectDAO implements ProjectDAO {
 
   @Override
   Collection<Project> all() {
+    return all(true)
+  }
+
+  @Override
+  Collection<Project> all(boolean refresh) {
     redisTemplate.opsForHash().scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
-        .collect { it.value }
+      .collect { it.value }
   }
 
   @Override

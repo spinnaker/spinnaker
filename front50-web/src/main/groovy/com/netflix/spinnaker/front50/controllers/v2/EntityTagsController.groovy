@@ -46,7 +46,8 @@ class EntityTagsController {
 
   @RequestMapping(method = RequestMethod.GET)
   Set<EntityTags> tags(@RequestParam(value = "prefix", required = false) String prefix,
-                       @RequestParam(value = "ids", required = false) Collection<String> ids) {
+                       @RequestParam(value = "ids", required = false) Collection<String> ids,
+                       @RequestParam(value = "refresh", required = false) Boolean refresh) {
     if (prefix == null && !ids) {
       throw new BadRequestException("Either 'prefix' or 'ids' parameter is required")
     }
@@ -55,7 +56,8 @@ class EntityTagsController {
       return findAllByIds(ids)
     }
 
-    return taggedEntityDAO?.all()?.findAll { prefix ? it.id.startsWith(prefix) : true }
+    refresh = (refresh == null) ? true : refresh
+    return taggedEntityDAO?.all(refresh)?.findAll { prefix ? it.id.startsWith(prefix) : true }
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.GET)

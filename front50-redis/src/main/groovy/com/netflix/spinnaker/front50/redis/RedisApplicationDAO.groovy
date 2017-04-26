@@ -52,8 +52,13 @@ class RedisApplicationDAO implements ApplicationDAO {
 
   @Override
   Collection<Application> all() {
+    return all(true)
+  }
+
+  @Override
+  Collection<Application> all(boolean refresh) {
     def applications = redisTemplate.opsForHash().scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
-        .collect { it.value }
+      .collect { it.value }
 
     if (!applications) {
       throw new NotFoundException("No applications available")

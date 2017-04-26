@@ -22,6 +22,14 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 interface ItemDAO<T> {
   T findById(String id) throws NotFoundException
   Collection<T> all()
+
+  /**
+   * It can be expensive to refresh a bucket containing a large number of objects.
+   *
+   * When {@code refresh} is false, the most recently cached set of objects will be returned.
+   */
+  Collection<T> all(boolean refresh)
+
   Collection<T> history(String id, int maxResults)
 
   T create(String id, T item)

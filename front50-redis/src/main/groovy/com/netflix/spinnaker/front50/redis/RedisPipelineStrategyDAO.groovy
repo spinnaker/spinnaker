@@ -54,8 +54,13 @@ class RedisPipelineStrategyDAO implements PipelineStrategyDAO {
 
   @Override
   Collection<Pipeline> all() {
+    return all(true)
+  }
+
+  @Override
+  Collection<Pipeline> all(boolean refresh) {
     redisTemplate.opsForHash().scan(BOOK_KEEPING_KEY, ScanOptions.scanOptions().match('*').build())
-        .collect { it.value }
+      .collect { it.value }
   }
 
   @Override
