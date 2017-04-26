@@ -26,8 +26,10 @@ import com.netflix.spinnaker.front50.model.notification.DefaultNotificationDAO;
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO;
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import com.netflix.spinnaker.front50.model.project.DefaultProjectDAO;
 import com.netflix.spinnaker.front50.model.project.ProjectDAO;
 import com.netflix.spinnaker.front50.model.serviceaccount.DefaultServiceAccountDAO;
@@ -122,6 +124,18 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipeline().getThreadPool())),
       storageServiceConfigurationProperties.getPipeline().getRefreshMs(),
+      registry
+    );
+  }
+
+  @Bean
+  PipelineTemplateDAO pipelineTemplateDAO(StorageService storageService,
+                                          StorageServiceConfigurationProperties storageServiceConfigurationProperties,
+                                          Registry registry) {
+    return new DefaultPipelineTemplateDAO(
+      storageService,
+      Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipelineTemplate().getThreadPool())),
+      storageServiceConfigurationProperties.getPipelineTemplate().getRefreshMs(),
       registry
     );
   }

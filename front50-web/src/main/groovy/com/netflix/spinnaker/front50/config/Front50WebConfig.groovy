@@ -24,6 +24,8 @@ import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
+import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
+
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -80,6 +82,11 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   @Bean
   ItemDAOHealthIndicator pipelineDAOHealthIndicator(PipelineDAO pipelineDAO) {
     return new ItemDAOHealthIndicator(itemDAO: pipelineDAO)
+  }
+
+  @Bean
+  ItemDAOHealthIndicator pipelineTemplateDAOHealthIndicator(PipelineTemplateDAO pipelineTemplateDAO) {
+    return new ItemDAOHealthIndicator(itemDAO: pipelineTemplateDAO)
   }
 
   @Bean

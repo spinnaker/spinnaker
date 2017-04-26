@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.model;
 import com.netflix.spinnaker.front50.model.application.Application;
 import com.netflix.spinnaker.front50.model.notification.Notification;
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.project.Project;
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccount;
 import com.netflix.spinnaker.front50.model.snapshot.Snapshot;
@@ -28,6 +29,7 @@ public enum ObjectType {
   PROJECT(Project.class, "projects", "project-metadata.json"),
   PIPELINE(Pipeline.class, "pipelines", "pipeline-metadata.json"),
   STRATEGY(Pipeline.class, "pipeline-strategies", "pipeline-strategy-metadata.json"),
+  PIPELINE_TEMPLATE(PipelineTemplate.class, "pipeline-templates", "pipeline-template-metadata.json"),
   NOTIFICATION(Notification.class, "notifications", "notification-metadata.json"),
   SERVICE_ACCOUNT(ServiceAccount.class, "serviceAccounts", "serviceAccount-metadata.json"),
   APPLICATION(Application.class, "applications", "application-metadata.json"),

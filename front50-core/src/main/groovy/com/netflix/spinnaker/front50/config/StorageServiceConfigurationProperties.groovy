@@ -30,6 +30,7 @@ class StorageServiceConfigurationProperties {
   PerObjectType notification = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
   PerObjectType pipelineStrategy = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
   PerObjectType pipeline = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
+  PerObjectType pipelineTemplate = new PerObjectType(20, TimeUnit.MINUTES.toMillis(1))
   PerObjectType snapshot = new PerObjectType(2, TimeUnit.MINUTES.toMillis(1))
 
   // not commonly used outside of Netflix

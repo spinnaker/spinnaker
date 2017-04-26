@@ -19,6 +19,7 @@ package com.netflix.spinnaker.front50.redis
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate
 import com.netflix.spinnaker.front50.model.project.Project
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -52,6 +53,11 @@ class RedisConfig {
   @Bean
   RedisPipelineDAO redisPipelineDAO(RedisTemplate<String, Pipeline> template) {
     new RedisPipelineDAO(redisTemplate: template)
+  }
+
+  @Bean
+  RedisPipelineTemplateDAO redisPipelineTemplateDAO(RedisTemplate<String, PipelineTemplate> template) {
+    new RedisPipelineTemplateDAO(redisTemplate: template)
   }
 
   @Bean
