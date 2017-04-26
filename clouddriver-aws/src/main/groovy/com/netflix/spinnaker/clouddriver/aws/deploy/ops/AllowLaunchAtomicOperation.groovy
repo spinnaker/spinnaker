@@ -62,6 +62,13 @@ class AllowLaunchAtomicOperation implements AtomicOperation<ResolvedAmiResult> {
     def targetAmazonEC2 = amazonClientProvider.getAmazonEC2(targetCredentials, description.region, true)
 
     ResolvedAmiResult resolvedAmi = AmiIdResolver.resolveAmiIdFromAllSources(sourceAmazonEC2, description.region, description.amiName, description.credentials.accountId)
+    if (!resolvedAmi && targetCredentials.allowPrivateThirdPartyImages) {
+      resolvedAmi = AmiIdResolver.resolveAmiId(targetAmazonEC2, description.region, description.amiName)
+      if (resolvedAmi) {
+        task.updateStatus BASE_PHASE, "AMI appears to be from a private third-party, which is permitted on this target account: skipping allow launch"
+        return resolvedAmi
+      }
+    }
     if (!resolvedAmi) {
       throw new IllegalArgumentException("unable to resolve AMI imageId from '$description.amiName': If this is a private AMI owned by a third-party, you will need to contact them to share the AMI to your desired account(s)")
     }

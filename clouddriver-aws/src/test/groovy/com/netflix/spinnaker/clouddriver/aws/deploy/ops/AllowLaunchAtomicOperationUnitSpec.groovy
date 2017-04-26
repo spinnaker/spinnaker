@@ -15,15 +15,24 @@
  */
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops
+
 import com.amazonaws.services.ec2.AmazonEC2
-import com.amazonaws.services.ec2.model.*
+import com.amazonaws.services.ec2.model.CreateTagsRequest
+import com.amazonaws.services.ec2.model.DeleteTagsRequest
+import com.amazonaws.services.ec2.model.DescribeImagesRequest
+import com.amazonaws.services.ec2.model.DescribeImagesResult
+import com.amazonaws.services.ec2.model.DescribeTagsResult
+import com.amazonaws.services.ec2.model.Image
+import com.amazonaws.services.ec2.model.ModifyImageAttributeRequest
+import com.amazonaws.services.ec2.model.Tag
+import com.amazonaws.services.ec2.model.TagDescription
+import com.netflix.spinnaker.clouddriver.aws.TestCredential
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import com.netflix.spinnaker.clouddriver.aws.TestCredential
-import com.netflix.spinnaker.clouddriver.aws.deploy.description.AllowLaunchDescription
 import spock.lang.Specification
 
 class AllowLaunchAtomicOperationUnitSpec extends Specification {
@@ -252,6 +261,41 @@ class AllowLaunchAtomicOperationUnitSpec extends Specification {
 
     0 * _
 
+  }
+
+  void 'should return resolved third-party private AMI when account allows'() {
+    setup:
+    def sourceCredentials = TestCredential.named('source')
+    def targetCredentials = TestCredential.named('target', [allowPrivateThirdPartyImages: true])
+    def sourceAmazonEc2 = Mock(AmazonEC2)
+    def targetAmazonEc2 = Mock(AmazonEC2)
+
+    def description = new AllowLaunchDescription(account: 'target', amiName: 'ami-123456', region: 'us-west-2', credentials: sourceCredentials)
+    def op = new AllowLaunchAtomicOperation(description)
+    op.amazonClientProvider = Mock(AmazonClientProvider)
+    op.accountCredentialsProvider = Mock(AccountCredentialsProvider)
+
+    when:
+    op.operate([])
+
+    then:
+    with(op.accountCredentialsProvider) {
+      1 * getCredentials('target') >> targetCredentials
+    }
+    with(op.amazonClientProvider) {
+      1 * getAmazonEC2(targetCredentials, _, true) >> targetAmazonEc2
+      1 * getAmazonEC2(sourceCredentials, _, true) >> sourceAmazonEc2
+    }
+    with(sourceAmazonEc2) {
+      3 * describeImages(_) >> new DescribeImagesResult()
+    }
+    with(targetAmazonEc2) {
+      1 * describeImages(_) >> new DescribeImagesResult().withImages(
+        new Image()
+          .withImageId('ami-123456')
+          .withOwnerId('thirdparty')
+      )
+    }
   }
 
   Closure<DescribeTagsResult> constructDescribeTagsResult = { Map tags ->

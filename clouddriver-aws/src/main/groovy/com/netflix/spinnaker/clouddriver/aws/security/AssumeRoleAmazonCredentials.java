@@ -59,17 +59,18 @@ public class AssumeRoleAmazonCredentials extends AmazonCredentials {
                                        @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                                        @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
                                        @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
+                                       @JsonProperty("allowPrivateThirdPartyImages") boolean allowPrivateThirdPartyImages,
                                        @JsonProperty("assumeRole") String assumeRole,
                                        @JsonProperty("sessionName") String sessionName) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, null, assumeRole, sessionName);
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, allowPrivateThirdPartyImages, null, assumeRole, sessionName);
     }
 
     public AssumeRoleAmazonCredentials(AssumeRoleAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), copy.getLifecycleHooks(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
+        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), copy.getLifecycleHooks(), copy.getAllowPrivateThirdPartyImages(), credentialsProvider, copy.getAssumeRole(), copy.getSessionName());
     }
 
-    AssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> defaultSecurityGroups, List<String> requiredGroupMembership, List<LifecycleHook> lifecycleHooks, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
-        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
+    AssumeRoleAmazonCredentials(String name, String environment, String accountType, String accountId, String defaultKeyPair, List<AWSRegion> regions, List<String> defaultSecurityGroups, List<String> requiredGroupMembership, List<LifecycleHook> lifecycleHooks, boolean allowPrivateThirdPartyImages, AWSCredentialsProvider credentialsProvider, String assumeRole, String sessionName) {
+        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, allowPrivateThirdPartyImages, createSTSCredentialsProvider(credentialsProvider, accountId, assumeRole, sessionName == null ? DEFAULT_SESSION_NAME : sessionName));
         this.assumeRole = assumeRole;
         this.sessionName = sessionName == null ? DEFAULT_SESSION_NAME : sessionName;
     }

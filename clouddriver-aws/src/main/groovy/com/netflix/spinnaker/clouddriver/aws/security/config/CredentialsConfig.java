@@ -127,7 +127,6 @@ public class CredentialsConfig {
       public void setDefaultResult(String defaultResult) {
         this.defaultResult = defaultResult;
       }
-
     }
 
     public static class Account {
@@ -150,6 +149,7 @@ public class CredentialsConfig {
         private String assumeRole;
         private String sessionName;
         private List<LifecycleHook> lifecycleHooks;
+        private boolean allowPrivateThirdPartyImages;
 
         public String getName() {
             return name;
@@ -302,6 +302,14 @@ public class CredentialsConfig {
         public void setLifecycleHooks(List<LifecycleHook> lifecycleHooks) {
           this.lifecycleHooks = lifecycleHooks;
         }
+
+        public Boolean getAllowPrivateThirdPartyImages() {
+          return allowPrivateThirdPartyImages;
+        }
+
+        public void setAllowPrivateThirdPartyImages(Boolean allowPrivateThirdPartyImages) {
+          this.allowPrivateThirdPartyImages = allowPrivateThirdPartyImages;
+        }
     }
 
     private String defaultKeyPairTemplate;
@@ -343,7 +351,7 @@ public class CredentialsConfig {
         this.defaultSecurityGroups = defaultSecurityGroups;
     }
 
-  public String getDefaultEddaTemplate() {
+    public String getDefaultEddaTemplate() {
         return defaultEddaTemplate;
     }
 

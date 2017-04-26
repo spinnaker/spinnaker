@@ -49,6 +49,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
     private final List<AWSRegion> regions;
     private final List<String> defaultSecurityGroups;
     private final List<LifecycleHook> lifecycleHooks;
+    private final boolean allowPrivateThirdPartyImages;
     private final AWSCredentialsProvider credentialsProvider;
 
     public static AmazonCredentials fromAWSCredentials(String name, String environment, String accountType, AWSCredentialsProvider credentialsProvider, AmazonClientProvider amazonClientProvider) {
@@ -59,7 +60,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         AWSAccountInfoLookup lookup = new DefaultAWSAccountInfoLookup(credentialsProvider, amazonClientProvider);
         final String accountId = lookup.findAccountId();
         final List<AWSRegion> regions = lookup.listRegions();
-        return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, null, null, credentialsProvider);
+        return new AmazonCredentials(name, environment, accountType, accountId, defaultKeyPair, regions, null, null, null, false, credentialsProvider);
     }
 
     public AmazonCredentials(@JsonProperty("name") String name,
@@ -70,8 +71,9 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                              @JsonProperty("regions") List<AWSRegion> regions,
                              @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                              @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
-                             @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, null);
+                             @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
+                             @JsonProperty("allowPrivateThirdPartyImages") Boolean allowPrivateThirdPartyImages) {
+        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, allowPrivateThirdPartyImages, null);
     }
 
     public AmazonCredentials(AmazonCredentials source, AWSCredentialsProvider credentialsProvider) {
@@ -85,6 +87,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
             source.getDefaultSecurityGroups(),
             source.getRequiredGroupMembership(),
             source.getLifecycleHooks(),
+            source.getAllowPrivateThirdPartyImages(),
             credentialsProvider
         );
     }
@@ -98,6 +101,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
                       List<String> defaultSecurityGroups,
                       List<String> requiredGroupMembership,
                       List<LifecycleHook> lifecycleHooks,
+                      boolean allowPrivateThirdPartyImages,
                       AWSCredentialsProvider credentialsProvider) {
         this.name = requireNonNull(name, "name");
         this.environment = requireNonNull(environment, "environment");
@@ -108,6 +112,7 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
         this.defaultSecurityGroups = defaultSecurityGroups == null ? null : Collections.unmodifiableList(defaultSecurityGroups);
         this.requiredGroupMembership = requiredGroupMembership == null ? Collections.<String>emptyList() : Collections.unmodifiableList(requiredGroupMembership);
         this.lifecycleHooks = lifecycleHooks == null ? Collections.<LifecycleHook>emptyList() : Collections.unmodifiableList(lifecycleHooks);
+        this.allowPrivateThirdPartyImages = allowPrivateThirdPartyImages;
         this.credentialsProvider = credentialsProvider;
     }
 
@@ -145,6 +150,10 @@ public class AmazonCredentials implements AccountCredentials<AWSCredentials> {
 
     public List<LifecycleHook> getLifecycleHooks() {
       return lifecycleHooks;
+    }
+
+    public boolean getAllowPrivateThirdPartyImages() {
+      return allowPrivateThirdPartyImages;
     }
 
     @JsonIgnore
