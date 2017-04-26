@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulServerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,11 @@ public class GoogleConsulServerService extends ConsulServerService implements Go
 
   @Autowired
   GoogleVaultServerService vaultServerService;
+
+  @Override
+  public GoogleConsulServerService getConsulServerService() {
+    return this;
+  }
 
   @Autowired
   public List<String> getScopes() {

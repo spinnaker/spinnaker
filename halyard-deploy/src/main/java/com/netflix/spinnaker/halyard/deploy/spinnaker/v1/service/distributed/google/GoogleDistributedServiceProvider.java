@@ -28,6 +28,9 @@ public class GoogleDistributedServiceProvider extends DistributedServiceProvider
   GoogleClouddriverBootstrapService clouddriverBootstrapService;
 
   @Autowired
+  GoogleConsulClientService consulClientService;
+
+  @Autowired
   GoogleConsulServerService consulServerService;
 
   @Autowired

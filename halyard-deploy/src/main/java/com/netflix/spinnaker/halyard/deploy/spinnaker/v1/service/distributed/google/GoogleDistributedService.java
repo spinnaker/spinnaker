@@ -31,10 +31,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConnectionDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.*;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -49,10 +46,24 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FAT
 
 public interface GoogleDistributedService<T> extends DistributedService<T, GoogleAccount> {
   GoogleVaultServerService getVaultServerService();
+  GoogleConsulServerService getConsulServerService();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
   String getGoogleImageProject();
   String getStartupScriptPath();
+
+  default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
+    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
+    ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
+    ServiceSettings thisSettings = runtimeSettings.getServiceSettings(getService());
+
+    List<SidecarService> result = new ArrayList<>();
+    if (monitoringSettings.isEnabled() && thisSettings.isMonitored()) {
+      result.add(monitoringService);
+    }
+
+    return result;
+  }
 
   default List<String> getScopes() {
     List<String> result = new ArrayList<>();
@@ -90,7 +101,6 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   default VaultConnectionDetails buildConnectionDetails(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, String secretName) {
     GoogleVaultServerService vaultService = getVaultServerService();
     VaultServerService.Vault vault = vaultService.connect(details, runtimeSettings);
-    String deploymentName = details.getDeploymentName();
 
     ServiceSettings vaultSettings = runtimeSettings.getServiceSettings(vaultService);
     RunningServiceDetails vaultDetails = vaultService.getRunningServiceDetails(details, vaultSettings);
@@ -126,42 +136,21 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       version++;
     }
 
-    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
-    String name = getServiceName();
     List<ConfigSource> configSources = new ArrayList<>();
-    ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
     String stagingPath = getSpinnakerStagingPath();
     GoogleVaultServerService vaultService = getVaultServerService();
     VaultServerService.Vault vault = vaultService.connect(details, resolvedConfiguration.getRuntimeSettings());
 
-    if (thisServiceSettings.isMonitored() && monitoringSettings.isEnabled()) {
-      Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
+    for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
+      for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
+        String secretName = secretName(profile.getName(), version);
+        String mountPoint = Paths.get(profile.getOutputFile()).toString();
+        Path stagedFile = Paths.get(profile.getStagedFile(stagingPath));
+        VaultConfigMount vaultConfigMount = VaultConfigMount.fromLocalFile(stagedFile.toFile(), mountPoint);
+        secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
 
-      Profile profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.serviceRegistryProfileName(name));
-      if (profile == null) {
-        throw new RuntimeException("Assertion violated: service monitoring enabled but no registry entry generated.");
+        configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
       }
-
-      String secretName = secretName(profile.getName(), version);
-      String mountPoint = Paths.get(profile.getOutputFile()).toString();
-      Path stagedFile = Paths.get(profile.getStagedFile(stagingPath));
-      VaultConfigMount vaultConfigMount = VaultConfigMount.fromLocalFile(stagedFile.toFile(), mountPoint);
-      secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
-
-      configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
-
-      profile = monitoringProfiles.get("monitoring.yml");
-      if (profile == null) {
-        throw new RuntimeException("Assertion violated: service monitoring enabled but no monitoring profile was generated.");
-      }
-
-      secretName = secretName(profile.getName(), version);
-      mountPoint = Paths.get(profile.getOutputFile()).toString();
-      stagedFile = Paths.get(profile.getStagedFile(stagingPath));
-      vaultConfigMount = VaultConfigMount.fromLocalFile(stagedFile.toFile(), mountPoint);
-      secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
-
-      configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
 
     Map<String, Profile> serviceProfiles = resolvedConfiguration.getProfilesForService(thisService.getType());
@@ -209,7 +198,6 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     int version = 0;
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-
 
     String deploymentName = details.getDeploymentName();
     GoogleAccount account = details.getAccount();
@@ -267,6 +255,21 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       items = new Metadata.Items()
           .setKey("vault_secret")
           .setValue(connectionDetails.getSecret());
+      metadataItems.add(items);
+    }
+
+    GoogleConsulServerService consulServerService = getConsulServerService();
+    RunningServiceDetails consulServerDetails = consulServerService.getRunningServiceDetails(details, resolvedConfiguration.getServiceSettings(consulServerService));
+    Integer latestConsulVersion = consulServerDetails.getLatestEnabledVersion();
+    if (latestConsulVersion != null) {
+      List<RunningServiceDetails.Instance> instances = consulServerDetails.getInstances().get(latestConsulVersion);
+      String instancesValue = String.join(" ", instances.stream().map(RunningServiceDetails.Instance::getId).collect(Collectors.toList()));
+
+      items = new Metadata.Items()
+          .setKey("consul-members") // TODO(lwander) change to consul_members for consistency w/ vault
+          .setValue(instancesValue);
+
+
       metadataItems.add(items);
     }
 

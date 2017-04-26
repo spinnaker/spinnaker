@@ -19,12 +19,9 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
@@ -32,7 +29,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import retrofit.RetrofitError;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,6 +54,9 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
 
   @Autowired
   String startupScriptPath;
+
+  @Autowired
+  GoogleConsulServerService consulServerService;
 
   @Override
   public void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,

@@ -53,6 +53,4 @@ public class KubernetesMonitoringDaemonService extends SpinnakerMonitoringDaemon
     KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, dockerRegistry);
     return KubernetesUtil.getImageId(image);
   }
-
-  final boolean requiredToBootstrap = false;
 }

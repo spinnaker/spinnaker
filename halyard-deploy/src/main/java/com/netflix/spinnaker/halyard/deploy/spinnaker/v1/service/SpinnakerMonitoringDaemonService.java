@@ -19,12 +19,14 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.MetricRegistryProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.SpinnakerMonitoringDaemonProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +40,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
+abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> implements SidecarService {
   protected final String CONFIG_OUTPUT_PATH = "/opt/spinnaker-monitoring/config/";
   protected final String REGISTRY_OUTPUT_PATH = "/opt/spinnaker-monitoring/registry/";
 
@@ -93,6 +95,17 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
 
     results.add(spinnakerMonitoringDaemonProfileFactory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
     return results;
+  }
+
+  @Override
+  public List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
+    List<Profile> result = new ArrayList<>();
+    Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(getType());
+    Profile profile = monitoringProfiles.get(serviceRegistryProfileName(service.getServiceName()));
+    result.add(profile);
+    profile = monitoringProfiles.get(monitoringProfileName());
+    result.add(profile);
+    return result;
   }
 
   public interface SpinnakerMonitoringDaemon { }

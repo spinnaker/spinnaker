@@ -18,12 +18,14 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulClientProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulServiceProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +39,8 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class ConsulClientService extends SpinnakerService<ConsulClientService.Consul> {
-  protected final String CLIENT_OUTPUT_PATH = "/var/consul.d";
+abstract public class ConsulClientService extends SpinnakerService<ConsulClientService.Consul> implements SidecarService {
+  protected final String CLIENT_OUTPUT_PATH = "/etc/consul.d";
 
   @Autowired
   ConsulServiceProfileFactoryBuilder consulServiceProfileFactoryBuilder;
@@ -65,6 +67,8 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulClientS
     return "consul/" + serviceName + ".json";
   }
 
+  static String clientProfileName = "consul/client.json";
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
@@ -72,17 +76,29 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulClientS
       ServiceSettings settings = entry.getValue();
       Type type = entry.getKey();
       if (!settings.isSidecar() && settings.isEnabled()) {
-        String profileName = consulClientService(type.getCanonicalName());
-        String profilePath = Paths.get(CLIENT_OUTPUT_PATH, profileName).toString();
+        String serviceName = type.getCanonicalName();
+        String profileName = consulClientService(serviceName);
+        String profilePath = Paths.get(CLIENT_OUTPUT_PATH, serviceName).toString();
         ProfileFactory factory = consulServiceProfileFactoryBuilder.build(type, settings);
         result.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
       }
     }
 
-    String profileName = "consul/client.json";
-    String profilePath = Paths.get(CLIENT_OUTPUT_PATH, profileName).toString();
+    String profileName = clientProfileName;
+    String profilePath = Paths.get(CLIENT_OUTPUT_PATH, profileName.split("/")[1]).toString();
 
     result.add(consulClientProfileFactory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
+    return result;
+  }
+
+  @Override
+  public List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
+    List<Profile> result = new ArrayList<>();
+    Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getType());
+    Profile profile = profiles.get(consulClientService(service.getCanonicalName()));
+    result.add(profile);
+    profile = profiles.get(clientProfileName);
+    result.add(profile);
     return result;
   }
 

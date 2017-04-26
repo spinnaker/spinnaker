@@ -19,16 +19,22 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class GoogleMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
+public class GoogleConsulClientService extends ConsulClientService {
   @Autowired
   private String dockerRegistry;
 
@@ -39,7 +45,7 @@ public class GoogleMonitoringDaemonService extends SpinnakerMonitoringDaemonServ
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
+        .setEnabled(true);
     return settings;
   }
 

@@ -20,12 +20,18 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverBootstrapService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -54,6 +60,19 @@ public class GoogleClouddriverBootstrapService extends ClouddriverBootstrapServi
 
   @Autowired
   GoogleVaultServerService vaultServerService;
+
+  @Autowired
+  GoogleConsulClientService consulClientService;
+
+  @Autowired
+  GoogleConsulServerService consulServerService;
+
+  @Override
+  public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
+    List<SidecarService> result = GoogleDistributedService.super.getSidecars(runtimeSettings);
+    result.add(consulClientService);
+    return result;
+  }
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
