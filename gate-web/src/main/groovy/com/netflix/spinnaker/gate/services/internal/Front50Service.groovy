@@ -85,6 +85,15 @@ interface Front50Service {
   Map updateStrategy(@Path("strategyId") String strategyId, @Body Map strategy)
 
   //
+  // Pipeline Template-related
+  //
+  @GET('/pipelineTemplates')
+  List<Map> getPipelineTemplates(@Query("scopes") String... scopes)
+
+  @GET('/pipelineTemplates/{pipelineTemplateId}')
+  Map getPipelineTemplate(@Path("pipelineTemplateId") String pipelineTemplateId)
+
+  //
   // Notification-related
   //
   @GET('/notifications/{type}/{app}')
