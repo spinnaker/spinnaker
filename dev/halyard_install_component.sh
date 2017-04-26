@@ -64,7 +64,7 @@ function process_args() {
   done
 }
 
-EXTERNAL_ARTIFACTS=(vault consul redis)
+EXTERNAL_ARTIFACTS=(vault-server consul-server)
 
 function contains() {
   local e

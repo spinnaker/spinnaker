@@ -208,15 +208,16 @@ function create_component_prototype_disk() {
 
 
 function create_component_image() {
-  local comp=$1
-  COMP_VERSION="$(hal version bom $VERSION --artifact-name ${comp} --quiet --color false)"
-  # Target image is named spinnaker-${comp}-${comp-version} with dashes replacing dots.
-  TARGET_IMAGE="$(echo spinnaker-${comp}-${COMP_VERSION} | sed 's/[\.:]/\-/g')"
+  local artifact=$1
+  local service=$2
+  ARTIFACT_VERSION="$(hal version bom $VERSION --artifact-name ${artifact} --quiet --color false)"
+  # Target image is named spinnaker-${artifact}-${artifact-version} with dashes replacing dots.
+  TARGET_IMAGE="$(echo spinnaker-${artifact}-${ARTIFACT_VERSION} | sed 's/[\.:]/\-/g')"
   echo $TARGET_IMAGE
   CLEANER_INSTANCE="clean-${TARGET_IMAGE}"
   BUILD_INSTANCE="build-${TARGET_IMAGE}"
 
-  create_component_prototype_disk $comp $VERSION
+  create_component_prototype_disk $service $VERSION
   extract_clean_prototype_disk "$BUILD_INSTANCE" "$CLEANER_INSTANCE"
   image_from_prototype_disk "$TARGET_IMAGE" "$BUILD_INSTANCE"
 
@@ -245,7 +246,22 @@ function fix_defaults() {
 
 process_args "$@"
 
-declare -a COMPONENTS=('clouddriver' 'deck' 'echo' 'fiat' 'front50' 'gate' 'igor' 'orca' 'rosco' 'consul' 'vault' 'redis')
+# map of artifact -> service
+# artifact is an unconfigured installable package/binary
+# service is a configured artifact
+declare -A COMPONENTS=( ['clouddriver']='clouddriver' \
+  ['deck']='deck' \
+  ['echo']='echo' \
+  ['fiat']='fiat' \
+  ['front50']='front50' \
+  ['gate']='gate' \
+  ['igor']='igor' \
+  ['orca']='orca' \
+  ['rosco']='rosco' \
+  ['consul']='consul-server' \
+  ['vault']='vault-server' \
+  ['redis']='redis')
+
 TIME_DECORATOR=$(date +%Y%m%d%H%M%S)
 ZONE=us-central1-f
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
@@ -255,10 +271,11 @@ fix_defaults
 create_empty_ssh_key
 
 PIDS=
-for comp in "${COMPONENTS[@]}"; do
-  LOG="create-${comp}-image.log"
-  echo "Creating component image for $comp, output will be logged to $LOG..."
-  create_component_image $comp &> $LOG &
+for artifact in "${!COMPONENTS[@]}"; do
+  service=${COMPONENTS[$artifact]}
+  LOG="create-${service}-image.log"
+  echo "Creating component image for $service with artifact $artifact; output will be logged to $LOG..."
+  create_component_image $artifact $service &> $LOG &
   PID=$!
   PIDS+=($PID)
 done
