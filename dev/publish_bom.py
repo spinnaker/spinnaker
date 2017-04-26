@@ -79,6 +79,7 @@ class BomPublisher(BomGenerator):
     self.__github = Github(self.__gist_user, self.__github_token)
     self.__patch_release = options.patch_release
     self.__alias = options.bom_alias # Flag inherited from BomGenerator.
+    self.__release_name = options.release_name
     super(BomPublisher, self).__init__(options)
 
   def unpack_bom(self):
@@ -98,11 +99,17 @@ class BomPublisher(BomGenerator):
     self.write_bom_file(new_bom_file, self.__bom_dict)
     self.publish_bom(new_bom_file)
     # Re-write the 'latest' Spinnaker version.
-    # TODO(jacobkiefer): Update 'available versions' with Halyard when that feature is ready.
     if self.__alias:
       alias_file = '{0}.yml'.format(self.__alias)
       self.write_bom_file(alias_file, self.__bom_dict)
       self.publish_bom(alias_file)
+
+    # Update the available Spinnaker versions.
+    # TODO(jacobkiefer): Determine final changelog link.
+    check_run_quick('hal admin publish version --version {version} --alias "{alias}" --changelog {changelog}'
+                    .format(version=self.__release_version, alias=self.__release_name, changelog='spinnaker.io'))
+    check_run_quick('hal admin publish latest {version}'
+                    .format(version=self.__release_version))
 
   def publish_changelog_gist(self):
     """Publish the changelog as a github gist.
@@ -190,18 +197,20 @@ class BomPublisher(BomGenerator):
     """Initialize command-line arguments."""
     parser.add_argument('--changelog_file', default='', required=True,
                         help='The changelog to publish during this publication.')
+    parser.add_argument('--github_publisher', default='', required=True,
+                        help="The owner of the remote repo the branch and tag are pushed to for each component.")
     parser.add_argument('--github_token', default='', required=True,
                         help="The GitHub user token with scope='gists' to write gists.")
     parser.add_argument('--gist_user', default='', required=True,
                         help="The GitHub user to write gists as.")
-    parser.add_argument('--rc_version', default='', required=True,
-                        help='The version of the Spinnaker release candidate we are publishing.')
-    parser.add_argument('--release_version', default='', required=True,
-                        help="The version for the new Spinnaker release. This needs to be of the form 'X.Y.Z'.")
-    parser.add_argument('--github_publisher', default='', required=True,
-                        help="The owner of the remote repo the branch and tag are pushed to for each component.")
     parser.add_argument('--patch_release', default=False, action='store_true',
                         help='Make a patch release.')
+    parser.add_argument('--rc_version', default='', required=True,
+                        help='The version of the Spinnaker release candidate we are publishing.')
+    parser.add_argument('--release_name', default='', required=True,
+                        help="The name for the new Spinnaker release.")
+    parser.add_argument('--release_version', default='', required=True,
+                        help="The version for the new Spinnaker release. This needs to be of the form 'X.Y.Z'.")
     super(BomPublisher, cls).init_argument_parser(parser)
 
 if __name__ == '__main__':
