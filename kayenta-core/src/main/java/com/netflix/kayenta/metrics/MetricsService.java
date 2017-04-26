@@ -17,15 +17,15 @@
 package com.netflix.kayenta.metrics;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.List;
 
 public interface MetricsService {
   boolean servicesAccount(String accountName);
 
   // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
-  Optional<MetricSet> queryMetrics(String accountName,
-                                   String metricSetName,
-                                   String instanceNamePrefix,
-                                   String intervalStartTime,
-                                   String intervalEndTime) throws IOException;
+  List<MetricSet> queryMetrics(String accountName,
+                               String metricSetName,
+                               String instanceNamePrefix,
+                               String intervalStartTime,
+                               String intervalEndTime) throws IOException;
 }

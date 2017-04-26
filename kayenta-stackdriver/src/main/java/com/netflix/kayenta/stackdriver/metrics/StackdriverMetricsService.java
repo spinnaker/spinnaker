@@ -35,10 +35,10 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Builder
@@ -60,11 +60,11 @@ public class StackdriverMetricsService implements MetricsService {
 
   @Override
   // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
-  public Optional<MetricSet> queryMetrics(String accountName,
-                                          String metricSetName,
-                                          String instanceNamePrefix,
-                                          String intervalStartTime,
-                                          String intervalEndTime) throws IOException {
+  public List<MetricSet> queryMetrics(String accountName,
+                                      String metricSetName,
+                                      String instanceNamePrefix,
+                                      String intervalStartTime,
+                                      String intervalEndTime) throws IOException {
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
@@ -100,47 +100,52 @@ public class StackdriverMetricsService implements MetricsService {
     List<TimeSeries> timeSeriesList = response.getTimeSeries();
 
     if (timeSeriesList == null || timeSeriesList.size() == 0) {
+      // Add placeholder metric set.
       timeSeriesList = Collections.singletonList(new TimeSeries().setMetric(new Metric()).setPoints(new ArrayList<>()));
-    } else if (timeSeriesList.size() > 1) {
-      log.warn("Expected 1 time series, but {} were returned; using just the first time series.", timeSeriesList.size());
     }
 
-    TimeSeries timeSeries = timeSeriesList.get(0);
-    List<Point> points = timeSeries.getPoints();
+    List<MetricSet> metricSetList = new ArrayList<>();
 
-    if (points.size() != numIntervals) {
-      String pointOrPoints = numIntervals == 1 ? "point" : "points";
+    for (TimeSeries timeSeries : timeSeriesList) {
+      List<Point> points = timeSeries.getPoints();
 
-      log.warn("Expected {} data {}, but received {}.", numIntervals, pointOrPoints, points.size());
+      if (points.size() != numIntervals) {
+        String pointOrPoints = numIntervals == 1 ? "point" : "points";
+
+        log.warn("Expected {} data {}, but received {}.", numIntervals, pointOrPoints, points.size());
+      }
+
+      Collections.reverse(points);
+
+      Instant responseStartTimeInstant =
+        points.size() > 0 ? Instant.parse(points.get(0).getInterval().getStartTime()) : requestStartTimeInstant;
+      long responseStartTimeMillis = responseStartTimeInstant.toEpochMilli();
+
+      // TODO(duftler): What if there are no data points?
+      List<Double> pointValues =
+        points
+          .stream()
+          .map(point -> point.getValue().getDoubleValue())
+          .collect(Collectors.toList());
+
+      // TODO: Get the metric set name from the request/canary-config.
+      MetricSet.MetricSetBuilder metricSetBuilder =
+        MetricSet.builder()
+          .name(metricSetName)
+          .startTimeMillis(responseStartTimeMillis)
+          .startTimeIso(responseStartTimeInstant.toString())
+          .stepMillis(alignmentPeriodSec * 1000)
+          .values(pointValues);
+
+      Map<String, String> labels = timeSeries.getMetric().getLabels();
+
+      if (labels != null) {
+        metricSetBuilder.tags(labels);
+      }
+
+      metricSetList.add(metricSetBuilder.build());
     }
 
-    Collections.reverse(points);
-
-    Instant responseStartTimeInstant =
-      points.size() > 0 ? Instant.parse(points.get(0).getInterval().getStartTime()) : requestStartTimeInstant;
-    long responseStartTimeMillis = responseStartTimeInstant.toEpochMilli();
-
-    // TODO(duftler): What if there are no data points?
-    List<Double> pointValues =
-      points
-        .stream()
-        .map(point -> point.getValue().getDoubleValue())
-        .collect(Collectors.toList());
-
-    MetricSet.MetricSetBuilder metricSetBuilder =
-      MetricSet.builder()
-        .name(metricSetName)
-        .startTimeMillis(responseStartTimeMillis)
-        .startTimeIso(responseStartTimeInstant.toString())
-        .stepMillis(alignmentPeriodSec * 1000)
-        .values(pointValues);
-
-    Map<String, String> labels = timeSeries.getMetric().getLabels();
-
-    if (labels != null) {
-      metricSetBuilder.tags(labels);
-    }
-
-    return Optional.of(metricSetBuilder.build());
+    return metricSetList;
   }
 }

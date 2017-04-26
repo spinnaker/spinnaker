@@ -16,14 +16,18 @@
 
 package com.netflix.kayenta.metrics;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
 import lombok.ToString;
+import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Builder
 @ToString
@@ -54,4 +58,27 @@ public class MetricSet {
   @Singular
   @Getter
   private List<Double> values;
+
+  @JsonIgnore
+  private String metricSetKey;
+
+  public String getMetricSetKey() {
+    // Only need to generate the key once since MetricSet is immutable.
+    if (metricSetKey == null) {
+      if (StringUtils.isEmpty(name)) {
+        throw new IllegalArgumentException("Metric set name was not set.");
+      }
+
+      TreeMap<String, String> tagMap = new TreeMap<>(tags);
+
+      metricSetKey = name + " -> {" +
+        tagMap
+          .entrySet()
+          .stream()
+          .map(entry -> entry.getKey() + ":" + entry.getValue())
+          .collect(Collectors.joining(", ")) + "}";
+    }
+
+    return metricSetKey;
+  }
 }

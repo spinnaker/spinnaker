@@ -33,6 +33,7 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -57,11 +58,11 @@ public class AtlasMetricsService implements MetricsService {
 
   @Override
   // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
-  public Optional<MetricSet> queryMetrics(String accountName,
-                                          String metricSetName,
-                                          String instanceNamePrefix,
-                                          String intervalStartTime,
-                                          String intervalEndTime) throws IOException {
+  public List<MetricSet> queryMetrics(String accountName,
+                                      String metricSetName,
+                                      String instanceNamePrefix,
+                                      String intervalStartTime,
+                                      String intervalEndTime) throws IOException {
     AtlasNamedAccountCredentials credentials = (AtlasNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
@@ -74,6 +75,9 @@ public class AtlasMetricsService implements MetricsService {
       timeSeriesList = new ArrayList<>();
     }
 
+    // TODO: Get sample Atlas response with more than one set of results.
+    // Deferring this for now since we're going to move to the /fetch endpoint once that's available in oss Atlas.
+    // We are currently developing against canned output retrieved via OSS Atlas's /graph endpoint.
     List<Double> pointValues =
       timeSeriesList
         .stream()
@@ -96,6 +100,6 @@ public class AtlasMetricsService implements MetricsService {
       metricSetBuilder.tags(tags);
     }
 
-    return Optional.of(metricSetBuilder.build());
+    return Collections.singletonList(metricSetBuilder.build());
   }
 }

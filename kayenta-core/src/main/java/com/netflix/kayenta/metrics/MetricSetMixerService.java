@@ -19,11 +19,14 @@ package com.netflix.kayenta.metrics;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class MetricSetMixerService {
-  public MetricSetPair mix(MetricSet baselineMetricSet, MetricSet canaryMetricSet) {
+  public MetricSetPair mixOne(MetricSet baselineMetricSet, MetricSet canaryMetricSet) {
     String baselineName = baselineMetricSet.getName();
     String canaryName = canaryMetricSet.getName();
     Map<String, String> baselineTags = baselineMetricSet.getTags();
@@ -39,8 +42,6 @@ public class MetricSetMixerService {
       throw new IllegalArgumentException("Baseline metric set name '" + baselineName +
         "' does not match canary metric set name '" + canaryName + "'.");
     } else if (!baselineTags.equals(canaryTags)) {
-      // TODO: Since this just deals with one pair of metric sets, the tags must match. When we deal with multiple
-      // sets, we must identify each pair of metric sets via name + tagMap.
       throw new IllegalArgumentException("Baseline metric set tags " + baselineTags +
         " does not match canary metric set tags " + canaryTags + ".");
     }
@@ -72,5 +73,68 @@ public class MetricSetMixerService {
         .value("canary", canaryValues);
 
     return metricSetPairBuilder.build();
+  }
+
+  public List<MetricSetPair> mixAll(List<MetricSet> baselineMetricSetList, List<MetricSet> canaryMetricSetList) {
+    if (baselineMetricSetList == null) {
+      baselineMetricSetList = new ArrayList<>();
+    }
+
+    if (canaryMetricSetList == null) {
+      canaryMetricSetList = new ArrayList<>();
+    }
+
+    // Build 'metric set key' -> 'metric set' maps of baseline and canary so we can efficiently identify missing metric sets.
+    Map<String, MetricSet> baselineMetricSetMap = buildMetricSetMap(baselineMetricSetList);
+    Map<String, MetricSet> canaryMetricSetMap = buildMetricSetMap(canaryMetricSetList);
+
+    // Identify metric sets missing from each map.
+    List<MetricSet> missingFromCanary = findMissingMetricSets(baselineMetricSetList, canaryMetricSetMap);
+    List<MetricSet> missingFromBaseline = findMissingMetricSets(canaryMetricSetList, baselineMetricSetMap);
+
+    // Add placeholder metric sets for each one that is missing.
+    addMissingMetricSets(baselineMetricSetList, missingFromBaseline);
+    addMissingMetricSets(canaryMetricSetList, missingFromCanary);
+
+    // Sort each metric set list so that we can pair them.
+    baselineMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
+    canaryMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
+
+    // Produce the list of metric set pairs from the pair of metric set lists.
+    List<MetricSetPair> ret = new ArrayList<>();
+
+    for (int i = 0; i < baselineMetricSetList.size(); i++) {
+      ret.add(mixOne(baselineMetricSetList.get(i), canaryMetricSetList.get(i)));
+    }
+
+    return ret;
+  }
+
+  private static Map<String, MetricSet> buildMetricSetMap(List<MetricSet> metricSetList) {
+    return metricSetList
+      .stream()
+      .collect(Collectors.toMap(MetricSet::getMetricSetKey, Function.identity()));
+  }
+
+  private static List<MetricSet> findMissingMetricSets(List<MetricSet> requiredMetricSetList,
+                                                       Map<String, MetricSet> knownMetricSetMap) {
+    return requiredMetricSetList
+      .stream()
+      .filter(requiredMetricSet -> !knownMetricSetMap.containsKey(requiredMetricSet.getMetricSetKey()))
+      .collect(Collectors.toList());
+  }
+
+  private static void addMissingMetricSets(List<MetricSet> knownMetricSetList,
+                                           List<MetricSet> missingMetricSetList) {
+    knownMetricSetList.addAll(
+      missingMetricSetList
+        .stream()
+        .map(metricSet ->
+               MetricSet
+                 .builder()
+                 .name(metricSet.getName())
+                 .tags(metricSet.getTags())
+                 .build())
+        .collect(Collectors.toList()));
   }
 }

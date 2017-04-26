@@ -34,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -52,11 +54,11 @@ public class FetchController {
   StorageServiceRepository storageServiceRepository;
 
   @RequestMapping(method = RequestMethod.GET)
-  public MetricSet queryMetrics(@RequestParam(required = false) final String accountName,
-                                @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                                @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
-                                @ApiParam(defaultValue = "2017-03-24T15:13:00Z") @RequestParam String intervalStartTime,
-                                @ApiParam(defaultValue = "2017-03-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
+  public List<MetricSet> queryMetrics(@RequestParam(required = false) final String accountName,
+                                      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+                                      @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
+                                      @ApiParam(defaultValue = "2017-03-24T15:13:00Z") @RequestParam String intervalStartTime,
+                                      @ApiParam(defaultValue = "2017-03-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
     AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {
@@ -71,15 +73,16 @@ public class FetchController {
 
     String resolvedAccountName = credentials.getName();
     Optional<MetricsService> metricsService = metricsServiceRepository.getOne(resolvedAccountName);
-    MetricSet someMetrics = null;
+    List<MetricSet> metricSetList;
 
     if (metricsService.isPresent()) {
-      someMetrics = metricsService
+      metricSetList = metricsService
         .get()
-        .queryMetrics(resolvedAccountName, metricSetName, instanceNamePrefix, intervalStartTime, intervalEndTime)
-        .orElse(MetricSet.builder().name("no-metrics").build());
+        .queryMetrics(resolvedAccountName, metricSetName, instanceNamePrefix, intervalStartTime, intervalEndTime);
     } else {
       log.debug("No metrics service was configured; skipping placeholder logic to read from metrics store.");
+
+      metricSetList = Collections.singletonList(MetricSet.builder().name("no-metrics").build());
     }
 
     // TODO(duftler): This is placeholder logic. Just demonstrating that we can write to the bucket.
@@ -87,11 +90,11 @@ public class FetchController {
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
 
     if (storageService.isPresent()) {
-      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET, UUID.randomUUID() + "", someMetrics);
+      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET, UUID.randomUUID() + "", metricSetList);
     } else {
       log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
     }
 
-    return someMetrics;
+    return metricSetList;
   }
 }
