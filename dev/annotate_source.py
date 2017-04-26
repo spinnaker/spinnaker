@@ -384,7 +384,6 @@ class Annotator(object):
   def main(cls):
     parser = argparse.ArgumentParser()
     cls.init_argument_parser(parser)
-    cls.init_extra_argument_parser(parser)
     options = parser.parse_args()
 
     annotator = cls(options)

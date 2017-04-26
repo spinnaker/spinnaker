@@ -17,7 +17,6 @@
 import argparse
 import datetime
 import os
-import socket
 import sys
 import yaml
 
@@ -261,7 +260,6 @@ class BomGenerator(Annotator):
     """
     with open(filename, 'w') as output_file:
       output_yaml['timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
-      output_yaml['hostname'] = socket.gethostname()
       yaml.dump(output_yaml, output_file, default_flow_style=False)
       print 'Wrote BOM to {0}.'.format(filename)
 
