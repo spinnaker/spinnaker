@@ -26,7 +26,7 @@ import rx.Scheduler;
 public class DefaultNotificationDAO extends StorageServiceSupport<Notification> implements NotificationDAO {
   public DefaultNotificationDAO(StorageService service,
                                 Scheduler scheduler,
-                                int refreshIntervalMs,
+                                long refreshIntervalMs,
                                 Registry registry) {
     super(ObjectType.NOTIFICATION, service, scheduler, refreshIntervalMs, registry);
   }

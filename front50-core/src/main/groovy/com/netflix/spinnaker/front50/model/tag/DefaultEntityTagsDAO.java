@@ -16,21 +16,19 @@
 
 package com.netflix.spinnaker.front50.model.tag;
 
-import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.front50.model.ObjectType;
 import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.front50.model.StorageServiceSupport;
 import rx.Scheduler;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> implements EntityTagsDAO {
   public DefaultEntityTagsDAO(StorageService service,
                               Scheduler scheduler,
-                              int refreshIntervalMs,
+                              long refreshIntervalMs,
                               Registry registry) {
     super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs, registry);
   }
@@ -54,5 +52,10 @@ public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> impl
   @Override
   public boolean isHealthy() {
     return true;
+  }
+
+  @Override
+  protected long getHealthMillis() {
+    return TimeUnit.MINUTES.toMillis(15);
   }
 }

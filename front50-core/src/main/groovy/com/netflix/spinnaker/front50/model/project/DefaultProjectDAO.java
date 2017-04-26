@@ -28,7 +28,7 @@ import java.util.UUID;
 public class DefaultProjectDAO extends StorageServiceSupport<Project> implements ProjectDAO {
   public DefaultProjectDAO(StorageService service,
                            Scheduler scheduler,
-                           int refreshIntervalMs,
+                           long refreshIntervalMs,
                            Registry registry) {
     super(ObjectType.PROJECT, service, scheduler, refreshIntervalMs, registry);
   }

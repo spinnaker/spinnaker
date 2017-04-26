@@ -25,7 +25,7 @@ import rx.Scheduler;
 public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Application.Permission> implements ApplicationPermissionDAO {
   public DefaultApplicationPermissionDAO(StorageService service,
                                          Scheduler scheduler,
-                                         int refreshIntervalMs,
+                                         long refreshIntervalMs,
                                          Registry registry) {
     super(ObjectType.APPLICATION_PERMISSION, service, scheduler, refreshIntervalMs, registry);
   }

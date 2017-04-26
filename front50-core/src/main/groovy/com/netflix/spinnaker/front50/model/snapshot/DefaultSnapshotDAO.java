@@ -28,7 +28,7 @@ import java.util.Collection;
 public class DefaultSnapshotDAO extends StorageServiceSupport<Snapshot> implements SnapshotDAO {
   public DefaultSnapshotDAO(StorageService service,
                             Scheduler scheduler,
-                            int refreshIntervalMs,
+                            long refreshIntervalMs,
                             Registry registry) {
     super(ObjectType.SNAPSHOT, service, scheduler, refreshIntervalMs, registry);
   }

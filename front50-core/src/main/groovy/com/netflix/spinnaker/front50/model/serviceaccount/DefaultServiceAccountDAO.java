@@ -25,7 +25,7 @@ import rx.Scheduler;
 public class DefaultServiceAccountDAO extends StorageServiceSupport<ServiceAccount> implements ServiceAccountDAO {
   public DefaultServiceAccountDAO(StorageService service,
                                   Scheduler scheduler,
-                                  int refreshIntervalMs,
+                                  long refreshIntervalMs,
                                   Registry registry) {
     super(ObjectType.SERVICE_ACCOUNT, service, scheduler, refreshIntervalMs, registry);
   }

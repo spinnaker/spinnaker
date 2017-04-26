@@ -217,6 +217,7 @@ public class S3StorageService implements StorageService {
         amazonS3.getObject(bucket, buildTypedFolder(rootFolder, objectType.group) + "/last-modified.json").getObjectContent(),
         Map.class
       );
+
       return lastModified.get("lastModified");
     } catch (Exception e) {
       return 0L;

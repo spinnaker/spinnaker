@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class DefaultPipelineStrategyDAO extends StorageServiceSupport<Pipeline> implements PipelineStrategyDAO {
   public DefaultPipelineStrategyDAO(StorageService service,
                                     Scheduler scheduler,
-                                    int refreshIntervalMs,
+                                    long refreshIntervalMs,
                                     Registry registry) {
     super(ObjectType.STRATEGY, service, scheduler, refreshIntervalMs, registry);
   }

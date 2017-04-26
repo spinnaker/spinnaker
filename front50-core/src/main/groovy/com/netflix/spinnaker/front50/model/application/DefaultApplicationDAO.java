@@ -29,7 +29,7 @@ import java.util.Map;
 public class DefaultApplicationDAO extends StorageServiceSupport<Application> implements ApplicationDAO {
   public DefaultApplicationDAO(StorageService service,
                                Scheduler scheduler,
-                               int refreshIntervalMs,
+                               long refreshIntervalMs,
                                Registry registry) {
     super(ObjectType.APPLICATION, service, scheduler, refreshIntervalMs, registry);
   }
