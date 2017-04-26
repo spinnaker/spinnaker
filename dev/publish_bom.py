@@ -45,6 +45,27 @@ COMPONENTS = [
   'spinnaker'
 ]
 
+
+def format_stable_branch(major, minor):
+  """Provides a function to format a release branch name.
+
+  A release branch corresponds to an execution of a release process, which
+  produces some publishes some artifact (debian, container image, etc) that is
+  versioned following semantic versioning. To trace the code changes included
+  in a release, we create git branches to track stable releases. This function
+  handles the naming of the release branch based on the release artifact's
+  semantic version.
+
+  Args:
+    major [string]:  Major version of the release.
+    minor [string]:  Minor version of the release.
+
+  Returns:
+    [string]: Release branch name of the form 'release-<major>.<minor>.x'.
+  """
+  return 'release-' + '.'.join([major, minor, 'x'])
+
+
 class BomPublisher(BomGenerator):
 
   def __init__(self, options):
@@ -115,10 +136,10 @@ class BomPublisher(BomGenerator):
     """
     major, minor, _ = self.__release_version.split('.')
 
-    # The stable branch will look like <major>.<minor>.X since nebula
+    # The stable branch will look like release-<major>.<minor>.x since nebula
     # enforces restrictions on what branches it does releases from.
     # https://github.com/nebula-plugins/nebula-release-plugin#extension-provided
-    stable_branch = '.'.join([major, minor, 'X'])
+    stable_branch = format_stable_branch(major, minor)
     for comp in COMPONENTS:
       comp_path = os.path.join(self.base_dir, comp)
       if self.__patch_release:

@@ -138,8 +138,8 @@ class Annotator(object):
   # regex for 'version-X.Y.Z' versions
   TAG_MATCHER = re.compile('^version-[0-9]+\.[0-9]+\.[0-9]+$')
 
-  def __init__(self, options, path=None):
-    self.__next_tag = options.next_tag
+  def __init__(self, options, path=None, next_tag=None):
+    self.__next_tag = next_tag or options.next_tag
     self.__path = path or options.path
     self.__branch = options.branch
     self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '')
@@ -297,7 +297,7 @@ class Annotator(object):
       of version bump it was. Version tag is of the form 'version-X.Y.Z'.
     """
     if self.__next_tag:
-      return self.__next_tag
+      return VersionBump(self.__next_tag)
 
     # 'git log' entries of the form '$hash $commit_title'
     log_onelines = run_quick('git -C {path} log --pretty=oneline'.format(path=self.path),
