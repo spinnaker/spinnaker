@@ -65,4 +65,31 @@ class DockerMonitorSpec extends Specification {
         ["job1"]     || 1
 
     }
+
+    void 'should include decorated artifact in the payload'() {
+        def echoService = Mock(EchoService)
+        def taggedImage = new TaggedImage(
+            tag: "tag",
+            account: "account",
+            registry: "registry",
+            repository: "repository",
+            digest: "digest"
+        )
+
+        when:
+        DockerMonitor.postEvent(
+            echoService, ["job1"], taggedImage, "imageId"
+        )
+
+        then:
+        1 * echoService.postEvent({ DockerEvent event ->
+            assert event.artifact.version           == taggedImage.tag
+            assert event.artifact.name              == taggedImage.repository
+            assert event.artifact.type              == "docker"
+            assert event.artifact.reference         == "registry/repository:tag"
+            assert event.artifact.metadata.registry == taggedImage.registry
+            return true
+        })
+
+    }
 }

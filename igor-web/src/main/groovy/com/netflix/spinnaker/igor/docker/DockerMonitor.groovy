@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.docker
 import com.netflix.appinfo.InstanceInfo
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spinnaker.igor.IgorConfigurationProperties
+import com.netflix.spinnaker.igor.build.model.GenericArtifact
 import com.netflix.spinnaker.igor.docker.model.DockerRegistryAccounts
 import com.netflix.spinnaker.igor.docker.service.TaggedImage
 import com.netflix.spinnaker.igor.history.EchoService
@@ -182,6 +183,8 @@ class DockerMonitor implements PollingMonitor {
         }
 
         log.info "Sending tagged image info to echo: ${image.account}: ${imageId}"
+        GenericArtifact dockerArtifact = new GenericArtifact("docker", image.repository, image.tag, "${image.registry}/${image.repository}:${image.tag}")
+        dockerArtifact.metadata = [registry: image.registry]
 
         echoService.postEvent(new DockerEvent(content: new DockerEvent.Content(
             registry: image.registry,
@@ -189,6 +192,6 @@ class DockerMonitor implements PollingMonitor {
             tag: image.tag,
             digest: image.digest,
             account: image.account,
-        )))
+        ), artifact: dockerArtifact))
     }
 }

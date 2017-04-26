@@ -30,10 +30,19 @@ class GenericArtifact {
     String type
     String version
 
+    Map<String, String> metadata;
+
     GenericArtifact(String fileName, String displayPath, String relativePath) {
         this.fileName = fileName
         this.displayPath = displayPath
         this.relativePath = relativePath
+    }
+
+    GenericArtifact(String type, String name, String version, String reference) {
+        this.type = type
+        this.name = name
+        this.version = version
+        this.reference = reference
     }
 
 }

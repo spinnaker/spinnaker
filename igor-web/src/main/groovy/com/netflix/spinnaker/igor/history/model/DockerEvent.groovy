@@ -16,8 +16,12 @@
 
 package com.netflix.spinnaker.igor.history.model
 
+import com.netflix.spinnaker.igor.build.model.GenericArtifact
+
 class DockerEvent extends Event {
     Content content
+    GenericArtifact artifact
+
     Map details = [
         type  : 'docker',
         source: 'igor'
