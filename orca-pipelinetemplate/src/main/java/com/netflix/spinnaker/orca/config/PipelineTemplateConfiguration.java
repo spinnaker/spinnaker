@@ -30,7 +30,10 @@ import org.springframework.context.annotation.ComponentScan;
 import org.yaml.snakeyaml.Yaml;
 
 @ConditionalOnProperty("pipelineTemplate.enabled")
-@ComponentScan(basePackageClasses = PipelineTemplateModule.class)
+@ComponentScan(
+  basePackageClasses = PipelineTemplateModule.class,
+  basePackages = {"com.netflix.spinnaker.orca.pipelinetemplate.tasks", "com.netflix.spinnaker.orca.pipelinetemplate.pipeline"}
+)
 public class PipelineTemplateConfiguration {
 
   @Bean

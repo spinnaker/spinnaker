@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +41,7 @@ public class PipelineTemplate implements VersionedSchema {
     private String name;
     private String description;
     private String owner;
+    private List<String> scopes = new ArrayList<>();
 
     public String getName() {
       return name;
@@ -63,6 +65,14 @@ public class PipelineTemplate implements VersionedSchema {
 
     public void setOwner(String owner) {
       this.owner = owner;
+    }
+
+    public List<String> getScopes() {
+      return scopes;
+    }
+
+    public void setScopes(List<String> scopes) {
+      this.scopes = scopes;
     }
   }
 

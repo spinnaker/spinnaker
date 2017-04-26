@@ -2,6 +2,8 @@ tasks.compileGroovy.enabled = false
 
 dependencies {
   compile project(":orca-extensionpoint")
+  compile project(":orca-core")
+  compile project(":orca-front50")
 
   compile('com.hubspot.jinjava:jinjava:2.1.14')
 
