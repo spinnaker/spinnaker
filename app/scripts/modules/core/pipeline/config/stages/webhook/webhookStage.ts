@@ -1,4 +1,4 @@
-import {module, extend} from 'angular';
+import {module} from 'angular';
 
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
@@ -41,11 +41,7 @@ export class WebhookStage {
     this.command.invalid = false;
     this.command.errorMessage = '';
     try {
-      const parsed = JSON.parse(this.command.payloadJSON);
-      if (!this.stage.payload) {
-        this.stage.payload = {};
-      }
-      extend(this.stage.payload, parsed);
+      this.stage.payload = this.command.payloadJSON ? JSON.parse(this.command.payloadJSON) : null;
     } catch (e) {
       this.command.invalid = true;
       this.command.errorMessage = e.message;
