@@ -1,0 +1,45 @@
+<div modal-page>
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3 data-purpose="modal-header">Add Custom Header</h3>
+  </div>
+
+  <form role="form" class="container-fluid" novalidate name="addCustomHeaderForm">
+    <div class="modal-body">
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Key</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm "
+                 ng-model="customHeader.key"
+                 placeholder="enter a header key"
+                 required>
+          </input>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Value</div>
+        <div class="col-sm-9">
+          <input type="text"
+                 class="form-control input-sm "
+                 ng-model="customHeader.value"
+                 placeholder="enter a header value"
+                 required>
+          </input>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
+      <button type="submit"
+              class="btn btn-primary"
+              data-purpose="submit"
+              ng-click="addCustomHeader.submit()"
+              ng-disabled="addCustomHeaderForm.$invalid"
+        >
+        <span class="glyphicon glyphicon-ok-circle"></span> Add
+      </button>
+    </div>
+  </form>
+</div>

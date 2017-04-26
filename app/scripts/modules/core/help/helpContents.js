@@ -543,4 +543,5 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     'pipeline.config.webhook.successStatuses': 'Comma-separated list of strings that will be considered as SUCCESS status.',
     'pipeline.config.webhook.canceledStatuses': 'Comma-separated list of strings that will be considered as CANCELED status.',
     'pipeline.config.webhook.terminalStatuses': 'Comma-separated list of strings that will be considered as TERMINAL status.',
+    'pipeline.config.webhook.customHeaders': 'Key-value pairs to be sent as additional headers to the service.',
   });

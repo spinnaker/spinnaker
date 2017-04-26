@@ -2,6 +2,7 @@ import {module} from 'angular';
 
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import {IModalService} from 'angular-ui-bootstrap';
 
 interface IViewState {
   waitForCompletion?: boolean;
@@ -14,9 +15,14 @@ interface ICommand {
   payloadJSON: string;
 }
 
+export interface ICustomHeader {
+  key: string;
+  value: string;
+}
+
 export class WebhookStage {
   static get $inject() {
-    return ['stage', 'jsonUtilityService'];
+    return ['stage', 'jsonUtilityService', '$uibModal'];
   }
 
   public command: ICommand;
@@ -24,7 +30,8 @@ export class WebhookStage {
   public methods: string[];
 
   constructor(public stage: any,
-              private jsonUtilityService: JsonUtilityService) {
+              private jsonUtilityService: JsonUtilityService,
+              private $uibModal: IModalService) {
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 
     this.viewState = {
@@ -56,6 +63,22 @@ export class WebhookStage {
     this.stage.statusUrlResolution = this.viewState.statusUrlResolution;
   }
 
+  public removeCustomHeader(key: string): void {
+    delete this.stage.customHeaders[key];
+  }
+
+  public addCustomHeader(): void {
+    if (!this.stage.customHeaders) {
+      this.stage.customHeaders = {};
+    }
+    this.$uibModal.open({
+      templateUrl: require('core/pipeline/config/stages/webhook/modal/addCustomHeader.html'),
+      controller: 'WebhookStageAddCustomHeaderCtrl',
+      controllerAs: 'addCustomHeader',
+    }).result.then((customHeader: ICustomHeader) => {
+      this.stage.customHeaders[customHeader.key] = customHeader.value;
+    });
+  }
 }
 
 export const WEBHOOK_STAGE = 'spinnaker.core.pipeline.stage.webhookStage';
