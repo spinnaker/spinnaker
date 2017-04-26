@@ -92,14 +92,26 @@ class DockerRegistryImageLookupController {
       } else {
         def parse = Keys.parse(it.id)
         return [
-          repository: (String) parse.repository,
-          tag       : (String) parse.tag,
-          account   : it.attributes.account,
-          registry  : credentials.registry,
-          digest    : it.attributes.digest,
+          repository: (String) parse.repository,  //TODO: Deprecate
+          tag       : (String) parse.tag,         //TODO: Deprecate
+          account   : it.attributes.account,      //TODO: Deprecate
+          registry  : credentials.registry,       //TODO: Deprecate
+          digest    : it.attributes.digest,       //TODO: Deprecate
+          artifact  : generateArtifact(credentials.registry, parse.repository, parse.tag)
         ]
       }
     }
+  }
+
+  Map generateArtifact( String registry,def repository, def tag) {
+    String reference = "${registry}/${repository}:${tag}"
+    [
+      name      : repository,
+      type      : "docker",
+      version   : tag,
+      reference : reference,
+      metadata  : [ registry: registry ]
+    ]
   }
 
   private List<Map> listAllImagesWithoutDigests(String key, LookupOptions lookupOptions) {
@@ -121,6 +133,7 @@ class DockerRegistryImageLookupController {
           tag       : (String) parse.tag,
           account   : (String) parse.account,
           registry  : credentials.registry,
+          artifact  : generateArtifact(credentials.registry, parse.repository, parse.tag)
         ]
       }
     }
