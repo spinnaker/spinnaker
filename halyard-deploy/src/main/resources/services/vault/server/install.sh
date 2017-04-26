@@ -19,9 +19,7 @@ mkdir -p /var/vault
 
 # Setup config
 
-cp -r config/vault.hcl /etc/vault.d/vault.hcl
-
-cat > /etc/vault.d/vault.hc <<EOF
+cat > /etc/vault.d/vault.hcl <<EOF
 listener "tcp" {
     address     = "0.0.0.0:8200"
     tls_disable = 1
