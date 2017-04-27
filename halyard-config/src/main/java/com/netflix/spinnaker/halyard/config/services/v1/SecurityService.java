@@ -204,6 +204,9 @@ public class SecurityService {
       case OAuth2:
         authn.setOauth2((OAuth2) method);
         break;
+      case SAML:
+        authn.setSaml((Saml) method);
+        break;
       default:
         throw new RuntimeException("Unknown Authn method " + method.getMethod());
     }

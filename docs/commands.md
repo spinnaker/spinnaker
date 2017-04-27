@@ -128,6 +128,10 @@
  * [**hal config security authn oauth2 disable**](#hal-config-security-authn-oauth2-disable)
  * [**hal config security authn oauth2 edit**](#hal-config-security-authn-oauth2-edit)
  * [**hal config security authn oauth2 enable**](#hal-config-security-authn-oauth2-enable)
+ * [**hal config security authn saml**](#hal-config-security-authn-saml)
+ * [**hal config security authn saml disable**](#hal-config-security-authn-saml-disable)
+ * [**hal config security authn saml edit**](#hal-config-security-authn-saml-edit)
+ * [**hal config security authn saml enable**](#hal-config-security-authn-saml-enable)
  * [**hal config security authz**](#hal-config-security-authz)
  * [**hal config security authz roles**](#hal-config-security-authz-roles)
  * [**hal config security authz roles disable**](#hal-config-security-authz-roles-disable)
@@ -2146,6 +2150,7 @@ hal config security authn [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
  * `oauth2`: Configure the oauth2 method for authenticating.
+ * `saml`: Configure the saml method for authenticating.
 
 ---
 ## hal config security authn oauth2
@@ -2200,6 +2205,64 @@ Set the oauth2 method as enabled
 #### Usage
 ```
 hal config security authn oauth2 enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security authn saml
+
+Configure the saml method for authenticating.
+
+#### Usage
+```
+hal config security authn saml [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `disable`: Set the saml method as disabled
+ * `edit`: Configure authentication using a SAML identity provider.
+ * `enable`: Set the saml method as enabled
+
+---
+## hal config security authn saml disable
+
+Set the saml method as disabled
+
+#### Usage
+```
+hal config security authn saml disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config security authn saml edit
+
+SAML authenticates users by passing cryptographically signed XML documents between the Gate server and an identity provider. Gate's key is stored and accessed via the --keystore  parameters, while the identity provider's keys are included in the metadata.xml. Finally, the identity provider must redirect the control flow (through the user's browser) back to Gate by way of the --serviceAddressUrl. This is likely the address of Gate's load balancer.
+
+#### Usage
+```
+hal config security authn saml edit [parameters]
+```
+#### Parameters
+ * `--issuerId`: The identity of the Spinnaker application registered with the SAML provider.
+ * `--keystore`: Path to the keystore that contains this server's private key. This key is used to cryptographically sign SAML AuthNRequest objects.
+ * `--keystoreAlias`: The name of the alias under which this server's private key is stored in the --keystore file.
+ * `--keystorePassword`: The password used to access the file specified in --keystore
+ * `--metadata`: The address to your identity provider's metadata XML file. This can be a URL or the path of a local file.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--serviceAddressUrl`: The address of the Gate server that will be accesible by the SAML identity provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/. If deployed behind a load balancer, this would be the laod balancer's address.
+
+---
+## hal config security authn saml enable
+
+Set the saml method as enabled
+
+#### Usage
+```
+hal config security authn saml enable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.

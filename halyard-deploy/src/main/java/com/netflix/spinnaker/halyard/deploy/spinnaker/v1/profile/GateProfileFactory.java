@@ -35,10 +35,14 @@ public class GateProfileFactory extends SpringProfileFactory {
   }
 
   @Override
-  public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+  public void setProfile(Profile profile,
+                         DeploymentConfiguration deploymentConfiguration,
+                         SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     Security security = deploymentConfiguration.getSecurity();
     List<String> requiredFiles = processRequiredFiles(security.getApiSecurity());
+    requiredFiles.addAll(processRequiredFiles(security.getAuthn()));
+    requiredFiles.addAll(processRequiredFiles(security.getAuthz()));
     GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), security);
     gateConfig.getCors().setAllowedOrigins(endpoints.getServices().getDeck());
     profile.appendContents(yamlToString(gateConfig))
@@ -50,11 +54,18 @@ public class GateProfileFactory extends SpringProfileFactory {
   @Data
   private static class GateConfig extends SpringProfileConfig {
     Cors cors = new Cors();
+    SpringConfig spring;
+    SamlConfig saml;
 
     GateConfig(ServiceSettings gate, Security security) {
-      super(gate, security);
-      spring = new SpringConfig(security);
+      super(gate);
       server.ssl = security.getApiSecurity().getSsl();
+
+      if (security.getAuthn().getOauth2().isEnabled()) {
+        this.spring = new SpringConfig(security);
+      } else if (security.getAuthn().getSaml().isEnabled()) {
+        this.saml = new SamlConfig(security);
+      }
     }
 
     @Data

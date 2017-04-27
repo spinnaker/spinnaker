@@ -19,10 +19,14 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth2.OAuth2Command;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.saml.SamlCommand;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Parameters(separators = "=")
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class AuthnCommand extends AbstractConfigCommand {
   String commandName = "authn";
 
@@ -38,5 +42,6 @@ public class AuthnCommand extends AbstractConfigCommand {
 
   public AuthnCommand() {
     registerSubcommand(new OAuth2Command());
+    registerSubcommand(new SamlCommand());
   }
 }

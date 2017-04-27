@@ -20,9 +20,11 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Parameters(separators = "=")
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class AuthzCommand extends AbstractConfigCommand {
   String commandName = "authz";
 

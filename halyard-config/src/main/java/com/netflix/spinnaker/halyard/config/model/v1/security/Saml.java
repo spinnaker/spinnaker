@@ -12,43 +12,39 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.halyard.config.model.v1.security;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
+
+import java.net.URL;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Authn extends Node {
+public class Saml extends AuthnMethod {
+
+  private final Method method = Method.SAML;
+  private final String nodeName = "saml";
+
+  @LocalFile
+  private String metadataLocal;
+  private String metadataRemote;
+  private String issuerId;
+
+  @LocalFile
+  private String keyStore;
+  private String keyStorePassword;
+  private String keyStoreAliasName;
+
+  private URL serviceAddress;
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
-
-  @Getter
-  private String nodeName = "authn";
-
-  @Override
-  public NodeIterator getChildren() {
-    return NodeIteratorFactory.makeReflectiveIterator(this);
-  }
-
-  private OAuth2 oauth2 = new OAuth2();
-  private Saml saml = new Saml();
-  private boolean enabled;
-
-  public boolean isEnabled() {
-    return getOauth2().isEnabled() || getSaml().isEnabled();
-  }
-
-  public void setEnabled(boolean _ignored) {}
 }

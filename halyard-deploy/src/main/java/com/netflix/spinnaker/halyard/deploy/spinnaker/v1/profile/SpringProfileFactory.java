@@ -64,12 +64,10 @@ public class SpringProfileFactory extends RegistryBackedProfileFactory {
   @Data
   static class SpringProfileConfig {
     ServerConfig server;
-    SpringConfig spring;
     SecurityConfig security;
 
-    SpringProfileConfig(ServiceSettings settings, Security security) {
+    SpringProfileConfig(ServiceSettings settings) {
       this.server = new ServerConfig(settings);
-      this.spring = new SpringConfig(security);
       this.security = new SecurityConfig(settings);
     }
   }
