@@ -35,16 +35,18 @@ import java.util.Map;
 public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
   private String template = String.join("\n",
       "{",
-      "    \"server\": false,",
-      "    \"datacenter\": \"spinnaker\",",
-      "    \"data_dir\": \"/var/consul\",",
-      "    \"log_level\": \"INFO\",",
-      "    \"enable_syslog\": true,",
-      "    \"ports\": {",
-      "        \"dns\": 53,",
-      "        \"{%scheme%}\": {%port%}",
-      "    },",
-      "    \"recursors\": [ \"8.8.8.8\" ]",
+      "    \"service\": {",
+      "        \"server\": false,",
+      "        \"datacenter\": \"spinnaker\",",
+      "        \"data_dir\": \"/var/consul\",",
+      "        \"log_level\": \"INFO\",",
+      "        \"enable_syslog\": true,",
+      "        \"ports\": {",
+      "            \"dns\": 53,",
+      "            \"{%scheme%}\": {%port%}",
+      "        },",
+      "        \"recursors\": [ \"8.8.8.8\" ]",
+      "    }",
       "}"
   );
 

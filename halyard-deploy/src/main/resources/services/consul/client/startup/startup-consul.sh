@@ -12,4 +12,12 @@ echo \"${members[@]// /\",\"}\" >> $CONSUL_JOIN_FILE
 
 echo '] }' >> $CONSUL_JOIN_FILE
 
+# Configure local nameserver
+
+apt-get install resolvconf
+
+echo nameserver 127.0.0.1 >> /etc/resolvconf/resolv.conf.d/head
+
+resolvconf -u
+
 service consul restart

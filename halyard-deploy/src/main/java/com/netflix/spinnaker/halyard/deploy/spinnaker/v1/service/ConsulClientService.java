@@ -78,7 +78,7 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulClientS
       if (!settings.isSidecar() && settings.isEnabled()) {
         String serviceName = type.getCanonicalName();
         String profileName = consulClientService(serviceName);
-        String profilePath = Paths.get(CLIENT_OUTPUT_PATH, serviceName).toString();
+        String profilePath = Paths.get(CLIENT_OUTPUT_PATH, serviceName + ".json").toString();
         ProfileFactory factory = consulServiceProfileFactoryBuilder.build(type, settings);
         result.add(factory.getProfile(profileName, profilePath, deploymentConfiguration, endpoints));
       }
