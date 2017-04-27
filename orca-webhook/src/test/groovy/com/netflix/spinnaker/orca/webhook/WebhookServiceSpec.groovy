@@ -18,18 +18,22 @@
 package com.netflix.spinnaker.orca.webhook
 
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.web.client.MockRestServiceServer
+import org.springframework.test.web.client.ResponseActions
 import org.springframework.web.client.RestTemplate
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import spock.lang.Unroll
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.header
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess
 
 class WebhookServiceSpec extends Specification {
@@ -45,24 +49,43 @@ class WebhookServiceSpec extends Specification {
   @Subject
   def webhookService = new WebhookService(restTemplate: restTemplate, userConfiguredUrlRestrictions: userConfiguredUrlRestrictions)
 
+  @Unroll
   def "Webhook is being called with correct parameters"() {
     expect:
-    server.expect(requestTo("https://localhost/v1/test"))
+    ResponseActions responseActions = server.expect(requestTo("https://localhost/v1/test"))
       .andExpect(method(HttpMethod.POST))
-      .andExpect(jsonPath('$.payload1').value("Hello"))
-      .andExpect(jsonPath('$.payload2').value("World!"))
-      .andRespond(withSuccess('{"status": "SUCCESS"}', MediaType.APPLICATION_JSON))
+
+    if(payload) {
+      payload.each { k, v -> responseActions.andExpect(jsonPath('$.' + k).value(v)) }
+    }
+    if(customHeaders) {
+      customHeaders.each { k, v -> responseActions.andExpect(header(k, v)) }
+    }
+
+    responseActions.andRespond(withSuccess('{"status": "SUCCESS"}', MediaType.APPLICATION_JSON))
 
     when:
+    HttpHeaders headers = new HttpHeaders()
+    headers.add("customHeader", "value")
     def responseEntity = webhookService.exchange(
       HttpMethod.POST,
       "https://localhost/v1/test",
-      ["payload1": "Hello", "payload2": "World!"])
+      payload,
+      customHeaders
+    )
 
     then:
     server.verify()
     responseEntity.statusCode == HttpStatus.OK
     responseEntity.body == ["status": "SUCCESS"]
+
+    where:
+    payload                                     | customHeaders
+    ["payload1": "Hello", "payload2": "World!"] | ["X-HEADER": "value"]
+    ["payload1": "Hello", "payload2": "World!"] | [:]
+    [:]                                         | [:]
+    null                                        | null
+
   }
 
   def "Status endpoint is being called"() {
