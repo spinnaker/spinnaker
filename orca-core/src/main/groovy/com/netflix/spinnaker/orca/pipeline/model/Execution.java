@@ -24,6 +24,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import lombok.Data;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2;
 import static java.util.Arrays.asList;
 
 @Data
@@ -52,6 +53,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
 
   AuthenticationDetails authentication;
   PausedDetails paused;
+  ExecutionEngine executionEngine = DEFAULT_EXECUTION_ENGINE;
 
   public Stage<T> namedStage(String type) {
     return stages
@@ -124,5 +126,11 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     public long getPausedMs() {
       return (pauseTime != null && resumeTime != null) ? resumeTime - pauseTime : 0;
     }
+  }
+
+  public static final ExecutionEngine DEFAULT_EXECUTION_ENGINE = v2;
+
+  public enum ExecutionEngine {
+    v2, v3
   }
 }

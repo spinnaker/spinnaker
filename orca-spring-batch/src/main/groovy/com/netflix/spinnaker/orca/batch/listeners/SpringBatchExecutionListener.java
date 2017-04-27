@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -42,7 +43,7 @@ public class SpringBatchExecutionListener extends JobExecutionListenerSupport im
                                       ExecutionListener executionListener) {
     this.executionRepository = executionRepository;
     this.executionListener = executionListener;
-    this.defaultPersister = new SpringBatchStageListener.DefaultPersister(executionRepository);
+    this.defaultPersister = new DefaultPersister(executionRepository);
   }
 
   @Override

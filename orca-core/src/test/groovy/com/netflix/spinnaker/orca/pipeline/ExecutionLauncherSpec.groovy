@@ -25,13 +25,16 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 
 abstract class ExecutionLauncherSpec<T extends Execution, L extends ExecutionLauncher<T>> extends Specification {
 
   abstract L create()
 
   @Shared def objectMapper = new ObjectMapper()
-  def runner = Mock(ExecutionRunner)
+  def runner = Mock(ExecutionRunner) {
+    engine() >> DEFAULT_EXECUTION_ENGINE
+  }
   def executionRepository = Mock(ExecutionRepository)
 
 }
@@ -43,7 +46,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
 
   @Override
   PipelineLauncher create() {
-    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, runner, Optional.of(startTracker), Optional.of(pipelineValidator))
+    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, [runner], Optional.of(startTracker), Optional.of(pipelineValidator))
   }
 
   def "can autowire pipeline launcher with optional dependencies"() {

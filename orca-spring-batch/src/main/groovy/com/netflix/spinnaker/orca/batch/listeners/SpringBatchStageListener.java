@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.batch.listeners;
 
 import java.util.List;
 import com.netflix.spinnaker.orca.ExecutionStatus;
+import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.Persister;
 import com.netflix.spinnaker.orca.listeners.StageListener;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
@@ -140,29 +141,6 @@ public class SpringBatchStageListener extends StepExecutionListenerSupport imple
       .filter(stage -> stage.getId().equals(stageId(stepExecution)))
       .findFirst()
       .orElse(null);
-  }
-
-  static class DefaultPersister implements Persister {
-    private final ExecutionRepository executionRepository;
-
-    public DefaultPersister(ExecutionRepository executionRepository) {
-      this.executionRepository = executionRepository;
-    }
-
-    @Override
-    public <T extends Execution<T>> void save(Stage<T> stage) {
-      executionRepository.storeStage(stage);
-    }
-
-    @Override
-    public boolean isCanceled(String executionId) {
-      return executionRepository.isCanceled(executionId);
-    }
-
-    @Override
-    public void updateStatus(String executionId, ExecutionStatus executionStatus) {
-      executionRepository.updateStatus(executionId, executionStatus);
-    }
   }
 
   /**

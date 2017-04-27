@@ -17,12 +17,17 @@
 package com.netflix.spinnaker.orca.mahe.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.events.ExecutionEvent
+import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter
 import com.netflix.spinnaker.orca.mahe.MaheService
+import com.netflix.spinnaker.orca.mahe.cleanup.FastPropertyCleanupListener
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -67,5 +72,10 @@ class MaheConfiguration {
       .setConverter(new JacksonConverter(objectMapper))
       .build()
       .create(MaheService)
+  }
+
+  @Bean
+  ApplicationListener<ExecutionEvent> fastPropertyCleanupListenerAdapter(FastPropertyCleanupListener fastPropertyCleanupListener, ExecutionRepository repository) {
+    new ExecutionListenerAdapter(fastPropertyCleanupListener, repository)
   }
 }

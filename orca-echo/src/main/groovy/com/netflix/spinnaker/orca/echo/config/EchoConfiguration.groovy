@@ -17,17 +17,22 @@
 package com.netflix.spinnaker.orca.echo.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.orca.front50.Front50Service
-import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingExecutionListener
 import com.netflix.spinnaker.orca.echo.spring.EchoNotifyingStageListener
+import com.netflix.spinnaker.orca.events.ExecutionEvent
+import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter
+import com.netflix.spinnaker.orca.events.StageListenerAdapter
+import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.retrofit.RetrofitConfiguration
 import com.netflix.spinnaker.orca.retrofit.logging.RetrofitSlf4jLog
+import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
+import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -73,10 +78,20 @@ class EchoConfiguration {
   }
 
   @Bean
+  ApplicationListener<ExecutionEvent> echoNotifyingStageExecutionListenerAdapter(EchoNotifyingStageListener echoNotifyingStageListener, ExecutionRepository repository) {
+    return new StageListenerAdapter(echoNotifyingStageListener, repository)
+  }
+
+  @Bean
   EchoNotifyingExecutionListener echoNotifyingPipelineExecutionListener(EchoService echoService,
                                                                         Front50Service front50Service,
                                                                         ObjectMapper objectMapper,
                                                                         ContextParameterProcessor contextParameterProcessor) {
     new EchoNotifyingExecutionListener(echoService, front50Service, objectMapper, contextParameterProcessor)
+  }
+
+  @Bean
+  ApplicationListener<ExecutionEvent> echoNotifyingPipelineExecutionListenerAdapter(EchoNotifyingExecutionListener echoNotifyingExecutionListener, ExecutionRepository repository) {
+    return new ExecutionListenerAdapter(echoNotifyingExecutionListener, repository)
   }
 }

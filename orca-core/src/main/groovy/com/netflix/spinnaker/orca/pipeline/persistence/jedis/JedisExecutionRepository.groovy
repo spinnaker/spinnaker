@@ -45,15 +45,21 @@ import rx.functions.Func1
 import rx.schedulers.Schedulers
 import static com.google.common.base.Predicates.notNull
 import static com.google.common.collect.Maps.filterValues
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 import static java.lang.System.currentTimeMillis
+import static java.util.Collections.emptySet
 
 @Component
 @Slf4j
 @CompileStatic
 class JedisExecutionRepository implements ExecutionRepository {
 
-  private static final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {}
-  private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {}
+  private static
+  final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {
+  }
+  private static
+  final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {
+  }
   private final Pool<Jedis> jedisPool
   private final Optional<Pool<Jedis>> jedisPoolPrevious
   private final ObjectMapper mapper = OrcaObjectMapper.newInstance()
@@ -223,10 +229,29 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
-  <T extends Execution<T>> void storeStage(Stage<T> stage) {
-    Class<T> executionType = stage.execution.getClass()
-    withJedis(getJedisPoolForId("${executionType.simpleName.toLowerCase()}:${stage.execution.id}" )) { Jedis jedis ->
+  void storeStage(Stage<? extends Execution> stage) {
+    Class<? extends Execution> executionType = stage.execution.getClass()
+    withJedis(getJedisPoolForId("${executionType.simpleName.toLowerCase()}:${stage.execution.id}")) { Jedis jedis ->
       storeStageInternal(jedis, executionType, stage)
+    }
+  }
+
+  @Override
+  void removeStage(Execution execution, String stageId) {
+    Class<? extends Execution> executionType = execution.getClass()
+    def key = "${executionType.simpleName.toLowerCase()}:${execution.id}"
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
+      def stageIds = jedis
+        .hget(key, "stageIndex")
+        .tokenize(",")
+      stageIds.remove(stageId)
+      jedis.hset(key, "stageIndex", stageIds.join(","))
+
+      def keys = jedis
+        .hkeys(key)
+        .findAll { it.startsWith("stage.$stageId.") }
+        .toArray(new String[0])
+      jedis.hdel(key, keys)
     }
   }
 
@@ -246,12 +271,14 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   Observable<Pipeline> retrievePipelines() {
-    return Observable.merge(allJedis().collect {all(Pipeline, it)})
+    return Observable.merge(allJedis().collect { all(Pipeline, it) })
   }
 
   @Override
   Observable<Pipeline> retrievePipelinesForApplication(String application) {
-    return Observable.merge(allJedis().collect {allForApplication(Pipeline, application, it)})
+    return Observable.merge(allJedis().collect {
+      allForApplication(Pipeline, application, it)
+    })
   }
 
   @Override
@@ -261,7 +288,9 @@ class JedisExecutionRepository implements ExecutionRepository {
     /**
      * Fetch pipeline ids from the primary redis (and secondary if configured)
      */
-    Map<Pool<Jedis>, List<String>> filteredPipelineIdsByJedis = [:].withDefault { [] }
+    Map<Pool<Jedis>, List<String>> filteredPipelineIdsByJedis = [:].withDefault {
+      []
+    }
     if (criteria.statuses) {
       allJedis().each { Pool<Jedis> jedisPool ->
         withJedis(jedisPool) { Jedis jedis ->
@@ -347,7 +376,7 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Override
   Observable<Orchestration> retrieveOrchestrations() {
-    return Observable.merge(allJedis().collect {all(Orchestration, it)})
+    return Observable.merge(allJedis().collect { all(Orchestration, it) })
   }
 
   @Override
@@ -358,7 +387,9 @@ class JedisExecutionRepository implements ExecutionRepository {
     /**
      * Fetch orchestration ids from the primary redis (and secondary if configured)
      */
-    Map<Pool<Jedis>, List<String>> filteredOrchestrationIdsByJedis = [:].withDefault { [] }
+    Map<Pool<Jedis>, List<String>> filteredOrchestrationIdsByJedis = [:].withDefault {
+      []
+    }
     if (criteria.statuses) {
       allJedis().each { Pool<Jedis> targetPool ->
         withJedis(targetPool) { Jedis jedis ->
@@ -456,7 +487,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       status              : execution.status?.name(),
       authentication      : mapper.writeValueAsString(execution.authentication),
       paused              : mapper.writeValueAsString(execution.paused),
-      keepWaitingPipelines: String.valueOf(execution.keepWaitingPipelines)
+      keepWaitingPipelines: String.valueOf(execution.keepWaitingPipelines),
+      executionEngine     : execution.executionEngine?.name() ?: DEFAULT_EXECUTION_ENGINE.name()
     ]
     // TODO: store separately? Seems crazy to be using a hash rather than a set
     map.stageIndex = execution.stages.id.join(",")
@@ -502,7 +534,9 @@ class JedisExecutionRepository implements ExecutionRepository {
 
     def serializedStage = serializeStage(stage)
     jedis.hmset(key, filterValues(serializedStage, notNull()))
-    jedis.hdel(key, serializedStage.keySet().findAll { serializedStage[it] == null } as String[])
+    jedis.hdel(key, serializedStage.keySet().findAll {
+      serializedStage[it] == null
+    } as String[])
   }
 
   @CompileDynamic
@@ -529,6 +563,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
       execution.keepWaitingPipelines = Boolean.parseBoolean(map.keepWaitingPipelines)
+      execution.executionEngine = map.executionEngine == null ? DEFAULT_EXECUTION_ENGINE : Execution.ExecutionEngine.valueOf(map.executionEngine)
 
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->
@@ -544,7 +579,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.initializationStage = map["stage.${stageId}.initializationStage".toString()].toBoolean()
         stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
         stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
-        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
+        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",") ?: emptySet()
         stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
         stage.context = mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT)
         stage.tasks = mapper.readValue(map["stage.${stageId}.tasks".toString()], LIST_OF_TASKS)

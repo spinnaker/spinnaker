@@ -33,7 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import static com.google.common.collect.Lists.reverse;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage;
-import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.*;
+import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.FULL;
+import static com.netflix.spinnaker.orca.pipeline.TaskNode.GraphType.HEAD;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
@@ -68,9 +69,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
       BranchingStageDefinitionBuilder branchBuilder = (BranchingStageDefinitionBuilder) builder;
 
       // build tasks that should run before the branch
-      TaskNode.TaskGraph beforeGraph = TaskNode.build(HEAD, preBranch ->
-        branchBuilder.preBranchGraph(stage, preBranch)
-      );
+      TaskNode.TaskGraph beforeGraph = branchBuilder.buildPreGraph(stage);
       if (beforeGraph.isEmpty()) {
         callback.accept(singleton(stage), TaskNode.singleton(HEAD, "beginParallel", NoOpTask.class));
       } else {
@@ -106,9 +105,7 @@ public abstract class ExecutionRunnerSupport implements ExecutionRunner {
       callback.accept(parallelStages, taskGraph);
 
       // build tasks that run after the branch
-      TaskNode.TaskGraph afterGraph = TaskNode.build(TAIL, postBranch -> {
-        branchBuilder.postBranchGraph(stage, postBranch);
-      });
+      TaskNode.TaskGraph afterGraph = branchBuilder.buildPostGraph(stage);
       callback.accept(singleton(stage), afterGraph);
 
       // ensure parallel stages have the correct stage type (ie. createServerGroup -> deploy to satisfy deck)

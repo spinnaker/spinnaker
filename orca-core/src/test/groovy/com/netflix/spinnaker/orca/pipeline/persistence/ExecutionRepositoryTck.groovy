@@ -96,7 +96,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(runningExecution)
     repository.store(succeededExecution)
     def pipelines = repository.retrievePipelinesForPipelineConfigId(
-      "pipeline-1", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+      "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -104,7 +104,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     pipelines = repository.retrievePipelinesForPipelineConfigId(
-      "pipeline-1", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+      "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -112,7 +112,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     pipelines = repository.retrievePipelinesForPipelineConfigId(
-      "pipeline-1", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+      "pipeline-1", new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -128,7 +128,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
     repository.store(runningExecution)
     repository.store(succeededExecution)
     def orchestrations = repository.retrieveOrchestrationsForApplication(
-      "application", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
+      "application", new ExecutionCriteria(limit: 5, statuses: ["RUNNING", "SUCCEEDED", "TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -136,7 +136,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
-      "application", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
+      "application", new ExecutionCriteria(limit: 5, statuses: ["RUNNING"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -144,7 +144,7 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
 
     when:
     orchestrations = repository.retrieveOrchestrationsForApplication(
-      "application", new ExecutionRepository.ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
+      "application", new ExecutionCriteria(limit: 5, statuses: ["TERMINAL"])
     ).subscribeOn(Schedulers.io()).toList().toBlocking().single()
 
     then:
@@ -183,35 +183,6 @@ abstract class ExecutionRepositoryTck<T extends ExecutionRepository> extends Spe
       .withStage("two", "two", [bar: "bar"])
       .withStage("three", "three", [baz: "baz"])
       .build()
-  }
-
-  @Ignore("I don't think this is really necessary with updated Redis schema")
-  def "a pipeline has correctly ordered stages after load"() {
-    given:
-    def pipeline = Pipeline
-      .builder()
-      .withStage("one", "one", [:])
-      .withStage("two", "two", [:])
-      .withStage("one-a", "one-1", [:])
-      .withStage("one-b", "one-1", [:])
-      .withStage("one-a-a", "three", [:])
-      .build()
-
-    def one = pipeline.stages.find { it.type == "one" }
-    def oneA = pipeline.stages.find { it.type == "one-a" }
-    def oneAA = pipeline.stages.find { it.type == "one-a-a" }
-    def oneB = pipeline.stages.find { it.type == "one-b" }
-    oneA.parentStageId = one.id
-    oneAA.parentStageId = oneA.id
-    oneB.parentStageId = one.id
-
-    and:
-    repository.store(pipeline)
-
-    expect:
-    with(repository.retrievePipeline(pipeline.id)) {
-      stages*.type == ["one", "one-a", "one-a-a", "one-b", "two"]
-    }
   }
 
   def "trying to retrieve an invalid #type.simpleName id throws an exception"() {
@@ -702,6 +673,31 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     then:
     fetchedPipeline.stages[0].startTime == null
     fetchedPipeline.stages[0].endTime == null
+  }
 
+  def "can remove a stage leaving other stages unaffected"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withApplication("orca")
+      .withName("dummy-pipeline")
+      .withStage("one")
+      .withStage("two")
+      .withStage("three")
+      .build()
+
+    repository.store(pipeline)
+
+    expect:
+    repository.retrievePipeline(pipeline.id).stages.size() == 3
+
+    when:
+    repository.removeStage(pipeline, pipeline.namedStage("two").id)
+
+    then:
+    with(repository.retrievePipeline(pipeline.id)) {
+      stages.size() == 2
+      stages.type == ["one", "three"]
+    }
   }
 }

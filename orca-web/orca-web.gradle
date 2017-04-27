@@ -45,6 +45,7 @@ dependencies {
   compile project(":orca-webhook")
   compile project(":orca-eureka")
   compile project(":orca-spring-batch")
+  compile project(":orca-queue-redis")
   compile project(":orca-pipelinetemplate")
 
 //  Replace below with this line when fiat becomes stable.

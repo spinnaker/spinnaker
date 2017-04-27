@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.ExecutionRunnerSupport;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.TaskNode;
 import com.netflix.spinnaker.orca.pipeline.model.*;
+import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine;
 import com.netflix.spinnaker.orca.pipeline.parallel.WaitForRequisiteCompletionStage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +61,7 @@ import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDe
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER;
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE;
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
@@ -132,6 +133,10 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
     } else {
       jobOperator.restart(batchExecution.getId());
     }
+  }
+
+  @Override public ExecutionEngine engine() {
+    return ExecutionEngine.v2;
   }
 
   private <E extends Execution<E>> JobParameters createJobParameters(E subject) {
@@ -260,7 +265,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
       null
     );
     waitForStage.setId(format("%s-waitForRequisite", stage.getId()));
-    waitForStage.setRequisiteStageRefIds(emptyList());
+    waitForStage.setRequisiteStageRefIds(emptySet());
 
     // 'this' stage should be added after the join stage
     FlowBuilder<Flow> waitForFlow = flowBuilder(format("WaitForRequisite.%s.%s", stage.getRefId(), stage.getId()));

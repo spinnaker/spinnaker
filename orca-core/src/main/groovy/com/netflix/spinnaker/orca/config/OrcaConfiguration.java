@@ -10,10 +10,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler;
+import com.netflix.spinnaker.orca.events.ExecutionEvent;
+import com.netflix.spinnaker.orca.events.ExecutionListenerAdapter;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion;
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion;
 import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener;
+import com.netflix.spinnaker.orca.listeners.ExecutionListener;
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler;
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker;
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener;
@@ -28,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -87,8 +91,18 @@ public class OrcaConfiguration {
   }
 
   @Bean
+  public ApplicationListener<ExecutionEvent> executionCleanupListenerAdapter(ExecutionListener executionCleanupListener, ExecutionRepository repository) {
+    return new ExecutionListenerAdapter(executionCleanupListener, repository);
+  }
+
+  @Bean
   public PipelineStarterListener pipelineStarterListener(ExecutionRepository executionRepository, PipelineStartTracker startTracker, ApplicationContext applicationContext) {
     return new PipelineStarterListener(executionRepository, startTracker, applicationContext);
+  }
+
+  @Bean
+  public ApplicationListener<ExecutionEvent> pipelineStarterListenerAdapter(PipelineStarterListener pipelineStarterListener, ExecutionRepository repository) {
+    return new ExecutionListenerAdapter(pipelineStarterListener, repository);
   }
 
   @Bean

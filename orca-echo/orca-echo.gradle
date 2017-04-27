@@ -16,6 +16,7 @@
 
 dependencies {
   compile project(":orca-core")
+  compile project(":orca-queue")
   compile project(":orca-retrofit")
   compile project(":orca-igor")
   compile project(":orca-front50")

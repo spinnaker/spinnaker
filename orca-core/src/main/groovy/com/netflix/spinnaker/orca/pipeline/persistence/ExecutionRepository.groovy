@@ -28,7 +28,9 @@ interface ExecutionRepository {
 
   void storeExecutionContext(String id, Map<String, Object> context)
 
-  def <T extends Execution<T>> void storeStage(Stage<T> stage)
+  void storeStage(Stage<? extends Execution> stage)
+
+  void removeStage(Execution execution, String stageId)
 
   void cancel(String id)
   void cancel(String id, String user, String reason)

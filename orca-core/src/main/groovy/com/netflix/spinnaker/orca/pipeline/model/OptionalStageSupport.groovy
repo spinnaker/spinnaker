@@ -28,7 +28,7 @@ class OptionalStageSupport {
   ]
 
   /**
-   * A Stage is optional if it has an {@link OptionalStageEvaluator} in it's context that evaluates {@code false}.
+   * A Stage is optional if it has an {@link OptionalStageEvaluator} in its context that evaluates {@code false}.
    */
   static boolean isOptional(Stage stage, ContextParameterProcessor contextParameterProcessor) {
     def optionalType = (stage.context.stageEnabled?.type as String)?.toLowerCase()

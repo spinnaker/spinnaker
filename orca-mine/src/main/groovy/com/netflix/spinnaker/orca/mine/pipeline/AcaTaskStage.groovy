@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.batch.RestartableStage
@@ -29,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -71,7 +71,7 @@ class AcaTaskStage implements StageDefinitionBuilder, CancellableStage, Restarta
     }
 
 
-    stage.tasks.each { com.netflix.spinnaker.orca.pipeline.model.Task task ->
+    stage.tasks.each { task ->
       task.startTime = null
       task.endTime = null
       task.status = ExecutionStatus.NOT_STARTED
