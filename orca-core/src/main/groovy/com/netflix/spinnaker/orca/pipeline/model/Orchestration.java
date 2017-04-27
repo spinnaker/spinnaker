@@ -17,10 +17,16 @@
 package com.netflix.spinnaker.orca.pipeline.model;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 public class Orchestration extends Execution<Orchestration> {
   String description;
+
+  @Override public final boolean equals(Object o) {
+    return super.equals(o);
+  }
+
+  @Override public final int hashCode() {
+    return super.hashCode();
+  }
 }

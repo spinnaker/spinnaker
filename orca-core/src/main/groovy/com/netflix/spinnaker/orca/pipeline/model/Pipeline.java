@@ -22,10 +22,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 public class Pipeline extends Execution<Pipeline> {
   String application;
   String name;
@@ -33,6 +31,14 @@ public class Pipeline extends Execution<Pipeline> {
   final Map<String, Object> trigger = new HashMap<>();
   final List<Map<String, Object>> notifications = new ArrayList<>();
   final Map<String, Serializable> initialConfig = new HashMap<>();
+
+  @Override public final boolean equals(Object o) {
+    return super.equals(o);
+  }
+
+  @Override public final int hashCode() {
+    return super.hashCode();
+  }
 
   public static PipelineBuilder builder() {
     return new PipelineBuilder();

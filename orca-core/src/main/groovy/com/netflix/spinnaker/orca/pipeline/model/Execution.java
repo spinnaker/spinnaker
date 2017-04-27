@@ -71,6 +71,22 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
       .orElse(null);
   }
 
+  @Override public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    Execution<?> execution = (Execution<?>) o;
+
+    return id.equals(execution.id);
+  }
+
+  @Override public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + id.hashCode();
+    return result;
+  }
+
   @Data
   public static class AuthenticationDetails implements Serializable {
 
@@ -131,6 +147,6 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
   public static final ExecutionEngine DEFAULT_EXECUTION_ENGINE = v2;
 
   public enum ExecutionEngine {
-    v2, v3
+    v1, v2, v3
   }
 }

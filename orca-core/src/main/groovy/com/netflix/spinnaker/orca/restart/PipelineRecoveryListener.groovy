@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
@@ -46,7 +47,7 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
 
   @Autowired
   PipelineRecoveryListener(ExecutionRepository executionRepository,
-                           ExecutionRunner pipelineStarter,
+                           @Qualifier("springBatchExecutionRunner") ExecutionRunner pipelineStarter,
                            String currentInstanceId,
                            Registry registry) {
     this.currentInstanceId = currentInstanceId

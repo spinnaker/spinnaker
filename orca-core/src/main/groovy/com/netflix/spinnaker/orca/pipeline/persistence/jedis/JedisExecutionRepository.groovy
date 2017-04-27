@@ -563,7 +563,11 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
       execution.keepWaitingPipelines = Boolean.parseBoolean(map.keepWaitingPipelines)
-      execution.executionEngine = map.executionEngine == null ? DEFAULT_EXECUTION_ENGINE : Execution.ExecutionEngine.valueOf(map.executionEngine)
+      try {
+        execution.executionEngine = map.executionEngine == null ? DEFAULT_EXECUTION_ENGINE : Execution.ExecutionEngine.valueOf(map.executionEngine)
+      } catch (IllegalArgumentException e) {
+        execution.executionEngine = DEFAULT_EXECUTION_ENGINE
+      }
 
       def stageIds = map.stageIndex.tokenize(",")
       stageIds.each { stageId ->

@@ -128,6 +128,22 @@ public class Stage<T extends Execution<T>> implements Serializable {
 
   private LastModifiedDetails lastModified;
 
+  @Override public final boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    if (!super.equals(o)) return false;
+
+    Stage<?> stage = (Stage<?>) o;
+
+    return id.equals(stage.id);
+  }
+
+  @Override public final int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + id.hashCode();
+    return result;
+  }
+
   @JsonIgnore
   private final AtomicInteger stageCounter = new AtomicInteger(0);
 
