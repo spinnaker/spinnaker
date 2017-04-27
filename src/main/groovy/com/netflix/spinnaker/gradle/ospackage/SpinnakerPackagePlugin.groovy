@@ -79,6 +79,16 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
                 setFileType(new Directive(Directive.RPMFILE_CONFIG | Directive.RPMFILE_NOREPLACE))
             }
         }
+        
+        def systemdService = project.file("lib/systemd/system/${appName}.service")
+        if (systemdService.exists()) {
+            extension.from(systemdService) {
+                into('/lib/systemd/system')
+                setUser('root')
+                setPermissionGroup('root')
+                setFileType(new Directive(Directive.RPMFILE_CONFIG | Directive.RPMFILE_NOREPLACE))
+            }
+        }
 
         def logrotateConf = project.file("etc/logrotate.d/${appName}")
         if (logrotateConf.exists()) {
