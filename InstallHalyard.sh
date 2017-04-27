@@ -286,6 +286,8 @@ halyard:
   halconfig:
     directory: $halconfig
 EOL
+
+  echo $user > /opt/spinnaker/config/halyard-user
 }
 
 process_args "$@"
