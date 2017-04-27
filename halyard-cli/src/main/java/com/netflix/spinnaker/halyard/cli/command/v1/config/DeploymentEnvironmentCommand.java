@@ -45,6 +45,7 @@ public class DeploymentEnvironmentCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to get your deployment environment.")
         .setSuccessMessage("Retrieved configured deployment environment.")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setOperation(Daemon.getDeploymentEnvironment(currentDeployment, !noValidate))
         .get();
   }

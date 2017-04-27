@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
@@ -33,6 +34,7 @@ public class OperationHandler<T> implements Supplier<T> {
   String failureMesssage;
   Supplier<T> operation;
   Format format = NONE;
+  boolean userFormatted = false;
 
   @Override
   public T get() {
@@ -43,8 +45,15 @@ public class OperationHandler<T> implements Supplier<T> {
       throw new ExpectedDaemonFailureException(failureMesssage, e.getCause());
     }
 
-    if (successMessage != null) {
+    if (successMessage != null && !GlobalOptions.getGlobalOptions().isQuiet()) {
       AnsiUi.success(successMessage);
+    }
+
+    if (userFormatted) {
+      Format userFormat = GlobalOptions.getGlobalOptions().getOutput();
+      if (userFormat != null) {
+        format = userFormat;
+      }
     }
 
     String result = AnsiFormatUtils.format(format, res);

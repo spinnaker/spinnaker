@@ -42,6 +42,7 @@ abstract class AbstractGetBaseImageCommand extends AbstractHasBaseImageCommand {
         .setFailureMesssage("Failed to get base image " + baseImageId + " in" + providerName + "'s bakery.")
         .setSuccessMessage("Settings for " + baseImageId + " in" + providerName + "'s bakery:")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setOperation(Daemon.getBaseImage(currentDeployment, providerName, baseImageId, false))
         .get();
   }

@@ -62,6 +62,7 @@ public abstract class AbstractNamedProviderCommand extends AbstractProviderComma
         .setFailureMesssage("Failed to get provider " + providerName + ".")
         .setSuccessMessage("Successfully got provider " + providerName + ".")
         .setFormat(STRING)
+        .setUserFormatted(true)
         .setOperation(Daemon.getProvider(currentDeployment, providerName, !noValidate))
         .get();
   }

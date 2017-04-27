@@ -59,6 +59,7 @@ abstract public class MetricStoreCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to get " + metricStoreType + " method.")
         .setSuccessMessage("Configured " + metricStoreType + " method: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

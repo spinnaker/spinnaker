@@ -60,6 +60,7 @@ public class RolesCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to get configured roles.")
         .setSuccessMessage("Configured roles: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

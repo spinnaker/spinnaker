@@ -42,6 +42,7 @@ abstract class AbstractGetMasterCommand extends AbstractHasMasterCommand {
         .setOperation(Daemon.getMaster(currentDeployment, ciName, masterName, !noValidate))
         .setFailureMesssage("Failed to get " + masterName + " under " + ciName + ".")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.versions.BomVersionCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.LatestVersionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
@@ -49,13 +50,9 @@ public class ListVersionCommand extends NestableCommand {
     Versions versions = new OperationHandler<Versions>()
         .setOperation(Daemon.getVersions())
         .setFailureMesssage("Failed to load available Spinnaker versions.")
+        .setSuccessMessage("The following versions are available: ")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
-
-    if (versions.getVersions().isEmpty()) {
-      AnsiUi.success("No stable versions published at this time.");
-    } else {
-      AnsiUi.success("The following versions are available: ");
-      versions.getVersions().forEach(v -> AnsiUi.listItem(v.toString()));
-    }
   }
 }

@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.halyard.cli.ui.v1;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
@@ -26,14 +28,27 @@ import org.yaml.snakeyaml.Yaml;
 import java.util.List;
 import java.util.Map;
 
+import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.NONE;
+
 public class AnsiFormatUtils {
   private static Yaml yamlParser = null;
   private static ObjectMapper objectMapper = null;
 
   public enum Format  {
     YAML,
+    JSON,
     STRING,
-    NONE
+    NONE;
+
+    public static Format fromString(String value) {
+      for (Format format : values()) {
+        if (format.toString().equalsIgnoreCase(value)) {
+          return format;
+        }
+      }
+
+      throw new IllegalArgumentException("Unknown format type: " + value + " valid arguments are YAML, JSON, STRING, or NONE.");
+    }
   }
 
   private static Yaml getYamlParser() {
@@ -56,8 +71,16 @@ public class AnsiFormatUtils {
     return objectMapper;
   }
 
-  public static String formatYaml(Object yaml) {
+  private static String formatYaml(Object yaml) {
     return getYamlParser().dump(getObjectMapper().convertValue(yaml, Map.class));
+  }
+
+  private static String formatJson(Object json) {
+    try {
+      return getObjectMapper().writeValueAsString(json);
+    } catch (JsonProcessingException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static String format(Format format, Object o) {
@@ -66,12 +89,14 @@ public class AnsiFormatUtils {
     }
 
     switch (format) {
-      case NONE:
-        return "";
-      case STRING:
-        return o.toString();
       case YAML:
         return formatYaml(o);
+      case JSON:
+        return formatJson(o);
+      case STRING:
+        return o.toString();
+      case NONE:
+        return "";
       default:
         throw new RuntimeException("Unknown format: " + format);
     }

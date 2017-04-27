@@ -53,6 +53,7 @@ public class SecurityCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to load security settings.")
         .setSuccessMessage("Configured security settings: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

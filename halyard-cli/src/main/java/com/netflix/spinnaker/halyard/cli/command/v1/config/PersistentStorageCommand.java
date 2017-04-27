@@ -52,6 +52,7 @@ public class PersistentStorageCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to load persistent storage.")
         .setSuccessMessage("Configured persistent storage: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

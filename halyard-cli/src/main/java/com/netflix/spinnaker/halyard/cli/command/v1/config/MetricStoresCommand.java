@@ -54,6 +54,7 @@ public class MetricStoresCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to configure metric stores.")
         .setSuccessMessage("Configured metric stores: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

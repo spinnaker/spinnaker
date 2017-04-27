@@ -43,6 +43,7 @@ public class FeaturesCommand extends AbstractConfigCommand {
     new OperationHandler<Features>()
         .setOperation(Daemon.getFeatures(currentDeployment, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setSuccessMessage("Configured features: ")
         .setFailureMesssage("Failed to load features.")
         .get();

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -85,7 +86,11 @@ public class BomVersionCommand extends AbstractConfigCommand {
 
     String result;
     if (artifactName == null) {
-      result = AnsiFormatUtils.format(AnsiFormatUtils.Format.YAML, bom);
+      AnsiFormatUtils.Format format = GlobalOptions.getGlobalOptions().getOutput();
+      if (format == null) {
+        format = AnsiFormatUtils.Format.YAML;
+      }
+      result = AnsiFormatUtils.format(format, bom);
     } else {
       result = bom.getArtifactVersion(artifactName);
     }

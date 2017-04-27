@@ -48,6 +48,7 @@ public class ApiSecurityCommand extends AbstractConfigCommand {
     new OperationHandler<ApiSecurity>()
         .setOperation(Daemon.getApiSecurity(currentDeployment, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setFailureMesssage("Failed to load API security settings.")
         .setSuccessMessage("Successfully loaded API security settings.")
         .get();

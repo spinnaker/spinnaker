@@ -50,6 +50,7 @@ public class DetailsDeployCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed load service details for service " + serviceName + ".")
         .setOperation(Daemon.getServiceDetails(deploymentName, serviceName, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

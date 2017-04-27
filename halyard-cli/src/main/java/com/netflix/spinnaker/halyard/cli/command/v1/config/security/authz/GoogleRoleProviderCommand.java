@@ -44,5 +44,6 @@ public class GoogleRoleProviderCommand extends AbstractRoleProviderCommand {
         .setFailureMesssage("Failed to get " + roleProviderType + " configuration.")
         .setSuccessMessage("Configured " + roleProviderType + " role provider:")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();  }
 }

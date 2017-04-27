@@ -44,6 +44,9 @@ abstract class AbstractGetAccountCommand extends AbstractHasAccountCommand {
     String providerName = getProviderName();
     return new OperationHandler<Account>()
         .setFailureMesssage("Failed to get account " + accountName + " for provider " + providerName + ".")
+        .setSuccessMessage("Account " + accountName + ": ")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setOperation(Daemon.getAccount(currentDeployment, providerName, accountName, false))
         .get();
   }

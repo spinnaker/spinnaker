@@ -38,4 +38,18 @@ public class Versions {
 
   String latest;
   List<Version> versions = new ArrayList<>();
+
+  @Override
+  public String toString() {
+    if (versions.isEmpty()) {
+      return "No stable versions published at this time.";
+    }
+
+    StringBuilder result = new StringBuilder();
+    for (Version version : versions) {
+      result.append(String.format(" - %s\n", version.toString()));
+    }
+
+    return result.toString();
+  }
 }

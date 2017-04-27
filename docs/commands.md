@@ -208,6 +208,7 @@ hal [parameters] [subcommands]
  * `-d, --debug`: Show detailed network traffic with halyard daemon.
  * `-h, --help`: (*Default*: `false`) Display help text about this command.
  * `-l, --log`: Set the log level of the CLI.
+ * `-o, --output`: Format the CLIs output.
  * `-q, --quiet`: Show no task information or messages.
 #### Parameters
  * `--docs`: (*Default*: `false`) Print markdown docs for the hal CLI.

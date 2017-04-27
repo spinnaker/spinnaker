@@ -56,6 +56,7 @@ public abstract class AbstractNamedCiCommand extends AbstractCiCommand {
     new OperationHandler<Ci>()
         .setOperation(Daemon.getCi(currentDeployment, ciName, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setSuccessMessage("Configured " + ciName + " ci: ")
         .setFailureMesssage("Failed to load ci " + ciName + ".")
         .get();

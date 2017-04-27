@@ -21,6 +21,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterDescription;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.FormatConverter;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LogLevelConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.ExpectedDaemonFailureException;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
@@ -45,6 +46,11 @@ public abstract class NestableCommand {
 
   @Parameter(names = { "-h", "--help" }, help = true, description = "Display help text about this command.")
   private boolean help;
+
+  @Parameter(names = { "-o", "--output" }, converter = FormatConverter.class, help = true, description = "Format the CLIs output.")
+  public void setOutput(AnsiFormatUtils.Format output) {
+    GlobalOptions.getGlobalOptions().setOutput(output);
+  }
 
   @Parameter(names = { "--options" }, help = true, description = "Get options for the specified field name.")
   private String options;

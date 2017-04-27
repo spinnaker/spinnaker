@@ -41,6 +41,7 @@ public class LatestVersionCommand extends NestableCommand {
     new OperationHandler<String>()
         .setOperation(Daemon.getLatest())
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setFailureMesssage("Failed to get the latest version of Spinnaker.")
         .get();
   }

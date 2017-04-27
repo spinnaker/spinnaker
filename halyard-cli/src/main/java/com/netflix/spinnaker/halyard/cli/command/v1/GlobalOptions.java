@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import lombok.Data;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +40,8 @@ public class GlobalOptions {
   private String options;
 
   private Level log;
+
+  private AnsiFormatUtils.Format output;
 
   private static GlobalOptions globalOptions = null;
 

@@ -43,6 +43,7 @@ public class VersionConfigCommand extends AbstractConfigCommand {
         .setOperation(Daemon.getVersion(currentDeployment, !noValidate))
         .setFailureMesssage("Failed to load version of Spinnaker.")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

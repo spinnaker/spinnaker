@@ -58,6 +58,7 @@ abstract public class AuthnMethodCommand extends AbstractConfigCommand {
         .setFailureMesssage("Failed to get " + authnMethodName + " method.")
         .setSuccessMessage("Configured " + authnMethodName + " method: ")
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

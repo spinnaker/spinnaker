@@ -41,6 +41,7 @@ public abstract class AbstractNamedPersistentStoreCommand extends AbstractPersis
         .setSuccessMessage("Successfully got persistent store \"" + persistentStoreType + "\".")
         .setOperation(Daemon.getPersistentStore(currentDeployment, persistentStoreType, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .get();
   }
 }

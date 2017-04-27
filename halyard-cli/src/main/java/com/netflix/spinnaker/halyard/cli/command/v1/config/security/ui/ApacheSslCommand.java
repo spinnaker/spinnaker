@@ -52,6 +52,7 @@ public class ApacheSslCommand extends AbstractConfigCommand {
     new OperationHandler<ApacheSsl>()
         .setOperation(Daemon.getApacheSsl(currentDeployment, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setFailureMesssage("Failed to load UI SSL settings.")
         .setSuccessMessage("Successfully loaded UI SSL settings.")
         .get();

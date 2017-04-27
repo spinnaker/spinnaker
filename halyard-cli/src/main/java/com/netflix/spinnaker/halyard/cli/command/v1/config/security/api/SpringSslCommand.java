@@ -54,6 +54,7 @@ public class SpringSslCommand extends AbstractConfigCommand {
     new OperationHandler<SpringSsl>()
         .setOperation(Daemon.getSpringSsl(currentDeployment, !noValidate))
         .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
         .setFailureMesssage("Failed to load API SSL settings.")
         .setSuccessMessage("Successfully loaded API SSL settings.")
         .get();
