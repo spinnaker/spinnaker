@@ -103,9 +103,11 @@ public class PersistentStorageService {
   }
 
   public ProblemSet validatePersistentStorage(String deploymentName) {
+    PersistentStorage storage = getPersistentStorage(deploymentName);
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
-        .setPersistentStorage();
+        .setPersistentStorage()
+        .setPersistentStore(storage.getPersistentStoreType());
 
     return validateService.validateMatchingFilter(filter);
   }

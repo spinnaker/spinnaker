@@ -113,6 +113,12 @@ public class NodeFilter implements Cloneable {
     return this;
   }
 
+  public NodeFilter withAnyPersistentStore() {
+    matchers.add(Node.thisNodeAcceptor(PersistentStorage.class));
+    matchers.add(Node.thisNodeAcceptor(PersistentStore.class));
+    return this;
+  }
+
   public NodeFilter setSecurity() {
     matchers.add(Node.thisNodeAcceptor(Security.class));
     return this;

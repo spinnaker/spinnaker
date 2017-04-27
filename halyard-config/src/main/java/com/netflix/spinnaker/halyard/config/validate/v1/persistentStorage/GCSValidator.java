@@ -38,16 +38,16 @@ public class GCSValidator extends Validator<GcsPersistentStore> {
   @Override
   public void validate(ConfigProblemSetBuilder ps, GcsPersistentStore n) {
     String jsonPath = n.getJsonPath();
-    StorageService storageService = new GcsStorageService(
-        n.getBucket(),
-        n.getBucketLocation(),
-        n.getRootFolder(),
-        n.getProject(),
-        jsonPath != null ? jsonPath : "",
-        "halyard",
-        registry);
-
     try {
+      StorageService storageService = new GcsStorageService(
+          n.getBucket(),
+          n.getBucketLocation(),
+          n.getRootFolder(),
+          n.getProject(),
+          jsonPath != null ? jsonPath : "",
+          "halyard",
+          registry);
+
       storageService.ensureBucketExists();
     } catch (Exception e) {
       ps.addProblem(Severity.ERROR, "Failed to ensure the required bucket \"" + n.getBucket() + "\" exists: " + e.getMessage());
