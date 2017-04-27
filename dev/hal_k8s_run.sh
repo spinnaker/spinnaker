@@ -98,6 +98,8 @@ echo $JENKINS_PASSWORD | hal config ci jenkins master add jenkins --address $JEN
 # Uses default root-folder 'spinnaker' implicitly.
 hal config storage gcs edit --json-path /supporting_data/build.json \
     --project $BUILD_PROJECT --bucket $GCS_BUCKET
+# Enable GCS.
+hal config storage edit --type gcs
 
 hal config deploy edit --type distributed --account-name my-k8s-account
 hal deploy apply
