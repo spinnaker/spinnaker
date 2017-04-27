@@ -7,7 +7,6 @@ import {RECENT_HISTORY_SERVICE, RecentHistoryService} from 'core/history/recentH
 
 export interface IApplicationAttributes {
   name: string;
-  accounts: string[];
   cloudProviders?: string[];
   [k: string]: any;
 }
@@ -68,17 +67,12 @@ export class ApplicationWriter {
   private buildJobs(application: IApplicationAttributes, type: string, commandTransformer: any): IJob[] {
     const jobs: IJob[] = [];
     const command = commandTransformer(application);
-    command.accounts = application.accounts.join(',');
     if (application.cloudProviders) {
       command.cloudProviders = application.cloudProviders.join(',');
     }
-    delete command.account;
-    application.accounts.forEach(account => {
-      jobs.push({
-        type: type,
-        account: account,
-        application: command,
-      });
+    jobs.push({
+      type: type,
+      application: command,
     });
     return jobs;
   }

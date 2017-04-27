@@ -24,36 +24,17 @@ describe('Service: applicationWriter', function () {
 
   describe('update an application', function () {
 
-    it('should execute one task for an application with one account', function () {
+    it('should execute task', function () {
       spyOn(taskExecutor, 'executeTask');
 
       const application: IApplicationAttributes = {
         name: 'foo',
-        accounts: ['test'],
         cloudProviders: [],
       };
 
       applicationWriter.updateApplication(application);
 
-      expect(taskExecutor.executeTask).toHaveBeenCalled();
       expect(taskExecutor.executeTask.calls.count()).toEqual(1);
-    });
-
-    it('should execute a single task with multiple jobs for an application with multiple accounts', function () {
-      let jobs: IJob[] = [];
-      spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => jobs = task.job);
-
-      const application: IApplicationAttributes = {
-        name: 'foo',
-        accounts: ['test', 'prod'],
-        cloudProviders: [],
-      };
-
-      applicationWriter.updateApplication(application);
-
-      expect(taskExecutor.executeTask).toHaveBeenCalled();
-      expect(taskExecutor.executeTask.calls.count()).toEqual(1);
-      expect(jobs.length).toBe(2);
     });
 
     it('should join cloud providers into a single string', function () {
@@ -62,7 +43,6 @@ describe('Service: applicationWriter', function () {
 
       const application: IApplicationAttributes = {
         name: 'foo',
-        accounts: ['test'],
         cloudProviders: ['titus', 'cf'],
       };
 
@@ -75,39 +55,17 @@ describe('Service: applicationWriter', function () {
   });
 
   describe('delete an application', function () {
-    it('should execute one task if the application has one account', function () {
+    it('should execute task', function () {
       spyOn(taskExecutor, 'executeTask').and.returnValue($q.when({}));
 
       const application: IApplicationAttributes = {
         name: 'foo',
-        accounts: ['test'],
       };
 
       applicationWriter.deleteApplication(application);
 
-      expect(taskExecutor.executeTask).toHaveBeenCalled();
       expect(taskExecutor.executeTask.calls.count()).toEqual(1);
-    });
-
-    it('should execute a single task with multiple jobs for an application with multiple accounts', function () {
-      let jobs: IJob[] = [];
-      spyOn(taskExecutor, 'executeTask').and.callFake((task: any) => {
-        jobs = task.job;
-        return $q.when(task);
-      });
-
-      const application: IApplicationAttributes = {
-        name: 'foo',
-        accounts: ['test', 'prod'],
-      };
-
-      applicationWriter.deleteApplication(application);
-
-      expect(taskExecutor.executeTask).toHaveBeenCalled();
-      expect(taskExecutor.executeTask.calls.count()).toEqual(1);
-      expect(jobs.length).toBe(2);
     });
   });
-
 
 });

@@ -27,7 +27,6 @@ module.exports = angular
     vm.applicationAttributes = _.cloneDeep(application.attributes);
 
     accountService.listProviders().then((providers) => vm.data.cloudProviders = providers);
-    accountService.listAccounts().then((accounts) => vm.data.accounts = accounts);
 
     function closeModal() {
       $uibModalInstance.close(vm.applicationAttributes);

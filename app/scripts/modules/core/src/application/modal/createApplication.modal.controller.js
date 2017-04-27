@@ -30,13 +30,10 @@ module.exports = angular
     let applicationLoader = applicationReader.listApplications();
     applicationLoader.then((applications) => this.data.appNameList = _.map(applications, 'name'));
 
-    let accountLoader = accountService.listAccounts();
-    accountLoader.then((accounts) => this.data.accounts = accounts);
-
     let providerLoader = accountService.listProviders();
     providerLoader.then((providers) => this.data.cloudProviders = providers);
 
-    $q.all([accountLoader, applicationLoader, providerLoader]).then(() => this.state.initializing = false);
+    $q.all([applicationLoader, providerLoader]).then(() => this.state.initializing = false);
 
     this.state = {
       initializing: true,
@@ -48,7 +45,6 @@ module.exports = angular
 
     };
     this.application = {
-      accounts: [],
       cloudProviders: [],
       instancePort: SETTINGS.defaultInstancePort || null,
     };
