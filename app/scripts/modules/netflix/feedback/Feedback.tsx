@@ -53,10 +53,12 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
           <span className="hidden-xs hidden-sm">Help</span>
         </CustomToggle>
         <CustomMenu bsRole="menu">
-          <MenuItem onClick={this.showModal}>
-            <span className="glyphicon glyphicon-envelope"/>
-            Create an issue in JIRA
-          </MenuItem>
+          <li role="presentation">
+            <a onClick={this.showModal}>
+              <span className="glyphicon glyphicon-envelope"/>
+              Create an issue in JIRA
+            </a>
+          </li>
           { this.state.slackConfig && (
             <MenuItem href={slackUrl} target={slackTarget}>
               <span className="icon"><span className="glyphicon icon-bubbles"/></span>
