@@ -9,9 +9,6 @@ REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
 VERSION=""
 RELEASE_TRACK=nightly
 
-VAULT_VERSION=0.7.0
-VAULT_ARCH=linux_amd64
-
 # We can only currently support limited releases
 # First guess what sort of operating system
 
@@ -256,9 +253,7 @@ function configure_halyard_defaults() {
 
   echo "Configuring daemon to be run as $user"
 
-  sed -ie "s|{%user%}|$user|g" /etc/init/halyard.conf
-
-  local halconfig
+  local halconfig staging
   echo ""
   if [ -z "$YES" ]; then
     read -p "Where would you like to store your halconfig? [default=$HOME/.hal]: " halconfig
@@ -273,21 +268,51 @@ function configure_halyard_defaults() {
   mkdir -p $halconfig
   chown $user $halconfig
 
+  staging=$halconfig-staging
+  mkdir -p $staging
+  chown $user $staging
+
   mkdir -p /opt/spinnaker/config
   chown $user /opt/spinnaker/config
 
   cat > /opt/spinnaker/config/halyard.yml <<EOL
-spinnaker:
-  config:
-    output:
-      directory: ~/.spinnaker
-
 halyard:
   halconfig:
     directory: $halconfig
+
+spinnaker:
+  config:
+    staging:
+      directory: $staging
 EOL
 
   echo $user > /opt/spinnaker/config/halyard-user
+
+  cat > $halconfig/uninstall.sh <<EOL
+#!/usr/bin/env bash
+
+if [[ `/usr/bin/id -u` -ne 0 ]]; then
+  echo "$0 must be executed with root permissions; exiting"
+  exit 1
+fi
+
+read -p "This script uninstalls Halyard and deletes all of its artifacts, are you sure you want to continue? (Y/n): " yes
+
+if [ "\$yes" != "y" ] && [ "\$yes" != "Y" ]; then
+  echo "Aborted"
+  exit 0
+fi
+
+apt-get purge spinnaker-halyard
+
+echo "Deleting halconfig and artifacts"
+rm $staging -rf
+rm /opt/spinnaker/config/halyard* -rf
+rm $halconfig -rf
+EOL
+
+  chmod +x $halconfig/uninstall.sh
+  echo "$(tput bold)Uninstall script is located at $halconfig/uninstall.sh$(tput sgr0)"
 }
 
 process_args "$@"
@@ -298,17 +323,6 @@ add_apt_repositories
 echo "$(tput bold)Installing Java 8...$(tput sgr0)"
 
 install_java
-
-apt-get install -y unzip
-
-TEMPDIR=$(mktemp -d installhalyard.XXXX)
-
-mkdir $TEMPDIR/vault && pushd $TEMPDIR/vault
-wget https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_${VAULT_ARCH}.zip
-unzip -u -o -q vault_${VAULT_VERSION}_${VAULT_ARCH}.zip -d /usr/bin
-popd
-
-rm -rf $TEMPDIR
 
 if [ -n "$DEPENDENCIES_ONLY" ]; then
   exit 0
