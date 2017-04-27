@@ -113,6 +113,7 @@ class EntityTags {
   static class EntityTag {
     String name
     String namespace
+    String category
     Object value
     EntityTagValueType valueType
 
