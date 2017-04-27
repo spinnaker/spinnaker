@@ -67,7 +67,7 @@ public class BakeDebianConsulServerService extends ConsulServerService implement
 
   @Override
   public String getStartupCommand() {
-    return Paths.get(startupScriptPath, "startup-consul.sh").toString() + " $@";
+    return Paths.get(startupScriptPath, "startup-consul.sh").toString() + " \\$@";
   }
 
   @Override

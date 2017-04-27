@@ -2,4 +2,4 @@
 
 echo "Bootstrapping consul for the $1 provider"
 
-./$1/bootstrap-consul.sh
+{%startup-script-path%}$1/bootstrap-consul.sh
