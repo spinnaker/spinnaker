@@ -63,6 +63,7 @@ class EntityTags implements Timestamped {
   static class EntityTag {
     String name
     String namespace
+    String category
     Object value
     String valueType
   }
