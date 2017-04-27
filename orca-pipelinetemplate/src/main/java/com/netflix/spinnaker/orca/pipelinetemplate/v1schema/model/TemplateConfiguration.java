@@ -39,7 +39,7 @@ public class TemplateConfiguration implements VersionedSchema {
 
     private String application;
     private String pipelineConfigId;
-    private String executionEngine = "v2";
+    private String executionEngine;
     private String name;
     private TemplateSource template;
     private Map<String, Object> variables = new HashMap<>();
