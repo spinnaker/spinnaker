@@ -165,7 +165,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 0.20.0-SNAPSHOT
+  Version: 1.0.0-SNAPSHOT
 
 If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
 
@@ -203,7 +203,6 @@ hal [parameters] [subcommands]
 ```
 #### Global Parameters
  * `--options`: Get options for the specified field name.
- * `--version, -v`: (*Default*: `false`) Version of Halyard.
  * `-c, --color`: Enable terminal color output.
  * `-d, --debug`: Show detailed network traffic with halyard daemon.
  * `-h, --help`: (*Default*: `false`) Display help text about this command.
@@ -215,6 +214,7 @@ hal [parameters] [subcommands]
  * `--print-bash-completion`: (*Default*: `false`) Print bash command completion. This is used during the installation of Halyard.
  * `--ready`: (*Default*: `false`) Check if Halyard is up and running. Will exit with non-zero return code when it isn't.
  * `--tasks`: (*Default*: `false`) Show which tasks Halyard is currently executing.
+ * `--version, -v`: (*Default*: `false`) Version of Halyard.
 #### Subcommands
  * `admin`: This is meant for users building and publishing their own Spinnaker images and config.
  * `config`: Configure, validate, and view your halconfig.
@@ -296,6 +296,7 @@ hal admin publish version [parameters]
 #### Parameters
  * `--alias`: (*Required*) The alias this version of Spinnaker goes by.
  * `--changelog`: (*Required*) A link to this Spinnaker release's changelog.
+ * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM.
 
 ---
 ## hal config
@@ -2540,6 +2541,7 @@ hal config version edit [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--version`: (*Required*) Must be either a version number "X.Y.Z" for a specific release of Spinnaker, "latest" for the most recently validated Spinnaker, or "nightly" for the most recently built (unvalidated) Spinnaker.
 
 ---
 ## hal deploy

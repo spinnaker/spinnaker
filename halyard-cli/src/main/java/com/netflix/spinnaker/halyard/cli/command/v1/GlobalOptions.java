@@ -27,8 +27,6 @@ import org.slf4j.LoggerFactory;
  */
 @Data
 public class GlobalOptions {
-  private boolean version = false;
-
   private boolean color = true;
 
   private boolean debug = false;
