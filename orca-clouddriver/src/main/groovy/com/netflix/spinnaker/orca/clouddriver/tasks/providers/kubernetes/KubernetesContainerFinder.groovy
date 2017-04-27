@@ -20,6 +20,37 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class KubernetesContainerFinder {
+  static Map parseContainerPartsFrom(String containerName) {
+    String tag = ""
+    String registry = ""
+
+    String[] parts = containerName.split('/')
+
+    String head = parts.first()
+
+    // Get the registry
+    if (head.contains('.') || head.startsWith('localhost')) {
+      registry = head
+      parts = parts.drop(1)
+    } else {
+      throw new IllegalStateException("Could not parse a registry from the provided docker container reference")
+    }
+
+    // Get the tag
+    if (parts.last().contains(':')) {
+      String[] lastParts = parts.last().split(':')
+      tag = lastParts.last()
+      parts = parts.dropRight(1) + lastParts.first()
+    } else {
+      tag = "latest"
+    }
+
+    // Whatever is left is the repository
+    String imageName = parts.join("/")
+
+    return [registry: registry, tag: tag, repository: imageName ]
+  }
+
   static void populateFromStage(Map operation, Stage stage) {
     // If this is a stage in a pipeline, look in the context for the baked image.
     def deploymentDetails = (stage.context.deploymentDetails ?: []) as List<Map>
@@ -38,11 +69,15 @@ class KubernetesContainerFinder {
           // if the deploy stage's selected pattern wasn't updated before submitting the stage, this step here could fail.
           it.refId == container.imageDescription.stageId
         }
-        if (!image) {
-          throw new IllegalStateException("No image found in context for pattern $container.imageDescription.pattern.")
-        } else {
-          container.imageDescription = [registry: image.registry, tag: image.tag, repository: image.repository]
+
+        if (image) {
+          if (image.tag && image.repository) {
+            return container.imageDescription = [registry: image.registry, tag: image.tag, repository: image.repository]
+          } else if (image.ami) {
+            return container.imageDescription = parseContainerPartsFrom(image.ami)
+          }
         }
+        throw new IllegalStateException("No image found in context for pattern $container.imageDescription.pattern.")
       }
 
       if (container.imageDescription.fromTrigger) {
