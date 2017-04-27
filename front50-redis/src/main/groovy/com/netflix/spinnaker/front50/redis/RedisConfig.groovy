@@ -114,6 +114,19 @@ class RedisConfig {
   }
 
   @Bean
+  RedisTemplate<String, PipelineTemplate> pipelineTemplateRedisTemplate(RedisConnectionFactory connectionFactory,
+                                                                        StringRedisSerializer stringRedisSerializer) {
+
+    RedisTemplate<String, PipelineTemplate> template = new RedisTemplate<>()
+    template.connectionFactory = connectionFactory
+    template.keySerializer = stringRedisSerializer
+    template.hashKeySerializer = stringRedisSerializer
+    template.hashValueSerializer = new Jackson2JsonRedisSerializer<>(PipelineTemplate)
+
+    template
+  }
+
+  @Bean
   RedisTemplate<String, Notification> notificationRedisTemplate(RedisConnectionFactory connectionFactory,
                                                                 StringRedisSerializer stringRedisSerializer) {
 
