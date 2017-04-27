@@ -19,13 +19,17 @@ mkdir -p /var/consul
 
 # Configure local nameserver
 
+echo "Configuring consul nameserver..."
+
 apt-get install resolvconf
 
-cat /etc/resolvconf/resolv.conf.d/base <<EOL
-nameserver 127.0.0.1
-EOL
+echo nameserver 127.0.0.1 >> /etc/resolvconf/resolv.conf.d/head
 
 resolvconf -u
+resolvconf -d eth0
+
+echo "New resolv.conf..."
+cat /etc/resolv.conf
 
 # Add upstart entry
 # (Consul is run as root here to bind to port 53 for DNS)
