@@ -25,6 +25,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -50,7 +51,7 @@ public class OAuth2 extends AuthnMethod {
   }
 
   private Client client = new Client();
-  private UserInfoRequirements userInfoRequirements = null; // TODO(lwander) ensure that when hd is not set, this field is null
+  private UserInfoRequirements userInfoRequirements;
   private Resource resource = new Resource();
   private UserInfoMapping userInfoMapping = new UserInfoMapping();
   private Provider provider;
@@ -65,7 +66,8 @@ public class OAuth2 extends AuthnMethod {
     Client newClient = new Client()
         .setClientId(client.getClientId())
         .setClientSecret(client.getClientSecret())
-        .setPreEstablishedRedirectUri(client.getPreEstablishedRedirectUri());
+        .setPreEstablishedRedirectUri(client.getPreEstablishedRedirectUri())
+        .setUseCurrentUri(client.getUseCurrentUri());
     Resource newResource = new Resource();
     UserInfoMapping newUserInfoMapping = new UserInfoMapping();
 
@@ -140,8 +142,13 @@ public class OAuth2 extends AuthnMethod {
   }
 
   @Data
-  public static class UserInfoRequirements {
-    private String hd;
+  @EqualsAndHashCode(callSuper = false)
+  public static class UserInfoRequirements extends HashMap<String, String> {
+
+    @Override
+    public String toString() {
+      return this.isEmpty() ? "(empty)" : super.toString();
+    }
   }
 
   public enum Provider {

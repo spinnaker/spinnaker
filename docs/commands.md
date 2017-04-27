@@ -2188,6 +2188,7 @@ hal config security authn oauth2 edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--preEstablishedRedirectUri`: The externally accessible URL for Gate. For use with load balancers that do any kind of address manipulation for Gate traffic, such as an SSL terminating load balancer.
  * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
+ * `--userInfoRequirements`: (*Default*: `(empty)`) The map of requirements the userInfo request must have. This is used to restrict user login to specific domains or having a specific attribute. Use equal signs between key and value, and additional key/value pairs need to repeat the flag. Example: '--userInfoRequirements foo=bar --userInfoRequirements baz=qux'.
 
 ---
 ## hal config security authn oauth2 enable

@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn;
 
+import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.OAuth2ProviderTypeConverter;
@@ -56,6 +57,15 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
   )
   private String preEstablishedRedirectUri;
 
+  @DynamicParameter(
+      names = "--userInfoRequirements",
+      description = "The map of requirements the userInfo request must have. This is used to " +
+          "restrict user login to specific domains or having a specific attribute. Use equal " +
+          "signs between key and value, and additional key/value pairs need to repeat the " +
+          "flag. Example: '--userInfoRequirements foo=bar --userInfoRequirements baz=qux'."
+  )
+  private OAuth2.UserInfoRequirements userInfoRequirements = new OAuth2.UserInfoRequirements();
+
   @Override
   protected AuthnMethod editAuthnMethod(OAuth2 authnMethod) {
     OAuth2.Client client = authnMethod.getClient();
@@ -73,6 +83,10 @@ public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
     }
 
     authnMethod.setProvider(provider != null ? provider : authnMethod.getProvider());
+
+    if (!userInfoRequirements.isEmpty()) {
+      authnMethod.setUserInfoRequirements(userInfoRequirements);
+    }
 
     return authnMethod;
   }
