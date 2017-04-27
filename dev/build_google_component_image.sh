@@ -282,4 +282,12 @@ done
 echo "Waiting on PIDs: ${PIDS[@]}..."
 wait ${PIDS[@]}
 
+for logfile in *-image.log; do
+  echo "---- start $logfile ----"
+  echo ""
+  cat $logfile
+  echo ""
+  echo "---- end $logfile ----"
+done
+
 echo "`date`: DONE"
