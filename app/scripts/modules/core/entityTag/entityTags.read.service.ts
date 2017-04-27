@@ -1,4 +1,4 @@
-import {module, IQService, IExceptionHandlerService, IPromise, IDeferred} from 'angular';
+import {module, IQService, IPromise, IDeferred} from 'angular';
 import {get, uniq} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
@@ -8,11 +8,10 @@ import {SETTINGS} from 'core/config/settings';
 
 export class EntityTagsReader {
 
-  static get $inject() { return ['API', '$q', '$exceptionHandler', 'retryService']; }
+  static get $inject() { return ['API', '$q', 'retryService']; }
 
   constructor(private API: Api,
               private $q: IQService,
-              private $exceptionHandler: IExceptionHandlerService,
               private retryService: RetryService) {}
 
   public getAllEntityTags(entityType: string, entityIds: string[]): IPromise<IEntityTags[]> {
@@ -38,7 +37,6 @@ export class EntityTagsReader {
         result.resolve(allTags);
       })
       .catch(() => {
-        this.$exceptionHandler(new Error(`Failed to load ${entityType} entity tags; groups: \n${idGroups.join('\n')}`));
         result.resolve([]);
       });
 

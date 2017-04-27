@@ -1,14 +1,13 @@
-import {mock} from 'angular';
+import { IHttpBackendService, IQService, ITimeoutService, mock } from 'angular';
 
 import {EntityTagsReader, ENTITY_TAGS_READ_SERVICE} from './entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
 
 describe('entityTags reader', () => {
 
-  let $http: ng.IHttpBackendService;
-  let $q: ng.IQService;
-  let $timeout: ng.ITimeoutService;
-  let $exceptionHandler: ng.IExceptionHandlerService;
+  let $http: IHttpBackendService;
+  let $q: IQService;
+  let $timeout: ITimeoutService;
   let service: EntityTagsReader;
 
   beforeEach(function () {
@@ -22,20 +21,14 @@ describe('entityTags reader', () => {
 
   beforeEach(mock.module(ENTITY_TAGS_READ_SERVICE));
 
-  beforeEach(mock.module(($exceptionHandlerProvider: ng.IExceptionHandlerProvider) => {
-    $exceptionHandlerProvider.mode('log');
-  }));
-
   beforeEach(
-    mock.inject(($httpBackend: ng.IHttpBackendService,
-                 _$q_: ng.IQService,
-                 _$exceptionHandler_: ng.IExceptionHandlerService,
+    mock.inject(($httpBackend: IHttpBackendService,
+                 _$q_: IQService,
                  entityTagsReader: EntityTagsReader,
-                 _$timeout_: ng.ITimeoutService) => {
+                 _$timeout_: ITimeoutService) => {
       $http = $httpBackend;
       $q = _$q_;
       service = entityTagsReader;
-      $exceptionHandler = _$exceptionHandler_;
       $timeout = _$timeout_;
     }));
 
@@ -49,7 +42,6 @@ describe('entityTags reader', () => {
     $timeout.flush();
     $http.flush();
     expect(result).toEqual([]);
-    expect(($exceptionHandler as any)['errors'].length).toBe(1);
   });
 
   it('collates entries into groups when there are too many', () => {
@@ -61,7 +53,6 @@ describe('entityTags reader', () => {
     $http.flush();
     $timeout.flush();
     expect(result).toEqual([]);
-    expect(($exceptionHandler as any)['errors'].length).toBe(0);
   });
 
   it('retries server group fetch once on exceptions', () => {
@@ -73,6 +64,5 @@ describe('entityTags reader', () => {
     $timeout.flush();
     $http.flush();
     expect(result).toEqual([]);
-    expect(($exceptionHandler as any)['errors'].length).toBe(0);
   });
 });
