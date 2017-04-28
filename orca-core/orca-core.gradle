@@ -37,6 +37,7 @@ dependencies {
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency('kork')
   compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${spinnaker.version('jackson')}"
+  compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${spinnaker.version('jackson')}"
 
   compile "org.springframework.security:spring-security-web:3.2.9.RELEASE"
 

@@ -16,6 +16,10 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.orca.q.ExecutionLogEntry
+import com.netflix.spinnaker.orca.q.ExecutionLogRepository
+import groovy.transform.InheritConstructors
+
 import java.time.Clock
 import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -66,6 +70,9 @@ class TaskController {
 
   @Autowired(required = false)
   ActiveExecutionTracker activeExecutionTracker
+
+  @Autowired(required = false)
+  ExecutionLogRepository executionLogRepository
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -181,6 +188,15 @@ class TaskController {
   @RequestMapping(value = "/pipelines/{id}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String id) {
     executionRepository.deletePipeline(id)
+  }
+
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/pipelines/{id}/logs", method = RequestMethod.GET)
+  List<ExecutionLogEntry> logs(@PathVariable String id) {
+    if (executionLogRepository == null) {
+      throw new FeatureNotEnabledException("Execution log not enabled")
+    }
+    return executionLogRepository.getAllByExecutionId(id)
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")
@@ -378,4 +394,11 @@ class TaskController {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @ExceptionHandler(ExecutionNotFoundException)
   void notFound() {}
+
+  @InheritConstructors
+  private static class FeatureNotEnabledException extends RuntimeException {}
+
+  @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
+  @ExceptionHandler(FeatureNotEnabledException)
+  void featureNotEnabled() {}
 }

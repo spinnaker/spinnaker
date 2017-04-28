@@ -15,7 +15,11 @@
  */
 package com.netflix.spinnaker.orca.q.redis
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.guava.GuavaModule
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.config.RedisExecutionLogProperties
 import com.netflix.spinnaker.orca.q.ExecutionLogEntry
@@ -34,6 +38,9 @@ class RedisExecutionLogRepository(
 
   private val objectMapper = ObjectMapper().apply {
     registerModule(KotlinModule())
+    registerModule(JavaTimeModule())
+    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+    setSerializationInclusion(JsonInclude.Include.NON_NULL)
   }
 
   override fun save(entry: ExecutionLogEntry) {
@@ -43,6 +50,13 @@ class RedisExecutionLogRepository(
     pool.resource.use { redis ->
       redis.zadd(key, entry.timestamp.nano.toDouble(), serializedEntry)
       redis.expire(key, ttlSeconds)
+    }
+  }
+
+  override fun getAllByExecutionId(executionId: String): List<ExecutionLogEntry> {
+    pool.resource.use { redis ->
+      return redis.zrangeByScore("executionLog.$executionId", "-inf", "+inf")
+        .map { objectMapper.readValue(it, ExecutionLogEntry::class.java) }
     }
   }
 }

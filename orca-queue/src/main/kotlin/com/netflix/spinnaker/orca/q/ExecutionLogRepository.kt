@@ -15,19 +15,19 @@
  */
 package com.netflix.spinnaker.orca.q
 
-import java.io.Serializable
 import java.time.Instant
 
 data class ExecutionLogEntry(
   val executionId: String,
   val timestamp: Instant,
   val eventType: String,
-  val details: Map<String, Serializable>,
+  val details: Map<String, String>,
   var currentInstanceId: String
 )
 
 interface ExecutionLogRepository {
   fun save(entry: ExecutionLogEntry)
+  fun getAllByExecutionId(executionId: String): List<ExecutionLogEntry>
 }
 
 /**
@@ -35,4 +35,5 @@ interface ExecutionLogRepository {
  */
 class BlackholeExecutionLogRepository : ExecutionLogRepository {
   override fun save(entry: ExecutionLogEntry) {}
+  override fun getAllByExecutionId(executionId: String): List<ExecutionLogEntry> = listOf()
 }

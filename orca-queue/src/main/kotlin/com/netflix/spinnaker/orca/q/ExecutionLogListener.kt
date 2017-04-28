@@ -19,7 +19,6 @@ import com.netflix.spinnaker.orca.events.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
-import java.io.Serializable
 
 @Component
 open class ExecutionLogListener
@@ -42,7 +41,7 @@ open class ExecutionLogListener
     })
   }
 
-  private fun toLogEntry(event: ExecutionEvent, details: Map<String, Serializable>): ExecutionLogEntry = event.run {
+  private fun toLogEntry(event: ExecutionEvent, details: Map<String, String>): ExecutionLogEntry = event.run {
     ExecutionLogEntry(
       executionId,
       timestamp(),
