@@ -37,18 +37,6 @@ def configure_codelab_igor_jenkins(password):
     }
   )
 
-def disable_destructive_action_challenge():
-  """Disables destructive action challenge for codelab.
-
-  """
-  with open('/opt/spinnaker/config/clouddriver-local.yml', 'w') as fd:
-    fd.write("""
-'credentials': {
-   'challengeDestructiveActionsEnvironments': ''
-}
-"""
-
 
 if __name__ == '__main__':
   configure_codelab_igor_jenkins('admin')
-  disable_destructive_action_challenge()
