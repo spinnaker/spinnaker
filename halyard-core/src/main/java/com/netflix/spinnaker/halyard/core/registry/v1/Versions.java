@@ -32,7 +32,7 @@ public class Versions {
 
     @Override
     public String toString() {
-      return alias + " (" + version + "): " + changelog;
+      return version + " (" + alias + "): " + changelog;
     }
   }
 

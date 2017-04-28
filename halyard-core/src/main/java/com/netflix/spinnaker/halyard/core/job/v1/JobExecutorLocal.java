@@ -27,17 +27,17 @@ import rx.schedulers.Schedulers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 @Slf4j
 public class JobExecutorLocal extends JobExecutor {
   private Scheduler scheduler = Schedulers.computation();
 
   private Map<String, ExecutionHandler> jobIdToHandlerMap = new ConcurrentHashMap<>();
+
+  private Set<String> pendingJobSet = new ConcurrentSkipListSet<>();
 
   @Override
   public String startJob(JobRequest jobRequest, Map<String, String> env, InputStream stdIn, ByteArrayOutputStream stdOut, ByteArrayOutputStream stdErr) {
@@ -51,6 +51,8 @@ public class JobExecutorLocal extends JobExecutor {
         jobRequest.getTimeoutMillis();
 
     String jobId = UUID.randomUUID().toString();
+
+    pendingJobSet.add(jobId);
 
     log.info("Scheduling job " + jobRequest.getTokenizedCommand() + " with id " + jobId);
 
@@ -99,7 +101,7 @@ public class JobExecutorLocal extends JobExecutor {
             // Give the job some time to spin up.
             try {
               Thread.sleep(500);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
             }
 
             jobIdToHandlerMap.put(jobId, new ExecutionHandler()
@@ -107,6 +109,14 @@ public class JobExecutorLocal extends JobExecutor {
                 .setWatchdog(watchdog)
                 .setStdOut(stdOut)
                 .setStdErr(stdErr));
+
+            if (pendingJobSet.contains(jobId)) {
+              pendingJobSet.remove(jobId);
+            } else {
+              // If the job was removed from the set of pending jobs by someone else, its deletion was requested
+              jobIdToHandlerMap.remove(jobId);
+              watchdog.destroyProcess();
+            }
           }
         });
 
@@ -123,7 +133,7 @@ public class JobExecutorLocal extends JobExecutor {
 
   @Override
   public boolean jobExists(String jobId) {
-    return jobIdToHandlerMap.containsKey(jobId);
+    return jobIdToHandlerMap.containsKey(jobId) || pendingJobSet.contains(jobId);
   }
 
   @Override
@@ -179,6 +189,10 @@ public class JobExecutorLocal extends JobExecutor {
   @Override
   public void cancelJob(String jobId) {
     log.info("Canceling job " + jobId + "...");
+
+    if (pendingJobSet.contains(jobId)) {
+      pendingJobSet.remove(jobId);
+    }
 
     // Remove the job from this executors's handler map.
     ExecutionHandler canceledJobHander = jobIdToHandlerMap.remove(jobId);

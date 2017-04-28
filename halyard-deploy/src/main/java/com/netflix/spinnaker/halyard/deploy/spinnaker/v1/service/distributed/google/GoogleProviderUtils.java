@@ -88,10 +88,7 @@ class GoogleProviderUtils {
       proxy.setJobId(jobExecutor.startJob(request));
 
       // Wait for the proxy to spin up.
-      try {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-      } catch (InterruptedException ignored) {
-      }
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
 
       JobStatus status = jobExecutor.updateJob(proxy.jobId);
 
@@ -146,10 +143,7 @@ class GoogleProviderUtils {
             .map(e -> e.getCode() + ": " + e.getMessage()).collect(Collectors.toList())));
       }
       operation = operationSupplier.get();
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException ignored) {
-      }
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(1));
     }
   }
 

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -40,6 +41,7 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
@@ -337,10 +339,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
           .stream()
           .filter(RunningServiceDetails.Instance::isRunning)
           .count();
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException ignored) {
-      }
+
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(1));
     }
   }
 

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.Getter;
+import lombok.Setter;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;

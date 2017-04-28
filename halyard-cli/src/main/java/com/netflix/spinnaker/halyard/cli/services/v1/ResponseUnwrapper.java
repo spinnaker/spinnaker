@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.IntStream;
+
+import static com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State.FATAL;
 
 public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 400L;
@@ -57,16 +60,21 @@ public class ResponseUnwrapper {
 
     DaemonResponse<T> response = task.getResponse();
     formatProblemSet(response.getProblemSet());
-    if (task.getState() == State.FATAL) {
-      Exception fatal = task.getFatalError();
-      if (fatal == null) {
-        throw new RuntimeException("Task failed without reason. This is a bug.");
-      } else {
-        throw new ExpectedDaemonFailureException(fatal);
-      }
-    }
 
-    return response.getResponseBody();
+    switch (task.getState()) {
+      case INTERRUPTED:
+        throw new DaemonTaskInterrupted();
+      case FATAL:
+        Exception fatal = task.getFatalError();
+        if (fatal == null) {
+          throw new RuntimeException("Task failed without reason. This is a bug.");
+        } else {
+          throw new ExpectedDaemonFailureException(fatal);
+        }
+      default:
+        return response.getResponseBody();
+
+    }
   }
 
   private static List<DaemonTask> aggregateTasks(DaemonTask task) {

@@ -22,8 +22,10 @@ import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository.ShallowTaskInfo;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
+import retrofit.client.Response;
 import retrofit.http.*;
 
 import java.util.List;
@@ -34,7 +36,10 @@ public interface DaemonService {
   Map<String, String> getHealth();
 
   @GET("/v1/tasks/")
-  List<String> getTasks();
+  DaemonTask<Halconfig, Map<String, ShallowTaskInfo>> getTasks();
+
+  @PUT("/v1/tasks/{uuid}/interrupt")
+  Response interruptTask(@Path("uuid") String uuid, @Body String _ignore);
 
   @GET("/v1/tasks/{uuid}/")
   <C, T> DaemonTask<C, T> getTask(@Path("uuid") String uuid);

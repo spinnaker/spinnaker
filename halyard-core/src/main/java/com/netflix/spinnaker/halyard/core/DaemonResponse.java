@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.core;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -40,7 +42,8 @@ public class DaemonResponse<T> {
   @Getter
   private final ProblemSet problemSet;
 
-  public DaemonResponse(T responseBody, ProblemSet problemSet) {
+  @JsonCreator
+  public DaemonResponse(@JsonProperty("responseBody") T responseBody, @JsonProperty("problemSet") ProblemSet problemSet) {
     this.responseBody = responseBody;
     this.problemSet = problemSet;
   }

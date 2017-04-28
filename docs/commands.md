@@ -161,6 +161,9 @@
  * [**hal deploy details**](#hal-deploy-details)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy rollback**](#hal-deploy-rollback)
+ * [**hal task**](#hal-task)
+ * [**hal task interrupt**](#hal-task-interrupt)
+ * [**hal task list**](#hal-task-list)
  * [**hal version**](#hal-version)
  * [**hal version bom**](#hal-version-bom)
  * [**hal version latest**](#hal-version-latest)
@@ -217,12 +220,12 @@ hal [parameters] [subcommands]
  * `--docs`: (*Default*: `false`) Print markdown docs for the hal CLI.
  * `--print-bash-completion`: (*Default*: `false`) Print bash command completion. This is used during the installation of Halyard.
  * `--ready`: (*Default*: `false`) Check if Halyard is up and running. Will exit with non-zero return code when it isn't.
- * `--tasks`: (*Default*: `false`) Show which tasks Halyard is currently executing.
  * `--version, -v`: (*Default*: `false`) Version of Halyard.
 #### Subcommands
  * `admin`: This is meant for users building and publishing their own Spinnaker images and config.
  * `config`: Configure, validate, and view your halconfig.
  * `deploy`: Manage the deployment of Spinnaker. This includes where it's deployed, what the infrastructure footprint looks like, what the currently running deployment looks like, etc...
+ * `task`: This set of commands exposes utilities of dealing with Halyard's task engine.
  * `version`: Get information about the available Spinnaker versions.
 
 ---
@@ -2675,6 +2678,39 @@ hal deploy rollback [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
+
+---
+## hal task
+
+Every unit of work Halyard carries out is bundled in a Task. This set  of commands exposes some information about these tasks. The commands here are mainly for troubleshooting.
+
+#### Usage
+```
+hal task [subcommands]
+```
+#### Subcommands
+ * `interrupt`: Interrupt (attempt to kill) a given task.
+ * `list`: List the currently running Tasks.
+
+---
+## hal task interrupt
+
+Interrupt (attempt to kill) a given task.
+
+#### Usage
+```
+hal task interrupt UUID
+```
+
+---
+## hal task list
+
+List the currently running Tasks.
+
+#### Usage
+```
+hal task list
+```
 
 ---
 ## hal version

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -63,10 +64,8 @@ public class KubernetesRedisService extends RedisService implements KubernetesDi
     JobRequest request = new JobRequest().setTokenizedCommand(command);
     String jobId = getJobExecutor().startJob(request);
     // Wait for the proxy to spin up.
-    try {
-      Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-    } catch (InterruptedException ignored) {
-    }
+
+    DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
 
     JobStatus status = getJobExecutor().updateJob(jobId);
 

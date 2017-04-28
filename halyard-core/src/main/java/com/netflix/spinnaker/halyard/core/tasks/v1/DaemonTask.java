@@ -1,6 +1,8 @@
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
@@ -24,14 +26,17 @@ public class DaemonTask<C, T> {
   List<DaemonTask> children = new ArrayList<>();
   final String name;
   final String uuid;
-  @JsonIgnore final JobExecutor jobExecutor;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
+
+  @JsonIgnore Thread runner;
+  @JsonIgnore final JobExecutor jobExecutor;
   @JsonIgnore C context;
   @JsonIgnore String currentStage;
 
-  public DaemonTask(String name) {
+  @JsonCreator
+  public DaemonTask(@JsonProperty("name") String name) {
     this.name = name;
     this.uuid = UUID.randomUUID().toString();
     this.jobExecutor = new JobExecutorLocal();
@@ -62,24 +67,35 @@ public class DaemonTask<C, T> {
     NOT_STARTED,
     RUNNING,
     SUCCESS,
+    INTERRUPTED,
     FATAL;
 
     public boolean isTerminal() {
-      return this == SUCCESS || this == FATAL;
+      return this == SUCCESS || this == FATAL || this == INTERRUPTED;
     }
   }
 
-  public void cleanupResources() {
-    jobExecutor.cancelAllJobs();
+  public void interrupt() {
+    runner.interrupt();
   }
 
-  public <C, P> DaemonTask<C, P> spawnChild(Supplier<DaemonResponse<P>> childRunner, String name) {
+  void cleanupResources() {
+    jobExecutor.cancelAllJobs();
+    for (DaemonTask child : children) {
+      if (child != null) {
+        log.info("Interrupting child " + child);
+        child.interrupt();
+      }
+    }
+  }
+
+  <Q, P> DaemonTask<Q, P> spawnChild(Supplier<DaemonResponse<P>> childRunner, String name) {
     DaemonTask child = TaskRepository.submitTask(childRunner, name);
     children.add(child);
     return child;
   }
 
-  public <P> DaemonResponse<P> reapChild(DaemonTask task) {
+  <P> DaemonResponse<P> reapChild(DaemonTask task) throws InterruptedException {
     DaemonTask childTask = children.stream()
         .filter(c -> c.getUuid().equals(task.getUuid()))
         .findFirst()
@@ -91,9 +107,12 @@ public class DaemonTask<C, T> {
         synchronized (childTask) {
           childTask.wait();
         }
-      } catch (InterruptedException ignored) {
+      } catch (InterruptedException e) {
+        throw e;
       }
     }
+
+    TaskRepository.collectTask(childTask.getUuid());
 
     log.info("Collected child task " + childTask + " with state " + childTask.getState());
     assert(childTask.getResponse() != null);

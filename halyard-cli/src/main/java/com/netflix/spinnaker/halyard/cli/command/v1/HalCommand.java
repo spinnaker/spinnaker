@@ -56,12 +56,6 @@ public class HalCommand extends NestableCommand {
   private boolean healthy;
 
   @Parameter(
-      names = "--tasks",
-      description = "Show which tasks Halyard is currently executing."
-  )
-  private boolean tasks;
-
-  @Parameter(
       names = "--docs",
       description = "Print markdown docs for the hal CLI."
   )
@@ -71,6 +65,7 @@ public class HalCommand extends NestableCommand {
     registerSubcommand(new AdminCommand());
     registerSubcommand(new ConfigCommand());
     registerSubcommand(new DeployCommand());
+    registerSubcommand(new TaskCommand());
     registerSubcommand(new VersionCommand());
   }
 
@@ -110,10 +105,6 @@ public class HalCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    if (tasks) {
-      System.out.println(Daemon.getTasks());
-    }
-
     if (docs) {
       System.out.println(generateDocs());
     }
@@ -130,7 +121,7 @@ public class HalCommand extends NestableCommand {
       System.exit(Daemon.isHealthy() ? 0 : -1);
     }
 
-    if (!version && !printBashCompletion && !tasks && !docs) {
+    if (!version && !printBashCompletion && !docs) {
       showHelp();
     }
   }

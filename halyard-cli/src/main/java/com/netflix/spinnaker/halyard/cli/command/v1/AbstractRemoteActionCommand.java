@@ -85,7 +85,13 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
       JobExecutor executor = getJobExecutor();
       String jobId = executor.startJobFromStandardStreams(request);
 
-      JobStatus status = executor.backoffWait(jobId, 100, TimeUnit.SECONDS.toMillis(2));
+      JobStatus status = null;
+      try {
+        status = executor.backoffWait(jobId, 100, TimeUnit.SECONDS.toMillis(2));
+      } catch (InterruptedException e) {
+        AnsiUi.failure("Interrupted.");
+        System.exit(1);
+      }
 
       if (status.getResult() != JobStatus.Result.SUCCESS) {
         AnsiUi.error("Error encountered running script. See above output for more details.");

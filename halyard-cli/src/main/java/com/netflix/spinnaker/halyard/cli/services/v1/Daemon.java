@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import com.fasterxml.jackson.databind.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
@@ -25,11 +27,13 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
+import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository.ShallowTaskInfo;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.extern.slf4j.Slf4j;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
 
 import java.util.List;
 import java.util.Map;
@@ -37,12 +41,12 @@ import java.util.function.Supplier;
 
 @Slf4j
 public class Daemon {
-  public static List<String> getTasks() {
-    return getService().getTasks();
-  }
-
   public static boolean isHealthy() {
     return getService().getHealth().get("status").equalsIgnoreCase("up");
+  }
+
+  public static Supplier<Map<String, ShallowTaskInfo>> getTasks() {
+    return () -> ResponseUnwrapper.get(getService().getTasks());
   }
 
   public static Supplier<String> getCurrentDeployment() {
@@ -518,6 +522,9 @@ public class Daemon {
     return getService().getTask(uuid);
   }
 
+  public static void interruptTask(String uuid) {
+    getService().interruptTask(uuid, "");
+  }
 
   private static DaemonService getService() {
     if (service == null) {
@@ -531,6 +538,7 @@ public class Daemon {
   private static ObjectMapper getObjectMapper() {
     if (objectMapper == null) {
       objectMapper = new ObjectMapper();
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     return objectMapper;
@@ -546,6 +554,7 @@ public class Daemon {
     return new RestAdapter.Builder()
         .setEndpoint(endpoint)
         .setClient(new OkClient())
+        .setConverter(new JacksonConverter(getObjectMapper()))
         .setLogLevel(log ? RestAdapter.LogLevel.FULL : RestAdapter.LogLevel.NONE)
         .build()
         .create(DaemonService.class);

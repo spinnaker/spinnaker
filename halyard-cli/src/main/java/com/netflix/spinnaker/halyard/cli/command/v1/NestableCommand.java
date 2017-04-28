@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -173,6 +174,9 @@ public abstract class NestableCommand {
       AnsiUi.error(e.getMessage());
       AnsiUi.remediation("Try the command again with the --debug flag.");
       System.exit(1);
+    } catch (DaemonTaskInterrupted e) {
+      AnsiUi.warning("Interrupted. Task killed in unknown state.");
+      System.exit(7);
     } catch (ExpectedDaemonFailureException e) {
       showRandomFailureMessage();
       AnsiUi.failure(e.getMessage());
@@ -183,7 +187,7 @@ public abstract class NestableCommand {
       } else {
         AnsiUi.error(e.getMessage());
       }
-      System.exit(1);
+      System.exit(3);
     }
   }
 

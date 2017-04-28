@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.core.problem.v1;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 
@@ -45,6 +46,7 @@ public class ProblemSet {
     return result;
   }
 
+  @JsonIgnore
   public boolean isEmpty() {
     return problems.isEmpty();
   }
@@ -70,7 +72,6 @@ public class ProblemSet {
   }
 
   public ProblemSet() { }
-
 
   /**
    * Find the highest severity this problem set stores.

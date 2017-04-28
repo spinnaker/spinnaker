@@ -1,5 +1,7 @@
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +40,12 @@ public class DaemonTaskHandler {
           (o, t) -> {
             DaemonResponse<U> collector = (DaemonResponse<U>) o;
             DaemonTask child = (DaemonTask) t;
-            DaemonResponse<T> childResponse = task.reapChild(child);
+            DaemonResponse<T> childResponse;
+            try {
+              childResponse = task.reapChild(child);
+            } catch (InterruptedException e) {
+              throw new DaemonTaskInterrupted("Interrupted during reap", e);
+            }
             collector.getProblemSet().addAll(childResponse.getProblemSet());
             collector.setResponseBody(accumulator.apply(collector.getResponseBody(), childResponse.getResponseBody()));
             return collector;
@@ -64,6 +71,7 @@ public class DaemonTaskHandler {
     } else {
       result = TaskRepository.submitTask(taskSupplier, name);
     }
+    
     return result;
   }
 
@@ -84,6 +92,14 @@ public class DaemonTaskHandler {
     if (task != null) {
       log.info("Message by " + task + ": " + message);
       task.writeMessage(message);
+    }
+  }
+
+  public static void safeSleep(Long millis) {
+    try {
+      Thread.sleep(millis);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
     }
   }
 }

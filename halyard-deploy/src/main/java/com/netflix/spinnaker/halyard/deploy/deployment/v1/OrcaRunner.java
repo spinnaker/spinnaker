@@ -125,10 +125,7 @@ public class OrcaRunner {
 
       while (status.equalsIgnoreCase("running") || status.equalsIgnoreCase("not_started")) {
         logPipelineOutput(pipeline, loggedTasks);
-        try {
-          Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-        } catch (InterruptedException ignored) {
-        }
+        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
         pipeline = getPipeline.get();
         status = pipeline.getStatus();
       }

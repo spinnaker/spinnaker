@@ -31,6 +31,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -553,10 +554,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
         RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
         while (runningServiceDetails.getHealthy() > 0) {
-          try {
-            Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-          } catch (InterruptedException ignored) {
-          }
+          DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
           runningServiceDetails = getRunningServiceDetails(details, settings);
         }
       } else {
@@ -570,10 +568,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
     while (runningServiceDetails.getHealthy() == 0) {
-      try {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
-      } catch (InterruptedException ignored) {
-      }
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
       runningServiceDetails = getRunningServiceDetails(details, settings);
     }
   }

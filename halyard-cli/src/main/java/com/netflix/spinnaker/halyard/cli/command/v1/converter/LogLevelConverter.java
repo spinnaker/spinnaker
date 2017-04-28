@@ -23,10 +23,9 @@ import com.beust.jcommander.IStringConverter;
 public class LogLevelConverter implements IStringConverter<Level> {
   @Override
   public Level convert(String value) {
-    Level def = Level.OFF;
     Level res = Level.toLevel(value, Level.OFF);
 
-    if (!def.levelStr.equalsIgnoreCase(value)) {
+    if (!res.levelStr.equalsIgnoreCase(value)) {
       throw new IllegalArgumentException("Log level " + value + " is not valid. The options are: OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.");
     }
 

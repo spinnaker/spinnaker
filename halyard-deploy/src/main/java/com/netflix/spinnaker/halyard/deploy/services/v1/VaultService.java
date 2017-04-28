@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -75,7 +76,8 @@ public class VaultService {
         .setTimeoutMillis(TimeUnit.SECONDS.toMillis(vaultTimeoutSeconds));
 
     String id = jobExecutor.startJob(request);
-    JobStatus status = jobExecutor.backoffWait(id, 100, 1000);
+    DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+    JobStatus status = jobExecutor.updateJob(id);
 
     if (!status.getResult().equals(JobStatus.Result.SUCCESS)) {
       throw new HalException(Problem.Severity.FATAL, "Failed to publish secret " + name + ": " + status.getStdOut() + status.getStdErr());

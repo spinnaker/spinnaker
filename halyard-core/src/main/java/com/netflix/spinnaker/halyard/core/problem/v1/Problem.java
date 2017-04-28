@@ -17,6 +17,8 @@
 
 package com.netflix.spinnaker.halyard.core.problem.v1;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.util.List;
@@ -78,7 +80,12 @@ public class Problem {
   @Getter
   final private String location;
 
-  public Problem(String message, String remediation, List<String> options, Severity severity, String location) {
+  @JsonCreator
+  public Problem(@JsonProperty("message") String message,
+      @JsonProperty("remediation") String remediation,
+      @JsonProperty("options") List<String> options,
+      @JsonProperty("severity") Severity severity,
+      @JsonProperty("location") String location) {
     if (severity == Severity.NONE) {
       throw new RuntimeException("A halconfig problem may not be intialized with \"NONE\" severity");
     }
