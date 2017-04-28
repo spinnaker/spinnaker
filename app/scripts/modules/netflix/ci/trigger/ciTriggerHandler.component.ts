@@ -2,8 +2,8 @@ import {IComponentController, IComponentOptions, module} from 'angular';
 import {IBranch, ScmReader, SCM_READ_SERVICE, ITag, ICommit} from '../services/scm.read.service';
 import {IGitTrigger} from 'core/domain/ITrigger';
 
-interface IViewState {
-  buildSource: string;
+export interface IViewState {
+  buildSource: 'branch' | 'commit' | 'tag';
   branches: ISourceState;
   commits: ISourceState;
   tags: ISourceState;
@@ -15,7 +15,7 @@ interface ISourceState {
   loadError: boolean;
 }
 
-class NetflixCiTriggerHandlerController implements IComponentController {
+export class NetflixCiTriggerHandlerController implements IComponentController {
 
   public command: any;
   public showOptions = false;
@@ -139,7 +139,7 @@ class NetflixCiTriggerHandlerComponent implements IComponentOptions {
   public bindings: any = {
     command: '<',
   };
-  public templateUrl = require('./ci.trigger.handler.component.html');
+  public templateUrl = require('./ciTriggerHandler.component.html');
   public controller: any = NetflixCiTriggerHandlerController;
 }
 

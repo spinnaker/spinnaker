@@ -4,7 +4,7 @@ import {IGitTrigger} from 'core/domain/ITrigger';
 import {NetflixSettings} from 'netflix/netflix.settings';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
-class NetflixGitManualExecutionHandler {
+export class NetflixGitManualExecutionHandler {
 
   public selectorTemplate: string = require('./selectorTemplate.html');
 

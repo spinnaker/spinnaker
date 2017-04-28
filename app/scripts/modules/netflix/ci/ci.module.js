@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 import {CI_STATES} from './ci.states';
-import {NETFLIX_CI_TRIGGER_HANDLER_COMPONENT} from './trigger/ci.trigger.handler.component';
+import {NETFLIX_CI_TRIGGER_HANDLER_COMPONENT} from './trigger/ciTriggerHandler.component';
 import {NETFLIX_GIT_MANUAL_EXECUTION_HANDLER} from './trigger/manualExecution.handler';
 
 require('./ci.less');
