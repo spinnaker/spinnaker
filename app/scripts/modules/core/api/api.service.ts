@@ -47,7 +47,8 @@ export class Api {
       if (contentType) {
         const isJson = contentType.includes('application/json');
         const isZeroLengthHtml = (contentType.includes('text/html') && (result.data === ''));
-        if (!(isJson || isZeroLengthHtml)) {
+        const isZeroLengthText = (contentType.includes('text/plain') && (result.data === ''));
+        if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
           this.authenticationIntializer.reauthenticateUser();
           reject(result);
         }
