@@ -42,10 +42,10 @@ POSTS_DIR = '_posts'
 
 class ChangelogPublisher():
 
-  def __init__(self, options):
+  def __init__(self, options, changelog_gist_uri=None):
     self.__version = options.version
     self.__githubio_repo_uri = options.githubio_repo_uri
-    self.__changelog_gist_uri = options.changelog_gist_uri
+    self.__changelog_gist_uri = changelog_gist_uri or options.changelog_gist_uri
 
   def __checkout_githubio_repo(self):
     """Clones the spinnaker.github.io git repo.
@@ -63,6 +63,11 @@ class ChangelogPublisher():
       '---',
       ''
     ]
+
+    # Since we include the changelog gist as a script, make sure we're
+    # referring to the gist javascript file.
+    if self.__changelog_gist_uri and not self.__changelog_gist_uri.endswith('.js'):
+      self.__changelog_gist_uri = self.__changelog_gist_uri + '.js'
 
     post_lines.append('<script src="{uri}"></script>'.format(uri=self.__changelog_gist_uri))
     post = '\n'.join(post_lines)
@@ -100,7 +105,7 @@ class ChangelogPublisher():
                         'commit the changelog post to, e.g. git@github.com:spinnaker/spinnaker.github.io.')
     parser.add_argument('--version', default='', required=True,
                         help='The version of Spinnaker that corresponds to the changelog.')
-    parser.add_argument('--changelog_gist_uri', default='', required=True,
+    parser.add_argument('--changelog_gist_uri', default='',
                         help='A uri that points to a gist containing the changelog.')
 
   @classmethod
