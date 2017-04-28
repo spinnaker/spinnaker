@@ -33,13 +33,12 @@ open class QueueProcessor
 @Autowired constructor(
   private val queue: Queue,
   @Qualifier("messageHandlerPool") private val executor: Executor,
-  val registry: Registry,
-  handlers: Collection<MessageHandler<*>>
+  private val registry: Registry,
+  private val handlers: Collection<MessageHandler<*>>
 ) : DiscoveryActivated {
 
   override val log: Logger = getLogger(javaClass)
   override val enabled = AtomicBoolean(false)
-  private val handlers = handlers.associate { Pair(it.messageType, it) }
 
   private val pollOpsRateId = registry.createId("orca.nu.worker.pollOpsRate")
   private val pollErrorRateId = registry.createId("orca.nu.worker.pollErrorRate")
@@ -51,7 +50,7 @@ open class QueueProcessor
 
       queue.poll { message, ack ->
         log.info("Received message $message")
-        val handler = handlers[message.javaClass]
+        val handler = handlerFor(message)
         if (handler != null) {
           executor.execute {
             handler.invoke(message)
@@ -65,6 +64,16 @@ open class QueueProcessor
         }
       }
     }
+
+  private val handlerCache = mutableMapOf<Class<out Message>, MessageHandler<*>>()
+
+  private fun handlerFor(message: Message) =
+    handlerCache[message.javaClass]
+      .let { handler ->
+        handler ?: handlers
+          .find { it.messageType.isAssignableFrom(message.javaClass) }
+          ?.also { handlerCache[message.javaClass] = it }
+      }
 
   @PostConstruct fun confirmQueueType() =
     log.info("Using ${queue.javaClass.simpleName} queue")

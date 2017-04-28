@@ -37,25 +37,22 @@ class QueueProcessorSpec : Spek({
   describe("execution workers") {
     val queue: Queue = mock()
     val startExecutionHandler: MessageHandler<StartExecution> = mock()
-    val completeExecutionHandler: MessageHandler<CompleteExecution> = mock()
+    val configurationErrorHandler: MessageHandler<ConfigurationError> = mock()
     val registry: Registry = mock {
-      on { createId(any<String>()) }.thenReturn(mock<Id>())
-      on { counter(any<Id>()) }.thenReturn(mock<Counter>())
+      on { createId(any<String>()) } doReturn mock<Id>()
+      on { counter(any<Id>()) } doReturn mock<Counter>()
     }
 
     var queueProcessor: QueueProcessor? = null
 
-    fun resetMocks() = reset(queue, startExecutionHandler, completeExecutionHandler)
+    fun resetMocks() = reset(queue, startExecutionHandler, configurationErrorHandler)
 
     beforeGroup {
-      whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
-      whenever(completeExecutionHandler.messageType) doReturn CompleteExecution::class.java
-
       queueProcessor = QueueProcessor(
         queue,
         directExecutor(),
         registry,
-        listOf(startExecutionHandler, completeExecutionHandler)
+        listOf(startExecutionHandler, configurationErrorHandler)
       )
     }
 
@@ -87,6 +84,9 @@ class QueueProcessorSpec : Spek({
           val message = StartExecution(Pipeline::class.java, "1", "foo")
 
           beforeGroup {
+            whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
+            whenever(configurationErrorHandler.messageType) doReturn ConfigurationError::class.java
+
             whenever(queue.poll(any())).then {
               @Suppress("UNCHECKED_CAST")
               val callback = it.arguments.first() as QueueCallback
@@ -105,7 +105,36 @@ class QueueProcessorSpec : Spek({
           }
 
           it("does not invoke other handlers") {
-            verifyZeroInteractions(completeExecutionHandler)
+            verify(configurationErrorHandler, never()).invoke(any())
+          }
+        }
+
+        context("it is a subclass of a supported message type") {
+          val message = InvalidExecutionId(Pipeline::class.java, "1", "foo")
+
+          beforeGroup {
+            whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
+            whenever(configurationErrorHandler.messageType) doReturn ConfigurationError::class.java
+
+            whenever(queue.poll(any())).then {
+              @Suppress("UNCHECKED_CAST")
+              val callback = it.arguments.first() as QueueCallback
+              callback.invoke(message, {})
+            }
+          }
+
+          afterGroup(::resetMocks)
+
+          action("the worker polls the queue") {
+            queueProcessor!!.pollOnce()
+          }
+
+          it("passes the message to the correct handler") {
+            verify(configurationErrorHandler).invoke(eq(message))
+          }
+
+          it("does not invoke other handlers") {
+            verify(startExecutionHandler, never()).invoke(any())
           }
         }
 
@@ -113,6 +142,9 @@ class QueueProcessorSpec : Spek({
           val message = StartStage(Pipeline::class.java, "1", "foo", "1")
 
           beforeGroup {
+            whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
+            whenever(configurationErrorHandler.messageType) doReturn ConfigurationError::class.java
+
             whenever(queue.poll(any())).then {
               @Suppress("UNCHECKED_CAST")
               val callback = it.arguments.first() as QueueCallback
@@ -127,10 +159,8 @@ class QueueProcessorSpec : Spek({
           }
 
           it("does not invoke any handlers") {
-            verifyZeroInteractions(
-              startExecutionHandler,
-              completeExecutionHandler
-            )
+            verify(startExecutionHandler, never()).invoke(any())
+            verify(configurationErrorHandler, never()).invoke(any())
           }
         }
       }
