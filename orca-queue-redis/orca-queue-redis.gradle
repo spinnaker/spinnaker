@@ -18,6 +18,8 @@ buildscript {
   // TODO: this stuff should go in spinnaker-dependencies module eventually
   ext.kotlinVersion = "1.1.0"
   ext.junitVersion = "1.0.0-M3"
+  ext.jupiterVersion = "5.0.0-M3"
+  ext.junitLegacyVersion = "4.12.0-M3"
   ext.spekVersion = "1.1.0"
 
   repositories {
@@ -48,7 +50,11 @@ dependencies {
   testCompile "org.jetbrains.spek:spek-api:$spekVersion"
   testCompile "com.nhaarman:mockito-kotlin:1.4.0"
   testCompile "com.natpryce:hamkrest:1.3.0.0"
+  testCompile "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
 
+  testRuntime "org.junit.platform:junit-platform-launcher:$junitVersion"
+  testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
+  testRuntime "org.junit.vintage:junit-vintage-engine:$junitLegacyVersion"
   testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
 }
 

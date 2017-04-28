@@ -41,7 +41,8 @@ class RedisQueue(
   private val clock: Clock,
   private val currentInstanceId: String,
   private val lockTtlSeconds: Int = Duration.ofDays(1).seconds.toInt(),
-  override val ackTimeout: TemporalAmount = Duration.ofMinutes(1)
+  override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
+  override val deadMessageHandler: (Queue, Message) -> Unit
 ) : Queue, Closeable {
 
   private val mapper = ObjectMapper().apply {
@@ -52,21 +53,24 @@ class RedisQueue(
   private val queueKey = queueName + ".queue"
   private val unackedKey = queueName + ".unacked"
   private val messagesKey = queueName + ".messages"
+  private val attemptsKey = queueName + ".attempts"
   private val locksKey = queueName + ".locks"
 
   private val redeliveryWatcher = ScheduledAction(this::redeliver)
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
-      redis
-        .pop(queueKey, unackedKey, ackTimeout)
-        ?.let { id -> Pair(UUID.fromString(id), redis.hget(messagesKey, id)) }
-        ?.let { (id, json) -> Pair(id, mapper.readValue<Message>(json)) }
-        ?.let { (id, payload) ->
-          callback.invoke(payload) {
-            ack(id)
+      redis.apply {
+        pop(queueKey, unackedKey, ackTimeout)
+          ?.also { hincrBy(attemptsKey, it, 1) }
+          ?.let { id -> Pair(UUID.fromString(id), hget(messagesKey, id)) }
+          ?.let { (id, json) -> Pair(id, mapper.readValue<Message>(json)) }
+          ?.let { (id, payload) ->
+            callback.invoke(payload) {
+              ack(id)
+            }
           }
-        }
+      }
     }
   }
 
@@ -87,15 +91,36 @@ class RedisQueue(
     pool.resource.use { redis ->
       redis.zrem(unackedKey, id.toString())
       redis.hdel(messagesKey, id.toString())
+      redis.hdel(attemptsKey, id.toString())
     }
   }
 
   internal fun redeliver() {
     pool.resource.use { redis ->
-      redis.popAll(unackedKey, queueKey).apply {
-        if (size > 0) log.warn("Redelivering $size messages")
+      redis.apply {
+        zrangeByScore(unackedKey, 0.0, score())
+          .let { ids ->
+            if (ids.size > 0) {
+              log.warn("Redelivering ${ids.size} messages")
+              ids.map { "$locksKey:$it" }.let { del(*it.toTypedArray()) }
+            }
+
+            ids.forEach { id ->
+              if (hgetInt(attemptsKey, id) >= Queue.maxRedeliveries) {
+                hget(messagesKey, id)
+                  .let { json -> mapper.readValue<Message>(json) }
+                  .let { handleDeadMessage(it) }
+              } else {
+                move(unackedKey, queueKey, ZERO, setOf(id))
+              }
+            }
+          }
       }
     }
+  }
+
+  private fun handleDeadMessage(it: Message) {
+    deadMessageHandler.invoke(this, it)
   }
 
   /**
@@ -114,17 +139,6 @@ class RedisQueue(
       ?.firstOrNull()
 
   /**
-   * Pop values from sorted set [from] and add them to sorted set [to] (with
-   * optional [delay]).
-   *
-   * @return the popped values.
-   */
-  private fun JedisCommands.popAll(from: String, to: String, delay: TemporalAmount = ZERO) =
-    zrangeByScore(from, 0.0, score())
-      .also { it.forEach { del("$locksKey:$it") } }
-      .also { move(from, to, delay, it) }
-
-  /**
    * Move [values] from sorted set [from] to sorted set [to]
    */
   private fun JedisCommands.move(from: String, to: String, delay: TemporalAmount, values: Set<String>) {
@@ -134,6 +148,9 @@ class RedisQueue(
       zadd(to, values.associate { Pair(it, score) })
     }
   }
+
+  private fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
+    hget(key, field)?.toInt() ?: default
 
   /**
    * @return current time (plus optional [delay]) converted to a score for a

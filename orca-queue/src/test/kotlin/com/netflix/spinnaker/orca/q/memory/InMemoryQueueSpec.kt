@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.q.memory
 
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.QueueSpec
 import com.netflix.spinnaker.orca.q.QueueSpec.Companion.clock
 
@@ -24,4 +26,5 @@ class InMemoryQueueSpec : QueueSpec<InMemoryQueue>(
   InMemoryQueue::redeliver
 )
 
-private fun createQueue() = InMemoryQueue(clock)
+private fun createQueue(deadLetterCallback: (Queue, Message) -> Unit) =
+  InMemoryQueue(clock, deadMessageHandler = deadLetterCallback)

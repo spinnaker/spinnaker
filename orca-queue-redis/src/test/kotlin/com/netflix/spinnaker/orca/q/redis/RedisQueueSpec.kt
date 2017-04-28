@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.orca.q.redis
 
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.QueueSpec
 import com.netflix.spinnaker.orca.q.QueueSpec.Companion.clock
 
@@ -28,9 +30,9 @@ class RedisQueueSpec : QueueSpec<RedisQueue>(
 
 private var redis: EmbeddedRedis? = null
 
-private fun createQueue(): RedisQueue {
+private fun createQueue(deadLetterCallback: (Queue, Message) -> Unit): RedisQueue {
   redis = EmbeddedRedis.embed()
-  return RedisQueue("test", redis!!.pool, clock, "i-1234")
+  return RedisQueue("test", redis!!.pool, clock, "i-1234", deadMessageHandler = deadLetterCallback)
 }
 
 private fun shutdownCallback() {

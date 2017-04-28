@@ -39,6 +39,7 @@ import java.time.temporal.TemporalAmount
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
   override val ackTimeout = queueImpl.ackTimeout
+  override val deadMessageHandler: (Queue, Message) -> Unit = queueImpl.deadMessageHandler
 
   val pollInterceptors = interceptors.filter { it.supports(InterceptorType.POLL) }
   val messageInterceptors = interceptors.filter { it.supports(InterceptorType.MESSAGE) }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.q.Queue.Companion.maxRedeliveries
 import com.netflix.spinnaker.orca.time.MutableClock
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
@@ -28,13 +29,14 @@ import java.time.Duration
 import java.time.Instant
 
 abstract class QueueSpec<out Q : Queue>(
-  createQueue: () -> Q,
+  createQueue: ((Queue, Message) -> Unit) -> Q,
   triggerRedeliveryCheck: Q.() -> Unit,
   shutdownCallback: (() -> Unit)? = null
 ) : Spek({
 
   var queue: Q? = null
   val callback: QueueCallback = mock()
+  val deadLetterCallback: (Queue, Message) -> Unit = mock()
 
   fun resetMocks() = reset(callback)
 
@@ -50,7 +52,7 @@ abstract class QueueSpec<out Q : Queue>(
   describe("polling the queue") {
     context("there are no messages") {
       beforeGroup {
-        queue = createQueue.invoke()
+        queue = createQueue.invoke(deadLetterCallback)
       }
 
       afterGroup(::stopQueue)
@@ -69,7 +71,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke()
+        queue = createQueue.invoke(deadLetterCallback)
         queue!!.push(message)
       }
 
@@ -90,7 +92,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message2 = StartExecution(Pipeline::class.java, "2", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke().apply {
+        queue = createQueue.invoke(deadLetterCallback).apply {
           push(message1)
           clock.incrementBy(Duration.ofSeconds(1))
           push(message2)
@@ -120,7 +122,7 @@ abstract class QueueSpec<out Q : Queue>(
         val message = StartExecution(Pipeline::class.java, "1", "foo")
 
         beforeGroup {
-          queue = createQueue.invoke()
+          queue = createQueue.invoke(deadLetterCallback)
           queue!!.push(message, delay)
         }
 
@@ -140,7 +142,7 @@ abstract class QueueSpec<out Q : Queue>(
         val message = StartExecution(Pipeline::class.java, "1", "foo")
 
         beforeGroup {
-          queue = createQueue.invoke()
+          queue = createQueue.invoke(deadLetterCallback)
           queue!!.push(message, delay)
           clock.incrementBy(delay)
         }
@@ -164,7 +166,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke()
+        queue = createQueue.invoke(deadLetterCallback)
         queue!!.push(message)
       }
 
@@ -191,7 +193,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke()
+        queue = createQueue.invoke(deadLetterCallback)
         queue!!.push(message)
       }
 
@@ -207,7 +209,7 @@ abstract class QueueSpec<out Q : Queue>(
         }
       }
 
-      it("does not re-deliver the message") {
+      it("re-delivers the message") {
         verify(callback).invoke(eq(message), any())
       }
     }
@@ -216,7 +218,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke()
+        queue = createQueue.invoke(deadLetterCallback)
         queue!!.push(message)
       }
 
@@ -236,6 +238,37 @@ abstract class QueueSpec<out Q : Queue>(
 
       it("re-delivers the message") {
         verify(callback).invoke(eq(message), any())
+      }
+    }
+
+    context("a message is not acknowledged more than $maxRedeliveries times") {
+      val message = StartExecution(Pipeline::class.java, "1", "foo")
+
+      beforeGroup {
+        queue = createQueue.invoke(deadLetterCallback)
+        queue!!.push(message)
+      }
+
+      afterGroup(::stopQueue)
+      afterGroup(::resetMocks)
+
+      action("the queue is polled and the message is not acknowledged") {
+        queue!!.apply {
+          repeat(maxRedeliveries) {
+            poll { _, _ -> }
+            clock.incrementBy(ackTimeout)
+            triggerRedeliveryCheck()
+          }
+          poll(callback)
+        }
+      }
+
+      it("stops re-delivering the message") {
+        verifyZeroInteractions(callback)
+      }
+
+      it("passes the failed message to the dead letter handler") {
+        verify(deadLetterCallback).invoke(queue!!, message)
       }
     }
   }

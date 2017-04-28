@@ -37,7 +37,8 @@ import javax.annotation.PreDestroy
 
 class InMemoryQueue(
   private val clock: Clock,
-  override val ackTimeout: TemporalAmount = Duration.ofMinutes(1)
+  override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
+  override val deadMessageHandler: (Queue, Message) -> Unit
 ) : Queue, Closeable {
 
   private val log: Logger = getLogger(javaClass)
@@ -69,8 +70,12 @@ class InMemoryQueue(
 
   internal fun redeliver() {
     unacked.pollAll {
-      log.warn("redelivering unacked message ${it.payload}")
-      queue.put(it.copy(scheduledTime = clock.instant()))
+      if (it.count >= Queue.maxRedeliveries) {
+        deadMessageHandler.invoke(this, it.payload)
+      } else {
+        log.warn("redelivering unacked message ${it.payload}")
+        queue.put(it.copy(scheduledTime = clock.instant(), count = it.count + 1))
+      }
     }
   }
 
@@ -91,7 +96,8 @@ internal data class Envelope(
   val id: UUID,
   val payload: Message,
   val scheduledTime: Instant,
-  val clock: Clock
+  val clock: Clock,
+  val count: Int = 1
 ) : Delayed {
   constructor(payload: Message, scheduledTime: Instant, clock: Clock) :
     this(randomUUID(), payload, scheduledTime, clock)

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.config
 import com.netflix.spinnaker.orca.q.BlackholeExecutionLogRepository
 import com.netflix.spinnaker.orca.q.ExecutionLogRepository
 import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
@@ -38,7 +39,8 @@ open class QueueConfiguration {
   open fun systemClock(): Clock = Clock.systemDefaultZone()
 
   @Bean(name = arrayOf("queueImpl")) @ConditionalOnMissingBean(Queue::class)
-  open fun inMemoryQueue(clock: Clock): Queue = InMemoryQueue(clock)
+  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler): Queue =
+    InMemoryQueue(clock, deadMessageHandler = deadMessageHandler::handle)
 
   @Bean @ConditionalOnMissingBean(ExecutionLogRepository::class)
   open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()

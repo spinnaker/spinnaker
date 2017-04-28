@@ -53,6 +53,20 @@ interface Queue {
    * The expired time after which un-acknowledged messages will be re-delivered.
    */
   val ackTimeout: TemporalAmount
+
+  /**
+   * A handler for messages that have failed to ackowledge delivery more than
+   * [Queue.ackTimeout] times.
+   */
+  val deadMessageHandler: (Queue, Message) -> Unit
+
+  companion object {
+    /**
+     * The maximum number of times an un-acknowledged message will be re-delivered
+     * before failing permanently.
+     */
+    val maxRedeliveries: Int = 10
+  }
 }
 
 /**

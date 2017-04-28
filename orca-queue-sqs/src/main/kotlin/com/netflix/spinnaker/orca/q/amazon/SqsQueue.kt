@@ -31,7 +31,8 @@ import java.time.temporal.TemporalAmount
 class SqsQueue(
   private val amazonSqs: AmazonSQS,
   sqsProperties: SqsProperties,
-  override val ackTimeout: Duration = Duration.ofMinutes(1)
+  override val ackTimeout: Duration = Duration.ofMinutes(1),
+  override val deadMessageHandler: (Queue, Message) -> Unit
 ) : Queue {
 
   private val objectMapper = ObjectMapper().apply {

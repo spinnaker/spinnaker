@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
@@ -35,7 +36,15 @@ open class RedisQueueConfiguration {
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
-    currentInstanceId: String
-  ): Queue = RedisQueue(redisQueueProperties.queueName, redisPool, clock, currentInstanceId)
+    currentInstanceId: String,
+    deadMessageHandler: DeadMessageHandler
+  ): Queue =
+    RedisQueue(
+      redisQueueProperties.queueName,
+      redisPool,
+      clock,
+      currentInstanceId,
+      deadMessageHandler = deadMessageHandler::handle
+    )
 
 }

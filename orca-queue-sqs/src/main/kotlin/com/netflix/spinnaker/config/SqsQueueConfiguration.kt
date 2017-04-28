@@ -19,12 +19,14 @@ import com.amazonaws.auth.AWSCredentialsProvider
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.AmazonSQSClient
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
-import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.amazon.SqsQueue
+import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.context.annotation.*
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
 
 @Configuration
 @ConditionalOnExpression("\${queue.sqs.enabled:false}")
@@ -33,14 +35,14 @@ import org.springframework.context.annotation.*
 @EnableConfigurationProperties(SqsProperties::class)
 open class SqsQueueConfiguration {
 
-  @Bean
-  open fun amazonSqsClient(awsCredentialsProvider: AWSCredentialsProvider, sqsProperties: SqsProperties): AmazonSQS {
-    return AmazonSQSClient.builder()
+  @Bean open fun amazonSqsClient(awsCredentialsProvider: AWSCredentialsProvider, sqsProperties: SqsProperties) =
+    AmazonSQSClient
+      .builder()
       .withCredentials(awsCredentialsProvider)
       .withRegion(sqsProperties.region)
       .build()
-  }
 
   @Bean(name = arrayOf("queueImpl"))
-  open fun sqsQueue(amazonSqs: AmazonSQS, sqsProperties: SqsProperties): Queue = SqsQueue(amazonSqs, sqsProperties)
+  open fun sqsQueue(amazonSqs: AmazonSQS, sqsProperties: SqsProperties, deadMessageHandler: DeadMessageHandler) =
+    SqsQueue(amazonSqs, sqsProperties, deadMessageHandler = deadMessageHandler::handle)
 }
