@@ -45,6 +45,7 @@ class AzureServerGroupCreator implements ServerGroupCreator, DeploymentDetailsAw
       operation.image.isCustom = true
       operation.image.uri = bakeStage.context?.imageId
       operation.image.ostype = bakeStage.context?.osType
+      operation.image.imageName = bakeStage.context?.imageName
     }
 
     return [[(ServerGroupCreator.OPERATION): operation]]
