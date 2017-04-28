@@ -18,7 +18,10 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.PAUSED
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.MessageHandler
+import com.netflix.spinnaker.orca.q.PauseStage
+import com.netflix.spinnaker.orca.q.PauseTask
+import com.netflix.spinnaker.orca.q.Queue
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -32,12 +35,10 @@ open class PauseTaskHandler
   override val messageType = PauseTask::class.java
 
   override fun handle(message: PauseTask) {
-    message.withStage { stage ->
-      stage.task(message.taskId).apply {
-        status = PAUSED
-        repository.storeStage(stage)
-        queue.push(PauseStage(message))
-      }
+    message.withTask { stage, task ->
+      task.status = PAUSED
+      repository.storeStage(stage)
+      queue.push(PauseStage(message))
     }
   }
 }

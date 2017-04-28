@@ -252,6 +252,20 @@ data class InvalidStageId(
 }
 
 /**
+ * Task id was not found in the stage.
+ */
+data class InvalidTaskId(
+  override val executionType: Class<out Execution<*>>,
+  override val executionId: String,
+  override val application: String,
+  override val stageId: String,
+  override val taskId: String
+) : ConfigurationError(), TaskLevel {
+  constructor(source: TaskLevel) :
+    this(source.executionType, source.executionId, source.application, source.stageId, source.taskId)
+}
+
+/**
  * No such [Task] class.
  */
 data class InvalidTaskType(

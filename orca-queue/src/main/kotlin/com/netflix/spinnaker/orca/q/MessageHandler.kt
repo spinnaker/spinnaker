@@ -16,10 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Orchestration
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 
@@ -43,6 +40,20 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
     }
 
   fun handle(message: M): Unit
+
+  fun TaskLevel.withTask(block: (Stage<*>, Task) -> Unit) =
+    withStage { stage ->
+      stage
+        .getTasks()
+        .find { it.id == taskId }
+        .let { task ->
+          if (task == null) {
+            queue.push(InvalidTaskId(this))
+          } else {
+            block.invoke(stage, task)
+          }
+        }
+    }
 
   fun StageLevel.withStage(block: (Stage<*>) -> Unit) =
     withExecution { execution ->

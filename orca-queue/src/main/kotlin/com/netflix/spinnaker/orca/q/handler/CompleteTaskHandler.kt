@@ -36,8 +36,7 @@ open class CompleteTaskHandler
 ) : MessageHandler<CompleteTask> {
 
   override fun handle(message: CompleteTask) {
-    message.withStage { stage ->
-      val task = stage.task(message.taskId)
+    message.withTask { stage, task ->
       task.status = message.status
       task.endTime = clock.millis()
 

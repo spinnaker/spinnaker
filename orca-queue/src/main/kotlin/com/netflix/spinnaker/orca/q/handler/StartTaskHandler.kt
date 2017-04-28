@@ -20,7 +20,10 @@ import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.events.TaskStarted
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.q.MessageHandler
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.RunTask
+import com.netflix.spinnaker.orca.q.StartTask
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -36,16 +39,14 @@ open class StartTaskHandler
 ) : MessageHandler<StartTask> {
 
   override fun handle(message: StartTask) {
-    message.withStage { stage ->
-      val task = stage.task(message.taskId)
+    message.withTask { stage, task ->
       task.status = RUNNING
       task.startTime = clock.millis()
       repository.storeStage(stage)
-
       queue.push(RunTask(message, task.id, task.type))
-    }
 
-    publisher.publishEvent(TaskStarted(this, message.executionType, message.executionId, message.stageId, message.taskId))
+      publisher.publishEvent(TaskStarted(this, message.executionType, message.executionId, message.stageId, message.taskId))
+    }
   }
 
   override val messageType = StartTask::class.java

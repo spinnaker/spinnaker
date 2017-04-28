@@ -50,13 +50,13 @@ open class RunTaskHandler
   private val log: Logger = getLogger(javaClass)
 
   override fun handle(message: RunTask) {
-    message.withTask { stage, task ->
+    message.withTask { stage, taskModel, task ->
       val execution = stage.getExecution()
       if (execution.isCanceled() || execution.getStatus().complete) {
         queue.push(CompleteTask(message, CANCELED))
       } else if (execution.getStatus() == PAUSED) {
         queue.push(PauseTask(message))
-      } else if (task.isTimedOut(stage, message)) {
+      } else if (task.isTimedOut(stage)) {
         // TODO: probably want something specific in the execution log
         queue.push(CompleteTask(message, TERMINAL))
       } else {
@@ -82,7 +82,7 @@ open class RunTaskHandler
             }
           }
         } catch(e: Exception) {
-          val exceptionDetails = shouldRetry(e, stage.task(message.taskId))
+          val exceptionDetails = shouldRetry(e, taskModel)
           if (exceptionDetails?.shouldRetry ?: false) {
             log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
             queue.push(message, task.backoffPeriod())
@@ -117,15 +117,15 @@ open class RunTaskHandler
 
   override val messageType = RunTask::class.java
 
-  private fun RunTask.withTask(block: (Stage<*>, Task) -> Unit) =
-    withStage { stage ->
+  private fun RunTask.withTask(block: (Stage<*>, com.netflix.spinnaker.orca.pipeline.model.Task, Task) -> Unit) =
+    withTask { stage, taskModel ->
       tasks
         .find { taskType.isAssignableFrom(it.javaClass) }
         .let { task ->
           if (task == null) {
             queue.push(InvalidTaskType(this, taskType.name))
           } else {
-            block.invoke(stage, task)
+            block.invoke(stage, taskModel, task)
           }
         }
     }
@@ -136,11 +136,10 @@ open class RunTaskHandler
       else -> Duration.ofSeconds(1)
     }
 
-  private fun Task.isTimedOut(stage: Stage<*>, message: RunTask): Boolean =
+  private fun Task.isTimedOut(stage: Stage<*>): Boolean =
     when (this) {
       is RetryableTask -> {
-        val taskModel = stage.task(message.taskId)
-        val startTime = Instant.ofEpochMilli(taskModel.startTime)
+        val startTime = Instant.ofEpochMilli(stage.getStartTime())
         val pausedDuration = stage.getExecution().pausedDuration()
         Duration
           .between(startTime, clock.instant())

@@ -52,10 +52,10 @@ class RunTaskHandlerSpec : Spek({
       val pipeline = pipeline {
         stage {
           type = "whatever"
+          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -88,10 +88,10 @@ class RunTaskHandlerSpec : Spek({
       val pipeline = pipeline {
         stage {
           type = "whatever"
+          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -120,10 +120,10 @@ class RunTaskHandlerSpec : Spek({
       val pipeline = pipeline {
         stage {
           type = "whatever"
+          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -198,10 +198,10 @@ class RunTaskHandlerSpec : Spek({
       val pipeline = pipeline {
         stage {
           type = "whatever"
+          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -391,11 +391,11 @@ class RunTaskHandlerSpec : Spek({
         val pipeline = pipeline {
           stage {
             type = "whatever"
+            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
-              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -430,11 +430,11 @@ class RunTaskHandlerSpec : Spek({
           }
           stage {
             type = "whatever"
+            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
-              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -465,11 +465,11 @@ class RunTaskHandlerSpec : Spek({
           }
           stage {
             type = "whatever"
+            startTime = clock.instant().minusMillis(timeout.plusMinutes(1).toMillis() + 1).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
-              startTime = clock.instant().minusMillis(timeout.plusMinutes(1).toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -502,12 +502,12 @@ class RunTaskHandlerSpec : Spek({
         context["override"] = "global"
         stage {
           type = "whatever"
+          startTime = clock.instant().toEpochMilli()
           context["stage"] = "foo"
           context["override"] = "stage"
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -541,6 +541,10 @@ class RunTaskHandlerSpec : Spek({
     val pipeline = pipeline {
       stage {
         type = "whatever"
+        task {
+          id = "1"
+          implementingClass = InvalidTask::class.qualifiedName
+        }
       }
     }
     val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", InvalidTask::class.java)
