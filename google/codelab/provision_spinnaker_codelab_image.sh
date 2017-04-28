@@ -20,6 +20,8 @@
 # specifically for creating a new (running) codelab image out of a fresh
 # spinnaker image.
 
+set -e
+
 if [[ `/usr/bin/id -u` -ne 0 ]]; then
   echo "$0 must be executed with root permissions; exiting"
   exit 1
@@ -30,10 +32,8 @@ if [[ ! -d "/opt/spinnaker/pylib" ]]; then
   exit 1
 fi
 
-service spinnaker stop
-service apache2 stop
-
-set -e
+service spinnaker stop || true
+service apache2 stop || true
 
 # this allows us to skip any interactive post-install configuration,
 # specifically around keeping defaults for files that were modified.
@@ -74,6 +74,7 @@ sudo -u jenkins -H sh -c '/home/jenkins/aptly publish repo -architectures="amd64
 cd /var/lib/jenkins
 sudo -u jenkins -H sh -c 'wget https://storage.googleapis.com/codelab-jenkins-configuration/jenkins_dir.tar.gz'
 sudo -u jenkins -H sh -c 'tar -zxvf jenkins_dir.tar.gz'
+sudo -u jenkins -H sh -c 'rm jenkins_dir.tar.gz'
 sudo -u jenkins -H sh -c 'git clone https://github.com/kenzanlabs/hello-karyon-rxnetty.git'
 sudo -u jenkins -H sh -c 'cd /var/lib/jenkins/jobs/Hello-Build; rm -rf builds lastStable lastSuccessful scm-polling.log nextBuildNumber; echo 1 >> nextBuildNumber'
 
@@ -99,14 +100,6 @@ server {
 }
 EOF
 service nginx restart
-
-# configure nested properties in igor -- harder than a `sed` one-liner
-PYTHONPATH=/opt/spinnaker/pylib python pylib/spinnaker/codelab_config.py
-echo "debianRepository: http://$(hostname):9999/ trusty main" \
-    > /opt/spinnaker/config/rosco-local.yml
-
-# Until we update the documentation and tutorials...
-ln -s /opt/spinnaker/install/first_google_boot.sh /opt/spinnaker/install/first_codelab_boot.sh
 
 service spinnaker restart
 service apache2 restart
