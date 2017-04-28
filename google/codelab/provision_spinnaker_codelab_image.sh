@@ -99,6 +99,15 @@ server {
         }
 }
 EOF
+
+mv $(dirname $0)/first_codelab_boot.sh /opt/spinnaker/install
+chmod 755 /opt/spinnaker/install/first_codelab_boot.sh
+chown spinnaker:spinnaker /opt/spinnaker/install/first_codelab_boot.sh
+
+mv $(dirname $0)/codelab_config.py /opt/spinnaker/install
+chmod 644 /opt/spinnaker/install/codelab_config.py
+chown spinnaker:spinnaker /opt/spinnaker/install/codelab_config.py
+
 service nginx restart
 
 service spinnaker restart
