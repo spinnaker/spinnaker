@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
+import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
@@ -34,16 +35,16 @@ class MessageHandlerSpec : Spek({
   val repository: ExecutionRepository = mock()
   val handleCallback: (Message) -> Unit = mock()
 
-  val handler = object : MessageHandler<StartExecution> {
+  val handler = object : MessageHandler<ConfigurationError> {
     override val queue
       get() = queue
 
     override val repository
       get() = repository
 
-    override val messageType = StartExecution::class.java
+    override val messageType = ConfigurationError::class.java
 
-    override fun handle(message: StartExecution) {
+    override fun handle(message: ConfigurationError) {
       handleCallback.invoke(message)
     }
   }
@@ -64,6 +65,20 @@ class MessageHandlerSpec : Spek({
 
     it("does not invoke the handler") {
       verifyZeroInteractions(handleCallback)
+    }
+  }
+
+  describe("when the handler is passed a sub-type of message") {
+    val message = InvalidExecutionId(Pipeline::class.java, "1", "foo")
+
+    afterGroup(::resetMocks)
+
+    action("a message is handled") {
+      handler.invoke(message)
+    }
+
+    it("does not invoke the handler") {
+      verify(handleCallback).invoke(message)
     }
   }
 })

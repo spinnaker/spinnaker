@@ -30,13 +30,11 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
   val repository: ExecutionRepository
 
   override fun invoke(message: Message): Unit =
-    when (message.javaClass) {
-      messageType -> {
-        @Suppress("UNCHECKED_CAST")
-        handle(message as M)
-      }
-      else ->
-        throw IllegalArgumentException("Unsupported message type ${message.javaClass.simpleName}")
+    if (messageType.isAssignableFrom(message.javaClass)) {
+      @Suppress("UNCHECKED_CAST")
+      handle(message as M)
+    } else {
+      throw IllegalArgumentException("Unsupported message type ${message.javaClass.simpleName}")
     }
 
   fun handle(message: M): Unit
