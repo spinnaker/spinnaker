@@ -42,12 +42,12 @@ public class Authn extends Node {
     return NodeIteratorFactory.makeReflectiveIterator(this);
   }
 
-  private OAuth2 oauth2 = new OAuth2();
+  private OAuth oauth = new OAuth();
   private Saml saml = new Saml();
   private boolean enabled;
 
   public boolean isEnabled() {
-    return getOauth2().isEnabled() || getSaml().isEnabled();
+    return this.getOauth().isEnabled() || getSaml().isEnabled();
   }
 
   public void setEnabled(boolean _ignored) {}

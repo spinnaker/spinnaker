@@ -395,8 +395,8 @@ public class Daemon {
 
   public static Supplier<AuthnMethod> getAuthnMethod(String deploymentName, String methodName, boolean validate) {
     return () -> {
-      Object rawOAuth2 = ResponseUnwrapper.get(getService().getAuthnMethod(deploymentName, methodName, validate));
-      return getObjectMapper().convertValue(rawOAuth2, AuthnMethod.translateAuthnMethodName(methodName));
+      Object rawOAuth = ResponseUnwrapper.get(getService().getAuthnMethod(deploymentName, methodName, validate));
+      return getObjectMapper().convertValue(rawOAuth, AuthnMethod.translateAuthnMethodName(methodName));
     };
   }
 

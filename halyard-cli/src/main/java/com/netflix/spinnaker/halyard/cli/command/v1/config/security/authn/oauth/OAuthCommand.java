@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth2;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.AuthnMethodCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
 
 @Parameters(separators = "=")
-public class OAuth2Command extends AuthnMethodCommand {
+public class OAuthCommand extends AuthnMethodCommand {
   public AuthnMethod.Method getMethod() {
-    return AuthnMethod.Method.OAuth2;
+    return AuthnMethod.Method.OAuth;
   }
 
-  public OAuth2Command() {
+  public OAuthCommand() {
     super();
-    registerSubcommand(new EditOAuth2Command());
+    registerSubcommand(new EditOAuthCommand());
   }
 }

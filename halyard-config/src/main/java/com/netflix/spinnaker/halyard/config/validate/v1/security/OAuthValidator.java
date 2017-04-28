@@ -18,15 +18,16 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.stereotype.Component;
 
 @Component
-public class OAuth2Validator extends Validator<OAuth2> {
+public class OAuthValidator extends Validator<OAuth> {
   @Override
-  public void validate(ConfigProblemSetBuilder p, OAuth2 n) {
+  public void validate(ConfigProblemSetBuilder p, OAuth n) {
     if (!n.isEnabled()) {
       return;
     }
@@ -39,7 +40,7 @@ public class OAuth2Validator extends Validator<OAuth2> {
       p.addProblem(Problem.Severity.ERROR, "No OAuth2 client secret was supplied");
     }
 
-    if (n.getProvider() == OAuth2.Provider.GOOGLE &&
+    if (n.getProvider() == OAuth.Provider.GOOGLE &&
         (n.getUserInfoRequirements() == null || !n.getUserInfoRequirements().containsKey("hd"))) {
       p.addProblem(Problem.Severity.WARNING, "Missing 'hd' field within " +
           "userInfoRequirements of Google OAuth provider. This could expose your Spinnaker " +

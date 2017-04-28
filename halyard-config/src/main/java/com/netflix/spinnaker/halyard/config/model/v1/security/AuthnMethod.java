@@ -62,7 +62,7 @@ abstract public class AuthnMethod extends Node {
   }
 
   public enum Method {
-    OAuth2("oauth2"),
+    OAuth("oauth"),
     SAML("saml");
 
     public final String id;

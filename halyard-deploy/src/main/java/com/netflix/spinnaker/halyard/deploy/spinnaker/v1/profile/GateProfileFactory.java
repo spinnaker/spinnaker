@@ -61,7 +61,7 @@ public class GateProfileFactory extends SpringProfileFactory {
       super(gate);
       server.ssl = security.getApiSecurity().getSsl();
 
-      if (security.getAuthn().getOauth2().isEnabled()) {
+      if (security.getAuthn().getOauth().isEnabled()) {
         this.spring = new SpringConfig(security);
       } else if (security.getAuthn().getSaml().isEnabled()) {
         this.saml = new SamlConfig(security);

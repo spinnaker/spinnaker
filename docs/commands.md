@@ -124,10 +124,10 @@
  * [**hal config security api ssl edit**](#hal-config-security-api-ssl-edit)
  * [**hal config security api ssl enable**](#hal-config-security-api-ssl-enable)
  * [**hal config security authn**](#hal-config-security-authn)
- * [**hal config security authn oauth2**](#hal-config-security-authn-oauth2)
- * [**hal config security authn oauth2 disable**](#hal-config-security-authn-oauth2-disable)
- * [**hal config security authn oauth2 edit**](#hal-config-security-authn-oauth2-edit)
- * [**hal config security authn oauth2 enable**](#hal-config-security-authn-oauth2-enable)
+ * [**hal config security authn oauth**](#hal-config-security-authn-oauth)
+ * [**hal config security authn oauth disable**](#hal-config-security-authn-oauth-disable)
+ * [**hal config security authn oauth edit**](#hal-config-security-authn-oauth-edit)
+ * [**hal config security authn oauth enable**](#hal-config-security-authn-oauth-enable)
  * [**hal config security authn saml**](#hal-config-security-authn-saml)
  * [**hal config security authn saml disable**](#hal-config-security-authn-saml-disable)
  * [**hal config security authn saml edit**](#hal-config-security-authn-saml-edit)
@@ -169,7 +169,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 1.0.0-SNAPSHOT
+  Version: 0.21.0-SNAPSHOT
 
 If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
 
@@ -2149,45 +2149,45 @@ hal config security authn [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `oauth2`: Configure the oauth2 method for authenticating.
+ * `oauth`: Configure the oauth method for authenticating.
  * `saml`: Configure the saml method for authenticating.
 
 ---
-## hal config security authn oauth2
+## hal config security authn oauth
 
-Configure the oauth2 method for authenticating.
+Configure the oauth method for authenticating.
 
 #### Usage
 ```
-hal config security authn oauth2 [parameters] [subcommands]
+hal config security authn oauth [parameters] [subcommands]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `disable`: Set the oauth2 method as disabled
- * `edit`: Edit the oauth2 authentication method.
- * `enable`: Set the oauth2 method as enabled
+ * `disable`: Set the oauth method as disabled
+ * `edit`: Edit the oauth authentication method.
+ * `enable`: Set the oauth method as enabled
 
 ---
-## hal config security authn oauth2 disable
+## hal config security authn oauth disable
 
-Set the oauth2 method as disabled
+Set the oauth method as disabled
 
 #### Usage
 ```
-hal config security authn oauth2 disable [parameters]
+hal config security authn oauth disable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
-## hal config security authn oauth2 edit
+## hal config security authn oauth edit
 
-Edit the oauth2 authentication method.
+Edit the oauth authentication method.
 
 #### Usage
 ```
-hal config security authn oauth2 edit [parameters]
+hal config security authn oauth edit [parameters]
 ```
 #### Parameters
  * `--client-id`: The OAuth client ID you have configured with your OAuth provider.
@@ -2198,13 +2198,13 @@ hal config security authn oauth2 edit [parameters]
  * `--userInfoRequirements`: (*Default*: `(empty)`) The map of requirements the userInfo request must have. This is used to restrict user login to specific domains or having a specific attribute. Use equal signs between key and value, and additional key/value pairs need to repeat the flag. Example: '--userInfoRequirements foo=bar --userInfoRequirements baz=qux'.
 
 ---
-## hal config security authn oauth2 enable
+## hal config security authn oauth enable
 
-Set the oauth2 method as enabled
+Set the oauth method as enabled
 
 #### Usage
 ```
-hal config security authn oauth2 enable [parameters]
+hal config security authn oauth enable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
