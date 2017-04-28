@@ -38,8 +38,8 @@ class AzureCredentialsInitializer {
       try {
         def azureAccount = new AzureNamedAccountCredentials(
           managedAccount.name,
-          managedAccount.environment,
-          managedAccount.accountType,
+          managedAccount.environment ?: managedAccount.name,
+          managedAccount.accountType ?: managedAccount.name,
           managedAccount.clientId,
           managedAccount.appKey,
           managedAccount.tenantId,
