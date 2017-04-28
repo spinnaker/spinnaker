@@ -3,7 +3,7 @@ import * as angular from 'angular';
 import {NETFLIX_MODULE} from './modules/netflix/netflix.module';
 import {APPENGINE_MODULE} from './modules/appengine/appengine.module';
 import {AUTHENTICATION_SERVICE} from './modules/core/authentication/authentication.service';
-import {REACT_MODULE} from './react.module';
+import {REACT_MODULE} from './modules/core/react.module';
 
 module.exports = angular.module('netflix.spinnaker', [
   NETFLIX_MODULE,

@@ -1,12 +1,10 @@
-import { auto, module } from 'angular';
 import { IStateParamsService, IStateService } from 'angular-ui-router';
+import { ReactInjector } from 'core/react.module';
 
 export let $state: IStateService = undefined;
 export let $stateParams: IStateParamsService = undefined;
 
-export const UIROUTER_IMPORTS = 'core/uirouter';
-module(UIROUTER_IMPORTS, [])
-  .run(['$injector', ($injector: auto.IInjectorService) => {
-    $state = $injector.get('$state') as IStateService;
-    $stateParams = $injector.get('$stateParams') as IStateParamsService;
-  }]);
+ReactInjector.give(($injector: any) => {
+  $state = $injector.get('$state') as IStateService;
+  $stateParams = $injector.get('$stateParams') as IStateParamsService;
+});

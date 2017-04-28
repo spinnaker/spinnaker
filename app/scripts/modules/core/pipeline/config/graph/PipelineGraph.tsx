@@ -5,6 +5,7 @@ import { IExecution, IPipeline } from 'core/domain/index';
 import { IExecutionViewState } from './pipelineGraph.service';
 import { IPipelineNode } from './pipelineGraph.service';
 import { PipelineGraphComponent } from './pipeline.graph.component';
+import { ReactInjector } from 'core/react.module';
 
 interface IPipelineGraphProps {
   pipeline?: IPipeline;
@@ -15,6 +16,4 @@ interface IPipelineGraphProps {
 }
 
 export let PipelineGraph: React.ComponentClass<IPipelineGraphProps> = undefined;
-export const PipelineGraphInject = ($injector: any) => {
-  PipelineGraph = angular2react<IPipelineGraphProps>('pipelineGraph', new PipelineGraphComponent(), $injector);
-};
+ReactInjector.give(($injector: any) => PipelineGraph = angular2react('pipelineGraph', new PipelineGraphComponent(), $injector) as any);

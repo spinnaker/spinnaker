@@ -2,6 +2,7 @@ import * as React from 'react';
 import { angular2react } from 'angular2react';
 
 import { CopyToClipboardComponent } from './copyToClipboard.component';
+import { ReactInjector } from 'core/react.module';
 
 interface ICopyToClipboardProps {
   text: string;
@@ -10,6 +11,4 @@ interface ICopyToClipboardProps {
 }
 
 export let CopyToClipboard: React.ComponentClass<ICopyToClipboardProps> = undefined;
-export const CopyToClipboardInject = ($injector: any) => {
-  CopyToClipboard = angular2react<ICopyToClipboardProps>('copyToClipboard', new CopyToClipboardComponent(), $injector);
-};
+ReactInjector.give(($injector: any) => CopyToClipboard = angular2react('copyToClipboard', new CopyToClipboardComponent(), $injector) as any);

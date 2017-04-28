@@ -17,16 +17,14 @@ export class StateEvents {
   constructor(private $rootScope: IRootScopeService) {
     const onChangeSuccess = (_event: IAngularEvent, to: IState, toParams: object, from: IState, fromParams: object) => {
       this.stateChangeSuccess.next({ to, toParams, from, fromParams });
-    }
+    };
     this.$rootScope.$on('$stateChangeSuccess', onChangeSuccess);
   }
 }
 
 export const STATE_EVENTS = 'spinnaker.core.state.events';
-module(STATE_EVENTS, [])
-  .service('stateEvents', StateEvents);
-
 export let stateEvents: StateEvents = undefined;
-export const StateEventsInject = ($injector: any) => {
-  stateEvents = <StateEvents>$injector.get('stateEvents');
-};
+
+module(STATE_EVENTS, [])
+  .service('stateEvents', StateEvents)
+  .run(['stateEvents', (_stateEvents: StateEvents) => stateEvents = _stateEvents]);

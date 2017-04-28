@@ -3,6 +3,7 @@ import { angular2react } from 'angular2react';
 
 import { ExecutionStatusComponent } from './executionStatus.component';
 import {IExecution} from 'core/domain/IExecution';
+import { ReactInjector } from 'core/react.module';
 
 interface IExecutionStatusProps {
   execution: IExecution;
@@ -12,6 +13,4 @@ interface IExecutionStatusProps {
 }
 
 export let ExecutionStatus: React.ComponentClass<IExecutionStatusProps> = undefined;
-export const ExecutionStatusInject = ($injector: any) => {
-  ExecutionStatus = angular2react<IExecutionStatusProps>('executionStatus', new ExecutionStatusComponent(), $injector);
-};
+ReactInjector.give(($injector: any) => ExecutionStatus = angular2react('executionStatus', new ExecutionStatusComponent(), $injector) as any);

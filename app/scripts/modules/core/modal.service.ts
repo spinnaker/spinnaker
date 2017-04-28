@@ -1,6 +1,5 @@
 import { IModalService } from 'angular-ui-bootstrap';
+import { ReactInjector } from 'core/react.module';
 
 export let modalService: IModalService = undefined;
-export const ModalServiceInject = ($injector: any) => {
-  modalService = <IModalService>$injector.get('$uibModal');
-};
+ReactInjector.give(($injector: any) => modalService = $injector.get('$uibModal') as any);
