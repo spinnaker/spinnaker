@@ -26,11 +26,16 @@
     <span class="small" ng-if="$ctrl.rule.crossAccountEnabled">Group</span>
   </div>
   <div class="col-md-{{$ctrl.rule.crossAccountEnabled ? 9 : 12}}">
-    <ui-select ng-if="!$ctrl.rule.existing" ng-model="$ctrl.rule.name" class="form-control input-sm" required style="width: 100%">
+    <ui-select ng-if="!$ctrl.rule.existing"
+               ng-model="$ctrl.rule.name"
+               uis-open-close="$ctrl.resetCurrentItems()"
+               class="form-control input-sm"
+               required
+               style="width: 100%">
       <ui-select-match>{{$select.selected}}</ui-select-match>
       <ui-select-choices repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | filter: $select.search | limitTo: $ctrl.infiniteScroll.currentItems"
                          infinite-scroll="$ctrl.addMoreItems()"
-                         infinite-scroll-distance="2">
+                         infinite-scroll-distance="4">
         <span ng-bind-html="securityGroup | highlight: $select.search"></span>
       </ui-select-choices>
     </ui-select>

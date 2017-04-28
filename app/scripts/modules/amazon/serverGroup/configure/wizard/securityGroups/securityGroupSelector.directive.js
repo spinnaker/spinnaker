@@ -25,13 +25,14 @@ module.exports = angular
       controller: 'awsServerGroupSecurityGroupsSelectorCtrl',
     };
   }).controller('awsServerGroupSecurityGroupsSelectorCtrl', function (awsServerGroupConfigurationService, infrastructureCaches) {
-    this.getSecurityGroupRefreshTime = () => {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
+
+    let setSecurityGroupRefreshTime = () => {
+      this.refreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
     };
 
-    this.currentItems = 100;
+    this.addItems = () => this.currentItems += 25;
 
-    this.addItems = () => this.currentItems += 100;
+    this.resetCurrentItems = () => this.currentItems = 25;
 
     this.refreshSecurityGroups = () => {
       this.refreshing = true;
@@ -40,7 +41,11 @@ module.exports = angular
       } else {
         awsServerGroupConfigurationService.refreshSecurityGroups(this.command).then(() => {
           this.refreshing = false;
+          setSecurityGroupRefreshTime();
         });
       }
     };
+
+    this.currentItems = 25;
+    setSecurityGroupRefreshTime();
   });

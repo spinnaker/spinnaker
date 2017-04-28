@@ -21,9 +21,14 @@
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Security Groups</div>
       <div class="col-md-9">
-        <ui-select multiple ng-model="loadBalancer.securityGroups" class="form-control input-sm">
+        <ui-select multiple
+                   ng-model="loadBalancer.securityGroups"
+                   uis-open-close="ctrl.resetCurrentItems()"
+                   class="form-control input-sm">
           <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
-          <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
+          <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: ctrl.currentItems"
+                             infinite-scroll="ctrl.addItems()"
+                             infinite-scroll-distance="4">
             <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
             (<span ng-bind-html="securityGroup.id  | highlight: $select.search"></span>)
           </ui-select-choices>
@@ -36,7 +41,7 @@
         <p>
           <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
           Security groups
-          <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.getSecurityGroupRefreshTime() | timestamp }}</span>
+          <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.securityGroupRefreshTime | timestamp }}</span>
           <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
         </p>
         <p>If you're not finding a security group that was recently added,

@@ -27,6 +27,8 @@ module.exports = angular
 
       this.addMoreItems = () => this.infiniteScroll.currentItems += 20;
 
+      this.resetCurrentItems = () => this.infiniteScroll.currentItems = 20;
+
       this.setAvailableSecurityGroups = () => {
         var account = this.rule.accountName || this.securityGroup.credentials;
         var regions = this.securityGroup.regions;

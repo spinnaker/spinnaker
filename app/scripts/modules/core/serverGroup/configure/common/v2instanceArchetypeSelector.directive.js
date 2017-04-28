@@ -85,13 +85,14 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
       this.selectInstanceType('custom');
     }
 
-    this.getInstanceTypeRefreshTime = function() {
-      return infrastructureCaches.get('instanceTypes').getStats().ageMax;
+    let setInstanceTypeRefreshTime = () => {
+      this.refreshTime = infrastructureCaches.get('instanceTypes').getStats().ageMax;
     };
 
     this.refreshInstanceTypes = function() {
       controller.refreshing = true;
       serverGroupConfigurationService.refreshInstanceTypes($scope.command.selectedProvider, $scope.command).then(function() {
+        setInstanceTypeRefreshTime();
         controller.refreshing = false;
       });
     };
@@ -103,23 +104,7 @@ module.exports = angular.module('spinnaker.core.serverGroup.configure.common.v2i
       }
     });
 
-    this.getInstanceTypeRefreshTime = function() {
-      return infrastructureCaches.get('instanceTypes').getStats().ageMax;
-    };
-
-    this.refreshInstanceTypes = function() {
-      controller.refreshing = true;
-      serverGroupConfigurationService.refreshInstanceTypes($scope.command.selectedProvider, $scope.command).then(function() {
-        controller.refreshing = false;
-      });
-    };
-
-    // if there are no instance types in the cache, try to reload them
-    instanceTypeService.getAllTypesByRegion($scope.command.selectedProvider).then(function(results) {
-      if (!results || !Object.keys(results).length) {
-        controller.refreshInstanceTypes();
-      }
-    });
+    setInstanceTypeRefreshTime();
 
     this.getInstanceBuilderTemplate = cloudProviderRegistry
       .getValue

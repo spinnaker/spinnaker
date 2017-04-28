@@ -247,13 +247,14 @@ module.exports = angular
         return ctrl.initializeSecurityGroups().then(function () {
           ctrl.vpcUpdated();
           $scope.state.refreshingSecurityGroups = false;
+          setSecurityGroupRefreshTime();
         });
       });
     };
 
-    this.getSecurityGroupRefreshTime = function () {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
-    };
+    function setSecurityGroupRefreshTime() {
+      $scope.state.refreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
+    }
 
     var allSecurityGroups = {};
 
@@ -262,6 +263,7 @@ module.exports = angular
 
     ctrl.initializeSecurityGroups = function () {
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
+        setSecurityGroupRefreshTime();
         $scope.state.securityGroupsLoaded = true;
         allSecurityGroups = securityGroups;
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;

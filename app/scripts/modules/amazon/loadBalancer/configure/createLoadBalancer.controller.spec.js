@@ -20,6 +20,7 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
         $scope: this.$scope,
         $uibModalInstance: {dismiss: angular.noop, result: {then: angular.noop}},
+        infrastructureCaches: { get: () => { return {getStats: () => {return {}; } }; } },
         application: app,
         loadBalancer: null,
         isNew: true,

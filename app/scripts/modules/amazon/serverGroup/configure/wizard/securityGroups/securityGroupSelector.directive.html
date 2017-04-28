@@ -4,7 +4,10 @@
     <help-field key="{{vm.helpKey}}"></help-field>
   </div>
   <div class="col-md-9">
-    <ui-select multiple ng-model="vm.groupsToEdit" class="form-control input-sm">
+    <ui-select multiple
+               ng-model="vm.groupsToEdit"
+               uis-open-close="vm.resetCurrentItems()"
+               class="form-control input-sm">
       <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
       <ui-select-choices repeat="securityGroup.id as securityGroup in vm.availableGroups | filter: $select.search | limitTo: vm.currentItems"
                          infinite-scroll="vm.addItems()"
@@ -21,7 +24,7 @@
     <p>
       <span ng-if="vm.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
       Security groups
-      <span ng-if="!vm.refreshing">last refreshed {{ vm.getSecurityGroupRefreshTime() | timestamp }}</span>
+      <span ng-if="!vm.refreshing">last refreshed {{ vm.refreshTime | timestamp }}</span>
       <span ng-if="vm.refreshing"> refreshing...</span>
     </p>
     <p>If you're not finding a security group that was recently added,

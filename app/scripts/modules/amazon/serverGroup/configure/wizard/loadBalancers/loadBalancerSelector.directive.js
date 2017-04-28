@@ -20,14 +20,17 @@ module.exports = angular
       controller: 'awsServerGroupLoadBalancerSelectorCtrl',
     };
   }).controller('awsServerGroupLoadBalancerSelectorCtrl', function (awsServerGroupConfigurationService, infrastructureCaches) {
-    this.getLoadBalancerRefreshTime = () => {
-      return infrastructureCaches.get('loadBalancers').getStats().ageMax;
+    let setLoadBalancerRefreshTime = () => {
+      this.refreshTime = infrastructureCaches.get('loadBalancers').getStats().ageMax;
     };
 
     this.refreshLoadBalancers = () => {
       this.refreshing = true;
       awsServerGroupConfigurationService.refreshLoadBalancers(this.command).then(() => {
         this.refreshing = false;
+        setLoadBalancerRefreshTime();
       });
     };
+
+    setLoadBalancerRefreshTime();
   });

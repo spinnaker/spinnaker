@@ -94,7 +94,8 @@ describe('Controller: CreateSecurityGroup', function () {
           securityGroupWriter: this.securityGroupWriter,
           vpcReader: this.vpcReader,
           application: this.application || { attributes: {}},
-          securityGroup: { regions: [], securityGroupIngress: [] }
+          securityGroup: { regions: [], securityGroupIngress: [] },
+          infrastructureCaches: { get: () => { return {getStats: () => {return {}; } }; } },
         });
         this.$scope.$digest();
       };

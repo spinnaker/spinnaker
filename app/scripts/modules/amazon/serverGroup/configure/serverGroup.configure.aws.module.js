@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
   require('../serverGroup.transformer.js'),
   require('./wizard/templateSelection/deployInitializer.controller.js'),
   require('./wizard/location/ServerGroupBasicSettings.controller.js'),
-  require('./wizard/loadBalancers/ServerGroupLoadBalancers.controller.js'),
   require('./wizard/securityGroups/securityGroupSelector.directive.js'),
   require('./wizard/securityGroups/securityGroupsRemoved.directive.js'),
   require('./wizard/loadBalancers/loadBalancerSelector.directive.js'),

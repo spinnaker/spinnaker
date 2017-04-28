@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.create.controlle
     angular.extend(this, $controller('awsConfigSecurityGroupMixin', {
       $scope: $scope,
       $uibModalInstance: $uibModalInstance,
+      infrastructureCaches: infrastructureCaches,
       application: application,
       securityGroup: securityGroup
     }));

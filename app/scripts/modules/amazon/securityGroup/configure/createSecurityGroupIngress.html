@@ -74,7 +74,7 @@
           <p>
             <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
             Security groups
-            <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.getSecurityGroupRefreshTime() | timestamp }}</span>
+            <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ state.refreshTime | timestamp }}</span>
             <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
           </p>
           <p>If you're not finding a security group that was recently added,

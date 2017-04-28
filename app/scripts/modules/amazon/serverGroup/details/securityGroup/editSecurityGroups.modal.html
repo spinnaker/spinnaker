@@ -8,7 +8,10 @@
     <div class="modal-body container-fluid form-horizontal">
       <div class="form-group">
         <div class="col-md-10 col-md-offset-1">
-          <ui-select multiple ng-model="$ctrl.command.securityGroups" class="form-control input-sm">
+          <ui-select multiple
+                     ng-model="$ctrl.command.securityGroups"
+                     ng-model-options="{debounce: 300}"
+                     class="form-control input-sm">
             <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
             <ui-select-choices repeat="securityGroup as securityGroup in $ctrl.availableSecurityGroups | anyFieldFilter: {name: $select.search, id: $select.search}">
               <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>

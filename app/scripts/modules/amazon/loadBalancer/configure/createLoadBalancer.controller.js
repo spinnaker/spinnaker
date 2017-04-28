@@ -135,6 +135,7 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     }
 
     function initializeController() {
+      setSecurityGroupRefreshTime();
       if (loadBalancer) {
         if (forPipelineConfig) {
           $scope.loadBalancer = loadBalancer;
@@ -306,15 +307,22 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
       $scope.state.refreshingSecurityGroups = true;
       cacheInitializer.refreshCache('securityGroups').then(function() {
         $scope.state.refreshingSecurityGroups = false;
+        setSecurityGroupRefreshTime();
         preloadSecurityGroups().then(function() {
           updateAvailableSecurityGroups($scope.loadBalancer.vpcId);
         });
       });
     };
 
-    this.getSecurityGroupRefreshTime = function() {
-      return infrastructureCaches.get('securityGroups').getStats().ageMax;
-    };
+    function setSecurityGroupRefreshTime() {
+      ctrl.securityGroupRefreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
+    }
+
+    this.addItems = () => this.currentItems += 25;
+
+    this.resetCurrentItems = () => this.currentItems = 25;
+
+    this.currentItems = 25;
 
     this.requiresHealthCheckPath = function () {
       return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
