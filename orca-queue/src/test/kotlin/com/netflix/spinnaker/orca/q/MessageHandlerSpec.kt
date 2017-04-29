@@ -56,7 +56,7 @@ class MessageHandlerSpec : Spek({
 
     afterGroup(::resetMocks)
 
-    action("a message is handled") {
+    action("the handler receives a message") {
       assertThat(
         { handler.invoke(message) },
         throws<IllegalArgumentException>()
@@ -73,11 +73,11 @@ class MessageHandlerSpec : Spek({
 
     afterGroup(::resetMocks)
 
-    action("a message is handled") {
+    action("the handler receives a message") {
       handler.invoke(message)
     }
 
-    it("does not invoke the handler") {
+    it("does invoke the handler") {
       verify(handleCallback).invoke(message)
     }
   }

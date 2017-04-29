@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileDynamic
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -51,7 +50,6 @@ import static java.util.Collections.emptySet
 
 @Component
 @Slf4j
-@CompileStatic
 class JedisExecutionRepository implements ExecutionRepository {
 
   private static
@@ -241,11 +239,17 @@ class JedisExecutionRepository implements ExecutionRepository {
     Class<? extends Execution> executionType = execution.getClass()
     def key = "${executionType.simpleName.toLowerCase()}:${execution.id}"
     withJedis(getJedisPoolForId(key)) { Jedis jedis ->
+      // TODO: amend this to remove hash entry
       def stageIds = jedis
         .hget(key, "stageIndex")
         .tokenize(",")
       stageIds.remove(stageId)
       jedis.hset(key, "stageIndex", stageIds.join(","))
+      if (jedis.exists("$key:stageIndex")) {
+        jedis.lrem("$key:stageIndex", 0, stageId)
+      } else {
+        jedis.rpush("$key:stageIndex", *stageIds)
+      }
 
       def keys = jedis
         .hkeys(key)
@@ -490,8 +494,12 @@ class JedisExecutionRepository implements ExecutionRepository {
       keepWaitingPipelines: String.valueOf(execution.keepWaitingPipelines),
       executionEngine     : execution.executionEngine?.name() ?: DEFAULT_EXECUTION_ENGINE.name()
     ]
-    // TODO: store separately? Seems crazy to be using a hash rather than a set
     map.stageIndex = execution.stages.id.join(",")
+    // TODO: remove this and only use the list
+    if (!execution.stages.empty) {
+      jedis.del("$key:stageIndex")
+      jedis.rpush("$key:stageIndex", *execution.stages.id)
+    }
     execution.stages.each { stage ->
       map.putAll(serializeStage(stage))
     }
@@ -569,7 +577,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         execution.executionEngine = DEFAULT_EXECUTION_ENGINE
       }
 
-      def stageIds = map.stageIndex.tokenize(",")
+      def stageIds = jedis.exists("$key:stageIndex") ? jedis.lrange("$key:stageIndex", 0, -1) : (map.stageIndex ?: "").tokenize(",")
       stageIds.each { stageId ->
         def stage = new Stage<>()
         stage.stageNavigator = stageNavigator
