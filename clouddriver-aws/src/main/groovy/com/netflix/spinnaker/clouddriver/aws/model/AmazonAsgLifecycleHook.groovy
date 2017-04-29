@@ -52,7 +52,12 @@ class AmazonAsgLifecycleHook {
     }
 
     static Transition valueOfName(String name) {
-      values().find { it.value == name }
+      def transition = values().find { it.value == name }
+      if (!transition) {
+        throw new IllegalArgumentException("${name} is an unsupported Transition (valid values: ${values().join(",")})")
+      }
+
+      return transition
     }
   }
 

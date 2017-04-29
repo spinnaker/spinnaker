@@ -387,13 +387,13 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                             BasicAmazonDeployDescription description,
                             String targetAsgName) {
 
-    List<AmazonAsgLifecycleHook> lifecycleHooks = getLifecycleHooks(targetCredentials, description)
-    if (lifecycleHooks.size() > 0) {
-      try {
+    try {
+      List<AmazonAsgLifecycleHook> lifecycleHooks = getLifecycleHooks(targetCredentials, description)
+      if (lifecycleHooks.size() > 0) {
         targetRegionScopedProvider.asgLifecycleHookWorker.attach(task, lifecycleHooks, targetAsgName)
-      } catch (AmazonServiceException ase) {
-        task.updateStatus(BASE_PHASE, "Unable to attach lifecycle hooks to ASG ($targetAsgName): ${ase.message}")
       }
+    } catch (Exception e) {
+      task.updateStatus(BASE_PHASE, "Unable to attach lifecycle hooks to ASG ($targetAsgName): ${e.message}")
     }
   }
 

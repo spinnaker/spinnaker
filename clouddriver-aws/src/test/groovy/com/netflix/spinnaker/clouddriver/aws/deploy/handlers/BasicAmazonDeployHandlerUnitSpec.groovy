@@ -103,7 +103,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
     this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults, scalingPolicyCopier) {
-      @Override LoadBalancerLookupHelper lookupHelper() {
+      @Override
+      LoadBalancerLookupHelper lookupHelper() {
         return new LoadBalancerLookupHelper()
       }
     }
@@ -415,8 +416,8 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def asgService = Mock(AsgService) {
       (expectedCalls) * getLaunchConfiguration(_) >> {
         return new LaunchConfiguration()
-            .withSpotPrice("OLD_SPOT")
-            .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
+          .withSpotPrice("OLD_SPOT")
+          .withBlockDeviceMappings(new BlockDeviceMapping().withDeviceName("OLD_DEVICE")
         )
       }
     }
@@ -426,7 +427,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
         return Mock(AmazonAutoScaling) {
           1 * describeAutoScalingGroups(_) >> {
             return new DescribeAutoScalingGroupsResult().withAutoScalingGroups(
-                new AutoScalingGroup().withLaunchConfigurationName('foo'))
+              new AutoScalingGroup().withLaunchConfigurationName('foo'))
           }
         }
       }
@@ -434,7 +435,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     when:
     def targetDescription = handler.copySourceAttributes(
-        sourceRegionScopedProvider, "sourceAsg", true, description
+      sourceRegionScopedProvider, "sourceAsg", true, description
     )
 
     then:
@@ -578,6 +579,22 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | [new AmazonAsgLifecycleHook(roleARN: 'role-arn2', notificationTargetARN: 'target-arn')] | true           || 2
     [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | [new AmazonAsgLifecycleHook(roleARN: 'role-arn2', notificationTargetARN: 'target-arn')] | false          || 1
     [new AmazonCredentials.LifecycleHook('role-arn', 'target-arn', 'autoscaling:EC2_INSTANCE_LAUNCHING', 3600, 'ABANDON')] | []                                                                                      | false          || 0
+  }
+
+  void 'should raise exception for unsupported Transition'() {
+    def credentials = TestCredential.named('test', [
+      lifecycleHooks: [new AmazonCredentials.LifecycleHook('arn', 'arn', 'UNSUPPORTED_TRANSITION', 3600, 'ABANDON')]
+    ])
+
+    def description = new BasicAmazonDeployDescription(
+      includeAccountLifecycleHooks: true
+    )
+
+    when:
+    BasicAmazonDeployHandler.getLifecycleHooks(credentials, description)
+
+    then:
+    thrown(IllegalArgumentException)
   }
 
   @Unroll
