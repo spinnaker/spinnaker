@@ -42,6 +42,8 @@ export class WebhookStage {
     this.command = {
       payloadJSON: this.jsonUtilityService.makeSortedStringFromObject(this.stage.payload || {}),
     };
+
+    this.stage.statusUrlResolution = this.viewState.statusUrlResolution;
   }
 
   public updatePayload(): void {
