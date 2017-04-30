@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence
 
+import java.util.concurrent.CountDownLatch
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -28,6 +29,10 @@ import redis.clients.util.Pool
 import rx.schedulers.Schedulers
 import spock.lang.*
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import static java.util.concurrent.TimeUnit.SECONDS
 
 @Subject(ExecutionRepository)
 @Unroll
@@ -698,6 +703,80 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
     with(repository.retrievePipeline(pipeline.id)) {
       stages.size() == 2
       stages.type == ["one", "three"]
+    }
+  }
+
+  @Unroll
+  def "can add a synthetic stage #position"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withApplication("orca")
+      .withName("dummy-pipeline")
+      .withStage("one")
+      .withStage("two")
+      .withStage("three")
+      .build()
+
+    repository.store(pipeline)
+
+    expect:
+    repository.retrievePipeline(pipeline.id).stages.size() == 3
+
+    when:
+    def stage = newStage(pipeline, "whatever", "two-whatever", [:], pipeline.namedStage("two"), position)
+    repository.addStage(stage)
+
+    then:
+    with(repository.retrievePipeline(pipeline.id)) {
+      stages.size() == 4
+      stages.name == expectedStageNames
+    }
+
+    where:
+    position     | expectedStageNames
+    STAGE_BEFORE | ["one", "two-whatever", "two", "three"]
+    STAGE_AFTER  | ["one", "two", "two-whatever", "three"]
+  }
+
+  def "can concurrently add stages without overwriting"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withApplication("orca")
+      .withName("dummy-pipeline")
+      .withStage("one")
+      .withStage("two")
+      .withStage("three")
+      .build()
+
+    repository.store(pipeline)
+
+    expect:
+    repository.retrievePipeline(pipeline.id).stages.size() == 3
+
+    when:
+    def stage1 = newStage(pipeline, "whatever", "one-whatever", [:], pipeline.namedStage("one"), STAGE_BEFORE)
+    def stage2 = newStage(pipeline, "whatever", "two-whatever", [:], pipeline.namedStage("two"), STAGE_BEFORE)
+    def stage3 = newStage(pipeline, "whatever", "three-whatever", [:], pipeline.namedStage("three"), STAGE_BEFORE)
+    def startLatch = new CountDownLatch(1)
+    def doneLatch = new CountDownLatch(3)
+    [stage1, stage2, stage3].each { stage ->
+      Thread.start {
+        startLatch.await(1, SECONDS)
+        repository.addStage(stage)
+        doneLatch.countDown()
+      }
+    }
+    startLatch.countDown()
+
+    then:
+    doneLatch.await(1, SECONDS)
+
+    and:
+    with(repository.retrievePipeline(pipeline.id)) {
+      stages.size() == 6
+      stages.name == ["one-whatever", "one", "two-whatever", "two", "three-whatever", "three"]
     }
   }
 }

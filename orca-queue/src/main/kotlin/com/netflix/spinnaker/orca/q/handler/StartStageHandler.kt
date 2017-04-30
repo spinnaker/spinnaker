@@ -65,8 +65,8 @@ open class StartStageHandler @Autowired constructor(
   private fun Stage<*>.plan() {
     builder().let { builder ->
       builder.buildTasks(this)
-      builder.buildSyntheticStages(this) {
-        getExecution().update()
+      builder.buildSyntheticStages(this) { it: Stage<*> ->
+        repository.addStage(it)
       }
     }
   }

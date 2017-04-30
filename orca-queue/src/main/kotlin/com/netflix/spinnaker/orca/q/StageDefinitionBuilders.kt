@@ -76,27 +76,16 @@ private fun processTaskNode(
 
 /**
  * Build the synthetic stages for [stage] and inject them into the execution.
- *
- * @param callback invoked if the execution is mutated so calling code can
- * persist the updated execution.
  */
-@Suppress("UNCHECKED_CAST")
 fun StageDefinitionBuilder.buildSyntheticStages(
   stage: Stage<out Execution<*>>,
-  callback: () -> Unit = {}
+  callback: (Stage<*>) -> Unit = {}
 ): Unit {
-  val stageCount = stage.getExecution().getStages().size
-
   syntheticStages(stage).apply {
-    buildBeforeStages(stage)
-    buildAfterStages(stage)
+    buildBeforeStages(stage, callback)
+    buildAfterStages(stage, callback)
   }
-  buildParallelStages(stage)
-  stage.buildExecutionWindow()
-
-  if (stage.getExecution().getStages().size > stageCount) {
-    callback.invoke()
-  }
+  buildParallelStages(stage, callback)
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -119,8 +108,13 @@ private fun StageDefinitionBuilder.syntheticStages(stage: Stage<out Execution<*>
   }
     .groupBy { it.getSyntheticStageOwner() }
 
-private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>) {
-  val beforeStages = this[STAGE_BEFORE].orEmpty()
+private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
+  val executionWindow = stage.buildExecutionWindow()
+  val beforeStages = if (executionWindow == null) {
+    this[STAGE_BEFORE].orEmpty()
+  } else {
+    listOf(executionWindow) + this[STAGE_BEFORE].orEmpty()
+  }
   beforeStages.forEachIndexed { i, it ->
     it.setRefId("${stage.getRefId()}<${i + 1}")
     if (i > 0) {
@@ -129,12 +123,13 @@ private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>) {
       it.setRequisiteStageRefIds(emptySet())
     }
     stage.getExecution().apply {
-      addStage(getStages().indexOf(stage), it)
+      injectStage(getStages().indexOf(stage), it)
+      callback.invoke(it)
     }
   }
 }
 
-private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>) {
+private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
   val afterStages = this[STAGE_AFTER].orEmpty()
   afterStages.forEachIndexed { i, it ->
     it.setRefId("${stage.getRefId()}>${i + 1}")
@@ -147,12 +142,13 @@ private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>) {
   stage.getExecution().apply {
     val index = getStages().indexOf(stage) + 1
     afterStages.reversed().forEach {
-      addStage(index, it)
+      injectStage(index, it)
+      callback.invoke(it)
     }
   }
 }
 
-private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>) {
+private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
   if (this is BranchingStageDefinitionBuilder && stage.getParentStageId() == null) {
     stage.setInitializationStage(true)
     eachParallelContext(stage) { context ->
@@ -169,13 +165,14 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
         it.setRefId("${stage.getRefId()}=${i + 1}")
         it.setRequisiteStageRefIds(emptySet())
         stage.getExecution().apply {
-          addStage(getStages().indexOf(stage), it)
+          injectStage(getStages().indexOf(stage), it)
+          callback.invoke(it)
         }
       }
   }
 }
 
-private fun Stage<out Execution<*>>.buildExecutionWindow() {
+private fun Stage<out Execution<*>>.buildExecutionWindow(): Stage<*>? {
   if (getContext().getOrDefault("restrictExecutionDuringTimeWindow", false) as Boolean) {
     val execution = getExecution()
     val executionWindow = when (execution) {
@@ -198,17 +195,14 @@ private fun Stage<out Execution<*>>.buildExecutionWindow() {
       else -> throw IllegalStateException()
     }
     executionWindow.setRefId("${getRefId()}<0")
-    // inject before the first before stage of this stage, or this stage itself
-    val injectBefore = execution.getStages().first { it.getParentStageId() == getId() || it.getId() == getId() }
-    if (injectBefore.getSyntheticStageOwner() != null) {
-      injectBefore.setRequisiteStageRefIds(setOf(executionWindow.getRefId()))
-    }
-    execution.addStage(execution.getStages().indexOf(injectBefore), executionWindow)
+    return executionWindow
+  } else {
+    return null
   }
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun Execution<*>.addStage(index: Int, it: Stage<*>) {
+private fun Execution<*>.injectStage(index: Int, it: Stage<*>) {
   when (this) {
     is Pipeline -> stages.add(index, it as Stage<Pipeline>)
     is Orchestration -> stages.add(index, it as Stage<Orchestration>)

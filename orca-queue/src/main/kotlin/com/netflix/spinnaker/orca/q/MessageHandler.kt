@@ -81,11 +81,4 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
     } catch(e: ExecutionNotFoundException) {
       queue.push(InvalidExecutionId(this))
     }
-
-  fun Execution<*>.update() {
-    when (this) {
-      is Pipeline -> repository.store(this)
-      is Orchestration -> repository.store(this)
-    }
-  }
 }

@@ -197,10 +197,10 @@ class StartStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         it("attaches the synthetic stage to the pipeline") {
-          verify(repository).store(check<Pipeline> {
-            it.stages.size shouldEqual 3
-            it.stages.map { it.id } shouldEqual listOf("${message.stageId}-1-pre1", "${message.stageId}-2-pre2", message.stageId)
-          })
+          argumentCaptor<Stage<Pipeline>>().apply {
+            verify(repository, times(2)).addStage(capture())
+            allValues.map { it.id } shouldEqual listOf("${message.stageId}-1-pre1", "${message.stageId}-2-pre2")
+          }
         }
 
         it("raises an event to indicate the synthetic stage is starting") {
@@ -233,10 +233,10 @@ class StartStageHandlerSpec : Spek({
         }
 
         it("attaches the synthetic stage to the pipeline") {
-          verify(repository).store(check<Pipeline> {
-            it.stages.size shouldEqual 3
-            it.stages.map { it.id } shouldEqual listOf(message.stageId, "${message.stageId}-1-post1", "${message.stageId}-2-post2")
-          })
+          argumentCaptor<Stage<Pipeline>>().apply {
+            verify(repository, times(2)).addStage(capture())
+            allValues.map { it.id } shouldEqual listOf("${message.stageId}-2-post2", "${message.stageId}-1-post1")
+          }
         }
 
         it("raises an event to indicate the first task is starting") {
@@ -316,14 +316,12 @@ class StartStageHandlerSpec : Spek({
       }
 
       it("injects a 'wait for execution window' stage before any other synthetic stages") {
-        verify(repository).store(check<Pipeline> {
-          it.stages.size shouldEqual 4
-          it.stages.first().apply {
-            type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
-            parentStageId shouldEqual message.stageId
-            syntheticStageOwner shouldEqual STAGE_BEFORE
-          }
-        })
+        argumentCaptor<Stage<Pipeline>>().apply {
+          verify(repository, times(3)).addStage(capture())
+          firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
+          firstValue.parentStageId shouldEqual message.stageId
+          firstValue.syntheticStageOwner shouldEqual STAGE_BEFORE
+        }
       }
 
       it("starts the 'wait for execution window' stage") {

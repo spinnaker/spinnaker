@@ -45,8 +45,11 @@ import rx.schedulers.Schedulers
 import static com.google.common.base.Predicates.notNull
 import static com.google.common.collect.Maps.filterValues
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
+import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static java.lang.System.currentTimeMillis
 import static java.util.Collections.emptySet
+import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER
+import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE
 
 @Component
 @Slf4j
@@ -256,6 +259,26 @@ class JedisExecutionRepository implements ExecutionRepository {
         .findAll { it.startsWith("stage.$stageId.") }
         .toArray(new String[0])
       jedis.hdel(key, keys)
+    }
+  }
+
+  @Override
+  void addStage(Stage<? extends Execution> stage) {
+    if (stage.syntheticStageOwner == null || stage.parentStageId == null) {
+      throw new IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
+    }
+
+    Class<? extends Execution> executionType = stage.execution.getClass()
+    def key = "${executionType.simpleName.toLowerCase()}:${stage.execution.id}"
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
+      storeStageInternal(jedis, executionType, stage)
+
+      def pos = stage.syntheticStageOwner == STAGE_BEFORE ? BEFORE : AFTER
+      jedis.linsert("$key:stageIndex", pos, stage.parentStageId, stage.id)
+
+      // TODO: not this
+      def ids = jedis.lrange("$key:stageIndex", 0, -1)
+      jedis.hset(key, "stageIndex", ids.join(","))
     }
   }
 
