@@ -17,16 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
-import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
-class GoogleLoadBalancer {
-  GoogleLoadBalancerType type = GoogleLoadBalancerType.NETWORK
-  GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL
+abstract class GoogleLoadBalancer {
+  GoogleLoadBalancerType type
+  GoogleLoadBalancingScheme loadBalancingScheme
 
   String name
   String account
@@ -35,30 +32,8 @@ class GoogleLoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
-  String targetPool
-  GoogleHealthCheck healthCheck
   List<GoogleLoadBalancerHealth> healths
 
   @JsonIgnore
-  GoogleLoadBalancerView getView() {
-    new View()
-  }
-
-  class View extends GoogleLoadBalancerView {
-    final String type = GoogleCloudProvider.ID
-    GoogleLoadBalancerType loadBalancerType = GoogleLoadBalancer.this.type
-    GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancer.this.loadBalancingScheme
-
-    String name = GoogleLoadBalancer.this.name
-    String account = GoogleLoadBalancer.this.account
-    String region = GoogleLoadBalancer.this.region
-    Long createdTime = GoogleLoadBalancer.this.createdTime
-    String ipAddress = GoogleLoadBalancer.this.ipAddress
-    String ipProtocol = GoogleLoadBalancer.this.ipProtocol
-    String portRange = GoogleLoadBalancer.this.portRange
-    String targetPool =  GoogleLoadBalancer.this.targetPool
-    GoogleHealthCheck.View healthCheck = GoogleLoadBalancer.this.healthCheck?.view
-
-    Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
-  }
+  abstract GoogleLoadBalancerView getView()
 }

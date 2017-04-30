@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.google.deploy
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential
 import com.google.api.client.googleapis.batch.BatchRequest
-import com.google.api.client.googleapis.batch.json.JsonBatchCallback
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport
 import com.google.api.client.json.jackson2.JacksonFactory
 import com.google.api.services.compute.Compute
@@ -35,9 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleAutoscalingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
-import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
-import groovy.mock.interceptor.MockFor
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -57,7 +54,6 @@ class GCEUtilSpec extends Specification {
   private static final INSTANCE_URL_1 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_1"
   private static final INSTANCE_URL_2 = "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/zones/us-central1-b/instances/$INSTANCE_LOCAL_NAME_2"
   private static final IMAGE_PROJECT_NAME = "some-image-project"
-  private static final CREDENTIALS = new GoogleNamedAccountCredentials.Builder().imageProjects([IMAGE_PROJECT_NAME]).credentials(new FakeGoogleCredentials()).build()
   private static final GOOGLE_APPLICATION_NAME = "test"
   private static final BASE_IMAGE_PROJECTS = ["centos-cloud", "ubuntu-os-cloud"]
 
@@ -392,11 +388,11 @@ class GCEUtilSpec extends Specification {
       resourceNotFound.message == msg.toString()
 
     where:
-      networkLB                                         | httpLB
-      new GoogleLoadBalancer(name: "network").getView() | new GoogleHttpLoadBalancer(name: "http").getView()
-      null                                              | new GoogleHttpLoadBalancer(name: "http").getView()
-      new GoogleLoadBalancer(name: "network").getView() | null
-      null                                              | null
+      networkLB                                                | httpLB
+      new GoogleNetworkLoadBalancer(name: "network").getView() | new GoogleHttpLoadBalancer(name: "http").getView()
+      null                                                     | new GoogleHttpLoadBalancer(name: "http").getView()
+      new GoogleNetworkLoadBalancer(name: "network").getView() | null
+      null                                                     | null
   }
 
   @Unroll

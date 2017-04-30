@@ -163,11 +163,11 @@ class GoogleInfrastructureProviderConfig {
                                                                          objectMapper,
                                                                          registry,
                                                                          region)
-          newlyAddedAgents << new GoogleLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
-                                                                 credentials,
-                                                                 objectMapper,
-                                                                 registry,
-                                                                 region)
+          newlyAddedAgents << new GoogleNetworkLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
+                                                                        credentials,
+                                                                        objectMapper,
+                                                                        registry,
+                                                                        region)
           newlyAddedAgents << new GoogleRegionalServerGroupCachingAgent(clouddriverUserAgentApplicationName,
                                                                         credentials,
                                                                         objectMapper,

@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleCluster
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerView
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSecurityGroupProvider
@@ -181,23 +182,25 @@ class RestoreSnapshotAtomicOperation implements AtomicOperation<Void> {
   }
 
   private Void importLoadBalancerState(GoogleLoadBalancerView loadBalancer) {
-    def targetPoolName = loadBalancer.targetPool.split("/").last()
-    importResource("google_compute_target_pool", loadBalancer.name, targetPoolName, loadBalancer.region)
-    importResource("google_compute_forwarding_rule", loadBalancer.name, loadBalancer.name, loadBalancer.region)
-    if (loadBalancer.healthCheck && !imported.contains(loadBalancer.healthCheck.name)) {
-      importResource("google_compute_http_health_check", loadBalancer.healthCheck.name, loadBalancer.healthCheck.name, loadBalancer.region)
-      imported.add(loadBalancer.healthCheck.name)
-    }
-    // Add dependencies of existing resources to the state file
-    def stateFile = new File("$directory/terraform.tfstate")
-    String stateJson = new Scanner(stateFile).useDelimiter("\\Z").next()
-    Map state = objectMapper.readValue(stateJson, new TypeReference<HashMap<String,Object>>() {})
-    addDependencies(state.modules[0].resources["google_compute_forwarding_rule.$loadBalancer.name"], ["google_compute_target_pool.$loadBalancer.name"])
-    if (loadBalancer.healthCheck) {
-      addDependencies(state.modules[0].resources["google_compute_target_pool.$loadBalancer.name"], ["google_compute_http_health_check.$loadBalancer.healthCheck.name"])
-    }
-    stateFile.newWriter().withWriter { w ->
-      w << objectMapper.writeValueAsString(state)
+    if (loadBalancer instanceof GoogleNetworkLoadBalancer.View) {
+      def targetPoolName = loadBalancer.targetPool.split("/").last()
+      importResource("google_compute_target_pool", loadBalancer.name, targetPoolName, loadBalancer.region)
+      importResource("google_compute_forwarding_rule", loadBalancer.name, loadBalancer.name, loadBalancer.region)
+      if (loadBalancer.healthCheck && !imported.contains(loadBalancer.healthCheck.name)) {
+        importResource("google_compute_http_health_check", loadBalancer.healthCheck.name, loadBalancer.healthCheck.name, loadBalancer.region)
+        imported.add(loadBalancer.healthCheck.name)
+      }
+      // Add dependencies of existing resources to the state file
+      def stateFile = new File("$directory/terraform.tfstate")
+      String stateJson = new Scanner(stateFile).useDelimiter("\\Z").next()
+      Map state = objectMapper.readValue(stateJson, new TypeReference<HashMap<String, Object>>() {})
+      addDependencies(state.modules[0].resources["google_compute_forwarding_rule.$loadBalancer.name"], ["google_compute_target_pool.$loadBalancer.name"])
+      if (loadBalancer.healthCheck) {
+        addDependencies(state.modules[0].resources["google_compute_target_pool.$loadBalancer.name"], ["google_compute_http_health_check.$loadBalancer.healthCheck.name"])
+      }
+      stateFile.newWriter().withWriter { w ->
+        w << objectMapper.writeValueAsString(state)
+      }
     }
     return null
   }

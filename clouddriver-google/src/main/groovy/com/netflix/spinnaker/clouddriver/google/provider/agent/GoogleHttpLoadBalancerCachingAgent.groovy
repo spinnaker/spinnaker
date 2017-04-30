@@ -23,13 +23,6 @@ import com.google.api.client.googleapis.json.GoogleJsonError
 import com.google.api.client.http.HttpHeaders
 import com.google.api.services.compute.model.*
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.AgentDataType
-import com.netflix.spinnaker.cats.agent.CacheResult
-import com.netflix.spinnaker.cats.provider.ProviderCache
-import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
-import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
@@ -39,49 +32,25 @@ import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerH
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.*
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
-import org.slf4j.LoggerFactory
-
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
-import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.LOAD_BALANCERS
 
 @Slf4j
-class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent implements OnDemandAgent {
-
-  final Set<AgentDataType> providedDataTypes = [
-      AUTHORITATIVE.forType(LOAD_BALANCERS.ns),
-      INFORMATIVE.forType(INSTANCES.ns),
-  ] as Set
-
-  String agentType = "${accountName}/global/${GoogleHttpLoadBalancerCachingAgent.simpleName}"
-  String onDemandAgentType = "${agentType}-OnDemand"
-  final OnDemandMetricsSupport metricsSupport
-  List<String> failedLoadBalancers
+class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachingAgent {
 
   GoogleHttpLoadBalancerCachingAgent(String clouddriverUserAgentApplicationName,
                                      GoogleNamedAccountCredentials credentials,
                                      ObjectMapper objectMapper,
                                      Registry registry) {
-    super(clouddriverUserAgentApplicationName, credentials, objectMapper, registry)
-    this.metricsSupport = new OnDemandMetricsSupport(
-        registry,
-        this,
-        "${GoogleCloudProvider.ID}:${OnDemandAgent.OnDemandType.LoadBalancer}"
-    )
-    this.failedLoadBalancers = []
+    super(clouddriverUserAgentApplicationName,
+          credentials,
+          objectMapper,
+          registry,
+          "global")
   }
 
   @Override
-  CacheResult loadData(ProviderCache providerCache) {
-    List<GoogleHttpLoadBalancer> loadBalancers = getHttpLoadBalancers()
-    buildCacheResult(providerCache, loadBalancers)
-  }
-
-  List<GoogleHttpLoadBalancer> getHttpLoadBalancers() {
-    // Reset failed load balancers on each caching agent execution.
-    failedLoadBalancers = []
+  List<GoogleLoadBalancer> constructLoadBalancers(String onDemandLoadBalancerName = null) {
     List<GoogleHttpLoadBalancer> loadBalancers = []
+    List<String> failedLoadBalancers = []
 
     BatchRequest forwardingRulesRequest = buildBatchRequest()
     BatchRequest targetProxyRequest = buildBatchRequest()
@@ -90,15 +59,23 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest groupHealthRequest = buildBatchRequest()
     BatchRequest httpHealthCheckRequest = buildBatchRequest()
 
-    ForwardingRulesCallback callback = new ForwardingRulesCallback(
-        loadBalancers: loadBalancers,
-        targetProxyRequest: targetProxyRequest,
-        urlMapRequest: urlMapRequest,
-        backendServiceRequest: backendServiceRequest,
-        httpHealthCheckRequest: httpHealthCheckRequest,
-        groupHealthRequest: groupHealthRequest,
+    ForwardingRuleCallbacks forwardingRuleCallbacks = new ForwardingRuleCallbacks(
+      loadBalancers: loadBalancers,
+      failedLoadBalancers: failedLoadBalancers,
+      targetProxyRequest: targetProxyRequest,
+      urlMapRequest: urlMapRequest,
+      backendServiceRequest: backendServiceRequest,
+      httpHealthCheckRequest: httpHealthCheckRequest,
+      groupHealthRequest: groupHealthRequest,
     )
-    compute.globalForwardingRules().list(project).queue(forwardingRulesRequest, callback)
+
+    if (onDemandLoadBalancerName) {
+      ForwardingRuleCallbacks.ForwardingRuleSingletonCallback frCallback = forwardingRuleCallbacks.newForwardingRuleSingletonCallback()
+      compute.globalForwardingRules().get(project, onDemandLoadBalancerName).queue(forwardingRulesRequest, frCallback)
+    } else {
+      ForwardingRuleCallbacks.ForwardingRuleListCallback frlCallback = forwardingRuleCallbacks.newForwardingRuleListCallback()
+      compute.globalForwardingRules().list(project).queue(forwardingRulesRequest, frlCallback)
+    }
 
     executeIfRequestsAreQueued(forwardingRulesRequest, "HttpLoadBalancerCaching.forwardingRules")
     executeIfRequestsAreQueued(targetProxyRequest, "HttpLoadBalancerCaching.targetProxy")
@@ -107,88 +84,25 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     executeIfRequestsAreQueued(httpHealthCheckRequest, "HttpLoadBalancerCaching.httpHealthCheck")
     executeIfRequestsAreQueued(groupHealthRequest, "HttpLoadBalancerCaching.groupHealth")
 
+    // Filter out all LBs that contain backend buckets, since we don't support them in our model.
+    loadBalancers = loadBalancers.findAll { !it.containsBackendBucket }
+
     return loadBalancers.findAll {!(it.name in failedLoadBalancers)}
   }
 
-  CacheResult buildCacheResult(ProviderCache _, List<GoogleHttpLoadBalancer> googleLoadBalancers) {
-    log.info "Describing items in ${agentType}"
-
-    def cacheResultBuilder = new CacheResultBuilder()
-
-    // Filter out all LBs that contain backend buckets, since we don't support them in our model.
-    googleLoadBalancers = googleLoadBalancers.findAll { !it.containsBackendBucket }
-
-    googleLoadBalancers.each { GoogleHttpLoadBalancer loadBalancer ->
-      def loadBalancerKey = Keys.getLoadBalancerKey(
-          loadBalancer.region,
-          loadBalancer.account,
-          loadBalancer.name
-      )
-      def instanceKeys = loadBalancer.healths.collect { GoogleLoadBalancerHealth health ->
-        // Http load balancers' region is "global", so we have to determine the instance region from its zone.
-        def instanceZone = health.instanceZone
-        def instanceRegion = credentials.regionFromZone(instanceZone)
-        Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
-      }
-
-      cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keep(loadBalancerKey).with {
-        attributes = objectMapper.convertValue(loadBalancer, ATTRIBUTES)
-      }
-      instanceKeys.each { String instanceKey ->
-        cacheResultBuilder.namespace(INSTANCES.ns).keep(instanceKey).with {
-          relationships[LOAD_BALANCERS.ns].add(loadBalancerKey)
-        }
-      }
-    }
-
-    log.info "Caching ${cacheResultBuilder.namespace(LOAD_BALANCERS.ns).keepSize()} load balancers in ${agentType}"
-    log.info "Caching ${cacheResultBuilder.namespace(INSTANCES.ns).keepSize()} instance relationships in ${agentType}"
-
-    cacheResultBuilder.build()
-  }
-
   @Override
-  boolean handles(OnDemandAgent.OnDemandType type, String cloudProvider) {
-    type == OnDemandAgent.OnDemandType.LoadBalancer && cloudProvider == GoogleCloudProvider.ID
+  String determineInstanceKey(GoogleLoadBalancer loadBalancer, GoogleLoadBalancerHealth health) {
+    // Http load balancers' region is "global", so we have to determine the instance region from its zone.
+    def instanceZone = health.instanceZone
+    def instanceRegion = credentials.regionFromZone(instanceZone)
+
+    return Keys.getInstanceKey(accountName, instanceRegion, health.instanceName)
   }
 
-  @Override
-  Collection<Map> pendingOnDemandRequests(ProviderCache providerCache) {
-    return []
-  }
-
-  /**
-   * This is a "simpleton" way of handling on-demand cache requests. Load Balancer mutation (and thus the need for
-   * cache refreshing) is not as common or complex as server group cache refreshes.
-   *
-   * This implementation has the potential for race condition between handle() and loadData(), which may
-   * cause "flapping" in the UI. lwander@ has plans to make an abstract solution for this race condition, so this impl
-   * will do until that is ready.
-   */
-  @Override
-  OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    if (data.account != accountName || data.region != 'global') {
-      return null
-    }
-
-    List<GoogleHttpLoadBalancer> loadBalancers = metricsSupport.readData {
-      getHttpLoadBalancers()
-    }
-
-    CacheResult result = metricsSupport.transformData {
-      buildCacheResult(providerCache, loadBalancers)
-    }
-
-    new OnDemandAgent.OnDemandResult(
-        sourceAgentType: getAgentType(),
-        authoritativeTypes: [LOAD_BALANCERS.ns],
-        cacheResult: result
-    )
-  }
-
-  class ForwardingRulesCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {
+  class ForwardingRuleCallbacks {
 
     List<GoogleHttpLoadBalancer> loadBalancers
+    List<String> failedLoadBalancers = []
     BatchRequest targetProxyRequest
 
     // Pass through objects
@@ -197,55 +111,92 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
     BatchRequest httpHealthCheckRequest
     BatchRequest groupHealthRequest
 
-    @Override
-    void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
-      forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
+    ForwardingRuleSingletonCallback<ForwardingRule> newForwardingRuleSingletonCallback() {
+      return new ForwardingRuleSingletonCallback<ForwardingRule>()
+    }
+
+    ForwardingRuleListCallback<ForwardingRuleList> newForwardingRuleListCallback() {
+      return new ForwardingRuleListCallback<ForwardingRuleList>()
+    }
+
+    class ForwardingRuleSingletonCallback<ForwardingRule> extends JsonBatchCallback<ForwardingRule> {
+
+      @Override
+      void onFailure(GoogleJsonError e, HttpHeaders responseHeaders) throws IOException {
+        // 404 is thrown if the forwarding rule does not exist in the given region. Any other exception needs to be propagated.
+        if (e.code != 404) {
+          def errorJson = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(e)
+          log.error errorJson
+        }
+      }
+
+      @Override
+      void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
         if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL) {
-          def newLoadBalancer = new GoogleHttpLoadBalancer(
-            name: forwardingRule.name,
-            account: accountName,
-            region: 'global',
-            createdTime: Utils.getTimeFromTimestamp(forwardingRule.creationTimestamp),
-            ipAddress: forwardingRule.IPAddress,
-            ipProtocol: forwardingRule.IPProtocol,
-            portRange: forwardingRule.portRange,
-            healths: [],
-            hostRules: [],
-          )
-          loadBalancers << newLoadBalancer
+          cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
+        } else {
+          throw new IllegalArgumentException("Not responsible for on demand caching of load balancers without target " +
+            "proxy or with SSL proxy type.")
+        }
+      }
+    }
 
-          def targetProxyName = Utils.getLocalName(forwardingRule.target)
-          def targetProxyCallback = new TargetProxyCallback(
-            googleLoadBalancer: newLoadBalancer,
-            urlMapRequest: urlMapRequest,
-            backendServiceRequest: backendServiceRequest,
-            httpHealthCheckRequest: httpHealthCheckRequest,
-            groupHealthRequest: groupHealthRequest,
-            subject: newLoadBalancer.name,
-            failedSubjects: failedLoadBalancers,
-          )
-          def targetHttpsProxyCallback = new TargetHttpsProxyCallback(
-            googleLoadBalancer: newLoadBalancer,
-            urlMapRequest: urlMapRequest,
-            backendServiceRequest: backendServiceRequest,
-            httpHealthCheckRequest: httpHealthCheckRequest,
-            groupHealthRequest: groupHealthRequest,
-            subject: newLoadBalancer.name,
-            failedSubjects: failedLoadBalancers,
-          )
+    class ForwardingRuleListCallback<ForwardingRuleList> extends JsonBatchCallback<ForwardingRuleList> implements FailureLogger {
 
-          switch (Utils.getTargetProxyType(forwardingRule.target)) {
-            case GoogleTargetProxyType.HTTP:
-              compute.targetHttpProxies().get(project, targetProxyName).queue(targetProxyRequest, targetProxyCallback)
-              break
-            case GoogleTargetProxyType.HTTPS:
-              compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
-              break
-            default:
-              log.info("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
-              break
+      @Override
+      void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
+        forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
+          if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL) {
+            cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
           }
         }
+      }
+    }
+
+    void cacheRemainderOfLoadBalancerResourceGraph(ForwardingRule forwardingRule) {
+      def newLoadBalancer = new GoogleHttpLoadBalancer(
+        name: forwardingRule.name,
+        account: accountName,
+        region: 'global',
+        createdTime: Utils.getTimeFromTimestamp(forwardingRule.creationTimestamp),
+        ipAddress: forwardingRule.IPAddress,
+        ipProtocol: forwardingRule.IPProtocol,
+        portRange: forwardingRule.portRange,
+        healths: [],
+        hostRules: [],
+      )
+      loadBalancers << newLoadBalancer
+
+      def targetProxyName = Utils.getLocalName(forwardingRule.target)
+      def targetProxyCallback = new TargetProxyCallback(
+        googleLoadBalancer: newLoadBalancer,
+        urlMapRequest: urlMapRequest,
+        backendServiceRequest: backendServiceRequest,
+        httpHealthCheckRequest: httpHealthCheckRequest,
+        groupHealthRequest: groupHealthRequest,
+        subject: newLoadBalancer.name,
+        failedSubjects: failedLoadBalancers,
+      )
+      def targetHttpsProxyCallback = new TargetHttpsProxyCallback(
+        googleLoadBalancer: newLoadBalancer,
+        urlMapRequest: urlMapRequest,
+        backendServiceRequest: backendServiceRequest,
+        httpHealthCheckRequest: httpHealthCheckRequest,
+        groupHealthRequest: groupHealthRequest,
+        subject: newLoadBalancer.name,
+        failedSubjects: failedLoadBalancers,
+      )
+
+      switch (Utils.getTargetProxyType(forwardingRule.target)) {
+        case GoogleTargetProxyType.HTTP:
+          compute.targetHttpProxies().get(project, targetProxyName).queue(targetProxyRequest, targetProxyCallback)
+          break
+        case GoogleTargetProxyType.HTTPS:
+          compute.targetHttpsProxies().get(project, targetProxyName).queue(targetProxyRequest, targetHttpsProxyCallback)
+          break
+        default:
+          log.info("Non-Http target type found for global forwarding rule ${forwardingRule.name}")
+          break
       }
     }
   }
@@ -300,7 +251,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
             httpHealthCheckRequest: httpHealthCheckRequest,
             groupHealthRequest: groupHealthRequest,
             subject: googleLoadBalancer.name,
-            failedSubjects: failedLoadBalancers
+            failedSubjects: failedSubjects,
         )
         compute.urlMaps().get(project, urlMapName).queue(urlMapRequest, urlMapCallback)
       }
@@ -330,6 +281,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
           googleLoadBalancer: googleLoadBalancer,
           httpHealthCheckRequest: httpHealthCheckRequest,
           groupHealthRequest: groupHealthRequest,
+          failedLoadBalancers: failedSubjects
       )
       compute.backendServices()
           .get(project, urlMapDefaultService)
@@ -378,6 +330,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleCachingAgent impl
   }
 
   class BackendServiceCallback<BackendService> extends JsonBatchCallback<BackendService> {
+    List<String> failedLoadBalancers = []
     GoogleHttpLoadBalancer googleLoadBalancer
     BatchRequest httpHealthCheckRequest
     BatchRequest groupHealthRequest

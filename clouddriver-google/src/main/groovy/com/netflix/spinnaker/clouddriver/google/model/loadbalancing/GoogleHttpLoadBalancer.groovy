@@ -22,18 +22,9 @@ import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
-class GoogleHttpLoadBalancer {
+class GoogleHttpLoadBalancer extends GoogleLoadBalancer {
   GoogleLoadBalancerType type = GoogleLoadBalancerType.HTTP
   GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.EXTERNAL
-
-  String name
-  String account
-  String region
-  Long createdTime
-  String ipAddress
-  String ipProtocol
-  String portRange
-  List<GoogleLoadBalancerHealth> healths
 
   /**
    * Default backend service a request is sent to if no host rules are matched.
@@ -79,11 +70,12 @@ class GoogleHttpLoadBalancer {
     String ipAddress = GoogleHttpLoadBalancer.this.ipAddress
     String ipProtocol = GoogleHttpLoadBalancer.this.ipProtocol
     String portRange = GoogleHttpLoadBalancer.this.portRange
+
+    GoogleBackendService defaultService = GoogleHttpLoadBalancer.this.defaultService
+    List<GoogleHostRule> hostRules = GoogleHttpLoadBalancer.this.hostRules
     String certificate = GoogleHttpLoadBalancer.this.certificate
     String urlMapName = GoogleHttpLoadBalancer.this.urlMapName
-    GoogleBackendService defaultService = GoogleHttpLoadBalancer.this.defaultService
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
-    List<GoogleHostRule> hostRules = GoogleHttpLoadBalancer.this.hostRules
   }
 }

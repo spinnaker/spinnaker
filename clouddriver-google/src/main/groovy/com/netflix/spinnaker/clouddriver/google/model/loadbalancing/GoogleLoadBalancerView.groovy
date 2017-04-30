@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
-import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
@@ -36,8 +35,6 @@ abstract class GoogleLoadBalancerView implements LoadBalancer {
   String ipAddress
   String ipProtocol
   String portRange
-  String targetPool
-  GoogleHealthCheck.View healthCheck
 
   Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()
 }

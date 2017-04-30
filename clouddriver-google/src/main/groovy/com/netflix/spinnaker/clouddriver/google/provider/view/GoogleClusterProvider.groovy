@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLo
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleInternalLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
@@ -183,7 +184,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleHttpLoadBalancer)
           break
         case GoogleLoadBalancerType.NETWORK:
-          loadBalancer = objectMapper.convertValue(it.attributes, GoogleLoadBalancer)
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleNetworkLoadBalancer)
           break
         case GoogleLoadBalancerType.SSL:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleSslLoadBalancer)
@@ -192,7 +193,7 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
           loadBalancer = null
           break
       }
-      loadBalancer
+      return loadBalancer
     } as Set
   }
 

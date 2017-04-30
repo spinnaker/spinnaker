@@ -17,23 +17,13 @@
 package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.netflix.spinnaker.clouddriver.google.model.health.GoogleLoadBalancerHealth
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerServerGroup
 import groovy.transform.Canonical
 
 @Canonical
-class GoogleInternalLoadBalancer {
+class GoogleInternalLoadBalancer extends GoogleLoadBalancer {
   GoogleLoadBalancerType type = GoogleLoadBalancerType.INTERNAL
   GoogleLoadBalancingScheme loadBalancingScheme = GoogleLoadBalancingScheme.INTERNAL
-
-  String name
-  String account
-  String region
-  Long createdTime
-  String ipAddress
-  String ipProtocol
-  String portRange
-  List<GoogleLoadBalancerHealth> healths
 
   List<String> ports
   String network
@@ -57,9 +47,9 @@ class GoogleInternalLoadBalancer {
     String ipProtocol = GoogleInternalLoadBalancer.this.ipProtocol
     String portRange = GoogleInternalLoadBalancer.this.portRange
 
+    List<String> ports = GoogleInternalLoadBalancer.this.ports
     String network = GoogleInternalLoadBalancer.this.network
     String subnet = GoogleInternalLoadBalancer.this.subnet
-    List<String> ports = GoogleInternalLoadBalancer.this.ports
     GoogleBackendService backendService = GoogleInternalLoadBalancer.this.backendService
 
     Set<LoadBalancerServerGroup> serverGroups = new HashSet<>()

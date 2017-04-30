@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.snapshot.SaveSnapshot
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
-import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
 import spock.lang.Specification
@@ -222,12 +222,12 @@ class SerializeApplicationAtomicOperationUnitSpec extends Specification {
                                               requestPath: HEALTH_CHECK_REQUEST_PATH,
                                               timeoutSec: HEALTH_CHECK_TIMEOUT,
                                               unhealthyThreshold: HEALTH_CHECK_UNHEALTHY_THRESHOLD)
-      def loadBalancer = new GoogleLoadBalancer(name: LOAD_BALANCER_NAME,
-                                                ipProtocol: LOAD_BALANCER_IP_PROTOCOL,
-                                                portRange: LOAD_BALANCER_PORT_RANGE,
-                                                region: LOAD_BALANCER_REGION,
-                                                targetPool: LOAD_BALANCER_TARGET_POOL,
-                                                healthCheck: healthCheck)
+      def loadBalancer = new GoogleNetworkLoadBalancer(name: LOAD_BALANCER_NAME,
+                                                       ipProtocol: LOAD_BALANCER_IP_PROTOCOL,
+                                                       portRange: LOAD_BALANCER_PORT_RANGE,
+                                                       region: LOAD_BALANCER_REGION,
+                                                       targetPool: LOAD_BALANCER_TARGET_POOL,
+                                                       healthCheck: healthCheck)
       // Create a load balancer map
 
       def forwardingRuleMap = [name: LOAD_BALANCER_NAME,

@@ -80,7 +80,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleHttpLoadBalancer)
         break
       case GoogleLoadBalancerType.NETWORK:
-        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleNetworkLoadBalancer)
         break
       case GoogleLoadBalancerType.SSL:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleSslLoadBalancer)
@@ -162,7 +162,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       loadBalancerView.serverGroups << loadBalancerServerGroup
     }
 
-    loadBalancerView
+    return loadBalancerView
   }
 
   List<GoogleLoadBalancerAccountRegionSummary> list() {
@@ -271,7 +271,7 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
                                    createdTime: view.createdTime,
                                    dnsname: view.ipAddress,
                                    ipAddress: view.ipAddress,
-                                   healthCheck: view.healthCheck ?: null,
+                                   healthCheck: (view.hasProperty("healthCheck") && view.healthCheck) ? view.healthCheck : null,
                                    backendServiceHealthChecks: backendServiceHealthChecks ?: null,
                                    listenerDescriptions: [[
                                                               listener: new ListenerDescription(

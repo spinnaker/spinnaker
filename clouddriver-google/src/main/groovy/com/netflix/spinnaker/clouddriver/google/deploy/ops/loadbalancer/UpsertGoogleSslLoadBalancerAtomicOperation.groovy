@@ -103,12 +103,12 @@ class UpsertGoogleSslLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
               compute.targetSslProxies().get(project, targetProxyName),
               "compute.targetSslProxies.get",
               TAG_SCOPE, SCOPE_GLOBAL)},
-        'Get',
         "Target ssl proxy ${targetProxyName}",
         task,
-        BASE_PHASE,
         [400, 403, 412],
-        [404]
+        [404],
+        [action: "get", phase: BASE_PHASE, operation: "compute.targetSslProxies.get", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
       ) as TargetSslProxy
     }
 
