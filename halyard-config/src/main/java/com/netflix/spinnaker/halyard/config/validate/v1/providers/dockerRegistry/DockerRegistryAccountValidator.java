@@ -58,22 +58,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
       resolvedPassword = "";
     }
 
-    if (resolvedPassword != null && !resolvedPassword.isEmpty()) {
-      String message = "Your registry password has %s whitespace; if this is unintentional, authentication may fail.";
-      if (Character.isWhitespace(resolvedPassword.charAt(0))) {
-        p.addProblem(Severity.WARNING, String.format(message, "leading"));
-      }
-
-      char c = resolvedPassword.charAt(resolvedPassword.length() - 1);
-      if (Character.isWhitespace(c)) {
-        ConfigProblemBuilder problem = p.addProblem(Severity.WARNING, String.format(message, "trailing"));
-
-        if (passwordFileProvided && c == '\n')
-          problem.setRemediation("This is a newline; many text editors append a newline to files they open."
-              + " If you think this is causing authentication issues, you can strip the newline with the command:\n\n"
-              + " tr -d '\\n' < PASSWORD_FILE | tee PASSWORD_FILE");
-      }
-
+    if (!resolvedPassword.isEmpty()) {
       if (username == null || username.isEmpty()) {
         p.addProblem(Severity.WARNING, "You have supplied a password but no username.");
       }
@@ -99,6 +84,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
       return;
     }
 
+    ConfigProblemBuilder authFailureProblem = null;
     if (n.getRepositories() == null || n.getRepositories().size() == 0) {
       try {
         DockerRegistryCatalog catalog = credentials.getCredentials().getClient().getCatalog();
@@ -108,8 +94,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
               .setRemediation("Manually specify some repositories for this docker registry to index.");
         }
       } catch (Exception e) {
-        p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".")
-            .setRemediation("Manually specify some repositories for this docker registry to index.");
+        authFailureProblem = p.addProblem(Severity.ERROR, "Unable to connect the registries catalog endpoint: " + e.getMessage() + ".");
       }
     } else {
       try {
@@ -122,8 +107,24 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
               .setRemediation("Push some images to your registry.");
         }
       } catch (Exception e) {
-        p.addProblem(Severity.ERROR, "Unable to reach repository: " +  e.getMessage() + ".")
-            .setRemediation("Make sure this repository exists in your registry.");
+        authFailureProblem = p.addProblem(Severity.ERROR, "Unable to reach repository: " +  e.getMessage() + ".");
+      }
+    }
+
+    if (authFailureProblem != null) {
+      String message = "Your registry password has %s whitespace; if this is unintentional, this may be the cause of failed authentication.";
+      if (Character.isWhitespace(resolvedPassword.charAt(0))) {
+        authFailureProblem.setRemediation(String.format(message, "leading"));
+      }
+
+      char c = resolvedPassword.charAt(resolvedPassword.length() - 1);
+      if (Character.isWhitespace(c)) {
+        authFailureProblem.setRemediation(String.format(message, "trailing"));
+
+        if (passwordFileProvided && c == '\n')
+          authFailureProblem.setRemediation("Your password file has a trailing newline; many text editors append a newline to files they open."
+              + " If you think this is causing authentication issues, you can strip the newline with the command:\n\n"
+              + " tr -d '\\n' < PASSWORD_FILE | tee PASSWORD_FILE");
       }
     }
   }
