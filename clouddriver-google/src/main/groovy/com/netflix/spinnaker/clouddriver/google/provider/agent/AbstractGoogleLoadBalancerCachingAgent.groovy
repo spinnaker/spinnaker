@@ -98,7 +98,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
       return null
     }
 
-    def loadBalancerKey = Keys.getLoadBalancerKey(region, accountName, data.loadBalancerName as String)
+    def loadBalancerKey
     Collection<String> identifiers = []
 
     if (loadBalancer) {

@@ -80,6 +80,7 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
         cd.size() == 2
         cd.id.containsAll([keyGroupA, keyGroupB])
       }
+      1 * providerCache.getAll("onDemand", [keyGroupA, keyGroupB])
       0 * _
   }
 }
