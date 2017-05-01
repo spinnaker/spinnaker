@@ -31,7 +31,6 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -294,7 +293,6 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     description.setApplication(parsedName.getApp());
     description.setStack(parsedName.getStack());
     description.setFreeFormDetails(parsedName.getDetail());
-    description.setTargetSize(1);
 
     List<KubernetesVolumeSource> volumeSources = new ArrayList<>();
     for (ConfigSource configSource : configSources) {

@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @Component
@@ -216,6 +215,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     // Omit the last deployed orcas from being deleted, since they are kept around for rollbacks.
     List<Integer> allOrcas = new ArrayList<>(executionsByServerGroupVersion.keySet());
     allOrcas.sort(Integer::compareTo);
+    System.out.println("orca count = " + allOrcas.size());
 
     int orcaCount = allOrcas.size();
     if (orcaCount <= MAX_REMAINING_SERVER_GROUPS) {
@@ -224,6 +224,8 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
 
     allOrcas = allOrcas.subList(0, orcaCount - MAX_REMAINING_SERVER_GROUPS);
     for (Integer orcaVersion : allOrcas) {
+      System.out.println("orca version " + orcaVersion);
+      System.out.println("ebsgv " + executionsByServerGroupVersion.get(orcaVersion));
       // TODO(lwander) consult clouddriver to ensure this orca isn't enabled
       if (executionsByServerGroupVersion.get(orcaVersion) == 0) {
         DaemonTaskHandler.message("Reaping old orca instance " + orcaVersion);

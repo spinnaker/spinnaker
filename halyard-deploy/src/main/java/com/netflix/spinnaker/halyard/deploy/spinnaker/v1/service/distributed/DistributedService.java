@@ -112,7 +112,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     enableDescription.put("target", "ancestor_asg_dynamic");
     enableDescription.put("requisiteStageRefIds", Collections.singletonList(resizeId));
 
-    // This is a destroy, rather than destroy because the typical flow will look like this:
+    // This is a destroy, rather than a disable because the typical flow will look like this:
     //
     // 1. You deploy a new version/config
     // 2. Something is wrong, so you rollback.
@@ -152,7 +152,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
       boolean scaleDown) {
     Map<String, Object> deployDescription  = getServerGroupDescription(details, runtimeSettings, configSources);
     deployDescription.put("interestingHealthProviders", getHealthProviders());
-    deployDescription.put("type", AtomicOperations.CREATE_SERVER_GROUP);
+    deployDescription.put("type", AtomicOperations.CLONE_SERVER_GROUP);
     deployDescription.put("cloudProvider", getProviderType().getId());
     deployDescription.put("refId", "deployredblack");
     deployDescription.put("region", getRegion(runtimeSettings.getServiceSettings(getService())));
