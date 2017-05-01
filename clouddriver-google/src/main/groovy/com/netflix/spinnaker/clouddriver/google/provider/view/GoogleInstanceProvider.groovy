@@ -103,9 +103,10 @@ class GoogleInstanceProvider implements InstanceProvider<GoogleInstance.View> {
     def loadBalancerKeys = cacheData.relationships[LOAD_BALANCERS.ns]
     if (loadBalancerKeys) {
       cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys).each { CacheData loadBalancerCacheData ->
-        GoogleLoadBalancer loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleLoadBalancer)
-        def foundHealths = loadBalancer.healths.findAll { GoogleLoadBalancerHealth health ->
+        def foundHealths = loadBalancerCacheData.attributes.healths.findAll { health ->
           health.instanceName == instance.name
+        }.collect {
+          objectMapper.convertValue(it, GoogleLoadBalancerHealth)
         }
         if (foundHealths) {
           // TODO(ttomsu): Instances attached to a load balancer without a health check will be marked as HEALTHY,
