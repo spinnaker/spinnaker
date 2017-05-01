@@ -55,7 +55,6 @@ for ($i=0; $i -lt $repositories.Length; $i++) {
                                                  -TimeoutSec 60 `
                                                  -Headers $headers).StatusCode
                 $isValid = ($statusCode -ge 200 -and $statusCode -lt 300)
-                #Write-Host "Got to here 3:" + $repositories[$i] +"; IsValid: $isValid"
 
             } catch {
                 $ErrorMessage = $_.Exception.Message
