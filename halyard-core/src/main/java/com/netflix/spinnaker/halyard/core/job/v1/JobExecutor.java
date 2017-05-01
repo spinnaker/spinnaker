@@ -48,6 +48,10 @@ public abstract class JobExecutor {
     return startJob(jobRequest, System.getenv(), stdIn, stdOut, stdErr);
   }
 
+  public JobStatus backoffWait(String jobId) throws InterruptedException {
+    return backoffWait(jobId, 100, 1000);
+  }
+
   public JobStatus backoffWait(String jobId, long minWaitMillis, long maxWaitMillis) throws InterruptedException {
     JobStatus result = updateJob(jobId);
     long waitTime = minWaitMillis;

@@ -54,4 +54,8 @@ public interface LocalDebianService<T> extends LocalService<T> {
 
     return Strings.join("\n", pinResource, installResource, ensureStopped);
   }
+
+  default String uninstallArtifactCommand() {
+    return "apt-get purge spinnaker-" + getArtifact().getName();
+  }
 }

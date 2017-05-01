@@ -80,6 +80,11 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   }
 
   @Override
+  public RemoteAction clean(DistributedServiceProvider<T> serviceProvider, AccountDeploymentDetails<T> deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
+    return null;
+  }
+
+  @Override
   public RemoteAction deploy(DistributedServiceProvider<T> serviceProvider,
       AccountDeploymentDetails<T> deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,

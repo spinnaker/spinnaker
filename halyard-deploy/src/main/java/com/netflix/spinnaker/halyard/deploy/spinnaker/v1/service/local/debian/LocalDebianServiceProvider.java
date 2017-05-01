@@ -17,9 +17,12 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import io.fabric8.utils.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,5 +97,22 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
     bindings.put("upstart-init", upstartInit);
 
     return resource.setBindings(bindings).toString();
+  }
+
+  @Override
+  public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
+    String uninstallArtifacts = String.join("\n", getServices()
+        .stream()
+        .filter(s -> s != null && runtimeSettings.getServiceSettings(s).isEnabled())
+        .map(s -> ((LocalDebianService) s).uninstallArtifactCommand())
+        .collect(Collectors.toList()));
+
+    Map<String, String> bindings = new HashMap<>();
+    TemplatedResource resource = new JarResource("/debian/uninstall.sh");
+    bindings.put("uninstall-artifacts", uninstallArtifacts);
+
+    return new RemoteAction().setScript(resource.setBindings(bindings).toString())
+        .setAutoRun(true)
+        .setScriptDescription("This script apt-get purges all spinnaker components & deletes their config");
   }
 }

@@ -79,6 +79,12 @@ public interface DaemonService {
       @Query("serviceNames") List<String> serviceNames,
       @Body String _ignore);
 
+  @POST("/v1/config/deployments/{deploymentName}/clean/")
+  DaemonTask<Halconfig, Object> cleanDeployment(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body String _ignore);
+
   @GET("/v1/config/deployments/{deploymentName}/configDiff/")
   DaemonTask<Halconfig, NodeDiff> configDiff(
       @Path("deploymentName") String deploymentName,

@@ -33,7 +33,6 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Parameters(separators = "=")
 abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand {
@@ -87,7 +86,7 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
 
       JobStatus status = null;
       try {
-        status = executor.backoffWait(jobId, 100, TimeUnit.SECONDS.toMillis(2));
+        status = executor.backoffWait(jobId);
       } catch (InterruptedException e) {
         AnsiUi.failure("Interrupted.");
         System.exit(1);

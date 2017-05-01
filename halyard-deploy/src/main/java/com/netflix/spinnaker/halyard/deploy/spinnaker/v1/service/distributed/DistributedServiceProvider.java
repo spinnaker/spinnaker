@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 
@@ -27,7 +28,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
-abstract public class DistributedServiceProvider<T extends Account> extends SpinnakerServiceProvider {
+abstract public class DistributedServiceProvider<T extends Account> extends SpinnakerServiceProvider<AccountDeploymentDetails<T>> {
   public DistributedService getDeployableService(SpinnakerService.Type type) {
     return getDeployableService(type, Object.class);
   }

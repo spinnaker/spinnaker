@@ -18,6 +18,10 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -68,4 +72,10 @@ public class KubernetesDistributedServiceProvider extends DistributedServiceProv
 
   // For serialization
   public KubernetesDistributedServiceProvider() {}
+
+  @Override
+  public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    KubernetesProviderUtils.kubectlDeleteNamespaceCommand(DaemonTaskHandler.getTask().getJobExecutor(), details, "spinnaker");
+    return new RemoteAction();
+  }
 }

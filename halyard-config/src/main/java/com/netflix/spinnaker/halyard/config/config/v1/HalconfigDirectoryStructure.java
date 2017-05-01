@@ -42,6 +42,12 @@ public class HalconfigDirectoryStructure {
     return new File(halconfigPath.toFile(), "vault-token").toPath();
   }
 
+  public Path getUnInstallScriptPath(String deploymentName) {
+    Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
+    ensureDirectory(halconfigPath);
+    return new File(halconfigPath.toFile(), "uninstall.sh").toPath();
+  }
+
   public Path getInstallScriptPath(String deploymentName) {
     Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
     ensureDirectory(halconfigPath);

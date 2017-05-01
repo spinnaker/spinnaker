@@ -18,8 +18,10 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import lombok.extern.slf4j.Slf4j;
 
@@ -30,7 +32,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
-abstract public class SpinnakerServiceProvider {
+abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
   public SpinnakerRuntimeSettings buildRuntimeSettings(DeploymentConfiguration deploymentConfiguration) {
     SpinnakerRuntimeSettings endpoints = new SpinnakerRuntimeSettings();
     for (SpinnakerService.Type type : SpinnakerService.Type.values()) {
@@ -43,6 +45,8 @@ abstract public class SpinnakerServiceProvider {
     }
     return endpoints;
   }
+
+  public abstract RemoteAction clean(D details, SpinnakerRuntimeSettings runtimeSettings);
 
   protected Field getField(String name) {
     String reducedName = reduceFieldName(name);

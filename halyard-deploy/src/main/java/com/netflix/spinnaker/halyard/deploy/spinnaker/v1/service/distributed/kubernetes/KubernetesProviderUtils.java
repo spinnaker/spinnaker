@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
@@ -212,6 +213,19 @@ class KubernetesProviderUtils {
 
     command.add(port + "");
     return command;
+  }
+
+  static void kubectlDeleteNamespaceCommand(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String namespace) {
+    List<String> command = kubectlAccountCommand(details);
+    command.add("delete");
+    command.add("namesapce");
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    try {
+      jobExecutor.backoffWait(jobExecutor.startJob(request));
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
   }
 
   private static List<String> kubectlAccountCommand(AccountDeploymentDetails<KubernetesAccount> details) {

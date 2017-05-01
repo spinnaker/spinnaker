@@ -35,6 +35,7 @@ import lombok.Setter;
 import org.apache.commons.lang.NotImplementedException;
 import retrofit.RetrofitError;
 
+import java.io.Console;
 import java.net.ConnectException;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -110,6 +111,15 @@ public abstract class NestableCommand {
       if (help) {
         showHelp();
       } else {
+        if (this instanceof ProtectedCommand) {
+          String prompt = ((ProtectedCommand) this).getPrompt();
+          Console console = System.console();
+          String input = console.readLine(prompt+ " Do you want to continue? (Y/n) ");
+          if (!input.equalsIgnoreCase("y")) {
+            AnsiUi.raw("Aborted.");
+            return;
+          }
+        }
         safeExecuteThis();
       }
     } else {

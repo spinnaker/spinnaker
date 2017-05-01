@@ -109,6 +109,24 @@ public class DeploymentController {
     return DaemonTaskHandler.submitTask(builder::build, "Generate config");
   }
 
+  @RequestMapping(value = "/{deploymentName:.+}/clean/", method = RequestMethod.POST)
+  DaemonTask<Halconfig, Void> clean(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
+
+    builder.setBuildResponse(() -> {
+      deployService.clean(deploymentName);
+      return null;
+    });
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
+    }
+
+    return DaemonTaskHandler.submitTask(builder::build, "Clean Deployment of Spinnaker");
+  }
 
   @RequestMapping(value = "/{deploymentName:.+}/rollback/", method = RequestMethod.POST)
   DaemonTask<Halconfig, Void> rollback(@PathVariable String deploymentName,

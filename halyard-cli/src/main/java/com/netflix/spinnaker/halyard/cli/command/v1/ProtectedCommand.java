@@ -15,20 +15,8 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.provider.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment.Size;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
-import lombok.Data;
-
-public abstract class SizingTranslation {
-  public abstract ServiceSize getServiceSize(Size size, SpinnakerService service);
-
-  @Data
-  public static class ServiceSize {
-    String cpu;
-    String ram;
-    // A cloud-provider specific sizing ID;
-    String id;
-  }
+public interface ProtectedCommand {
+  String getPrompt();
 }

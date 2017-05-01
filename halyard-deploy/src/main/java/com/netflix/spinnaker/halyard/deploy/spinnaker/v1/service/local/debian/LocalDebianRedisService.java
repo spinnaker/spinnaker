@@ -47,6 +47,12 @@ public class LocalDebianRedisService extends RedisService implements LocalDebian
   }
 
   @Override
+  public String uninstallArtifactCommand() {
+    // Do nothing we might not be the ones who installed redis.
+    return "";
+  }
+
+  @Override
   public String getUpstartServiceName() {
     return null;
   }

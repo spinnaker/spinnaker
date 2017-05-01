@@ -28,7 +28,7 @@ import java.nio.file.Path;
 @Data
 public class RemoteAction {
   @JsonIgnore
-  private String script;
+  private String script = "";
   private String scriptPath;
   private String scriptDescription;
   private boolean autoRun;

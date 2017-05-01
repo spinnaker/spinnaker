@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.ServiceProviderFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
@@ -89,7 +90,7 @@ public class GenerateService {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
 
     DaemonTaskHandler.message("Building service endpoints");
-    SpinnakerServiceProvider serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
     SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
 
     // Step 1.

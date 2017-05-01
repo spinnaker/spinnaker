@@ -263,6 +263,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> cleanDeployment(String deploymentName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().cleanDeployment(deploymentName, validate, ""));
+      return null;
+    };
+  }
+
   public static Supplier<Void> rollbackDeployment(String deploymentName, boolean validate, List<String> serviceNames) {
     return () -> {
       ResponseUnwrapper.get(getService().rollbackDeployment(deploymentName, validate, serviceNames, ""));

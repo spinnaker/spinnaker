@@ -92,9 +92,19 @@ public class DeployService {
     }
   }
 
+  public void clean(String deploymentName) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+
+    DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
+
+    RemoteAction action = serviceProvider.clean(deploymentDetails, serviceProvider.buildRuntimeSettings(deploymentConfiguration));
+    action.commitScript(halconfigDirectoryStructure.getUnInstallScriptPath(deploymentName));
+  }
+
   public void rollback(String deploymentName, List<String> serviceNames) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
     if (serviceNames.isEmpty()) {
       serviceNames = serviceProvider
@@ -115,7 +125,7 @@ public class DeployService {
     halconfigParser.backupConfig(deploymentName);
 
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-    SpinnakerServiceProvider serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
     if (serviceNames.isEmpty()) {
       serviceNames = serviceProvider

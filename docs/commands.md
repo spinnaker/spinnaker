@@ -158,6 +158,7 @@
  * [**hal config version edit**](#hal-config-version-edit)
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy apply**](#hal-deploy-apply)
+ * [**hal deploy clean**](#hal-deploy-clean)
  * [**hal deploy details**](#hal-deploy-details)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy rollback**](#hal-deploy-rollback)
@@ -172,7 +173,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 0.21.0-SNAPSHOT
+  Version: 1.0.0-SNAPSHOT
 
 If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
 
@@ -2168,7 +2169,7 @@ hal config security authn oauth [parameters] [subcommands]
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
  * `disable`: Set the oauth method as disabled
- * `edit`: Edit the oauth authentication method.
+ * `edit`: Configure authentication using a OAuth 2.0 identity provider.
  * `enable`: Set the oauth method as enabled
 
 ---
@@ -2186,7 +2187,7 @@ hal config security authn oauth disable [parameters]
 ---
 ## hal config security authn oauth edit
 
-Edit the oauth authentication method.
+The OAuth 2.0 workflow uses the authentication code workflow (commonly known as the three-legged workflow) to allow third parties (in this case, Spinnaker's API Gateway, Gate) to access user data (in this case, the user's email address for authentication). Learn more at https://spinnaker.io/setup/security/authentication/
 
 #### Usage
 ```
@@ -2620,6 +2621,7 @@ hal deploy [subcommands]
 ```
 #### Subcommands
  * `apply`: Deploy or update the currently configured instance of Spinnaker to a selected environment.
+ * `clean`: Remove all Spinnaker artifacts in your target deployment environment.
  * `details`: Get details about your currently deployed Spinnaker installation.
  * `diff`: This shows what changes you have made since Spinnaker was last deployed.
  * `rollback`: Rollback Spinnaker to the prior version on a selected environment.
@@ -2640,6 +2642,18 @@ hal deploy apply [parameters]
 
  This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
+
+---
+## hal deploy clean
+
+This command destroys all Spinnaker artifacts in your target deployment environment. This cannot be undone, so use with care.
+
+#### Usage
+```
+hal deploy clean [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
 ## hal deploy details

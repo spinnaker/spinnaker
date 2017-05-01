@@ -18,6 +18,11 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,4 +46,9 @@ public class GoogleDistributedServiceProvider extends DistributedServiceProvider
 
   // For serialization
   public GoogleDistributedServiceProvider() {}
+
+  @Override
+  public RemoteAction clean(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    throw new HalException(Problem.Severity.FATAL, "not yet implemented.");
+  }
 }

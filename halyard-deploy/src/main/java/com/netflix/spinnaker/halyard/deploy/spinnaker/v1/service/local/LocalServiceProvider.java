@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local;
 
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-abstract public class LocalServiceProvider extends SpinnakerServiceProvider {
+abstract public class LocalServiceProvider extends SpinnakerServiceProvider<DeploymentDetails> {
   public LocalService getLocalService(SpinnakerService.Type type) {
     return getLocalService(type, Object.class);
   }

@@ -24,7 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 
 import java.util.List;
 
-public interface Deployer<S extends SpinnakerServiceProvider, D extends DeploymentDetails> {
+public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends DeploymentDetails> {
   RemoteAction deploy(
       S serviceProvider,
       D deploymentDetails,
@@ -36,4 +36,12 @@ public interface Deployer<S extends SpinnakerServiceProvider, D extends Deployme
       D deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<String> serviceNames);
+
+  default RemoteAction clean(
+      S serviceProvider,
+      D deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings
+  ) {
+    return serviceProvider.clean(deploymentDetails, runtimeSettings);
+  }
 }

@@ -17,9 +17,14 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
+import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
 import io.fabric8.utils.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,5 +114,10 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
     bindings.put("startup-command", startupCommand);
 
     return resource.setBindings(bindings).toString();
+  }
+
+  @Override
+  public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
+    throw new HalException(Problem.Severity.FATAL, "Bakeable services do not support being uninstalled.");
   }
 }
