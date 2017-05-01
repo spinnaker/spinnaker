@@ -23,22 +23,13 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-
 @Component
 public class PersistentStorageValidator extends Validator<PersistentStorage> {
   @Override
   public void validate(ConfigProblemSetBuilder ps, PersistentStorage n) {
-    String persistentStoreType = n.getPersistentStoreType();
-    if (persistentStoreType == null || persistentStoreType.isEmpty()) {
+    PersistentStore.PersistentStoreType persistentStoreType = n.getPersistentStoreType();
+    if (persistentStoreType == null) {
       ps.addProblem(Severity.WARNING, "Your deployment will most likely fail until you configure and enable a persistent store.");
-    } else {
-      Object[] persistentStoreTypes = Arrays.stream(PersistentStore.PersistentStoreType.values()).map(p -> p.getId()).toArray();
-
-      if (!Arrays.stream(persistentStoreTypes).anyMatch(p -> persistentStoreType.equalsIgnoreCase((String) p))) {
-        ps.addProblem(Severity.ERROR, "Unknown persistent store type \"" + persistentStoreType + "\".")
-            .setRemediation("Set a persistent store from the following types: " + Arrays.toString(persistentStoreTypes));
-      }
     }
   }
 }

@@ -57,7 +57,7 @@ deploymentConfigurations:
 
     then:
     result != null
-    result.getPersistentStoreType() == STORE_NAME
+    result.getPersistentStoreType().getId() == STORE_NAME
   }
 
   def "load a non-existent persistentStorage node"() {

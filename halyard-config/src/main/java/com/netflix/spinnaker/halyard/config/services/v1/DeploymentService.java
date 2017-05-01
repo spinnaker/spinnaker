@@ -104,9 +104,12 @@ public class DeploymentService {
         .setDeployment(deploymentName)
         .withAnyProvider()
         .withAnyAccount()
-        .setPersistentStore(storage.getPersistentStoreType())
         .setFeatures()
         .setSecurity();
+
+    if (storage.getPersistentStoreType() != null) {
+      filter.setPersistentStore(storage.getPersistentStoreType().getId());
+    }
 
     return validateService.validateMatchingFilter(filter);
   }

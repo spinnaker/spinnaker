@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PersistentStoreTypeConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
@@ -26,9 +27,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.Arrays;
-import java.util.Optional;
 
 @Parameters(separators = "=")
 public class EditPersistentStorageCommand extends AbstractConfigCommand {
@@ -41,9 +39,10 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--type",
       required = true,
+      converter = PersistentStoreTypeConverter.class,
       description = "The type of the persistent store to use for Spinnaker."
   )
-  private String type;
+  private PersistentStore.PersistentStoreType type;
 
   @Override
   protected void executeThis() {
@@ -56,15 +55,7 @@ public class EditPersistentStorageCommand extends AbstractConfigCommand {
 
     int originalHash = persistentStorage.hashCode();
 
-    Object[] persistentStoreTypes = Arrays.stream(PersistentStore.PersistentStoreType.values()).map(p -> p.getId()).toArray();
-    Optional<Object> matchingType = Arrays.stream(persistentStoreTypes).filter(p -> type.equalsIgnoreCase(((String) p))).findFirst();
-    if (matchingType.isPresent()) {
-      persistentStorage.setPersistentStoreType((String) matchingType.get());
-    } else {
-      AnsiUi.failure("Failed to find persistent store type \"" + type + "\". Select from the following types: "
-          + Arrays.toString(persistentStoreTypes));
-      return;
-    }
+    persistentStorage.setPersistentStoreType(isSet(type) ? type : persistentStorage.getPersistentStoreType());
 
     if (originalHash == persistentStorage.hashCode()) {
       AnsiUi.failure("No changes supplied.");

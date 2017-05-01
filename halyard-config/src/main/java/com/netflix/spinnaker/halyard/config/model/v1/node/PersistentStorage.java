@@ -14,7 +14,7 @@ import java.util.Optional;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class PersistentStorage extends Node {
-  String persistentStoreType;
+  PersistentStore.PersistentStoreType persistentStoreType;
   S3PersistentStore s3 = new S3PersistentStore();
   GcsPersistentStore gcs = new GcsPersistentStore();
   AzsPersistentStore azs = new AzsPersistentStore();

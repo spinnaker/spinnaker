@@ -17,11 +17,10 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.CommonGoogleAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +46,11 @@ public class Front50ProfileFactory extends SpringProfileFactory {
   @Override
   public void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     PersistentStorage persistentStorage = deploymentConfiguration.getPersistentStorage();
+
+    if (persistentStorage.getPersistentStoreType() == null) {
+      throw new HalException(Problem.Severity.FATAL, "No persistent storage type was configured.");
+    }
+
     List<String> files = processRequiredFiles(persistentStorage);
     Map persistentStorageMap = objectMapper.convertValue(persistentStorage, Map.class);
     persistentStorageMap.remove("persistentStoreType");
@@ -59,7 +63,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
 
         PersistentStore.PersistentStoreType persistentStoreType = persistentStore.persistentStoreType();
         Map persistentStoreMap = (Map) persistentStorageMap.get(persistentStoreType.getId());
-        persistentStoreMap.put("enabled", persistentStoreType.getId().equalsIgnoreCase(persistentStorage.getPersistentStoreType()));
+        persistentStoreMap.put("enabled", persistentStoreType.equals(persistentStorage.getPersistentStoreType()));
       }
 
       child = children.getNext();
