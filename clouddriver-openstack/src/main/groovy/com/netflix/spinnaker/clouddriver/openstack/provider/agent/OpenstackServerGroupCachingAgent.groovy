@@ -39,14 +39,7 @@ import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccoun
 import com.netflix.spinnaker.clouddriver.openstack.utils.DateUtils
 import groovy.util.logging.Slf4j
 import org.openstack4j.model.heat.Stack
-import org.openstack4j.model.network.ext.LbOperatingStatus
-import org.openstack4j.model.network.ext.LoadBalancerV2
-import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
-import org.openstack4j.model.network.ext.MemberV2
-import org.openstack4j.model.network.ext.status.LbPoolV2Status
-import org.openstack4j.model.network.ext.status.ListenerV2Status
 import org.openstack4j.model.network.ext.status.LoadBalancerV2Status
-import org.openstack4j.model.network.ext.status.MemberV2Status
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
@@ -280,7 +273,7 @@ class OpenstackServerGroupCachingAgent extends AbstractOpenstackCachingAgent imp
       result.put('minSize', parameters.minSize ?: 0)
       result.put('maxSize', parameters.maxSize ?: 0)
       result.put('desiredSize', parameters.desiredSize ?: 0)
-      result.put('autoscalingType', parameters.autoscalingType.jsonValue())
+      result.put('autoscalingType', parameters.autoscalingType ? parameters.autoscalingType.jsonValue() : "")
       [up:parameters.scaleup, down:parameters.scaledown].each {
         result.put("scale${it.key}".toString(), objectMapper.convertValue(it.value, ATTRIBUTES))
       }
