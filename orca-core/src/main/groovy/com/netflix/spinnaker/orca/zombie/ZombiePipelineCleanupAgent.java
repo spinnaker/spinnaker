@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import rx.Observable;
 import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED;
 import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2;
 import static java.lang.String.format;
 import static java.time.Clock.systemDefaultZone;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -42,6 +43,7 @@ import static rx.Observable.just;
 @Component
 @ConditionalOnExpression("${pollers.zombiePipeline.enabled:true}")
 @Slf4j
+@Deprecated
 public class ZombiePipelineCleanupAgent {
 
   /**
@@ -108,6 +110,7 @@ public class ZombiePipelineCleanupAgent {
     return repository
       .retrievePipelines()
       .filter(this::isIncomplete)
+      .filter(this::isV2)
       .filter(this::isRunningOnZombieInstance)
       .doOnCompleted(() -> log.info("Zombie pipeline sweep completed."));
   }
@@ -147,5 +150,9 @@ public class ZombiePipelineCleanupAgent {
 
   private boolean isIncomplete(Pipeline pipeline) {
     return !pipeline.getStatus().isComplete();
+  }
+
+  private boolean isV2(Pipeline pipeline) {
+    return pipeline.getExecutionEngine() == v2;
   }
 }
