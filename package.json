@@ -26,6 +26,7 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
+    "@types/js-yaml": "^3.5.30",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "1.6.3",
     "angular-cache": "^4.6.0",
@@ -51,6 +52,7 @@
     "jquery": "2.1.4",
     "jquery-textcomplete": "1.6.1",
     "jquery-ui": "~1.10.5",
+    "js-yaml": "^3.8.3",
     "lodash": "^4.16.1",
     "moment-timezone": "^0.4.0",
     "n3-charts": "^2.0.18",

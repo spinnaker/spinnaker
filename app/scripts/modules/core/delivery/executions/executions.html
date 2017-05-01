@@ -114,7 +114,4 @@
         application="vm.application"
         ng-if="!vm.viewState.loading && (vm.application.executions.data.length || vm.application.pipelineConfigs.data.length)"></execution-groups>
   </div>
-  <render-if-feature feature="pipelineTemplates">
-    <configure-pipeline-template-modal show="true"></configure-pipeline-template-modal>
-  </render-if-feature>
 </div>

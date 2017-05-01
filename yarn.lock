@@ -233,6 +233,10 @@
   version "2.0.41"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.41.tgz#b87ba051011f99edbe586d8f97282e7786e01a6d"
 
+"@types/js-yaml@^3.5.30":
+  version "3.5.30"
+  resolved "https://registry.yarnpkg.com/@types/js-yaml/-/js-yaml-3.5.30.tgz#f555118c022318e57e36d803379cb8ee38ee20a7"
+
 "@types/lodash.frompairs@^4.0.1":
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/@types/lodash.frompairs/-/lodash.frompairs-4.0.2.tgz#f04e4e8e96864fc5929d1775c91c93a6a1c9b0aa"
@@ -3539,7 +3543,7 @@ js-tokens@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.1.tgz#08e9f132484a2c45a30907e9dc4d5567b7f114d7"
 
-js-yaml@3.x, js-yaml@^3.5.1:
+js-yaml@3.x, js-yaml@^3.5.1, js-yaml@^3.8.3:
   version "3.8.3"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.8.3.tgz#33a05ec481c850c8875929166fe1beb61c728766"
   dependencies:

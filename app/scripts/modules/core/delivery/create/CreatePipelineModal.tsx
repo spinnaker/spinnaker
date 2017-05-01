@@ -10,6 +10,8 @@ import {pipelineConfigService} from 'core/pipeline/config/services/pipelineConfi
 import {Application} from 'core/application/application.model';
 import {IPipeline} from 'core/domain/IPipeline';
 import {SubmitButton} from 'core/modal/buttons/SubmitButton';
+import {modalService} from 'core/modal.service';
+import {SETTINGS} from 'core/config/settings';
 
 import './createPipelineModal.less';
 
@@ -173,6 +175,21 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     return this.state.existingNames.every(name => name !== this.state.command.name);
   }
 
+  private openPipelineTemplateConfigModal(): void {
+    this.close();
+    modalService.open({
+      size: 'lg',
+      templateUrl: require('core/pipeline/config/templates/configurePipelineTemplateModal.html'),
+      controller: 'ConfigurePipelineTemplateModalCtrl as ctrl',
+      resolve: {
+        application: () => this.props.application,
+        source: (): void => null,
+        pipelineName: () => this.state.command.name,
+        variables: (): void => null,
+      }
+    });
+  }
+
   public render() {
     const nameHasError: boolean = !this.validateNameCharacters();
     const nameIsNotUnique: boolean = !this.validateNameIsUnique();
@@ -260,6 +277,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.close}>Cancel</Button>
+          {SETTINGS.feature.pipelineTemplates && <Button onClick={this.openPipelineTemplateConfigModal}>Define Template Parameters</Button>}
           <SubmitButton
             label="Create"
             onClick={this.submit}
