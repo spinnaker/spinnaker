@@ -23,7 +23,8 @@ from publish_changelog import ChangelogPublisher
 
 
 def init_argument_parser(parser):
-  BomPublisher.init_argument_parser(parser)
+  # ChangelogPublisher subclasses BomPublisher, only need to initialize
+  # the subclass's flags.
   ChangelogPublisher.init_argument_parser(parser)
 
 def main():
@@ -36,11 +37,12 @@ def main():
   bom_publisher = BomPublisher(options)
   bom_publisher.unpack_bom()
   gist_uri = bom_publisher.publish_changelog_gist()
+
+  changelog_publisher = ChangelogPublisher(options, changelog_gist_uri=gist_uri)
+  changelog_publisher.publish_changelog()
+
   bom_publisher.push_branch_and_tags()
   bom_publisher.publish_release_bom()
-
-  result_publisher = ChangelogPublisher(options, changelog_gist_uri=gist_uri)
-  result_publisher.publish_changelog()
 
 
 if __name__ == '__main__':
