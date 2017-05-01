@@ -121,8 +121,34 @@
   </div>
   <div class="form-group">
     <div class="col-md-5 sm-label-right"><b>AMI Block Device Mappings</b></div>
-    <div class="col-md-6 checkbox">
-      <label><input type="checkbox" ng-model="$ctrl.command.useAmiBlockDeviceMappings"/> Prefer AMI Block Device Mappings</label>
+    <div class="col-md-6 radio">
+      <div>
+        <label>
+          <input type="radio"
+                 ng-click="$ctrl.command.selectBlockDeviceMappingsSource('source')"
+                 ng-checked="$ctrl.command.getBlockDeviceMappingsSource() === 'source'"
+                 name="blockDeviceMappingsSource"/>
+          Copy from current server group <help-field key="aws.blockDeviceMappings.useSource"></help-field>
+        </label>
+      </div>
+      <div>
+        <label>
+          <input type="radio"
+                 ng-click="$ctrl.command.selectBlockDeviceMappingsSource('ami')"
+                 ng-checked="$ctrl.command.getBlockDeviceMappingsSource() === 'ami'"
+                 name="blockDeviceMappingsSource"/>
+          Prefer AMI block device mappings <help-field key="aws.blockDeviceMappings.useAMI"></help-field>
+        </label>
+      </div>
+      <div>
+        <label>
+          <input type="radio"
+                 ng-click="$ctrl.command.selectBlockDeviceMappingsSource('default')"
+                 ng-checked="$ctrl.command.getBlockDeviceMappingsSource() === 'default'"
+                 name="blockDeviceMappingsSource"/>
+          Defaults for selected instance type <help-field key="aws.blockDeviceMappings.useDefaults"></help-field>
+        </label>
+      </div>
     </div>
   </div>
   <div class="form-group">

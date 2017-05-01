@@ -73,6 +73,31 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
         }
       };
 
+      command.getBlockDeviceMappingsSource = () => {
+        if (command.copySourceCustomBlockDeviceMappings) {
+          return 'source';
+        } else if (command.useAmiBlockDeviceMappings) {
+          return 'ami';
+        }
+        return 'default';
+      };
+
+      command.selectBlockDeviceMappingsSource = (selection) => {
+        if (selection === 'source') {
+          // copy block device mappings from source asg
+          command.copySourceCustomBlockDeviceMappings = true;
+          command.useAmiBlockDeviceMappings = false;
+        } else if (selection === 'ami') {
+          // use block device mappings from selected ami
+          command.copySourceCustomBlockDeviceMappings = false;
+          command.useAmiBlockDeviceMappings = true;
+        } else {
+          // use default block device mappings for selected instance type
+          command.copySourceCustomBlockDeviceMappings = false;
+          command.useAmiBlockDeviceMappings = false;
+        }
+      };
+
       command.regionIsDeprecated = () => {
         return _.has(command, 'backingData.filtered.regions') &&
           command.backingData.filtered.regions.some((region) => region.name === command.region && region.deprecated);

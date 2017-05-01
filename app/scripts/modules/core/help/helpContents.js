@@ -59,6 +59,10 @@ module.exports = angular.module('spinnaker.core.help.contents', [])
     ' a simpler, combined input for the namespace and metric name fields.</p>',
     'aws.scalingPolicy.search.all': '<p>Allows you to edit the dimensions and namespace to find a specific metric for' +
     ' this alarm.</p>',
+    'aws.blockDeviceMappings.useSource': '<p>Spinnaker will use the block device mappings of the existing server group when deploying a new server group.</p>' +
+    '<p>In the event that there is no existing server group, the <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/BlockDeviceConfig.groovy">defaults</a> for the selected instance type will be used.</p>',
+    'aws.blockDeviceMappings.useAMI': '<p>Spinnaker will use the block device mappings from the selected AMI when deploying a new server group.</p>',
+    'aws.blockDeviceMappings.useDefaults': '<p>Spinnaker will use the <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/BlockDeviceConfig.groovy">default block device mappings</a> for the selected instance type when deploying a new server group.</p>',
     'cf.artifact.repository.options': '<p>You may include {job} and {buildNumber} to dynamically build a path to your artifact.</p>',
     'cluster.search': 'Quickly filter the displayed server groups by the following fields:' +
     '<ul>' +

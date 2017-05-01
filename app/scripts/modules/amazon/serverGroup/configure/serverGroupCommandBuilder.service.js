@@ -44,6 +44,8 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           var defaultIamRole = AWSProviderSettings.defaults.iamRole || 'BaseIAMRole';
           defaultIamRole = defaultIamRole.replace('{{application}}', application.name);
 
+          var useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
+
           var command = {
             application: application.name,
             credentials: defaultCredentials,
@@ -71,7 +73,8 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             suspendedProcesses: [],
             securityGroups: [],
             tags: {},
-            useAmiBlockDeviceMappings: applicationAwsSettings.useAmiBlockDeviceMappings || false,
+            useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
+            copySourceCustomBlockDeviceMappings: !useAmiBlockDeviceMappings,
             viewState: {
               instanceProfile: 'custom',
               useAllImageSelection: false,
@@ -184,6 +187,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
         let enabledProcesses = ['Launch', 'Terminate', 'AddToLoadBalancer'];
 
         var applicationAwsSettings = _.get(application, 'attributes.providerSettings.aws', {});
+        var useAmiBlockDeviceMappings = applicationAwsSettings.useAmiBlockDeviceMappings || false;
 
         var command = {
           application: application.name,
@@ -216,7 +220,8 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
             .map((process) => process.processName)
             .filter((name) => !enabledProcesses.includes(name)),
           tags: serverGroup.tags || {},
-          useAmiBlockDeviceMappings: applicationAwsSettings.useAmiBlockDeviceMappings || false,
+          useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
+          copySourceCustomBlockDeviceMappings: !useAmiBlockDeviceMappings,
           viewState: {
             instanceProfile: asyncData.instanceProfile,
             useAllImageSelection: false,
