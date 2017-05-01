@@ -79,8 +79,10 @@ public class ConsulServiceProfileFactoryBuilder {
             .setPort(settings.getPort())
             .setChecks(Collections.singletonList(check));
 
+        ServiceWrapper serviceWrapper = new ServiceWrapper().setService(consulService);
+
         try {
-          profile.appendContents(objectMapper.writeValueAsString(consulService));
+          profile.appendContents(objectMapper.writeValueAsString(serviceWrapper));
         } catch (JsonProcessingException e) {
           throw new RuntimeException(e);
         }
@@ -106,6 +108,11 @@ public class ConsulServiceProfileFactoryBuilder {
         return false;
       }
     };
+  }
+
+  @Data
+  static class ServiceWrapper {
+    ConsulService service;
   }
 
   @Data
