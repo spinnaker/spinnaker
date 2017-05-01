@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package com.netflix.spinnaker.orca.retrofit.exceptions
 
 import java.lang.annotation.Annotation
@@ -23,6 +22,8 @@ import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import retrofit.RetrofitError
 import retrofit.http.RestMethod
 import retrofit.mime.TypedByteArray
+import static java.net.HttpURLConnection.*
+import static retrofit.RetrofitError.Kind.HTTP
 import static retrofit.RetrofitError.Kind.NETWORK
 
 class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
@@ -60,9 +61,17 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
       response.details.kind = e.kind
       response.details.status = properties.status ?: null
       response.details.url = properties.url ?: null
-      response.shouldRetry = (e.kind == NETWORK && isIdempotentRequest(e))
+      response.shouldRetry = ((isNetworkError(e) || isGatewayTimeout(e)) && isIdempotentRequest(e))
       return response
     }
+  }
+
+  boolean isGatewayTimeout(RetrofitError e) {
+    e.kind == HTTP && e.response.status in [HTTP_BAD_GATEWAY, HTTP_UNAVAILABLE, HTTP_GATEWAY_TIMEOUT]
+  }
+
+  private boolean isNetworkError(RetrofitError e) {
+    e.kind == NETWORK
   }
 
   private static boolean isIdempotentRequest(RetrofitError e) {

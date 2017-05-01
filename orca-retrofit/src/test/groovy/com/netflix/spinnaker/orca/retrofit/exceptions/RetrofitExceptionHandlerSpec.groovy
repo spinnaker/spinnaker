@@ -24,10 +24,14 @@ import retrofit.client.Response
 import retrofit.converter.JacksonConverter
 import retrofit.http.*
 import retrofit.mime.TypedByteArray
+import retrofit.mime.TypedString
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
+import static java.net.HttpURLConnection.HTTP_BAD_GATEWAY
+import static retrofit.RetrofitError.Kind.HTTP
 import static retrofit.RetrofitError.Kind.NETWORK
+import static retrofit.RetrofitError.httpError
 
 class RetrofitExceptionHandlerSpec extends Specification {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -50,7 +54,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
   def "should handle validation errors (400) encoded within a RetrofitError"() {
     given:
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([error: error, errors: errors]))
-    def retrofitError = RetrofitError.httpError(
+    def retrofitError = httpError(
       url, new Response(url, status, reason, [], body), new JacksonConverter(), Map
     )
 
@@ -81,7 +85,7 @@ class RetrofitExceptionHandlerSpec extends Specification {
     def body = new TypedByteArray(null, OBJECT_MAPPER.writeValueAsBytes([
       error: error, exception: rootException, message: message
     ]))
-    def retrofitError = RetrofitError.httpError(
+    def retrofitError = httpError(
       url, new Response(url, status, reason, [], body), new JacksonConverter(), Map
     )
 
@@ -179,6 +183,66 @@ class RetrofitExceptionHandlerSpec extends Specification {
     then:
     with(handler.handle("whatever", ex)) {
       details.kind == NETWORK
+      shouldRetry
+    }
+
+    where:
+    httpMethod << ["GET", "HEAD", "DELETE", "PUT"]
+    methodName = httpMethod.toLowerCase()
+  }
+
+  @Unroll
+  def "should not retry an HTTP gateway error on a #httpMethod request"() {
+    given:
+    def client = Stub(Client) {
+      execute(_) >> new Response("http://localhost:1337", HTTP_BAD_GATEWAY, "bad gateway", [], new TypedString(""))
+    }
+
+    and:
+    def api = new RestAdapter.Builder()
+      .setEndpoint("http://localhost:1337")
+      .setClient(client)
+      .build()
+      .create(DummyRetrofitApi)
+
+    and:
+    def ex = expectingException {
+      api."$methodName"("whatever")
+    }
+
+    expect:
+    with(handler.handle("whatever", ex)) {
+      details.kind == HTTP
+      !shouldRetry
+    }
+
+    where:
+    httpMethod << ["POST", "PATCH"]
+    methodName = httpMethod.toLowerCase()
+  }
+
+  @Unroll
+  def "should retry an HTTP gateway error on a #httpMethod request"() {
+    given:
+    def client = Stub(Client) {
+      execute(_) >> new Response("http://localhost:1337", HTTP_BAD_GATEWAY, "bad gateway", [], new TypedString(""))
+    }
+
+    and:
+    def api = new RestAdapter.Builder()
+      .setEndpoint("http://localhost:1337")
+      .setClient(client)
+      .build()
+      .create(DummyRetrofitApi)
+
+    and:
+    def ex = expectingException {
+      api."$methodName"()
+    }
+
+    expect:
+    with(handler.handle("whatever", ex)) {
+      details.kind == HTTP
       shouldRetry
     }
 
