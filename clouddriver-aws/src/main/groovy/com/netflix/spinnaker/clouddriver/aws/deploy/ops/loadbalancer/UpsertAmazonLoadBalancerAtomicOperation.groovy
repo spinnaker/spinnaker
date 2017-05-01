@@ -26,6 +26,7 @@ import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerAttributes
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.ModifyLoadBalancerAttributesRequest
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.LoadBalancerUpsertHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerResult.LoadBalancer
@@ -37,7 +38,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 /**
- * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerDescription}.
+ * An AtomicOperation for creating an Elastic Load Balancer from the description of {@link UpsertAmazonLoadBalancerClassicDescription}.
  *
  *
  */
@@ -54,11 +55,11 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
   @Autowired
   RegionScopedProviderFactory regionScopedProviderFactory
 
-  private final UpsertAmazonLoadBalancerDescription description
+  private final UpsertAmazonLoadBalancerClassicDescription description
   ObjectMapper objectMapper = new ObjectMapper()
 
   UpsertAmazonLoadBalancerAtomicOperation(UpsertAmazonLoadBalancerDescription description) {
-    this.description = description
+    this.description = (UpsertAmazonLoadBalancerClassicDescription) description
   }
 
   @Override
@@ -73,7 +74,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       def loadBalancerName = description.name ?: "${description.clusterName}-frontend".toString()
 
       //maintains bwc with the contains internal check.
-      boolean isInternal = description.isInternal != null ? description.isInternal : description.subnetType?.contains('internal')
+      boolean isInternal = description.getInternal() != null ? description.getInternal() : description.subnetType?.contains('internal')
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
@@ -84,7 +85,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       task.updateStatus BASE_PHASE, "Setting up listeners for ${loadBalancerName} in ${region}..."
       def listeners = []
       description.listeners
-        .each { UpsertAmazonLoadBalancerDescription.Listener listener ->
+        .each { UpsertAmazonLoadBalancerClassicDescription.Listener listener ->
           def awsListener = new Listener()
           awsListener.withLoadBalancerPort(listener.externalPort).withInstancePort(listener.internalPort)
 

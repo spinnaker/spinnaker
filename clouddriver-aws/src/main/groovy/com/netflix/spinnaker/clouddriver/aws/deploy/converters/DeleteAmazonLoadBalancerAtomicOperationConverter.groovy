@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
-import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.AmazonOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerClassicAtomicOperation
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.DeleteAmazonLoadBalancerV2AtomicOperation
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
 import org.springframework.stereotype.Component
@@ -28,8 +31,21 @@ import org.springframework.stereotype.Component
 class DeleteAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   @Override
-  DeleteAmazonLoadBalancerAtomicOperation convertOperation(Map input) {
-    new DeleteAmazonLoadBalancerAtomicOperation(convertDescription(input))
+  AtomicOperation convertOperation(Map input) {
+    DeleteAmazonLoadBalancerDescription description = convertDescription(input)
+    // Default to Classic ELBs
+    if (description.loadBalancerType == null) {
+      description.loadBalancerType = AmazonLoadBalancerType.ELB_CLASSIC
+    }
+
+    switch (description.loadBalancerType) {
+      case AmazonLoadBalancerType.ALB:
+        return new DeleteAmazonLoadBalancerV2AtomicOperation(description)
+        break
+      case AmazonLoadBalancerType.ELB_CLASSIC:
+        return new DeleteAmazonLoadBalancerClassicAtomicOperation(description)
+        break
+    }
   }
 
   @Override

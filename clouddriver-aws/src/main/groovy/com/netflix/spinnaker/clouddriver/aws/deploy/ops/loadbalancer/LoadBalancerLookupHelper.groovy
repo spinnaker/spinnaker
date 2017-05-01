@@ -17,16 +17,14 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.services.autoscaling.model.AutoScalingGroup
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
+import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest
+import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 
 class LoadBalancerLookupHelper {
 
   static class LoadBalancerLookupResult {
     Set<String> classicLoadBalancers = []
-    Set<String> targetGroupArns = []
     Set<String> unknownLoadBalancers = []
   }
 
@@ -36,7 +34,6 @@ class LoadBalancerLookupHelper {
   LoadBalancerLookupResult getLoadBalancersFromAsg(AutoScalingGroup asg) {
     def result = new LoadBalancerLookupResult()
     result.classicLoadBalancers.addAll(asg.loadBalancerNames ?: [])
-    result.targetGroupArns.addAll(asg.targetGroupARNs ?: [])
     return result
   }
 
@@ -46,30 +43,16 @@ class LoadBalancerLookupHelper {
     if (!allLoadBalancers) {
       return result
     }
-    def lbv2 = rsp.getAmazonElasticLoadBalancingV2()
-    def lbv1 = rsp.getAmazonElasticLoadBalancing()
-    Set<String> v2LoadBalancers = []
+    def elbClassic = rsp.getAmazonElasticLoadBalancing()
     for (String lbName : allLoadBalancers) {
-      //at the moment, '--' is not allowed in lbv2 load balancer names, and asking for it throws a ValidationError not a LoadBalancerNotFoundException
-      if (!lbName.contains("--")) {
-        try {
-          def lb = lbv2.describeLoadBalancers(new DescribeLoadBalancersRequest().withNames(lbName)).loadBalancers.first()
-          v2LoadBalancers.add(lbName)
-          result.targetGroupArns.addAll(lbv2.describeTargetGroups(new DescribeTargetGroupsRequest().withLoadBalancerArn(lb.loadBalancerArn)).targetGroups*.targetGroupArn)
-        } catch (LoadBalancerNotFoundException lbnfe) {
-          //ignore
-        }
-      }
-
       try {
-        lbv1.describeLoadBalancers(new com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest().withLoadBalancerNames(lbName))
+        def foo = elbClassic.describeLoadBalancers(new DescribeLoadBalancersRequest().withLoadBalancerNames(lbName))
         result.classicLoadBalancers.add(lbName)
-      } catch (com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException lbnfe) {
-        //ignore
+      } catch (LoadBalancerNotFoundException loadBalancerNotFoundException) {
+        // ignore
       }
     }
     allLoadBalancers.removeAll(result.classicLoadBalancers)
-    allLoadBalancers.removeAll(v2LoadBalancers)
 
     result.unknownLoadBalancers.addAll(allLoadBalancers)
 

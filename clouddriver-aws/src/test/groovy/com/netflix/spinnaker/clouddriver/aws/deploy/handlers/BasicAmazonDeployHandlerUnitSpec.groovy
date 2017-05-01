@@ -33,11 +33,8 @@ import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRe
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException as LBNFEV1
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
-import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult as DescribeLBV2
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
-import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
@@ -104,7 +101,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     credsRepo.save('baz', TestCredential.named('baz'))
     this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults, scalingPolicyCopier) {
       @Override
-      LoadBalancerLookupHelper lookupHelper() {
+      LoadBalancerLookupHelper loadBalancerLookupHelper() {
         return new LoadBalancerLookupHelper()
       }
     }
@@ -144,7 +141,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     2 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
   }
 
-  void "load balancer names are derived from prior execution results"() {
+  void "classic load balancer names are derived from prior execution results"() {
     setup:
     def setlbCalls = 0
     AutoScalingWorker.metaClass.deploy = {}
@@ -159,16 +156,13 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     then:
     setlbCalls
     1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
-    1 * elbV2.describeLoadBalancers(_) >> { throw new LoadBalancerNotFoundException("not found") }
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
   }
 
-  void "handles classic and application load balancers"() {
+  void "handles classic load balancers"() {
 
     def classicLbs = []
-    def targetGroupARNs = []
     AutoScalingWorker.metaClass.setClassicLoadBalancers = { Collection<String> lbs -> classicLbs.addAll(lbs) }
-    AutoScalingWorker.metaClass.setTargetGroupArns = { Collection<String> arns -> targetGroupARNs.addAll(arns) }
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345", loadBalancers: ["lb"])
     description.availabilityZones = ["us-east-1": []]
     description.credentials = TestCredential.named('baz')
@@ -178,15 +172,30 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * elbV1.describeLoadBalancers(_) >> new DescribeLoadBalancersResult().withLoadBalancerDescriptions(new LoadBalancerDescription().withLoadBalancerName("lb"))
-    1 * elbV2.describeLoadBalancers(_) >> new DescribeLBV2().withLoadBalancers(new LoadBalancer().withLoadBalancerName("lb").withLoadBalancerArn("arn:lb"))
-    1 * elbV2.describeTargetGroups(new DescribeTargetGroupsRequest().withLoadBalancerArn("arn:lb")) >> new DescribeTargetGroupsResult().withTargetGroups(new TargetGroup().withTargetGroupArn("arn:lb:targetGroup1"))
     1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
 
     classicLbs == ['lb']
+  }
+
+  void "handles application load balancers"() {
+
+    def targetGroupARNs = []
+    AutoScalingWorker.metaClass.setTargetGroupArns = { Collection<String> arns -> targetGroupARNs.addAll(arns) }
+    def description = new BasicAmazonDeployDescription(amiName: "ami-12345", targetGroups: ["tg"])
+    description.availabilityZones = ["us-east-1": []]
+    description.credentials = TestCredential.named('baz')
+
+    when:
+    handler.handle(description, [])
+
+    then:
+    1 * elbV2.describeTargetGroups(new DescribeTargetGroupsRequest().withNames("tg")) >> new DescribeTargetGroupsResult().withTargetGroups(new TargetGroup().withTargetGroupArn("arn:lb:targetGroup1"))
+    1 * amazonEC2.describeVpcClassicLink() >> new DescribeVpcClassicLinkResult()
+
     targetGroupARNs == ['arn:lb:targetGroup1']
   }
 
-  void "fails if load balancer name is not in classic or application load balancer"() {
+  void "fails if load balancer name is not in classic load balancer"() {
     def description = new BasicAmazonDeployDescription(amiName: "ami-12345", loadBalancers: ["lb"])
     description.availabilityZones = ["us-east-1": []]
     description.credentials = TestCredential.named('baz')
@@ -196,7 +205,6 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
 
     then:
     1 * elbV1.describeLoadBalancers(_) >> { throw new LBNFEV1("not found") }
-    1 * elbV2.describeLoadBalancers(_) >> { throw new LoadBalancerNotFoundException("not found") }
 
     thrown(IllegalStateException)
 
