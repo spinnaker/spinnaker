@@ -150,13 +150,23 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
       command.backingData.filtered.containers = _.map(command.backingData.filtered.images, mapImageToContainer(command));
       var validContainers = [];
       command.containers.forEach(function(container) {
-        if (container.imageDescription.fromContext
-            || container.imageDescription.fromTrigger
-            || _.find(command.backingData.filtered.containers, { imageDescription: { imageId: container.imageDescription.imageId } })) {
+        if (container.imageDescription.fromContext || container.imageDescription.fromTrigger) {
           validContainers.push(container);
         } else {
-          result.dirty.containers = result.dirty.containers || [];
-          result.dirty.containers.push(container.image);
+          let matchingContainers = command.backingData.filtered.containers.filter(test => {
+            if (container.imageDescription.registry) {
+              return test.imageDescription.imageId === container.imageDescription.imageId;
+            } else {
+              return _.last(test.imageDescription.imageId.split('/')) === container.imageDescription.imageId;
+            }
+          });
+
+          if (matchingContainers.length === 1) {
+            validContainers.push(matchingContainers[0]);
+          } else {
+            result.dirty.containers = result.dirty.containers || [];
+            result.dirty.containers.push(container.image);
+          }
         }
       });
       command.containers = validContainers;

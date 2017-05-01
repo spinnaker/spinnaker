@@ -144,7 +144,11 @@ module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.serv
       } else if (image.fromTrigger && !image.tag) {
         return `${image.registry}/${image.repository} (Tag resolved at runtime)`;
       } else {
-        return `${image.registry}/${image.repository}:${image.tag}`;
+        if (image.registry) {
+          return `${image.registry}/${image.repository}:${image.tag}`;
+        } else {
+          return `${image.repository}:${image.tag}`;
+        }
       }
     }
 
