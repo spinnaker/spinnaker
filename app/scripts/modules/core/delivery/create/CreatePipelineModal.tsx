@@ -200,10 +200,12 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                   <b>Type</b>
                 </div>
                 <div className="col-md-7">
-                  <Select options={[{label: 'Pipeline', value: false}, {label: 'Strategy', value: true}]}
-                          clearable={false}
-                          value={this.state.command.strategy ? {label: 'Strategy'} : {label: 'Pipeline'}}
-                          onChange={this.handleTypeChange}/>
+                  <Select
+                    options={[{label: 'Pipeline', value: false}, {label: 'Strategy', value: true}]}
+                    clearable={false}
+                    value={this.state.command.strategy ? {label: 'Strategy'} : {label: 'Pipeline'}}
+                    onChange={this.handleTypeChange}
+                  />
                 </div>
               </div>
               <div className="form-group clearfix">
@@ -211,11 +213,13 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                   <b>{this.state.command.strategy ? 'Strategy' : 'Pipeline'} Name</b>
                 </div>
                 <div className="col-md-7">
-                  <input type="text"
-                         className="form-control"
-                         value={this.state.command.name}
-                         onChange={this.handleNameChange}
-                         required={true}/>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={this.state.command.name}
+                    onChange={this.handleNameChange}
+                    required={true}
+                  />
                 </div>
               </div>
               {nameHasError && (
@@ -241,11 +245,13 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     <b>Copy From</b>
                   </div>
                   <div className="col-md-7">
-                    <Select options={this.state.templateOptions}
-                            clearable={false}
-                            value={{value: this.state.command.template.name, label: this.state.command.template.name}}
-                            optionRenderer={this.templateOptionRenderer}
-                            onChange={this.handleTemplateChange}/>
+                    <Select
+                      options={this.state.templateOptions}
+                      clearable={false}
+                      value={{value: this.state.command.template.name, label: this.state.command.template.name}}
+                      optionRenderer={this.templateOptionRenderer}
+                      onChange={this.handleTemplateChange}
+                    />
                   </div>
                 </div>
               )}
@@ -254,8 +260,12 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={this.close}>Cancel</Button>
-          <SubmitButton label="Create" onClick={this.submit}
-                        submitting={this.state.submitting} isDisabled={!formValid || this.state.submitting || this.state.saveError}/>
+          <SubmitButton
+            label="Create"
+            onClick={this.submit}
+            submitting={this.state.submitting}
+            isDisabled={!formValid || this.state.submitting || this.state.saveError}
+          />
         </Modal.Footer>
       </Modal>
     );

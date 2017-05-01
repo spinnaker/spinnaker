@@ -33,16 +33,20 @@ export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberP
     return (
       <span>
         { this.props.execution.trigger.parentPipelineId && (
-          <a className="execution-build-number clickable"
-             onClick={this.handleParentPipelineClick}>
+          <a
+            className="execution-build-number clickable"
+            onClick={this.handleParentPipelineClick}
+          >
             {this.props.execution.trigger.parentPipelineName}
           </a>
         )}
         { this.props.execution.buildInfo && this.props.execution.buildInfo.number && (
-          <a className="execution-build-number clickable"
-             onClick={this.handleBuildInfoClick}
-             href={this.props.execution.buildInfo.url}
-             target="_blank">
+          <a
+            className="execution-build-number clickable"
+            onClick={this.handleBuildInfoClick}
+            href={this.props.execution.buildInfo.url}
+            target="_blank"
+          >
             <span className="build-label">Build</span> #{this.props.execution.buildInfo.number}
           </a>
         )}

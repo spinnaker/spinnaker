@@ -101,24 +101,30 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
             { options.length > 0 && (
               <div>
                 <p><b>Judgment Input</b></p>
-                <Select options={options}
-                        clearable={false}
-                        value={this.state.judgmentInput.value}
-                        onChange={this.handleJudgementChanged}/>
+                <Select
+                  options={options}
+                  clearable={false}
+                  value={this.state.judgmentInput.value}
+                  onChange={this.handleJudgementChanged}
+                />
               </div>
             )}
             <div className="action-buttons">
-              <button className="btn btn-primary"
-                      disabled={this.state.submitting || stage.context.judgmentStatus}
-                      onClick={this.handleContinueClick}>
+              <button
+                className="btn btn-primary"
+                disabled={this.state.submitting || stage.context.judgmentStatus}
+                onClick={this.handleContinueClick}
+              >
                 { this.isSubmitting('continue') && (
                   <ButtonBusyIndicator/>
                 )}
                 Continue
               </button>
-              <button className="btn btn-danger"
-                      onClick={this.handleStopClick}
-                      disabled={this.state.submitting || stage.context.judgmentStatus}>
+              <button
+                className="btn btn-danger"
+                onClick={this.handleStopClick}
+                disabled={this.state.submitting || stage.context.judgmentStatus}
+              >
                 { this.isSubmitting('stop') && (
                   <ButtonBusyIndicator/>
                 )}

@@ -12,15 +12,6 @@ if (SETTINGS.analytics.ga) {
   ReactGA.initialize(SETTINGS.analytics.ga, {});
 }
 
-export const REACT_MODULE = 'spinnaker.react';
-module(REACT_MODULE, [
-  'bcherny/ngimport',
-  STATE_EVENTS,
-]).run(function ($injector: any) {
-  // Make angular services importable and Convert angular components to react
-  ReactInjector.flush($injector);
-});
-
 type IWantInjector = ($injector: IInjectorService) => void;
 
 class ReactInject {
@@ -44,3 +35,13 @@ class ReactInject {
 }
 
 export const ReactInjector = new ReactInject();
+
+export const REACT_MODULE = 'spinnaker.react';
+module(REACT_MODULE, [
+  'bcherny/ngimport',
+  STATE_EVENTS,
+]).run(function ($injector: any) {
+  // Make angular services importable and Convert angular components to react
+  ReactInjector.flush($injector);
+});
+

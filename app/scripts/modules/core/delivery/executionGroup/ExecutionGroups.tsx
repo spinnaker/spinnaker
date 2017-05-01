@@ -75,7 +75,7 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
             </div>
           )}
           <StickyContainer className="execution-groups all-execution-groups">
-            { executionGroups }
+            {executionGroups}
           </StickyContainer>
       </div>
     );

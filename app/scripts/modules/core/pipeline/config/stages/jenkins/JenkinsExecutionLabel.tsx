@@ -7,12 +7,12 @@ export class JenkinsExecutionLabel extends React.Component<{ stage: IExecutionSt
     const buildInfo = this.props.stage.masterStage.context.buildInfo || {};
     const testResults = (buildInfo.testResults || []).map((result: any, index: number) => (
       <div key={index}>
-        { '( ' }
+        {'( '}
         <span className="tests-pass-count">{result.totalCount - result.failCount - result.skipCount}</span>
-        { ' / ' }
+        {' / '}
         <span className="tests-fail-count">{result.failCount}</span>
-        { result.skipCount > 0 && (<span><span> / </span><span className="tests-skip-count">{result.skipCount}</span></span>) }
-        { ' )' }
+        {result.skipCount > 0 && (<span><span> / </span><span className="tests-skip-count">{result.skipCount}</span></span>)}
+        {' )'}
       </div>
     ));
 

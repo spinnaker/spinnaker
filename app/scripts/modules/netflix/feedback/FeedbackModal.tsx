@@ -149,31 +149,37 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
               <br/>
               <div className="form-group">
                 <label>Title</label>
-                <input type="text" className="form-control"
-                        value={this.state.feedback.title}
-                        onChange={this.handleTitleChange}
-                        placeholder="How can we help you?"
-                        required={true}/>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={this.state.feedback.title}
+                  onChange={this.handleTitleChange}
+                  placeholder="How can we help you?"
+                  required={true}
+                />
               </div>
               <div className="form-group">
                 <label>Description</label>
-                <textarea value={this.state.feedback.description}
-                          onChange={this.handleDescriptionChange}
-                          className="form-control"
-                          rows={4}
-                          placeholder="Please be detailed and mention any steps required to reproduce the issue. Or just tell us what feature you want!"
-                          required={true}
-                  />
+                <textarea
+                  value={this.state.feedback.description}
+                  onChange={this.handleDescriptionChange}
+                  className="form-control"
+                  rows={4}
+                  placeholder="Please be detailed and mention any steps required to reproduce the issue. Or just tell us what feature you want!"
+                  required={true}
+                />
               </div>
               { !this.state.userIsAuthenticated && (
                 <div className="form-group">
                   <label>Contact Info</label>
-                  <input type="text"
-                          className="form-control"
-                          value={this.state.feedback.contact}
-                          onChange={this.handleContactChange}
-                          placeholder="Name or email address"
-                          required={true}/>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={this.state.feedback.contact}
+                    onChange={this.handleContactChange}
+                    placeholder="Name or email address"
+                    required={true}
+                  />
                 </div>
               )}
               { !formValid && (
@@ -197,7 +203,7 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
             <div>
               <h3>Thanks for your feedback!</h3>
               <p>
-                You can follow the progress of your issue { this.state.issueId && (<span>({this.state.issueId}) </span>)}
+                You can follow the progress of your issue {this.state.issueId && (<span>({this.state.issueId}) </span>)}
                 <a target="_blank" href={this.state.issueUrl}>here</a>.
               </p>
             </div>

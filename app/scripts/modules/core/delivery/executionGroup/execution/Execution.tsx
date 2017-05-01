@@ -263,14 +263,16 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
     const executionMarkerWidth = `${100 / this.props.execution.stageSummaries.length}%`;
     const executionMarkers = this.props.execution.stageSummaries.map((stage) => (
-      <ExecutionMarker key={stage.refId}
-                       application={this.props.application}
-                       execution={this.props.execution}
-                       stage={stage}
-                       onClick={this.toggleDetails}
-                       active={this.isActive(stage.index)}
-                       previousStageActive={this.isActive(stage.index - 1)}
-                       width={executionMarkerWidth}/>
+      <ExecutionMarker
+        key={stage.refId}
+        application={this.props.application}
+        execution={this.props.execution}
+        stage={stage}
+        onClick={this.toggleDetails}
+        active={this.isActive(stage.index)}
+        previousStageActive={this.isActive(stage.index - 1)}
+        width={executionMarkerWidth}
+      />
     ));
 
     return (
@@ -282,59 +284,60 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
               {this.props.execution.name}
             </h4>
           )}
-          <ExecutionStatus execution={this.props.execution}
-                           toggleDetails={this.toggleDetails}
-                           showingDetails={this.state.showingDetails}
-                           standalone={this.props.standalone}/>
+          <ExecutionStatus
+            execution={this.props.execution}
+            toggleDetails={this.toggleDetails}
+            showingDetails={this.state.showingDetails}
+            standalone={this.props.standalone}
+          />
           <div className="execution-bar">
             <div className="stages">
               {executionMarkers}
               { !this.props.execution.stageSummaries.length && (
                 <div className="text-center">
                   No stages found.
-                  <a onClick={this.handleSourceNoStagesClick}
+                  <a
+                    onClick={this.handleSourceNoStagesClick}
                     target="_blank"
-                    href={this.state.pipelinesUrl + this.props.execution.id}>Source</a>
+                    href={this.state.pipelinesUrl + this.props.execution.id}
+                  >Source
+                  </a>
                 </div>
               )}
             </div>
             <div className="execution-summary">
               Status: <span className={`status execution-status execution-status-${this.props.execution.status.toLowerCase()}`}>{this.props.execution.status}</span>
-              { this.props.execution.cancellationReason && (<Tooltip value={this.props.execution.cancellationReason}><span className="glyphicon glyphicon-info-sign"/></Tooltip>) }
-              { this.props.execution.canceledBy && (<span> by {this.props.execution.canceledBy} &mdash; {timestamp(this.props.execution.endTime)}</span>) }
-              { this.state.restartDetails && (<span> Restarted by {this.state.restartDetails.restartedBy} &mdash; {timestamp(this.state.restartDetails.restartTime)}</span>) }
+              {this.props.execution.cancellationReason && (<Tooltip value={this.props.execution.cancellationReason}><span className="glyphicon glyphicon-info-sign"/></Tooltip>)}
+              {this.props.execution.canceledBy && (<span> by {this.props.execution.canceledBy} &mdash; {timestamp(this.props.execution.endTime)}</span>)}
+              {this.state.restartDetails && (<span> Restarted by {this.state.restartDetails.restartedBy} &mdash; {timestamp(this.state.restartDetails.restartTime)}</span>)}
               <span className="pull-right">Duration: {duration(this.props.execution.runningTimeInMs)}</span>
             </div>
           </div>
           <div className="execution-actions">
             { this.props.execution.isRunning && (
               <Tooltip value="Pause execution">
-                <a className="clickable"
-                   onClick={this.handlePauseClick}>
+                <a className="clickable" onClick={this.handlePauseClick}>
                   <span className="glyphicon glyphicon-pause"/>
                 </a>
               </Tooltip>
             )}
             { this.props.execution.isPaused && (
               <Tooltip value="Resume execution">
-                <a className="clickable"
-                   onClick={this.handleResumeClick}>
+                <a className="clickable" onClick={this.handleResumeClick}>
                   <span className="glyphicon glyphicon-play"/>
                 </a>
               </Tooltip>
             )}
             { !this.props.execution.isActive && (
               <Tooltip value="Delete execution">
-                <a className="clickable"
-                   onClick={this.handleDeleteClick}>
+                <a className="clickable" onClick={this.handleDeleteClick}>
                   <span className="glyphicon glyphicon-trash"/>
                 </a>
               </Tooltip>
             )}
             { this.props.execution.isActive && (
               <Tooltip value="Cancel execution">
-                <a className="clickable"
-                   onClick={this.handleCancelClick}>
+                <a className="clickable" onClick={this.handleCancelClick}>
                   <span className="glyphicon glyphicon-remove-circle"/>
                 </a>
               </Tooltip>
@@ -344,9 +347,11 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         { this.state.showingDetails && (
           <div className="execution-graph">
             { this.props.execution.parallel && (
-              <PipelineGraph execution={this.props.execution}
-                             onNodeClick={this.handleNodeClick}
-                             viewState={this.state.viewState}/>
+              <PipelineGraph
+                execution={this.props.execution}
+                onNodeClick={this.handleNodeClick}
+                viewState={this.state.viewState}
+              />
             )}
           </div>
         )}
@@ -355,12 +360,14 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
             <ExecutionDetails execution={this.props.execution} application={this.props.application} standalone={this.props.standalone}/>
             <div className="permalinks">
               <div className="permalinks-content">
-                <a onClick={this.handleSourceClick}
+                <a
+                  onClick={this.handleSourceClick}
                   target="_blank"
-                  href={this.state.pipelinesUrl + this.props.execution.id}>Source</a>
-                { ' | ' }
-                <a onClick={this.handlePermalinkClick}
-                   href={this.getUrl()}>Permalink</a>
+                  href={this.state.pipelinesUrl + this.props.execution.id}
+                >Source
+                </a>
+                {' | '}
+                <a onClick={this.handlePermalinkClick} href={this.getUrl()}>Permalink</a>
                 <CopyToClipboard text={this.getUrl()} toolTip="Copy permalink to clipboard"/>
               </div>
             </div>

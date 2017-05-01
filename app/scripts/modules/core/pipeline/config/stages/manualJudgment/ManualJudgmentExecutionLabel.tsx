@@ -34,9 +34,11 @@ export class ManualJudgmentExecutionLabel extends React.Component<IProps, IState
       const template = (
         <div>
           <div><b>{stage.name}</b></div>
-          <ManualJudgmentApproval stage={stage.masterStage}
-                                  application={this.props.application}
-                                  execution={this.props.execution}/>
+          <ManualJudgmentApproval
+            stage={stage.masterStage}
+            application={this.props.application}
+            execution={this.props.execution}
+          />
         </div>
       );
       return (

@@ -42,7 +42,7 @@ export class TriggersTag extends React.Component<IProps, IState> {
         <div className={`triggers-toggle ${activeTriggerCount ? '' : 'disabled'}`} style={{visibility: this.props.pipeline.disabled ? 'hidden' : 'visible'}}>
           <span>
             <span>
-              { displayTriggers }
+              {displayTriggers}
             </span>
           </span>
         </div>

@@ -182,22 +182,22 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
             <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
               <span className={`glyphicon pipeline-toggle glyphicon-chevron-${this.state.open ? 'down' : 'right'}`}/>
               <div className="shadowed">
-                { this.state.showAccounts && deploymentAccountLabels }
-                { groupTargetAccountLabels }
+                {this.state.showAccounts && deploymentAccountLabels}
+                {groupTargetAccountLabels}
                 <h4 className="execution-group-title">
-                  { group.heading }
-                  { pipelineDescription && <span> <Tooltip value={pipelineDescription}><span className="glyphicon glyphicon-info-sign"/></Tooltip></span> }
-                  { pipelineDisabled && <span> (disabled)</span> }
-                  { hasRunningExecutions && <span> <span className="badge">{group.runningExecutions.length}</span></span> }
+                  {group.heading}
+                  {pipelineDescription && <span> <Tooltip value={pipelineDescription}><span className="glyphicon glyphicon-info-sign"/></Tooltip></span>}
+                  {pipelineDisabled && <span> (disabled)</span>}
+                  {hasRunningExecutions && <span> <span className="badge">{group.runningExecutions.length}</span></span>}
                 </h4>
                 { this.state.canConfigure && (
                   <div className="text-right execution-group-actions">
-                    { pipelineConfig && <TriggersTag pipeline={pipelineConfig}/>}
-                    { pipelineConfig && <NextRunTag pipeline={pipelineConfig}/>}
+                    {pipelineConfig && <TriggersTag pipeline={pipelineConfig}/>}
+                    {pipelineConfig && <NextRunTag pipeline={pipelineConfig}/>}
                     <h4>
                       <a className="btn btn-xs btn-link" onClick={this.handleConfigureClicked}>
                         <span className="glyphicon glyphicon-cog"/>
-                        { ' Configure' }
+                        {' Configure'}
                       </a>
                     </h4>
                     { this.state.canTriggerPipelineManually && (
@@ -225,7 +225,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
                   <em>No executions found matching the selected filters.</em>
                 </div>
               )}
-              { executions }
+              {executions}
             </div>
           </div>
         )}

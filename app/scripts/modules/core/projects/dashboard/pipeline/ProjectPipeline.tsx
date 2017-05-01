@@ -53,7 +53,7 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
             {`${execution.application.toUpperCase()}: ${execution.name}`}
           </a>
         </h5>
-        &nbsp;(<ExecutionBuildNumber execution={execution}/>{ this.state.hasBuildInfo && (<span>, </span>) }started {timestamp(this.props.execution.startTime)})
+        &nbsp;(<ExecutionBuildNumber execution={execution}/>{this.state.hasBuildInfo && (<span>, </span>)}started {timestamp(this.props.execution.startTime)})
         <div className="execution-bar">
           {stages}
         </div>

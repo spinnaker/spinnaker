@@ -69,7 +69,7 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
             <span className="glyphicon glyphicon-file"/> Documentation
           </MenuItem>
         </CustomMenu>
-        <FeedbackModal show={ this.state.showModal } showCallback={this.setModal}/>
+        <FeedbackModal show={this.state.showModal} showCallback={this.setModal}/>
       </Dropdown>
     );
   }

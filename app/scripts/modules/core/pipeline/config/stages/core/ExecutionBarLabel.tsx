@@ -46,7 +46,7 @@ export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, 
       );
     }
     return (
-      <span>{ stage.name ? stage.name : stage.type }</span>
+      <span>{stage.name ? stage.name : stage.type}</span>
     )
   }
 }

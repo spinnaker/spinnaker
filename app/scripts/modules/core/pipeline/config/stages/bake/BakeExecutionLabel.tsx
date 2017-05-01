@@ -5,7 +5,7 @@ export class BakeExecutionLabel extends React.Component<{ stage: IExecutionStage
   public render() {
     return (
       <span className="stage-label">
-        { this.props.stage.name }
+        {this.props.stage.name}
         { this.props.stage.masterStage.context.allPreviouslyBaked && (
           <span className="small"><br/>(previously baked)</span>
         )}

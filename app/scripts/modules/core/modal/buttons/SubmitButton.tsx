@@ -13,9 +13,11 @@ interface ISubmitButtonProps {
 export class SubmitButton extends React.Component<ISubmitButtonProps, any> {
   public render() {
     return (
-      <Button className="btn btn-primary"
-              disabled={this.props.isDisabled}
-              onClick={this.props.onClick}>
+      <Button
+        className="btn btn-primary"
+        disabled={this.props.isDisabled}
+        onClick={this.props.onClick}
+      >
         { !this.props.submitting && (
           <span className="glyphicon glyphicon-ok-circle"/>
         ) || (
