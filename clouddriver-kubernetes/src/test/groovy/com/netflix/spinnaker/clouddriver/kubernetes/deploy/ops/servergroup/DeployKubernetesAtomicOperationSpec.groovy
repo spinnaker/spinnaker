@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
@@ -187,5 +188,32 @@ class DeployKubernetesAtomicOperationSpec extends Specification {
           assert(rs.spec.template.spec.containers[idx].livenessProbe.tcpSocket.port.intVal == PORT)
         }
       }) >> replicaSetMock
+  }
+
+  void "should favor sequence when specified"() {
+    setup:
+    description = new DeployKubernetesAtomicOperationDescription(
+      application: APPLICATION,
+      sequence: 10,
+      targetSize: TARGET_SIZE,
+      containers: containers,
+      credentials: namedAccountCredentials
+    )
+    def replicaSetName = new KubernetesServerGroupNameResolver(NAMESPACE, null)
+      .generateServerGroupName(APPLICATION, null, null, description.sequence, false)
+    def operation = new DeployKubernetesAtomicOperation(description)
+
+    when:
+    operation.operate([])
+
+    then:
+    0 * apiMock.getReplicationControllers(NAMESPACE) >> []
+    0 * apiMock.getReplicaSets(NAMESPACE) >> []
+    5 * replicaSetMock.getMetadata() >> metadataMock
+    3 * metadataMock.getName() >> replicationControllerName
+    1 * apiMock.createReplicaSet(NAMESPACE, { ReplicaSet rs ->
+      assert rs.metadata.name == replicaSetName
+      true
+    }) >> replicaSetMock
   }
 }

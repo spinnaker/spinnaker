@@ -77,7 +77,14 @@ class DeployKubernetesAtomicOperation implements AtomicOperation<DeploymentResul
     def clusterName = serverGroupNameResolver.combineAppStackDetail(description.application, description.stack, description.freeFormDetails)
 
     task.updateStatus BASE_PHASE, "Looking up next sequence index for cluster ${clusterName}..."
-    def replicaSetName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
+
+    String replicaSetName
+    if (description.sequence) {
+      replicaSetName = serverGroupNameResolver.generateServerGroupName(description.application, description.stack, description.freeFormDetails, description.sequence, false)
+    } else {
+      replicaSetName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
+    }
+
     task.updateStatus BASE_PHASE, "Replica set name chosen to be ${replicaSetName}."
 
     task.updateStatus BASE_PHASE, "Building replica set..."
