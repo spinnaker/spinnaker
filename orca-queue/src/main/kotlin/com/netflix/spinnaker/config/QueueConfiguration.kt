@@ -21,6 +21,7 @@ import com.netflix.spinnaker.orca.q.ExecutionLogRepository
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -54,11 +55,13 @@ open class QueueConfiguration {
    * a long time to do stuff do not affect the processing of the queue.
    */
   @Bean
-  open fun applicationEventMulticaster(taskExecutor: ThreadPoolTaskExecutor): ApplicationEventMulticaster =
+  open fun applicationEventMulticaster(
+    @Qualifier("applicationEventTaskExecutor") taskExecutor: ThreadPoolTaskExecutor
+  ): ApplicationEventMulticaster =
     SimpleApplicationEventMulticaster().apply {
       setTaskExecutor(taskExecutor)
       // TODO: should set an error handler as well
     }
 
-  @Bean open fun taskExecutor(): ThreadPoolTaskExecutor = ThreadPoolTaskExecutor()
+  @Bean open fun applicationEventTaskExecutor(): ThreadPoolTaskExecutor = ThreadPoolTaskExecutor()
 }

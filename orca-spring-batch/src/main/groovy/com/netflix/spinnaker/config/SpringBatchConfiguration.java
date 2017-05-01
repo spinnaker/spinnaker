@@ -39,6 +39,7 @@ import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.support.SimpleJobOperator;
 import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -79,8 +80,7 @@ public class SpringBatchConfiguration {
     );
   }
 
-  @Bean
-  @ConditionalOnMissingBean(TaskExecutor.class)
+  @Bean(name = "springBatchTaskExecutor")
   TaskExecutor getTaskExecutor(Registry registry) {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setMaxPoolSize(150);
@@ -91,7 +91,9 @@ public class SpringBatchConfiguration {
 
   @Bean
   @ConditionalOnMissingBean(BatchConfigurer.class)
-  BatchConfigurer batchConfigurer(TaskExecutor taskExecutor) {
+  BatchConfigurer batchConfigurer(
+    @Qualifier("springBatchTaskExecutor") TaskExecutor taskExecutor
+  ) {
     return new MultiThreadedBatchConfigurer(taskExecutor);
   }
 
