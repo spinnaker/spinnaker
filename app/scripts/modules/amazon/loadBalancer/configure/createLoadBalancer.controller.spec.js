@@ -13,18 +13,29 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
   );
 
   // Initialize the controller and a mock scope
-  beforeEach(window.inject(function ($controller, $rootScope, applicationModelBuilder) {
+  beforeEach(window.inject(function ($controller, $rootScope, $q, accountService, subnetReader, applicationModelBuilder, securityGroupReader, awsLoadBalancerTransformer) {
     this.$scope = $rootScope.$new();
+    this.securityGroupReader = securityGroupReader;
+    this.accountService = accountService;
+    this.subnetReader = subnetReader;
+    this.$q = $q;
     const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
-    this.initialize = () => {
+    this.initialize = (loadBalancer = null) => {
+      if (loadBalancer) {
+        spyOn(awsLoadBalancerTransformer, 'convertLoadBalancerForEditing').and.returnValue(loadBalancer);
+      }
       this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
         $scope: this.$scope,
         $uibModalInstance: {dismiss: angular.noop, result: {then: angular.noop}},
         infrastructureCaches: { get: () => { return {getStats: () => {return {}; } }; } },
         application: app,
-        loadBalancer: null,
-        isNew: true,
-        forPipelineConfig: false
+        loadBalancer: loadBalancer,
+        isNew: loadBalancer === null,
+        forPipelineConfig: false,
+        securityGroupReader: securityGroupReader,
+        accountService: accountService,
+        subnetReader: subnetReader,
+        awsLoadBalancerTransformer: awsLoadBalancerTransformer,
       });
     };
   }));
@@ -181,6 +192,34 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
 
       expect(this.$scope.loadBalancer.isInternal).toBe(false);
       expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+    });
+
+    it('should put existing security groups in the front of the available list', function () {
+      const availableSecurityGroups = {
+        test: {
+          aws: {
+            'us-east-1': [
+              {name: 'a', id: '1', vpcId: 'vpc-1'},
+              {name: 'b', id: '2', vpcId: 'vpc-1'},
+              {name: 'c', id: '3', vpcId: 'vpc-1'},
+              {name: 'd', id: '4', vpcId: 'vpc-1'}]
+          }
+        }
+      };
+      const existingLoadBalancer = {
+        name: 'elb-1',
+        vpcId: 'vpc-1',
+        credentials: 'test',
+        region: 'us-east-1',
+        securityGroups: ['4'],
+        listeners: [],
+      };
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.returnValue(this.$q.when(availableSecurityGroups));
+      spyOn(this.accountService, 'getAccountDetails').and.returnValue(this.$q.when([{name: 'test'}]));
+      spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([{account: 'test', region: 'us-east-1', vpcIds: ['vpc-1']}]));
+      this.initialize(existingLoadBalancer);
+      this.$scope.$digest();
+      expect(this.$scope.availableSecurityGroups.map(g => g.name)).toEqual(['d', 'a', 'b', 'c']);
     });
   });
 
