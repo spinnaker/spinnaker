@@ -39,6 +39,11 @@ public class DaemonTaskInterrupted extends RuntimeException {
     this.message = "Task interrupted at " + new Date(interruptedTime) + ": " + e.getMessage();
   }
 
+  public DaemonTaskInterrupted(String message) {
+    this.interruptedTime = System.currentTimeMillis();
+    this.message = "Task interrupted at " + new Date(interruptedTime) + " with message: " + message;
+  }
+
   public DaemonTaskInterrupted(String message, Exception e) {
     super(e);
     this.interruptedTime = System.currentTimeMillis();

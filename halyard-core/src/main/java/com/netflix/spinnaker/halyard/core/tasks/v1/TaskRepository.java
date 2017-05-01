@@ -2,17 +2,17 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
-import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * All stored running/recently completed tasks.
@@ -20,53 +20,40 @@ import java.util.function.Supplier;
 @Slf4j
 public class TaskRepository {
   static final Map<String, DaemonTask> tasks = new ConcurrentHashMap<>();
-  static final Map<String, ShallowTaskInfo> namedTasks = new ConcurrentHashMap<>();
 
-  static public Map<String, ShallowTaskInfo> getTasks() {
-    return namedTasks;
+  public static ShallowTaskList getTasks() {
+    return new ShallowTaskList().setTasks(tasks.keySet()
+        .stream()
+        .map(t -> new ShallowTaskInfo(tasks.get(t)))
+        .collect(Collectors.toList()));
   }
+
+  // The amount of time before a task is collected after its timeout is invoked.
+  private static long DELETE_TASK_INFO_WINDOW = TimeUnit.MINUTES.toMillis(2);
+  public static long DEFAULT_TIMEOUT = TimeUnit.MINUTES.toMillis(1);
 
   static private void deleteTaskInfo(String uuid) {
     tasks.remove(uuid);
-    namedTasks.remove(uuid);
   }
 
-  static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner, String name) {
-    DaemonTask<C, T> task = new DaemonTask<>(name);
+  static public <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> runner, String name, long timeout) {
+    DaemonTask<C, T> task = new DaemonTask<>(name, timeout);
     String uuid = task.getUuid();
     log.info("Scheduling task " + task);
     Runnable r = () -> {
-      Exception fatalError = null;
-      State state = null;
-      DaemonResponse<T> response = null;
       log.info("Starting task " + task);
       DaemonTaskHandler.setTask(task);
       task.setState(State.RUNNING);
       try {
-        response = runner.get();
-        state = State.SUCCESS;
+        task.success(runner.get());
       } catch (HalException e) {
-        log.info("Task " + task + " failed for reason: ", e);
-        response = new DaemonResponse<>(null, new ProblemSet(e.getProblems()));
-        fatalError = e;
-        state = State.FATAL;
-      } catch (DaemonTaskInterrupted e) {
-        log.info("Task " + task + " interrupted: ", e);
-        response = new DaemonResponse<>(null, null);
-        fatalError = e;
-        state = State.INTERRUPTED;
-        deleteTaskInfo(uuid);
+        log.info("Task " + task + " failed with HalException: ", e);
+        task.failure(e);
       } catch (Exception e) {
-        log.warn("Task " + task + " failed for unknown reason: ", e);
-        Problem problem = new ProblemBuilder(Problem.Severity.FATAL, "Unknown exception: " + e).build();
-        response = new DaemonResponse<>(null, new ProblemSet(problem));
-        fatalError = e;
-        state = State.FATAL;
+        log.warn("Task " + task + " failed with unexpected reason: ", e);
+        task.failure(e);
       } finally {
         task.cleanupResources();
-        task.setResponse(response);
-        task.setState(state);
-        task.setFatalError(fatalError);
 
         log.info("Task " + task + " completed");
         // Notify after changing state to avoid data-race where threads are notified before thread appears terminal
@@ -78,39 +65,87 @@ public class TaskRepository {
 
     Thread t = new Thread(r);
     tasks.put(uuid, task.setRunner(t));
-    namedTasks.put(uuid, new ShallowTaskInfo().setName(name).setStartDate(new Date().toString()));
     t.start();
+
+    Thread interrupt = new Thread(new Interrupter(timeout, task));
+    interrupt.start();
 
     return task;
   }
 
-  static public <C, T> DaemonTask<C, T> collectTask(String uuid) throws InterruptedException {
-    DaemonTask task = tasks.get(uuid);
-    if (task == null) {
-      return null;
+  static private class Interrupter implements Runnable {
+    final long startTime;
+    final long endTime;
+    final DaemonTask target;
+
+    Interrupter(long timeout, DaemonTask target) {
+      this.startTime = System.currentTimeMillis();
+      this.endTime = this.startTime + timeout;
+      this.target = target;
     }
 
-    switch (task.getState()) {
-      case NOT_STARTED:
-      case RUNNING:
-        break;
-      case INTERRUPTED:
-        log.warn("Task " + task + " interrupted.");
-      case FATAL:
-        log.warn("Task " + task + " encountered a fatal exception");
-      case SUCCESS:
-        log.info("Terminating task " + task);
-        task.getRunner().join();
+    @Override
+    public void run() {
+      long sleepTime = endTime - System.currentTimeMillis();
+      while (sleepTime > 0) {
+        try {
+          Thread.sleep(sleepTime);
+        } catch (InterruptedException ignored) {
+        }
 
-        deleteTaskInfo(uuid);
+        sleepTime = endTime - System.currentTimeMillis();
+      }
+
+      switch (target.getState()) {
+        case NOT_STARTED:
+        case RUNNING:
+          log.warn("Interrupting task " + target + " that timed out after " + (endTime - startTime) + " millis.");
+          target.timeout();
+          break;
+        case TIMED_OUT:
+        case INTERRUPTED:
+        case FAILED:
+        case SUCCEEDED:
+          log.info("Interrupter has no work to do, " + target + " already completed.");
+          break;
+      }
+
+      try {
+        Thread.sleep(DELETE_TASK_INFO_WINDOW);
+      } catch (InterruptedException ignored) {
+      }
+
+      deleteTaskInfo(target.getUuid());
     }
-
-    return task;
   }
 
   @Data
   static public class ShallowTaskInfo {
+    String uuid;
     String name;
-    String startDate;
+    State state;
+    String lastEvent;
+    List<String> children = new ArrayList<>();
+
+    public ShallowTaskInfo() { }
+
+    ShallowTaskInfo(DaemonTask task) {
+      this.uuid = task.getUuid();
+      this.name = task.getName();
+      this.state = task.getState();
+
+      if (!task.getEvents().isEmpty()) {
+        this.lastEvent = task.getEvents().get(task.getEvents().size() - 1).toString();
+      }
+
+      this.children = (List<String>) task.getChildren()
+          .stream()
+          .map(c -> c.toString())
+          .collect(Collectors.toList());
+    }
+  }
+
+  static public <C, T> DaemonTask<C, T> getTask(String uuid) {
+    return tasks.get(uuid);
   }
 }

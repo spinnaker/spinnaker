@@ -17,23 +17,20 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-/**
- * This is used for the CLI to indicate that the Daemon failed to process a request in an expected way.
- *
- * Examples include: An account couldn't be added because of a duplicate name.
- *
- * Non-examples include: The CLI encountered an NPE.
- */
-public class ExpectedDaemonFailureException extends RuntimeException {
-  ExpectedDaemonFailureException(Throwable cause) {
-    super(cause);
+public class TaskKilledException extends RuntimeException {
+  static TaskKilledException extendMessage(String message, TaskKilledException e) {
+    return new TaskKilledException(String.join(" " , message, e.getMessage()), e.getCause());
   }
 
-  ExpectedDaemonFailureException(String msg) {
-    super(msg);
+  static TaskKilledException timeout() {
+    return new TaskKilledException("Task killed because it was taking too long.", null);
   }
 
-  ExpectedDaemonFailureException(String msg, Throwable cause) {
-    super(msg, cause);
+  static TaskKilledException interrupted(Exception cause) {
+    return new TaskKilledException("Task killed by interrupt", cause);
+  }
+
+  private TaskKilledException(String message, Throwable cause) {
+    super(message, cause);
   }
 }

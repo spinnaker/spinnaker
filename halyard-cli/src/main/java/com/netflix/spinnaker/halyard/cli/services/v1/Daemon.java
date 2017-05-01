@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.fasterxml.jackson.databind.DeserializationConfig;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
+import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -27,7 +27,7 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository.ShallowTaskInfo;
+import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +45,8 @@ public class Daemon {
     return getService().getHealth().get("status").equalsIgnoreCase("up");
   }
 
-  public static Supplier<Map<String, ShallowTaskInfo>> getTasks() {
-    return () -> ResponseUnwrapper.get(getService().getTasks());
+  public static ShallowTaskList getTasks() {
+    return getService().getTasks();
   }
 
   public static Supplier<String> getCurrentDeployment() {

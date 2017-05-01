@@ -43,6 +43,8 @@ public class OperationHandler<T> implements Supplier<T> {
       res = operation.get();
     } catch (ExpectedDaemonFailureException e) {
       throw new ExpectedDaemonFailureException(failureMesssage, e.getCause());
+    } catch (TaskKilledException e) {
+      throw TaskKilledException.extendMessage(failureMesssage, e);
     }
 
     if (successMessage != null && !GlobalOptions.getGlobalOptions().isQuiet()) {

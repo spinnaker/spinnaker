@@ -1,8 +1,7 @@
 package com.netflix.spinnaker.halyard.core.tasks.v1;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +45,27 @@ public class DaemonTaskHandler {
             } catch (InterruptedException e) {
               throw new DaemonTaskInterrupted("Interrupted during reap", e);
             }
+
+            DaemonTask.State state = child.getState();
+            if (!state.isTerminal()) {
+              throw new IllegalStateException("Child task " + child + " reaped but non-terminal.");
+            }
+
+            switch (state) {
+              case FAILED:
+                throw new HalException(childResponse.getProblemSet().getProblems());
+              case INTERRUPTED:
+                task.interrupt();
+                throw new DaemonTaskInterrupted(child.getFatalError());
+              case TIMED_OUT:
+                task.timeout();
+                throw new DaemonTaskInterrupted("Child task timed out");
+              case SUCCEEDED:
+                break;
+              default:
+                throw new IllegalStateException("Unknown terminal state " + state);
+            }
+
             collector.getProblemSet().addAll(childResponse.getProblemSet());
             collector.setResponseBody(accumulator.apply(collector.getResponseBody(), childResponse.getResponseBody()));
             return collector;
@@ -62,17 +82,23 @@ public class DaemonTaskHandler {
     }
   }
 
-  public static <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> taskSupplier, String name) {
+  public static <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> taskSupplier, String name, long timeout) {
     DaemonTask task = getTask();
     DaemonTask<C, T> result;
     if (task != null) {
-      result = task.spawnChild(taskSupplier, name);
+      result = task.spawnChild(taskSupplier, name, timeout);
       log.info(task + " spawned child " + result);
     } else {
-      result = TaskRepository.submitTask(taskSupplier, name);
+      result = TaskRepository.submitTask(taskSupplier, name, timeout);
     }
-    
+
     return result;
+  }
+
+  public static <C, T> DaemonTask<C, T> submitTask(Supplier<DaemonResponse<T>> taskSupplier, String name) {
+    DaemonTask task = getTask();
+    long timeout = task != null ? task.getTimeout() : TaskRepository.DEFAULT_TIMEOUT;
+    return submitTask(taskSupplier, name, timeout);
   }
 
   public static void setContext(Object context) {
@@ -80,6 +106,10 @@ public class DaemonTaskHandler {
   }
 
   public static void newStage(String name) {
+    if (Thread.interrupted()) {
+      throw new DaemonTaskInterrupted();
+    }
+
     DaemonTask task = getTask();
     if (task != null) {
       log.info("Stage change by " + task + ": " + name);
@@ -88,6 +118,10 @@ public class DaemonTaskHandler {
   }
 
   public static void message(String message) {
+    if (Thread.interrupted()) {
+      throw new DaemonTaskInterrupted();
+    }
+
     DaemonTask task = getTask();
     if (task != null) {
       log.info("Message by " + task + ": " + message);
@@ -96,6 +130,10 @@ public class DaemonTaskHandler {
   }
 
   public static void safeSleep(Long millis) {
+    if (Thread.interrupted()) {
+      throw new DaemonTaskInterrupted();
+    }
+
     try {
       Thread.sleep(millis);
     } catch (InterruptedException e) {

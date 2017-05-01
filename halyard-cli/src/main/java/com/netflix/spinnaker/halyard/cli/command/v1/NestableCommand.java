@@ -24,11 +24,11 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.FormatConverter;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LogLevelConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.ExpectedDaemonFailureException;
+import com.netflix.spinnaker.halyard.cli.services.v1.TaskKilledException;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -184,12 +184,15 @@ public abstract class NestableCommand {
       AnsiUi.error(e.getMessage());
       AnsiUi.remediation("Try the command again with the --debug flag.");
       System.exit(1);
-    } catch (DaemonTaskInterrupted e) {
-      AnsiUi.warning("Interrupted. Task killed in unknown state.");
+    } catch (TaskKilledException e) {
+      AnsiUi.failure(e.getMessage());
       System.exit(7);
     } catch (ExpectedDaemonFailureException e) {
       showRandomFailureMessage();
       AnsiUi.failure(e.getMessage());
+      if (GlobalOptions.getGlobalOptions().isDebug()) {
+        e.printStackTrace();
+      }
       System.exit(1);
     } catch (Exception e) {
       if (GlobalOptions.getGlobalOptions().isDebug()) {

@@ -4,9 +4,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.Data;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -26,6 +31,8 @@ public class DaemonTask<C, T> {
   List<DaemonTask> children = new ArrayList<>();
   final String name;
   final String uuid;
+  boolean timedOut;
+  final long timeout;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
@@ -36,10 +43,11 @@ public class DaemonTask<C, T> {
   @JsonIgnore String currentStage;
 
   @JsonCreator
-  public DaemonTask(@JsonProperty("name") String name) {
+  public DaemonTask(@JsonProperty("name") String name, @JsonProperty("timeout") long timeout) {
     this.name = name;
     this.uuid = UUID.randomUUID().toString();
     this.jobExecutor = new JobExecutorLocal();
+    this.timeout = timeout;
   }
 
   void newStage(String name) {
@@ -64,15 +72,28 @@ public class DaemonTask<C, T> {
   }
 
   public enum State {
-    NOT_STARTED,
-    RUNNING,
-    SUCCESS,
-    INTERRUPTED,
-    FATAL;
+    NOT_STARTED(false),
+    RUNNING(false),
+    SUCCEEDED(true),
+    INTERRUPTED(true),
+    TIMED_OUT(true),
+    FAILED(true);
 
-    public boolean isTerminal() {
-      return this == SUCCESS || this == FATAL || this == INTERRUPTED;
+    @Getter
+    boolean terminal;
+
+    State(boolean terminal) {
+      this.terminal = terminal;
     }
+  }
+
+  public void timeout() {
+    timedOut = true;
+    interrupt();
+  }
+
+  public boolean isInterrupted() {
+    return runner.isInterrupted();
   }
 
   public void interrupt() {
@@ -84,13 +105,50 @@ public class DaemonTask<C, T> {
     for (DaemonTask child : children) {
       if (child != null) {
         log.info("Interrupting child " + child);
-        child.interrupt();
+
+        if (timedOut) {
+          child.timeout();
+        } else {
+          child.interrupt();
+        }
       }
     }
   }
 
-  <Q, P> DaemonTask<Q, P> spawnChild(Supplier<DaemonResponse<P>> childRunner, String name) {
-    DaemonTask child = TaskRepository.submitTask(childRunner, name);
+  private void inSucceededState() {
+    state = State.SUCCEEDED;
+  }
+
+  private void inFailedState() {
+    if (isTimedOut()) {
+      state = State.TIMED_OUT;
+    } else if (isInterrupted()) {
+      state = State.INTERRUPTED;
+    } else {
+      state = State.FAILED;
+    }
+  }
+
+  public void success(DaemonResponse<T> response) {
+    inSucceededState();
+    this.response = response;
+  }
+
+  public void failure(Exception e) {
+    inFailedState();
+    fatalError = e;
+    Problem problem = new ProblemBuilder(Problem.Severity.FATAL, "Unexpected exception: " + e).build();
+    response = new DaemonResponse<>(null, new ProblemSet(problem));
+  }
+
+  public void failure(HalException e) {
+    inFailedState();
+    fatalError = e;
+    response = new DaemonResponse<>(null, e.getProblems());
+  }
+
+  <Q, P> DaemonTask<Q, P> spawnChild(Supplier<DaemonResponse<P>> childRunner, String name, long timeout) {
+    DaemonTask child = TaskRepository.submitTask(childRunner, name, timeout);
     children.add(child);
     return child;
   }
@@ -112,7 +170,7 @@ public class DaemonTask<C, T> {
       }
     }
 
-    TaskRepository.collectTask(childTask.getUuid());
+    TaskRepository.getTask(childTask.getUuid());
 
     log.info("Collected child task " + childTask + " with state " + childTask.getState());
     assert(childTask.getResponse() != null);
@@ -122,6 +180,6 @@ public class DaemonTask<C, T> {
 
   @Override
   public String toString() {
-    return "[" + name + "] (" + uuid + ")";
+    return "[" + name + "] (" + uuid + ") - " + state;
   }
 }

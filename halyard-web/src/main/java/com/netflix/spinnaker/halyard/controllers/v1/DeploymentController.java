@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @RestController
@@ -166,7 +167,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Apply deployment");
+    return DaemonTaskHandler.submitTask(builder::build, "Apply deployment", TimeUnit.MINUTES.toMillis(30));
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/configDiff/", method = RequestMethod.GET)

@@ -25,7 +25,6 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -33,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.IntStream;
-
-import static com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State.FATAL;
 
 public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 400L;
@@ -59,12 +56,14 @@ public class ResponseUnwrapper {
     formatTasks(aggregateTasks(task), lastTaskCount);
 
     DaemonResponse<T> response = task.getResponse();
-    formatProblemSet(response.getProblemSet());
 
+    formatProblemSet(response.getProblemSet());
     switch (task.getState()) {
+      case TIMED_OUT:
+        throw TaskKilledException.timeout();
       case INTERRUPTED:
-        throw new DaemonTaskInterrupted();
-      case FATAL:
+        throw TaskKilledException.interrupted(task.getFatalError());
+      case FAILED:
         Exception fatal = task.getFatalError();
         if (fatal == null) {
           throw new RuntimeException("Task failed without reason. This is a bug.");
@@ -73,7 +72,6 @@ public class ResponseUnwrapper {
         }
       default:
         return response.getResponseBody();
-
     }
   }
 
@@ -126,17 +124,29 @@ public class ResponseUnwrapper {
             .setForegroundColor(AnsiForegroundColor.BLUE)
             .addStyle(AnsiStyle.BOLD);
         break;
-      case SUCCESS:
+      case SUCCEEDED:
         builder.addSnippet("+ ")
             .setForegroundColor(AnsiForegroundColor.GREEN)
             .addStyle(AnsiStyle.BOLD);
         event = new DaemonEvent().setStage("Success");
         break;
-      case FATAL:
+      case FAILED:
         builder.addSnippet("- ")
             .setForegroundColor(AnsiForegroundColor.RED)
             .addStyle(AnsiStyle.BOLD);
         event = new DaemonEvent().setStage("Failure");
+        break;
+      case INTERRUPTED:
+        builder.addSnippet("! ")
+            .setForegroundColor(AnsiForegroundColor.YELLOW)
+            .addStyle(AnsiStyle.BOLD);
+        event = new DaemonEvent().setStage("Interrupted");
+        break;
+      case TIMED_OUT:
+        builder.addSnippet("/ ")
+            .setForegroundColor(AnsiForegroundColor.YELLOW)
+            .addStyle(AnsiStyle.BOLD);
+        event = new DaemonEvent().setStage("Timed out");
         break;
     }
 

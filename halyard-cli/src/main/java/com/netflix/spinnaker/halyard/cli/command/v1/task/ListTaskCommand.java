@@ -20,14 +20,10 @@ package com.netflix.spinnaker.halyard.cli.command.v1.task;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
-import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository;
-import com.netflix.spinnaker.halyard.core.tasks.v1.TaskRepository.ShallowTaskInfo;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
 import lombok.AccessLevel;
 import lombok.Getter;
-
-import java.util.Map;
 
 @Parameters(separators = "=")
 public class ListTaskCommand extends NestableCommand {
@@ -42,12 +38,6 @@ public class ListTaskCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    new OperationHandler<Map<String, ShallowTaskInfo>>()
-        .setOperation(Daemon.getTasks())
-        .setFailureMesssage("Failed to load tasks.")
-        .setSuccessMessage("The following tasks are running: ")
-        .setFormat(AnsiFormatUtils.Format.YAML)
-        .setUserFormatted(true)
-        .get();
+    AnsiPrinter.out.println(AnsiFormatUtils.format(AnsiFormatUtils.Format.YAML, Daemon.getTasks()));
   }
 }
