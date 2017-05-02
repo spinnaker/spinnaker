@@ -1,0 +1,12 @@
+dependencies {
+  compile("com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}")
+  compile("com.netflix.spinnaker.clouddriver:clouddriver-eureka:${clouddriverVersion}")
+  compile("com.netflix.spinnaker.clouddriver:clouddriver-aws:${clouddriverVersion}")
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+  compile 'com.squareup.retrofit2:retrofit:2.0.0-beta4'
+  compile 'com.squareup.retrofit2:converter-jackson:2.0.0-beta4'
+  compile 'com.squareup.okhttp3:okhttp:3.1.2'
+  compile 'com.squareup.okhttp3:logging-interceptor:3.1.2'
+  testCompile "org.slf4j:slf4j-simple:${spinnaker.version('slf4j')}"
+}
