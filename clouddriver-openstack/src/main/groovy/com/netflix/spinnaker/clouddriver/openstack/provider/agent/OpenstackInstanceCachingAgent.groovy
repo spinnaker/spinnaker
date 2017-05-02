@@ -17,7 +17,8 @@
 package com.netflix.spinnaker.clouddriver.openstack.provider.agent
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.cats.agent.*
+import com.netflix.spinnaker.cats.agent.AgentDataType
+import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.consul.model.ConsulNode
 import com.netflix.spinnaker.clouddriver.consul.provider.ConsulProviderUtils
@@ -26,11 +27,11 @@ import com.netflix.spinnaker.clouddriver.openstack.cache.Keys
 import com.netflix.spinnaker.clouddriver.openstack.model.OpenstackInstance
 import com.netflix.spinnaker.clouddriver.openstack.security.OpenstackNamedAccountCredentials
 import groovy.util.logging.Slf4j
-import org.openstack4j.model.compute.Server
+import retrofit.RetrofitError
 
-import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.clouddriver.openstack.cache.Keys.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.openstack.provider.OpenstackInfrastructureProvider.ATTRIBUTES
 
 @Slf4j
 class OpenstackInstanceCachingAgent extends AbstractOpenstackCachingAgent {
@@ -64,8 +65,14 @@ class OpenstackInstanceCachingAgent extends AbstractOpenstackCachingAgent {
     clientProvider.getInstances(region)?.each { server ->
       String instanceKey = Keys.getInstanceKey(server.id, accountName, region)
 
-      ConsulNode consulNode = account?.consulConfig?.enabled ?
-        ConsulProviderUtils.getHealths(account.consulConfig, server.name) : null
+      ConsulNode consulNode = null
+      if (account?.consulConfig?.enabled) {
+        try{
+          consulNode = ConsulProviderUtils.getHealths(account.consulConfig, server.name)
+        } catch (RetrofitError e){
+          log.warn(e.message)
+        }
+      }
 
       Map<String, Object> instanceAttributes = objectMapper.convertValue(OpenstackInstance.from(server, consulNode, accountName, region), ATTRIBUTES)
 

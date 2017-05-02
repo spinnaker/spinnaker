@@ -42,7 +42,7 @@ class ConsulProviderUtils {
       running = true
     } catch (RetrofitError e) {
       // Instance can't be connected to on hostname:port/v1/agent/checks
-      log.debug(e)
+      log.debug(e.message)
     }
     return new ConsulNode(healths: healths, running: running, services: services)
   }

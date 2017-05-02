@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.openstack.deploy.ops.servergroup
 
+import com.netflix.spinnaker.clouddriver.consul.deploy.ops.EnableDisableConsulInstance
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.openstack.client.BlockingStatusChecker
@@ -24,13 +25,17 @@ import com.netflix.spinnaker.clouddriver.openstack.deploy.description.servergrou
 import com.netflix.spinnaker.clouddriver.openstack.deploy.exception.OpenstackOperationException
 import com.netflix.spinnaker.clouddriver.openstack.deploy.ops.LoadBalancerStatusAware
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import groovy.util.logging.Slf4j
+import org.openstack4j.model.compute.Server
 import org.openstack4j.model.heat.Stack
 import org.openstack4j.model.network.ext.LoadBalancerV2StatusTree
+import retrofit.RetrofitError
 
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Future
 import java.util.function.Supplier
 
+@Slf4j
 abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOperation<Void>, LoadBalancerStatusAware {
   abstract boolean isDisable()
 
@@ -54,7 +59,29 @@ abstract class AbstractEnableDisableOpenstackAtomicOperation implements AtomicOp
   Void operate(List priorOutputs) {
     String verb = disable ? 'disable' : 'enable'
     String gerund = disable ? 'Disabling' : 'Enabling'
+
     task.updateStatus phaseName, "Initializing $verb server group operation for $description.serverGroupName in $description.region..."
+    def credentials = description.credentials
+
+    if (credentials.credentials.consulConfig?.enabled) {
+      task.updateStatus phaseName, "$gerund server group in Consul..."
+
+      List<String> instanceIds = provider.getInstanceIdsForStack(description.region, description.serverGroupName)
+      instanceIds.each { String instanceId ->
+        Server instance = provider.getServerInstance(description.region, instanceId)
+        try {
+          EnableDisableConsulInstance.operate(credentials.credentials.consulConfig,
+            instance.name,
+            disable
+              ? EnableDisableConsulInstance.State.disable
+              : EnableDisableConsulInstance.State.enable)
+        } catch (RetrofitError e) {
+          // Consul isn't running
+          log.warn(e.message)
+        }
+      }
+    }
+
     try {
       task.updateStatus phaseName, "Getting stack details for $description.serverGroupName..."
       List<String> instanceIds = provider.getInstanceIdsForStack(description.region, description.serverGroupName)
