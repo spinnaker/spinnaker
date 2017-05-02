@@ -104,4 +104,47 @@ describe('Directives: accountSelectField', function () {
     expect(accountService.getAllAccountDetailsForProvider.calls.count()).toBe(0);
   });
 
+  it('maintains selection of existing account', function () {
+    ctrl.accounts = ['prod', 'test'];
+    ctrl.component = [];
+    ctrl.field = 'credentials';
+    ctrl.component[ctrl.field] = 'prod';
+
+    scope.$digest();
+
+    expect(ctrl.component[ctrl.field]).toEqual('prod');
+  });
+
+  it('unselects nonexistent account', function () {
+    ctrl.accounts = ['prod', 'test'];
+    ctrl.component = [];
+    ctrl.field = 'credentials';
+    ctrl.component[ctrl.field] = 'nonexistent';
+
+    scope.$digest();
+
+    expect(ctrl.component[ctrl.field]).toBeNull();
+  });
+
+  it('maintains selection of existing account array', function () {
+    ctrl.accounts = ['prod', 'test'];
+    ctrl.component = [];
+    ctrl.field = 'credentials';
+    ctrl.component[ctrl.field] = ['test', 'prod'];
+
+    scope.$digest();
+
+    expect(ctrl.component[ctrl.field]).toEqual(['test', 'prod']);
+  });
+
+  it('unselects nonexistent account array', function () {
+    ctrl.accounts = ['prod', 'test'];
+    ctrl.component = [];
+    ctrl.field = 'credentials';
+    ctrl.component[ctrl.field] = ['nonexistent', 'prod'];
+
+    scope.$digest();
+
+    expect(ctrl.component[ctrl.field]).toBeNull();
+  });
 });

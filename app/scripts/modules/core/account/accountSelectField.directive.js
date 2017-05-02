@@ -56,10 +56,10 @@ module.exports = angular
         }
 
         if (this.component) {
-          var mergedAccounts = (this.mergedAccounts || []).sort();
-          var component = _.flatten([this.component[this.field]]).sort();
+          var mergedAccounts = this.mergedAccounts || [];
+          var component = _.flatten([this.component[this.field]]);
 
-          if (!_.isEqual(_.intersection(mergedAccounts, component), component)) {
+          if (_.intersection(mergedAccounts, component).length !== component.length) {
             this.component[this.field] = null;
           }
         }
