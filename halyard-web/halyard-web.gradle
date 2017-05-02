@@ -30,6 +30,11 @@ tasks.bootRepackage.enabled = project.repackage
 
 mainClassName = 'com.netflix.spinnaker.halyard.Main'
 
+task installScript(type:Exec) {
+  workingDir '..'
+  commandLine './install/generate.sh'
+}
+
 def cliScript = project.tasks.create('createCliStartScripts', CreateStartScripts) {
   dependsOn(project.tasks.startScripts)
   mainClassName = 'com.netflix.spinnaker.halyard.cli.Main'
@@ -41,3 +46,4 @@ def cliScript = project.tasks.create('createCliStartScripts', CreateStartScripts
 tasks.installDist.dependsOn(cliScript)
 tasks.distZip.dependsOn(cliScript)
 tasks.distTar.dependsOn(cliScript)
+tasks.bootRun.dependsOn(installScript)
