@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.INSTANCES
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.SERVER_GROUPS
 
 @Component
 class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
@@ -61,6 +62,11 @@ class AmazonInstanceProvider implements InstanceProvider<AmazonInstance> {
     }
     AmazonInstance instance = new AmazonInstance(instanceEntry.attributes)
     instance.name = id
+    if (instanceEntry.relationships[SERVER_GROUPS.ns] && !instanceEntry.relationships[SERVER_GROUPS.ns].empty) {
+      Map serverGroup = Keys.parse(instanceEntry.relationships[SERVER_GROUPS.ns].iterator().next())
+      instance.serverGroup = serverGroup.serverGroup
+      instance.cluster = serverGroup.cluster
+    }
     if (instanceEntry.relationships[HEALTH.ns]) {
       instance.health.addAll(cacheView.getAll(HEALTH.ns, instanceEntry.relationships[HEALTH.ns])*.attributes)
     }
