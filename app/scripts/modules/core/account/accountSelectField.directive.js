@@ -55,8 +55,13 @@ module.exports = angular
           this.mergedAccounts = _.flatten([this.primaryAccounts, this.secondaryAccounts]);
         }
 
-        if (this.component && (!this.mergedAccounts || !this.mergedAccounts.includes(this.component[this.field]))) {
-          this.component[this.field] = null;
+        if (this.component) {
+          var mergedAccounts = (this.mergedAccounts || []).sort();
+          var component = _.flatten(this.component[this.field]).sort();
+
+          if (!_.isEqual(_.intersection(mergedAccounts, component), component)) {
+            this.component[this.field] = null;
+          }
         }
       });
     };
