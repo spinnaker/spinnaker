@@ -13,13 +13,7 @@
              ng-model="stage.package"/>
     </stage-config-field>
     <stage-config-field label="Base OS">
-      <label class="radio-inline" ng-repeat="baseOsOption in baseOsOptions">
-        <input type="radio"
-               ng-model="stage.baseOs"
-               ng-value="baseOsOption.id"
-               ng-change="bakeStageCtrl.baseOsChanged()"/>
-        {{bakeStageCtrl.getBaseOsDescription(baseOsOption)}} <help-field content="{{baseOsOption.detailedDescription}}" />
-      </label>
+      <bake-stage-choose-os model="stage.baseOs" base-os-options="baseOsOptions"></bake-stage-choose-os>
     </stage-config-field>
     <stage-config-field label="Base Label">
       <label class="radio-inline" ng-repeat="baseLabel in baseLabelOptions">

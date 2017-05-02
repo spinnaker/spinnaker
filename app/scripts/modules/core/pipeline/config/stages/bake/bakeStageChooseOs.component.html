@@ -1,0 +1,16 @@
+<ui-select ng-if="!$ctrl.showRadioButtons" ng-model="$ctrl.model" required class="form-control input-sm">
+  <ui-select-match placeholder="Select a base OS">
+    <span ng-bind-html="$ctrl.getBaseOsDescription($select.selected)"></span>
+  </ui-select-match>
+  <ui-select-choices repeat="baseOsOption.id as baseOsOption in $ctrl.baseOsOptions | filter: $select.search">
+    <strong ng-bind-html="$ctrl.getBaseOsDescription(baseOsOption)"></strong>
+    <div ng-bind-html="$ctrl.getBaseOsDetailedDescription(baseOsOption)"></div>
+  </ui-select-choices>
+</ui-select>
+
+<label ng-if="$ctrl.showRadioButtons" class="radio-inline" ng-repeat="baseOsOption in $ctrl.baseOsOptions">
+  <input type="radio"
+         ng-model="$ctrl.model"
+         ng-value="baseOsOption.id"/>
+  {{$ctrl.getBaseOsDescription(baseOsOption)}} <help-field content="{{$ctrl.getBaseOsDetailedDescription(baseOsOption)}}" />
+</label>

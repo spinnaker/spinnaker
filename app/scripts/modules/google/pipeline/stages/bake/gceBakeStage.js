@@ -126,14 +126,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
       return $scope.viewState.roscoMode || $scope.stage.varFileName;
     };
 
-    this.getBaseOsDescription = function(baseOsOption) {
-      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')' : '');
-    };
-
-    this.getHelpFieldContent = function(baseOsOption) {
-      return baseOsOption.detailedDescription + (baseOsOption.isImageFamily ? ' (family)' : '');
-    };
-
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();

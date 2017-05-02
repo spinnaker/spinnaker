@@ -7,6 +7,7 @@ import {API_SERVICE} from 'core/api/api.service';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
+import {PIPELINE_BAKE_STAGE_CHOOSE_OS} from 'core/pipeline/config/stages/bake/bakeStageChooseOs.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   API_SERVICE,
@@ -16,6 +17,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   require('./overrideFailure/overrideFailure.component.js'),
   require('./optionalStage/optionalStage.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
+  PIPELINE_BAKE_STAGE_CHOOSE_OS,
   ACCOUNT_SERVICE,
   require('./core/stageConfigField/stageConfigField.directive.js'),
 ])

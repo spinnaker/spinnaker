@@ -94,10 +94,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeSta
       return $scope.viewState.roscoMode || $scope.stage.templateFileName;
     };
 
-    this.getBaseOsDescription = function(baseOsOption) {
-      return baseOsOption.id + (baseOsOption.shortDescription ? ' (' + baseOsOption.shortDescription + ')' : '');
-    };
-
     $scope.$watch('stage', deleteEmptyProperties, true);
 
     initialize();
