@@ -59,7 +59,7 @@ chmod +x kubectl
 mv kubectl /usr/local/bin/kubectl
 
 echo "Downloading Halyard..."
-wget https://raw.githubusercontent.com/spinnaker/halyard/master/InstallHalyard.sh
+wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
 
 # We need to make changes to the Halyard install script so it can run in a container.
 sed "s/^printf/echo/" -i InstallHalyard.sh
