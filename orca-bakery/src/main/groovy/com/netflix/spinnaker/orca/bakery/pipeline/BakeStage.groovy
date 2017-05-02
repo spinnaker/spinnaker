@@ -101,7 +101,7 @@ class BakeStage implements BranchingStageDefinitionBuilder, RestartableStage {
   }
 
   @Override
-  <T extends Execution<T>> String parallelStageName(Stage<T> stage, boolean hasParallelFlows) {
+  String parallelStageName(Stage<?> stage, boolean hasParallelFlows) {
     return hasParallelFlows ? "Multi-region Bake" : stage.name
   }
 

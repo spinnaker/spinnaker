@@ -89,13 +89,20 @@ fun StageDefinitionBuilder.buildSyntheticStages(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun BranchingStageDefinitionBuilder.eachParallelContext(stage: Stage<*>, block: (Map<String, Any>) -> Stage<*>) =
+private fun BranchingStageDefinitionBuilder.parallelContexts(stage: Stage<*>) =
   when (stage.getExecution()) {
     is Pipeline -> parallelContexts(stage as Stage<Pipeline>)
     is Orchestration -> parallelContexts(stage as Stage<Orchestration>)
     else -> throw IllegalStateException()
   }
-    .map(block)
+
+@Suppress("UNCHECKED_CAST")
+private fun BranchingStageDefinitionBuilder.parallelStageName(stage: Stage<*>, hasParallelStages: Boolean) =
+  when (stage.getExecution()) {
+    is Pipeline -> parallelStageName(stage as Stage<Pipeline>, hasParallelStages)
+    is Orchestration -> parallelStageName(stage as Stage<Orchestration>, hasParallelStages)
+    else -> throw IllegalStateException()
+  }
 
 private typealias SyntheticStages = Map<SyntheticStageOwner, List<Stage<*>>>
 
@@ -150,14 +157,18 @@ private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>, cal
 
 private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
   if (this is BranchingStageDefinitionBuilder && stage.getParentStageId() == null) {
-    stage.setInitializationStage(true)
-    eachParallelContext(stage) { context ->
+    val parallelContexts = parallelContexts(stage)
+    parallelContexts
+      .map { context ->
       val execution = stage.getExecution()
-      when (execution) {
-        is Pipeline -> newStage(execution, stage.getType(), stage.getName(), context, stage as Stage<Pipeline>, STAGE_BEFORE)
-        is Orchestration -> newStage(execution, stage.getType(), stage.getName(), context, stage as Stage<Orchestration>, STAGE_BEFORE)
-        else -> throw IllegalStateException()
-      }
+        val stageType = context.getOrDefault("type", stage.getType()).toString()
+        val stageName = context.getOrDefault("name", stage.getName()).toString()
+        @Suppress("UNCHECKED_CAST")
+        when (execution) {
+          is Pipeline -> newStage(execution, stageType, stageName, context, stage as Stage<Pipeline>, STAGE_BEFORE)
+          is Orchestration -> newStage(execution, stageType, stageName, context, stage as Stage<Orchestration>, STAGE_BEFORE)
+          else -> throw IllegalStateException()
+        }
     }
       .forEachIndexed { i, it ->
         // TODO: this is insane backwards nonsense, it doesn't need the child stage in any impl so we could determine this when building the stage in the first place
@@ -169,6 +180,8 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
           callback.invoke(it)
         }
       }
+    stage.setName(parallelStageName(stage, parallelContexts.size > 1))
+    stage.setInitializationStage(true)
   }
 }
 

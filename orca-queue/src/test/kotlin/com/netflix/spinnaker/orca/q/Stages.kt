@@ -69,10 +69,13 @@ val stageWithSyntheticAfter = object : StageDefinitionBuilder {
 val stageWithParallelBranches = object : BranchingStageDefinitionBuilder {
   override fun <T : Execution<T>> parallelContexts(stage: Stage<T>): Collection<Map<String, Any>> =
     listOf(
-      mapOf("region" to "us-east-1"),
-      mapOf("region" to "us-west-2"),
-      mapOf("region" to "eu-west-1")
+      mapOf("region" to "us-east-1", "name" to "run in us-east-1"),
+      mapOf("region" to "us-west-2", "name" to "run in us-west-2"),
+      mapOf("region" to "eu-west-1", "name" to "run in eu-west-1")
     )
+
+  override fun parallelStageName(stage: Stage<*>, hasParallelFlows: Boolean) =
+    if (hasParallelFlows) "is parallel" else "is not parallel"
 
   override fun preBranchGraph(stage: Stage<*>, builder: Builder) {
     builder.withTask("pre-branch", DummyTask::class.java)

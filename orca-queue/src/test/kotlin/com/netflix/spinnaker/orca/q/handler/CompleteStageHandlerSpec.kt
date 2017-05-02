@@ -393,6 +393,7 @@ class CompleteStageHandlerSpec : Spek({
         application = "foo"
         stage {
           refId = "1"
+          name = "parallel"
           type = stageWithParallelBranches.type
           stageWithParallelBranches.buildSyntheticStages(this)
           stageWithParallelBranches.buildTasks(this)
@@ -420,6 +421,7 @@ class CompleteStageHandlerSpec : Spek({
         application = "foo"
         stage {
           refId = "1"
+          name = "parallel"
           type = stageWithParallelBranches.type
           stageWithParallelBranches.buildSyntheticStages(this)
           stageWithParallelBranches.buildTasks(this)

@@ -55,7 +55,7 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
 
   @Override
   String getChildStageType(Stage childStage) {
-    return isClone(childStage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : CreateServerGroupStage.PIPELINE_CONFIG_TYPE
+    return isClone(childStage) ? CloneServerGroupStage.PIPELINE_CONFIG_TYPE : PIPELINE_CONFIG_TYPE
   }
 
   @CompileDynamic
@@ -146,7 +146,7 @@ class ParallelDeployStage implements BranchingStageDefinitionBuilder {
   }
 
   @Override
-  <T extends Execution<T>> String parallelStageName(Stage<T> stage, boolean hasParallelFlows) {
+  String parallelStageName(Stage<?> stage, boolean hasParallelFlows) {
     return isClone(stage) ? "Clone" : stage.name
   }
 

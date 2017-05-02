@@ -51,11 +51,6 @@ class CheckPreconditionsStage implements BranchingStageDefinitionBuilder {
   }
 
   @Override
-  String parallelStageName(Stage stage, boolean hasParallelFlows) {
-    stage.name
-  }
-
-  @Override
   def <T extends Execution<T>> Collection<Map<String, Object>> parallelContexts(Stage<T> stage) {
     stage.resolveStrategyParams()
     def baseContext = new HashMap(stage.context)

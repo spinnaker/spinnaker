@@ -338,6 +338,7 @@ class StartStageHandlerSpec : Spek({
         application = "foo"
         stage {
           refId = "1"
+          name = "parallel"
           type = stageWithParallelBranches.type
         }
       }
@@ -367,6 +368,15 @@ class StartStageHandlerSpec : Spek({
         // TODO: contexts, etc.
       }
 
+      it("renames the primary branch") {
+        pipeline.stageByRef("1").name shouldEqual "is parallel"
+      }
+
+      it("renames each parallel branch") {
+        val stage = pipeline.stageByRef("1")
+        pipeline.stages.filter { it.parentStageId == stage.id }.map { it.name } shouldEqual listOf("run in us-east-1", "run in us-west-2", "run in eu-west-1")
+      }
+
       it("runs the parallel stages") {
         verify(queue, times(3)).push(check<StartStage> {
           pipeline.stageById(it.stageId).parentStageId shouldEqual message.stageId
@@ -379,6 +389,7 @@ class StartStageHandlerSpec : Spek({
         application = "foo"
         stage {
           refId = "1"
+          name = "parallel"
           type = stageWithParallelBranches.type
           stageWithParallelBranches.buildSyntheticStages(this)
           stageWithParallelBranches.buildTasks(this)

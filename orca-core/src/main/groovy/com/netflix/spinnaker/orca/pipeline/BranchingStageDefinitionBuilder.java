@@ -63,7 +63,7 @@ public interface BranchingStageDefinitionBuilder extends StageDefinitionBuilder 
    * Override this to rename the stage if it has parallel flows.
    * This affects the base stage not the individual parallel synthetic stages.
    */
-  default <T extends Execution<T>> String parallelStageName(Stage<T> stage, boolean hasParallelFlows) {
+  default String parallelStageName(Stage<?> stage, boolean hasParallelFlows) {
     return stage.getName();
   }
 
