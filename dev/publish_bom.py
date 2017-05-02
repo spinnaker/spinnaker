@@ -71,6 +71,7 @@ class BomPublisher(BomGenerator):
     self.__rc_version = options.rc_version
     self.__bom_dict = {}
     self.__release_version = options.release_version
+    self.__gist_uri = ''
     self.__github_publisher = options.github_publisher
     self.__changelog_file = options.changelog_file
     self.__github_token = options.github_token
@@ -104,9 +105,9 @@ class BomPublisher(BomGenerator):
       self.publish_bom(alias_file)
 
     # Update the available Spinnaker versions.
-    # TODO(jacobkiefer): Determine final changelog link.
-    check_run_quick('hal admin publish version --version {version} --alias "{alias}" --changelog {changelog}'
-                    .format(version=self.__release_version, alias=self.__release_name, changelog='spinnaker.io'))
+    check_run_quick(
+      'hal admin publish version --version {version} --alias "{alias}" --changelog {changelog}'
+      .format(version=self.__release_version, alias=self.__release_name, changelog=self.__gist_uri))
     check_run_quick('hal admin publish latest {version}'
                     .format(version=self.__release_version))
 
@@ -126,9 +127,9 @@ class BomPublisher(BomGenerator):
       content = InputFileContent(''.join(raw_content_lines))
       filename = os.path.basename(self.__changelog_file)
       gist = self.__github.get_user().create_gist(True, {filename: content}, description=description)
-      gist_uri = 'https://gist.github.com/{user}/{id}'.format(user=self.__gist_user, id=gist.id)
-      print ('Wrote changelog to Gist at {0}.'.format(gist_uri))
-      return gist_uri
+      self.__gist_uri = 'https://gist.github.com/{user}/{id}'.format(user=self.__gist_user, id=gist.id)
+      print ('Wrote changelog to Gist at {0}.'.format(self.__gist_uri))
+      return self.__gist_uri
 
   def push_branch_and_tags(self):
     """Creates a release branch and pushes tags to the microservice repos owned by --github_publisher.
