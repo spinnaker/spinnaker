@@ -37,6 +37,11 @@ public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 400L;
   private static int cycle;
   private static String[] cursors = {"◢", "◣", "◤", "◥"};
+  private static boolean interrupted;
+
+  public static void interrupt() {
+    interrupted = true;
+  }
 
   public static <C, T> T get(DaemonTask<C, T> task) {
     int lastTaskCount = 0;
@@ -44,6 +49,11 @@ public class ResponseUnwrapper {
     task = Daemon.getTask(task.getUuid());
     while (!task.getState().isTerminal()) {
       updateCycle();
+      if (interrupted) {
+        Daemon.interruptTask(task.getUuid());
+        throw TaskKilledException.interrupted(new InterruptedException("Interrupted by user"));
+      }
+
       lastTaskCount = formatTasks(aggregateTasks(task), lastTaskCount);
       try {
         Thread.sleep(WAIT_MILLIS);

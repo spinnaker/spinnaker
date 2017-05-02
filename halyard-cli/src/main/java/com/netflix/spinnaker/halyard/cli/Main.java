@@ -27,6 +27,8 @@ public class Main {
   public static void main(String[] args) {
     GlobalOptions globalOptions = GlobalOptions.getGlobalOptions();
 
+    Runtime.getRuntime().addShutdownHook(new Thread(new ShutdownHook()));
+
     HalCommand hal = new HalCommand();
     JCommander jc = new JCommander(hal);
     hal.setCommander(jc).configureSubcommands();
