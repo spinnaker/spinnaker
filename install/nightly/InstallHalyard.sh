@@ -8,6 +8,10 @@ set -e
 set -o pipefail
 
 REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
+SPINNAKER_REPOSITORY_URL="https://dl.bintray.com/spinnaker-releases/debians"
+SPINNAKER_DOCKER_REGISTRY="gcr.io/spinnaker-marketplace"
+SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
+
 VERSION=""
 RELEASE_TRACK=nightly
 
@@ -53,28 +57,41 @@ function print_usage() {
 usage: $0 [-y] [--quiet] [--dependencies_only]
     [--repository <debian repository url>]
     [--local-install] [--home_dir <path>]
-    -y                          Accept all default options during install
-                                (non-interactive mode).
+    -y                              Accept all default options during install
+                                    (non-interactive mode).
 
-    --repository <url>          Obtain Spinnaker packages from the <url>
-                                rather than the default repository, which is
-                                $REPOSITORY_URL.
+    --repository <url>              Obtain Halyard debian from <url>
+                                    rather than the default repository, which is
+                                    $REPOSITORY_URL.
 
-    --version <version>         Specify the exact verison of Halyard to install.
+    --spinnaker-repository <url>    Obtain Spinnaker artifact debians from <url>
+                                    rather than the default repository, which is
+                                    $SPINNAKER_REPOSITORY_URL.
 
-    --dependencies_only         Do not install any Spinnaker services.
-                                Only install the dependencies. This is intended
-                                for development scenarios only.
+    --spinnaker-registry <url>      Obtain Spinnaker docker images from <url>
+                                    rather than the default registry, which is
+                                    $SPINNAKER_DOCKER_REGISTRY.
 
-    --local-install             For Spinnaker and Java packages, download
-                                packages and install using dpkg instead of
-                                apt. Use this option only if you are having
-                                issues with the bintray repositories.
-                                If you use this option you must manually
-                                install openjdk-8-jdk.
+    --spinnaker-gce-project <name>  Obtain Spinnaker GCE images from <url>
+                                    rather than the default project, which is
+                                    $SPINNAKER_GCE_PROJECT.
 
-    --home_dir                  Override where user home directories reside
-                                example: /export/home vs /home.
+    --version <version>             Specify the exact verison of Halyard to 
+                                    install.
+
+    --dependencies_only             Do not install any Spinnaker services.
+                                    Only install the dependencies. This is
+                                    intended for development scenarios only.
+
+    --local-install                 For Spinnaker and Java packages, download
+                                    packages and install using dpkg instead of
+                                    apt. Use this option only if you are having
+                                    issues with the bintray repositories.
+                                    If you use this option you must manually
+                                    install openjdk-8-jdk.
+
+    --home_dir                      Override where user home directories reside
+                                    example: /export/home vs /home.
 EOF
 }
 
@@ -93,6 +110,21 @@ function process_args() {
       --repository)
         echo "repo"
         REPOSITORY_URL="$1"
+        shift
+        ;;
+      --spinnaker-repository)
+        echo "spinnaker-repo"
+        SPINNAKER_REPOSITORY_URL="$1"
+        shift
+        ;;
+      --spinnaker-registry)
+        echo "spinnaker-registry"
+        SPINNAKER_DOCKER_REGISTRY="$1"
+        shift
+        ;;
+      --spinnaker-gce-project)
+        echo "spinnaker-gce-project"
+        SPINNAKER_GCE_PROJECT="$1"
         shift
         ;;
       --version)
@@ -286,6 +318,10 @@ spinnaker:
   config:
     staging:
       directory: $staging
+  artifacts:
+    debianRepository: $SPINNAKER_REPOSITORY_URL
+    dockerRegistry: $SPINNAKER_DOCKER_REGISTRY
+    googleImageProject: $SPINNAKER_GCE_PROJECT
 EOL
 
   echo $user > /opt/spinnaker/config/halyard-user
