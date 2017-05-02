@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.WebhookService
-import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -49,8 +48,9 @@ class MonitorWebhookTask implements Task {
     String successStatuses = stage.context.successStatuses
     String canceledStatuses = stage.context.canceledStatuses
     String terminalStatuses = stage.context.terminalStatuses
+    def customHeaders = stage.context.customHeaders
 
-    def response = webhookService.getStatus(statusEndpoint)
+    def response = webhookService.getStatus(statusEndpoint, customHeaders)
     def result
     try {
       result = JsonPath.read(response.body, statusJsonPath)

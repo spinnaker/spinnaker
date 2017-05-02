@@ -88,18 +88,28 @@ class WebhookServiceSpec extends Specification {
 
   }
 
-  def "Status endpoint is being called"() {
+  @Unroll
+  def "Status endpoint is being called with headers #customHeaders"() {
+
     expect:
-    server.expect(requestTo("https://localhost/v1/status/123"))
+    def responseActions = server.expect(requestTo("https://localhost/v1/status/123"))
       .andExpect(method(HttpMethod.GET))
-      .andRespond(withSuccess('["element1", 123, false]', MediaType.APPLICATION_JSON))
+
+      if(customHeaders){
+        customHeaders.each {k, v -> responseActions.andExpect(header(k, v))}
+      }
+
+      responseActions.andRespond(withSuccess('["element1", 123, false]', MediaType.APPLICATION_JSON))
 
     when:
-    def responseEntity = webhookService.getStatus("https://localhost/v1/status/123")
+    def responseEntity = webhookService.getStatus("https://localhost/v1/status/123", [Authorization: "Basic password"])
 
     then:
     server.verify()
     responseEntity.statusCode == HttpStatus.OK
     responseEntity.body == ["element1", 123, false]
+
+    where:
+    customHeaders << [[Authorization: "Basic password"], [:], null]
   }
 }

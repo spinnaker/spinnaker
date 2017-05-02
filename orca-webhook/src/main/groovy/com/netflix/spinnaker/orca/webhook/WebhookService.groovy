@@ -37,14 +37,21 @@ class WebhookService {
 
   ResponseEntity<Object> exchange(HttpMethod httpMethod, String url, Object payload, Object customHeaders) {
     URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
-    HttpHeaders headers = new HttpHeaders()
-    customHeaders?.each{ key, value -> headers.add(key as String, value as String) }
+    HttpHeaders headers = buildHttpHeaders(customHeaders)
     HttpEntity<Object> payloadEntity = new HttpEntity<>(payload, headers)
     return restTemplate.exchange(validatedUri, httpMethod, payloadEntity, Object)
   }
 
-  ResponseEntity<Object> getStatus(String url) {
+  ResponseEntity<Object> getStatus(String url, Object customHeaders) {
     URI validatedUri = userConfiguredUrlRestrictions.validateURI(url)
-    return restTemplate.getForEntity(validatedUri, Object)
+    HttpHeaders headers = buildHttpHeaders(customHeaders)
+    HttpEntity<Object> httpEntity = new HttpEntity<>(headers)
+    return restTemplate.exchange(validatedUri, HttpMethod.GET, httpEntity, Object)
+  }
+
+  private static HttpHeaders buildHttpHeaders(Object customHeaders) {
+    HttpHeaders headers = new HttpHeaders()
+    customHeaders?.each { key, value -> headers.add(key as String, value as String) }
+    return headers
   }
 }
