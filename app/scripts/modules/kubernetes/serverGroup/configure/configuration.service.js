@@ -162,7 +162,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           });
 
           if (matchingContainers.length === 1) {
-            validContainers.push(matchingContainers[0]);
+            validContainers.push(container);
           } else {
             result.dirty.containers = result.dirty.containers || [];
             result.dirty.containers.push(container.image);
