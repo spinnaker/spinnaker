@@ -83,7 +83,7 @@ public class ValidatorCollection {
     } catch (NoSuchMethodException e) {
       // Do nothing, odds are most validators don't validate every class.
     } catch (InvocationTargetException | IllegalAccessException e) {
-      log.warn("Failed to invoke validate() on \"" + validator.getClass().getSimpleName() + "\" for node \"" + c.getSimpleName() + "\" with cause " + e.getCause(), e.getCause());
+      throw new RuntimeException("Failed to invoke validate() on \"" + validator.getClass().getSimpleName() + "\" for node \"" + c.getSimpleName(), e);
     }
 
     return runMatchingValidators(psBuilder, validator, node, c.getSuperclass()) + result;
