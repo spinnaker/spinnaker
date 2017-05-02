@@ -109,7 +109,11 @@ class KubernetesUtil {
   }
 
   static String getImageId(String registry, String repository, String tag) {
-    "$registry/$repository:$tag".toString()
+    if (registry) {
+      return "$registry/$repository:$tag".toString()
+    } else {
+      return "$repository:$tag".toString()
+    }
   }
 
   static getImageIdWithoutRegistry(KubernetesImageDescription image) {
