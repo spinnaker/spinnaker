@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +33,9 @@ public class DeploymentEnvironmentService {
 
   @Autowired
   private DeploymentService deploymentService;
+
+  @Autowired
+  private ValidateService validateService;
 
   public DeploymentEnvironment getDeploymentEnvironment(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setDeploymentEnvironment();
@@ -53,5 +57,13 @@ public class DeploymentEnvironmentService {
   public void setDeploymentEnvironment(String deploymentName, DeploymentEnvironment newDeploymentEnvironment) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setDeploymentEnvironment(newDeploymentEnvironment);
+  }
+
+  public ProblemSet validateDeploymentEnvironment(String deploymentName) {
+    NodeFilter filter = new NodeFilter()
+        .setDeployment(deploymentName)
+        .setDeploymentEnvironment();
+
+    return validateService.validateMatchingFilter(filter);
   }
 }

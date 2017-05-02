@@ -52,6 +52,11 @@ public class DeploymentEnvironmentController {
     DaemonResponse.StaticRequestBuilder<DeploymentEnvironment> builder = new DaemonResponse.StaticRequestBuilder<>();
 
     builder.setBuildResponse(() -> deploymentEnvironmentService.getDeploymentEnvironment(deploymentName));
+    builder.setSeverity(severity);
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName));
+    }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get the deployment environment");
   }
@@ -66,8 +71,13 @@ public class DeploymentEnvironmentController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> deploymentEnvironmentService.setDeploymentEnvironment(deploymentName, deploymentEnvironment));
+    builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
+
+    if (validate) {
+      builder.setValidate(() -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName));
+    }
 
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());

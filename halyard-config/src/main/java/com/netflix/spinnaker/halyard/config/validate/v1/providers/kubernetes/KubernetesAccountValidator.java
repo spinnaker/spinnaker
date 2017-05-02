@@ -27,6 +27,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.Kubern
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
+import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
@@ -36,15 +41,11 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.ERROR;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.WARNING;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.*;
 
 @Component
 public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
@@ -179,6 +180,25 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
           }
         }
       }
+    }
+  }
+
+  public void ensureKubectlExists(ConfigProblemSetBuilder p) {
+    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+    JobRequest request = new JobRequest()
+        .setTokenizedCommand(Collections.singletonList("kubectl"))
+        .setTimeoutMillis(TimeUnit.SECONDS.toMillis(10));
+
+    JobStatus status;
+    try {
+      status = jobExecutor.backoffWait(jobExecutor.startJob(request));
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      p.addProblem(FATAL, String.join(" ", "`kubectl` not installed. It is needed for opening connections to your Kubernetes cluster",
+          "to send commands to the Spinnaker deployment running there.")).setRemediation("Visit https://kubernetes.io/docs/tasks/kubectl/install/");
     }
   }
 }
