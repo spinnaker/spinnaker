@@ -10,6 +10,8 @@ var fiatEnabled = {%features.fiat%};
 var jobsEnabled = {%features.jobs%};
 var timezone = '{%timezone%}';
 var version = '{%version%}';
+var changelogGistId = '{%changelog.gist.id%}';
+var changelogGistName = '{%changelog.gist.name%}';
 var gce = {
   defaults: {
     account: '{%google.default.account%}',
@@ -87,8 +89,8 @@ window.spinnakerSettings = {
     appengine: appengine,
   },
   whatsNew: {
-    gistId: '32526cd608db3d811b38',
-    fileName: 'news.md',
+    gistId: changelogGistId,
+    fileName: changelogGistName,
   },
   notifications: {
     email: {
