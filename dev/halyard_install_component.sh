@@ -75,7 +75,11 @@ function contains() {
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/InstallHalyard.sh
-  sudo bash InstallHalyard.sh -y
+  # TODO(jacobkiefer): CHANGE THIS BACK TO DEFAULT.
+  sudo bash InstallHalyard.sh \
+       --repository 'https://dl.bintray.com/spinnaker-team/spinnakerbuild' \
+       --spinnaker-repository 'https://dl.bintray.com/spinnaker-team/spinnakerbuild' \
+       -y
 
   echo "Installing $COMPONENT and optional dependencies..."
   hal config version edit --version $VERSION
@@ -84,7 +88,7 @@ function main() {
   local service_names
   if contains $COMPONENT "${EXTERNAL_ARTIFACTS[@]}"; then
     service_names=($COMPONENT)
-  else 
+  else
     service_names=($COMPONENT monitoring-daemon vault-client consul-client)
   fi
 
