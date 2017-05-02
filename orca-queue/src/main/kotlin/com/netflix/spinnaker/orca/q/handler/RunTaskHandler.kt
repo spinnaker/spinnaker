@@ -139,12 +139,17 @@ open class RunTaskHandler
   private fun Task.isTimedOut(stage: Stage<*>): Boolean =
     when (this) {
       is RetryableTask -> {
-        val startTime = Instant.ofEpochMilli(stage.getStartTime())
+        val startTime = Instant.ofEpochMilli(stage.firstTask()?.startTime ?: stage.getStartTime())
         val pausedDuration = stage.getExecution().pausedDuration()
-        Duration
+        if (Duration
           .between(startTime, clock.instant())
           .minus(pausedDuration)
-          .toMillis() > timeout
+          .toMillis() > timeout) {
+          log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after ${Duration.between(startTime, clock.instant())}")
+          true
+        } else {
+          false
+        }
       }
       else -> false
     }

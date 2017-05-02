@@ -494,6 +494,84 @@ class RunTaskHandlerSpec : Spek({
           verify(task, never()).execute(any())
         }
       }
+
+      context("the execution spent a long time running before stages") {
+        val timeout = Duration.ofMinutes(5)
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+            task {
+              id = "1"
+              implementingClass = DummyTask::class.qualifiedName
+              status = SUCCEEDED
+              startTime = clock.instant().minusMillis(timeout.toMillis() - 1).toEpochMilli()
+            }
+            task {
+              id = "2"
+              implementingClass = DummyTask::class.qualifiedName
+              status = RUNNING
+            }
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "2", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(task.timeout) doReturn timeout.toMillis()
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          handler.handle(message)
+        }
+
+        it("executes the task") {
+          verify(task).execute(any())
+        }
+      }
+
+      context("the execution spent a long time running before stages but is timed out anyway") {
+        val timeout = Duration.ofMinutes(5)
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            startTime = clock.instant().minusMillis(timeout.toMillis() + 2).toEpochMilli()
+            task {
+              id = "1"
+              implementingClass = DummyTask::class.qualifiedName
+              status = SUCCEEDED
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+            }
+            task {
+              id = "2"
+              implementingClass = DummyTask::class.qualifiedName
+              status = RUNNING
+            }
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(task.timeout) doReturn timeout.toMillis()
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          handler.handle(message)
+        }
+
+        it("fails the task") {
+          verify(queue).push(CompleteTask(message, TERMINAL))
+        }
+
+        it("does not execute the task") {
+          verify(task, never()).execute(any())
+        }
+      }
     }
 
     describe("the context passed to the task") {
