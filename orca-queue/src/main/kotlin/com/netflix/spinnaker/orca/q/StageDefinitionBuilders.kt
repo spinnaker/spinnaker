@@ -160,7 +160,7 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
     val parallelContexts = parallelContexts(stage)
     parallelContexts
       .map { context ->
-      val execution = stage.getExecution()
+        val execution = stage.getExecution()
         val stageType = context.getOrDefault("type", stage.getType()).toString()
         val stageName = context.getOrDefault("name", stage.getName()).toString()
         @Suppress("UNCHECKED_CAST")
@@ -169,10 +169,8 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
           is Orchestration -> newStage(execution, stageType, stageName, context, stage as Stage<Orchestration>, STAGE_BEFORE)
           else -> throw IllegalStateException()
         }
-    }
+      }
       .forEachIndexed { i, it ->
-        // TODO: this is insane backwards nonsense, it doesn't need the child stage in any impl so we could determine this when building the stage in the first place
-        it.setType(getChildStageType(it))
         it.setRefId("${stage.getRefId()}=${i + 1}")
         it.setRequisiteStageRefIds(emptySet())
         stage.getExecution().apply {
