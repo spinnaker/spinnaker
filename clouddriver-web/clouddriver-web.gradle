@@ -21,7 +21,6 @@ repositories {
 }
 
 dependencies {
-  compile project(':clouddriver-titus')
   compile project(':clouddriver-aws')
   compile project(':clouddriver-azure')
   compile project(':clouddriver-cf')
