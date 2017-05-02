@@ -65,7 +65,7 @@ interface Queue {
      * The maximum number of times an un-acknowledged message will be re-delivered
      * before failing permanently.
      */
-    val maxRedeliveries: Int = 10
+    val maxRedeliveries: Int = 5
   }
 }
 

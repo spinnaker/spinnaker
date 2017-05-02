@@ -270,6 +270,23 @@ abstract class QueueSpec<out Q : Queue>(
       it("passes the failed message to the dead letter handler") {
         verify(deadLetterCallback).invoke(queue!!, message)
       }
+
+      context("once the message has been dead-lettered") {
+        action("the next time re-delivery checks happen") {
+          queue!!.apply {
+            triggerRedeliveryCheck()
+            poll(callback)
+          }
+        }
+
+        it("it does not get redelivered again") {
+          verifyZeroInteractions(callback)
+        }
+
+        it("no longer gets sent to the dead letter handler") {
+          verify(deadLetterCallback).invoke(queue!!, message)
+        }
+      }
     }
   }
 }) {

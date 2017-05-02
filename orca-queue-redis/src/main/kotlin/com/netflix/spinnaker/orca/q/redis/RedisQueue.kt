@@ -88,10 +88,14 @@ class RedisQueue(
   }
 
   private fun ack(id: UUID) {
+    ack(id.toString())
+  }
+
+  private fun ack(id: String) {
     pool.resource.use { redis ->
-      redis.zrem(unackedKey, id.toString())
-      redis.hdel(messagesKey, id.toString())
-      redis.hdel(attemptsKey, id.toString())
+      redis.zrem(unackedKey, id)
+      redis.hdel(messagesKey, id)
+      redis.hdel(attemptsKey, id)
     }
   }
 
@@ -101,16 +105,19 @@ class RedisQueue(
         zrangeByScore(unackedKey, 0.0, score())
           .let { ids ->
             if (ids.size > 0) {
-              log.warn("Redelivering ${ids.size} messages")
               ids.map { "$locksKey:$it" }.let { del(*it.toTypedArray()) }
             }
 
             ids.forEach { id ->
-              if (hgetInt(attemptsKey, id) >= Queue.maxRedeliveries) {
+              val attempts = hgetInt(attemptsKey, id)
+              if (attempts >= Queue.maxRedeliveries) {
+                log.warn("Message $id with payload ${hget(messagesKey, id)} exceeded max re-deliveries")
                 hget(messagesKey, id)
                   .let { json -> mapper.readValue<Message>(json) }
                   .let { handleDeadMessage(it) }
+                  .also { ack(id) }
               } else {
+                log.warn("Re-delivering message $id after $attempts attempts")
                 move(unackedKey, queueKey, ZERO, setOf(id))
               }
             }
