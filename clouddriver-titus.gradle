@@ -9,4 +9,5 @@ dependencies {
   compile 'com.squareup.okhttp3:okhttp:3.1.2'
   compile 'com.squareup.okhttp3:logging-interceptor:3.1.2'
   testCompile "org.slf4j:slf4j-simple:${spinnaker.version('slf4j')}"
+  spinnaker.group('test')
 }
