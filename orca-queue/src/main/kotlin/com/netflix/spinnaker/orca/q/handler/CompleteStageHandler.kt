@@ -70,7 +70,15 @@ open class CompleteStageHandler
       } else if (getSyntheticStageOwner() == STAGE_BEFORE) {
         parent().let { parent ->
           if (parent.allBeforeStagesComplete()) {
-            queue.push(StartTask(parent, parent.getTasks().first().id))
+            if (parent.getTasks().isNotEmpty()) {
+              queue.push(StartTask(parent, parent.getTasks().first().id))
+            } else if (parent.firstAfterStages().isNotEmpty()) {
+              parent.firstAfterStages().forEach {
+                queue.push(StartStage(it))
+              }
+            } else {
+              queue.push(CompleteStage(parent, SUCCEEDED))
+            }
           }
         }
       } else if (getSyntheticStageOwner() == STAGE_AFTER) {

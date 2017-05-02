@@ -54,6 +54,23 @@ val stageWithSyntheticBefore = object : StageDefinitionBuilder {
   )
 }
 
+val stageWithSyntheticBeforeAndNoTasks = object : StageDefinitionBuilder {
+  override fun getType() = "stageWithSyntheticBeforeAndNoTasks"
+
+  override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
+    newStage(stage.execution, singleTaskStage.type, "pre", mutableMapOf(), stage, STAGE_BEFORE)
+  )
+}
+
+val stageWithSyntheticBeforeAndAfterAndNoTasks = object : StageDefinitionBuilder {
+  override fun getType() = "stageWithSyntheticBeforeAndAfterAndNoTasks"
+
+  override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
+    newStage(stage.execution, singleTaskStage.type, "pre", mutableMapOf(), stage, STAGE_BEFORE),
+    newStage(stage.execution, singleTaskStage.type, "post", mutableMapOf(), stage, STAGE_AFTER)
+  )
+}
+
 val stageWithSyntheticAfter = object : StageDefinitionBuilder {
   override fun getType() = "stageWithSyntheticAfter"
   override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {

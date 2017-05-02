@@ -241,58 +241,129 @@ class CompleteStageHandlerSpec : Spek({
 
   describe("synthetic stages") {
     context("when a synthetic stage completes successfully") {
-      context("before the main stage") {
-        val pipeline = pipeline {
-          application = "foo"
-          stage {
-            type = stageWithSyntheticBefore.type
-            stageWithSyntheticBefore.buildSyntheticStages(this)
-            stageWithSyntheticBefore.buildTasks(this)
+      context("before a main stage") {
+        context("that has tasks") {
+          val pipeline = pipeline {
+            application = "foo"
+            stage {
+              type = stageWithSyntheticBefore.type
+              stageWithSyntheticBefore.buildSyntheticStages(this)
+              stageWithSyntheticBefore.buildTasks(this)
+            }
+          }
+
+          context("there are more before stages") {
+            val message = CompleteStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, SUCCEEDED)
+            beforeGroup {
+              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+            }
+
+            afterGroup(::resetMocks)
+
+            action("the handler receives a message") {
+              handler.handle(message)
+            }
+
+            it("runs the next synthetic stage") {
+              verify(queue).push(StartStage(
+                message.executionType,
+                message.executionId,
+                "foo",
+                pipeline.stages[1].id
+              ))
+            }
+          }
+
+          context("it is the last before stage") {
+            val message = CompleteStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages[1].id, SUCCEEDED)
+            beforeGroup {
+              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+            }
+
+            afterGroup(::resetMocks)
+
+            action("the handler receives a message") {
+              handler.handle(message)
+            }
+
+            it("runs the next synthetic stage") {
+              verify(queue).push(StartTask(
+                message.executionType,
+                message.executionId,
+                "foo",
+                pipeline.stages[2].id,
+                "1"
+              ))
+            }
           }
         }
 
-        context("there are more before stages") {
-          val message = CompleteStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, SUCCEEDED)
-          beforeGroup {
-            whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        context("that has no tasks") {
+          val pipeline = pipeline {
+            application = "foo"
+            stage {
+              refId = "1"
+              type = stageWithSyntheticBeforeAndNoTasks.type
+              stageWithSyntheticBeforeAndNoTasks.buildSyntheticStages(this)
+              stageWithSyntheticBeforeAndNoTasks.buildTasks(this)
+            }
           }
 
-          afterGroup(::resetMocks)
+          context("it is the last before stage") {
+            val message = CompleteStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1<1").id, SUCCEEDED)
+            beforeGroup {
+              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+            }
 
-          action("the handler receives a message") {
-            handler.handle(message)
-          }
+            afterGroup(::resetMocks)
 
-          it("runs the next synthetic stage") {
-            verify(queue).push(StartStage(
-              message.executionType,
-              message.executionId,
-              "foo",
-              pipeline.stages[1].id
-            ))
+            action("the handler receives a message") {
+              handler.handle(message)
+            }
+
+            it("completes the stage") {
+              verify(queue).push(CompleteStage(
+                message.executionType,
+                message.executionId,
+                "foo",
+                pipeline.stageByRef("1").id,
+                SUCCEEDED
+              ))
+            }
           }
         }
 
-        context("it is the last before stage") {
-          val message = CompleteStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages[1].id, SUCCEEDED)
-          beforeGroup {
-            whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+        context("that has no tasks but does have after stages") {
+          val pipeline = pipeline {
+            application = "foo"
+            stage {
+              refId = "1"
+              type = stageWithSyntheticBeforeAndAfterAndNoTasks.type
+              stageWithSyntheticBeforeAndAfterAndNoTasks.buildSyntheticStages(this)
+              stageWithSyntheticBeforeAndAfterAndNoTasks.buildTasks(this)
+            }
           }
 
-          afterGroup(::resetMocks)
+          context("it is the last before stage") {
+            val message = CompleteStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1<1").id, SUCCEEDED)
+            beforeGroup {
+              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+            }
 
-          action("the handler receives a message") {
-            handler.handle(message)
-          }
+            afterGroup(::resetMocks)
 
-          it("runs the next synthetic stage") {
-            verify(queue).push(StartTask(
-              message.executionType,
-              message.executionId,
-              "foo",
-              pipeline.stages[2].id,
-              "1"
-            ))
+            action("the handler receives a message") {
+              handler.handle(message)
+            }
+
+            it("starts the first after stage") {
+              verify(queue).push(StartStage(
+                message.executionType,
+                message.executionId,
+                "foo",
+                pipeline.stageByRef("1>1").id
+              ))
+            }
           }
         }
       }
