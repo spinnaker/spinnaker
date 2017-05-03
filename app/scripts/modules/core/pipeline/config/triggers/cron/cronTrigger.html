@@ -6,6 +6,7 @@
     <div class="col-md-9">
       <cron-gen ng-model="vm.trigger.cronExpression"
                 options="vm.cronOptions"
+                name="{{vm.trigger.id}}"
                 template-url="spinnaker-custom-cron-picker-template"></cron-gen>
     </div>
   </div>

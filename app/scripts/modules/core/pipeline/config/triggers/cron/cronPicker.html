@@ -50,7 +50,7 @@
         <div class="col-md-12">
           <input type="radio"
                  value="everyDays"
-                 name="daily-radio"
+                 name="daily-radio-{{$ctrl.name}}"
                  ng-change="$ctrl.regenerateCron()"
                  ng-model="$ctrl.state.daily.subTab"
                  checked="checked">
@@ -72,7 +72,7 @@
                  value="everyWeekDay"
                  ng-change="$ctrl.regenerateCron()"
                  ng-model="$ctrl.state.daily.subTab"
-                 name="daily-radio">
+                 name="daily-radio-{{$ctrl.name}}">
           Every week day
         </div>
       </div>
@@ -139,7 +139,7 @@
                  value="specificDay"
                  ng-change="$ctrl.regenerateCron()"
                  ng-model="$ctrl.state.monthly.subTab"
-                 name="monthly-radio"
+                 name="monthly-radio-{{$ctrl.name}}"
                  checked="checked">
           On the
           <select class="month-days"
@@ -168,7 +168,7 @@
                  value="specificWeekDay"
                  ng-change="$ctrl.regenerateCron()"
                  ng-model="$ctrl.state.monthly.subTab"
-                 name="monthly-radio">
+                 name="monthly-radio-{{$ctrl.name}}">
           <select class="form-control input-sm"
                   ng-change="$ctrl.regenerateCron()"
                   ng-model="$ctrl.state.monthly.specificWeekDay.monthWeek"
