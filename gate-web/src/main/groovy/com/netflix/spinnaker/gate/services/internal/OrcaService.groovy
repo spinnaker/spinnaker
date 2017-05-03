@@ -69,6 +69,10 @@ interface OrcaService {
   Map getPipeline(@Path("id") String id)
 
   @Headers("Accept: application/json")
+  @GET("/pipelines/{id}/logs")
+  List<Map> getPipelineLogs(@Path("id") String id)
+
+  @Headers("Accept: application/json")
   @PUT("/pipelines/{id}/cancel")
   Map cancelPipeline(@Path("id") String id, @Query("reason") reason, @Query("force") force, @Body String ignored)
 

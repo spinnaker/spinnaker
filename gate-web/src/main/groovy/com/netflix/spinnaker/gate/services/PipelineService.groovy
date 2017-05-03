@@ -91,6 +91,10 @@ class PipelineService {
     orcaService.getPipeline(id)
   }
 
+  List<Map> getPipelineLogs(String id) {
+    orcaService.getPipelineLogs(id)
+  }
+
   Map cancelPipeline(String id, String reason, boolean force) {
     orcaService.cancelPipeline(id, reason, force, "")
   }
