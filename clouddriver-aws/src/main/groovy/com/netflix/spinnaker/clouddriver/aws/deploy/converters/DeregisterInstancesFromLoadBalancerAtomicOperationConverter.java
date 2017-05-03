@@ -33,7 +33,7 @@ import java.util.Map;
 @Component("deregisterInstancesFromLoadBalancerDescription")
 public class DeregisterInstancesFromLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   private Boolean isClassic (Map input) {
-    return input.containsKey("targetGroups");
+    return !input.containsKey("targetGroupNames");
   }
 
   @Override
