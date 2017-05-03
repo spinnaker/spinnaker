@@ -157,7 +157,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
             if (container.imageDescription.registry) {
               return test.imageDescription.imageId === container.imageDescription.imageId;
             } else {
-              return _.last(test.imageDescription.imageId.split('/')) === container.imageDescription.imageId;
+              return _.endsWith(test.imageDescription.imageId, container.imageDescription.imageId);
             }
           });
 

@@ -1,18 +1,16 @@
 'use strict';
 
 import {API_SERVICE} from 'core/api/api.service';
+import {RETRY_SERVICE} from 'core/retry/retry.service';
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.kubernetes.image.reader', [API_SERVICE])
-  .factory('kubernetesImageReader', function ($q, API) {
+module.exports = angular.module('spinnaker.kubernetes.image.reader', [API_SERVICE, RETRY_SERVICE])
+  .factory('kubernetesImageReader', function ($q, API, retryService) {
     function findImages(params) {
-      return API.all('images/find').getList(params).then(function(results) {
-          return results;
-        },
-        function() {
-          return [];
-        });
+      return retryService
+        .buildRetrySequence(() => API.all('images/find').getList(params), results => (results.length > 0), 10, 1000)
+        .catch(() => []);
     }
 
     function getImage(/*amiName, region, account*/) {
