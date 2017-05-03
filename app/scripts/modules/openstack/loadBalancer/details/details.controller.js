@@ -7,7 +7,7 @@ import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.openstack.details.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,

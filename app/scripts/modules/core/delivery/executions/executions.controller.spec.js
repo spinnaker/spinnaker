@@ -18,13 +18,13 @@ describe('Controller: pipelineExecutions', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$timeout_, _scrollToService_, applicationModelBuilder) {
+    window.inject(function ($rootScope, $controller, _$timeout_, _scrollToService_, applicationModelBuilder, executionFilterModel) {
       scope = $rootScope.$new();
       $state = {go: angular.noop};
       $stateParams = {};
       $timeout = _$timeout_;
       scrollToService = _scrollToService_;
-
+      spyOn(executionFilterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       application = applicationModelBuilder.createApplication({key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
 
       this.initializeController = function (data) {

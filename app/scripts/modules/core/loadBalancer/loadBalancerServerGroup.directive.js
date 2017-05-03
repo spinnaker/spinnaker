@@ -2,9 +2,11 @@
 
 let angular = require('angular');
 
+import { LOAD_BALANCER_FILTER_MODEL } from './filter/loadBalancerFilter.model';
+
 module.exports = angular.module('spinnaker.core.loadBalancer.serverGroup', [
   require('./filter/loadBalancer.filter.service.js'),
-  require('./filter/loadBalancer.filter.model.js'),
+  LOAD_BALANCER_FILTER_MODEL,
 ])
   .directive('loadBalancerServerGroup', function ($rootScope, loadBalancerFilterService, LoadBalancerFilterModel) {
     return {

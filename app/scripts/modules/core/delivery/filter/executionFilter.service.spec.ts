@@ -28,6 +28,7 @@ describe('Service: executionFilterService', function () {
         model = executionFilterModel;
         $timeout = _$timeout_;
         executionFilterModel.groups = [];
+        spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       }
     );
   });

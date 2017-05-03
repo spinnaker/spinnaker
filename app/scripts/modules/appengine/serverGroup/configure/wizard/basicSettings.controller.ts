@@ -1,5 +1,5 @@
 import {extend, module, IScope, IControllerService} from 'angular';
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 import {set} from 'lodash';
 
 import {NamingService} from 'core/naming/naming.service';
@@ -14,7 +14,7 @@ class AppengineServerGroupBasicSettingsCtrl {
   static get $inject() { return ['$scope', '$state', '$controller', '$uibModalStack', 'namingService']; }
 
   constructor(public $scope: IAppengineBasicSettingsScope,
-              $state: IStateService,
+              $state: StateService,
               $controller: IControllerService,
               $uibModalStack: any,
               namingService: NamingService) {

@@ -11,7 +11,7 @@ import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 import {SETTINGS} from 'core/config/settings';
 
 module.exports = angular.module('spinnaker.instance.detail.openstack.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,

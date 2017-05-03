@@ -10,7 +10,7 @@ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.serv
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,

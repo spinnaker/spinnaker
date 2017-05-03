@@ -9,7 +9,7 @@ let angular = require('angular');
 import _ from 'lodash';
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,

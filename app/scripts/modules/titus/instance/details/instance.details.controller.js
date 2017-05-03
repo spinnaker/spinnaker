@@ -10,7 +10,7 @@ import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 
 module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,

@@ -4,12 +4,13 @@ import _ from 'lodash';
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {SETTINGS} from 'core/config/settings';
+import {SECURITY_GROUP_FILTER_MODEL} from './filter/securityGroupFilter.model';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),
-  require('./filter/securityGroup.filter.model.js'),
+  SECURITY_GROUP_FILTER_MODEL,
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('angular-ui-bootstrap'),
   CLOUD_PROVIDER_REGISTRY,

@@ -1,11 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
-import {IStateParamsService} from 'angular-ui-router';
-
-export interface IInfrastructureStateParams extends IStateParamsService {
-  q: string;
-}
+import { STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
 
 export const INFRASTRUCTURE_STATES = 'spinnaker.core.search.states';
 module(INFRASTRUCTURE_STATES, [
@@ -29,4 +24,5 @@ module(INFRASTRUCTURE_STATES, [
     }
   });
   stateConfigProvider.addRewriteRule('/', '/infrastructure');
+  stateConfigProvider.addRewriteRule('', '/infrastructure');
 });

@@ -6,6 +6,7 @@ import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service'
 import {ENTITY_UI_TAGS_COMPONENT} from 'core/entityTag/entityUiTags.component';
 import {Instance} from 'core/domain/instance';
 import {ServerGroup} from 'core/domain/serverGroup';
+import {CLUSTER_FILTER_MODEL} from 'core/cluster/filter/clusterFilter.model';
 
 interface JenkinsViewModel {
   number: number;
@@ -139,7 +140,7 @@ export const SERVER_GROUP_COMPONENT = 'spinnaker.core.serverGroup.serverGroup.co
 module(SERVER_GROUP_COMPONENT, [
   CLUSTER_FILTER_SERVICE,
   SERVER_GROUP_SEQUENCE_FILTER,
-  require('../cluster/filter/clusterFilter.model'),
+  CLUSTER_FILTER_MODEL,
   require('../cluster/filter/multiselect.model'),
   require('../instance/instances.directive'),
   require('../instance/instanceList.directive'),

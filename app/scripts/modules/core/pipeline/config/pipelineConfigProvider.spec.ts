@@ -15,7 +15,7 @@ describe('pipelineConfigProvider: API', function() {
       function(pipelineConfigProvider: PipelineConfigProvider) {
         configurer = pipelineConfigProvider;
       }
-    )
+    );
 
     mock.inject(function($injector: auto.IInjectorService) {
       service = configurer.$get($injector);
@@ -66,7 +66,7 @@ describe('pipelineConfigProvider: API', function() {
 
     it('augments provider stages with parent keys, labels, and descriptions', mock.inject(function() {
       const baseStage = {key: 'c', useBaseProvider: true, description: 'c description', label: 'the c'},
-          augmentedA = {key: 'd', provides: 'c', description: 'c description', label: 'the c'},
+          augmentedA = {key: 'd', provides: 'c', description: 'c description', label: 'the c'} as any,
           augmentedB = {key: 'e', provides: 'c', description: 'c description', label: 'the c'},
           augmentedC = {key: 'c', provides: 'c', description: 'c description', label: 'the c'};
       configurer.registerStage(baseStage as IStageTypeConfig);
@@ -74,15 +74,15 @@ describe('pipelineConfigProvider: API', function() {
       configurer.registerStage({key: 'e', provides: 'c'} as IStageTypeConfig);
       configurer.registerStage({provides: 'c'} as IStageTypeConfig);
       const stageTypes = service.getStageTypes();
-      expect(stageTypes).toEqual([ baseStage, augmentedA, augmentedB, augmentedC ]);
-      expect(service.getStageConfig({type: 'd'} as IStage)).toEqual(augmentedA);
+      expect(stageTypes as any[]).toEqual([ baseStage, augmentedA, augmentedB, augmentedC ]);
+      expect(service.getStageConfig({type: 'd'} as any)).toEqual(augmentedA);
     }));
 
     it('allows provider stages to override of label, description', mock.inject(function() {
       configurer.registerStage({key: 'a', useBaseProvider: true, description: 'a1', label: 'aa'} as IStageTypeConfig);
       configurer.registerStage({key: 'b', provides: 'a', description: 'b1', label: 'bb'} as IStageTypeConfig);
       configurer.registerStage({key: 'c', provides: 'a'} as IStageTypeConfig);
-      expect(service.getStageTypes()).toEqual([
+      expect(service.getStageTypes() as any[]).toEqual([
         {key: 'a', useBaseProvider: true, description: 'a1', label: 'aa'},
         {key: 'b', provides: 'a', description: 'b1', label: 'bb'},
         {key: 'c', provides: 'a', description: 'a1', label: 'aa'}
@@ -102,19 +102,19 @@ describe('pipelineConfigProvider: API', function() {
     describe('no provider configured', function () {
       it('adds all providers to stages that do not have any provider configuration', mock.inject(function () {
         configurer.registerStage({key: 'a'} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['aws', 'gcp'])).toEqual([{key: 'a', cloudProviders: ['aws', 'gcp']}]);
+        expect(service.getConfigurableStageTypes(['aws', 'gcp']) as any[]).toEqual([{key: 'a', cloudProviders: ['aws', 'gcp']}]);
       }));
     });
 
     describe('cloud providers configured on stage', function () {
       it('preserves providers that match passed in providers if configured with cloudProviders', mock.inject(function () {
         configurer.registerStage({key: 'a', providesFor: ['aws']} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['aws', 'gcp'])).toEqual([{key: 'a', providesFor: ['aws'], cloudProviders: ['aws']}]);
+        expect(service.getConfigurableStageTypes(['aws', 'gcp']) as any[]).toEqual([{key: 'a', providesFor: ['aws'], cloudProviders: ['aws']}]);
       }));
 
       it('filters providers to those passed in', mock.inject(function () {
         configurer.registerStage({key: 'a', providesFor: ['aws', 'gcp']} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['gcp'])).toEqual([{key: 'a', providesFor: ['aws', 'gcp'], cloudProviders: ['gcp']}]);
+        expect(service.getConfigurableStageTypes(['gcp']) as any[]).toEqual([{key: 'a', providesFor: ['aws', 'gcp'], cloudProviders: ['gcp']}]);
       }));
 
       it('filters out stages that do not support passed in providers', mock.inject(function () {
@@ -131,7 +131,7 @@ describe('pipelineConfigProvider: API', function() {
     describe('single cloud provider configured on stage', function () {
       it('retains cloud providers when matching passed in providers', mock.inject(function () {
         configurer.registerStage({key: 'a', cloudProvider: 'aws'} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['aws'])).toEqual([{key: 'a', cloudProvider: 'aws', cloudProviders: ['aws']}]);
+        expect(service.getConfigurableStageTypes(['aws']) as any[]).toEqual([{key: 'a', cloudProvider: 'aws', cloudProviders: ['aws']}]);
       }));
 
       it('filters stages when provider does not match', mock.inject(function () {
@@ -144,7 +144,7 @@ describe('pipelineConfigProvider: API', function() {
       it('returns stage implementation providers that match based on cloud provider', mock.inject(function () {
         configurer.registerStage({key: 'a', useBaseProvider: true} as IStageTypeConfig);
         configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws'} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['aws'])).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws']}]);
+        expect(service.getConfigurableStageTypes(['aws']) as any[]).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws']}]);
       }));
 
       it('filters stage implementations with no matching cloud provider', mock.inject(function () {
@@ -158,13 +158,13 @@ describe('pipelineConfigProvider: API', function() {
         configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws'} as IStageTypeConfig);
         configurer.registerStage({key: 'c', provides: 'a', cloudProvider: 'gcp'} as IStageTypeConfig);
         configurer.registerStage({key: 'd', provides: 'a', cloudProvider: 'titus'} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['aws', 'titus'])).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus']}]);
+        expect(service.getConfigurableStageTypes(['aws', 'titus']) as any[]).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus']}]);
       }));
 
       it('prefers providesFor to cloudProvider when configured on an implementing stage', mock.inject(function () {
         configurer.registerStage({key: 'a', useBaseProvider: true} as IStageTypeConfig);
         configurer.registerStage({key: 'b', provides: 'a', cloudProvider: 'aws', providesFor: ['aws', 'gcp', 'titus']} as IStageTypeConfig);
-        expect(service.getConfigurableStageTypes(['aws', 'titus'])).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus']}]);
+        expect(service.getConfigurableStageTypes(['aws', 'titus']) as any[]).toEqual([{key: 'a', useBaseProvider: true, cloudProviders: ['aws', 'titus']}]);
       }));
     });
 

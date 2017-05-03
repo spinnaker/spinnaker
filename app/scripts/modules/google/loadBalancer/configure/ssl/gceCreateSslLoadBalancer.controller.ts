@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 import * as _ from 'lodash';
 
 import {ICredentials} from 'core/domain/ICredentials';
@@ -102,7 +102,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
                private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
                private taskMonitorBuilder: TaskMonitorBuilder,
-               $state: IStateService,
+               $state: StateService,
                infrastructureCaches: InfrastructureCacheService) {
     super($scope, application, $uibModalInstance, $state, infrastructureCaches);
   }

@@ -15,7 +15,7 @@ import './securityGroup.configure.less';
 
 module.exports = angular
   .module('spinnaker.google.securityGroup.baseConfig.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     TASK_MONITOR_BUILDER,
     ACCOUNT_SERVICE,
     NETWORK_READ_SERVICE,

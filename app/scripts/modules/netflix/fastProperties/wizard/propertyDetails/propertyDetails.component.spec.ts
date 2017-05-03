@@ -1,4 +1,4 @@
-import {mock} from 'angular';
+import {IComponentControllerService, mock} from 'angular';
 
 import {FastPropertyDetailsComponentController, FAST_PROPERTY_DETAILS_COMPONENT} from './propertyDetails.component';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
@@ -6,7 +6,7 @@ import {Property} from '../../domain/property.domain';
 
 describe('propertyDetailsComponent test', function () {
 
-  let $componentController: ng.IComponentControllerService,
+  let $componentController: IComponentControllerService,
     $ctrl: FastPropertyDetailsComponentController;
 
   const initializeController = (data: any) => {
@@ -15,13 +15,14 @@ describe('propertyDetailsComponent test', function () {
       { $scope: null},
       data
     );
+    $ctrl.$onInit();
   };
 
   beforeEach(mock.module(FAST_PROPERTY_DETAILS_COMPONENT));
 
   beforeEach(
     mock
-      .inject(( _$componentController_: ng.IComponentControllerService) => {
+      .inject(( _$componentController_: IComponentControllerService) => {
         $componentController = _$componentController_;
       })
   );

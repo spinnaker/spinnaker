@@ -1,7 +1,7 @@
 import {module, IComponentController, IComponentOptions} from 'angular';
 import {Application} from '../application.model';
 import {ApplicationDataSource} from '../service/applicationDataSource';
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 
 class SecondaryApplicationNavComponentController implements IComponentController {
 
@@ -9,7 +9,7 @@ class SecondaryApplicationNavComponentController implements IComponentController
 
   static get $inject() { return ['$state']; }
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public isActive(dataSource: ApplicationDataSource) {
     return this.$state.includes(dataSource.activeState);

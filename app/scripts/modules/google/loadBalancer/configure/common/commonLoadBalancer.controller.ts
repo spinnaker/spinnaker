@@ -1,5 +1,5 @@
 import {IScope} from 'angular';
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 import {trimEnd} from 'lodash';
 
 import {Application} from 'core/application/application.model';
@@ -14,7 +14,7 @@ export class CommonGceLoadBalancerCtrl {
   constructor (public $scope: IPrivateScope,
                public application: Application,
                public $uibModalInstance: any,
-               private $state: IStateService,
+               private $state: StateService,
                private infrastructureCaches: InfrastructureCacheService) { }
 
   public onTaskComplete (loadBalancer: IGceLoadBalancer): void {

@@ -1,14 +1,15 @@
 'use strict';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+const angular = require('angular');
 
-let angular = require('angular');
+import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import {LOAD_BALANCER_FILTER_MODEL} from './filter/loadBalancerFilter.model';
 
 module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
   require('angular-ui-bootstrap'),
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
   require('./filter/loadBalancer.filter.service.js'),
-  require('./filter/loadBalancer.filter.model.js'),
+  LOAD_BALANCER_FILTER_MODEL,
   require('../filterModel/filter.tags.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])

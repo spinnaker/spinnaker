@@ -6,7 +6,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.filterModel.service', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
   ])
 .factory('filterModelService', function ($location, $state, $stateParams, $urlRouter, $timeout) {
 
@@ -108,7 +108,7 @@ module.exports = angular
       translator = translator || {};
       var tags = model.tags;
       var modelVal = model.sortFilter[key];
-      if (property.type === 'object') {
+      if (property.type === 'trueKeyObject') {
         _.forOwn(modelVal, function (isActive, value) {
           if (isActive) {
             tags.push({
@@ -139,7 +139,7 @@ module.exports = angular
     }
 
     var converters = {
-      'object': {
+      'trueKeyObject': {
         toParam: function(filterModel, property) {
           var obj = filterModel.sortFilter[property.model];
           if (obj) {
@@ -201,7 +201,7 @@ module.exports = angular
           return !val;
         }
       },
-      'number': {
+      'int': {
         toParam: function(filterModel, property) {
           var val = filterModel.sortFilter[property.model];
           return isNaN(val) ? null : property.defaultValue === val ? null : val;
@@ -297,11 +297,25 @@ module.exports = angular
       };
 
       filterModel.applyParamsToUrl = function() {
-        filterModelConfig.forEach(function (property) {
-          $location.search(property.param, converters[property.type].toParam(filterModel, property));
-        });
-        $urlRouter.update(true);
+        const newFilters = Object.keys($stateParams).reduce((acc, paramName) => {
+          const modelConfig = filterModelConfig.find(c => c.param === paramName);
+          if (modelConfig) {
+            const converted = converters[modelConfig.type].toParam(filterModel, modelConfig);
+            if (converted === null || converted === undefined) {
+              acc[paramName] = null;
+            } else {
+              acc[paramName] = _.cloneDeep(filterModel.sortFilter[modelConfig.model]);
+            }
+          } else {
+            acc[paramName] = _.cloneDeep($stateParams[paramName]);
+          }
+          return acc;
+        }, {});
+
+        $state.go('.', newFilters, {inherit: false});
       };
+
+      return filterModel;
     }
 
     return {

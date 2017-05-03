@@ -2,25 +2,12 @@ import {module} from 'angular';
 
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
-import {IStateParamsService} from 'angular-ui-router';
+import {StateParams} from 'angular-ui-router';
 import {Application} from '../application/application.model';
 import {ApplicationModelBuilder} from '../application/applicationModel.builder';
-
-export interface IApplicationInstanceDetailsState extends IApplicationStateParams {
-  provider: string;
-  instanceId: string;
-}
-
-export interface IStandaloneInstanceDetailsState extends IStateParamsService {
-  provider: string;
-  account: string;
-  region: string;
-  instanceId: string;
-}
 
 export const INSTANCE_STATES = 'spinnaker.core.instance.states';
 module(INSTANCE_STATES, [
@@ -35,12 +22,12 @@ module(INSTANCE_STATES, [
       'detail@../insight': {
         templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
           ($templateCache: ng.ITemplateCacheService,
-           $stateParams: IApplicationInstanceDetailsState,
+           $stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsTemplateUrl'));
         }],
         controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: IApplicationInstanceDetailsState,
+          ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
         }],
@@ -49,7 +36,7 @@ module(INSTANCE_STATES, [
     },
     resolve: {
       overrides: () => { return {}; },
-      instance: ['$stateParams', ($stateParams: IApplicationInstanceDetailsState) => {
+      instance: ['$stateParams', ($stateParams: StateParams) => {
         return {
           instanceId: $stateParams.instanceId
         };
@@ -90,7 +77,7 @@ module(INSTANCE_STATES, [
       'main@': {
         templateUrl: require('../presentation/standalone.view.html'),
         controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: IStandaloneInstanceDetailsState,
+          ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return cloudProviderRegistry.getValue($stateParams.provider, 'instance.detailsController');
         }],
@@ -98,7 +85,7 @@ module(INSTANCE_STATES, [
       }
     },
     resolve: {
-      instance: ['$stateParams', ($stateParams: IStandaloneInstanceDetailsState) => {
+      instance: ['$stateParams', ($stateParams: StateParams) => {
         return {
           instanceId: $stateParams.instanceId,
           account: $stateParams.account,

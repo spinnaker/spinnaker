@@ -1,27 +1,15 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {INestedState} from 'core/navigation/state.provider';
+import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
-
-export interface IPipelineConfigStateParams extends IApplicationStateParams {
-  pipelineId: string;
-}
-
-export interface IExecutionDetailsStateParams extends IApplicationStateParams {
-  executionId: string;
-  refId?: string;
-  stage?: string;
-  step?: string;
-  details?: string;
-}
+import { filterModelConfig } from './filter/executionFilter.model';
 
 export const DELIVERY_STATES = 'spinnaker.core.delivery.states';
 module(DELIVERY_STATES, [
   APPLICATION_STATE_PROVIDER
-]).config((applicationStateProvider: ApplicationStateProvider) => {
+]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const pipelineConfig: INestedState = {
     name: 'pipelineConfig',
@@ -78,12 +66,13 @@ module(DELIVERY_STATES, [
 
   const executions: INestedState = {
     name: 'executions',
-    url: '',
+    url: `?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
     views: {
       'pipelines': {
         template: '<executions application="application"></executions>',
       },
     },
+    params: stateConfigProvider.buildDynamicParams(filterModelConfig),
     children: [executionDetails],
     data: {
       pageTitleSection: {

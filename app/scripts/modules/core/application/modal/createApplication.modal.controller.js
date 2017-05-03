@@ -14,7 +14,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.application.create.modal.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     APPLICATION_WRITE_SERVICE,
     APPLICATION_READ_SERVICE,
     ACCOUNT_SERVICE,

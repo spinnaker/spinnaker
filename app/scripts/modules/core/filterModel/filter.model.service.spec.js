@@ -5,6 +5,7 @@ describe('Service: FilterModelService', function () {
 
   var service;
   var $location;
+  var $state;
   var $stateParams;
   var searchParams;
   var filterModel;
@@ -24,7 +25,7 @@ describe('Service: FilterModelService', function () {
 
   beforeEach(
     window.inject(
-      function (filterModelService, _$location_, _$stateParams_) {
+      function (filterModelService, _$location_, _$stateParams_, _$state_) {
         service = filterModelService;
         $location = _$location_;
         $stateParams = _$stateParams_;
@@ -34,6 +35,10 @@ describe('Service: FilterModelService', function () {
           } else {
             return searchParams;
           }
+        });
+        $state = _$state_;
+        spyOn($state, 'go').and.callFake(function(state, params) {
+          Object.keys(params).forEach(k => searchParams[k] = params[k]);
         });
         searchParams = {};
         filterModel = {};
@@ -243,8 +248,8 @@ describe('Service: FilterModelService', function () {
 
       beforeEach(function () {
         filterModelConfig = [
-          { model: 'account', type: 'object' },
-          { model: 'region', type: 'object' }
+          { model: 'account', type: 'trueKeyObject' },
+          { model: 'region', type: 'trueKeyObject' }
         ];
       });
 
@@ -288,8 +293,8 @@ describe('Service: FilterModelService', function () {
       beforeEach(function () {
         filterModelConfig = [
           { model: 'search', type: 'string', clearValue: '' },
-          { model: 'minCount', type: 'number', clearValue: 0 },
-          { model: 'maxCount', type: 'number' },
+          { model: 'minCount', type: 'int', clearValue: 0 },
+          { model: 'maxCount', type: 'int' },
         ];
       });
 
@@ -326,7 +331,7 @@ describe('Service: FilterModelService', function () {
     describe('translators', function () {
       beforeEach(function () {
         filterModelConfig = [
-          { model: 'status', type: 'object', filterTranslator: { 'up' : 'healthy', 'down' : 'unhealthy' }}
+          { model: 'status', type: 'trueKeyObject', filterTranslator: { 'up' : 'healthy', 'down' : 'unhealthy' }}
         ];
       });
       it ('should translate value based on supplied translator', function () {
@@ -352,8 +357,8 @@ describe('Service: FilterModelService', function () {
     describe('custom labels', function () {
       it ('should use filterLabel property for label if provided; otherwise, use model', function () {
         filterModelConfig = [
-          { model: 'availabilityZone', filterLabel: 'availability zone', type: 'object' },
-          { model: 'region', type: 'object' },
+          { model: 'availabilityZone', filterLabel: 'availability zone', type: 'trueKeyObject' },
+          { model: 'region', type: 'trueKeyObject' },
         ];
         configure();
         filterModel.sortFilter.availabilityZone['us-east-1c'] = true;
@@ -370,9 +375,9 @@ describe('Service: FilterModelService', function () {
     describe('tag order', function () {
       it ('should create tags in the order they are defined in config', function () {
         filterModelConfig = [
-          { model: 'availabilityZone', filterLabel: 'availability zone', type: 'object' },
-          { model: 'region', type: 'object' },
-          { model: 'account', type: 'object' }
+          { model: 'availabilityZone', filterLabel: 'availability zone', type: 'trueKeyObject' },
+          { model: 'region', type: 'trueKeyObject' },
+          { model: 'account', type: 'trueKeyObject' }
         ];
         configure();
         filterModel.sortFilter.account.prod = true;
@@ -393,8 +398,8 @@ describe('Service: FilterModelService', function () {
     var params;
     beforeEach(function () {
       filterModelConfig = [
-        { model: 'region', type: 'object' },
-        { model: 'account', type: 'object' }
+        { model: 'region', type: 'trueKeyObject' },
+        { model: 'account', type: 'trueKeyObject' }
       ];
       params = {application: 'deck'};
     });
@@ -440,7 +445,7 @@ describe('Service: FilterModelService', function () {
 
     beforeEach(function () {
       filterModelConfig = [
-        { model: 'account', type: 'object' }
+        { model: 'account', type: 'trueKeyObject' }
       ];
     });
 
@@ -491,7 +496,7 @@ describe('Service: FilterModelService', function () {
     describe('clear filters', function () {
       it ('should remove any values that are not displayOptions', function () {
         filterModelConfig = [
-          { model: 'account', type: 'object' },
+          { model: 'account', type: 'trueKeyObject' },
           { model: 'showInstances', type: 'string', displayOption: true },
         ];
         configure();
@@ -506,7 +511,7 @@ describe('Service: FilterModelService', function () {
 
       it ('should use a clearValue if supplied', function () {
         filterModelConfig = [
-          { model: 'account', type: 'object' },
+          { model: 'account', type: 'trueKeyObject' },
           { model: 'search', type: 'string', clearValue: '' },
         ];
         configure();
@@ -527,36 +532,24 @@ describe('Service: FilterModelService', function () {
           { model: 'showInstances', type: 'boolean', displayOption: true },
           { model: 'search', type: 'string'}
         ];
+        $stateParams.search = {};
+        $stateParams.showInstances = {};
         configure();
         filterModel.sortFilter.search = 'deck';
         filterModel.sortFilter.showInstances = true;
 
         filterModel.applyParamsToUrl();
         expect(searchParams.search).toBe('deck');
-        expect(searchParams.showInstances).toBe('true');
-      });
-
-      it ('should set objects based on true keys as comma-separate list of keys, sorted alphabetically', function () {
-        filterModelConfig = [
-          { model: 'account', type: 'object' },
-          { model: 'region', type: 'object'}
-        ];
-        configure();
-        filterModel.sortFilter.account.prod = true;
-        filterModel.sortFilter.account.test = true;
-        filterModel.sortFilter.account.management = true;
-        filterModel.sortFilter.region['us-east-1'] = true;
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.account).toBe('management,prod,test');
-        expect(searchParams.region).toBe('us-east-1');
+        expect(searchParams.showInstances).toBe(true);
       });
 
       it ('should set numeric values, including zero', function () {
         filterModelConfig = [
-          { model: 'min', type: 'number' },
-          { model: 'max', type: 'number'}
+          { model: 'min', type: 'int' },
+          { model: 'max', type: 'int'}
         ];
+        $stateParams.min = {};
+        $stateParams.max = {};
         configure();
         filterModel.sortFilter.min = 0;
         filterModel.sortFilter.max = 3;
@@ -568,8 +561,9 @@ describe('Service: FilterModelService', function () {
 
       it ('should not set numeric fields if they are not numbers', function () {
         filterModelConfig = [
-          { model: 'min', type: 'number' },
+          { model: 'min', type: 'int' },
         ];
+        $stateParams.min = {};
         configure();
         filterModel.sortFilter.min = 'boo';
 
@@ -581,6 +575,7 @@ describe('Service: FilterModelService', function () {
         filterModelConfig = [
           { model: 'search', type: 'string' },
         ];
+        $stateParams.search = {};
         configure();
         filterModel.sortFilter.search = '';
 
@@ -588,54 +583,12 @@ describe('Service: FilterModelService', function () {
         expect(searchParams.search).toBeNull();
       });
 
-      it ('should set sortKey fields based on key value', function () {
-        filterModelConfig = [
-          { model: 'instanceSort', type: 'sortKey' },
-        ];
-        configure();
-        filterModel.sortFilter.instanceSort = { key: '-launchTime' };
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.instanceSort).toBe('-launchTime');
-      });
-
-      it ('should only set boolean values if they are true', function () {
-        filterModelConfig = [
-          { model: 'listInstances', type: 'boolean' },
-        ];
-        configure();
-        filterModel.sortFilter.listInstances = false;
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.listInstances).toBeNull();
-
-        filterModel.sortFilter.listInstances = true;
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.listInstances).toBe('true');
-      });
-
-      it ('should only set inverse-boolean values if they are false', function () {
-        filterModelConfig = [
-          { model: 'hideInstances', type: 'inverse-boolean' },
-        ];
-        configure();
-        filterModel.sortFilter.hideInstances = false;
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.hideInstances).toBe('true');
-
-        filterModel.sortFilter.hideInstances = true;
-
-        filterModel.applyParamsToUrl();
-        expect(searchParams.hideInstances).toBeNull();
-      });
     });
 
     describe('activate', function () {
       it ('should set objects by splitting parameter on comma', function () {
         filterModelConfig = [
-          { model: 'account', type: 'object' },
+          { model: 'account', type: 'trueKeyObject' },
         ];
         $location.search('account', 'prod,test');
         configure();
@@ -645,7 +598,7 @@ describe('Service: FilterModelService', function () {
 
       it ('should set numeric values, including zero', function () {
         filterModelConfig = [
-          { model: 'min', type: 'number' },
+          { model: 'min', type: 'int' },
         ];
         $location.search('min', '3');
         configure();
@@ -655,7 +608,7 @@ describe('Service: FilterModelService', function () {
 
       it ('should not set numeric fields if they are not numbers', function () {
         filterModelConfig = [
-          { model: 'min', type: 'number' },
+          { model: 'min', type: 'int' },
         ];
         $location.search('min', 'foo');
         configure();

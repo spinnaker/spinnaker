@@ -8,7 +8,7 @@ import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../../loadBalancer.transformer.js'),

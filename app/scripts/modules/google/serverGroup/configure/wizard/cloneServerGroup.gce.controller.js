@@ -7,7 +7,7 @@ import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('./../../../instance/custom/customInstanceBuilder.gce.service.js'),
   INSTANCE_TYPE_SERVICE,

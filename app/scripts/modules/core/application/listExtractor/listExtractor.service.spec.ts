@@ -16,6 +16,11 @@ describe('appListExtractorService', function () {
     return application;
   };
 
+  const asResult = (instance: Instance) => {
+    const {id, availabilityZone} = instance;
+    return { id, availabilityZone };
+  };
+
   beforeEach(
     mock.module(
       LIST_EXTRACTOR_SERVICE,
@@ -293,7 +298,7 @@ describe('appListExtractorService', function () {
       ]);
       const result = service.getInstances([application]);
       expect(result.length).toEqual(2);
-      expect(result).toEqual([
+      expect(result.map(asResult)).toEqual([
         {
           availabilityZone: 'us-west-2a',
           id: 'i-1234'
@@ -315,7 +320,7 @@ describe('appListExtractorService', function () {
 
       const result = service.getInstances([applicationA, applicationB]);
       expect(result.length).toEqual(2);
-      expect(result).toEqual([
+      expect(result.map(asResult)).toEqual([
         {
           availabilityZone: 'us-west-2a',
           id: 'i-4321'
@@ -340,7 +345,7 @@ describe('appListExtractorService', function () {
       const filterByRegion = (serverGroup: ServerGroup) => serverGroup.region === 'us-east-1';
       const result = service.getInstances([application], filterByGate, filterByRegion);
       expect(result.length).toEqual(1);
-      expect(result).toEqual([
+      expect(result.map(asResult)).toEqual([
         {
           availabilityZone: 'us-east-1d',
           id: 'i-3333'
@@ -362,7 +367,7 @@ describe('appListExtractorService', function () {
       const filterByAvailabilityZone = (instance: Instance) => instance.availabilityZone === 'eu-west-1b';
       const result = service.getInstances([application], filterByGate, filterByRegion, filterByAvailabilityZone);
       expect(result.length).toEqual(1);
-      expect(result).toEqual([
+      expect(result.map(asResult)).toEqual([
         {
           availabilityZone: 'eu-west-1b',
           id: 'i-12344'

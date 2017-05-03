@@ -1,12 +1,14 @@
 import {compact, uniq, map} from 'lodash';
 import {IScope, module} from 'angular';
-import {Application} from '../../application/application.model';
+
+import {Application} from 'core/application/application.model';
+import {LOAD_BALANCER_FILTER_MODEL} from './loadBalancerFilter.model';
 
 export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controller';
 
 const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
   require('./loadBalancer.filter.service'),
-  require('./loadBalancer.filter.model'),
+  LOAD_BALANCER_FILTER_MODEL,
   require('../../filterModel/dependentFilter/dependentFilter.service'),
   require('./loadBalancerDependentFilterHelper.service'),
 ]);
@@ -59,7 +61,7 @@ class LoadBalancerFilterCtrl {
     }));
   }
 
-  public updateLoadBalancerGroups(): void {
+  public updateLoadBalancerGroups(applyParamsToUrl = true): void {
     const { dependentFilterService, LoadBalancerFilterModel, loadBalancerFilterService, loadBalancerDependentFilterHelper, app } = this;
 
     const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
@@ -72,7 +74,9 @@ class LoadBalancerFilterCtrl {
     this.regionHeadings = region;
     this.availabilityZoneHeadings = availabilityZone;
 
-    LoadBalancerFilterModel.applyParamsToUrl();
+    if (applyParamsToUrl) {
+      LoadBalancerFilterModel.applyParamsToUrl();
+    }
     loadBalancerFilterService.updateLoadBalancerGroups(app);
   }
 
@@ -85,7 +89,7 @@ class LoadBalancerFilterCtrl {
 
     loadBalancerFilterService.clearFilters();
     loadBalancerFilterService.updateLoadBalancerGroups(app);
-    this.updateLoadBalancerGroups();
+    this.updateLoadBalancerGroups(false);
   }
 
   public initialize(): void {

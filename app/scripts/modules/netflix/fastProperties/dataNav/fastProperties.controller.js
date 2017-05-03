@@ -10,7 +10,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.netflix.fastProperties.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     require('../fastProperty.read.service.js'),
     CREATE_FAST_PROPERTY_WIZARD_CONTROLLER,
   ])

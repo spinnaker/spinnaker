@@ -6,7 +6,7 @@ import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.singleExecutionDetails.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     EXECUTION_SERVICE,
     SCHEDULER_FACTORY,
   ])

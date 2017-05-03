@@ -1,16 +1,16 @@
 import {module} from 'angular';
+import {StateParams} from 'angular-ui-router';
 
 import {EXECUTION_DETAILS_SECTION_SERVICE,
         ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
 import {BaseExecutionDetailsCtrl,
         IExecutionDetailsScope} from '../../core/baseExecutionDetails.controller';
-import {IExecutionDetailsStateParams} from 'core/delivery/delivery.states';
 
 class DestroyAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
   static get $inject() { return ['$scope', '$stateParams', 'executionDetailsSectionService']; }
 
   constructor ($scope: IExecutionDetailsScope,
-               $stateParams: IExecutionDetailsStateParams,
+               $stateParams: StateParams,
                executionDetailsSectionService: ExecutionDetailsSectionService) {
     super($scope, $stateParams, executionDetailsSectionService);
 
@@ -22,7 +22,7 @@ class DestroyAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
 export const DESTROY_ASG_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.stage.destroyAsg.executionDetails.controller';
 
 module(DESTROY_ASG_EXECUTION_DETAILS_CTRL, [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ]).controller('destroyAsgExecutionDetailsCtrl', DestroyAsgExecutionDetailsCtrl);

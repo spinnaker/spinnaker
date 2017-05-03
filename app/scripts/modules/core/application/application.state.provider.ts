@@ -1,18 +1,14 @@
-import {module} from 'angular';
-import {IState, IStateParamsService} from 'angular-ui-router';
-import {ApplicationReader} from './service/application.read.service';
-import {Application} from './application.model';
-import {STATE_CONFIG_PROVIDER, StateConfigProvider, INestedState} from 'core/navigation/state.provider';
-import {ApplicationModelBuilder} from './applicationModel.builder';
+import { IServiceProvider, module } from 'angular';
+import { StateParams } from 'angular-ui-router';
+import { ApplicationReader } from './service/application.read.service';
+import { Application } from './application.model';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
+import { ApplicationModelBuilder } from './applicationModel.builder';
 
-export interface IApplicationStateParams extends IStateParamsService {
-  application: string;
-}
-
-export class ApplicationStateProvider implements ng.IServiceProvider {
+export class ApplicationStateProvider implements IServiceProvider {
 
   private childStates: INestedState[] = [];
-  private detailStates: IState[] = [];
+  private detailStates: INestedState[] = [];
   private insightStates: INestedState[] = [];
   private insightState: INestedState = {
     name: 'insight',
@@ -56,7 +52,7 @@ export class ApplicationStateProvider implements ng.IServiceProvider {
    * security group, and load balancer insight parent states
    * @param state
    */
-  public addInsightDetailState(state: IState): void {
+  public addInsightDetailState(state: INestedState): void {
     this.detailStates.push(state);
     this.insightState.children.forEach(c => {
       c.children = c.children || [];
@@ -80,7 +76,7 @@ export class ApplicationStateProvider implements ng.IServiceProvider {
       url: `${relativeUrl}/:application`,
       resolve: {
         app: ['$stateParams', 'applicationReader', 'inferredApplicationWarning', 'applicationModelBuilder',
-          ($stateParams: IApplicationStateParams,
+          ($stateParams: StateParams,
            applicationReader: ApplicationReader,
            inferredApplicationWarning: any, applicationModelBuilder: ApplicationModelBuilder) => {
             return applicationReader.getApplication($stateParams.application)

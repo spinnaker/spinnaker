@@ -1,20 +1,20 @@
-import {mock, noop} from 'angular';
+import { mock, noop } from 'angular';
+import { StateParams, StateService } from 'angular-ui-router';
 
-import {EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService} from './executionDetailsSection.service';
-import {IExecutionDetailsStateParams} from '../delivery.states';
+import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from './executionDetailsSection.service';
 
 describe('executionDetailsSectionService', function() {
 
-  let $state: angular.ui.IStateService,
-      $stateParams: IExecutionDetailsStateParams,
+  let $state: StateService,
+      $stateParams: StateParams,
       $timeout: ng.ITimeoutService,
       service: ExecutionDetailsSectionService;
 
   beforeEach(mock.module(EXECUTION_DETAILS_SECTION_SERVICE));
   beforeEach(mock.inject((
     executionDetailsSectionService: ExecutionDetailsSectionService,
-    _$state_: angular.ui.IStateService,
-    _$stateParams_: IExecutionDetailsStateParams,
+    _$state_: StateService,
+    _$stateParams_: StateParams,
     _$timeout_: ng.ITimeoutService) => {
 
       service = executionDetailsSectionService;

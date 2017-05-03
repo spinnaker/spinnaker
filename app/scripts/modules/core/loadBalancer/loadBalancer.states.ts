@@ -1,24 +1,15 @@
-import {module} from 'angular';
+import { module } from 'angular';
+import { StateParams } from 'angular-ui-router';
 
-import {INestedState} from 'core/navigation/state.provider';
-import {
-  APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
-} from 'core/application/application.state.provider';
-import {CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
-
-export interface ILoadBalancerDetailsStateParams extends IApplicationStateParams {
-  provider: string;
-  accountId: string;
-  region: string;
-  vpcId: string;
-  name: string;
-}
+import { INestedState, StateConfigProvider } from 'core/navigation/state.provider';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
+import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
+import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [
   APPLICATION_STATE_PROVIDER
-]).config((applicationStateProvider: ApplicationStateProvider) => {
+]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const loadBalancerDetails: INestedState = {
     name: 'loadBalancerDetails',
@@ -33,12 +24,12 @@ module(LOAD_BALANCER_STATES, [
       'detail@../insight': {
         templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
           ($templateCache: ng.ITemplateCacheService,
-           $stateParams: ILoadBalancerDetailsStateParams,
+           $stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.detailsTemplateUrl'));
         }],
         controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: ILoadBalancerDetailsStateParams,
+          ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return cloudProviderRegistry.getValue($stateParams.provider, 'loadBalancer.detailsController');
         }],
@@ -46,7 +37,7 @@ module(LOAD_BALANCER_STATES, [
       }
     },
     resolve: {
-      loadBalancer: ['$stateParams', ($stateParams: ILoadBalancerDetailsStateParams) => {
+      loadBalancer: ['$stateParams', ($stateParams: StateParams) => {
         return {
           name: $stateParams.name,
           accountId: $stateParams.accountId,
@@ -69,25 +60,26 @@ module(LOAD_BALANCER_STATES, [
   };
 
   const loadBalancers: INestedState = {
-      url: '/loadBalancers',
-      name: 'loadBalancers',
-      views: {
-        'nav': {
-          template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
-        },
-        'master': {
-          templateUrl: require('../loadBalancer/all.html'),
-          controller: 'AllLoadBalancersCtrl',
-          controllerAs: 'ctrl'
-        }
+    url: `/loadBalancers?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
+    name: 'loadBalancers',
+    views: {
+      'nav': {
+        template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
       },
-      data: {
-        pageTitleSection: {
-          title: 'Load Balancers'
-        }
-      },
-      children: [],
-    };
+      'master': {
+        templateUrl: require('../loadBalancer/all.html'),
+        controller: 'AllLoadBalancersCtrl',
+        controllerAs: 'ctrl'
+      }
+    },
+    params: stateConfigProvider.buildDynamicParams(filterModelConfig),
+    data: {
+      pageTitleSection: {
+        title: 'Load Balancers'
+      }
+    },
+    children: [],
+  };
 
   applicationStateProvider.addInsightState(loadBalancers);
   applicationStateProvider.addInsightDetailState(loadBalancerDetails);

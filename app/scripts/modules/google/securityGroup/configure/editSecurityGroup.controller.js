@@ -8,7 +8,7 @@ import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.serv
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   TASK_MONITOR_BUILDER,

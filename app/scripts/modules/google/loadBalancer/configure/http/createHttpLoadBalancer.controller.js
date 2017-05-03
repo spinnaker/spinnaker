@@ -11,7 +11,7 @@ require('./httpLoadBalancerWizard.component.less');
 
 module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
   require('angular-ui-bootstrap'),
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('./backendService/backendService.component.js'),
   require('./basicSettings/basicSettings.component.js'),
   GCE_CACHE_REFRESH,

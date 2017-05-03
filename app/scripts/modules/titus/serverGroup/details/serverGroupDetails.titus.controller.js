@@ -12,7 +12,7 @@ import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningT
 import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   require('../configure/ServerGroupCommandBuilder.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,

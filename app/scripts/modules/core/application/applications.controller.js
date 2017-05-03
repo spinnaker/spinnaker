@@ -9,7 +9,7 @@ import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 
 module.exports = angular.module('spinnaker.applications.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   APPLICATION_READ_SERVICE,
   ACCOUNT_SERVICE,
   ANY_FIELD_FILTER,

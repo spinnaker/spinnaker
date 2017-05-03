@@ -1,9 +1,8 @@
-import {module, isArray, IComponentController, IComponentOptions} from 'angular';
-import {IStateService} from 'angular-ui-router';
-import {Property} from '../domain/property.domain';
+import { IComponentController, IComponentOptions, isArray, module } from 'angular';
+import { StateParams, StateService } from 'angular-ui-router';
+import { Property } from '../domain/property.domain';
 
 import { flatten, values } from 'lodash';
-import {IApplicationStateParams} from 'core/application/application.state.provider';
 
 export class FastPropertyPodsController implements IComponentController {
 
@@ -20,8 +19,8 @@ export class FastPropertyPodsController implements IComponentController {
     this.resetPropertyDetails();
   }
 
-  constructor(private $state: IStateService,
-              public $stateParams: IApplicationStateParams) {}
+  constructor(private $state: StateService,
+              public $stateParams: StateParams) {}
 
 
   public isPropertyListArray(): boolean {
@@ -69,7 +68,7 @@ class FastPropertyPods implements IComponentOptions {
 export const FAST_PROPERTY_PODS = 'spinnaker.netflix.globalFastProperty.pods.component';
 
 module(FAST_PROPERTY_PODS, [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
 ])
   .component('fastPropertyPods', new FastPropertyPods());
 

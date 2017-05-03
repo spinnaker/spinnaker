@@ -1,5 +1,5 @@
 import {extend, IControllerService, ILogService, IQService, IScope, module} from 'angular';
-import {IState} from 'angular-ui-router';
+import {StateDeclaration} from 'angular-ui-router';
 import {IModalInstanceService} from 'angular-ui-bootstrap';
 
 import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
@@ -25,7 +25,7 @@ class NetflixCreateApplicationModalController {
               $log: ILogService,
               $scope: IScope,
               $controller: IControllerService,
-              $state: IState,
+              $state: StateDeclaration,
               $uibModalInstance: IModalInstanceService,
               accountService: AccountService,
               applicationReader: ApplicationReader,
@@ -60,7 +60,7 @@ class NetflixCreateApplicationModalController {
 }
 export const NETFLIX_CREATE_APPLICATION_MODAL_CONTROLLER = 'spinnaker.netflix.application.create.modal.controller';
 module(NETFLIX_CREATE_APPLICATION_MODAL_CONTROLLER, [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   APPLICATION_WRITE_SERVICE,
   APPLICATION_READ_SERVICE,
   ACCOUNT_SERVICE,

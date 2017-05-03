@@ -1,11 +1,18 @@
 import {IAngularEvent, IRootScopeService, module} from 'angular';
-import {IState} from 'angular-ui-router';
+import {Ng1StateDeclaration, StateParams} from 'angular-ui-router';
 import {extend} from 'lodash';
 
 import {ICache} from 'core/cache/deckCache.service';
 import {IExecutionGroup} from 'core/domain';
 import {VIEW_STATE_CACHE_SERVICE, ViewStateCacheService} from 'core/cache/viewStateCache.service';
 import {Subject} from 'rxjs/Subject';
+import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+
+export const filterModelConfig: IFilterConfig[] = [
+  { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
+  { model: 'pipeline', param: 'pipeline', type: 'trueKeyObject', },
+  { model: 'status', type: 'trueKeyObject', },
+];
 
 export class ExecutionFilterModel {
   // Store count globally for 180 days
@@ -16,7 +23,7 @@ export class ExecutionFilterModel {
   private showStageDuration: boolean;
 
   // TODO: Convert filter.model.service to TS, create an interface, and have this class implement said interface
-  private filterModel: any = this;
+  public asFilterModel: IFilterModel;
   // The following get set in filterModelService.configureFilterModel(this, filterModelConfig);
   public sortFilter: any;
   public groups: IExecutionGroup[];
@@ -43,12 +50,7 @@ export class ExecutionFilterModel {
     this.groupBy = this.getCachedViewState().groupBy;
     this.showStageDuration = this.getCachedViewState().showStageDuration;
 
-    const filterModelConfig = [
-      { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
-      { model: 'pipeline', param: 'pipeline', type: 'object', },
-      { model: 'status', type: 'object', },
-    ];
-    filterModelService.configureFilterModel(this, filterModelConfig);
+    this.asFilterModel = filterModelService.configureFilterModel(this, filterModelConfig);
 
     let mostRecentParams: string = null;
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
@@ -66,29 +68,29 @@ export class ExecutionFilterModel {
       }
     });
 
-    $rootScope.$on('$stateChangeStart', (_event: IAngularEvent, toState: IState, _toParams: {}, fromState: IState, fromParams: {}) => {
+    $rootScope.$on('$stateChangeStart', (_event: IAngularEvent, toState: Ng1StateDeclaration, _toParams: StateParams, fromState: Ng1StateDeclaration, fromParams: StateParams) => {
       if (this.movingFromExecutionsState(toState, fromState)) {
-        this.filterModel.saveState(fromState, fromParams, mostRecentParams);
+        this.asFilterModel.saveState(fromState, fromParams, mostRecentParams);
       }
     });
 
-    $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: IState, toParams: {}, fromState: IState) => {
+    $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: StateParams, fromState: Ng1StateDeclaration) => {
       if (this.movingToExecutionsState(toState) && this.isExecutionStateOrChild(fromState.name)) {
-        this.filterModel.applyParamsToUrl();
+        this.asFilterModel.applyParamsToUrl();
         return;
       }
       if (this.movingToExecutionsState(toState)) {
         if (this.shouldRouteToSavedState(toParams, fromState)) {
-          this.filterModel.restoreState(toParams);
+          this.asFilterModel.restoreState(toParams);
         }
-        if (this.fromApplicationListState(fromState) && !this.filterModel.hasSavedState(toParams)) {
-          this.filterModel.clearFilters();
+        if (this.fromApplicationListState(fromState) && !this.asFilterModel.hasSavedState(toParams)) {
+          this.asFilterModel.clearFilters();
         }
       }
     });
 
     // A nice way to avoid watches is to define a property on an object
-    Object.defineProperty(this.filterModel.sortFilter, 'count', {
+    Object.defineProperty(this.asFilterModel.sortFilter, 'count', {
       get: () => this.groupCount,
       set: (count) => {
         this.groupCount = count;
@@ -96,7 +98,7 @@ export class ExecutionFilterModel {
       }
     });
 
-    Object.defineProperty(this.filterModel.sortFilter, 'groupBy', {
+    Object.defineProperty(this.asFilterModel.sortFilter, 'groupBy', {
       get: () => this.groupBy,
       set: (grouping) => {
         this.groupBy = grouping;
@@ -104,7 +106,7 @@ export class ExecutionFilterModel {
       }
     });
 
-    Object.defineProperty(this.filterModel.sortFilter, 'showStageDuration', {
+    Object.defineProperty(this.asFilterModel.sortFilter, 'showStageDuration', {
       get: () => this.showStageDuration,
       set: (newVal) => {
         this.showStageDuration = newVal;
@@ -112,7 +114,7 @@ export class ExecutionFilterModel {
       }
     });
 
-    this.filterModel.activate();
+    this.asFilterModel.activate();
   }
 
   private getCachedViewState(): { count: number, groupBy: string, showDurations: boolean, showStageDuration: boolean } {
@@ -138,20 +140,20 @@ export class ExecutionFilterModel {
     return this.isExecutionState(stateName) || this.isChildState(stateName);
   }
 
-  private movingToExecutionsState(toState: IState): boolean {
+  private movingToExecutionsState(toState: Ng1StateDeclaration): boolean {
     return this.isExecutionStateOrChild(toState.name);
   }
 
-  private movingFromExecutionsState (toState: IState, fromState: IState): boolean {
+  private movingFromExecutionsState (toState: Ng1StateDeclaration, fromState: Ng1StateDeclaration): boolean {
     return this.isExecutionStateOrChild(fromState.name) && !this.isExecutionStateOrChild(toState.name);
   }
 
-  private fromApplicationListState(fromState: IState): boolean {
+  private fromApplicationListState(fromState: Ng1StateDeclaration): boolean {
     return fromState.name === 'home.applications';
   }
 
-  private shouldRouteToSavedState(toParams: {}, fromState: IState): boolean {
-    return this.filterModel.hasSavedState(toParams) && !this.isExecutionStateOrChild(fromState.name);
+  private shouldRouteToSavedState(toParams: StateParams, fromState: Ng1StateDeclaration): boolean {
+    return this.asFilterModel.hasSavedState(toParams) && !this.isExecutionStateOrChild(fromState.name);
   }
 }
 

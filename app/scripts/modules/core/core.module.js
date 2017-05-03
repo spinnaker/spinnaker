@@ -40,6 +40,8 @@ import 'source-sans-pro';
 import 'font-awesome/css/font-awesome.css';
 import 'react-select/dist/react-select.css';
 
+import { UI_ROUTER_STATE_SHIM } from './routing/uirouter.stateEvents.shim';
+
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -50,7 +52,8 @@ module.exports = angular
   .module('spinnaker.core', [
     require('angular-messages'),
     require('angular-sanitize'),
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
+    UI_ROUTER_STATE_SHIM,
     require('angular-ui-bootstrap'),
     require('exports-loader?"angular.filter"!angular-filter'),
     require('exports-loader?"ui.select"!ui-select'),
@@ -237,4 +240,32 @@ module.exports = angular
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
     uiSelectConfig.appendToBody = true;
+  })
+  .run(function($stateRegistry, $uiRouter) {
+
+    // Type javascript:vis() in the browser url
+    window.vis = function() {
+      const collapsedStates = [
+        'home.data',
+        'home.project',
+        'home.projects',
+        'home.applications',
+        'home.applications.application.insight',
+        'home.applications.application.insight.clusters',
+        'home.applications.application.insight.securityGroups',
+        'home.applications.application.insight.loadBalancers',
+        'home.applications.application.pipelines',
+        'home.project.application.insight',
+        'home.project.application.insight.clusters',
+        'home.project.application.insight.securityGroups',
+        'home.project.application.insight.loadBalancers',
+        'home.project.application.pipelines',
+      ];
+
+      // eslint-disable-next-line no-underscore-dangle
+      collapsedStates.forEach(state => $stateRegistry.get(state).$$state()._collapsed = true);
+
+      System.import('ui-router-visualizer').then(vis => $uiRouter.plugin(vis.Visualizer));
+    };
   });
+

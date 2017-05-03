@@ -7,7 +7,7 @@ import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js'),
     require('core/region/regionSelectField.directive.js'),

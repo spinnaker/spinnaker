@@ -14,7 +14,7 @@ import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.servic
 require('../configure/serverGroup.configure.gce.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,

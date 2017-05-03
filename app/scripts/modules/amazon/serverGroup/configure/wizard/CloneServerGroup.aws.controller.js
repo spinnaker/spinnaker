@@ -9,7 +9,7 @@ import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('core/application/modal/platformHealthOverride.directive.js'),
   require('../serverGroupConfiguration.service.js'),
   SERVER_GROUP_WRITER,

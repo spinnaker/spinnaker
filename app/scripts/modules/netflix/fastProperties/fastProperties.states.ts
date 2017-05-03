@@ -1,16 +1,10 @@
 import {module} from 'angular';
+import {StateParams} from 'angular-ui-router';
 
 import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
-
-export interface IPropertyDetailsStateParams extends IApplicationStateParams {
-  propertyId: string;
-}
-
-export interface IFastPropertiesStateParams extends IApplicationStateParams { }
 
 export const FAST_PROPERTY_STATES = 'spinnaker.netflix.fastProperties.states';
 module(FAST_PROPERTY_STATES, [
@@ -68,7 +62,7 @@ module(FAST_PROPERTY_STATES, [
       }
     },
     resolve: {
-      fastProperty: ['$stateParams', ($stateParams: angular.ui.IStateParamsService) => {
+      fastProperty: ['$stateParams', ($stateParams: StateParams) => {
         return {
           propertyId: $stateParams['propertyId'],
         };
@@ -134,7 +128,7 @@ module(FAST_PROPERTY_STATES, [
       }
     },
     resolve: {
-      fastProperty: ['$stateParams', ($stateParams: IPropertyDetailsStateParams) => {
+      fastProperty: ['$stateParams', ($stateParams: StateParams) => {
         return {
           propertyId: $stateParams.propertyId,
         };

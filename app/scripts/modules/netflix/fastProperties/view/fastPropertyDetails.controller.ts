@@ -92,7 +92,6 @@ export class FastPropertyDetailsController {
 export const FAST_PROPERTY_DETAILS_CONTROLLER = 'spinnaker.netflix.globalFastProperties.details.controller';
 
 module(FAST_PROPERTY_DETAILS_CONTROLLER, [
-  require('angular-ui-router'),
   FAST_PROPERTY_READ_SERVICE,
   require('../fastProperty.write.service'),
   UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER,

@@ -7,7 +7,7 @@ import {NAMING_SERVICE} from 'core/naming/naming.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basicSettings', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,

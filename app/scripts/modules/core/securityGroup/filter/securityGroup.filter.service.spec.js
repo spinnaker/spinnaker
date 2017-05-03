@@ -14,8 +14,7 @@ describe('Service: securityGroupFilterService', function () {
   beforeEach(function() {
     spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
-      require('./securityGroup.filter.service.js'),
-      require('./securityGroup.filter.model.js')
+      require('./securityGroup.filter.service')
     );
     window.inject(
       function (securityGroupFilterService, _SecurityGroupFilterModel_, _$timeout_) {

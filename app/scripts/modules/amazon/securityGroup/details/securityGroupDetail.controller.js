@@ -10,7 +10,7 @@ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.serv
 import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
 
 module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   CONFIRMATION_MODAL_SERVICE,

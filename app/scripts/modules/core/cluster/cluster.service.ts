@@ -9,6 +9,7 @@ import {Application} from '../application/application.model';
 import {ICluster, IClusterSummary} from '../domain/ICluster';
 import {IExecutionStage} from '../domain/IExecutionStage';
 import {IExecution} from '../domain/IExecution';
+import {CLUSTER_FILTER_MODEL} from './filter/clusterFilter.model';
 
 export class ClusterService {
 
@@ -257,6 +258,6 @@ export const CLUSTER_SERVICE = 'spinnaker.core.cluster.service';
 module(CLUSTER_SERVICE, [
   API_SERVICE,
   NAMING_SERVICE,
-  require('./filter/clusterFilter.model'),
+  CLUSTER_FILTER_MODEL,
   require('../serverGroup/serverGroup.transformer.js')
 ]).service('clusterService', ClusterService);

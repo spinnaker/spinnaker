@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.pageTitle.service',
-    [require('angular-ui-router')]
+    [require('angular-ui-router').default]
   )
   .factory('pageTitleService', function($rootScope, $stateParams) {
 

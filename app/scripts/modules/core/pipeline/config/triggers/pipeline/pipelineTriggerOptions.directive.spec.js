@@ -34,6 +34,7 @@ describe('Pipeline Trigger: PipelineTriggerOptionsCtrl', function() {
         executionService: executionService,
         $scope: $scope,
       }, { command: command });
+      ctrl.$onInit();
     };
   }));
 

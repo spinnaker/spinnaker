@@ -5,8 +5,7 @@ describe('Multiselect Model', function () {
   var MultiselectModel, ClusterFilterModel, $state;
 
   beforeEach(window.module(
-    require('./multiselect.model'),
-    require('./clusterFilter.model')
+    require('./multiselect.model')
   ));
 
   beforeEach(
@@ -22,9 +21,17 @@ describe('Multiselect Model', function () {
       ClusterFilterModel.sortFilter.multiselect = true;
       this.result = null;
       this.currentStates = [];
+      this.currentParams = {};
+
       spyOn($state, 'includes').and.callFake((substate) => this.currentStates.includes(substate));
       spyOn($state, 'go').and.callFake((newState) => this.result = newState);
-      $state.params = {};
+      spyOnProperty($state, 'params', 'get').and.callFake(() => this.currentParams);
+      spyOnProperty($state, '$current', 'get').and.callFake(() => {
+        if (this.currentStates.length) {
+          return { name: this.currentStates[this.currentStates.length - 1] };
+        }
+        return { name: '' };
+      });
     });
 
     describe('syncNavigation', function () {
@@ -37,14 +44,14 @@ describe('Multiselect Model', function () {
         it('navigates to multipleInstances child view when not already there and instances are selected', function () {
           this.instanceGroup.instanceIds.push('i-123');
           this.instanceGroup.instanceIds.push('i-124');
-          $state.$current = { name: 'clusters' };
+          this.currentStates.push('.clusters');
           MultiselectModel.syncNavigation();
           expect(this.result).toBe('.multipleInstances');
         });
 
         it('navigates to multipleInstances child view when not already there and an instance is selected', function () {
           this.instanceGroup.instanceIds.push('i-123');
-          $state.$current = { name: 'clusters' };
+          this.currentStates.push('.clusters');
           MultiselectModel.syncNavigation();
           expect(this.result).toBe('.multipleInstances');
         });
@@ -52,7 +59,7 @@ describe('Multiselect Model', function () {
         it('navigates to multipleInstances sibling view when not already there and instances are selected', function () {
           this.instanceGroup.instanceIds.push('i-123');
           this.instanceGroup.instanceIds.push('i-124');
-          $state.$current = { name: 'clusters.instanceDetails' };
+          this.currentStates.push('.clusters.instanceDetails');
           MultiselectModel.syncNavigation();
           expect(this.result).toBe('^.multipleInstances');
         });
@@ -78,7 +85,7 @@ describe('Multiselect Model', function () {
         });
 
         it('navigates to multipleServerGroups child view when not already there and group is selected', function () {
-          $state.$current = { name: 'clusters' };
+          this.currentStates.push('.clusters');
           MultiselectModel.toggleServerGroup(this.serverGroup);
           expect(this.result).toBe('.multipleServerGroups');
         });
@@ -116,7 +123,7 @@ describe('Multiselect Model', function () {
 
       it('navigates to details child view when multiselect is not enabled and not in clusters child view', function () {
         ClusterFilterModel.sortFilter.multiselect = false;
-        $state.$current = { name: 'clusters' };
+        this.currentStates.push('.clusters');
         MultiselectModel.toggleServerGroup(this.serverGroup);
         expect(this.result).toBe('.serverGroup');
       });
@@ -215,7 +222,7 @@ describe('Multiselect Model', function () {
       });
 
       it('includes instance id if present in state params', function () {
-        $state.params = { provider: 'aws', instanceId: 'i-123' };
+        this.currentParams = { provider: 'aws', instanceId: 'i-123' };
         this.serverGroup.instances = [ { id: 'i-123', provider: 'aws' } ];
         this.serverGroup.name = 'asg-v002';
         let test = MultiselectModel.getOrCreateInstanceGroup(this.serverGroup);

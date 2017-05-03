@@ -6,6 +6,7 @@ import {CLUSTER_POD_COMPONENT} from 'core/cluster/clusterPod.component';
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {CLUSTER_FILTER} from './filter/clusterFilter.component';
 import {INSIGHT_NGMODULE} from 'core/insight/insight.module';
+import {CLUSTER_FILTER_MODEL} from '../cluster/filter/clusterFilter.model';
 
 let angular = require('angular');
 
@@ -13,7 +14,7 @@ require('./rollups.less');
 
 module.exports = angular.module('spinnaker.core.cluster.allClusters.controller', [
   CLUSTER_FILTER_SERVICE,
-  require('../cluster/filter/clusterFilter.model'),
+  CLUSTER_FILTER_MODEL,
   require('../cluster/filter/multiselect.model'),
   CLUSTER_FILTER,
   CLUSTER_POD_COMPONENT,
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   INSIGHT_NGMODULE.name,
   require('angular-ui-bootstrap'),
   CLOUD_PROVIDER_REGISTRY,
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state,
                                           ClusterFilterModel, MultiselectModel, InsightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry) {

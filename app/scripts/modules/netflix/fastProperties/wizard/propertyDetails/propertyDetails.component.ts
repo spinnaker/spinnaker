@@ -13,17 +13,19 @@ export class FastPropertyDetailsComponentController implements IComponentControl
     return inputValue ? inputValue.split(/\n/).length : 1;
   };
 
-  public constructor( authenticationService: AuthenticationService ) {
+  static get $inject() { return ['authenticationService']; }
+  public constructor(private authenticationService: AuthenticationService ) {}
+
+  public $onInit() {
     // If the property has an existing id then we want to preserve it's stage for rollback
     if (this.command && this.command.property) {
       if (this.command.property.propertyId) {
         this.command.originalProperty = Property.copy(this.command.property);
       }
 
-      const user: IUser = authenticationService.getAuthenticatedUser();
+      const user: IUser = this.authenticationService.getAuthenticatedUser();
       this.command.property.email = user.name;
     }
-
   }
 }
 

@@ -12,7 +12,7 @@ let angular = require('angular');
 
 
 module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('../configure/ServerGroupCommandBuilder.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,

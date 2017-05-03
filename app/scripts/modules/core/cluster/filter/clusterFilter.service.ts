@@ -1,11 +1,13 @@
-import {module} from 'angular';
-import {debounce, groupBy, forOwn, sortBy, each} from 'lodash';
-import {Application} from 'core/application/application.model';
-import {ServerGroup} from '../../domain/serverGroup';
-import {ICluster} from 'core/domain';
-import {Instance} from '../../domain/instance';
-import {IEntityTags} from '../../domain/IEntityTags';
-import {IApplicationStateParams} from '../../application/application.state.provider';
+import { ILogService, module } from 'angular';
+import { debounce, each, forOwn, groupBy, sortBy } from 'lodash';
+import { StateParams } from 'angular-ui-router';
+
+import { Application } from 'core/application/application.model';
+import { ServerGroup } from 'core/domain/serverGroup';
+import { ICluster } from 'core/domain';
+import { Instance } from 'core/domain/instance';
+import { IEntityTags } from 'core/domain/IEntityTags';
+import { CLUSTER_FILTER_MODEL} from './clusterFilter.model';
 
 interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -116,7 +118,7 @@ export class ClusterFilterService {
   }
 
   public constructor(private ClusterFilterModel: any, private MultiselectModel: any, private waypointService: any,
-                     private $log: ng.ILogService, private $stateParams: IApplicationStateParams,
+                     private $log: ILogService, private $stateParams: StateParams,
                      private filterModelService: any) {}
 
   public clearFilters(): void {
@@ -469,8 +471,8 @@ export class ClusterFilterService {
 
 export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
 module(CLUSTER_FILTER_SERVICE, [
-  require('angular-ui-router'),
-  require('./clusterFilter.model'),
+  require('angular-ui-router').default,
+  CLUSTER_FILTER_MODEL,
   require('./multiselect.model'),
   require('../../utils/waypoints/waypoint.service'),
   require('../../filterModel/filter.model.service'),

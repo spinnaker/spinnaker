@@ -46,10 +46,6 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
     this.refreshTooltipTemplate = require('./projectClusterRefresh.tooltip.html');
     this.inconsistentBuildsTemplate = require('./inconsistentBuilds.tooltip.html');
 
-    this.state = {
-      expanded: stateCache.isSet(getCacheKey()) ? stateCache.isExpanded(getCacheKey()) : true,
-    };
-
     this.toggle = () => {
       this.state.expanded = !this.state.expanded;
       stateCache.setExpanded(getCacheKey(), this.state.expanded);
@@ -158,12 +154,15 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
       }
     };
 
-    [setViewInstanceCounts, setViewRegions].forEach(cb => {
-      regionFilterService.registerCallback(cb);
-      $scope.$on('$destroy', () => regionFilterService.deregisterCallback(cb));
-    });
-
     let initialize = () => {
+      this.state = {
+        expanded: stateCache.isSet(getCacheKey()) ? stateCache.isExpanded(getCacheKey()) : true,
+      };
+
+      [setViewInstanceCounts, setViewRegions].forEach(cb => {
+        regionFilterService.registerCallback(cb);
+        $scope.$on('$destroy', () => regionFilterService.deregisterCallback(cb));
+      });
       addRegions(this.cluster);
       regionFilterService.runCallbacks();
       this.cluster.applications.forEach((application) => {
@@ -172,9 +171,9 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
         applyInconsistentBuildFlag(application);
         addMetadata(application);
       });
+      this.clusterLabel = this.cluster.detail ? [this.cluster.stack, this.cluster.detail].join('-') : this.cluster.stack;
     };
 
-    initialize();
+    this.$onInit = () => initialize();
 
-    this.clusterLabel = this.cluster.detail ? [this.cluster.stack, this.cluster.detail].join('-') : this.cluster.stack;
   });

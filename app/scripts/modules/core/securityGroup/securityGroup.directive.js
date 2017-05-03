@@ -1,6 +1,7 @@
 'use strict';
 
 let angular = require('angular');
+import { get, last } from 'lodash';
 
 module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
   .directive('securityGroup', function ($rootScope, $timeout, SecurityGroupFilterModel) {
@@ -15,7 +16,7 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
         heading: '=',
       },
       link: function (scope, el) {
-        var base = el.parent().inheritedData('$uiView').state;
+        var base = last(get(el.parent().inheritedData('$uiView'), '$cfg.path')).state.name;
         var securityGroup = scope.securityGroup;
 
         scope.sortFilter = SecurityGroupFilterModel.sortFilter;

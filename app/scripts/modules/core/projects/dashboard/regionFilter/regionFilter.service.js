@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.deck.projects.dashboard.regionFilter.
   .factory('regionFilterService', function (filterModelService) {
     let callbacks = [];
 
-    let filterModelConfig = [{ model: 'region', param: 'reg', type: 'object' }];
+    let filterModelConfig = [{ model: 'region', param: 'reg', type: 'trueKeyObject' }];
     filterModelService.configureFilterModel(this, filterModelConfig);
 
     this.registerCallback = (cb) => callbacks.push(cb);

@@ -1,14 +1,15 @@
 'use strict';
 
 import _ from 'lodash';
-
 let angular = require('angular');
+
+import { SECURITY_GROUP_FILTER_MODEL } from './securityGroupFilter.model';
 
 module.exports = angular
   .module('securityGroup.filter.service', [
-    require('./securityGroup.filter.model.js'),
-    require('../../utils/waypoints/waypoint.service.js'),
-    require('../../filterModel/filter.model.service.js'),
+    SECURITY_GROUP_FILTER_MODEL,
+    require('core/utils/waypoints/waypoint.service'),
+    require('core/filterModel/filter.model.service'),
   ])
   .factory('securityGroupFilterService', function (SecurityGroupFilterModel, waypointService, filterModelService) {
 

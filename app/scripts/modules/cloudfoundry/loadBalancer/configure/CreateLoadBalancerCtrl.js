@@ -7,7 +7,7 @@ import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 module.exports = angular.module('spinnaker.loadBalancer.cf.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),

@@ -10,7 +10,7 @@ import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

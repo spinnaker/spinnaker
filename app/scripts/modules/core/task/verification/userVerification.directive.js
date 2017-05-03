@@ -28,10 +28,14 @@ module.exports = angular
     };
   })
   .controller('UserVerificationCtrl', function ($scope, accountService) {
-    this.label = this.label || `Type the name of the account (<span class="verification-text">${this.account}</span>) to continue`;
-    this.userVerification = '';
-    this.required = false;
-    this.verification.verified = true;
+
+    this.$onInit = () => {
+      this.label = this.label || `Type the name of the account (<span class="verification-text">${this.account}</span>) to continue`;
+      this.userVerification = '';
+      this.required = false;
+      this.verification.verified = true;
+      $scope.$watch(() => this.account, initialize);
+    };
 
     let initialize = () => {
       if (this.verification.toVerify) {
@@ -51,5 +55,4 @@ module.exports = angular
       this.verification.verified = this.userVerification.toUpperCase() === this.verification.toVerify.toUpperCase();
     };
 
-    $scope.$watch(() => this.account, initialize);
   });

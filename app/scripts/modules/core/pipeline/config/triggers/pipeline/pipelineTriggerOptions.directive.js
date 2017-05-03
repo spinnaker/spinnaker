@@ -21,15 +21,6 @@ module.exports = angular
     };
   })
   .controller('PipelineTriggerOptionsCtrl', function ($scope, executionService) {
-    // These fields will be added to the trigger when the form is submitted
-    this.command.extraFields = {};
-
-    this.viewState = {
-      executionsLoading: true,
-      loadError: false,
-      selectedExecution: null,
-    };
-
     let executionLoadSuccess = (executions) => {
       this.executions = executions.filter((execution) => execution.pipelineConfigId === this.command.trigger.pipeline)
         .sort((a, b) => b.buildTime - a.buildTime);
@@ -47,7 +38,17 @@ module.exports = angular
     };
 
     let initialize = () => {
-      let command = this.command;
+      const command = this.command;
+
+      // These fields will be added to the trigger when the form is submitted
+      command.extraFields = {};
+
+      this.viewState = {
+        executionsLoading: true,
+        loadError: false,
+        selectedExecution: null,
+      };
+
       // do not re-initialize if the trigger has changed to some other type
       if (command.trigger.type !== 'pipeline') {
         return;
@@ -56,6 +57,8 @@ module.exports = angular
       executionService.getExecutions(command.trigger.application, {statuses: []})
         .then(executionLoadSuccess, executionLoadFailure);
     };
+
+    this.$onInit = () => initialize();
 
     this.updateSelectedExecution = (item) => {
       this.command.extraFields.parentPipelineId = item.id;

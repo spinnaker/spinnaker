@@ -3,12 +3,7 @@ import {module} from 'angular';
 import {INestedState} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
-
-export interface ITaskDetailsStateParams extends IApplicationStateParams {
-  taskId: string;
-}
 
 export const TASK_STATES = 'spinnaker.core.task.states';
 module(TASK_STATES, [

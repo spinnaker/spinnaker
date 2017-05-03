@@ -9,7 +9,7 @@ import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.gce.executionDetails.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),

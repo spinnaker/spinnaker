@@ -9,7 +9,7 @@ let angular = require('angular');
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   SECURITY_GROUP_READER,
   require('../securityGroup.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,

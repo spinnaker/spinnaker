@@ -1,13 +1,12 @@
 'use strict';
 
-import _ from 'lodash';
-
+import { get, last, sortBy } from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.instances.directive', [
   require('../utils/jQuery.js'),
 ])
-  .directive('instances', function ($rootScope, $timeout, $) {
+  .directive('instances', function ($rootScope, $timeout, $, $state) {
     return {
       restrict: 'E',
       scope: {
@@ -15,10 +14,9 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
         highlight: '=',
       },
       link: function (scope, elem) {
-        var $state = $rootScope.$state;
         let tooltipTargets = [];
 
-        var base = elem.parent().inheritedData('$uiView').state;
+        var base = last(get(elem.parent().inheritedData('$uiView'), '$cfg.path')).state.name;
 
         let removeTooltips = () => {
           tooltipTargets.forEach(target => $(target).tooltip('destroy'));
@@ -27,7 +25,7 @@ module.exports = angular.module('spinnaker.core.instance.instances.directive', [
 
         function renderInstances() {
           scope.activeInstance = null;
-          var instances = _.sortBy(scope.instances, 'launchTime');
+          var instances = sortBy(scope.instances, 'launchTime');
           let innerHtml = '<div class="instances">' + instances.map(function(instance) {
               var id = instance.id,
                 activeClass = '';

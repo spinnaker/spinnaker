@@ -11,7 +11,7 @@ import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 require('../../loadBalancer.less');
 
 module.exports = angular.module('spinnaker.loadBalancer.openstack.create.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     LOAD_BALANCER_WRITE_SERVICE,
     ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,

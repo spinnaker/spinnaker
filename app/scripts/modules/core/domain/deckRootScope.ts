@@ -1,7 +1,7 @@
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 
 export interface IDeckRootScope extends ng.IRootScopeService {
-  $state: IStateService;
+  $state: StateService;
   authenticating: boolean;
   feature: any;
   pageTitle: string;

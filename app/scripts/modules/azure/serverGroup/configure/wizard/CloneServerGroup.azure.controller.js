@@ -7,7 +7,7 @@ import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('../serverGroupConfiguration.service.js'),
   require('../../serverGroup.transformer.js'),
   SERVER_GROUP_WRITER,

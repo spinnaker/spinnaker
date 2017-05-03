@@ -6,7 +6,7 @@ export interface IJob {
   account?: string;
   application?: any;
   providerType?: string;
-  source?: string;
+  source?: any;
   type?: string;
   user?: string;
   [attribute: string]: any;

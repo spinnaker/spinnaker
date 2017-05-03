@@ -9,7 +9,7 @@ import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.se
 import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

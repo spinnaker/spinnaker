@@ -1,5 +1,5 @@
 import {module, IScope} from 'angular';
-import {IStateParamsService} from 'angular-ui-router';
+import {StateParams} from 'angular-ui-router';
 import {get} from 'lodash';
 
 import {
@@ -18,7 +18,7 @@ export class WebhookExecutionDetailsCtrl {
   public progressMessage: string;
   public stage: any;
 
-  constructor(private $stateParams: IStateParamsService,
+  constructor(private $stateParams: StateParams,
               private executionDetailsSectionService: ExecutionDetailsSectionService,
               private $scope: IScope) {
     this.stage = this.$scope.stage;

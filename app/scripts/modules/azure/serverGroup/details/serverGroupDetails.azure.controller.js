@@ -13,7 +13,7 @@ require('../configure/serverGroup.configure.azure.module.js');
 
 
 module.exports = angular.module('spinnaker.azure.serverGroup.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('../configure/serverGroupCommandBuilder.service.js'),
   SERVER_GROUP_READER,
   require('core/utils/selectOnDblClick.directive.js'),

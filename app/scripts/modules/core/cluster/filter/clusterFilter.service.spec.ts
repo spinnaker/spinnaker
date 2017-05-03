@@ -4,6 +4,7 @@ import {CLUSTER_FILTER_SERVICE, ClusterFilterService} from 'core/cluster/filter/
 import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
 import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
+import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
 
 // Most of this logic has been moved to filter.model.service.js, so these act more as integration tests now
 describe('Service: clusterFilterService', function () {
@@ -23,7 +24,7 @@ describe('Service: clusterFilterService', function () {
     mock.module(
       CLUSTER_FILTER_SERVICE,
       APPLICATION_MODEL_BUILDER,
-      require('./clusterFilter.model.js'),
+      CLUSTER_FILTER_MODEL,
       CLUSTER_SERVICE,
       require('../../../../../../test/mock/mockApplicationData.js')
     );

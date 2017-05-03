@@ -10,7 +10,7 @@ let angular = require('angular');
 module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [
     require('angular-ui-bootstrap'),
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     NAMING_SERVICE,
     IMAGE_READER,
   ])

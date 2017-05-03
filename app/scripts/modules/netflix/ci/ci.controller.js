@@ -8,7 +8,7 @@ import {CiFilterModel} from './ciFilter.model';
 import './ci.less';
 
 module.exports = angular.module('spinnaker.netflix.ci.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
 ])
   .controller('NetflixCiCtrl', function ($scope, $state, app) {
     const dataSource = app.getDataSource('ci');

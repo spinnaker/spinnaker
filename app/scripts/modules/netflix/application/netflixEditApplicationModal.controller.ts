@@ -1,5 +1,5 @@
 import {extend, IControllerService, IWindowService, module} from 'angular';
-import {IState} from 'angular-ui-router';
+import {StateObject} from 'angular-ui-router';
 import {IModalInstanceService} from 'angular-ui-bootstrap';
 
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
@@ -18,7 +18,7 @@ class NetflixEditApplicationModalController {
 
   constructor($window: IWindowService,
               $controller: IControllerService,
-              $state: IState,
+              $state: StateObject,
               $uibModalInstance: IModalInstanceService,
               application: Application,
               applicationWriter: ApplicationWriter,
@@ -40,7 +40,7 @@ class NetflixEditApplicationModalController {
 
 export const NETFLIX_EDIT_APPLICATION_MODAL_CONTROLLER = 'spinnaker.netflix.application.edit.modal.controller';
 module(NETFLIX_EDIT_APPLICATION_MODAL_CONTROLLER, [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   APPLICATION_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   PAGER_DUTY_SELECT_FIELD_COMPONENT,

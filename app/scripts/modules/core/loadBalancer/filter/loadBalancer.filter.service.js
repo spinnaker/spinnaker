@@ -1,12 +1,13 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-let angular = require('angular');
+import { LOAD_BALANCER_FILTER_MODEL } from './loadBalancerFilter.model';
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.filter.service', [
-    require('./loadBalancer.filter.model.js'),
+    LOAD_BALANCER_FILTER_MODEL,
     require('../../utils/waypoints/waypoint.service.js'),
     require('../../filterModel/filter.model.service.js'),
   ])

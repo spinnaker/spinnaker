@@ -6,7 +6,7 @@ import {NetflixSettings} from '../../../netflix.settings';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.chap.executionDetails.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive')
 ])

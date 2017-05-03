@@ -18,7 +18,6 @@ module(TABLEAU_STATES, [
   const appState: INestedState = {
     name: 'analytics',
     url: '/analytics',
-    reloadOnSearch: false,
     views: {
       'insight': {
         templateUrl: require('./application/appTableau.html'),
@@ -35,7 +34,6 @@ module(TABLEAU_STATES, [
   const summaryState: INestedState = {
     name: 'analytics',
     url: '/analytics',
-    reloadOnSearch: false,
     views: {
       'main@': {
         templateUrl: require('./summary/summaryTableau.html'),

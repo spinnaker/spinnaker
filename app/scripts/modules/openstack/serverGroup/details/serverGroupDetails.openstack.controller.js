@@ -16,7 +16,7 @@ import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningT
 require('../configure/serverGroup.configure.openstack.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.openstack.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('core/application/modal/platformHealthOverride.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,

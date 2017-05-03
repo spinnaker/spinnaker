@@ -42,10 +42,12 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   }));
 
   const initialize = () => {
-    return $ctrl(TravisTriggerOptionsController, {
+    const ctrl = $ctrl(TravisTriggerOptionsController, {
       igorService: igorService,
       $scope: $scope,
     }, {command: command});
+    ctrl.$onInit();
+    return ctrl;
   };
 
   it('loads jobs on initialization, setting state flags', () => {
@@ -62,7 +64,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
   });
 
   it('sets build to first one available when returned on initialization', function () {
-    const build = {number: '1', result: 'SUCCESS'};
+    const build: IBuild = {number: 1, result: 'SUCCESS', building: null, duration: null, name: null, timestamp: null, url: null, artifacts: null};
     spyOn(igorService, 'listBuildsForJob').and.returnValue($q.when([build]));
 
     const controller = initialize();
@@ -72,7 +74,7 @@ describe('Travis Trigger: TravisTriggerOptionsCtrl', () => {
     expect(controller.viewState.loadError).toBe(false);
     expect(controller.builds).toEqual([build]);
     expect(controller.viewState.selectedBuild).toBe(build);
-    expect(command.extraFields.buildNumber).toBe('1');
+    expect(command.extraFields.buildNumber).toBe(1);
   });
 
   it('sets flags when build load fails', function () {

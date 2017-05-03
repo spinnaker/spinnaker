@@ -39,7 +39,7 @@ describe('Controller: projectCluster directive', function () {
           {
             project: project,
             cluster: cluster
-          });
+          }).$onInit();
       };
     });
 

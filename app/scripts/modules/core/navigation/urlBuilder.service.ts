@@ -1,7 +1,7 @@
 import {isDate, isObject, isUndefined} from 'lodash';
 import {module} from 'angular';
 
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 
 export interface IUrlBuilderInput {
   account: string;
@@ -101,7 +101,7 @@ class UrlBuilderUtils {
 
 class ApplicationsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
 
@@ -128,7 +128,7 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
 
 class ClustersUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
 
@@ -173,7 +173,7 @@ class ClustersUrlBuilder implements IUrlBuilder {
 
 class InstancesUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
 
@@ -206,7 +206,7 @@ class InstancesUrlBuilder implements IUrlBuilder {
 
 class LoadBalancersUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
 
@@ -229,7 +229,7 @@ class LoadBalancersUrlBuilder implements IUrlBuilder {
 
 class ProjectsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
     return this.$state.href('home.project.dashboard', {project: input.name}, {inherit: false});
@@ -238,7 +238,7 @@ class ProjectsUrlBuilder implements IUrlBuilder {
 
 class SecurityGroupsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
     const href: string = this.$state.href(
@@ -258,7 +258,7 @@ class SecurityGroupsUrlBuilder implements IUrlBuilder {
 
 class ServerGroupsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
     const baseName: string = input.project ? 'project' : 'applications';
@@ -281,7 +281,7 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
 
 class TaskUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
     return this.$state.href(
@@ -297,7 +297,7 @@ class TaskUrlBuilder implements IUrlBuilder {
 
 class TasksUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: IStateService) {}
+  constructor(private $state: StateService) {}
 
   public build(input: IUrlBuilderInput) {
     return this.$state.href(
@@ -378,7 +378,7 @@ export class UrlBuilderService {
     return result;
   }
 
-  constructor(private $state: IStateService) {
+  constructor(private $state: StateService) {
     this.registry.set('applications', new ApplicationsUrlBuilder($state));
     this.registry.set('clusters', new ClustersUrlBuilder($state));
     this.registry.set('instances', new InstancesUrlBuilder($state));
@@ -439,5 +439,5 @@ export class UrlBuilderService {
 }
 
 export const URL_BUILDER_SERVICE = 'spinnaker.core.navigation.urlBuilder.service';
-module(URL_BUILDER_SERVICE, [require('angular-ui-router')])
+module(URL_BUILDER_SERVICE, [require('angular-ui-router').default])
   .service('urlBuilderService', UrlBuilderService);

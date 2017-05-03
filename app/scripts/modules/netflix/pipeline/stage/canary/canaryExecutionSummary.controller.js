@@ -5,7 +5,7 @@ import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvi
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.summary.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),

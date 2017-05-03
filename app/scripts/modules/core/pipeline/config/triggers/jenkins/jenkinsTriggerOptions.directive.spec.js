@@ -34,6 +34,7 @@ describe('Jenkins Trigger: JenkinsTriggerOptionsCtrl', function() {
         igorService: igorService,
         $scope: $scope,
       }, { command: command });
+      ctrl.$onInit();
     };
   }));
 

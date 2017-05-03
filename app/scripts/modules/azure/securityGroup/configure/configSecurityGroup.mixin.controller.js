@@ -11,7 +11,7 @@ import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,

@@ -11,7 +11,7 @@ import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.serv
 import {GCE_SECURITY_GROUP_HELP_TEXT_SERVICE} from '../securityGroupHelpText.service';
 
 module.exports = angular.module('spinnaker.securityGroup.gce.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,

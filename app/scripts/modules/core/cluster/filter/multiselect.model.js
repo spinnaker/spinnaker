@@ -3,11 +3,12 @@
 import {Subject} from 'rxjs';
 
 let angular = require('angular');
+import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
 
 module.exports = angular
   .module('spinnaker.core.cluster.filter.multiselect.model', [
-    require('angular-ui-router'),
-    require('./clusterFilter.model'),
+    require('angular-ui-router').default,
+    CLUSTER_FILTER_MODEL,
   ])
   .factory('MultiselectModel', function ($state, ClusterFilterModel) {
 

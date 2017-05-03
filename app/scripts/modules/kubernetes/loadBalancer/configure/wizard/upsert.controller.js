@@ -8,7 +8,7 @@ import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   V2_MODAL_WIZARD_SERVICE,

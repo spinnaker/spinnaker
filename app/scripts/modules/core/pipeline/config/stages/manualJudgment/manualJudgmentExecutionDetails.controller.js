@@ -7,7 +7,7 @@ import {MANUAL_JUDGMENT_COMPONENT} from './manualJudgment.component';
 
 module.exports = angular
     .module('spinnaker.core.pipeline.stage.manualJudgment.executionDetails.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     MANUAL_JUDGMENT_COMPONENT,
     EXECUTION_DETAILS_SECTION_SERVICE,
     require('core/delivery/details/executionDetailsSectionNav.directive.js'),

@@ -1,6 +1,6 @@
 import {module, IScope} from 'angular';
 import {IModalService} from 'angular-ui-bootstrap';
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 import {cloneDeep} from 'lodash';
 
 import {Application} from 'core/application/application.model';
@@ -28,7 +28,7 @@ class AppengineLoadBalancerDetailsController {
   }
 
   constructor(private $uibModal: IModalService,
-              private $state: IStateService,
+              private $state: StateService,
               private $scope: IScope,
               private loadBalancerFromParams: ILoadBalancerFromStateParams,
               private app: Application,

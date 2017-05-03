@@ -20,15 +20,6 @@ module.exports = angular
     };
   })
   .controller('JenkinsTriggerOptionsCtrl', function ($scope, igorService) {
-    // These fields will be added to the trigger when the form is submitted
-    this.command.extraFields = {};
-
-    this.viewState = {
-      buildsLoading: true,
-      loadError: false,
-      selectedBuild: null,
-    };
-
     let buildLoadSuccess = (builds) => {
       this.builds = builds.filter((build) => !build.building && build.result === 'SUCCESS')
         .sort((a, b) => b.number - a.number);
@@ -47,6 +38,16 @@ module.exports = angular
 
     let initialize = () => {
       let command = this.command;
+
+      // These fields will be added to the trigger when the form is submitted
+      command.extraFields = {};
+
+      this.viewState = {
+        buildsLoading: true,
+        loadError: false,
+        selectedBuild: null,
+      };
+
       // do not re-initialize if the trigger has changed to some other type
       if (command.trigger.type !== 'jenkins') {
         return;
@@ -55,6 +56,8 @@ module.exports = angular
       igorService.listBuildsForJob(command.trigger.master, command.trigger.job)
         .then(buildLoadSuccess, buildLoadFailure);
     };
+
+    this.$onInit = () => initialize();
 
     this.updateSelectedBuild = (item) => {
       this.command.extraFields.buildNumber = item.number;

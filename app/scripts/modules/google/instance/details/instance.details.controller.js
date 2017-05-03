@@ -12,7 +12,7 @@ import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancer
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,

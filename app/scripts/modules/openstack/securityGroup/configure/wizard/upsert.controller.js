@@ -8,7 +8,7 @@ import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.serv
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   ACCOUNT_SERVICE,

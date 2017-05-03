@@ -13,7 +13,7 @@ import {AWSProviderSettings} from '../../aws.settings';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,

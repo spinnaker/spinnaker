@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {IExecutionDetailsStateParams} from '../delivery.states';
+import { module } from 'angular';
+import { StateParams, StateService } from 'angular-ui-router';
 
 export class ExecutionDetailsSectionService {
 
@@ -7,8 +7,8 @@ export class ExecutionDetailsSectionService {
 
   static get $inject() { return ['$stateParams', '$state', '$timeout']; }
 
-  public constructor(private $stateParams: IExecutionDetailsStateParams,
-                     private $state: angular.ui.IStateService,
+  public constructor(private $stateParams: StateParams,
+                     private $state: StateService,
                      private $timeout: ng.ITimeoutService) {}
 
   private sectionIsValid(availableSections: string[]): boolean {
@@ -36,5 +36,5 @@ export class ExecutionDetailsSectionService {
 
 export const EXECUTION_DETAILS_SECTION_SERVICE = 'spinnaker.executionDetails.section.service';
 module(EXECUTION_DETAILS_SECTION_SERVICE, [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
 ]).service('executionDetailsSectionService', ExecutionDetailsSectionService);

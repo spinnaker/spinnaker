@@ -2,15 +2,15 @@ import {compact, uniq, map} from 'lodash';
 import {IScope, module} from 'angular';
 
 import {CLUSTER_FILTER_SERVICE, ClusterFilterService} from 'core/cluster/filter/clusterFilter.service';
-import {Application} from '../../application/application.model';
-
+import {Application} from 'core/application/application.model';
+import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
   require('./collapsibleFilterSection.directive'),
   CLUSTER_FILTER_SERVICE,
-  require('./clusterFilter.model'),
-  require('../../filterModel/dependentFilter/dependentFilter.service'),
+  CLUSTER_FILTER_MODEL,
+  require('core/filterModel/dependentFilter/dependentFilter.service'),
   require('./clusterDependentFilterHelper.service'),
 ]);
 
@@ -64,7 +64,7 @@ class ClusterFilterCtrl {
     }));
   }
 
-  public updateClusterGroups(): void {
+  public updateClusterGroups(applyParamsToUrl = true): void {
     const { dependentFilterService, ClusterFilterModel, clusterDependentFilterHelper, clusterFilterService, app } = this;
 
     const { providerType, instanceType, account, availabilityZone, region } = dependentFilterService.digestDependentFilters({
@@ -78,8 +78,9 @@ class ClusterFilterCtrl {
     this.availabilityZoneHeadings = availabilityZone;
     this.regionHeadings = region;
     this.instanceTypeHeadings = instanceType;
-
-    ClusterFilterModel.applyParamsToUrl();
+    if (applyParamsToUrl) {
+      ClusterFilterModel.applyParamsToUrl();
+    }
     clusterFilterService.updateClusterGroups(app);
   }
 
@@ -91,7 +92,7 @@ class ClusterFilterCtrl {
     const {clusterFilterService, app} = this;
     clusterFilterService.clearFilters();
     clusterFilterService.updateClusterGroups(app);
-    this.updateClusterGroups();
+    this.updateClusterGroups(false);
   }
 
   public initialize(): void {

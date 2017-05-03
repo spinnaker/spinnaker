@@ -24,6 +24,7 @@ describe('Controller: UserVerification', function () {
           verification: verification,
           account: account
         });
+      controller.$onInit();
       $scope.$digest();
     };
   }));

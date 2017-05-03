@@ -9,7 +9,7 @@ import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.serv
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,

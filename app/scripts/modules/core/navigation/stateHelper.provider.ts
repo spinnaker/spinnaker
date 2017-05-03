@@ -1,7 +1,6 @@
-import {module, copy} from 'angular';
-import {IStateProvider} from 'angular-ui-router';
-
-import {INestedState} from './state.provider';
+import { copy, module } from 'angular';
+import { StateProvider } from 'angular-ui-router';
+import { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {
 
@@ -9,13 +8,14 @@ export class StateHelper implements ng.IServiceProvider {
 
   static get $inject() { return ['$stateProvider']; }
 
-  constructor(private $stateProvider: IStateProvider) {}
+  constructor(private $stateProvider: StateProvider) {}
 
   public setNestedState(state: INestedState, keepOriginalNames = false) {
     const newState: INestedState = copy(state);
     if (!keepOriginalNames) {
       this.fixStateName(newState);
       this.fixStateViews(newState);
+      newState.parent = null;
     }
     if (!this.registeredStates.includes(newState.name)) {
       this.registeredStates.push(newState.name);

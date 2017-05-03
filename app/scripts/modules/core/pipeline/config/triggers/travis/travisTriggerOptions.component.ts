@@ -18,7 +18,9 @@ export class TravisTriggerOptionsController {
     return ['$scope', 'igorService'];
   }
 
-  constructor($scope: IScope, private igorService: IgorService) {
+  constructor(private $scope: IScope, private igorService: IgorService) {}
+
+  public $onInit() {
     // These fields will be added to the trigger when the form is submitted
     this.command.extraFields = {};
 
@@ -28,7 +30,7 @@ export class TravisTriggerOptionsController {
       selectedBuild: null,
     };
 
-    $scope.$watch(() => this.command.trigger, () => this.initialize());
+    this.$scope.$watch(() => this.command.trigger, () => this.initialize());
   }
 
   private buildLoadSuccess(builds: IBuild[]): void {

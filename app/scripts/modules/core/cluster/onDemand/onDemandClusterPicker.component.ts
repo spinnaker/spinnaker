@@ -1,6 +1,7 @@
 import {IComponentController, IComponentOptions, IScope, module} from 'angular';
 import {Application} from 'core/application/application.model';
 import {IClusterSummary} from 'core/domain/ICluster';
+import {CLUSTER_FILTER_MODEL} from '../filter/clusterFilter.model';
 
 import './onDemandClusterPicker.component.less';
 
@@ -60,5 +61,5 @@ const onDemandClusterPickerComponent: IComponentOptions = {
 
 export const ON_DEMAND_CLUSTER_PICKER_COMPONENT = 'spinnaker.core.cluster.onDemandClusterPicker.component';
 module(ON_DEMAND_CLUSTER_PICKER_COMPONENT, [
-  require('../filter/clusterFilter.model'),
+  CLUSTER_FILTER_MODEL,
 ]).component('onDemandClusterPicker', onDemandClusterPickerComponent);

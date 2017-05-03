@@ -1,7 +1,6 @@
 'use strict';
 
-import _ from 'lodash';
-
+import { flatten, get, last, map } from 'lodash';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.loadBalancer.directive', [])
@@ -15,7 +14,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [])
         serverGroups: '=',
       },
       link: function(scope, el) {
-        var base = el.parent().inheritedData('$uiView').state;
+        var base = last(get(el.parent().inheritedData('$uiView'), '$cfg.path')).state.name;
         var loadBalancer = scope.loadBalancer;
 
         scope.sortFilter = LoadBalancerFilterModel.sortFilter;
@@ -24,7 +23,7 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [])
         scope.waypoint = [loadBalancer.account, loadBalancer.region, loadBalancer.name].join(':');
 
         scope.viewModel = {
-          instances: loadBalancer.instances.concat(_.flatten(_.map(loadBalancer.serverGroups, 'detachedInstances')))
+          instances: loadBalancer.instances.concat(flatten(map(loadBalancer.serverGroups, 'detachedInstances')))
         };
 
         scope.loadDetails = function(event) {

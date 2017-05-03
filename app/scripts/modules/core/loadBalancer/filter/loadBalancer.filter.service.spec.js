@@ -14,8 +14,7 @@ describe('Service: loadBalancerFilterService', function () {
   beforeEach(function() {
     spyOn(_, 'debounce').and.callFake(fn => (app) => $timeout(fn(app)));
     window.module(
-      require('./loadBalancer.filter.service.js'),
-      require('./loadBalancer.filter.model.js')
+      require('./loadBalancer.filter.service')
     );
     window.inject(
       function (loadBalancerFilterService, _LoadBalancerFilterModel_, _$timeout_) {

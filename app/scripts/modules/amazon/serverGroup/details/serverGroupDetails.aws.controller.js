@@ -18,7 +18,7 @@ import {ENTITY_SOURCE_COMPONENT} from 'core/entityTag/entitySource.component';
 require('../configure/serverGroup.configure.aws.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('core/application/modal/platformHealthOverride.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,

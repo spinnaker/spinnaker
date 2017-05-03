@@ -1,7 +1,7 @@
-import {IScope} from 'angular';
-import {IExecutionDetailsStateParams} from 'core/delivery/delivery.states';
+import { IScope } from 'angular';
+import { StateParams } from 'angular-ui-router';
 
-import {ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
+import { ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
 
 export interface IExecutionDetailsScope extends IScope {
   configSections: string[];
@@ -10,7 +10,7 @@ export interface IExecutionDetailsScope extends IScope {
 
 export class BaseExecutionDetailsCtrl {
   constructor (public $scope: IExecutionDetailsScope,
-               private $stateParams: IExecutionDetailsStateParams,
+               private $stateParams: StateParams,
                private executionDetailsSectionService: ExecutionDetailsSectionService) {
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
   }

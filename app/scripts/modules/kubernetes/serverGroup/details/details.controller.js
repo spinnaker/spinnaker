@@ -10,7 +10,7 @@ import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('../configure/configure.kubernetes.module.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,

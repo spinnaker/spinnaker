@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IStateService} from 'angular-ui-router';
+import {StateService} from 'angular-ui-router';
 import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {cloneDeep} from 'lodash';
 
@@ -25,7 +25,7 @@ class AppengineLoadBalancerWizardController {
                                  'loadBalancerWriter', 'wizardSubFormValidation']; }
 
   constructor(public $scope: ng.IScope,
-              private $state: IStateService,
+              private $state: StateService,
               private $uibModalInstance: IModalServiceInstance,
               private application: Application,
               loadBalancer: AppengineLoadBalancerUpsertDescription,

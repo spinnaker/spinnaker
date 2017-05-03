@@ -7,7 +7,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.controller', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     require('./applicationAttributes.directive.js'),
     require('./applicationNotifications.directive.js'),
     require('./applicationCacheManagement.directive.js'),

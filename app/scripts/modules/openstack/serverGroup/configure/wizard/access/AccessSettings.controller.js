@@ -3,7 +3,7 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.accessSettings', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   require('../../../../common/cacheBackedMultiSelectField.directive.js'),
 ]).controller('openstackServerGroupAccessSettingsCtrl', function($scope, loadBalancerReader, securityGroupReader, networkReader, v2modalWizardService) {

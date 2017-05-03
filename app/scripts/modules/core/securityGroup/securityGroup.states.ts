@@ -1,26 +1,15 @@
 import {module} from 'angular';
 
+import {StateParams} from 'angular-ui-router';
 import {INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {SecurityGroupReader} from './securityGroupReader.service';
-import {IState} from 'angular-ui-router';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from '../application/applicationModel.builder';
-import {Application} from '../application/application.model';
-
-export interface IStandaloneSecurityGroupDetailsStateParams extends IState {
-  provider: string;
-  accountId: string;
-  region: string;
-  vpcId: string;
-  name: string;
-}
-
-export interface ISecurityGroupDetailsStateParms extends IStandaloneSecurityGroupDetailsStateParams, IApplicationStateParams {
-}
+import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
+import {Application} from 'core/application/application.model';
+import {filterModelConfig} from './filter/securityGroupFilter.model';
 
 export const SECURITY_GROUP_STATES = 'spinnaker.core.securityGroup.states';
 module(SECURITY_GROUP_STATES, [
@@ -42,12 +31,12 @@ module(SECURITY_GROUP_STATES, [
       'detail@../insight': {
         templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
           ($templateCache: ng.ITemplateCacheService,
-           $stateParams: ISecurityGroupDetailsStateParms,
+           $stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsTemplateUrl'));
         }],
         controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: ISecurityGroupDetailsStateParms,
+          ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
         }],
@@ -55,7 +44,7 @@ module(SECURITY_GROUP_STATES, [
       }
     },
     resolve: {
-      resolvedSecurityGroup: ['$stateParams', ($stateParams: ISecurityGroupDetailsStateParms) => {
+      resolvedSecurityGroup: ['$stateParams', ($stateParams: StateParams) => {
         return {
           name: $stateParams.name,
           accountId: $stateParams.accountId,
@@ -79,7 +68,7 @@ module(SECURITY_GROUP_STATES, [
   };
 
   const securityGroupSummary: INestedState = {
-    url: '/securityGroups',
+    url: `/securityGroups?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
     name: 'securityGroups',
     views: {
       'nav': {
@@ -91,6 +80,7 @@ module(SECURITY_GROUP_STATES, [
         controllerAs: 'ctrl'
       }
     },
+    params: stateConfigProvider.buildDynamicParams(filterModelConfig),
     data: {
       pageTitleSection: {
         title: 'Security Groups'
@@ -111,7 +101,7 @@ module(SECURITY_GROUP_STATES, [
       'main@': {
         templateUrl: require('../presentation/standalone.view.html'),
         controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: IStandaloneSecurityGroupDetailsStateParams,
+          ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return cloudProviderRegistry.getValue($stateParams.provider, 'securityGroup.detailsController');
         }],
@@ -119,7 +109,7 @@ module(SECURITY_GROUP_STATES, [
       }
     },
     resolve: {
-      resolvedSecurityGroup: ['$stateParams', ($stateParams: IStandaloneSecurityGroupDetailsStateParams) => {
+      resolvedSecurityGroup: ['$stateParams', ($stateParams: StateParams) => {
         return {
           name: $stateParams.name,
           accountId: $stateParams.accountId,
@@ -129,7 +119,7 @@ module(SECURITY_GROUP_STATES, [
         };
       }],
       app: ['$stateParams', 'securityGroupReader', 'applicationModelBuilder',
-        ($stateParams: IStandaloneSecurityGroupDetailsStateParams,
+        ($stateParams: StateParams,
          securityGroupReader: SecurityGroupReader,
          applicationModelBuilder: ApplicationModelBuilder): ng.IPromise<Application> => {
           // we need the application to have a security group index (so rules get attached and linked properly)

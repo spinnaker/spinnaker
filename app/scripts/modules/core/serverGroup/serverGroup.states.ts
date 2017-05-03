@@ -1,19 +1,13 @@
 import {module} from 'angular';
 
+import {StateParams} from 'angular-ui-router';
 import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
-import {CloudProviderRegistry} from '../cloudProvider/cloudProvider.registry';
-import {Application} from '../application/application.model';
-
-export interface IServerGroupStateParams extends IApplicationStateParams {
-  provider: string;
-  accountId: string;
-  region: string;
-  serverGroup: string;
-}
+import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
+import {Application} from 'core/application/application.model';
+import {filterModelConfig} from 'core/cluster/filter/clusterFilter.model';
 
 export const SERVER_GROUP_STATES = 'spinnaker.core.serverGroup.states';
 module(SERVER_GROUP_STATES, [
@@ -21,30 +15,31 @@ module(SERVER_GROUP_STATES, [
   STATE_CONFIG_PROVIDER,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
   const clusters: INestedState = {
-      name: 'clusters',
-      url: '/clusters',
-      views: {
-        'nav': {
-          template: '<cluster-filter app="$resolve.app"></cluster-filter>',
-        },
-        'master': {
-          templateUrl: require('../cluster/all.html'),
-          controller: 'AllClustersCtrl',
-          controllerAs: 'ctrl'
-        }
+    name: 'clusters',
+    url: `/clusters?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
+    views: {
+      'nav': {
+        template: '<cluster-filter app="$resolve.app"></cluster-filter>',
       },
-      resolve: {
-        // prevents flash of filters if fetchOnDemand is enabled; catch any exceptions so the route resolves
-        // and deal with the exception in the AllClustersCtrl
-        ready: (app: Application) => app.getDataSource('serverGroups').ready().catch(() => null),
-      },
-      data: {
-        pageTitleSection: {
-          title: 'Clusters'
-        }
-      },
-      children: [],
-    };
+      'master': {
+        templateUrl: require('../cluster/all.html'),
+        controller: 'AllClustersCtrl',
+        controllerAs: 'ctrl'
+      }
+    },
+    resolve: {
+      // prevents flash of filters if fetchOnDemand is enabled; catch any exceptions so the route resolves
+      // and deal with the exception in the AllClustersCtrl
+      ready: (app: Application) => app.getDataSource('serverGroups').ready().catch(() => null),
+    },
+    params: stateConfigProvider.buildDynamicParams(filterModelConfig),
+    data: {
+      pageTitleSection: {
+        title: 'Clusters'
+      }
+    },
+    children: [],
+  };
 
   const serverGroupDetails: INestedState = {
     name: 'serverGroup',
@@ -53,12 +48,12 @@ module(SERVER_GROUP_STATES, [
       'detail@../insight': {
         templateProvider: ['$templateCache', '$stateParams', 'cloudProviderRegistry',
           ($templateCache: ng.ITemplateCacheService,
-           $stateParams: IServerGroupStateParams,
+           $stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return $templateCache.get(cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsTemplateUrl'));
         }],
         controllerProvider: ['$stateParams', 'cloudProviderRegistry',
-          ($stateParams: IServerGroupStateParams,
+          ($stateParams: StateParams,
            cloudProviderRegistry: CloudProviderRegistry) => {
             return cloudProviderRegistry.getValue($stateParams.provider, 'serverGroup.detailsController');
         }],
@@ -66,7 +61,7 @@ module(SERVER_GROUP_STATES, [
       }
     },
     resolve: {
-      serverGroup: ['$stateParams', ($stateParams: IServerGroupStateParams) => {
+      serverGroup: ['$stateParams', ($stateParams: StateParams) => {
         return {
           name: $stateParams.serverGroup,
           accountId: $stateParams.accountId,

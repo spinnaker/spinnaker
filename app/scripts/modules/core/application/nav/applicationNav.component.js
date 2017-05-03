@@ -6,7 +6,7 @@ require('./applicationNav.component.less');
 
 module.exports = angular
   .module('spinnaker.core.application.nav.component', [
-    require('angular-ui-router'),
+    require('angular-ui-router').default,
     DATA_SOURCE_ALERTS_COMPONENT,
   ])
   .component('applicationNav', {

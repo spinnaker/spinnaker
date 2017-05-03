@@ -3,16 +3,7 @@ import {module} from 'angular';
 import {INestedState} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-  IApplicationStateParams
 } from 'core/application/application.state.provider';
-
-export interface IDetailPanelStateParams extends IApplicationStateParams {
-  buildId: string;
-}
-
-export interface IDetailTabsPanelStateParams extends IDetailPanelStateParams {
-  tab: string;
-}
 
 export const CI_STATES = 'spinnaker.netflix.ci.states';
 module(CI_STATES, [

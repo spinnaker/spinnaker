@@ -73,6 +73,7 @@ describe('Service: Cluster', function () {
     });
 
     it('converts clusters parameter to q and account params when there are fewer than 251 clusters', () => {
+      spyOn(ClusterFilterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       const clusters = Array(250);
       ClusterFilterModel.sortFilter.clusters = {'test:myapp': true};
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});

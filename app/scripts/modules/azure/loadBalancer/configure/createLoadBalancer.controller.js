@@ -13,7 +13,7 @@ import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),

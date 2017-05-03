@@ -6,7 +6,7 @@ import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.basicSettings', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,

@@ -6,7 +6,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
 
 module.exports = angular.module('spinnaker.gce.securityGroup.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
 ])

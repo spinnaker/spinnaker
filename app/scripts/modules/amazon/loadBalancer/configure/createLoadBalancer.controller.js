@@ -17,7 +17,7 @@ import {AWSProviderSettings} from '../../aws.settings';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../loadBalancer.transformer.js'),

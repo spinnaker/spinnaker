@@ -1,13 +1,15 @@
 import {compact, uniq, map} from 'lodash';
 import {IScope, module} from 'angular';
-import {Application} from '../../application/application.model';
+
+import {Application} from 'core/application/application.model';
+import {SECURITY_GROUP_FILTER_MODEL} from './securityGroupFilter.model';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
 const ngmodule = module(SECURITY_GROUP_FILTER, [
   require('./securityGroup.filter.service'),
-  require('./securityGroup.filter.model'),
-  require('../../filterModel/dependentFilter/dependentFilter.service'),
+  SECURITY_GROUP_FILTER_MODEL,
+  require('core/filterModel/dependentFilter/dependentFilter.service'),
   require('./securityGroupDependentFilterHelper.service'),
 ]);
 
@@ -55,7 +57,7 @@ export class SecurityGroupFilterCtrl {
     app.securityGroups.onRefresh($scope, () => this.initialize());
   }
 
-  private updateSecurityGroups(): void {
+  private updateSecurityGroups(applyParamsToUrl = true): void {
     const {
       dependentFilterService,
       SecurityGroupFilterModel,
@@ -73,7 +75,9 @@ export class SecurityGroupFilterCtrl {
     this.accountHeadings = account;
     this.regionHeadings = region;
 
-    SecurityGroupFilterModel.applyParamsToUrl();
+    if (applyParamsToUrl) {
+      SecurityGroupFilterModel.applyParamsToUrl();
+    }
     securityGroupFilterService.updateSecurityGroups(app);
   };
 
@@ -85,7 +89,7 @@ export class SecurityGroupFilterCtrl {
     const { securityGroupFilterService } = this;
     securityGroupFilterService.clearFilters();
     securityGroupFilterService.updateSecurityGroups(this.app);
-    this.updateSecurityGroups();
+    this.updateSecurityGroups(false);
   }
 
   private initialize(): void {

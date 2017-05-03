@@ -7,7 +7,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
 
 module.exports = angular.module('spinnaker.securityGroup.cf.details.controller', [
-  require('angular-ui-router'),
+  require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   require('core/utils/selectOnDblClick.directive.js'),
