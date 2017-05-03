@@ -43,8 +43,10 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
   }
 
   public render() {
-    const slackUrl: string = this.state.isMac ? 'slack://channel?id={{slackConfig.helpChannel}}&team={{slackConfig.team}}'
-                                              : 'https://{{slackConfig.teamName}}.slack.com/messages/{{slackConfig.helpChannelName}}';
+    const slackConfig = this.state.slackConfig;
+    const slackUrl: string = slackConfig ? this.state.isMac ? `slack://channel?id=${slackConfig.helpChannel}&team=${slackConfig.team}`
+                                              : `https://${slackConfig.teamName}.slack.com/messages/${slackConfig.helpChannelName}`
+                                              : '';
     const slackTarget: string = this.state.isMac ? '' : '_blank';
     return (
       <Dropdown id="feedback-dropdown" componentClass="li" className="feedback-nav">
@@ -59,7 +61,7 @@ export class Feedback extends React.Component<IFeedbackProps, IFeedbackState> {
               Create an issue in JIRA
             </a>
           </li>
-          { this.state.slackConfig && (
+          { slackConfig && (
             <MenuItem href={slackUrl} target={slackTarget}>
               <span className="icon"><span className="glyphicon icon-bubbles"/></span>
               Talk to us on Slack
