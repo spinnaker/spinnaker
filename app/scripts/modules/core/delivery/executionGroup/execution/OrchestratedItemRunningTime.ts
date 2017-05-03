@@ -8,7 +8,7 @@ export class OrchestratedItemRunningTime {
   }
 
   public checkStatus(): void {
-    if (this.item.status !== 'RUNNING' && this.updateInterval) {
+    if (this.item.status !== 'RUNNING') {
       this.reset();
       this.updateCallback(this.item.runningTimeInMs);
     }

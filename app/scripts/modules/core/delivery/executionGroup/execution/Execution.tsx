@@ -90,8 +90,8 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         executionService.getExecution(this.props.execution.id).then((execution: IExecution) => {
           if (this.mounted) {
             executionService.updateExecution(this.props.application, execution);
-            refreshing = false;
           }
+          refreshing = false;
         });
       });
     }
