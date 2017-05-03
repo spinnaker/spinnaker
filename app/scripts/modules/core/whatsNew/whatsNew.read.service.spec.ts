@@ -1,5 +1,6 @@
 import {mock, IHttpBackendService} from 'angular';
 import {NetflixSettings} from 'netflix/netflix.settings';
+import {SETTINGS} from 'core/config/settings';
 import {WHATS_NEW_READ_SERVICE, WhatsNewReader, IGistApiResponse, IWhatsNewContents} from './whatsNew.read.service';
 
 describe('Service: whatsNew reader ', () => {
@@ -16,6 +17,10 @@ describe('Service: whatsNew reader ', () => {
     reader = whatsNewReader;
     $http = $httpBackend;
   }));
+
+  beforeEach(() => { SETTINGS.feature.netflixMode = true; });
+
+  afterEach(SETTINGS.resetToOriginal);
 
   describe('getWhatsNewContents', () => {
     let url: string;

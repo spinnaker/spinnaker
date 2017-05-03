@@ -1,5 +1,6 @@
-import {module, IHttpService, ILogService, IPromise, IHttpPromiseCallbackArg} from 'angular';
+import {module, IHttpService, ILogService, IPromise, IHttpPromiseCallbackArg, IQService} from 'angular';
 import {NetflixSettings} from 'netflix/netflix.settings';
+import {SETTINGS} from 'core/config/settings';
 
 export interface IGistApiResponse {
   // There are many other fields in the real response object.
@@ -25,16 +26,26 @@ export interface IWhatsNewContents {
 export class WhatsNewReader {
 
   private static extractFileContent(data: IGistApiResponse) {
-    return data.files[NetflixSettings.whatsNew.fileName].content;
+    const fileName = SETTINGS.feature.netflixMode ? NetflixSettings.whatsNew.fileName : SETTINGS.changelog.fileName;
+    return data.files[fileName].content;
   }
 
-  static get $inject() { return ['$http', '$log']; }
+  static get $inject() { return ['$http', '$log', '$q']; }
 
-  constructor(private $http: IHttpService, private $log: ILogService) {}
+  constructor(private $http: IHttpService, private $log: ILogService, private $q: IQService) {}
 
   public getWhatsNewContents(): IPromise<IWhatsNewContents> {
-    const gistId = NetflixSettings.whatsNew.gistId,
+    let gistId: string, accessToken: string;
+    if (SETTINGS.feature.netflixMode) {
+      gistId = NetflixSettings.whatsNew.gistId;
       accessToken = NetflixSettings.whatsNew.accessToken || null;
+    } else {
+      gistId = SETTINGS.changelog ? SETTINGS.changelog.gistId : null;
+    }
+    if (!gistId) {
+      return this.$q.resolve(null);
+    }
+
     let url = `https://api.github.com/gists/${gistId}`;
     if (accessToken) {
       url += '?access_token=' + accessToken;

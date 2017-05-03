@@ -73,6 +73,10 @@ export interface ISpinnakerSettings {
   };
   [key: string]: any;
   resetToOriginal: () => void;
+  changelog?: {
+    gistId: string;
+    fileName: string;
+  };
 }
 
 export const SETTINGS: ISpinnakerSettings = (<any>window).spinnakerSettings;

@@ -88,7 +88,7 @@ window.spinnakerSettings = {
     kubernetes: kubernetes,
     appengine: appengine,
   },
-  whatsNew: {
+  changelog: {
     gistId: changelogGistId,
     fileName: changelogGistName,
   },
