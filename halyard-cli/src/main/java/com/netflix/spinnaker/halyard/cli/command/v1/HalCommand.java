@@ -77,30 +77,10 @@ public class HalCommand extends NestableCommand {
   @Override
   public String getDescription() {
     return "A tool for configuring, installing, and updating Spinnaker.\n\n"
-        + "  Version: " + getVersion() + "\n\n"
         + "If this is your first time using Halyard to install Spinnaker we recommend that you skim "
         + "the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any "
         + "point you get stuck using 'hal', every command can be suffixed with '--help' for usage "
-        + "information. Once you are ready, these are the steps you need to follow to get an "
-        + "initial configuration of Spinnaker up and running:\n\n"
-        + "1. Enable the cloud provider(s) you want to deploy to:\n"
-        + "  $ hal config provider $PROVIDER enable\n\n"
-        + "2. Create Spinnaker accounts for the provider(s) you want to use:\n"
-        + "  $ hal config provider $PROVIDER account add my-account-name --help\n\n"
-        + "3. Set a storage source for Spinnaker metadata:\n"
-        + "  $ hal config storage edit --help\n\n"
-        + "4. (Optional) Set feature flags:\n"
-        + "  $ hal config features edit --help\n\n"
-        + "5. (Optional) Configure Spinnaker's image bakery for your provider(s):\n"
-        + "  $ hal config provider $PROVIDER bakery --help\n\n"
-        + "6. (Optional) Configure Spinnaker's security settings (authn, authz & ssl):\n"
-        + "  $ hal config security edit --help\n\n"
-        + "7. (Optional) Configure Spinnaker's deployment profile:\n"
-        + "  $ hal config deploy edit --help\n\n"
-        + "8. (Optional) Generate all of Spinnaker's configuration:\n"
-        + "  $ hal config generate\n\n"
-        + "9. Deploy Spinnaker:\n"
-        + "  $ hal deploy run\n";
+        + "information.\n";
   }
 
   @Override

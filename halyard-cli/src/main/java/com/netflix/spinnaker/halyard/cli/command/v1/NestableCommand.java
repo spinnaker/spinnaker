@@ -332,8 +332,9 @@ public abstract class NestableCommand {
 
   public String generateDocs() {
     StringBuilder toc = new StringBuilder();
-    toc.append("# Table of Contents\n");
+    toc.append("# Table of Contents\n\n");
     StringBuilder body = new StringBuilder();
+    toc.append("\n");
     nestedCommandDocs(toc, body);
     return toc.toString() + body.toString();
   }

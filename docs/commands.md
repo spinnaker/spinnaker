@@ -175,36 +175,7 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
-  Version: 0.21.0-SNAPSHOT
-
-If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information. Once you are ready, these are the steps you need to follow to get an initial configuration of Spinnaker up and running:
-
-1. Enable the cloud provider(s) you want to deploy to:
-  $ hal config provider $PROVIDER enable
-
-2. Create Spinnaker accounts for the provider(s) you want to use:
-  $ hal config provider $PROVIDER account add my-account-name --help
-
-3. Set a storage source for Spinnaker metadata:
-  $ hal config storage edit --help
-
-4. (Optional) Set feature flags:
-  $ hal config features edit --help
-
-5. (Optional) Configure Spinnaker's image bakery for your provider(s):
-  $ hal config provider $PROVIDER bakery --help
-
-6. (Optional) Configure Spinnaker's security settings (authn, authz & ssl):
-  $ hal config security edit --help
-
-7. (Optional) Configure Spinnaker's deployment profile:
-  $ hal config deploy edit --help
-
-8. (Optional) Generate all of Spinnaker's configuration:
-  $ hal config generate
-
-9. Deploy Spinnaker:
-  $ hal deploy run
+If this is your first time using Halyard to install Spinnaker we recommend that you skim the documentation on www.spinnaker.io/docs for some familiarity with the product. If at any point you get stuck using 'hal', every command can be suffixed with '--help' for usage information.
 
 
 #### Usage
