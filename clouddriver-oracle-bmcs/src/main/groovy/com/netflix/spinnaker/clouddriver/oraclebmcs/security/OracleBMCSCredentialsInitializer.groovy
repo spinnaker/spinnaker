@@ -55,12 +55,17 @@ class OracleBMCSCredentialsInitializer implements CredentialsInitializerSynchron
           environment(managedAccount.environment ?: managedAccount.name).
           accountType(managedAccount.accountType ?: managedAccount.name).
           requiredGroupMembership(managedAccount.requiredGroupMembership).
-          compartmentID(managedAccount.compartmentId).
+          compartmentId(managedAccount.compartmentId).
+          userId(managedAccount.userId).
+          fingerprint(managedAccount.fingerprint).
+          sshPrivateKeyFilePath(managedAccount.sshPrivateKeyFilePath).
+          tenancyId(managedAccount.tenancyId).
+          region(managedAccount.region).
           build()
 
         accountCredentialsRepository.save(managedAccount.name, oracleBMCSAccount)
       } catch (e) {
-        log.info("Could not load account $managedAccount.name for OracleBMCS", e)
+        log.warn("Could not load account $managedAccount.name for OracleBMCS", e)
       }
     }
 

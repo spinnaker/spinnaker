@@ -21,6 +21,11 @@ class OracleBMCSConfigurationProperties {
     String accountType
     List<String> requiredGroupMembership = []
     String compartmentId
+    String userId
+    String fingerprint
+    String sshPrivateKeyFilePath
+    String tenancyId
+    String region
   }
 
   List<ManagedAccount> accounts = []
