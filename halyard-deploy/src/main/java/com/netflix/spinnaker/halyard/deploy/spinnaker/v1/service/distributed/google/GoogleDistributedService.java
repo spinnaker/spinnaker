@@ -427,12 +427,6 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     result.setInstances(instances);
 
-    List<Integer> versions = new ArrayList<>(instances.keySet());
-    if (!versions.isEmpty()) {
-      versions.sort(Integer::compareTo);
-      result.setLatestEnabledVersion(versions.get(versions.size() - 1));
-    }
-
     return result;
   }
 

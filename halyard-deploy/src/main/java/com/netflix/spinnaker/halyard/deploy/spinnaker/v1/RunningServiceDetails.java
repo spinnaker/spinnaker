@@ -18,21 +18,33 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import lombok.Data;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class RunningServiceDetails {
-  int healthy;
   LoadBalancer loadBalancer;
-  Integer latestEnabledVersion;
   String artifactId;
   String internalEndpoint;
   String externalEndpoint;
   // Map of server group version (N) -> instance set
   Map<Integer, List<Instance>> instances = new HashMap<>();
+
+  public Integer getLatestEnabledVersion() {
+    List<Integer> versions = new ArrayList<>(instances.keySet());
+    if (!versions.isEmpty()) {
+      versions.sort(Integer::compareTo);
+      versions.sort(Comparator.reverseOrder());
+    }
+
+    return versions.stream()
+        .map(i -> new ImmutablePair<>(i, instances.get(i)))
+        .filter(is -> is.getRight().stream().allMatch(i -> i.isHealthy() && i.isRunning()))
+        .findFirst()
+        .orElse(new ImmutablePair<>(null, null))
+    .getLeft();
+  }
 
   @Data
   public static class Instance {

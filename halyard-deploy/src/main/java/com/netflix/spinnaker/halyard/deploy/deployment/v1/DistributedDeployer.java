@@ -101,19 +101,23 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       }
 
       boolean safeToUpdate = settings.isSafeToUpdate();
+      RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails, settings);
 
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
-        DaemonTaskHandler.message("Manually deploying " + distributedService.getServiceName());
-        List<ConfigSource> configs = distributedService.stageProfiles(deploymentDetails, resolvedConfiguration);
-        distributedService.ensureRunning(deploymentDetails, resolvedConfiguration, configs, safeToUpdate);
+        deployServiceManually(deploymentDetails, resolvedConfiguration, distributedService, safeToUpdate);
       } else {
         DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>();
         builder.setBuildResponse(() -> {
-          Orca orca = serviceProvider
-              .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
-              .connect(deploymentDetails, runtimeSettings);
-          DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via red/black");
-          deployService(deploymentDetails, resolvedConfiguration, orca, distributedService);
+          if (runningServiceDetails.getLatestEnabledVersion() == null) {
+            DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via provider API");
+            deployServiceManually(deploymentDetails, resolvedConfiguration, distributedService, safeToUpdate);
+          } else {
+            Orca orca = serviceProvider
+                .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
+                .connect(deploymentDetails, runtimeSettings);
+            DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via red/black");
+            deployServiceWithOrca(deploymentDetails, resolvedConfiguration, orca, distributedService);
+          }
 
           return null;
         });
@@ -121,7 +125,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       }
     }
 
-    DaemonTaskHandler.message("Waiting on red/black pipelines to complete");
+    DaemonTaskHandler.message("Waiting on deployments to complete");
     DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
         .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
 
@@ -151,7 +155,16 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     return result;
   }
 
-  private <T extends Account> void deployService(AccountDeploymentDetails<T> details,
+  private <T extends Account> void deployServiceManually(AccountDeploymentDetails<T> details,
+      ResolvedConfiguration resolvedConfiguration,
+      DistributedService distributedService,
+      boolean safeToUpdate) {
+    DaemonTaskHandler.message("Manually deploying " + distributedService.getServiceName());
+    List<ConfigSource> configs = distributedService.stageProfiles(details, resolvedConfiguration);
+    distributedService.ensureRunning(details, resolvedConfiguration, configs, safeToUpdate);
+  }
+
+  private <T extends Account> void deployServiceWithOrca(AccountDeploymentDetails<T> details,
       ResolvedConfiguration resolvedConfiguration,
       Orca orca,
       DistributedService distributedService) {

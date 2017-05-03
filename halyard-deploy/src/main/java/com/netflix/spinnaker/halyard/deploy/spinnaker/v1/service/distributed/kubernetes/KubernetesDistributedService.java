@@ -551,7 +551,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
         client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).delete();
 
         RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-        while (runningServiceDetails.getHealthy() > 0) {
+        while (runningServiceDetails.getLatestEnabledVersion() != null) {
           DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
           runningServiceDetails = getRunningServiceDetails(details, settings);
         }
@@ -565,9 +565,11 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     }
 
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-    while (runningServiceDetails.getHealthy() == 0) {
+    Integer version = runningServiceDetails.getLatestEnabledVersion();
+    while (version == null || runningServiceDetails.getInstances().get(version).stream().anyMatch(i -> !(i.isHealthy() && i.isRunning()))) {
       DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
       runningServiceDetails = getRunningServiceDetails(details, settings);
+      version = runningServiceDetails.getLatestEnabledVersion();
     }
   }
 
@@ -598,21 +600,19 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       String id = pod.getMetadata().getName();
 
       Instance instance = new Instance().setId(id).setLocation(location);
+      List<ContainerStatus> containerStatuses = pod.getStatus().getContainerStatuses();
+      if (!containerStatuses.isEmpty() && containerStatuses.stream().allMatch(ContainerStatus::getReady)) {
+        instance.setHealthy(true);
+      }
+
+      if (!containerStatuses.isEmpty() && containerStatuses.stream().allMatch(s -> s.getState().getRunning() != null && s.getState().getTerminated() == null)) {
+        instance.setRunning(true);
+      }
+
       List<Instance> knownInstances = instances.getOrDefault(version, new ArrayList<>());
       knownInstances.add(instance);
       instances.put(version, knownInstances);
     }
-
-    int count = (int) pods
-        .stream()
-        .filter(p -> p
-            .getStatus()
-            .getContainerStatuses()
-            .stream()
-            .allMatch(c -> c.getReady() && c.getState().getRunning() != null && c.getState().getTerminated() == null))
-        .count();
-
-    res.setHealthy(count);
 
     return res;
   }

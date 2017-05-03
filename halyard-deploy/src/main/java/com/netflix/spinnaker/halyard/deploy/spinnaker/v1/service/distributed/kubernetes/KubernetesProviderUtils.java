@@ -83,10 +83,12 @@ class KubernetesProviderUtils {
 
       proxy.jobId = jobExecutor.startJob(request);
 
-      // Wait for the proxy to spin up.
-      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
-
       JobStatus status = jobExecutor.updateJob(proxy.jobId);
+
+      while (status == null) {
+        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(2));
+        status = jobExecutor.updateJob(proxy.jobId);
+      }
 
       // This should be a long-running job.
       if (status.getState() == JobStatus.State.COMPLETED) {
@@ -218,7 +220,8 @@ class KubernetesProviderUtils {
   static void kubectlDeleteNamespaceCommand(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String namespace) {
     List<String> command = kubectlAccountCommand(details);
     command.add("delete");
-    command.add("namesapce");
+    command.add("namespace");
+    command.add(namespace);
     JobRequest request = new JobRequest().setTokenizedCommand(command);
 
     try {
