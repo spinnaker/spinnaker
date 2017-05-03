@@ -45,7 +45,8 @@ public class ExecutionEngineMigration implements Migration {
   }
 
   private boolean isV1(Pipeline pipeline) {
-    return !"v2".equals(pipeline.get("executionEngine"));
+    Object engine = pipeline.get("executionEngine");
+    return engine == null || "v1".equals(engine);
   }
 
   private void migrate(Pipeline pipeline) {
