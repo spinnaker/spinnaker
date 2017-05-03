@@ -17,8 +17,8 @@
 buildscript {
   // TODO: this stuff should go in spinnaker-dependencies module eventually
   ext.kotlinVersion = "1.1.2"
-  ext.junitVersion = "1.0.0-M3"
-  ext.spekVersion = "1.1.0"
+  ext.junitVersion = "1.0.0-M4"
+  ext.spekVersion = "1.1.1"
 
   repositories {
     maven { url "https://plugins.gradle.org/m2/" }
