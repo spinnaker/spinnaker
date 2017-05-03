@@ -14,64 +14,18 @@
  * limitations under the License.
  */
 
-buildscript {
-  // TODO: this stuff should go in spinnaker-dependencies module eventually
-  ext.kotlinVersion = "1.1.2"
-  ext.junitVersion = "1.0.0-M4"
-  ext.spekVersion = "1.1.1"
-
-  repositories {
-    maven { url "https://plugins.gradle.org/m2/" }
-  }
-
-  dependencies {
-    classpath "org.junit.platform:junit-platform-gradle-plugin:$junitVersion"
-    classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
-  }
-}
-
-apply plugin: "nebula.kotlin"
-apply plugin: "org.junit.platform.gradle.plugin"
-
+apply from: "$rootDir/gradle/kotlin.gradle"
+apply from: "$rootDir/gradle/spek.gradle"
 
 repositories {
   jcenter()
-  maven { url "http://dl.bintray.com/jetbrains/spek" }
 }
 
 dependencies {
   compile project(":orca-queue")
-  compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.8.7"
+  compile "com.fasterxml.jackson.module:jackson-module-kotlin:${spinnaker.version("jackson")}"
 
   compile spinnaker.dependency("clouddriverAws")
 
   testCompile project(path: ":orca-queue", configuration: "testOutput")
-  testCompile "org.jetbrains.spek:spek-api:$spekVersion"
-
-  testRuntime "org.jetbrains.spek:spek-junit-platform-engine:$spekVersion"
-}
-
-configurations.all {
-  resolutionStrategy {
-    eachDependency { DependencyResolveDetails details ->
-      if (details.requested.group == "org.jetbrains.kotlin") {
-        details.useVersion kotlinVersion
-      }
-    }
-  }
-}
-
-junitPlatform {
-  platformVersion junitVersion
-  filters {
-    engines {
-      include "spek"
-    }
-  }
-}
-
-compileKotlin {
-  kotlinOptions {
-    languageVersion = "1.1"
-  }
 }

@@ -14,30 +14,20 @@
  * limitations under the License.
  */
 
-apply from: "$rootDir/gradle/kotlin.gradle"
-apply from: "$rootDir/gradle/spek.gradle"
+apply plugin: "nebula.kotlin"
 
-repositories {
-  jcenter()
+configurations.all {
+  resolutionStrategy {
+    eachDependency { details ->
+      if (details.requested.group == "org.jetbrains.kotlin") {
+        details.useVersion kotlinVersion
+      }
+    }
+  }
 }
 
-dependencies {
-  compile project(":orca-core")
-  compile "org.threeten:threeten-extra:1.0"
-
-  testCompile project(":orca-test")
-}
-
-// export tests so the Queue TCK is available to other modules
-configurations {
-  testOutput.extendsFrom(testCompile)
-}
-
-task jarTest(type: Jar, dependsOn: testClasses) {
-  from sourceSets.test.output
-  classifier = "test"
-}
-
-artifacts {
-  testOutput jarTest
+compileKotlin {
+  kotlinOptions {
+    languageVersion = "1.1"
+  }
 }
