@@ -273,17 +273,16 @@ function configure_halyard_defaults() {
   _user=$(who -m | awk '{print $1;}')
   echo ""
   if [ -z "$YES" ]; then
-    read -p "Which user would you like to run Halyard as? [default=$_user]: " user
+    if [ "$_user" = "root" ] || [ -z "$_user" ]; then
+      read -p "Halyard will be run as root. If you prefer a different user, please enter that now. [default=root]: " _user
+    fi
+  else 
+    if [ -z "$_user" ]; then
+      _user="root"
+    fi
   fi
 
-  if [ -z "$user" ]; then
-    user="$_user"
-  fi
-
-  # user can't be resolved in docker containers
-  if [ -z "$user" ]; then
-    user=root
-  fi
+  user="$_user"
 
   echo "Configuring daemon to be run as $user"
 
