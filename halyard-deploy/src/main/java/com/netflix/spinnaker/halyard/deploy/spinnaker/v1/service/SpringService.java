@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 abstract public class SpringService<T> extends SpinnakerService<T> {
@@ -42,6 +43,15 @@ abstract public class SpringService<T> extends SpinnakerService<T> {
     List<Profile> result = new ArrayList<>();
     result.add(spinnakerProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints));
     return result;
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    if (profileName.startsWith(getCanonicalName()) || profileName.startsWith("spinnaker")) {
+      return Optional.of(OUTPUT_PATH + profileName);
+    } else {
+      return Optional.empty();
+    }
   }
 
   protected List<String> springProfiles = new ArrayList<>();

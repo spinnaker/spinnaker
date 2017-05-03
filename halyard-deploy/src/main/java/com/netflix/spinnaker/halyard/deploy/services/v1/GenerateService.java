@@ -33,17 +33,16 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -77,7 +76,6 @@ public class GenerateService {
    *   1. Clear out old config generated in a prior run.
    *   2. Generate configuration using the halconfig as the source of truth, while collecting files needed by
    *      the deployment.
-   *   3. Copy custom profiles from the specified deployment over to the new deployment.
    *
    * @param deploymentName is the deployment whose config to generate
    * @param services is the list of services to generate configs for
@@ -101,6 +99,9 @@ public class GenerateService {
           new ConfigProblemBuilder(Severity.FATAL, "Unable to clear old spinnaker config: " + e.getMessage() + ".").build());
     }
 
+    Path userProfilePath = halconfigDirectoryStructure.getUserProfilePath(deploymentName);
+    List<String> userProfileNames = aggregateProfilesInPath(userProfilePath.toString(), "");
+
     // Step 2.
     Map<SpinnakerService.Type, Map<String, Profile>> serviceProfiles = new HashMap<>();
     for (SpinnakerService service : serviceProvider.getServices()) {
@@ -123,43 +124,55 @@ public class GenerateService {
 
       String pluralModifier = profiles.size() == 1 ? "" : "s";
       DaemonTaskHandler.message("Generated " + profiles.size() + " profile" + pluralModifier + " for " + service.getCanonicalName());
-      for (Profile profile : profiles) {
-        profile.writeStagedFile(spinnakerStagingPath);
-      }
+      Map<String, Profile> outputProfiles = processProfiles(profiles);
 
-      Map<String, Profile> profileMap = new HashMap<>();
-      for (Profile profile : profiles) {
-        profileMap.put(profile.getName(), profile);
-      }
+      List<Profile> customProfiles = userProfileNames.stream()
+          .map(s -> (Optional<Profile>) service.customProfile(deploymentConfiguration, runtimeSettings, Paths.get(userProfilePath.toString(), s), s))
+          .filter(Optional::isPresent)
+          .map(Optional::get)
+          .collect(Collectors.toList());
 
-      serviceProfiles.put(service.getType(), profileMap);
-    }
+      pluralModifier = customProfiles.size() == 1 ? "" : "s";
+      DaemonTaskHandler.message("Discovered " + customProfiles.size() + " custom profile" + pluralModifier + " for " + service.getCanonicalName());
+      outputProfiles.putAll(processProfiles(customProfiles));
 
-    // Step 3.
-    Path userProfilePath = halconfigDirectoryStructure.getUserProfilePath(deploymentName);
-
-    if (Files.isDirectory(userProfilePath)) {
-      DaemonTaskHandler.newStage("Copying user-provided profiles");
-      File[] files = userProfilePath.toFile().listFiles();
-      if (files == null) {
-        files = new File[0];
-      }
-
-      Arrays.stream(files).forEach(f -> {
-        try {
-          DaemonTaskHandler.message("Copying existing profile " + f.getName());
-          Files.copy(f.toPath(), Paths.get(spinnakerStaging.toString(), f.getName()), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-          throw new HalException(
-              new ConfigProblemBuilder(Severity.FATAL, "Unable to copy profile \"" + f.getName() + "\": " + e.getMessage() + ".").build()
-          );
-        }
-      });
+      serviceProfiles.put(service.getType(), outputProfiles);
     }
 
     return new ResolvedConfiguration()
         .setServiceProfiles(serviceProfiles)
         .setRuntimeSettings(runtimeSettings);
+  }
+
+  private Map<String, Profile> processProfiles(List<Profile> profiles) {
+    for (Profile profile : profiles) {
+      profile.writeStagedFile(spinnakerStagingPath);
+    }
+
+    Map<String, Profile> profileMap = new HashMap<>();
+    for (Profile profile : profiles) {
+      profileMap.put(profile.getName(), profile);
+    }
+
+    return profileMap;
+  }
+
+
+  private static List<String> aggregateProfilesInPath(String basePath, String relativePath) {
+    String filePrefix;
+    if (!relativePath.isEmpty()) {
+      filePrefix = relativePath + File.separator;
+    } else {
+      filePrefix = relativePath;
+    }
+
+    File currentPath = new File(basePath, relativePath);
+    return Arrays.stream(currentPath.listFiles())
+        .map(f -> f.isFile() ? Collections.singletonList(filePrefix + f.getName()) : aggregateProfilesInPath(basePath, filePrefix + f.getName()))
+        .reduce(new ArrayList<>(), (a, b) -> {
+          a.addAll(b);
+          return a;
+        });
   }
 
   @Data

@@ -43,6 +43,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -232,5 +233,10 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
     boolean sidecar = true;
 
     public Settings() { }
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    return Optional.empty();
   }
 }

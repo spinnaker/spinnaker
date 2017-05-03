@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -122,5 +123,10 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     boolean safeToUpdate = true;
     boolean monitored = false;
     boolean sidecar = true;
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    return Optional.empty();
   }
 }

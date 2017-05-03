@@ -21,10 +21,10 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulClientProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulServiceProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulClientProfileFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulServiceProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -35,6 +35,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -120,5 +121,10 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulClientS
     boolean sidecar = true;
 
     public Settings() { }
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    return Optional.empty();
   }
 }

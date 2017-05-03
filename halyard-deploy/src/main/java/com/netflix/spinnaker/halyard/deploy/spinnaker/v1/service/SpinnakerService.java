@@ -19,15 +19,21 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.CustomProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
 import lombok.Data;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Data
 @Component
@@ -37,6 +43,9 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
 
   @Autowired
   ObjectMapper objectMapper;
+
+  @Autowired
+  ArtifactService artifactService;
 
   @Override
   public SpinnakerService<T> getService() {
@@ -55,6 +64,31 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
   abstract public Type getType();
   abstract public Class<T> getEndpointClass();
   abstract public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints);
+
+  abstract protected Optional<String> customProfileOutputPath(String profileName);
+
+  public Optional<Profile> customProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings runtimeSettings, Path profilePath, String profileName) {
+    return customProfileOutputPath(profileName).flatMap(outputPath -> {
+      SpinnakerArtifact artifact = getArtifact();
+      ProfileFactory factory = new CustomProfileFactory() {
+        @Override
+        public SpinnakerArtifact getArtifact() {
+          return artifact;
+        }
+
+        protected ArtifactService getArtifactService() {
+          return artifactService;
+        }
+
+        @Override
+        protected Path getUserProfilePath() {
+          return profilePath;
+        }
+      };
+
+      return Optional.of(factory.getProfile(profileName, outputPath, deploymentConfiguration, runtimeSettings));
+    });
+  }
 
   public enum Type {
     CLOUDDRIVER("spin-clouddriver", "clouddriver"),

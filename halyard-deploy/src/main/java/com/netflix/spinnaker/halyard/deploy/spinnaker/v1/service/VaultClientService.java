@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -63,5 +64,10 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
     boolean sidecar = true;
 
     public Settings() { }
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    return Optional.empty();
   }
 }

@@ -29,6 +29,7 @@ import redis.clients.jedis.Jedis;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -72,5 +73,10 @@ abstract public class RedisService extends SpinnakerService<Jedis> {
     public Settings() {
       env.put("MASTER", "true");
     }
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    return Optional.empty();
   }
 }
