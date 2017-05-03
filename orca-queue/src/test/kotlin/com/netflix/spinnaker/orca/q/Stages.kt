@@ -32,6 +32,10 @@ val singleTaskStage = object : StageDefinitionBuilder {
   }
 }
 
+val zeroTaskStage = object : StageDefinitionBuilder {
+  override fun getType() = "zeroTaskStage"
+}
+
 val multiTaskStage = object : StageDefinitionBuilder {
   override fun getType() = "multiTaskStage"
   override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
@@ -80,6 +84,14 @@ val stageWithSyntheticAfter = object : StageDefinitionBuilder {
   override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
     newStage(stage.execution, singleTaskStage.type, "post1", mutableMapOf(), stage, STAGE_AFTER),
     newStage(stage.execution, singleTaskStage.type, "post2", mutableMapOf(), stage, STAGE_AFTER)
+  )
+}
+
+val stageWithSyntheticAfterAndNoTasks = object : StageDefinitionBuilder {
+  override fun getType() = "stageWithSyntheticAfterAndNoTasks"
+
+  override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
+    newStage(stage.execution, singleTaskStage.type, "post", mutableMapOf(), stage, STAGE_AFTER)
   )
 }
 

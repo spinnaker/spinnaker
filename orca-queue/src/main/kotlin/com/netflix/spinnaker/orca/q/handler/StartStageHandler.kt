@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SKIPPED
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
@@ -72,19 +71,24 @@ open class StartStageHandler @Autowired constructor(
   }
 
   private fun Stage<*>.start() {
-    firstBeforeStages().let { beforeStages ->
-      if (beforeStages.isEmpty()) {
-        firstTask().let { task ->
-          if (task == null) {
-            TODO("do what? Nothing to do, just indicate end of stage?")
-          } else {
-            queue.push(StartTask(this, task.id))
+    val beforeStages = firstBeforeStages()
+    if (beforeStages.isEmpty()) {
+      val task = firstTask()
+      if (task == null) {
+        val afterStages = firstAfterStages()
+        if (afterStages.isEmpty()) {
+          queue.push(CompleteStage(this, SUCCEEDED))
+        } else {
+          afterStages.forEach {
+            queue.push(StartStage(it))
           }
         }
       } else {
-        beforeStages.forEach {
-          queue.push(StartStage(it))
-        }
+        queue.push(StartTask(this, task.id))
+      }
+    } else {
+      beforeStages.forEach {
+        queue.push(StartStage(it))
       }
     }
   }

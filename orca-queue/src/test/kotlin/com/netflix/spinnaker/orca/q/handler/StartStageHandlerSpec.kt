@@ -57,7 +57,9 @@ class StartStageHandlerSpec : Spek({
       stageWithSyntheticBefore,
       stageWithSyntheticAfter,
       stageWithParallelBranches,
-      rollingPushStage
+      rollingPushStage,
+      zeroTaskStage,
+      stageWithSyntheticAfterAndNoTasks
     ),
     publisher,
     clock,
@@ -119,6 +121,90 @@ class StartStageHandlerSpec : Spek({
       }
     }
 
+    context("with no tasks") {
+      context("and no after stages") {
+        val pipeline = pipeline {
+          application = "foo"
+          stage {
+            refId = "1"
+            type = zeroTaskStage.type
+          }
+        }
+        val message = StartStage(pipeline.stageByRef("1"))
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          handler.handle(message)
+        }
+
+        it("updates the stage status") {
+          verify(repository).storeStage(check {
+            it.getStatus() shouldEqual RUNNING
+            it.getStartTime() shouldEqual clock.millis()
+          })
+        }
+
+        it("immediately completes the stage") {
+          verify(queue).push(CompleteStage(message, SUCCEEDED))
+          verifyNoMoreInteractions(queue)
+        }
+
+        it("publishes an event") {
+          verify(publisher).publishEvent(check<StageStarted> {
+            it.executionType shouldEqual pipeline.javaClass
+            it.executionId shouldEqual pipeline.id
+            it.stageId shouldEqual message.stageId
+          })
+        }
+      }
+
+      context("and at least one after stage") {
+        val pipeline = pipeline {
+          application = "foo"
+          stage {
+            refId = "1"
+            type = stageWithSyntheticAfterAndNoTasks.type
+          }
+        }
+        val message = StartStage(pipeline.stageByRef("1"))
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          handler.handle(message)
+        }
+
+        it("updates the stage status") {
+          verify(repository).storeStage(check {
+            it.getStatus() shouldEqual RUNNING
+            it.getStartTime() shouldEqual clock.millis()
+          })
+        }
+
+        it("immediately starts the first after stage") {
+          verify(queue).push(StartStage(pipeline.stageByRef("1>1")))
+          verifyNoMoreInteractions(queue)
+        }
+
+        it("publishes an event") {
+          verify(publisher).publishEvent(check<StageStarted> {
+            it.executionType shouldEqual pipeline.javaClass
+            it.executionId shouldEqual pipeline.id
+            it.stageId shouldEqual message.stageId
+          })
+        }
+      }
+    }
+
     context("with several linear tasks") {
       val pipeline = pipeline {
         application = "foo"
@@ -165,7 +251,7 @@ class StartStageHandlerSpec : Spek({
         })
       }
 
-      it("raises an event to indicate the first task is starting") {
+      it("starts the first task") {
         verify(queue).push(StartTask(
           message.executionType,
           message.executionId,
