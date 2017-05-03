@@ -12,32 +12,23 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.github;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.github.GithubRoleProviderCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.google.GoogleRoleProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.AbstractRoleProviderCommand;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Parameters(separators = "=")
-public class RolesProviderCommand extends AbstractConfigCommand {
-  String description = "Configure a roles provider.";
-  String commandName = "provider";
+public class GithubRoleProviderCommand extends AbstractRoleProviderCommand {
+  private GroupMembership.RoleProviderType roleProviderType = GroupMembership.RoleProviderType.GITHUB;
 
-  public RolesProviderCommand() {
-    registerSubcommand(new GoogleRoleProviderCommand());
-    registerSubcommand(new GithubRoleProviderCommand());
-  }
-
-  @Override
-  protected void executeThis() {
-    showHelp();
+  public GithubRoleProviderCommand() {
+    registerSubcommand(new EditGithubRoleProviderCommand());
   }
 }

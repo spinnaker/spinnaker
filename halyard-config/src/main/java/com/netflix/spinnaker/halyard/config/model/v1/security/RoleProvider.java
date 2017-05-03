@@ -30,6 +30,8 @@ import lombok.EqualsAndHashCode;
 abstract public class RoleProvider extends Node {
   abstract public GroupMembership.RoleProviderType getRoleProviderType();
 
+  private boolean enabled;
+
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);

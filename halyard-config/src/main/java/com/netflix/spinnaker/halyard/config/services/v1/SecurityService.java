@@ -224,6 +224,9 @@ public class SecurityService {
       case GOOGLE:
         groupMembership.setGoogle((GoogleRoleProvider) roleProvider);
         break;
+      case GITHUB:
+        groupMembership.setGithub((GithubRoleProvider) roleProvider);
+        break;
       default:
         throw new RuntimeException("Unknown Role Provider " + roleProvider.getRoleProviderType());
     }

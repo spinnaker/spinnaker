@@ -33,17 +33,16 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class GroupMembership extends Node {
+
+  private final String nodeName = "groupMembership";
+
   private RoleProviderType roleProviderType;
   private GoogleRoleProvider google = new GoogleRoleProvider();
+  private GithubRoleProvider github = new GithubRoleProvider();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
-  }
-
-  @Override
-  public String getNodeName() {
-    return "groupMembership";
   }
 
   @Override

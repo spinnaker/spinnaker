@@ -19,7 +19,11 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
 
 @Parameters(separators = "=")
 abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand {
@@ -33,5 +37,19 @@ abstract public class AbstractRoleProviderCommand extends AbstractConfigCommand 
   @Override
   public String getCommandName() {
     return getRoleProviderType() + "";
+  }
+
+  @Override
+  protected void executeThis() {
+    String currentDeployment = getCurrentDeployment();
+    new OperationHandler<RoleProvider>()
+        .setOperation(Daemon.getRoleProvider(currentDeployment,
+                                             getRoleProviderType() + "",
+                                             true))
+        .setFailureMesssage("Failed to get " + getRoleProviderType() + " configuration.")
+        .setSuccessMessage("Configured " + getRoleProviderType() + " role provider:")
+        .setFormat(AnsiFormatUtils.Format.STRING)
+        .setUserFormatted(true)
+        .get();
   }
 }

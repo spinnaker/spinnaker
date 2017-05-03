@@ -12,25 +12,31 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 
 package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GoogleRoleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GithubRoleProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GoogleRoleProviderValidator extends Validator<GoogleRoleProvider> {
+public class GithubRoleProviderValidator extends Validator<GithubRoleProvider> {
   @Override
-  public void validate(ConfigProblemSetBuilder p, GoogleRoleProvider n) {
-    if (!n.isEnabled()) {
+  public void validate(ConfigProblemSetBuilder p, GithubRoleProvider provider) {
+    if (!provider.isEnabled()) {
       return;
     }
 
-    p.addProblem(Problem.Severity.WARNING, "No validation exists for google role providers yet.");
+    if (StringUtils.isEmpty(provider.getOrganization())) {
+      p.addProblem(Problem.Severity.ERROR, "No organization specified.");
+    }
+
+    if (StringUtils.isEmpty(provider.getAccessToken())) {
+      p.addProblem(Problem.Severity.ERROR, "No access token specified.");
+    }
   }
 }
