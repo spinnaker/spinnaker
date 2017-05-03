@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { OverlayTrigger, Popover as BSPopover } from 'react-bootstrap';
 
+import { Placement } from 'core/presentation/Placement';
+
 interface IProps {
   value?: string;
   template?: JSX.Element;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
+  placement?: Placement;
 }
 
 export class Popover extends React.Component<IProps, void> {

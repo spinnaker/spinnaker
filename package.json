@@ -26,7 +26,6 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
-    "@types/js-yaml": "^3.5.30",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "1.6.3",
     "angular-cache": "^4.6.0",
@@ -83,6 +82,7 @@
     "@types/enzyme": "^2.7.9",
     "@types/jasmine": "2.5.42",
     "@types/jquery": "^2.0.34",
+    "@types/js-yaml": "^3.5.30",
     "@types/lodash": "4.14.41",
     "@types/moment-timezone": "^0.2.34",
     "@types/node": "7.0.5",
@@ -136,7 +136,7 @@
     "octicons": "^2.2.0",
     "protractor": "^5.1.1",
     "react-addons-test-utils": "^15.5.1",
-    "react-test-renderer": "^15.5.4",
+    "react-test-renderer": "15.4.2",
     "rimraf": "^2.5.4",
     "style-loader": "^0.16.0",
     "tslint": "^5.1.0",

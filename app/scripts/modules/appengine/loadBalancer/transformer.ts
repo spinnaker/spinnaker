@@ -118,7 +118,7 @@ export class AppengineLoadBalancerTransformer {
           acc[camelCase(instance.health.state)]++;
         }
         return acc;
-      }, {up: 0, down: 0, outOfService: 0, succeeded: 0, failed: 0, unknown: 0}).value();
+      }, {up: 0, down: 0, outOfService: 0, succeeded: 0, failed: 0, starting: 0, unknown: 0}).value();
 
     instanceCounts.outOfService += chain(serverGroups).map('detachedInstances').flatten().value().length;
     return instanceCounts;

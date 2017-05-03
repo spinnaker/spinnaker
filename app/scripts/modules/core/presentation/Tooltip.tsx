@@ -1,10 +1,12 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 
+import { Placement } from 'core/presentation/Placement';
+
 interface ITooltipProps {
   value?: string;
   template?: JSX.Element;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
+  placement?: Placement;
 }
 
 export class Tooltip extends React.Component<ITooltipProps, void> {

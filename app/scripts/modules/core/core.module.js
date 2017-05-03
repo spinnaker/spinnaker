@@ -22,6 +22,7 @@ import {SETTINGS} from 'core/config/settings';
 import {INSIGHT_NGMODULE} from './insight/insight.module';
 import {REPLACE_FILTER} from './filter/replace.filter';
 import {PIPELINE_TEMPLATE_MODULE} from './pipeline/config/templates/pipelineTemplate.module';
+import {HEALTH_COUNTS_COMPONENT} from './healthCounts/healthCounts.component';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -86,7 +87,7 @@ module.exports = angular
 
     require('./forms/forms.module.js'),
 
-    require('./healthCounts/healthCounts.directive.js'),
+    HEALTH_COUNTS_COMPONENT,
     HELP_FIELD_COMPONENT,
 
     INSIGHT_NGMODULE.name,

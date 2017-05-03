@@ -3,6 +3,7 @@ export interface InstanceCounts {
 
   up: number;
   down: number;
+  starting: number;
   succeeded: number;
   failed: number;
   unknown: number;

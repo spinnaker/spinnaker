@@ -121,20 +121,14 @@ describe('Directives: projectCluster', function () {
     var elem = $compile(html)($scope);
     $scope.$digest();
 
-    let upSelector = ' span[ng-if="container.up"]:eq(0)';
-
     expect(elem.find('.cluster-name').text().trim()).toBe('foo-*');
     expect(elem.find('.cluster-health:eq(0)').text().trim()).toBe('2 Applications');
-    expect(elem.find('.rollup-summary health-counts' + upSelector).text().trim()).toBe('4');
 
     // first app: dash in us-west-1, 3 up in us-east-1
-    expect(elem.find('tbody tr:eq(0) td:eq(3) health-counts' + upSelector).text().trim()).toBe('3');
     expect(elem.find('tbody tr:eq(0) td:eq(4)').text().trim()).toBe('-');
 
     // second app: dash in us-east-1, 1 up in us-west-1
     expect(elem.find('tbody tr:eq(1) td:eq(3)').text().trim()).toBe('-');
-    expect(elem.find('tbody tr:eq(1) td:eq(4) health-counts' + upSelector).text().trim()).toBe('1');
-
   });
 
 });

@@ -1,7 +1,13 @@
-import {ILogService, IPromise, ITimeoutService, IWindowService, module} from 'angular';
-import {Observable, Subject} from 'rxjs';
+import { ILogService, IPromise, ITimeoutService, IWindowService, module } from 'angular';
+import { Observable, Subject, Subscription } from 'rxjs';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
+
+export interface IScheduler {
+  subscribe: (next?: () => void, error?: (error: any) => void, complete?: () => void) => Subscription;
+  scheduleImmediate: () => void;
+  unsubscribe: () => void;
+}
 
 export class SchedulerFactory {
   static get $inject(): string[] { return ['$log', '$window', '$timeout']; }
@@ -9,7 +15,7 @@ export class SchedulerFactory {
               private $window: IWindowService,
               private $timeout: ITimeoutService) {}
 
-  public createScheduler(pollSchedule = SETTINGS.pollSchedule) {
+  public createScheduler(pollSchedule = SETTINGS.pollSchedule): IScheduler {
     let scheduler = new Subject();
 
     let lastRunTimestamp = new Date().getTime();

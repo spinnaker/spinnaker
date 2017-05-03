@@ -6,6 +6,7 @@ import {COLLAPSIBLE_SECTION_STATE_CACHE} from 'core/cache/collapsibleSectionStat
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
 import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
+import {HEALTH_COUNTS_COMPONENT} from 'core/healthCounts/healthCounts.component';
 
 let angular = require('angular');
 
@@ -17,7 +18,7 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.proj
   COLLAPSIBLE_SECTION_STATE_CACHE,
   CLUSTER_FILTER_SERVICE,
   TIME_FORMATTERS,
-  require('../../../healthCounts/healthCounts.directive.js'),
+  HEALTH_COUNTS_COMPONENT,
   require('../regionFilter/regionFilter.service.js'),
 ])
   .directive('projectCluster', function () {

@@ -2,12 +2,13 @@ import * as React from 'react';
 import {Overlay, Popover} from 'react-bootstrap';
 import autoBindMethods from 'class-autobind-decorator';
 
+import {Placement} from 'core/presentation/Placement';
 import {UUIDGenerator} from '../utils/uuid.service';
 
 interface IProps {
   value?: string;
   template?: JSX.Element;
-  placement?: 'top' | 'bottom' | 'left' | 'right';
+  placement?: Placement;
   id?: string;
 }
 

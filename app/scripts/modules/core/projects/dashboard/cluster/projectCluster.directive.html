@@ -68,8 +68,8 @@
           <span ng-if="application.regions[region]">
             <a ng-click="vm.clearFilters(application.regions[region].metadata)" ng-href="{{application.regions[region].metadata.href}}">
               <health-counts container="application.regions[region].instanceCounts"
-                             additional-legend-text="(Click to view cluster in this region)"
-                             legend-placement="right"></health-counts>
+                             additional-legend-text="'(Click to view cluster in this region)'"
+                             legend-placement="'right'"></health-counts>
             </a>
             <span ng-if="application.regions[region].inconsistentBuilds.length">
               <span class="glyphicon glyphicon-warning-sign text-warning"
