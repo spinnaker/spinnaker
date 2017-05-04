@@ -123,12 +123,14 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
   private showLoadBalancerDetails(name: string): void {
     const serverGroup = this.props.serverGroup;
     ReactGA.event({category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)`});
-    $state.go('.loadBalancerDetails', {region: serverGroup.region, accountId: serverGroup.account, name: name, provider: serverGroup.type});
+    const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';
+    $state.go(nextState, {region: serverGroup.region, accountId: serverGroup.account, name: name, provider: serverGroup.type});
   }
 
   private toggleShowPopover(e: React.MouseEvent<HTMLElement>): void {
     ReactGA.event({category: 'Cluster Pod', action: `Toggle Load Balancers Menu (${this.state.showPopover})`});
     this.setState({showPopover: !this.state.showPopover});
+    e.preventDefault();
     e.stopPropagation();
   }
 
@@ -151,10 +153,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
                 onClick={this.toggleShowPopover}
               >
                 <span className="badge badge-counter">
-                  <span className="icon">
-                    <span className="icon-elb"/>
-                  </span>
-                  {serverGroup.loadBalancers.length}
+                  <span className="icon"><span className="icon-elb"/></span> {serverGroup.loadBalancers.length}
                 </span>
               </button>
             </Tooltip>
