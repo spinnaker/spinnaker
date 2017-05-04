@@ -289,7 +289,6 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
           .setKey("consul-members") // TODO(lwander) change to consul_members for consistency w/ vault
           .setValue(instancesValue);
 
-
       metadataItems.add(items);
     }
 
@@ -429,7 +428,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
                       return new RunningServiceDetails.Instance()
                           .setId(instanceName)
                           .setLocation(settings.getLocation())
-                          .setRunning(running);
+                          .setRunning(running)
+                          .setHealthy(running); // todo(lwander) depend on consul health here where possible.
                     }
                 ).collect(Collectors.toList());
           } catch (IOException e) {

@@ -44,7 +44,7 @@ public class ConsulClientProfileFactory extends TemplateBackedProfileFactory {
       "        \"dns\": 53,",
       "        \"{%scheme%}\": {%port%}",
       "    },",
-      "    \"recursors\": [ \"8.8.8.8\" ]",
+      "    \"recursors\": [ \"169.254.169.254\" ]",
       "}"
   );
 

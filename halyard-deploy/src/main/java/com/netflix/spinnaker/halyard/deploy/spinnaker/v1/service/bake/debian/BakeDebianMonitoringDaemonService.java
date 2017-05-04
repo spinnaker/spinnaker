@@ -35,7 +35,7 @@ import java.util.List;
 @Data
 @Component
 public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements BakeDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
-  final String upstartServiceName = "spinnaker-monitoring-daemon";
+  final String upstartServiceName = "spinnaker-monitoring";
 
   @Autowired
   ArtifactService artifactService;
