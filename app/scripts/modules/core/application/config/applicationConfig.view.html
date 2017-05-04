@@ -15,13 +15,13 @@
     <page-section key="cache" label="Cache Management">
       <application-cache-management application="config.application"></application-cache-management>
     </page-section>
-    <page-section key="chaos" label="Chaos Monkey" ng-if="config.feature.chaosMonkey">
+    <page-section key="chaos" label="Chaos Monkey" visible="config.feature.chaosMonkey">
       <chaos-monkey-config application="config.application"></chaos-monkey-config>
     </page-section>
     <page-section key="traffic-guards" label="Traffic Guards">
       <traffic-guard-config application="config.application"></traffic-guard-config>
     </page-section>
-    <page-section key="snapshot" label="Serialize Application" ng-if="config.feature.snapshots">
+    <page-section key="snapshot" label="Serialize Application" visible="config.feature.snapshots">
       <application-snapshot-section application="config.application"></application-snapshot-section>
     </page-section>
     <page-section key="delete" label="Delete Application">
