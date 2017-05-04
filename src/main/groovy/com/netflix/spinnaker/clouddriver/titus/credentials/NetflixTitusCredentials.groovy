@@ -34,6 +34,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
   final String awsAccount
   final String awsVpc
   final boolean discoveryEnabled
+  final String stack
 
   private final List<TitusRegion> regions
 
@@ -46,7 +47,9 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
                           String awsAccount,
                           String awsVpc,
                           boolean discoveryEnabled,
-                          String discovery) {
+                          String discovery,
+                          String stack
+  ) {
     this.name = name
     this.environment = environment
     this.accountType = accountType
@@ -57,6 +60,7 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     this.awsVpc = awsVpc
     this.discoveryEnabled = discoveryEnabled
     this.discovery = discovery
+    this.stack = stack
   }
 
   @Override
@@ -93,5 +97,8 @@ class NetflixTitusCredentials implements AccountCredentials<TitusCredentials> {
     return discoveryEnabled
   }
 
+  String getStack() {
+    return stack
+  }
 
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.aws.provider.view.AmazonVpcProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.titus.client.security.TitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.springframework.beans.factory.annotation.Autowired
@@ -102,6 +103,21 @@ class AwsLookupUtil {
       applicationSecurityGroup = regionScopedProvider.securityGroupService.createSecurityGroupWithVpcId(application, awsDetails.vpcId)
     }
     applicationSecurityGroup
+  }
+
+  String awsAccountId(account, region){
+    Map awsDetails = awsAccountLookup.find {
+      it.titusAccount == account && it.region == region
+    }
+    accountCredentialsProvider.all.find {
+      it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
+    }.accountId
+  }
+
+  String stack(account){
+    accountCredentialsProvider.all.find {
+      it instanceof TitusCredentials && it.name == account
+    }.stack
   }
 
   private String convertVpcNameToId(String awsAccount, String region, String name) {

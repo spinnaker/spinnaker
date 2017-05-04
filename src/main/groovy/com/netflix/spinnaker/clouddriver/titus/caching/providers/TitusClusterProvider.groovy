@@ -35,10 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*
 
 @Component
 class TitusClusterProvider implements ClusterProvider<TitusCluster> {
@@ -162,8 +159,8 @@ class TitusClusterProvider implements ClusterProvider<TitusCluster> {
   String getCloudProviderId() {
     return titusCloudProvider.id
   }
-// Private methods
 
+  // Private methods
   private Map<String, Set<TitusCluster>> getClustersInternal(String applicationName, boolean includeDetails) {
     CacheData application = cacheView.get(APPLICATIONS.ns, Keys.getApplicationKey(applicationName))
     if (application == null) return null

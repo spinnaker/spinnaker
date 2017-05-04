@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.core.provider.agent.ExternalHealthProvi
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
 import com.netflix.spinnaker.clouddriver.titus.model.TitusInstance
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,6 +39,9 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
   private final ObjectMapper objectMapper
   private final TitusCloudProvider titusCloudProvider
 
+  @Autowired
+  AwsLookupUtil awsLookupUtil
+
   @Autowired(required = false)
   List<ExternalHealthProvider> externalHealthProviders
 
@@ -50,7 +54,8 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
 
   @Override
   TitusInstance getInstance(String account, String region, String id) {
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id))
+
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, awsLookupUtil.awsAccountId(account, region), awsLookupUtil.stack(account), region))
     if (!instanceEntry) {
       return null
     }

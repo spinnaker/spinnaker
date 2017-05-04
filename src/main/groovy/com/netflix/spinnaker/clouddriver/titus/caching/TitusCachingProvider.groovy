@@ -15,6 +15,7 @@
  */
 
 package com.netflix.spinnaker.clouddriver.titus.caching
+
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.provider.Provider
@@ -46,12 +47,12 @@ class TitusCachingProvider implements Provider, EurekaAwareProvider {
   }
 
   @Override
-  String getInstanceKey(Map<String, Object> attributes,  String region) {
-    Keys.getInstanceKey(attributes.titusTaskId)
+  String getInstanceKey(Map<String, Object> attributes, String region) {
+    Keys.getInstanceKey(attributes.titusTaskId, attributes.accountId, attributes.titusStack, region)
   }
 
   @Override
-  String getInstanceHealthKey(Map<String, Object> attributes,  String region, String healthId) {
+  String getInstanceHealthKey(Map<String, Object> attributes, String region, String healthId) {
     Keys.getInstanceHealthKey(attributes.instanceId, healthId)
   }
 

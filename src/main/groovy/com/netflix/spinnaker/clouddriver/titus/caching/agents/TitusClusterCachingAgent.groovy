@@ -37,28 +37,23 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.model.HealthState
 import com.netflix.spinnaker.clouddriver.titus.TitusClientProvider
 import com.netflix.spinnaker.clouddriver.titus.TitusCloudProvider
-import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
-import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
-import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.caching.Keys
 import com.netflix.spinnaker.clouddriver.titus.caching.TitusCachingProvider
+import com.netflix.spinnaker.clouddriver.titus.caching.utils.AwsLookupUtil
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.model.Job
+import com.netflix.spinnaker.clouddriver.titus.client.model.TaskState
+import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import javax.inject.Provider
 
-import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.APPLICATIONS
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.CLUSTERS
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.IMAGES
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.ON_DEMAND
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.INSTANCES
-import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.SERVER_GROUPS
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATIVE
+import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.HEALTH
+import static com.netflix.spinnaker.clouddriver.titus.caching.Keys.Namespace.*
 
 class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, OnDemandAgent {
 
@@ -304,7 +299,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
         cache(cacheResults, INSTANCES.ns, instances)
       } else {
         try {
-          ServerGroupData data = new ServerGroupData(job, account.name, region)
+          ServerGroupData data = new ServerGroupData(job, account.name, region, account.stack)
           cacheApplication(data, applications)
           cacheCluster(data, clusters)
           cacheServerGroup(data, serverGroups, instances, titusSecurityGroupCache)
@@ -353,7 +348,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[INSTANCES.ns].addAll(data.instanceIds)
       for (Job.TaskSummary task : job.tasks) {
-        def instanceData = new InstanceData(job, task, account.name, region)
+        def instanceData = new InstanceData(job, task, account.name, region, account.stack)
         cacheInstance(instanceData, instances)
       }
     }
@@ -376,7 +371,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     }
   }
 
-  private static class ServerGroupData {
+  private class ServerGroupData {
     private final AutoScalingGroupNameBuilder asgNameBuilder;
 
     final Job job
@@ -388,7 +383,7 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     final String region
     final String account
 
-    public ServerGroupData(Job job, String account, String region) {
+    public ServerGroupData(Job job, String account, String region, String stack) {
       this.job = job
 
       String asgName = job.name
@@ -413,7 +408,9 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
       region = region
       account = account
       serverGroup = Keys.getServerGroupKey(job.name, account, region)
-      instanceIds = (job.tasks.id.collect { Keys.getInstanceKey(it) } as Set).asImmutable()
+      instanceIds = (job.tasks.id.collect {
+        Keys.getInstanceKey(it, getAwsAccountId(account), stack, region)
+      } as Set).asImmutable()
     }
   }
 
@@ -425,17 +422,21 @@ class TitusClusterCachingAgent implements CachingAgent, CustomScheduledAgent, On
     job.securityGroupDetails = securityGroups
   }
 
-  private static class InstanceData {
+  private String getAwsAccountId(String account) {
+    awsLookupUtil.get().awsAccountId(account, region)
+  }
+
+  private class InstanceData {
     private final Job job
     private final Job.TaskSummary task
     private final String instanceId
     private final String serverGroup
     private final String imageId
 
-    public InstanceData(Job job, Job.TaskSummary task, String account, String region) {
+    public InstanceData(Job job, Job.TaskSummary task, String account, String region, String stack) {
       this.job = job
       this.task = task
-      this.instanceId = Keys.getInstanceKey(task.id)
+      this.instanceId = Keys.getInstanceKey(task.id, getAwsAccountId(account), stack, region)
       this.serverGroup = job.name
       this.imageId = "${job.applicationName}:${job.version}"
     }

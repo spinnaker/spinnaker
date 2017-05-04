@@ -94,8 +94,8 @@ class Keys {
     "${PROVIDER}:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${names.group}"
   }
 
-  static String getInstanceKey(String id) {
-    "${PROVIDER}:${Namespace.INSTANCES}:${id}"
+  static String getInstanceKey(String id, String accountId, String stack, String region) {
+    "${PROVIDER}:${Namespace.INSTANCES}:${accountId}:${region}:${stack}:${id}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {
