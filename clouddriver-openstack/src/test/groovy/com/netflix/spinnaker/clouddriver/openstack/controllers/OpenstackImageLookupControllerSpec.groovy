@@ -50,8 +50,8 @@ class OpenstackImageLookupControllerSpec extends Specification {
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
-    2 * imageA.name >> 'image'
-    2 * imageB.name >> 'image'
+    3 * imageA.name >> 'image'
+    3 * imageB.name >> 'image'
     result == Sets.union(imageSetA, imageSetB)
     noExceptionThrown()
   }
@@ -83,7 +83,7 @@ class OpenstackImageLookupControllerSpec extends Specification {
 
     then:
     1 * imageProvider.listImagesByAccount() >> imagesByAccounts
-    1 * image.name >> 'image'
+    2 * image.name >> 'image'
     result == imageSet
     noExceptionThrown()
   }

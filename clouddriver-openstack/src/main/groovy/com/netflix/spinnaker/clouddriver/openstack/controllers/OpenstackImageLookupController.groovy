@@ -60,7 +60,7 @@ class OpenstackImageLookupController {
 
       Pattern pattern = resolveQueryToPattern(q)
       log.info('filtering images using pattern {}', pattern)
-      result = result.findAll { pattern.matcher(it.name).matches() }
+      result = result.findAll { it.name != null && pattern.matcher(it.name).matches() }
     }
 
     result
