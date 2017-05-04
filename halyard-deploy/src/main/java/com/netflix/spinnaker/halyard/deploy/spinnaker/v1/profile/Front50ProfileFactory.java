@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.RedisPersistentStore;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -26,6 +27,8 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +55,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
     }
 
     List<String> files = processRequiredFiles(persistentStorage);
-    Map persistentStorageMap = objectMapper.convertValue(persistentStorage, Map.class);
-    persistentStorageMap.remove("persistentStoreType");
+    Map<String, Map<String, Object>> persistentStorageMap = new HashMap<>();
 
     NodeIterator children = persistentStorage.getChildren();
     Node child = children.getNext();
@@ -61,9 +63,22 @@ public class Front50ProfileFactory extends SpringProfileFactory {
       if (child instanceof PersistentStore) {
         PersistentStore persistentStore = (PersistentStore) child;
 
+        URI connectionUri = null;
+        if (persistentStore instanceof RedisPersistentStore) {
+          try {
+            connectionUri = new URI(endpoints.getServices().getRedis().getBaseUrl());
+          } catch (URISyntaxException e) {
+            throw new RuntimeException("Malformed redis URL, this is a bug.");
+          }
+        }
+
+        persistentStore.setConnectionInfo(connectionUri);
+
         PersistentStore.PersistentStoreType persistentStoreType = persistentStore.persistentStoreType();
-        Map persistentStoreMap = (Map) persistentStorageMap.get(persistentStoreType.getId());
+        Map persistentStoreMap = objectMapper.convertValue(persistentStore, Map.class);
         persistentStoreMap.put("enabled", persistentStoreType.equals(persistentStorage.getPersistentStoreType()));
+
+        persistentStorageMap.put(persistentStoreType.getId(), persistentStoreMap);
       }
 
       child = children.getNext();

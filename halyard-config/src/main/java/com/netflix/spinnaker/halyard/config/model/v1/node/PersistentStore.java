@@ -23,6 +23,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+import java.net.URI;
 import java.util.Arrays;
 
 @Data
@@ -45,10 +46,13 @@ public abstract class PersistentStore extends Node {
 
   abstract public PersistentStoreType persistentStoreType();
 
+  public void setConnectionInfo(URI uri) { }
+
   public enum PersistentStoreType {
-    S3("s3"),
     AZS("azs"),
-    GCS("gcs");
+    GCS("gcs"),
+    REDIS("redis"),
+    S3("s3");
 
     String id;
 

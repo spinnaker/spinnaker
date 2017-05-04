@@ -2,6 +2,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.AzsPersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.RedisPersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
@@ -15,9 +16,10 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = false)
 public class PersistentStorage extends Node {
   PersistentStore.PersistentStoreType persistentStoreType;
-  S3PersistentStore s3 = new S3PersistentStore();
-  GcsPersistentStore gcs = new GcsPersistentStore();
   AzsPersistentStore azs = new AzsPersistentStore();
+  GcsPersistentStore gcs = new GcsPersistentStore();
+  RedisPersistentStore redis = new RedisPersistentStore();
+  S3PersistentStore s3 = new S3PersistentStore();
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
