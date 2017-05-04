@@ -23,4 +23,7 @@ class Metadata {
   @JsonProperty('titusTaskId')
   String titusTaskId
 
+  @JsonProperty('titusStack')
+  String titusStack
+
 }

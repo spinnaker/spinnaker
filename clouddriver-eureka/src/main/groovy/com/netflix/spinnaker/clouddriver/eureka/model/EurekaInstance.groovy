@@ -55,6 +55,7 @@ class EurekaInstance extends DiscoveryHealth {
   Long lastUpdatedTimestamp
   String asgName
   String titusTaskId
+  String titusStack
 
   @JsonCreator
   public static EurekaInstance buildInstance(@JsonProperty('hostName') String hostName,
@@ -102,7 +103,8 @@ class EurekaInstance extends DiscoveryHealth {
       secureVipAddress,
       lastUpdatedTimestamp,
       asgName,
-      metadata?.titusTaskId)
+      metadata?.titusTaskId,
+      metadata?.titusStack)
   }
 }
 
