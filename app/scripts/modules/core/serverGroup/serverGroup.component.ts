@@ -1,5 +1,6 @@
 import {has} from 'lodash';
 import {IComponentController, IComponentOptions, IFilterService, ITimeoutService, IScope, module} from 'angular';
+import {StateService} from 'angular-ui-router';
 
 import {SERVER_GROUP_SEQUENCE_FILTER} from 'core/cluster/serverGroup.sequence.filter';
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
@@ -37,9 +38,21 @@ export class ServerGroupController implements IComponentController {
 
   private lastStringVal: string = null;
 
-  static get $inject(): string[] { return ['$scope', '$timeout', '$filter', 'clusterFilterService', 'MultiselectModel', 'ClusterFilterModel', 'serverGroupTransformer']; }
+  static get $inject(): string[] {
+    return [
+      '$state',
+      '$scope',
+      '$timeout',
+      '$filter',
+      'clusterFilterService',
+      'MultiselectModel',
+      'ClusterFilterModel',
+      'serverGroupTransformer'
+    ];
+  }
 
-  constructor(private $scope: IScope,
+  constructor(public $state: StateService,
+              private $scope: IScope,
               private $timeout: ITimeoutService,
               private $filter: IFilterService,
               private clusterFilterService: any,

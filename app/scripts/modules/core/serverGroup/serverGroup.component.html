@@ -6,7 +6,7 @@
      ng-click="$ctrl.loadDetails($event)"
      ng-class="{
         disabled: $ctrl.viewModel.serverGroup.isDisabled,
-        active: $ctrl.$rootScope.$state.includes('**.serverGroup', {region: $ctrl.viewModel.serverGroup.region, accountId: $ctrl.viewModel.serverGroup.account, serverGroup: $ctrl.viewModel.serverGroup.name, provider: $ctrl.viewModel.serverGroup.type})
+        active: $ctrl.$state.includes('**.serverGroup', {region: $ctrl.viewModel.serverGroup.region, accountId: $ctrl.viewModel.serverGroup.account, serverGroup: $ctrl.viewModel.serverGroup.name, provider: $ctrl.viewModel.serverGroup.type})
      }">
   <div class="cluster-container">
     <sticky-header added-offset-height="67" sticky-if="$ctrl.headerIsSticky()">
