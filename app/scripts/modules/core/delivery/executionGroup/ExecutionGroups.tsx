@@ -32,13 +32,7 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
       groups: executionFilterModel.groups,
       showingDetails: this.showingDetails()
     }
-  }
 
-  private showingDetails(): boolean {
-    return $state.includes('**.execution');
-  }
-
-  public componentDidMount(): void {
     this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
     this.groupsUpdatedSubscription = executionFilterModel.groupsUpdated.subscribe(() => { this.setState({groups: executionFilterModel.groups}); });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
@@ -47,6 +41,10 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
         this.setState({showingDetails: detailsShown});
       }
     });
+  }
+
+  private showingDetails(): boolean {
+    return $state.includes('**.execution');
   }
 
   public componentWillUnmount(): void {

@@ -13,6 +13,7 @@ export class StickyContainer extends React.Component<any, any> {
     stickyContainer: PropTypes.any
   };
 
+  public element: HTMLElement;
   public elementMounted: Subject<HTMLDivElement> = new Subject<HTMLDivElement>();
   private elementMountedAlready = false;
 
@@ -21,6 +22,7 @@ export class StickyContainer extends React.Component<any, any> {
   }
 
   public refCallback(element: HTMLDivElement): void {
+    this.element = element;
     if (!this.elementMountedAlready) {
       this.elementMounted.next(element);
       this.elementMountedAlready = true;

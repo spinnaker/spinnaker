@@ -53,16 +53,15 @@ export class Sticky extends React.Component<IProps, IState> {
       return;
     }
 
+    this.recomputeState = throttle(this.recomputeState, 50, {trailing: true});
+  }
 
-    this.stickySubscription = context.stickyContainer.elementMounted.subscribe((element: HTMLElement) => {
+  private setContainerElement(element: HTMLElement): void {
       this.stickyContainerElement = element;
       if (!this.props.stickyIf || this.props.stickyIf()) {
         this.addEventListeners(this.recomputeState);
         this.recomputeState();
       }
-    });
-
-    this.recomputeState = throttle(this.recomputeState, 50, {trailing: true});
   }
 
   private outerHeight(el: HTMLElement): number {
@@ -128,7 +127,6 @@ export class Sticky extends React.Component<IProps, IState> {
       Sticky.RECOMPUTE_EVENTS.forEach((event) => {
         this.stickyContainerElement.addEventListener(event, callback);
       });
-      this.recomputeState();
     }
   }
 
@@ -142,6 +140,14 @@ export class Sticky extends React.Component<IProps, IState> {
 
   private refCallback(element: HTMLElement): void {
     this.stickyElement = element;
+  }
+
+  public componentDidMount(): void {
+    if (this.context.stickyContainer.element) {
+      this.setContainerElement(this.context.stickyContainer.element);
+    } else {
+      this.stickySubscription = this.context.stickyContainer.elementMounted.subscribe(this.setContainerElement);
+    }
   }
 
   public componentWillReceiveProps(nextProps: IProps): void {
