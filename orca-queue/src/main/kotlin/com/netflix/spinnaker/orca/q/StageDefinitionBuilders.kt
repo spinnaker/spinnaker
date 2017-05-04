@@ -32,7 +32,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFOR
  */
 fun StageDefinitionBuilder.buildTasks(stage: Stage<*>) {
   val taskGraph =
-    if (this is BranchingStageDefinitionBuilder && stage.getParentStageId() == null) {
+    if (this is BranchingStageDefinitionBuilder && (stage.getParentStageId() == null || stage.parent().getType() != stage.getType())) {
       buildPostGraph(stage)
     } else {
       buildTaskGraph(stage)
@@ -156,7 +156,7 @@ private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>, cal
 }
 
 private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
-  if (this is BranchingStageDefinitionBuilder && stage.getParentStageId() == null) {
+  if (this is BranchingStageDefinitionBuilder && (stage.getParentStageId() == null || stage.parent().getType() != stage.getType())) {
     val parallelContexts = parallelContexts(stage)
     parallelContexts
       .map { context ->

@@ -152,7 +152,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       def context = stage.context
       def allStages = stage.execution.stages
       def deployStages = allStages.findAll {
-        it.parentStageId == stage.id && it.type == ParallelDeployStage.PIPELINE_CONFIG_TYPE
+        it.parentStageId == stage.id
       }
       def deployedClusterPairs = []
       for (Map pair in context.clusterPairs) {
