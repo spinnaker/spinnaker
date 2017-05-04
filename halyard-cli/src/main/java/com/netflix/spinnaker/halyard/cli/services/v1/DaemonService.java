@@ -464,6 +464,10 @@ public interface DaemonService {
       @Query("bomPath") String bomPath,
       @Body String _ignore);
 
+  @PUT("/v1/admin/deprecateVersion")
+  DaemonTask<Halconfig, Void> deprecateVersion(
+      @Body Versions.Version version);
+
   @PUT("/v1/admin/publishVersion")
   DaemonTask<Halconfig, Void> publishVersion(
       @Body Versions.Version version);

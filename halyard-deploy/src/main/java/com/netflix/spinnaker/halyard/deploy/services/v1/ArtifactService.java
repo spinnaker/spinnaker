@@ -75,10 +75,22 @@ public class ArtifactService {
         .collect(Collectors.toList()));
   }
 
+  public void deprecateVersion(Version version) {
+    if (writeableProfileRegistry == null) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
+    }
+
+    Versions versionsCollection = versionsService.getVersions();
+    deleteVersion(versionsCollection, version.getVersion());
+
+    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+  }
+
   public void publishVersion(Version version) {
     if (writeableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
-          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
     }
 
     Versions versionsCollection = versionsService.getVersions();

@@ -3,6 +3,8 @@
 
  * [**hal**](#hal)
  * [**hal admin**](#hal-admin)
+ * [**hal admin deprecate**](#hal-admin-deprecate)
+ * [**hal admin deprecate version**](#hal-admin-deprecate-version)
  * [**hal admin publish**](#hal-admin-publish)
  * [**hal admin publish bom**](#hal-admin-publish-bom)
  * [**hal admin publish latest**](#hal-admin-publish-latest)
@@ -226,7 +228,32 @@ This is meant for users building and publishing their own Spinnaker images and c
 hal admin [subcommands]
 ```
 #### Subcommands
+ * `deprecate`: Deprecate config artifacts in your configured halconfig bucket.
  * `publish`: Publish config artifacts to your configured halconfig bucket.
+
+---
+## hal admin deprecate
+
+Deprecate config artifacts in your configured halconfig bucket.
+
+#### Usage
+```
+hal admin deprecate [subcommands]
+```
+#### Subcommands
+ * `version`: Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.
+
+---
+## hal admin deprecate version
+
+Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.
+
+#### Usage
+```
+hal admin deprecate version [parameters]
+```
+#### Parameters
+ * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be deprecated.
 
 ---
 ## hal admin publish
@@ -2091,14 +2118,14 @@ hal config provider oraclebmcs account add ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
- * `--fingerprint`: Fingerprint of the public key
+ * `--compartment-id`: (*Required*) Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--fingerprint`: (*Required*) Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--region`: An Oracle BMCS region (e.g., us-phoenix-1)
+ * `--region`: (*Required*) An Oracle BMCS region (e.g., us-phoenix-1)
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--ssh-private-key-file-path`: Path to the private key in PEM format
- * `--tenancyId`: Provide the OCID of the Oracle BMCS Tenancy to use.
- * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
+ * `--ssh-private-key-file-path`: (*Required*) Path to the private key in PEM format
+ * `--tenancyId`: (*Required*) Provide the OCID of the Oracle BMCS Tenancy to use.
+ * `--user-id`: (*Required*) Provide the OCID of the Oracle BMCS User you're authenticating as
 
 ---
 ## hal config provider oraclebmcs account delete

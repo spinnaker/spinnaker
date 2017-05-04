@@ -45,6 +45,18 @@ public class AdminController {
     return DaemonTaskHandler.submitTask(builder::build, "Update the latest version");
   }
 
+  @RequestMapping(value = "/deprecateVersion", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> deprecateVersion(
+      @RequestBody Versions.Version version) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> {
+      artifactService.deprecateVersion(version);
+      return null;
+    });
+
+    return DaemonTaskHandler.submitTask(builder::build, "Deprecate a version");
+  }
+
   @RequestMapping(value = "/publishVersion", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> publishVersion(
       @RequestBody Versions.Version version) {

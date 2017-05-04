@@ -505,6 +505,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> deprecateVersion(Versions.Version version) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deprecateVersion(version));
+      return null;
+    };
+  }
+
   public static Supplier<Void> publishVersion(Versions.Version version) {
     return () -> {
       ResponseUnwrapper.get(getService().publishVersion(version));

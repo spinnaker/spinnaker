@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1;
+package com.netflix.spinnaker.halyard.cli.command.v1.admin;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.admin.DeprecateCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.admin.PublishCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-/**
- */
 @Parameters(separators = "=")
-public class AdminCommand extends NestableCommand {
+public class DeprecateCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "admin";
+  private String commandName = "deprecate";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "This is meant for users building and publishing their own Spinnaker images and config.";
+  private String description = "Deprecate config artifacts in your configured halconfig bucket.";
 
-  public AdminCommand() {
-    registerSubcommand(new DeprecateCommand());
-    registerSubcommand(new PublishCommand());
+  public DeprecateCommand() {
+    super();
+    registerSubcommand(new DeprecateVersionCommand());
   }
 
   @Override

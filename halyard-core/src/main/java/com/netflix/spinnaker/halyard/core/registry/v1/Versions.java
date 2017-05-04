@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.core.registry.v1;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -29,10 +30,11 @@ public class Versions {
     String version;
     String alias;
     String changelog;
+    Date lastUpdate;
 
     @Override
     public String toString() {
-      return version + " (" + alias + "): " + changelog;
+      return String.format("%s (%s):\n   Changelog: %s\n   Published: %s", version, alias, changelog, lastUpdate);
     }
   }
 

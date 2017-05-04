@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
 package com.netflix.spinnaker.halyard.cli.command.v1.admin;
@@ -29,46 +30,26 @@ import lombok.Getter;
 import java.util.Date;
 
 @Parameters(separators = "=")
-public class PublishVersionCommand extends NestableCommand {
+public class DeprecateVersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "version";
 
   @Getter(AccessLevel.PUBLIC)
-  private String description = "Publish a version of Spinnaker to the global versions.yml tracking file.";
+  private String description = "Deprecate a version of Spinnaker, removing it from the global versions.yml tracking file.";
 
   @Parameter(
       names = "--version",
       required = true,
-      description = "The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM."
+      description = "The version (x.y.z) of Spinnaker to be deprecated."
   )
   private String version;
 
-  @Parameter(
-      names = "--alias",
-      required = true,
-      description = "The alias this version of Spinnaker goes by."
-  )
-  private String alias;
-
-  @Parameter(
-      names = "--changelog",
-      required = true,
-      description = "A link to this Spinnaker release's changelog."
-  )
-  private String changelog;
-
   @Override
   protected void executeThis() {
-    Versions.Version publishedVersion = new Versions.Version()
-        .setVersion(version)
-        .setAlias(alias)
-        .setChangelog(changelog)
-        .setLastUpdate(new Date());
-
     new OperationHandler<Void>()
-        .setFailureMesssage("Failed to publish your version.")
-        .setSuccessMessage("Successfully published your version.")
-        .setOperation(Daemon.publishVersion(publishedVersion))
+        .setFailureMesssage("Failed to deprecate your version.")
+        .setSuccessMessage("Successfully deprecated your version.")
+        .setOperation(Daemon.deprecateVersion(new Versions.Version().setVersion(version)))
         .get();
   }
 }
