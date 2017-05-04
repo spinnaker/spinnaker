@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverBootstrapService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisBootstrapService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class GoogleClouddriverBootstrapService extends ClouddriverBootstrapService implements GoogleDistributedService<ClouddriverBootstrapService.Clouddriver> {
+public class GoogleRedisBootstrapService extends RedisBootstrapService implements GoogleDistributedService<Jedis> {
   final DeployPriority deployPriority = new DeployPriority(6);
   final boolean requiredToBootstrap = true;
 
@@ -80,9 +79,7 @@ public class GoogleClouddriverBootstrapService extends ClouddriverBootstrapServi
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
-    List<String> profiles = new ArrayList<>();
-    profiles.add("bootstrap");
-    Settings settings = new Settings(profiles);
+    Settings settings = new Settings();
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setLocation("us-central1-f")
         .setEnabled(true);

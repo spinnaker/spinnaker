@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultClientService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ import org.springframework.stereotype.Component;
 @EqualsAndHashCode(callSuper = true)
 @Component
 @Data
-public class GoogleConsulClientService extends ConsulClientService {
+public class GoogleVaultClientService extends VaultClientService {
   @Autowired
   ArtifactService artifactService;
 

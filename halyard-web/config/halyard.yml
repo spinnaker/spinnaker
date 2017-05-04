@@ -11,9 +11,7 @@ spinnaker:
     docker: gcr.io/spinnaker-marketplace
   config:
     input:
-      writerEnabled: true
-      gcs:
-        jsonPath: /usr/local/google/home/lwander/.gcp/spinnaker-marketplace-account.json
+      writerEnabled: false
       bucket: halconfig
 
 endpoints:

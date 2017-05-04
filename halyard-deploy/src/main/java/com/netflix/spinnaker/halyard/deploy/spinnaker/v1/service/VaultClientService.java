@@ -18,21 +18,25 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class VaultClientService extends SpinnakerService<VaultClientService.Vault> {
+abstract public class VaultClientService extends SpinnakerService<VaultClientService.Vault> implements SidecarService {
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.VAULT;
@@ -64,6 +68,10 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
     boolean sidecar = true;
 
     public Settings() { }
+  }
+
+  public List<Profile> getSidecarProfiles(ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
+    return Collections.emptyList();
   }
 
   @Override
