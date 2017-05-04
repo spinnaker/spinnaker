@@ -64,7 +64,8 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     DOCKERREGISTRY("dockerRegistry"),
     GOOGLE("google"),
     KUBERNETES("kubernetes"),
-    OPENSTACK("openstack");
+    OPENSTACK("openstack"),
+    ORACLEBMCS("oraclebmcs");
 
     @Getter
     String id;
