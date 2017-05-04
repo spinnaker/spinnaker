@@ -174,7 +174,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
     const deploymentAccountLabels = (this.state.deploymentAccounts || []).map((account: string) => <AccountLabelColor key={account} account={account}/>);
     const groupTargetAccountLabels = (group.targetAccounts || []).map((account: string) => <AccountLabelColor key={account} account={account}/>);
     // Adding running time to the key is a hack until we can figure out the redux story for executions
-    const executions = (group.executions || []).map((execution: IExecution) => <Execution key={execution.id + execution.runningTimeInMs} execution={execution} application={this.props.application}/>)
+    const executions = (group.executions || []).map((execution: IExecution) => <Execution key={execution.stringVal} execution={execution} application={this.props.application}/>)
 
     return (
       <div className={`execution-group ${this.isShowingDetails() ? 'showing-details' : 'details-hidden'}`}>

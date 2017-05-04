@@ -1,13 +1,13 @@
 <div class="execution-details">
   <a scroll-on-render offset="120"></a>
-  <div class="stage-summary" ng-include="ctrl.getSummarySourceUrl()"></div>
-  <div class="stage-details" ng-if="ctrl.getDetailsSourceUrl()">
+  <div class="stage-summary" ng-include="ctrl.summarySourceUrl"></div>
+  <div class="stage-details" ng-if="ctrl.detailsSourceUrl">
     <div class="stage-details-heading">
       <h5>
         <status-glyph item="stage"></status-glyph>
         {{stage.name || stage.type | robotToHuman }}
       </h5>
     </div>
-    <div ng-include="ctrl.getDetailsSourceUrl()"></div>
+    <div ng-include="ctrl.detailsSourceUrl"></div>
   </div>
 </div>

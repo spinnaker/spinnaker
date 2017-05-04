@@ -93,7 +93,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       $state.go('.', { step: null });
     };
 
-    controller.getDetailsSourceUrl = function() {
+    const getDetailsSourceUrl = function() {
       if ($stateParams.step !== undefined) {
         let stages = controller.execution.stageSummaries || [];
         var stageSummary = stages[getCurrentStage()];
@@ -111,7 +111,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       return null;
     };
 
-    controller.getSummarySourceUrl = function() {
+    const getSummarySourceUrl = function() {
       if ($stateParams.stage !== undefined) {
         let currentStage = getCurrentStage();
         let stages = controller.execution.stageSummaries || [];
@@ -128,8 +128,18 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
         }
       }
       return require('../../pipeline/config/stages/core/executionSummary.html');
-
     };
+
+    this.setSourceUrls = () => {
+      this.summarySourceUrl = getSummarySourceUrl();
+      this.detailsSourceUrl = getDetailsSourceUrl();
+    };
+
+    this.$onInit = () => {
+      this.setSourceUrls();
+    };
+
+    $scope.$on('$stateChangeSuccess', () => this.setSourceUrls());
 
     controller.getStepLabel = function(stage) {
       var stageConfig = pipelineConfig.getStageConfig(stage);
