@@ -83,7 +83,7 @@ public class DeployService {
   public NodeDiff configDiff(String deploymentName) {
     try {
       DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
-      halconfigParser.switchToBackupConfig(deploymentName);
+      halconfigParser.switchToBackupConfig();
       DeploymentConfiguration oldDeploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
 
       return deploymentConfiguration.diff(oldDeploymentConfiguration);
@@ -122,7 +122,7 @@ public class DeployService {
   }
 
   public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String> serviceNames) {
-    halconfigParser.backupConfig(deploymentName);
+    halconfigParser.backupConfig();
 
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);

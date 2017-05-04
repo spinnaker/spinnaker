@@ -36,7 +36,7 @@ public class FiatProfileFactory extends SpringProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     Authz authz = deploymentConfiguration.getSecurity().getAuthz();
-    List<String> files = processRequiredFiles(authz);
+    List<String> files = backupRequiredFiles(authz);
     AuthConfig authConfig = new AuthConfig().setAuth(authz);
     profile.appendContents(yamlToString(authConfig))
         .appendContents(profile.getBaseContents())

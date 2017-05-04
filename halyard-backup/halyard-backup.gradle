@@ -1,0 +1,11 @@
+dependencies {
+  compile spinnaker.dependency('bootActuator')
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency('lombok')
+  compile spinnaker.dependency('fabric8Api')
+  compile spinnaker.dependency('googleStorage')
+
+  compile project(':halyard-config')
+  compile project(':halyard-core')
+  compile project(':halyard-deploy')
+}

@@ -141,18 +141,18 @@ public class HalconfigParser {
     saveConfigTo(Paths.get(halconfigPath));
   }
 
-  public void backupConfig(String deploymentName) {
+  public void backupConfig() {
     // It's possible we are asked to backup the halconfig without having loaded it first.
     boolean backup = useBackup;
     useBackup = false;
     getHalconfig();
     useBackup = backup;
-    saveConfigTo(halconfigDirectoryStructure.getBackupConfigPath(deploymentName));
+    saveConfigTo(halconfigDirectoryStructure.getBackupConfigPath());
   }
 
-  public void switchToBackupConfig(String deploymentName) {
+  public void switchToBackupConfig() {
     DaemonTaskHandler.setContext(null);
-    backupHalconfigPath = halconfigDirectoryStructure.getBackupConfigPath(deploymentName).toString();
+    backupHalconfigPath = halconfigDirectoryStructure.getBackupConfigPath().toString();
     useBackup = true;
   }
 

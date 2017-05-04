@@ -8,6 +8,8 @@
  * [**hal admin publish latest**](#hal-admin-publish-latest)
  * [**hal admin publish profile**](#hal-admin-publish-profile)
  * [**hal admin publish version**](#hal-admin-publish-version)
+ * [**hal backup**](#hal-backup)
+ * [**hal backup create**](#hal-backup-create)
  * [**hal config**](#hal-config)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
@@ -208,6 +210,7 @@ hal [parameters] [subcommands]
  * `--version, -v`: (*Default*: `false`) Version of Halyard.
 #### Subcommands
  * `admin`: This is meant for users building and publishing their own Spinnaker images and config.
+ * `backup`: Backup and restore (remote or local) copies of your halconfig and all required files.
  * `config`: Configure, validate, and view your halconfig.
  * `deploy`: Manage the deployment of Spinnaker. This includes where it's deployed, what the infrastructure footprint looks like, what the currently running deployment looks like, etc...
  * `task`: This set of commands exposes utilities of dealing with Halyard's task engine.
@@ -289,6 +292,28 @@ hal admin publish version [parameters]
  * `--alias`: (*Required*) The alias this version of Spinnaker goes by.
  * `--changelog`: (*Required*) A link to this Spinnaker release's changelog.
  * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM.
+
+---
+## hal backup
+
+This is used to periodically checkpoint your configured Spinnaker installation as well as allow you to remotely store all aspects of your configured Spinnaker installation.
+
+#### Usage
+```
+hal backup [subcommands]
+```
+#### Subcommands
+ * `create`: Create a backup.
+
+---
+## hal backup create
+
+Create a backup.
+
+#### Usage
+```
+hal backup create
+```
 
 ---
 ## hal config

@@ -92,44 +92,8 @@ abstract public class ProfileFactory {
    * @param node is the node to find required files in.
    * @return the list of files required by the node to function.
    */
-  protected List<String> processRequiredFiles(Node node) {
-    List<String> files = new ArrayList<>();
-
-    Consumer<Node> fileFinder = n -> files.addAll(n.localFiles().stream().map(f -> {
-      try {
-        f.setAccessible(true);
-        String fPath = (String) f.get(n);
-        if (fPath == null) {
-          return null;
-        }
-
-        File fFile = new File(fPath);
-        String fName = fFile.getName();
-
-        // Hash the path to uniquely flatten all files into the output directory
-        Path newName = Paths.get(spinnakerStagingPath, Math.abs(fPath.hashCode()) + "-" + fName);
-        File parent = newName.toFile().getParentFile();
-        if (!parent.exists()) {
-          parent.mkdirs();
-        } else if (fFile.getParent().equals(parent.toString())) {
-          // Don't move paths that are already in the right folder
-          return fPath;
-        }
-        Files.copy(Paths.get(fPath), newName, REPLACE_EXISTING);
-
-        f.set(n, newName.toString());
-        return newName.toString();
-      } catch (IllegalAccessException e) {
-        throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
-      } catch (IOException e) {
-        throw new HalException(FATAL, "Failed to backup user file: " + e.getMessage(), e);
-      } finally {
-        f.setAccessible(false);
-      }
-    }).filter(Objects::nonNull).collect(Collectors.toList()));
-    node.recursiveConsume(fileFinder);
-
-    return files;
+  protected List<String> backupRequiredFiles(Node node) {
+    return node.backupLocalFiles(spinnakerStagingPath);
   }
 
   protected  String yamlToString(Object o) {

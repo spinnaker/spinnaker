@@ -20,6 +20,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
 
+  compile project(':halyard-backup')
   compile project(':halyard-cli')
   compile project(':halyard-config')
   compile project(':halyard-core')

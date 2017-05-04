@@ -57,7 +57,7 @@ public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory 
 
   @Override
   protected List<String> requiredFiles(DeploymentConfiguration deploymentConfiguration) {
-   return processRequiredFiles(deploymentConfiguration.getSecurity().getUiSecurity());
+   return backupRequiredFiles(deploymentConfiguration.getSecurity().getUiSecurity());
   }
 
   @Override

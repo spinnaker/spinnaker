@@ -19,7 +19,6 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
-import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -47,6 +46,13 @@ public class Daemon {
 
   public static ShallowTaskList getTasks() {
     return getService().getTasks();
+  }
+
+  public static Supplier<Void> createBackup() {
+    return () -> {
+      ResponseUnwrapper.get(getService().createBackup(""));
+      return null;
+    };
   }
 
   public static Supplier<String> getCurrentDeployment() {

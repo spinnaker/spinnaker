@@ -18,19 +18,25 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.ADDED;
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.EDITED;
-import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.REMOVED;
+import static com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff.ChangeType.*;
+import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * The "Node" class represents a YAML node in our config hierarchy that can be validated.
@@ -325,5 +331,45 @@ abstract public class Node implements Validatable {
       return null;
     }
     return result;
+  }
+
+  public List<String> backupLocalFiles(String outputPath) {
+    List<String> files = new ArrayList<>();
+
+    Consumer<Node> fileFinder = n -> files.addAll(n.localFiles().stream().map(f -> {
+      try {
+        f.setAccessible(true);
+        String fPath = (String) f.get(n);
+        if (fPath == null) {
+          return null;
+        }
+
+        File fFile = new File(fPath);
+        String fName = fFile.getName();
+
+        // Hash the path to uniquely flatten all files into the output directory
+        Path newName = Paths.get(outputPath, Math.abs(fPath.hashCode()) + "-" + fName);
+        File parent = newName.toFile().getParentFile();
+        if (!parent.exists()) {
+          parent.mkdirs();
+        } else if (fFile.getParent().equals(parent.toString())) {
+          // Don't move paths that are already in the right folder
+          return fPath;
+        }
+        Files.copy(Paths.get(fPath), newName, REPLACE_EXISTING);
+
+        f.set(n, newName.toString());
+        return newName.toString();
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
+      } catch (IOException e) {
+        throw new HalException(FATAL, "Failed to backup user file: " + e.getMessage(), e);
+      } finally {
+        f.setAccessible(false);
+      }
+    }).filter(Objects::nonNull).collect(Collectors.toList()));
+    recursiveConsume(fileFinder);
+
+    return files;
   }
 }

@@ -107,6 +107,6 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     }
 
     profile.appendContents(configTemplate.setBindings(bindings).toString())
-        .setRequiredFiles(processRequiredFiles(uiSecurity));
+        .setRequiredFiles(backupRequiredFiles(uiSecurity));
   }
 }

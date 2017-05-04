@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
-import com.netflix.spinnaker.halyard.config.model.v1.ci.jenkins.JenkinsMaster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
@@ -44,6 +43,9 @@ public interface DaemonService {
 
   @GET("/v1/tasks/{uuid}/")
   <C, T> DaemonTask<C, T> getTask(@Path("uuid") String uuid);
+
+  @PUT("/v1/backup/create")
+  DaemonTask<Halconfig, Void> createBackup(@Body String _ignore);
 
   @GET("/v1/config/")
   DaemonTask<Halconfig, Halconfig> getHalconfig();

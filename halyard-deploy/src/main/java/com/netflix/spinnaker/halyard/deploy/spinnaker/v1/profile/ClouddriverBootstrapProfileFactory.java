@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -66,7 +65,7 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
     }
 
     Providers providers = deploymentConfiguration.getProviders();
-    List<String> files = processRequiredFiles(providers);
+    List<String> files = backupRequiredFiles(providers);
     profile.appendContents(yamlToString(providers))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);

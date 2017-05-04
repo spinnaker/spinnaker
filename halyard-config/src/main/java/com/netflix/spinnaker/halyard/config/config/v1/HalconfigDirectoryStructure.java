@@ -64,9 +64,13 @@ public class HalconfigDirectoryStructure {
     return ensureRelativeHalDirectory(deploymentName, "history");
   }
 
-  public Path getBackupConfigPath(String deploymentName) {
-    File history = ensureRelativeHalDirectory(deploymentName, "history").toFile();
-    return new File(history, "halconfig").toPath();
+  public Path getBackupConfigPath() {
+    Path backup = ensureDirectory(Paths.get(halconfigDirectory, ".backup"));
+    return new File(backup.toFile(), "config").toPath();
+  }
+
+  public Path getBackupConfigDependenciesPath() {
+    return ensureDirectory(Paths.get(halconfigDirectory, ".backup", "required-files"));
   }
 
   public Path getGenerateResultPath(String deploymentName) {
@@ -80,7 +84,7 @@ public class HalconfigDirectoryStructure {
     return path;
   }
 
-  private void ensureDirectory(Path path) {
+  private Path ensureDirectory(Path path) {
     File file = path.toFile();
     if (file.exists()) {
       if (!file.isDirectory()) {
@@ -105,5 +109,7 @@ public class HalconfigDirectoryStructure {
         );
       }
     }
+
+    return path;
   }
 }

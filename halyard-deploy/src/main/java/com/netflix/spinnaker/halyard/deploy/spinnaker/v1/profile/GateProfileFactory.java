@@ -36,13 +36,13 @@ public class GateProfileFactory extends SpringProfileFactory {
 
   @Override
   public void setProfile(Profile profile,
-                         DeploymentConfiguration deploymentConfiguration,
-                         SpinnakerRuntimeSettings endpoints) {
+      DeploymentConfiguration deploymentConfiguration,
+      SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     Security security = deploymentConfiguration.getSecurity();
-    List<String> requiredFiles = processRequiredFiles(security.getApiSecurity());
-    requiredFiles.addAll(processRequiredFiles(security.getAuthn()));
-    requiredFiles.addAll(processRequiredFiles(security.getAuthz()));
+    List<String> requiredFiles = backupRequiredFiles(security.getApiSecurity());
+    requiredFiles.addAll(backupRequiredFiles(security.getAuthn()));
+    requiredFiles.addAll(backupRequiredFiles(security.getAuthz()));
     GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), security);
     gateConfig.getCors().setAllowedOrigins(endpoints.getServices().getDeck());
     profile.appendContents(yamlToString(gateConfig))
