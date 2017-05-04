@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
+import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
@@ -119,6 +120,7 @@ class RunTaskHandlerSpec : Spek({
     describe("that fails") {
       val pipeline = pipeline {
         stage {
+          refId = "1"
           type = "whatever"
           startTime = clock.instant().toEpochMilli()
           task {
@@ -130,7 +132,7 @@ class RunTaskHandlerSpec : Spek({
       val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
       val taskResult = TaskResult(TERMINAL)
 
-      context("no overrides are in place") {
+      and("no overrides are in place") {
         beforeGroup {
           whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -142,16 +144,19 @@ class RunTaskHandlerSpec : Spek({
           handler.handle(message)
         }
 
-        it("emits a failure event") {
+        it("marks the task TERMINAL") {
           verify(queue).push(check<CompleteTask> {
             it.status shouldEqual TERMINAL
           })
         }
       }
 
-      context("the task should not fail the whole pipeline, only the branch") {
+      and("the task should not fail the whole pipeline, only the branch") {
         beforeGroup {
-          pipeline.stages.first().context["failPipeline"] = false
+          pipeline.stageByRef("1").apply {
+            context["failPipeline"] = false
+            context["continuePipeline"] = false
+          }
 
           whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -164,16 +169,19 @@ class RunTaskHandlerSpec : Spek({
           handler.handle(message)
         }
 
-        it("emits a failure event") {
+        it("marks the task STOPPED") {
           verify(queue).push(check<CompleteTask> {
             it.status shouldEqual STOPPED
           })
         }
       }
 
-      context("the task should allow the pipeline to proceed") {
+      and("the task should allow the pipeline to proceed") {
         beforeGroup {
-          pipeline.stages.first().context["continuePipeline"] = true
+          pipeline.stageByRef("1").apply {
+            context["failPipeline"] = false
+            context["continuePipeline"] = true
+          }
 
           whenever(task.execute(any())) doReturn taskResult
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -186,7 +194,7 @@ class RunTaskHandlerSpec : Spek({
           handler.handle(message)
         }
 
-        it("emits a failure event") {
+        it("marks the task FAILED_CONTINUE") {
           verify(queue).push(check<CompleteTask> {
             it.status shouldEqual FAILED_CONTINUE
           })

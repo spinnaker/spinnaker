@@ -70,10 +70,10 @@ open class RunTaskHandler
               SUCCEEDED, REDIRECT ->
                 queue.push(CompleteTask(message, result.status))
               TERMINAL ->
-                if (!stage.shouldFailPipeline()) {
-                  queue.push(CompleteTask(message, STOPPED))
-                } else if (stage.shouldContinueOnFailure()) {
+                if (stage.shouldContinueOnFailure()) {
                   queue.push(CompleteTask(message, FAILED_CONTINUE))
+                } else if (!stage.shouldFailPipeline()) {
+                  queue.push(CompleteTask(message, STOPPED))
                 } else {
                   queue.push(CompleteTask(message, result.status))
                 }

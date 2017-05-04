@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
+import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
@@ -122,7 +123,7 @@ class StartStageHandlerSpec : Spek({
     }
 
     context("with no tasks") {
-      context("and no after stages") {
+      and("no after stages") {
         val pipeline = pipeline {
           application = "foo"
           stage {
@@ -163,7 +164,7 @@ class StartStageHandlerSpec : Spek({
         }
       }
 
-      context("and at least one after stage") {
+      and("at least one after stage") {
         val pipeline = pipeline {
           application = "foo"
           stage {
