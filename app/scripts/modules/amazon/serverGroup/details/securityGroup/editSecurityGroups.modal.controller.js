@@ -27,6 +27,14 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup
       verification: {},
     };
 
+    this.infiniteScroll = {
+      currentItems: 20,
+    };
+
+    this.addMoreItems = () => this.infiniteScroll.currentItems += 20;
+
+    this.resetCurrentItems = () => this.infiniteScroll.currentItems = 20;
+
     this.isValid = () => this.state.verification.verified;
 
     securityGroupReader.getAllSecurityGroups().then(allGroups => {
@@ -34,7 +42,15 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup
           region = serverGroup.region,
           vpcId = serverGroup.vpcId;
       this.availableSecurityGroups = _.get(allGroups, [account, 'aws', region].join('.'), [])
-        .filter(group => group.vpcId === vpcId);
+        .filter(group => group.vpcId === vpcId).sort((a, b) => {
+          if (this.command.securityGroups.some(g => g.id === a.id)) {
+            return -1;
+          }
+          if (this.command.securityGroups.some(g => g.id === b.id)) {
+            return 1;
+          }
+          return a.name.localeCompare(b.name);
+        });
       this.state.securityGroupsLoaded = true;
     });
 
