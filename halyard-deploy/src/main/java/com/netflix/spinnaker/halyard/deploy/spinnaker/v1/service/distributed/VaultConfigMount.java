@@ -43,4 +43,9 @@ public class VaultConfigMount {
 
     return new VaultConfigMount().setContents(contents).setFile(desiredPath);
   }
+
+  public static VaultConfigMount fromString(String contents, String desiredPath) {
+    contents = Base64.getEncoder().encodeToString(contents.getBytes());
+    return new VaultConfigMount().setContents(contents).setFile(desiredPath);
+  }
 }

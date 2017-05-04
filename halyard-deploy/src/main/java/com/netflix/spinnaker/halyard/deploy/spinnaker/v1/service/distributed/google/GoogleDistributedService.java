@@ -24,7 +24,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
@@ -53,6 +52,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   ServiceInterfaceFactory getServiceInterfaceFactory();
   String getGoogleImageProject();
   String getStartupScriptPath();
+
+  default String getEnvFile() {
+    return "/etc/default/spinnaker";
+  }
 
   default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
@@ -131,6 +134,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     String deploymentName = details.getDeploymentName();
     SpinnakerService thisService = getService();
     ServiceSettings thisServiceSettings = resolvedConfiguration.getServiceSettings(thisService);
+    Map<String, String> env = new HashMap<>();
     Integer version = getLatestEnabledServiceVersion(details, thisServiceSettings);
     if (version == null) {
       version = 0;
@@ -179,6 +183,20 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
+
+    String envSourceFile = env.entrySet()
+        .stream()
+        .reduce("",
+            (s, e) -> String.format("%s\n%s=%s", s, e.getKey(), e.getKey()),
+            (s1, s2) -> String.join("\n", s1, s2)
+        );
+
+    String mountPoint = getEnvFile();
+    String secretName = secretName("env", version);
+    VaultConfigMount vaultConfigMount = VaultConfigMount.fromString(envSourceFile, mountPoint);
+    secretName = vaultService.writeVaultConfig(deploymentName, vault, secretName, vaultConfigMount);
+
+    configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
 
     return configSources;
   }
