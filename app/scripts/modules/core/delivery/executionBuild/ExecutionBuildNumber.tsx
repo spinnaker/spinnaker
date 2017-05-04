@@ -21,7 +21,8 @@ export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberP
     ReactGA.event({category: 'Pipeline', action: 'Execution build number clicked - parent pipeline'});
     const toStateParams = {application: this.props.execution.trigger.parentPipelineApplication, executionId: this.props.execution.trigger.parentPipelineId};
     const toStateOptions = {inherit: false, reload: 'home.applications.application.pipelines.executionDetails'};
-    $state.go('^.executionDetails.execution', toStateParams, toStateOptions);
+    const nextState = `${$state.current.name.endsWith('.execution') ? '^' : ''}.^.executionDetails.execution`;
+    $state.go(nextState, toStateParams, toStateOptions);
   }
 
   private handleBuildInfoClick(event: React.MouseEvent<HTMLElement>) {
