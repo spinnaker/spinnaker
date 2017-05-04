@@ -49,8 +49,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     listener.onApplicationEvent(event)
 
     then:
-    1 * executionRunner.resume(pipeline1)
-    1 * executionRunner.resume(pipeline2)
+    1 * executionRunner.restart(pipeline1)
+    1 * executionRunner.restart(pipeline2)
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, currentInstanceId)
@@ -62,13 +62,13 @@ class PipelineRecoveryListenerSpec extends Specification {
     executionRepository.retrievePipelines() >> Observable.just(pipeline1, pipeline2)
 
     and:
-    executionRunner.resume(pipeline1) >> { throw new JobRestartException("o noes") }
+    executionRunner.restart(pipeline1) >> { throw new JobRestartException("o noes") }
 
     when:
     listener.onApplicationEvent(event)
 
     then:
-    1 * executionRunner.resume(pipeline2)
+    1 * executionRunner.restart(pipeline2)
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, currentInstanceId)
@@ -94,7 +94,7 @@ class PipelineRecoveryListenerSpec extends Specification {
     executionRepository.retrievePipelines() >> Observable.just(pipeline)
 
     and:
-    executionRunner.resume(pipeline) >> { throw new JobRestartException("o noes") }
+    executionRunner.restart(pipeline) >> { throw new JobRestartException("o noes") }
 
     when:
     listener.onApplicationEvent(event)
@@ -114,8 +114,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     listener.onApplicationEvent(event)
 
     then:
-    0 * executionRunner.resume(pipeline1)
-    1 * executionRunner.resume(pipeline2)
+    0 * executionRunner.restart(pipeline1)
+    1 * executionRunner.restart(pipeline2)
 
     where:
     pipeline1 = pipelineWithStatus(RUNNING, "some other instance")
@@ -134,8 +134,8 @@ class PipelineRecoveryListenerSpec extends Specification {
     listener.onApplicationEvent(event)
 
     then:
-    0 * executionRunner.resume(pipeline1)
-    1 * executionRunner.resume(pipeline2)
+    0 * executionRunner.restart(pipeline1)
+    1 * executionRunner.restart(pipeline2)
 
     where:
     status    | _

@@ -24,11 +24,11 @@ public interface ExecutionRunner {
   <T extends Execution<T>> void start(T execution) throws Exception;
 
   @Deprecated
-  default <T extends Execution<T>> void resume(T execution) throws Exception {
+  default <T extends Execution<T>> void restart(T execution) throws Exception {
     throw new UnsupportedOperationException();
   }
 
-  default <T extends Execution<T>> void resume(T execution, String stageId) throws Exception {
+  default <T extends Execution<T>> void restart(T execution, String stageId) throws Exception {
     throw new UnsupportedOperationException();
   }
 

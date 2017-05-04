@@ -42,7 +42,7 @@ class PipelineRestartHandlerSpec extends Specification {
     handler.run()
 
     then:
-    1 * executionRunner.resume(pipeline)
+    1 * executionRunner.restart(pipeline)
   }
 
   def "counts successful restarts"() {
@@ -55,7 +55,7 @@ class PipelineRestartHandlerSpec extends Specification {
 
   def "counts failed restarts"() {
     given:
-    executionRunner.resume(pipeline) >> { throw new JobRestartException("o noes") }
+    executionRunner.restart(pipeline) >> { throw new JobRestartException("o noes") }
 
     when:
     handler.run()

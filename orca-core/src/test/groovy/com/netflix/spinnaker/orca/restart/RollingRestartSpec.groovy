@@ -96,7 +96,7 @@ class RollingRestartSpec extends Specification {
     repository.retrievePipeline(pipeline.id) >> pipeline
 
     when:
-    executionRunner.resume(pipeline)
+    executionRunner.restart(pipeline)
     jobCompletionListener.await()
 
     then:

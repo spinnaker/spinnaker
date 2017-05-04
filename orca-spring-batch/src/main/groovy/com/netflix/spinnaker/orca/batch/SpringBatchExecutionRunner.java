@@ -124,7 +124,7 @@ public class SpringBatchExecutionRunner extends ExecutionRunnerSupport {
   }
 
   @Override
-  public <T extends Execution<T>> void resume(T execution) throws JobExecutionException {
+  public <T extends Execution<T>> void restart(T execution) throws JobExecutionException {
     String name = jobNameFor(execution);
     JobParameters params = createJobParameters(execution);
     JobExecution batchExecution = jobRepository.getLastJobExecution(name, params);

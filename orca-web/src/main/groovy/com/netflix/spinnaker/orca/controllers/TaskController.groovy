@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.controllers
 
-import com.netflix.spinnaker.orca.q.ExecutionLogEntry
-import com.netflix.spinnaker.orca.q.ExecutionLogRepository
-import groovy.transform.InheritConstructors
-
 import java.time.Clock
 import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -33,8 +29,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.q.ExecutionLogEntry
+import com.netflix.spinnaker.orca.q.ExecutionLogRepository
 import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
 import com.netflix.spinnaker.security.AuthenticatedRequest
+import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
@@ -270,14 +269,14 @@ class TaskController {
     @PathVariable String id, @PathVariable String stageId) {
     def pipeline = executionRepository.retrievePipeline(id)
     if (pipeline.executionEngine == v3) {
-      executionRunners.find { it.engine() == v3 }.resume(pipeline, stageId)
+      executionRunners.find { it.engine() == v3 }.restart(pipeline, stageId)
     } else {
       def stage = pipeline.stages.find { it.id == stageId }
       if (stage) {
         def stageBuilder = stageBuilders.find { it.type == stage.type }
         stage = stageBuilder.prepareStageForRestart(executionRepository, stage, stageBuilders)
         executionRepository.storeStage(stage)
-        executionRunners.find { it.engine() == v2 }.resume(pipeline)
+        executionRunners.find { it.engine() == v2 }.restart(pipeline)
       }
     }
     pipeline

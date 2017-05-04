@@ -70,7 +70,7 @@ class PipelineRecoveryListener implements ApplicationListener<ContextRefreshedEv
 
   private void onResumablePipeline(Pipeline pipeline) {
     try {
-      pipelineStarter.resume(pipeline)
+      pipelineStarter.restart(pipeline)
       registry.counter("pipeline.restarts").increment()
     } catch (Exception e) {
       registry.counter("pipeline.failed.restarts").increment()

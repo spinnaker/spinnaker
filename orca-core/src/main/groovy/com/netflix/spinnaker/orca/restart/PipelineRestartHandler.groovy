@@ -54,7 +54,7 @@ class PipelineRestartHandler extends AbstractNotificationHandler {
     try {
       def pipeline = executionRepository.retrievePipeline(input.id as String)
       log.warn "Restarting pipeline $pipeline.application $pipeline.name $pipeline.id with status $pipeline.status"
-      executionRunner.resume(pipeline)
+      executionRunner.restart(pipeline)
       registry.counter("pipeline.restarts").increment()
     } catch (IllegalStateException e) {
       log.error("Unable to resume pipeline: $e.message")

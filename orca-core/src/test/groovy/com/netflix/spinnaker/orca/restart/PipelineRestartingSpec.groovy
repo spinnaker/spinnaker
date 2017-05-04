@@ -77,7 +77,7 @@ class PipelineRestartingSpec extends Specification {
 
     when:
     stageDefinitionBuilder.prepareStageForRestart(repository, pipeline.stages.first(), [stageDefinitionBuilder])
-    executionRunner.resume(pipeline)
+    executionRunner.restart(pipeline)
     jobCompletionListener.await()
 
     then:

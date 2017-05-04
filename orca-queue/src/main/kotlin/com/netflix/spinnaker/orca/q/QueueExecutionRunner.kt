@@ -30,7 +30,7 @@ import org.springframework.stereotype.Component
   override fun <T : Execution<T>> start(execution: T) =
     queue.push(StartExecution(execution))
 
-  override fun <T : Execution<T>> resume(execution: T, stageId: String) {
+  override fun <T : Execution<T>> restart(execution: T, stageId: String) {
     queue.push(RestartStage(execution, stageId))
   }
 
