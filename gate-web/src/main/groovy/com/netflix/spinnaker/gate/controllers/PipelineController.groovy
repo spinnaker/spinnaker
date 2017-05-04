@@ -23,6 +23,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -39,21 +40,25 @@ class PipelineController {
   @Autowired
   PipelineService pipelineService
 
+  @ApiOperation(value = "Delete a pipeline definition")
   @RequestMapping(value = "/{application}/{pipelineName:.+}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String application, @PathVariable String pipelineName) {
     pipelineService.deleteForApplication(application, pipelineName)
   }
 
+  @ApiOperation(value = "Save a pipeline definition")
   @RequestMapping(value = '', method = RequestMethod.POST)
   void savePipeline(@RequestBody Map pipeline) {
     pipelineService.save(pipeline)
   }
 
+  @ApiOperation(value = "Rename a pipeline definition")
   @RequestMapping(value = 'move', method = RequestMethod.POST)
   void renamePipeline(@RequestBody Map renameCommand) {
     pipelineService.move(renameCommand)
   }
 
+  @ApiOperation(value = "Retrieve a pipeline execution")
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   Map getPipeline(@PathVariable("id") String id) {
     try {
@@ -65,11 +70,13 @@ class PipelineController {
     }
   }
 
+  @ApiOperation(value = "Update a pipeline definition")
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   Map updatePipeline(@PathVariable("id") String id, @RequestBody Map pipeline) {
     pipelineService.update(id, pipeline)
   }
 
+  @ApiOperation(value = "Retrieve pipeline execution logs")
   @RequestMapping(value = "{id}/logs", method = RequestMethod.GET)
   List<Map> getPipelineLogs(@PathVariable("id") String id) {
     try {
@@ -81,6 +88,7 @@ class PipelineController {
     }
   }
 
+  @ApiOperation(value = "Cancel a pipeline execution")
   @RequestMapping(value = "{id}/cancel", method = RequestMethod.PUT)
   Map cancelPipeline(@PathVariable("id") String id,
                      @RequestParam(required = false) String reason,
@@ -88,37 +96,44 @@ class PipelineController {
     pipelineService.cancelPipeline(id, reason, force)
   }
 
+  @ApiOperation(value = "Pause a pipeline execution")
   @RequestMapping(value = "{id}/pause", method = RequestMethod.PUT)
   Map pausePipeline(@PathVariable("id") String id) {
     pipelineService.pausePipeline(id)
   }
 
+  @ApiOperation(value = "Resume a pipeline execution")
   @RequestMapping(value = "{id}/resume", method = RequestMethod.PUT)
   Map resumePipeline(@PathVariable("id") String id) {
     pipelineService.resumePipeline(id)
   }
 
+  @ApiOperation(value = "Update a stage execution")
   @RequestMapping(value = "/{id}/stages/{stageId}", method = RequestMethod.PATCH)
   Map updateStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     pipelineService.updatePipelineStage(id, stageId, context)
   }
 
+  @ApiOperation(value = "Restart a stage execution")
   @RequestMapping(value = "/{id}/stages/{stageId}/restart", method = RequestMethod.PUT)
   Map restartStage(@PathVariable("id") String id, @PathVariable("stageId") String stageId, @RequestBody Map context) {
     pipelineService.restartPipelineStage(id, stageId, context)
   }
 
+  @ApiOperation(value = "Delete a pipeline execution")
   @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
   Map deletePipeline(@PathVariable("id") String id) {
     pipelineService.deletePipeline(id);
   }
 
+  @ApiOperation(value = "Initiate a pipeline execution")
   @RequestMapping(value = '/start', method = RequestMethod.POST)
   Map start(@RequestBody Map map) {
     String authenticatedUser = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
     pipelineService.startPipeline(map, authenticatedUser)
   }
 
+  @ApiOperation(value = "Trigger a pipeline execution")
   @RequestMapping(value = "/{application}/{pipelineNameOrId:.+}", method = RequestMethod.POST)
   HttpEntity invokePipelineConfig(@PathVariable("application") String application,
                                   @PathVariable("pipelineNameOrId") String pipelineNameOrId,
