@@ -93,6 +93,14 @@ interface TravisClient {
     @GET('/logs/{logId}')
     Response log(@Header("Authorization") String accessToken , @Path('logId') int logId)
 
+    @Streaming
+    @Headers([
+        "Travis-API-Version: 3",
+        "Accept: text/plain"
+    ])
+    @GET('/job/{jobId}/log')
+    Response jobLog(@Header("Authorization") String accessToken , @Path('jobId') int jobId)
+
     @GET('/repo/{repository_id}/builds')
     @Headers("Travis-API-Version: 3")
     V3Builds builds(@Header("Authorization") String accessToken, @Path('repository_id') int repositoryId, @Query('limit') int limit)

@@ -233,14 +233,25 @@ class TravisService implements BuildService {
         String buildLog = ""
         build.job_ids.each {
             Job job = getJob(it.intValue())
-            buildLog += getLog(job.logId)
+            if (job.logId) {
+                buildLog += getLog(job.logId)
+            } else {
+                buildLog += getJobLog(job.id)
+            }
         }
         return buildLog
     }
 
     String getLog(int logId) {
-        log.debug "fetching log for ${logId}"
+        log.debug "fetching log by logId ${logId}"
         Response response = travisClient.log(getAccessToken(), logId)
+        String job_log = new String(((TypedByteArray) response.getBody()).getBytes());
+        return job_log
+    }
+
+    String getJobLog(int jobId) {
+        log.debug "fetching log by jobId ${jobId}"
+        Response response = travisClient.jobLog(getAccessToken(), jobId)
         String job_log = new String(((TypedByteArray) response.getBody()).getBytes());
         return job_log
     }
