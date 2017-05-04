@@ -6,14 +6,16 @@ import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicati
 import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
 import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
+import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,
     ENTITY_TAGS_READ_SERVICE,
     CLUSTER_SERVICE,
+    JSON_UTILITY_SERVICE,
   ])
-  .run(function($q, applicationDataSourceRegistry, clusterService, entityTagsReader, serverGroupTransformer) {
+  .run(function($q, applicationDataSourceRegistry, clusterService, entityTagsReader, serverGroupTransformer, jsonUtilityService) {
 
     let loadServerGroups = (application) => {
       return clusterService.loadServerGroups(application);
@@ -21,7 +23,8 @@ module.exports = angular
 
     let addServerGroups = (application, serverGroups) => {
       return addTags(serverGroups).then(() => {
-        serverGroups.forEach(serverGroup => serverGroup.stringVal = JSON.stringify(serverGroup, serverGroupTransformer.jsonReplacer));
+        serverGroups.forEach(serverGroup => serverGroup.stringVal =
+          jsonUtilityService.makeSortedStringFromAngularObject(serverGroup, ['executions', 'runningTasks']));
         application.clusters = clusterService.createServerGroupClusters(serverGroups);
         let data = clusterService.addServerGroupsToApplication(application, serverGroups);
         clusterService.addTasksToServerGroups(application);

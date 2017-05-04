@@ -178,7 +178,7 @@ module.exports = angular
     function diffServerGroups(oldGroup, newGroup) {
       var toRemove = [];
       oldGroup.serverGroups.forEach(function(serverGroup, idx) {
-        serverGroup.stringVal = angular.toJson(serverGroup);
+        serverGroup.stringVal = serverGroup.stringVal || angular.toJson(serverGroup);
         var newServerGroup = _.find(newGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
         if (!newServerGroup) {
           $log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);

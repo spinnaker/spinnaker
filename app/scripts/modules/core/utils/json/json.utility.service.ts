@@ -68,6 +68,20 @@ export class JsonUtilityService {
     return JSON.stringify(obj, null, 2);
   }
 
+  public makeSortedStringFromAngularObject(obj: any, omit: string[] = []): string {
+    const replacer = (key: string, value: string) => {
+      let val = value;
+      if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
+        val = undefined;
+      }
+      if (omit.includes(key)) {
+        val = undefined;
+      }
+      return val;
+    };
+    return JSON.stringify(this.sortObject(obj), replacer);
+  }
+
   public diff(left: any, right: any, sortKeys = false): IJsonDiff {
     if (sortKeys) {
       left = this.makeSortedString(left);
