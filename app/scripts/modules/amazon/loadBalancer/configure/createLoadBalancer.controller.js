@@ -160,6 +160,14 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
     }
 
     function availableGroupsSorter(a, b) {
+      if (defaultSecurityGroups) {
+        if (defaultSecurityGroups.includes(a.name)) {
+          return -1;
+        }
+        if (defaultSecurityGroups.includes(b.name)) {
+          return 1;
+        }
+      }
       return $scope.loadBalancer.securityGroups.includes(a.id) ? -1 :
         $scope.loadBalancer.securityGroups.includes(b.id) ? 1 :
           0;
@@ -365,8 +373,8 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
 
     this.subnetUpdated = function() {
       var subnetPurpose = $scope.loadBalancer.subnetType || null,
-          subnet = $scope.subnets.filter(function(test) { return test.purpose === subnetPurpose; }),
-          availableVpcIds = subnet.length ? subnet[0].vpcIds : [];
+          subnet = $scope.subnets.find(function(test) { return test.purpose === subnetPurpose; }),
+          availableVpcIds = subnet ? subnet.vpcIds : [];
         updateAvailableSecurityGroups(availableVpcIds);
       if (subnetPurpose) {
         $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;

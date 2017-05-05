@@ -193,7 +193,9 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       expect(this.$scope.loadBalancer.isInternal).toBe(false);
       expect(this.$scope.state.hideInternalFlag).toBeUndefined();
     });
+  });
 
+  describe('available security groups', function () {
     it('should put existing security groups in the front of the available list', function () {
       const availableSecurityGroups = {
         test: {
@@ -216,10 +218,37 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
       };
       spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.returnValue(this.$q.when(availableSecurityGroups));
       spyOn(this.accountService, 'getAccountDetails').and.returnValue(this.$q.when([{name: 'test'}]));
-      spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([{account: 'test', region: 'us-east-1', vpcIds: ['vpc-1']}]));
+      spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([{account: 'test', region: 'us-east-1', vpcId: 'vpc-1'}]));
       this.initialize(existingLoadBalancer);
       this.$scope.$digest();
       expect(this.$scope.availableSecurityGroups.map(g => g.name)).toEqual(['d', 'a', 'b', 'c']);
+    });
+
+    it('should put default security groups in the front of the available list', function () {
+      AWSProviderSettings.defaultSecurityGroups = ['sg-a'];
+      AWSProviderSettings.defaults.subnetType = 'external';
+      const availableSecurityGroups = {
+        test: {
+          aws: {
+            'us-east-1': [
+              {name: 'a', id: '1', vpcId: 'vpc-1'},
+              {name: 'b', id: '2', vpcId: 'vpc-1'},
+              {name: 'c', id: '3', vpcId: 'vpc-1'},
+              {name: 'd', id: '4', vpcId: 'vpc-1'},
+              {name: 'sg-a', id: '5', vpcId: 'vpc-1'}]
+          }
+        }
+      };
+
+      spyOn(this.securityGroupReader, 'getAllSecurityGroups').and.returnValue(this.$q.when(availableSecurityGroups));
+      spyOn(this.accountService, 'listAccounts').and.returnValue(this.$q.when([{name: 'test'}]));
+      spyOn(this.accountService, 'getAccountDetails').and.returnValue(this.$q.when([{name: 'test'}]));
+      spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([
+        {account: 'test', region: 'us-east-1', vpcId: 'vpc-1', purpose: 'external'}
+      ]));
+      this.initialize();
+      this.$scope.$digest();
+      expect(this.$scope.availableSecurityGroups.map(g => g.name)).toEqual(['sg-a', 'a', 'b', 'c', 'd']);
     });
   });
 
