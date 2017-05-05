@@ -55,7 +55,18 @@ class TitusInstanceProvider implements InstanceProvider<TitusInstance> {
   @Override
   TitusInstance getInstance(String account, String region, String id) {
 
-    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, awsLookupUtil.awsAccountId(account, region), awsLookupUtil.stack(account), region))
+    String awsAccount = awsLookupUtil.awsAccountId(account, region)
+
+    if (!awsAccount) {
+      return null
+    }
+
+    String stack = awsLookupUtil.stack(account)
+    if(!stack){
+      stack = 'mainvpc'
+    }
+
+    CacheData instanceEntry = cacheView.get(INSTANCES.ns, Keys.getInstanceKey(id, awsAccount, stack, region))
     if (!instanceEntry) {
       return null
     }

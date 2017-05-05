@@ -109,15 +109,18 @@ class AwsLookupUtil {
     Map awsDetails = awsAccountLookup.find {
       it.titusAccount == account && it.region == region
     }
+    if(!awsDetails){
+      return null
+    }
     accountCredentialsProvider.all.find {
       it instanceof AmazonCredentials && it.name == awsDetails.awsAccount
-    }.accountId
+    }?.accountId
   }
 
   String stack(account){
     accountCredentialsProvider.all.find {
-      it instanceof TitusCredentials && it.name == account
-    }.stack
+      it instanceof NetflixTitusCredentials && it.name == account
+    }?.stack
   }
 
   private String convertVpcNameToId(String awsAccount, String region, String name) {
