@@ -5,4 +5,5 @@ export interface IStage {
   requisiteStageRefIds: (string | number)[];
   [k: string]: any;
   isNew?: boolean;
+  alias?: string;
 }

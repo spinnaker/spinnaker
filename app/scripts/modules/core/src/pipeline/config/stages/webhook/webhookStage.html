@@ -1,8 +1,11 @@
 <div class="form-horizontal">
-  <stage-config-field label="Webhook URL">
+  <div class="alert alert-info" ng-if="$ctrl.preconfiguredProperties.length">
+    <strong>Note:</strong> {{$ctrl.noUserConfigurableFields ? 'All' : 'Some'}} of the settings of this stage are preconfigured, and cannot be changed.
+  </div>
+  <stage-config-field label="Webhook URL" ng-if="$ctrl.displayField('url')">
     <input type="text" class="form-control input-sm" ng-model="$ctrl.stage.url"/>
   </stage-config-field>
-  <stage-config-field label="Method">
+  <stage-config-field label="Method" ng-if="$ctrl.displayField('method')">
     <ui-select ng-model="$ctrl.stage.method" class="form-control input-sm">
       <ui-select-match placeholder="Select a method...">{{$select.selected}}</ui-select-match>
       <ui-select-choices repeat="method in $ctrl.methods | filter: $select.search">
@@ -12,7 +15,7 @@
   </stage-config-field>
   <stage-config-field label="Payload"
                       help-key="pipeline.config.webhook.payload"
-                      ng-if="$ctrl.stage.method !== 'GET' && $ctrl.stage.method !== 'HEAD'">
+                      ng-if="$ctrl.stage.method !== 'GET' && $ctrl.stage.method !== 'HEAD' && $ctrl.displayField('payload')">
     <textarea class="code form-control flex-fill"
               rows="5"
               ng-model="$ctrl.command.payloadJSON"
@@ -24,8 +27,8 @@
         </div>
       </div>
   </stage-config-field>
-  <stage-config-field label="Custom Headers" help-key="pipeline.config.webhook.customHeaders">
-    <table class="table table-condensed packed">
+  <stage-config-field label="Custom Headers" help-key="pipeline.config.webhook.customHeaders" ng-if="$ctrl.displayField('headers')">
+    <table class="table table-condensed packed" ng-if="$ctrl.customHeaderCount() > 0">
       <thead>
         <tr>
           <th style="width:40%">Key</th>
@@ -34,7 +37,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="(key,value) in $ctrl.stage.customHeaders">
+        <tr ng-repeat="(key, value) in $ctrl.stage.customHeaders">
           <td>
             <strong class="small">{{key}}</strong>
           </td>
@@ -47,18 +50,16 @@
           </td>
         </tr>
       </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="7">
-            <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addCustomHeader()">
-              <span class="glyphicon glyphicon-plus-sign"></span> Add Custom Header
-            </button>
-          </td>
-        </tr>
-      </tfoot>
     </table>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addCustomHeader()">
+          <span class="glyphicon glyphicon-plus-sign"></span> Add Custom Header
+        </button>
+      </div>
+    </div>
   </stage-config-field>
-  <div class="form-group">
+  <div class="form-group" ng-if="$ctrl.displayField('waitForCompletion')">
     <div class="col-md-8 col-md-offset-1">
       <div class="checkbox pull-left">
         <label>
@@ -73,7 +74,7 @@
     </div>
   </div>
   <div ng-class="{collapse: $ctrl.viewState.waitForCompletion !== true, 'collapse.in': !$ctrl.viewState.waitForCompletion === true}">
-    <div class="form-group">
+    <div class="form-group" ng-if="$ctrl.displayField('statusUrlResolution')">
       <div class="col-md-3 sm-label-right">Status URL</div>
       <div class="col-md-9 radio">
         <label>
@@ -108,7 +109,7 @@
           <help-field key="pipeline.config.webhook.useStatusUrlFromLocationHeaderFalse"></help-field>
         </label>
       </div>
-      <div class="form-group" ng-if="$ctrl.viewState.statusUrlResolution === 'webhookResponse'">
+      <div class="form-group" ng-if="$ctrl.viewState.statusUrlResolution === 'webhookResponse' && $ctrl.displayField('statusUrlJsonPath')">
         <div class="col-md-offset-3">
           <stage-config-field label="Status URL path" help-key="pipeline.config.webhook.statusUrlJsonPath">
             <input type="text"
@@ -120,31 +121,36 @@
       </div>
     </div>
     <stage-config-field label="Status JsonPath"
-                        help-key="pipeline.config.webhook.statusJsonPath">
+                        help-key="pipeline.config.webhook.statusJsonPath"
+                        ng-if="$ctrl.displayField('statusJsonPath')">
       <input type="text"
              class="form-control input-sm"
              ng-model="$ctrl.stage.statusJsonPath"/>
     </stage-config-field>
     <stage-config-field label="Progress location"
-                        help-key="pipeline.config.webhook.progressJsonPath">
+                        help-key="pipeline.config.webhook.progressJsonPath"
+                        ng-if="$ctrl.displayField('progressJsonPath')">
       <input type="text"
              class="form-control input-sm"
              ng-model="$ctrl.stage.progressJsonPath"/>
     </stage-config-field>
     <stage-config-field label="SUCCESS status mapping"
-                        help-key="pipeline.config.webhook.successStatuses">
+                        help-key="pipeline.config.webhook.successStatuses"
+                        ng-if="$ctrl.displayField('successStatuses')">
       <input type="text"
              class="form-control input-sm"
              ng-model="$ctrl.stage.successStatuses"/>
     </stage-config-field>
     <stage-config-field label="CANCELED status mapping"
-                        help-key="pipeline.config.webhook.canceledStatuses">
+                        help-key="pipeline.config.webhook.canceledStatuses"
+                        ng-if="$ctrl.displayField('canceledStatuses')">
       <input type="text"
              class="form-control input-sm"
              ng-model="$ctrl.stage.canceledStatuses"/>
     </stage-config-field>
     <stage-config-field label="TERMINAL status mapping"
-                        help-key="pipeline.config.webhook.terminalStatuses">
+                        help-key="pipeline.config.webhook.terminalStatuses"
+                        ng-if="$ctrl.displayField('terminalStatuses')">
       <input type="text"
              class="form-control input-sm"
              ng-model="$ctrl.stage.terminalStatuses"/>

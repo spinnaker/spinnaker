@@ -19,4 +19,5 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   restartable?: boolean;
   synthetic?: boolean;
   nameToCheckInTest?: string;
+  configuration?: any;
 }

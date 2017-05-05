@@ -61,8 +61,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       });
     }
 
-    function getConfig(type) {
-      return pipelineConfig.getStageConfig({type: type});
+    function getConfig(stage) {
+      return pipelineConfig.getStageConfig(stage);
     }
 
     $scope.groupDependencyOptions = function(stage) {
@@ -94,8 +94,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       });
     };
 
-    this.selectStageType = (type) => {
-      $scope.stage.type = type;
+    this.selectStageType = stage => {
+      $scope.stage.type = stage.key;
+      $scope.stage.alias = stage.alias;
       this.selectStage();
     };
 
@@ -132,7 +133,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
       });
 
       if (type) {
-        let config = getConfig(type);
+        let config = getConfig($scope.stage);
         if (config) {
           $scope.canConfigureNotifications = !$scope.pipeline.strategy && !config.disableNotifications;
           $scope.description = config.description;
@@ -172,7 +173,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
     function updateStageName(config, oldVal) {
       // apply a default name if the type changes and the user has not specified a name
       if (oldVal) {
-        var oldConfig = getConfig(oldVal);
+        var oldConfig = getConfig({type: oldVal});
         if (oldConfig && $scope.stage.name === oldConfig.label) {
           $scope.stage.name = config.label;
         }
