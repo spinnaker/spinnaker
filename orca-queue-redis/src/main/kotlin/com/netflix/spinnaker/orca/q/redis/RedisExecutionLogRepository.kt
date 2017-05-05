@@ -46,15 +46,16 @@ class RedisExecutionLogRepository(
     val serializedEntry = objectMapper.writeValueAsString(entry)
     val key = "executionLog.${entry.executionId}"
 
-    pool.resource.apply {
-      zadd(key, entry.timestamp.toEpochMilli().toDouble(), serializedEntry)
-      expire(key, ttlSeconds)
+    pool.resource.use { redis ->
+      redis.zadd(key, entry.timestamp.toEpochMilli().toDouble(), serializedEntry)
+      redis.expire(key, ttlSeconds)
     }
   }
 
   override fun getAllByExecutionId(executionId: String) =
-    pool.resource.run {
-      zrangeByScore("executionLog.$executionId", "-inf", "+inf")
+    pool.resource.use { redis ->
+      redis
+        .zrangeByScore("executionLog.$executionId", "-inf", "+inf")
         .map { objectMapper.readValue(it, ExecutionLogEntry::class.java) }
     }
 }
