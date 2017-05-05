@@ -25,6 +25,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
+import redis.clients.jedis.Transaction
 import redis.clients.util.Pool
 import java.io.Closeable
 import java.time.Clock
@@ -77,8 +78,10 @@ class RedisQueue(
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
       val id = randomUUID().toString()
-      redis.hset(messagesKey, id, mapper.writeValueAsString(message))
-      redis.zadd(queueKey, score(delay), id)
+      redis.multi {
+        hset(messagesKey, id, mapper.writeValueAsString(message))
+        zadd(queueKey, score(delay), id)
+      }
     }
   }
 
@@ -93,9 +96,11 @@ class RedisQueue(
 
   private fun ack(id: String) {
     pool.resource.use { redis ->
-      redis.zrem(unackedKey, id)
-      redis.hdel(messagesKey, id)
-      redis.hdel(attemptsKey, id)
+      redis.multi {
+        zrem(unackedKey, id)
+        hdel(messagesKey, id)
+        hdel(attemptsKey, id)
+      }
     }
   }
 
@@ -134,7 +139,7 @@ class RedisQueue(
    * Attempt to acquire a lock on a single value from a sorted set [from], adding
    * them to sorted set [to] (with optional [delay]).
    */
-  private fun JedisCommands.pop(from: String, to: String, delay: TemporalAmount = ZERO) =
+  private fun Jedis.pop(from: String, to: String, delay: TemporalAmount = ZERO) =
     zrangeByScore(from, 0.0, score(), 0, 1)
       .takeIf {
         getSet("$locksKey:$it", currentInstanceId) in listOf(null, currentInstanceId)
@@ -148,11 +153,13 @@ class RedisQueue(
   /**
    * Move [values] from sorted set [from] to sorted set [to]
    */
-  private fun JedisCommands.move(from: String, to: String, delay: TemporalAmount, values: Set<String>) {
+  private fun Jedis.move(from: String, to: String, delay: TemporalAmount, values: Set<String>) {
     if (values.isNotEmpty()) {
-      zrem(from, *values.toTypedArray())
       val score = score(delay)
-      zadd(to, values.associate { Pair(it, score) })
+      multi {
+        zrem(from, *values.toTypedArray())
+        zadd(to, values.associate { Pair(it, score) })
+      }
     }
   }
 
@@ -168,4 +175,11 @@ class RedisQueue(
 
   inline fun <reified R> ObjectMapper.readValue(content: String): R =
     readValue(content, R::class.java)
+
+  private fun Jedis.multi(block: Transaction.() -> Unit) {
+    multi().use { tx ->
+      tx.block()
+      tx.exec()
+    }
+  }
 }
