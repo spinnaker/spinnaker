@@ -53,9 +53,9 @@ open class CompleteStageHandler
           queue.push(message.copy(stageId = stage.getParentStageId()))
         }
       }
-    }
 
-    publisher.publishEvent(StageComplete(this, message.executionType, message.executionId, message.stageId, message.status))
+      publisher.publishEvent(StageComplete(this, stage))
+    }
   }
 
   override val messageType = CompleteStage::class.java

@@ -45,7 +45,7 @@ open class StartTaskHandler
       repository.storeStage(stage)
       queue.push(RunTask(message, task.id, task.type))
 
-      publisher.publishEvent(TaskStarted(this, message.executionType, message.executionId, message.stageId, message.taskId))
+      publisher.publishEvent(TaskStarted(this, stage, task))
     }
   }
 

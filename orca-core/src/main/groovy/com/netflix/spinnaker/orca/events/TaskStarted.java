@@ -17,22 +17,62 @@
 package com.netflix.spinnaker.orca.events;
 
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
+import com.netflix.spinnaker.orca.pipeline.model.Stage;
+import com.netflix.spinnaker.orca.pipeline.model.Task;
 
 public class TaskStarted extends ExecutionEvent {
   private final String stageId;
+  private final String stageType;
+  private final String stageName;
   private final String taskId;
+  private final String taskType;
+  private final String taskName;
 
-  public TaskStarted(Object source, Class<? extends Execution<?>> executionType, String executionId, String stageId, String taskId) {
+  public TaskStarted(Object source, Class<? extends Execution> executionType, String executionId, String stageId, String stageType, String stageName, String taskId, String taskType, String taskName) {
     super(source, executionType, executionId);
     this.stageId = stageId;
+    this.stageType = stageType;
+    this.stageName = stageName;
     this.taskId = taskId;
+    this.taskType = taskType;
+    this.taskName = taskName;
+  }
+
+  public TaskStarted(Object source, Stage<? extends Execution<?>> stage, Task task) {
+    this(
+      source,
+      stage.getExecution().getClass(),
+      stage.getExecution().getId(),
+      stage.getId(),
+      stage.getType(),
+      stage.getName(),
+      task.getId(),
+      task.getImplementingClass(),
+      task.getName()
+    );
   }
 
   public String getStageId() {
     return stageId;
   }
 
+  public String getStageType() {
+    return stageType;
+  }
+
+  public String getStageName() {
+    return stageName;
+  }
+
   public String getTaskId() {
     return taskId;
+  }
+
+  public String getTaskType() {
+    return taskType;
+  }
+
+  public String getTaskName() {
+    return taskName;
   }
 }

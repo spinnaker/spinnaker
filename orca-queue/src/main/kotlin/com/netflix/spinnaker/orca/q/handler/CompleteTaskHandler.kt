@@ -67,7 +67,7 @@ open class CompleteTaskHandler
           }
         }
 
-        publisher.publishEvent(TaskComplete(this, message.executionType, message.executionId, message.stageId, message.taskId, message.status))
+        publisher.publishEvent(TaskComplete(this, stage, task))
       }
     }
   }

@@ -15,10 +15,9 @@
  */
 package com.netflix.spinnaker.orca.q.redis
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.guava.GuavaModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.config.RedisExecutionLogProperties
@@ -32,31 +31,30 @@ import java.time.temporal.ChronoUnit
 class RedisExecutionLogRepository(
   private val pool: Pool<Jedis>,
   redisExecutionLogProperties: RedisExecutionLogProperties
-): ExecutionLogRepository {
+) : ExecutionLogRepository {
 
   private val ttlSeconds = Duration.of(redisExecutionLogProperties.ttlDays, ChronoUnit.DAYS).seconds.toInt()
 
   private val objectMapper = ObjectMapper().apply {
     registerModule(KotlinModule())
     registerModule(JavaTimeModule())
-    disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    setSerializationInclusion(JsonInclude.Include.NON_NULL)
+    disable(FAIL_ON_UNKNOWN_PROPERTIES)
+    setSerializationInclusion(NON_NULL)
   }
 
   override fun save(entry: ExecutionLogEntry) {
     val serializedEntry = objectMapper.writeValueAsString(entry)
     val key = "executionLog.${entry.executionId}"
 
-    pool.resource.use { redis ->
-      redis.zadd(key, entry.timestamp.nano.toDouble(), serializedEntry)
-      redis.expire(key, ttlSeconds)
+    pool.resource.apply {
+      zadd(key, entry.timestamp.toEpochMilli().toDouble(), serializedEntry)
+      expire(key, ttlSeconds)
     }
   }
 
-  override fun getAllByExecutionId(executionId: String): List<ExecutionLogEntry> {
-    pool.resource.use { redis ->
-      return redis.zrangeByScore("executionLog.$executionId", "-inf", "+inf")
+  override fun getAllByExecutionId(executionId: String) =
+    pool.resource.run {
+      zrangeByScore("executionLog.$executionId", "-inf", "+inf")
         .map { objectMapper.readValue(it, ExecutionLogEntry::class.java) }
     }
-  }
 }

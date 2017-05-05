@@ -28,21 +28,19 @@ open class ExecutionLogListener
 ) : ApplicationListener<ExecutionEvent> {
 
   override fun onApplicationEvent(event: ExecutionEvent) {
-    executionLogRepository.save(event.run {
-      when (this) {
-        is ExecutionStarted -> toLogEntry(event, emptyMap())
-        is ExecutionComplete -> toLogEntry(event, hashMapOf("status" to status.name))
-        is StageStarted -> toLogEntry(event, emptyMap())
-        is StageComplete -> toLogEntry(event, hashMapOf("status" to status.name))
-        is TaskStarted -> toLogEntry(event, emptyMap())
-        is TaskComplete -> toLogEntry(event, hashMapOf("status" to status.name))
-        else -> throw IllegalArgumentException("Unknown event type $javaClass")
-      }
-    })
+    executionLogRepository.save(event.toLogEntry())
   }
 
-  private fun toLogEntry(event: ExecutionEvent, details: Map<String, String>): ExecutionLogEntry = event.run {
-    ExecutionLogEntry(
+  private fun ExecutionEvent.toLogEntry(): ExecutionLogEntry {
+    val details = when (this) {
+      is ExecutionComplete -> mapOf("status" to status.name)
+      is StageStarted -> mapOf("type" to stageType, "name" to stageName)
+      is StageComplete -> mapOf("type" to stageType, "name" to stageName, "status" to status.name)
+      is TaskStarted -> mapOf("type" to taskType, "name" to taskName)
+      is TaskComplete -> mapOf("type" to taskType, "name" to taskName, "status" to status.name)
+      else -> emptyMap()
+    }
+    return ExecutionLogEntry(
       executionId,
       timestamp(),
       javaClass.simpleName,
