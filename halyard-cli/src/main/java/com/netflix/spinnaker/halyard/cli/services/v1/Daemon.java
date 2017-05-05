@@ -59,6 +59,13 @@ public class Daemon {
     return () -> ResponseUnwrapper.get(getService().getCurrentDeployment());
   }
 
+  public static Supplier<DeploymentConfiguration> getDeploymentConfiguration(String deploymentName, boolean validate) {
+    return () -> {
+      Object rawDeploymentConfiguration = ResponseUnwrapper.get(getService().getDeployment(deploymentName, validate));
+      return getObjectMapper().convertValue(rawDeploymentConfiguration, DeploymentConfiguration.class);
+    };
+  }
+
   public static Supplier<DeploymentEnvironment> getDeploymentEnvironment(String deploymentName, boolean validate) {
     return () -> {
       Object rawDeploymentEnvironment = ResponseUnwrapper.get(getService().getDeploymentEnvironment(deploymentName, validate));

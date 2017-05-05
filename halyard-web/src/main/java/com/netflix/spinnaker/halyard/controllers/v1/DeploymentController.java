@@ -58,7 +58,7 @@ public class DeploymentController {
   HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/{deploymentName:.+}", method = RequestMethod.GET)
-  DaemonResponse<DeploymentConfiguration> deploymentConfiguration(@PathVariable String deploymentName,
+  DaemonTask<Halconfig, DeploymentConfiguration> deploymentConfiguration(@PathVariable String deploymentName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<DeploymentConfiguration> builder = new StaticRequestBuilder<>();
@@ -70,11 +70,11 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeployment(deploymentName));
     }
 
-    return builder.build();
+    return DaemonTaskHandler.submitTask(builder::build, "Get deployment configuration");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonResponse<List<DeploymentConfiguration>> deploymentConfigurations(
+  DaemonTask<Halconfig, List<DeploymentConfiguration>> deploymentConfigurations(
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<DeploymentConfiguration>> builder = new StaticRequestBuilder<>();
@@ -86,7 +86,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateAllDeployments());
     }
 
-    return builder.build();
+    return DaemonTaskHandler.submitTask(builder::build, "Get all deployment configurations");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/generate/", method = RequestMethod.POST)

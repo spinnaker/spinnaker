@@ -18,8 +18,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.*;
-import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ProviderCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.CiCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.ProviderCommand;
+import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
+import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -29,7 +33,7 @@ import lombok.Getter;
  * Usage is `$ hal config`
  */
 @Parameters(separators =  "=")
-public class ConfigCommand extends NestableCommand {
+public class ConfigCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "config";
 
@@ -50,6 +54,14 @@ public class ConfigCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
-    showHelp();
+    String currentDeployment = getCurrentDeployment();
+
+    new OperationHandler<DeploymentConfiguration>()
+        .setOperation(Daemon.getDeploymentConfiguration(currentDeployment, !noValidate))
+        .setFormat(AnsiFormatUtils.Format.YAML)
+        .setUserFormatted(true)
+        .setSuccessMessage("Configured deployment: ")
+        .setFailureMesssage("Failed to deployment configuration.")
+        .get();
   }
 }

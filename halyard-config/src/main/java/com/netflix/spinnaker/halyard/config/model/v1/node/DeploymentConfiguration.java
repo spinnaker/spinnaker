@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
@@ -97,6 +98,9 @@ public class DeploymentConfiguration extends Node {
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
   }
+
+  @JsonCreator
+  public DeploymentConfiguration() {}
 
   protected List<String> versionOptions(ConfigProblemSetBuilder psBuilder) {
     VersionsService service = psBuilder.getContext().getBean(VersionsService.class);

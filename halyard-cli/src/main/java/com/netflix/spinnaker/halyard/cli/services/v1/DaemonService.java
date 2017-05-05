@@ -57,7 +57,7 @@ public interface DaemonService {
   DaemonTask<Halconfig, List<DeploymentConfiguration>> getDeployments();
 
   @GET("/v1/config/deployments/{deploymentName}/")
-  DaemonTask<Halconfig, DeploymentConfiguration> getDeployment(
+  DaemonTask<Halconfig, Object> getDeployment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 

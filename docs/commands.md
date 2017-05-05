@@ -349,8 +349,10 @@ Configure, validate, and view your halconfig.
 
 #### Usage
 ```
-hal config [subcommands]
+hal config [parameters] [subcommands]
 ```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
  * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
