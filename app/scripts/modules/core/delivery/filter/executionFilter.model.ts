@@ -36,12 +36,11 @@ export class ExecutionFilterModel {
   // mechanism for now.
   public expandSubject: Subject<boolean> = new Subject<boolean>();
 
-  static get $inject(): string[] { return ['$rootScope', 'filterModelService', 'urlParser', 'viewStateCache']; }
-
   constructor($rootScope: IRootScopeService,
               filterModelService: any,
               urlParser: any,
               viewStateCache: ViewStateCacheService) {
+    'ngInject';
     this.configViewStateCache = viewStateCache.createCache('executionFilters', {
       version: 1,
       maxAge: 180 * 24 * 60 * 60 * 1000,

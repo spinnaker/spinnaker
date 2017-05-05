@@ -20,17 +20,6 @@ class DeleteFastPropertyWizardController {
   public propertyMonitor: any;
   public isDeleting: boolean;
 
-  static get $inject() { return [
-    '$scope',
-    '$uibModalInstance',
-    'title',
-    'applicationName',
-    'property',
-    'pipelineConfigService',
-    'propertyMonitorService',
-    'applicationReader',
-  ]; }
-
   constructor (
     public $scope: IScope,
     public $uibModalInstance: IModalServiceInstance,
@@ -41,6 +30,7 @@ class DeleteFastPropertyWizardController {
     public propertyMonitorService: any,
     public applicationReader: ApplicationReader
   ) {
+    'ngInject';
 
     this.isDeleting = true;
 

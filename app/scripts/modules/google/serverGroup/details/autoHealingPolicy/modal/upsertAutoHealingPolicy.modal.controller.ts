@@ -16,17 +16,13 @@ class GceUpsertAutoHealingPolicyModalCtrl {
   public isNew: boolean;
   public submitButtonLabel: string;
 
-  public static get $inject() {
-    return ['$uibModalInstance', 'application', 'serverGroup', 'gceHealthCheckReader',
-            'taskMonitorBuilder', 'gceAutoscalingPolicyWriter'];
-  }
-
   constructor(private $uibModalInstance: IModalServiceInstance,
               private application: Application,
               public serverGroup: IGceServerGroup,
               private gceHealthCheckReader: GceHealthCheckReader,
               private taskMonitorBuilder: TaskMonitorBuilder,
               private gceAutoscalingPolicyWriter: any) {
+    'ngInject';
     this.initialize();
   }
 

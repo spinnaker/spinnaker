@@ -20,11 +20,7 @@ export class ChaosMonkeyExceptionsController {
   public configChanged: () => void;
   public clusterMatches: IClusterMatch[][] = [];
 
-  static get $inject() {
-    return ['accountService', 'namingService'];
-  }
-
-  public constructor(private accountService: AccountService, private namingService: NamingService) {}
+  public constructor(private accountService: AccountService, private namingService: NamingService) { 'ngInject'; }
 
   public addException(): void {
     this.config.exceptions = this.config.exceptions || [];

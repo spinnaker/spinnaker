@@ -32,12 +32,6 @@ class AppengineServerGroupDetailsController {
   public state = { loading: true };
   public serverGroup: IAppengineServerGroup;
 
-  static get $inject () {
-    return ['$state', '$scope', '$uibModal', 'serverGroup', 'app', 'serverGroupReader', 'serverGroupWriter',
-            'serverGroupWarningMessageService', 'confirmationModalService', 'appengineServerGroupWriter',
-            'appengineServerGroupCommandBuilder'];
-  }
-
   private static buildExpectedAllocationsTable(expectedAllocations: {[key: string]: number}): string {
     const tableRows = map(expectedAllocations, (allocation, serverGroupName) => {
       return `
@@ -72,6 +66,7 @@ class AppengineServerGroupDetailsController {
               private confirmationModalService: ConfirmationModalService,
               private appengineServerGroupWriter: AppengineServerGroupWriter,
               private appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder) {
+    'ngInject';
 
     this.app
       .ready()

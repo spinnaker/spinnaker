@@ -41,8 +41,6 @@ interface IViewState {
 }
 
 export class AppengineServerGroupCommandBuilder {
-  static get $inject() { return ['$q', 'accountService']; }
-
   private static getTriggerOptions(pipeline: IPipeline): Array<IAppengineGitTrigger | IAppengineJenkinsTrigger> {
     return (pipeline.triggers || [])
       .filter(trigger => trigger.type === 'git' || trigger.type === 'jenkins' || trigger.type === 'travis')
@@ -55,7 +53,7 @@ export class AppengineServerGroupCommandBuilder {
       });
   }
 
-  constructor(private $q: IQService, private accountService: AccountService) { }
+  constructor(private $q: IQService, private accountService: AccountService) { 'ngInject'; }
 
   public buildNewServerGroupCommand(app: Application,
                                     selectedProvider = 'appengine',

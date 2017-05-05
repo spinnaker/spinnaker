@@ -14,10 +14,10 @@ export interface IApplicationAttributes {
 
 export class ApplicationWriter {
 
-  static get $inject() { return ['taskExecutor', 'recentHistoryService']; }
-
   public constructor(private taskExecutor: TaskExecutor,
-                     private recentHistoryService: RecentHistoryService) {}
+                     private recentHistoryService: RecentHistoryService) {
+    'ngInject';
+  }
 
   public createApplication(application: IApplicationAttributes): ng.IPromise<any> {
     const jobs: IJob[] = this.buildJobs(application, 'createApplication', cloneDeep);

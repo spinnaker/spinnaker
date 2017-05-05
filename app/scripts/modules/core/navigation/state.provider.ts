@@ -20,10 +20,7 @@ export class StateConfigProvider implements IServiceProvider {
     children: [],
   };
 
-  static get $inject() { return ['$urlRouterProvider', 'stateHelperProvider']; }
-
-  constructor(private $urlRouterProvider: UrlRouterProvider,
-              private stateHelperProvider: StateHelper) {}
+  constructor(private $urlRouterProvider: UrlRouterProvider, private stateHelperProvider: StateHelper) { 'ngInject'; }
 
   /**
    * Adds a root state, e.g. /applications, /projects, /infrastructure

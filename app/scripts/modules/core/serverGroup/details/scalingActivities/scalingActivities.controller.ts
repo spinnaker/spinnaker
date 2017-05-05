@@ -35,11 +35,10 @@ export class ScalingActivitiesCtrl implements ng.IComponentController {
   public viewState: IViewState;
   public activities: IScalingEventSummary[] = [];
 
-  static get $inject() { return ['$uibModalInstance', 'serverGroupReader', 'serverGroup']; }
-
   public constructor(private $uibModalInstance: IModalServiceInstance,
                      private serverGroupReader: ServerGroupReader,
                      public serverGroup: ServerGroup) {
+    'ngInject';
     this.serverGroup = serverGroup;
   }
 

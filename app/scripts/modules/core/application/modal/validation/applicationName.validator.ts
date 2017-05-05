@@ -28,9 +28,9 @@ export interface IApplicationNameValidator {
 export class ApplicationNameValidator {
   private providerMap: Map<string, IApplicationNameValidator[]> = new Map<string, IApplicationNameValidator[]>();
 
-  static get $inject() { return ['cloudProviderRegistry', 'accountService']; }
-
-  public constructor(private cloudProviderRegistry: CloudProviderRegistry, private accountService: AccountService) {}
+  public constructor(private cloudProviderRegistry: CloudProviderRegistry, private accountService: AccountService) {
+    'ngInject';
+  }
 
   /**
    * Registers a validator for a cloud provider.

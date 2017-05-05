@@ -15,13 +15,6 @@ interface IAuthResponse {
 
 export class AuthenticationInitializer {
 
-  static get $inject(): string[] {
-    return [
-      '$location', '$rootScope', '$http', '$uibModal', '$uibModalStack',
-      'redirectService', 'authenticationService'
-    ];
-  }
-
   private userLoggedOut = false;
   private visibilityWatch: Subscription = null;
 
@@ -32,6 +25,7 @@ export class AuthenticationInitializer {
               private $uibModalStack: IModalStackService,
               private redirectService: RedirectService,
               private authenticationService: AuthenticationService) {
+    'ngInject';
   }
 
   private checkForReauthentication(): void {

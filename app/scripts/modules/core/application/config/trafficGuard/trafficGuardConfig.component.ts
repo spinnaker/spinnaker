@@ -35,9 +35,7 @@ export class TrafficGuardConfigController {
     isDirty: false,
   };
 
-  static get $inject() { return ['accountService', 'namingService']; }
-
-  public constructor(private accountService: AccountService, private namingService: NamingService) {}
+  public constructor(private accountService: AccountService, private namingService: NamingService) { 'ngInject'; }
 
   public $onInit(): void {
     if (this.application.notFound) {

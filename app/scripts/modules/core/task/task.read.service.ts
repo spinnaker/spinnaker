@@ -24,10 +24,10 @@ export class TaskReader {
 
   private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'NOT_STARTED'];
 
-  static get $inject() { return ['API', '$log', '$q', '$timeout', 'orchestratedItemTransformer']; }
-
   public constructor(private API: Api, private $log: ng.ILogService, private $q: ng.IQService,
-                     private $timeout: ng.ITimeoutService, private orchestratedItemTransformer: OrchestratedItemTransformer) {}
+                     private $timeout: ng.ITimeoutService, private orchestratedItemTransformer: OrchestratedItemTransformer) {
+    'ngInject';
+  }
 
   public getTasks(applicationName: string, statuses: string[] = []): ng.IPromise<ITask[]> {
     return this.API.one('applications', applicationName).all('tasks')

@@ -94,10 +94,7 @@ export class TaskMonitor {
 }
 
 export class TaskMonitorBuilder {
-
-  static get $inject() { return ['$timeout', 'taskReader']; }
-
-  constructor(private $timeout: ng.ITimeoutService, private taskReader: TaskReader) {}
+  constructor(private $timeout: ng.ITimeoutService, private taskReader: TaskReader) { 'ngInject'; }
 
   public buildTaskMonitor(config: ITaskMonitorConfig) {
     return new TaskMonitor(config, this.$timeout, this.taskReader);

@@ -43,18 +43,11 @@ export class FastPropertyScopeCategoryService {
     [CATEGORY.GLOBAL]: this.impactCountForGlobal.bind(this)
   };
 
-  static get $inject() {
-    return [
-      '$q',
-      'applicationReader',
-      'fastPropertyReader'
-    ];
-  }
-
   constructor(private $q: ng.IQService,
               private applicationReader: any,
-              private fastPropertyReader: any) {}
-
+              private fastPropertyReader: any) {
+    'ngInject';
+  }
 
   /**
    * Builds Global level fast property

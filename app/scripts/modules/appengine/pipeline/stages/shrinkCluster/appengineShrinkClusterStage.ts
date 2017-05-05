@@ -11,9 +11,8 @@ interface IAppengineShrinkClusterStage extends IAppengineStage {
 }
 
 class AppengineShrinkClusterStageCtrl extends AppengineStageCtrl {
-  static get $inject() { return ['$scope', 'accountService']; }
-
   constructor(public $scope: IAppengineStageScope, accountService: AccountService) {
+    'ngInject';
     super($scope, accountService);
 
     super.setAccounts().then(() => { super.setStageRegion(); });

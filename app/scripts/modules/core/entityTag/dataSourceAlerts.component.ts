@@ -13,9 +13,7 @@ class DataSourceAlertsCtrl implements ng.IComponentController {
 
   private popoverClose: ng.IPromise<void>;
 
-  static get $inject() { return ['$timeout']; }
-
-  public constructor(private $timeout: ng.ITimeoutService) {}
+  public constructor(private $timeout: ng.ITimeoutService) { 'ngInject'; }
 
   public $onChanges(): void {
     if (this.alerts && this.alerts.length) {

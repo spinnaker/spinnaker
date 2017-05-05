@@ -60,9 +60,8 @@ class AppengineStageAllocationConfigurationRowCtrl implements ng.IComponentContr
   private region: string;
   private account: string;
 
-  public static get $inject() { return ['appListExtractorService']; }
-
   constructor(private appListExtractorService: any) {
+    'ngInject';
     const clusterFilter = this.appListExtractorService.clusterFilterForCredentialsAndRegion(this.account, this.region);
     this.clusterList = this.appListExtractorService.getClusters([this.application], clusterFilter);
   }

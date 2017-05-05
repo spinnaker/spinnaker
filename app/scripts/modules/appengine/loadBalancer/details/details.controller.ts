@@ -20,20 +20,19 @@ interface ILoadBalancerFromStateParams {
 
 class AppengineLoadBalancerDetailsController {
   public state = { loading: true };
+  private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAppengineLoadBalancer;
   public dispatchRules: string[] = [];
-
-  static get $inject() {
-    return ['$uibModal', '$state', '$scope', 'loadBalancer', 'app', 'loadBalancerWriter', 'confirmationModalService'];
-  }
 
   constructor(private $uibModal: IModalService,
               private $state: StateService,
               private $scope: IScope,
-              private loadBalancerFromParams: ILoadBalancerFromStateParams,
+              loadBalancer: ILoadBalancerFromStateParams,
               private app: Application,
               private loadBalancerWriter: LoadBalancerWriter,
               private confirmationModalService: ConfirmationModalService) {
+    'ngInject';
+    this.loadBalancerFromParams = loadBalancer;
     this.app.getDataSource('loadBalancers')
       .ready()
       .then(() => this.extractLoadBalancer());

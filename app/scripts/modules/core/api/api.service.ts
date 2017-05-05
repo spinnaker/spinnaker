@@ -25,16 +25,13 @@ export interface IRequestBuilder {
 
 export class Api {
 
-  static get $inject() {
-    return ['$q', '$http', 'authenticationInitializer'];
-  }
-
   private gateUrl: string;
   private defaultParams: DefaultParams;
 
   constructor(private $q: IQService,
               private $http: IHttpService,
-              private authenticationIntializer: AuthenticationInitializer) {
+              private authenticationInitializer: AuthenticationInitializer) {
+    'ngInject';
     this.gateUrl = SETTINGS.gateUrl;
     this.defaultParams = {
       timeout: SETTINGS.pollSchedule * 2 + 5000
@@ -49,7 +46,7 @@ export class Api {
         const isZeroLengthHtml = (contentType.includes('text/html') && (result.data === ''));
         const isZeroLengthText = (contentType.includes('text/plain') && (result.data === ''));
         if (!(isJson || isZeroLengthHtml || isZeroLengthText)) {
-          this.authenticationIntializer.reauthenticateUser();
+          this.authenticationInitializer.reauthenticateUser();
           reject(result);
         }
       }

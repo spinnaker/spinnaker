@@ -70,9 +70,7 @@ export class WizardPageController implements ng.IComponentController {
    */
   public state: WizardPageState;
 
-  static get $inject() { return ['$scope', 'v2modalWizardService']; }
-
-  public constructor(private $scope: ng.IScope, private v2modalWizardService: any) {}
+  public constructor(private $scope: ng.IScope, private v2modalWizardService: any) { 'ngInject'; }
 
   public $onInit() {
     this.render = this.render !== false;

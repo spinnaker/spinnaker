@@ -77,19 +77,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
   private sessionAffinityModelToViewMap: any = _.invert(this.sessionAffinityViewToModelMap);
 
-  static get $inject () { return ['$scope',
-                                  'application',
-                                  '$uibModalInstance',
-                                  'loadBalancer',
-                                  'gceCommonLoadBalancerCommandBuilder',
-                                  'isNew',
-                                  'accountService',
-                                  'loadBalancerWriter',
-                                  'wizardSubFormValidation',
-                                  'taskMonitorBuilder',
-                                  '$state',
-                                  'infrastructureCaches']; }
-
   constructor (public $scope: IPrivateScope,
                public application: Application,
                public $uibModalInstance: any,
@@ -102,6 +89,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                private taskMonitorBuilder: TaskMonitorBuilder,
                $state: StateService,
                infrastructureCaches: InfrastructureCacheService) {
+    'ngInject';
     super($scope, application, $uibModalInstance, $state, infrastructureCaches);
   }
 

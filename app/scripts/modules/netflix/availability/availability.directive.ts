@@ -17,11 +17,9 @@ interface IAggregateDetails {
 export class AvailabilityController implements ng.IComponentController {
   private activeRefresher: any;
 
-  static get $inject() {
-    return ['$scope', 'availabilityReaderService', 'schedulerFactory'];
+  public constructor (private $scope: any, private availabilityReaderService: AvailabilityReaderService, private schedulerFactory: SchedulerFactory) {
+    'ngInject';
   }
-
-  public constructor (private $scope: any, private availabilityReaderService: AvailabilityReaderService, private schedulerFactory: SchedulerFactory) {}
 
   private getWindowScore (window: IAvailabilityWindow): number {
     if (window.nines >= window.target_nines) { return 1; }

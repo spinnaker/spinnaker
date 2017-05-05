@@ -30,9 +30,7 @@ export class WhatsNewReader {
     return data.files[fileName].content;
   }
 
-  static get $inject() { return ['$http', '$log', '$q']; }
-
-  constructor(private $http: IHttpService, private $log: ILogService, private $q: IQService) {}
+  constructor(private $http: IHttpService, private $log: ILogService, private $q: IQService) { 'ngInject'; }
 
   public getWhatsNewContents(): IPromise<IWhatsNewContents> {
     let gistId: string, accessToken: string;

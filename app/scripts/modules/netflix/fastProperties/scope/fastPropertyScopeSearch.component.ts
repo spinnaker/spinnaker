@@ -32,15 +32,6 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
 
   private search: any;
 
-  static get $inject() {
-    return [
-      '$q',
-      'infrastructureSearchService',
-      'accountService',
-      'fastPropertyScopeSearchCategoryService'
-    ];
-  }
-
   public $onChanges(changes: any) {
     if (!changes.env.isFirstChange()) {
       this.executeQuery();
@@ -78,6 +69,7 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
               infrastructureSearchService: any,
               private accountService: AccountService,
               private fastPropertyScopeSearchCategoryService: FastPropertyScopeCategoryService) {
+    'ngInject';
     this.search = infrastructureSearchService();
     this.executeQuery = debounce(this.executeQuery, 400);
   }

@@ -2,11 +2,7 @@ import {module} from 'angular';
 import {IModalInstanceService} from 'angular-ui-bootstrap';
 
 export class WebhookStageAddCustomHeader {
-  static get $inject() {
-    return ['$scope', '$uibModalInstance'];
-  }
-
-  constructor (private $scope: ng.IScope, private $uibModalInstance: IModalInstanceService) {}
+  constructor (private $scope: ng.IScope, private $uibModalInstance: IModalInstanceService) { 'ngInject'; }
 
   public submit(): void {
     this.$uibModalInstance.close(this.$scope.customHeader);

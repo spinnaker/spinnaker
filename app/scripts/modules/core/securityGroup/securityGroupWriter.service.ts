@@ -13,12 +13,10 @@ export interface ISecurityGroupJob extends IJob {
 }
 export class SecurityGroupWriter {
 
-  static get $inject(): string[] {
-    return ['infrastructureCaches', 'taskExecutor'];
+  constructor(private infrastructureCaches: InfrastructureCacheService,
+              private taskExecutor: TaskExecutor) {
+    'ngInject';
   }
-
-  constructor(private caches: InfrastructureCacheService,
-              private executor: TaskExecutor) {}
 
   public deleteSecurityGroup(securityGroup: ISecurityGroup,
                              application: Application,
@@ -29,12 +27,12 @@ export class SecurityGroupWriter {
     params.regions = [securityGroup.region];
     params.credentials = securityGroup.accountId;
 
-    const operation: ng.IPromise<ITask> = this.executor.executeTask({
+    const operation: ng.IPromise<ITask> = this.taskExecutor.executeTask({
       job: [params],
       application: application,
       description: `Delete Security Group: ${securityGroup.name}`
     });
-    this.caches.clearCache('securityGroups');
+    this.infrastructureCaches.clearCache('securityGroups');
 
     return operation;
   }
@@ -48,13 +46,13 @@ export class SecurityGroupWriter {
     params.credentials = securityGroup.credentials || securityGroup.accountName;
     const job: ISecurityGroupJob = Object.assign(securityGroup, params);
 
-    const operation: ng.IPromise<ITask> = this.executor.executeTask({
+    const operation: ng.IPromise<ITask> = this.taskExecutor.executeTask({
       job: [job],
       application: application,
       description: `${description} Security Group: ${securityGroup.name}`
     });
 
-    this.caches.clearCache('securityGroups');
+    this.infrastructureCaches.clearCache('securityGroups');
 
     return operation;
   }

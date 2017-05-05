@@ -26,14 +26,14 @@ class CopyStageModalCtrl implements ng.IComponentController {
 
   private uncopiableStageTypes: Set<string> = new Set(['deploy']);
 
-  static get $inject() { return ['$q', 'API', 'application', 'applicationReader', '$uibModalInstance', 'forStrategyConfig']; }
-
   constructor (private $q: ng.IQService,
                private API: Api,
                public application: Application,
                private applicationReader: ApplicationReader,
                private $uibModalInstance: any,
-               private forStrategyConfig: boolean) { }
+               private forStrategyConfig: boolean) {
+    'ngInject';
+  }
 
   public $onInit (): void {
     this.$q.all({

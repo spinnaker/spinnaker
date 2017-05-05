@@ -13,13 +13,10 @@ export class TravisExecutionDetailsCtrl {
   public failureMessage: string;
   public stage: any;
 
-  static get $inject() {
-    return ['$stateParams', 'executionDetailsSectionService', '$scope'];
-  }
-
   constructor(private $stateParams: StateParams,
               private executionDetailsSectionService: ExecutionDetailsSectionService,
               private $scope: IScope) {
+    'ngInject';
     this.stage = this.$scope.stage;
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());

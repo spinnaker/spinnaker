@@ -21,9 +21,8 @@ export class LoadBalancerFilterModel {
   private mostRecentParams: any;
   private asFilterModel: IFilterModel;
 
-  static get $inject() { return ['$rootScope', 'filterModelService', 'urlParser']; }
-
   constructor(private $rootScope: IRootScopeService, private filterModelService: any, private urlParser: any) {
+    'ngInject';
     this.asFilterModel = this.filterModelService.configureFilterModel(this, filterModelConfig);
     this.bindEvents();
     this.asFilterModel.activate();

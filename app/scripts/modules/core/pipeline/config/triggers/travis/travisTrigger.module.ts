@@ -23,14 +23,11 @@ export class TravisTrigger {
   private fiatEnabled: boolean;
   private serviceAccounts: string[];
 
-  static get $inject() {
-    return ['$scope', 'trigger', 'igorService', 'serviceAccountService'];
-  }
-
   constructor($scope: IScope,
               public trigger: IBuildTrigger,
               private igorService: IgorService,
               serviceAccountService: ServiceAccountService) {
+    'ngInject';
     this.fiatEnabled = SETTINGS.feature.fiatEnabled;
     serviceAccountService.getServiceAccounts().then(accounts => {
       this.serviceAccounts = accounts || [];

@@ -2,11 +2,7 @@ import {module} from 'angular';
 
 export class RedirectService {
 
-  static get $inject(): string[] {
-    return ['$window'];
-  }
-
-  constructor(private $window: ng.IWindowService) {}
+  constructor(private $window: ng.IWindowService) { 'ngInject'; }
 
   public redirect(url: string): void {
     this.$window.location.href = url;

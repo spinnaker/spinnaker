@@ -53,12 +53,7 @@ export interface IExtractedReservation {
 }
 
 export class ReservationReportReader {
-
-  static get $inject(): string[] {
-    return ['$http'];
-  }
-
-  constructor(private $http: IHttpService) {}
+  constructor(private $http: IHttpService) { 'ngInject'; }
 
   public getReservations(): IPromise<IReservationReport> {
     return this.$http.get([SETTINGS.gateUrl, 'reports', 'reservation', 'v2'].join('/'))

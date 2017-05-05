@@ -22,17 +22,6 @@ export class SecurityGroupFilterCtrl {
   public stackHeadings: string[];
   public tags: any[];
 
-  static get $inject() {
-    return [
-      'securityGroupFilterService',
-      'SecurityGroupFilterModel',
-      'dependentFilterService',
-      'securityGroupDependentFilterHelper',
-      '$scope',
-      '$rootScope',
-    ];
-  }
-
   constructor(private securityGroupFilterService: any,
               private SecurityGroupFilterModel: any,
               private dependentFilterService: any,
@@ -40,6 +29,7 @@ export class SecurityGroupFilterCtrl {
               private $scope: IScope,
               private $rootScope: IScope,
   ) {
+    'ngInject';
   }
 
   public $onInit(): void {

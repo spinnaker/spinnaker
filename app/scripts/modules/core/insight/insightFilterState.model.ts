@@ -7,11 +7,10 @@ export class InsightFilterStateModel {
   public filtersHovered: boolean;
   public filtersHidden: boolean;
 
-  static get $inject() { return ['$rootScope', '$timeout', 'collapsibleSectionStateCache']; };
-
   public constructor(private $rootScope: ng.IRootScopeService,
                      private $timeout: ng.ITimeoutService,
                      private collapsibleSectionStateCache: any) {
+    'ngInject';
     this.filtersExpanded = !collapsibleSectionStateCache.isSet('insightFilters') || collapsibleSectionStateCache.isExpanded('insightFilters');
     this.filtersPinned = this.filtersExpanded;
     this.filtersHovered = false;

@@ -14,9 +14,11 @@ class PageNavigatorController implements ng.IComponentController {
 
   private getEventKey(): string { return `scroll.pageNavigation.${this.id}`; }
 
-  static get $inject() { return ['$element', 'scrollToService', 'pageNavigationState']; }
-
-  public constructor(private $element: JQuery, private scrollToService: ScrollToService, public pageNavigationState: PageNavigationState) {}
+  public constructor(private $element: JQuery,
+                     private scrollToService: ScrollToService,
+                     public pageNavigationState: PageNavigationState) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.id = UUIDGenerator.generateUuid();

@@ -11,12 +11,11 @@ class AppengineLoadBalancerChoiceModalCtrl {
   public loadBalancers: ILoadBalancer[];
   public selectedLoadBalancer: ILoadBalancer;
 
-  static get $inject() { return ['$uibModal', '$uibModalInstance', 'application', 'cloudProviderRegistry']; }
-
   constructor(private $uibModal: IModalService,
               private $uibModalInstance: IModalServiceInstance,
               private application: Application,
               private cloudProviderRegistry: CloudProviderRegistry) {
+    'ngInject';
     this.initialize();
   }
 

@@ -20,17 +20,6 @@ class UpdateFastPropertyWizardController {
   public propertyMonitor: any;
   public isEditing: boolean;
 
-  static get $inject() { return [
-    '$scope',
-    '$uibModalInstance',
-    'title',
-    'applicationName',
-    'property',
-    'pipelineConfigService',
-    'propertyMonitorService',
-    'applicationReader',
-  ]; }
-
   public state: { [stateKey: string]: boolean } = {
     loading: false,
   };
@@ -45,6 +34,7 @@ class UpdateFastPropertyWizardController {
     public propertyMonitorService: PropertyMonitorService,
     public applicationReader: ApplicationReader
   ) {
+    'ngInject';
 
     this.isEditing = true;
 

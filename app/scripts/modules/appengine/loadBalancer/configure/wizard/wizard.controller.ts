@@ -20,10 +20,6 @@ class AppengineLoadBalancerWizardController {
   public submitButtonLabel: string;
   public taskMonitor: TaskMonitor;
 
-  static get $inject() { return ['$scope', '$state', '$uibModalInstance', 'application', 'loadBalancer', 'isNew',
-                                 'forPipelineConfig', 'appengineLoadBalancerTransformer', 'taskMonitorBuilder',
-                                 'loadBalancerWriter', 'wizardSubFormValidation']; }
-
   constructor(public $scope: ng.IScope,
               private $state: StateService,
               private $uibModalInstance: IModalServiceInstance,
@@ -31,19 +27,20 @@ class AppengineLoadBalancerWizardController {
               loadBalancer: AppengineLoadBalancerUpsertDescription,
               public isNew: boolean,
               private forPipelineConfig: boolean,
-              private transformer: AppengineLoadBalancerTransformer,
+              private appengineLoadBalancerTransformer: AppengineLoadBalancerTransformer,
               private taskMonitorBuilder: TaskMonitorBuilder,
               private loadBalancerWriter: LoadBalancerWriter,
               private wizardSubFormValidation: any) {
+    'ngInject';
     this.submitButtonLabel = this.forPipelineConfig ? 'Done' : 'Update';
 
     if (this.isNew) {
       this.heading = 'Create New Load Balancer';
     } else {
       this.heading = `Edit ${[loadBalancer.name, loadBalancer.region, loadBalancer.account || loadBalancer.credentials].join(':')}`;
-      this.transformer.convertLoadBalancerForEditing(loadBalancer, application)
+      this.appengineLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer, application)
         .then((convertedLoadBalancer) => {
-          this.loadBalancer = this.transformer.convertLoadBalancerToUpsertDescription(convertedLoadBalancer);
+          this.loadBalancer = this.appengineLoadBalancerTransformer.convertLoadBalancerToUpsertDescription(convertedLoadBalancer);
           if (loadBalancer.split && !this.loadBalancer.splitDescription) {
             this.loadBalancer.splitDescription = AppengineLoadBalancerUpsertDescription
               .convertTrafficSplitToTrafficSplitDescription(loadBalancer.split);

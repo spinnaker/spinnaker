@@ -9,9 +9,7 @@ export interface IPagerDutyService {
 }
 
 export class PagerDutyReader {
-
-  static get $inject() { return ['API']; }
-  public constructor(private API: Api) {}
+  public constructor(private API: Api) { 'ngInject'; }
 
   public listServices(): Observable<IPagerDutyService[]> {
     return Observable.fromPromise(this.API.one('pagerDuty/services').getList());

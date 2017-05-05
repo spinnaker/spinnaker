@@ -8,9 +8,7 @@ export interface IInstanceConsoleOutput {
 
 export class InstanceReader {
 
-  static get $inject() { return ['API']; }
-
-  public constructor(private API: Api) {}
+  public constructor(private API: Api) { 'ngInject'; }
 
   public getInstanceDetails(account: string, region: string, id: string): ng.IPromise<Instance> {
     return this.API.one('instances').one(account).one(region).one(id).get();

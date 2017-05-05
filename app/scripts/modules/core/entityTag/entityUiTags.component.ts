@@ -25,10 +25,10 @@ class EntityUiTagsCtrl implements ng.IComponentController {
 
   private component: any;
 
-  static get $inject() { return ['$timeout', '$uibModal', 'confirmationModalService', 'entityTagWriter']; }
-
   public constructor(private $timeout: ng.ITimeoutService, private $uibModal: IModalService,
-                     private confirmationModalService: any, private entityTagWriter: EntityTagWriter) {}
+                     private confirmationModalService: any, private entityTagWriter: EntityTagWriter) {
+    'ngInject';
+  }
 
   public $onDestroy(): void {
     if (this.popoverClose) {

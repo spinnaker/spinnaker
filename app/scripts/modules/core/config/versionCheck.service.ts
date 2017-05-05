@@ -13,15 +13,13 @@ class VersionCheckService {
   private newVersionSeenCount = 0;
   private scheduler: any;
 
-  static get $inject(): string[] {
-    return ['$http', 'notifierService', 'schedulerFactory', '$log', '$filter'];
-  }
-
   constructor(private $http: ng.IHttpService,
               private notifierService: any,
               private schedulerFactory: SchedulerFactory,
               private $log: ng.ILogService,
-              private $filter: any) {}
+              private $filter: any) {
+    'ngInject';
+  }
 
   public initialize(): void {
     this.$log.debug(

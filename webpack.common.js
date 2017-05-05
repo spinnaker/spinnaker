@@ -34,7 +34,7 @@ function configure(IS_TEST) {
         {enforce: 'pre', test: /\.(spec\.)?tsx?$/, use: 'tslint-loader'},
         {enforce: 'pre', test: /\.(spec\.)?js$/, loader: 'eslint-loader'},
         {test: /\.json$/, loader: 'json-loader'},
-        {test: /\.tsx?$/, use: 'awesome-typescript-loader', exclude: /node_modules/},
+        {test: /\.tsx?$/, use: ['ng-annotate-loader', 'awesome-typescript-loader'], exclude: /node_modules/},
         {test: /\.(woff|otf|ttf|eot|svg|png|gif|ico)(.*)?$/, use: 'file-loader'},
         {test: /\.js$/, use: ['happypack/loader?id=js'], exclude: /node_modules(?!\/clipboard)/},
         {

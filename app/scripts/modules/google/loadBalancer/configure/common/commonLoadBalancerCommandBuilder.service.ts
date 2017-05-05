@@ -38,21 +38,15 @@ export class GceCommonLoadBalancerCommandBuilder {
     certificates: (): IPromise<IGceCertificate[]> => this.gceCertificateReader.listCertificates(),
   };
 
-  static get $inject() { return ['$q',
-                                 'loadBalancerReader',
-                                 'accountService',
-                                 'subnetReader',
-                                 'gceHealthCheckReader',
-                                 'networkReader',
-                                 'gceCertificateReader']; }
-
   constructor(private $q: ng.IQService,
               private loadBalancerReader: LoadBalancerReader,
               private accountService: AccountService,
               private subnetReader: SubnetReader,
               private gceHealthCheckReader: GceHealthCheckReader,
               private networkReader: any,
-              private gceCertificateReader: GceCertificateReader) { }
+              private gceCertificateReader: GceCertificateReader) {
+    'ngInject';
+  }
 
   public getBackingData(dataTypes: string[]): IPromise<any> {
     const promises = dataTypes.reduce((promisesByDataType: { [dataType: string]: IPromise<any> }, dataType: string) => {

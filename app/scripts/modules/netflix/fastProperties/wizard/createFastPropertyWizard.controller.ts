@@ -17,15 +17,6 @@ class CreateFastPropertyWizardController {
   public loading = false;
   public propertyMonitor: any;
 
-  static get $inject() { return [
-    '$scope',
-    '$uibModalInstance',
-    'title',
-    'applicationName',
-    'pipelineConfigService',
-    'propertyMonitorService',
-  ]; }
-
   constructor (
     public $scope: IScope,
     public $uibModalInstance: IModalServiceInstance,
@@ -34,6 +25,7 @@ class CreateFastPropertyWizardController {
     public pipelineConfigService: any,
     public propertyMonitorService: any
   ) {
+    'ngInject';
     this.command.type = PropertyCommandType.CREATE;
     this.command.applicationName = this.applicationName;
     this.propertyMonitor = propertyMonitorService.buildMonitor({

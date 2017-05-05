@@ -14,15 +14,12 @@ export class ExecutionFilterService {
   // this gets called every time the URL changes, so we debounce it a tiny bit
   public updateExecutionGroups: (application: Application) => IExecutionGroup[];
 
-
-
-  static get $inject(): string[] { return ['executionFilterModel', 'timeBoundaries', '$log', 'filterModelService', 'pipelineConfig']; }
-
   constructor(private executionFilterModel: ExecutionFilterModel,
               private timeBoundaries: any,
               private $log: ILogService,
               private filterModelService: any,
               private pipelineConfig: any) {
+    'ngInject';
     this.isFilterable = filterModelService.isFilterable;
 
     this.updateExecutionGroups = debounce((application: Application) => {

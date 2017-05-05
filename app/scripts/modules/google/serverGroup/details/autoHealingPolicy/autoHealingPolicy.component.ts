@@ -7,11 +7,12 @@ import {ConfirmationModalService} from 'core/confirmationModal/confirmationModal
 class GceAutoHealingPolicyDetailsCtrl implements ng.IComponentController {
   public serverGroup: IGceServerGroup;
   public application: Application;
-  public static get $inject() { return ['$uibModal', 'confirmationModalService', 'gceAutoscalingPolicyWriter']; }
 
   constructor(private $uibModal: IModalService,
               private confirmationModalService: ConfirmationModalService,
-              private gceAutoscalingPolicyWriter: any) {}
+              private gceAutoscalingPolicyWriter: any) {
+    'ngInject';
+  }
 
   public editPolicy(): void {
     this.$uibModal.open({

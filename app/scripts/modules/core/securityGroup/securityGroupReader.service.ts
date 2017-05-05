@@ -302,20 +302,6 @@ export class SecurityGroupReader {
     });
   }
 
-  static get $inject(): string[] {
-    return [
-      '$log',
-      '$q',
-      'searchService',
-      'namingService',
-      'API',
-      'infrastructureCaches',
-      'securityGroupTransformer',
-      'serviceDelegate',
-      'entityTagsReader',
-    ];
-  }
-
   constructor(private $log: ILogService,
               private $q: IQService,
               private searchService: SearchService,
@@ -325,6 +311,7 @@ export class SecurityGroupReader {
               private securityGroupTransformer: SecurityGroupTransformerService,
               private serviceDelegate: any,
               private entityTagsReader: EntityTagsReader) {
+    'ngInject';
   }
 
   public getAllSecurityGroups(): IPromise<IGroupsByAccount[]> {

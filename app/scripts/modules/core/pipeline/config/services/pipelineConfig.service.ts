@@ -15,12 +15,11 @@ export class PipelineConfigService {
 
   private configViewStateCache: ICache;
 
-  static get $inject() { return ['$q', 'API', 'authenticationService', 'viewStateCache']; }
-
   public constructor(private $q: IQService,
                      private API: Api,
                      private authenticationService: AuthenticationService,
                      viewStateCache: ViewStateCacheService) {
+    'ngInject';
     this.configViewStateCache = viewStateCache.createCache('pipelineConfig', { version: 2 });
   }
 

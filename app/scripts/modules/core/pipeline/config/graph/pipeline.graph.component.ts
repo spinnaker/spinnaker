@@ -18,17 +18,15 @@ export class PipelineGraphController implements ng.IComponentController {
   private pipelineValidations: IPipelineValidationResults = { pipeline: [], stages: [] };
   private minLabelWidth = 100;
 
-  static get $inject() {
-    return ['$sce', '$scope', '$element', '$', '$window', 'pipelineGraphService', 'pipelineConfigValidator'];
-  }
-
   public constructor(private $sce: ISCEService,
                      private $scope: any,
                      private $element: JQuery,
                      private $: JQueryStatic,
                      private $window: ng.IWindowService,
                      private pipelineGraphService: PipelineGraphService,
-                     private pipelineConfigValidator: PipelineConfigValidator) {}
+                     private pipelineConfigValidator: PipelineConfigValidator) {
+    'ngInject';
+  }
 
   /**
    * Used to draw inverse bezier curve between stages

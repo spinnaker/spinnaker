@@ -21,11 +21,6 @@ export class EntityTagEditorCtrl implements ng.IComponentController {
 
   public taskMonitor: any;
 
-  static get $inject() {
-    return ['$uibModalInstance', 'entityTagWriter', 'taskMonitorBuilder', 'owner', 'application', 'entityType',
-      'tag', 'onUpdate', 'ownerOptions', 'entityRef', 'isNew'];
-  }
-
   public constructor(private $uibModalInstance: IModalServiceInstance,
                      private entityTagWriter: EntityTagWriter,
                      private taskMonitorBuilder: TaskMonitorBuilder,
@@ -36,7 +31,9 @@ export class EntityTagEditorCtrl implements ng.IComponentController {
                      private onUpdate: () => any,
                      public ownerOptions: IOwnerOption[],
                      private entityRef: IEntityRef,
-                     public isNew: boolean) {}
+                     public isNew: boolean) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     if (this.ownerOptions && this.ownerOptions.length) {

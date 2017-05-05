@@ -7,9 +7,7 @@ import {TaskStep} from '../domain/taskStep';
 
 export class OrchestratedItemTransformer {
 
-  static get $inject() { return ['$log']; }
-
-  public constructor(private $log: ng.ILogService) {}
+  public constructor(private $log: ng.ILogService) { 'ngInject'; }
 
   public addRunningTime(item: any): void {
     // Don't try to add running time more than once - but also don't blow up if something tries to do so

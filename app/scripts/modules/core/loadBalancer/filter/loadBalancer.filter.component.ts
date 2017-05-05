@@ -23,17 +23,6 @@ class LoadBalancerFilterCtrl {
   public stackHeadings: string[];
   public tags: any[];
 
-  static get $inject() {
-    return [
-      '$scope',
-      'loadBalancerFilterService',
-      'LoadBalancerFilterModel',
-      '$rootScope',
-      'loadBalancerDependentFilterHelper',
-      'dependentFilterService',
-    ];
-  }
-
   constructor(private $scope: IScope,
               private loadBalancerFilterService: any,
               private LoadBalancerFilterModel: any,
@@ -41,6 +30,7 @@ class LoadBalancerFilterCtrl {
               private loadBalancerDependentFilterHelper: any,
               private dependentFilterService: any,
   ) {
+    'ngInject';
     this.sortFilter = LoadBalancerFilterModel.sortFilter;
   }
 

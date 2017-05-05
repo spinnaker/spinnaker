@@ -6,9 +6,7 @@ import {IOwnerOption} from './entityTagEditor.controller';
 
 export class ClusterTargetBuilder {
 
-  static get $inject() { return ['namingService']; }
-
-  constructor(private namingService: NamingService) {}
+  constructor(private namingService: NamingService) { 'ngInject'; }
 
   public buildClusterTargets(serverGroup: ServerGroup): IOwnerOption[] {
     const clusterName = this.namingService.getClusterNameFromServerGroupName(serverGroup.name);

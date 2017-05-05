@@ -26,13 +26,13 @@ class SecurityGroupPickerController implements ng.IComponentController {
   private vpcs: IVpc[];
   private subscriptions: Subscription[];
 
-  static get $inject(): string[] { return ['$q', 'securityGroupReader', 'accountService', 'cacheInitializer', 'vpcReader']; }
-
   public constructor(private $q: ng.IQService,
                      private securityGroupReader: any,
                      private accountService: AccountService,
                      private cacheInitializer: CacheInitializerService,
-                     private vpcReader: any) {}
+                     private vpcReader: any) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     const credentialLoader: ng.IPromise<void> = this.accountService.getCredentialsKeyedByAccount('titus').then((credentials: IAggregatedAccounts) => {

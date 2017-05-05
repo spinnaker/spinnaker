@@ -13,13 +13,14 @@ import {CLUSTER_FILTER_MODEL} from './filter/clusterFilter.model';
 
 export class ClusterService {
 
-  static get $inject() { return ['$q', 'API', 'serverGroupTransformer', 'namingService', 'ClusterFilterModel', 'filterModelService']; }
   constructor(private $q: IQService,
               private API: Api,
               private serverGroupTransformer: any,
               private namingService: NamingService,
               private ClusterFilterModel: any,
-              private filterModelService: any) {}
+              private filterModelService: any) {
+    'ngInject';
+  }
 
   public loadServerGroups(application: Application): IPromise<ServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {

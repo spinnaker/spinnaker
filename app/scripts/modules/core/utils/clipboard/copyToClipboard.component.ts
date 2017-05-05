@@ -11,11 +11,11 @@ export class CopyToClipboardController implements IComponentController {
 
   public isOpen = false;
 
-  static get $inject(): string[] { return ['$scope', '$element', '$timeout']; }
-
   constructor(private $scope: IScope,
               private $element: JQuery,
-              private $timeout: ITimeoutService) {}
+              private $timeout: ITimeoutService) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     // tslint:disable:no-unused-expression

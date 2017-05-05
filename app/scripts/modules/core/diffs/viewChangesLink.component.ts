@@ -19,15 +19,13 @@ export interface INameItem {
 
 class ViewChangesModalController {
 
-  static get $inject(): string[] {
-    return ['$uibModalInstance', 'hasJarChanges', 'commits', 'jarDiffs', 'nameItem'];
-  }
-
   constructor(private $uibModalInstance: IModalInstanceService,
               public hasJarChanges: boolean,
               public commits: ICommit[],
               public jarDiffs: IJarDiff,
-              public nameItem: INameItem) {}
+              public nameItem: INameItem) {
+    'ngInject';
+  }
 
   public close(): void {
     this.$uibModalInstance.close();
@@ -50,12 +48,10 @@ class ViewChangesLinkController implements IComponentController {
   private loadingExecution = false;
   private executionLoaded = false;
 
-  static get $inject(): string[] {
-    return ['$uibModal', 'executionService'];
-  }
-
   constructor(private $uibModal: IModalService,
-              private executionService: ExecutionService) {}
+              private executionService: ExecutionService) {
+    'ngInject';
+  }
 
   private setJarDiffs(): void {
     this.hasJarChanges =

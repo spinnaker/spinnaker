@@ -9,9 +9,7 @@ export enum BuildServiceType {
 }
 
 export class IgorService {
-  static get $inject() { return ['API', '$q']; }
-
-  constructor(private API: Api, private $q: IQService) {}
+  constructor(private API: Api, private $q: IQService) { 'ngInject'; }
 
   public listMasters(type: BuildServiceType = null): IPromise<string[]> {
     const allMasters: IPromise<string[]> = this.API.one('v2').one('builds').get();

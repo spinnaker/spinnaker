@@ -7,9 +7,7 @@ class SecondaryApplicationNavComponentController implements IComponentController
 
   public application: Application;
 
-  static get $inject() { return ['$state']; }
-
-  constructor(private $state: StateService) {}
+  constructor(private $state: StateService) { 'ngInject'; }
 
   public isActive(dataSource: ApplicationDataSource) {
     return this.$state.includes(dataSource.activeState);

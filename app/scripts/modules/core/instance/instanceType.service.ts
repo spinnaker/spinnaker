@@ -53,9 +53,7 @@ export interface IInstanceTypeService {
 
 export class InstanceTypeService {
 
-  static get $inject() { return ['serviceDelegate']; }
-
-  public constructor(private serviceDelegate: any) {}
+  public constructor(private serviceDelegate: any) { 'ngInject'; }
 
   public getCategories(cloudProvider: string): ng.IPromise<IInstanceTypeCategory[]> {
     return this.getDelegate(cloudProvider).getCategories();

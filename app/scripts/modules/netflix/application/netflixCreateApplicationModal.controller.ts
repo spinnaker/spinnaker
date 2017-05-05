@@ -14,13 +14,6 @@ class NetflixCreateApplicationModalController {
   public application: Application;
   public chaosEnabled: boolean;
 
-  static get $inject(): string[] {
-    return [
-      '$q', '$log', '$scope', '$controller', '$state', '$uibModalInstance',
-      'accountService', 'applicationReader', 'applicationWriter'
-    ];
-  }
-
   constructor($q: IQService,
               $log: ILogService,
               $scope: IScope,
@@ -30,6 +23,7 @@ class NetflixCreateApplicationModalController {
               accountService: AccountService,
               applicationReader: ApplicationReader,
               applicationWriter: ApplicationWriter) {
+    'ngInject';
 
     extend(this, $controller('CreateApplicationModalCtrl', {
       $scope: $scope,

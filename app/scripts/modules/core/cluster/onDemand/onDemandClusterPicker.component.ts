@@ -12,8 +12,7 @@ class OnDemandClusterPickerController implements IComponentController {
   public totalClusterCount: number;
   public optionTemplate: string = require('./onDemandOptionTemplate.html');
 
-  static get $inject() { return ['$scope', 'ClusterFilterModel']; }
-  constructor(private $scope: IScope, private ClusterFilterModel: any) {}
+  constructor(private $scope: IScope, private ClusterFilterModel: any) { 'ngInject'; }
 
   public $onInit(): void {
     this.setAvailableClusters();

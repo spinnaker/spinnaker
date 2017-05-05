@@ -9,11 +9,10 @@ import {APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL} from './loadBalancerChoice.mo
 import {AppengineProviderSettings} from '../../../appengine.settings';
 
 class AppengineEditLoadBalancerStageCtrl {
-  static get $inject() { return ['$scope', '$uibModal', 'cloudProviderRegistry']; }
-
   constructor(public $scope: any,
               private $uibModal: IModalService,
               private cloudProviderRegistry: CloudProviderRegistry) {
+    'ngInject';
     $scope.stage.loadBalancers = $scope.stage.loadBalancers || [];
     $scope.stage.cloudProvider = 'appengine';
   }

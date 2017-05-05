@@ -8,8 +8,7 @@ export class NetflixGitManualExecutionHandler {
 
   public selectorTemplate: string = require('./selectorTemplate.html');
 
-  static get $inject() { return ['$q']; }
-  constructor(private $q: IQService) {}
+  constructor(private $q: IQService) { 'ngInject'; }
 
   public formatLabel(trigger: IGitTrigger): IPromise<string> {
     return this.$q.when(`(${trigger.source}) ${trigger.project}/${trigger.slug}`);

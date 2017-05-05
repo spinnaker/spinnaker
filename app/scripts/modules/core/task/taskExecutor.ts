@@ -21,10 +21,10 @@ export interface ITaskCommand {
 
 export class TaskExecutor {
 
-  static get $inject() { return ['$q', 'authenticationService', 'taskReader', 'taskWriter']; }
-
   public constructor(private $q: ng.IQService, private authenticationService: AuthenticationService,
-                     private taskReader: TaskReader, private taskWriter: any) {}
+                     private taskReader: TaskReader, private taskWriter: any) {
+    'ngInject';
+  }
 
   public executeTask(taskCommand: ITaskCommand): ng.IPromise<ITask> {
     const owner: any = taskCommand.application || taskCommand.project || { name: 'ad-hoc'};

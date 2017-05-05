@@ -22,11 +22,9 @@ export interface ILoadBalancerDeleteDescription extends IJob {
 
 export class LoadBalancerWriter {
 
-  static get $inject() {
-    return ['infrastructureCaches', 'taskExecutor'];
+  public constructor(private infrastructureCaches: InfrastructureCacheService, private taskExecutor: TaskExecutor) {
+    'ngInject';
   }
-
-  public constructor(private infrastructureCaches: InfrastructureCacheService, private taskExecutor: TaskExecutor) {}
 
   public deleteLoadBalancer(command: ILoadBalancerDeleteDescription, application: Application): ng.IPromise<ITask> {
     command.type = 'deleteLoadBalancer';

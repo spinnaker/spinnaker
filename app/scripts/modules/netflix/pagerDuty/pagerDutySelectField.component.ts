@@ -18,9 +18,7 @@ export class PagerDutySelectFieldController implements IComponentController {
       </ol>
       <p><b>Note:</b> it can take up to five minutes for the service to appear in Spinnaker</p>`;
 
-  static get $inject() { return ['pagerDutyReader', 'schedulerFactory']; }
-
-  public constructor(private pagerDutyReader: PagerDutyReader, private schedulerFactory: SchedulerFactory) {}
+  public constructor(private pagerDutyReader: PagerDutyReader, private schedulerFactory: SchedulerFactory) { 'ngInject'; }
 
   public $onInit() {
     this.scheduler = this.schedulerFactory.createScheduler(10000);

@@ -47,14 +47,11 @@ export interface IAccountZone {
 
 export class AccountService {
 
-  static get $inject() {
-    return ['$log', '$q', 'cloudProviderRegistry', 'API'];
-  }
-
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
               private cloudProviderRegistry: CloudProviderRegistry,
               private API: Api) {
+    'ngInject';
   }
 
   public challengeDestructiveActions(account: string): ng.IPromise<boolean> {

@@ -13,9 +13,7 @@ class EntitySourceCtrl implements ng.IComponentController {
   public executionNotFound: boolean;
   private loadingExecution = false;
 
-  static get $inject() { return ['executionService']; }
-
-  constructor(private executionService: ExecutionService) {}
+  constructor(private executionService: ExecutionService) { 'ngInject'; }
 
   public $onInit(): void {
     this.executionType = 'Task';

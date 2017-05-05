@@ -6,12 +6,12 @@ import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.fact
 
 export class ApplicationModelBuilder {
 
-  static get $inject() { return ['$log', '$q', '$filter', 'schedulerFactory']; }
-
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
               private $filter: any,
-              private schedulerFactory: SchedulerFactory) {}
+              private schedulerFactory: SchedulerFactory) {
+    'ngInject';
+  }
 
   /**
    * This is only used in tests

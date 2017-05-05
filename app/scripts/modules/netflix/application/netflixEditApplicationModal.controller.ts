@@ -9,13 +9,6 @@ import {PAGER_DUTY_TAG_COMPONENT} from '../pagerDuty/pagerDutyTag.component';
 import {Application} from 'core/application/application.model';
 
 class NetflixEditApplicationModalController {
-
-  static get $inject(): string[] {
-    return [
-      '$window', '$controller', '$state', '$uibModalInstance', 'application', 'applicationWriter', 'accountService'
-    ];
-  }
-
   constructor($window: IWindowService,
               $controller: IControllerService,
               $state: StateObject,
@@ -23,6 +16,7 @@ class NetflixEditApplicationModalController {
               application: Application,
               applicationWriter: ApplicationWriter,
               accountService: AccountService) {
+    'ngInject';
 
     if (application.attributes.legacyUdf === undefined) {
       application.attributes.legacyUdf = true;

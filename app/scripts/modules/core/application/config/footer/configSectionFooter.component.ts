@@ -21,9 +21,7 @@ export class ConfigSectionFooterController implements ng.IComponentController {
   public config: any;
   public configField: string;
 
-  static get $inject() { return ['applicationWriter']; }
-
-  public constructor(private applicationWriter: ApplicationWriter) {}
+  public constructor(private applicationWriter: ApplicationWriter) { 'ngInject'; }
 
   public revert(): void {
     copy(this.viewState.originalConfig, this.config);

@@ -28,10 +28,6 @@ class AppengineInstanceDetailsController {
   public outOfServiceToolTip = `
     An App Engine instance is 'Out Of Service' if no load balancers are directing traffic to its server group.`;
 
-  static get $inject() {
-    return ['$q', 'app', 'instanceReader', 'instanceWriter', 'confirmationModalService', 'instance', 'recentHistoryService'];
-  }
-
   constructor(private $q: IQService,
               private app: Application,
               private instanceReader: InstanceReader,
@@ -39,6 +35,8 @@ class AppengineInstanceDetailsController {
               private confirmationModalService: ConfirmationModalService,
               instance: InstanceFromStateParams,
               private recentHistoryService: RecentHistoryService) {
+    'ngInject';
+
     this.app.ready()
       .then(() => this.retrieveInstance(instance))
       .then((instanceDetails) => {

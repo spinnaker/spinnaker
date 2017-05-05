@@ -311,11 +311,6 @@ class TasksUrlBuilder implements IUrlBuilder {
 }
 
 export class UrlBuilderService {
-
-  static get $inject(): string[] {
-    return ['$state'];
-  }
-
   private static PUSH_VERSION: RegExp = /-v\d+$/;
   private registry: Map<string, IUrlBuilder> = new Map<string, IUrlBuilder>();
 
@@ -379,6 +374,7 @@ export class UrlBuilderService {
   }
 
   constructor(private $state: StateService) {
+    'ngInject';
     this.registry.set('applications', new ApplicationsUrlBuilder($state));
     this.registry.set('clusters', new ClustersUrlBuilder($state));
     this.registry.set('instances', new InstancesUrlBuilder($state));

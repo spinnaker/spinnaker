@@ -39,9 +39,7 @@ export class AvailabilityTrendController implements ng.IComponentController {
   private margin = 5;
   private popoverClose: ng.IPromise<void>[] = [];
 
-  static get $inject() { return ['$timeout']; }
-
-  constructor(private $timeout: ng.ITimeoutService) {}
+  constructor(private $timeout: ng.ITimeoutService) { 'ngInject'; }
 
   // Based on: https://en.wikipedia.org/wiki/High_availability#.22Nines.22
   private getNines(availability: number): number {

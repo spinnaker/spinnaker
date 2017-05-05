@@ -10,13 +10,10 @@ class ApplicationTableauController implements IComponentController {
 
   public srcUrl: string;
 
-  static get $inject(): string[] {
-    return ['$sce', 'app', 'authenticationService'];
-  }
-
   constructor(private $sce: ISCEService,
               private app: Application,
               private authenticationService: AuthenticationService) {
+    'ngInject';
 
     const user: string[] = this.authenticationService.getAuthenticatedUser().name.split('@');
     const url = NetflixSettings.tableau.appSourceUrl.replace('${app}', this.app.name).replace('${user}', user[0]);

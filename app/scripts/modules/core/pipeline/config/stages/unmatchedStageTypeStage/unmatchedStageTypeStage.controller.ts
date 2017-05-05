@@ -13,9 +13,7 @@ export class UnmatchedStageTypeStageCtrl implements IComponentController {
                                         'restrictedExecutionWindow', 'stageEnabled', 'sendNotifications',
                                         'notifications', 'comments', 'name']);
 
-  static get $inject() { return ['$scope', 'jsonUtilityService']; }
-
-  constructor(public $scope: IScope, private jsonUtilityService: JsonUtilityService) { }
+  constructor(public $scope: IScope, private jsonUtilityService: JsonUtilityService) { 'ngInject'; }
 
   public $onInit(): void {
     this.stageJson = this.jsonUtilityService.makeSortedStringFromObject(this.makeCleanStageCopy(this.$scope.stage || {}));

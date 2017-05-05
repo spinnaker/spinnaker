@@ -9,12 +9,9 @@ class SummaryTableauController {
 
   public srcUrl: string;
 
-  static get $inject(): string[] {
-    return ['$sce', 'authenticationService'];
-  }
-
   constructor(private $sce: ISCEService,
               private authenticationService: AuthenticationService) {
+    'ngInject';
     const user: string[] = this.authenticationService.getAuthenticatedUser().name.split('@');
     const url: string = NetflixSettings.tableau.summarySourceUrl.replace('${user}', user[0]);
     this.srcUrl = this.$sce.trustAsResourceUrl(url);

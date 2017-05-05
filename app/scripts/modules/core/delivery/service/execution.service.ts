@@ -13,15 +13,15 @@ export class ExecutionService {
   private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
   private runningLimit = 30;
 
-  static get $inject(): string[] { return ['$http', '$q', '$timeout', 'API', 'executionFilterModel', 'executionsTransformer', 'pipelineConfig']; }
-
   constructor(private $http: IHttpService,
               private $q: IQService,
               private $timeout: ITimeoutService,
               private API: Api,
               private executionFilterModel: ExecutionFilterModel,
               private executionsTransformer: any,
-              private pipelineConfig: any) {}
+              private pipelineConfig: any) {
+    'ngInject';
+  }
 
     public getRunningExecutions(applicationName: string): IPromise<IExecution[]> {
       return this.getFilteredExecutions(applicationName, {statuses: this.activeStatuses, limit: this.runningLimit});

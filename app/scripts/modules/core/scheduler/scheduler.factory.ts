@@ -10,10 +10,11 @@ export interface IScheduler {
 }
 
 export class SchedulerFactory {
-  static get $inject(): string[] { return ['$log', '$window', '$timeout']; }
   constructor(private $log: ILogService,
               private $window: IWindowService,
-              private $timeout: ITimeoutService) {}
+              private $timeout: ITimeoutService) {
+    'ngInject';
+  }
 
   public createScheduler(pollSchedule = SETTINGS.pollSchedule): IScheduler {
     let scheduler = new Subject();

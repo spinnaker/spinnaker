@@ -5,9 +5,8 @@ import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {AppengineStageCtrl} from '../appengineStage.controller';
 
 class AppengineDestroyAsgStageCtrl extends AppengineStageCtrl {
-  static get $inject() { return ['$scope', 'accountService']; }
-
   constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {
+    'ngInject';
     super($scope, accountService);
 
     super.setAccounts()

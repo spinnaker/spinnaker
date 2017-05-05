@@ -5,11 +5,7 @@ import {ServerGroup} from 'core/domain';
 
 export class ServerGroupReader {
 
-  static get $inject(): string[] {
-    return ['$log', 'API'];
-  }
-
-  constructor(private $log: ng.ILogService, private API: Api) {}
+  constructor(private $log: ng.ILogService, private API: Api) { 'ngInject'; }
 
   public getScalingActivities(serverGroup: ServerGroup): ng.IPromise<any[]> {
     return this.API

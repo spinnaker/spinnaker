@@ -2,14 +2,7 @@ import { module, IComponentController, IComponentOptions} from 'angular';
 import { StateService } from 'angular-ui-router';
 
 export class FastPropertyPodTableController implements IComponentController {
-
-  static get $inject() {
-    return [
-      '$state'
-    ];
-  }
-
-  constructor(private $state: StateService) {}
+  constructor(private $state: StateService) { 'ngInject'; }
 
   public showPropertyDetails(propertyId: string) {
     if (this.$state.current.name.includes('.data.properties')) {

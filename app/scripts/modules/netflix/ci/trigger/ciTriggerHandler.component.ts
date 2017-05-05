@@ -31,8 +31,7 @@ export class NetflixCiTriggerHandlerController implements IComponentController {
 
   public buildSources = ['branch', 'commit', 'tag'];
 
-  static get $inject() { return ['scmReader']; }
-  constructor(private scmReader: ScmReader) {}
+  constructor(private scmReader: ScmReader) { 'ngInject'; }
 
   public $onInit(): void {
     const trigger: IGitTrigger = this.command.trigger;

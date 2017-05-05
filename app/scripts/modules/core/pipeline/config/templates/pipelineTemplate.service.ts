@@ -56,10 +56,7 @@ export interface IPipelineConfig {
 }
 
 export class PipelineTemplateService {
-
-  static get $inject() { return ['API']; }
-
-  constructor(private API: Api) { }
+  constructor(private API: Api) { 'ngInject'; }
 
   public getPipelineTemplateFromSourceUrl(/* source: string */): IPromise<IPipelineTemplate> {
     // Uncomment when the Gate endpoint has been created:

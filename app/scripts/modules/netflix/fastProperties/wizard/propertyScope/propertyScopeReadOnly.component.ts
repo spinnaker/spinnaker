@@ -13,14 +13,8 @@ export class FastPropertyScopeReadOnlyComponentController implements IComponentC
   public selectedScope: any;
   public command: PropertyCommand;
 
-
-  static get $inject() {
-    return [
-      'fastPropertyScopeSearchCategoryService',
-    ];
-  }
-
-  constructor(fastPropertyScopeSearchCategoryService: any ) {
+  constructor(fastPropertyScopeSearchCategoryService: any) {
+    'ngInject';
     fastPropertyScopeSearchCategoryService.getImpactForScope(this.command.scopes[0])
       .then((counts: IImpactCounts) => {
         this.command.scopes[0].instanceCounts = counts;

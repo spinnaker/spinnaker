@@ -30,12 +30,6 @@ interface IIsolatedTestingTargetStage extends IStage {
 }
 
 class IsolatedTestingTargetStageCtrl {
-  static get $inject() {
-    return ['$scope', '$uibModal', 'stage', 'namingService', 'providerSelectionService',
-            'authenticationService', 'cloudProviderRegistry', 'serverGroupCommandBuilder',
-            'serverGroupReader', 'awsServerGroupTransformer'];
-  }
-
   constructor(private $scope: any,
               private $uibModal: IModalService,
               private stage: IIsolatedTestingTargetStage,
@@ -46,6 +40,7 @@ class IsolatedTestingTargetStageCtrl {
               private serverGroupCommandBuilder: any,
               private serverGroupReader: ServerGroupReader,
               private awsServerGroupTransformer: any) {
+    'ngInject';
 
     const user = authenticationService.getAuthenticatedUser();
     $scope.stage = stage;

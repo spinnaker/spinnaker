@@ -10,9 +10,7 @@ export interface IGceCertificate {
 }
 
 export class GceCertificateReader {
-  static get $inject() { return ['searchService', 'infrastructureCaches']; }
-
-  constructor(private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) {}
+  constructor(private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }
 
   public listCertificates(): IPromise<IGceCertificate[]> {
     return this.searchService

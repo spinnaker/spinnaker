@@ -8,19 +8,14 @@ export class FastPropertyPodsController implements IComponentController {
 
   public properties: any[];
 
-  static get $inject() {
-    return [
-      '$state',
-      '$stateParams'
-    ];
-  }
-
   public $onInit() {
     this.resetPropertyDetails();
   }
 
   constructor(private $state: StateService,
-              public $stateParams: StateParams) {}
+              public $stateParams: StateParams) {
+    'ngInject';
+  }
 
 
   public isPropertyListArray(): boolean {

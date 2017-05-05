@@ -56,12 +56,9 @@ export class CiBuildReader {
     return 4095;
   };
 
-  static get $inject(): string[] {
-    return ['API', 'orchestratedItemTransformer'];
-  }
-
   constructor(private API: Api,
               private orchestratedItemTransformer: OrchestratedItemTransformer) {
+    'ngInject';
   }
 
   private builds(): any {

@@ -3,15 +3,10 @@ import {module} from 'angular';
 import {ISecurityGroup} from 'core/domain';
 
 export class SecurityGroupTransformerService {
-
-  static get $inject() {
-    return ['serviceDelegate'];
-  }
-
-  constructor(private delegate: any) {}
+  constructor(private serviceDelegate: any) { 'ngInject'; }
 
   public normalizeSecurityGroup(securityGroup: ISecurityGroup): ng.IPromise<ISecurityGroup> {
-    return this.delegate.getDelegate(securityGroup.provider || securityGroup.type, 'securityGroup.transformer').normalizeSecurityGroup(securityGroup);
+    return this.serviceDelegate.getDelegate(securityGroup.provider || securityGroup.type, 'securityGroup.transformer').normalizeSecurityGroup(securityGroup);
   }
 }
 

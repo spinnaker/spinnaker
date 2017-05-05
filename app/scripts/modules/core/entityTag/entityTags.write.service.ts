@@ -5,9 +5,7 @@ import {IEntityRef, IEntityTags, IEntityTag} from '../domain/IEntityTags';
 
 export class EntityTagWriter {
 
-  static get $inject() { return ['taskExecutor']; }
-
-  public constructor(private taskExecutor: TaskExecutor) {}
+  public constructor(private taskExecutor: TaskExecutor) { 'ngInject'; }
 
   public upsertEntityTag(application: Application, tag: IEntityTag, entityRef: IEntityRef, isNew: boolean): ng.IPromise<any> {
     return this.taskExecutor.executeTask({

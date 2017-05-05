@@ -14,18 +14,10 @@ export class FastPropertyStrategyComponentController implements IComponentContro
   public accounts: IAccount[];
   public regions: any;
 
-
-  static get $inject() {
-    return [
-      '$scope',
-      'accountService',
-      'propertyPipelineBuilderService',
-    ];
-  }
-
   constructor(private $scope: IScope,
               private accountService: AccountService,
               private propertyPipelineBuilderService: PropertyPipelineBuilderService) {
+    'ngInject';
 
     this.accountService.listAccounts('aws').then( (accounts: IAccount[]) => {
       this.accounts = accounts;

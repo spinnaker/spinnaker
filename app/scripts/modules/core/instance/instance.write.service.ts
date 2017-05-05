@@ -30,11 +30,11 @@ interface IMultiInstanceJob {
 
 export class InstanceWriter {
 
-  static get $inject() { return ['taskExecutor', 'serverGroupReader', 'serviceDelegate']; }
-
   public constructor(private taskExecutor: TaskExecutor,
                      private serverGroupReader: ServerGroupReader,
-                     private serviceDelegate: any) {}
+                     private serviceDelegate: any) {
+    'ngInject';
+  }
 
   public terminateInstance(instance: Instance, application: Application, params: IJob = {}): ng.IPromise<ITask> {
     params.type = 'terminateInstances';

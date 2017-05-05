@@ -26,17 +26,6 @@ class ClusterFilterCtrl {
   public stackHeadings: string[];
   public tags: any[];
 
-  static get $inject() {
-    return [
-      '$scope',
-      'clusterFilterService',
-      'ClusterFilterModel',
-      '$rootScope',
-      'clusterDependentFilterHelper',
-      'dependentFilterService',
-    ];
-  }
-
   constructor(public $scope: IScope,
               public clusterFilterService: ClusterFilterService,
               public ClusterFilterModel: any,
@@ -44,6 +33,7 @@ class ClusterFilterCtrl {
               public clusterDependentFilterHelper: any,
               public dependentFilterService: any,
   ) {
+    'ngInject';
   }
 
   public $onInit(): void {

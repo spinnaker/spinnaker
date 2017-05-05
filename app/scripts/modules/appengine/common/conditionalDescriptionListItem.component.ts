@@ -5,9 +5,7 @@ class AppengineConditionalDescriptionListItemCtrl implements IComponentControlle
   public key: string;
   public component: any;
 
-  static get $inject() { return ['$filter']; }
-
-  constructor(private $filter: IFilterService) {}
+  constructor(private $filter: IFilterService) { 'ngInject'; }
 
   public $onInit(): void {
     if (!this.label) {

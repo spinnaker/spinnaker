@@ -21,10 +21,6 @@ export interface ICustomHeader {
 }
 
 export class WebhookStage {
-  static get $inject() {
-    return ['stage', 'jsonUtilityService', '$uibModal'];
-  }
-
   public command: ICommand;
   public viewState: IViewState;
   public methods: string[];
@@ -32,6 +28,7 @@ export class WebhookStage {
   constructor(public stage: any,
               private jsonUtilityService: JsonUtilityService,
               private $uibModal: IModalService) {
+    'ngInject';
     this.methods = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE'];
 
     this.viewState = {

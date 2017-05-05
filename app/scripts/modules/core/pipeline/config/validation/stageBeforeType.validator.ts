@@ -19,9 +19,7 @@ export interface IStageBeforeTypeValidationConfig extends IValidatorConfig {
 
 export class StageBeforeTypeValidator implements IStageOrTriggerValidator {
 
-  static get $inject() { return ['pipelineConfigService']; }
-
-  constructor(private pipelineConfigService: PipelineConfigService) {}
+  constructor(private pipelineConfigService: PipelineConfigService) { 'ngInject'; }
 
   public validate(pipeline: IPipeline,
                   stage: IStage,

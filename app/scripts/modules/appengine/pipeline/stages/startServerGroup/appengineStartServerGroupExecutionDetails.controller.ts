@@ -10,11 +10,10 @@ import {
 } from 'core/pipeline/config/stages/core/baseExecutionDetails.controller';
 
 class AppengineStartServerGroupExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
-  static get $inject() { return ['$scope', '$stateParams', 'executionDetailsSectionService']; }
-
   constructor (public $scope: IExecutionDetailsScope,
                $stateParams: StateParams,
                executionDetailsSectionService: ExecutionDetailsSectionService) {
+    'ngInject';
     super($scope, $stateParams, executionDetailsSectionService);
 
     super.setScopeConfigSections(['startServerGroupConfig', 'taskStatus']);

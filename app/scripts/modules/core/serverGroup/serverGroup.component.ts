@@ -7,7 +7,7 @@ import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service'
 import {ENTITY_UI_TAGS_COMPONENT} from 'core/entityTag/entityUiTags.component';
 import {Instance} from 'core/domain/instance';
 import {ServerGroup} from 'core/domain/serverGroup';
-import {CLUSTER_FILTER_MODEL} from 'core/cluster/filter/clusterFilter.model';
+import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 
 interface JenkinsViewModel {
   number: number;
@@ -37,31 +37,21 @@ export class ServerGroupController implements IComponentController {
 
   private lastStringVal: string = null;
 
-  static get $inject(): string[] {
-    return [
-      '$state',
-      '$scope',
-      '$timeout',
-      '$filter',
-      'clusterFilterService',
-      'MultiselectModel',
-      'ClusterFilterModel',
-      'serverGroupTransformer'
-    ];
-  }
-
   constructor(public $state: StateService,
               private $scope: IScope,
               private $timeout: ITimeoutService,
               private $filter: IFilterService,
               private clusterFilterService: any,
               private MultiselectModel: any,
-              private ClusterFilterModel: any, private serverGroupTransformer: any) {}
+              private ClusterFilterModel: ClusterFilterModel,
+              private serverGroupTransformer: any) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     // TODO: Remove $scope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
-    this.sortFilter = this.ClusterFilterModel.sortFilter;
+    this.sortFilter = this.ClusterFilterModel.asFilterModel.sortFilter;
     this.$scope.$watch(() => this.sortFilter, () => this.setViewModel(), true);
 
     this.setViewModel();

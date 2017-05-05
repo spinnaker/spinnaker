@@ -17,10 +17,10 @@ export interface ILoadBalancersByAccount {
 
 export class LoadBalancerReader {
 
-  static get $inject() { return ['$q', 'API', 'namingService', 'loadBalancerTransformer', 'infrastructureCaches']; }
-
   public constructor(private $q: ng.IQService, private API: Api, private namingService: NamingService,
-                     private loadBalancerTransformer: any, private infrastructureCaches: InfrastructureCacheService) {}
+                     private loadBalancerTransformer: any, private infrastructureCaches: InfrastructureCacheService) {
+    'ngInject';
+  }
 
   public loadLoadBalancers(applicationName: string): ng.IPromise<ILoadBalancer[]> {
     return this.API.one('applications', applicationName).all('loadBalancers').getList()

@@ -11,13 +11,12 @@ interface IAppengineBasicSettingsScope extends IScope {
 }
 
 class AppengineServerGroupBasicSettingsCtrl {
-  static get $inject() { return ['$scope', '$state', '$controller', '$uibModalStack', 'namingService']; }
-
   constructor(public $scope: IAppengineBasicSettingsScope,
               $state: StateService,
               $controller: IControllerService,
               $uibModalStack: any,
               namingService: NamingService) {
+    'ngInject';
 
     extend(this, $controller('BasicSettingsMixin', {
       $scope: $scope,

@@ -8,8 +8,6 @@ import './applicationDataSourceEditor.component.less';
 
 export class DataSourceEditorController implements ng.IComponentController {
 
-  static get $inject() { return ['applicationWriter']; }
-
   public application: Application;
 
   public model: any = {};
@@ -22,7 +20,7 @@ export class DataSourceEditorController implements ng.IComponentController {
 
   public dataSources: ApplicationDataSource[];
 
-  constructor(private applicationWriter: ApplicationWriter) {}
+  constructor(private applicationWriter: ApplicationWriter) { 'ngInject'; }
 
   public $onInit() {
     if (this.application.notFound) {

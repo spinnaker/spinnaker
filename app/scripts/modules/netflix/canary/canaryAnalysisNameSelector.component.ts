@@ -6,11 +6,7 @@ class CanaryAnalysisNameSelectorController implements IComponentController {
 
   public nameList: string[] = [];
 
-  static get $inject(): string[] {
-    return ['API'];
-  }
-
-  constructor(private API: Api) {}
+  constructor(private API: Api) { 'ngInject'; }
 
   public $onInit(): void {
     this.API.one('canaryConfig').all('names').getList()

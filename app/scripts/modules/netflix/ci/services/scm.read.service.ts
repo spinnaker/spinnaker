@@ -33,9 +33,7 @@ export interface ITag {
 }
 
 export class ScmReader {
-
-  static get $inject() { return ['API']; }
-  constructor(private API: Api) {}
+  constructor(private API: Api) { 'ngInject'; }
 
   public getOrganizations(type = 'stash', limit = 1000): IPromise<IOrganization[]> {
     return this.API.all('scm', type).withParams({limit}).getList().then((r: any) => r.data);

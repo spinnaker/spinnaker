@@ -13,9 +13,7 @@ class ApplicationNameValidationMessagesController implements ng.IComponentContro
   public cloudProviders: string[];
   public messages: IApplicationNameValidationResult;
 
-  static get $inject() { return ['applicationNameValidator']; }
-
-  public constructor(private applicationNameValidator: ApplicationNameValidator) {}
+  public constructor(private applicationNameValidator: ApplicationNameValidator) { 'ngInject'; }
 
   public $onChanges(): void {
     this.applicationNameValidator.validate(this.name, this.cloudProviders).then(r => this.messages = r);

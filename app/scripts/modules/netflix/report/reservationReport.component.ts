@@ -27,13 +27,11 @@ class ReservationReportComponentController implements IComponentController {
     error: false,
   };
 
-  static get $inject(): string[] {
-    return ['$log', '$scope', 'reservationReportReader'];
-  }
-
   constructor(private $log: ILogService,
               private $scope: IScope,
-              private reservationReportReader: ReservationReportReader) {}
+              private reservationReportReader: ReservationReportReader) {
+    'ngInject';
+  }
 
   private setVpc(): void {
     this.reportData.forEach((row: IExtractedReservation) => {

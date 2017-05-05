@@ -10,15 +10,11 @@ export interface IServerGroupCommandBuilderOptions {
 
 export class ServerGroupCommandBuilderService {
 
-  static get $inject(): string[] {
-    return ['serviceDelegate'];
-  }
-
   private getDelegate(provider: string): any {
-    return this.delegate.getDelegate(provider, 'serverGroup.commandBuilder');
+    return this.serviceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
   }
 
-  constructor(private delegate: any) {}
+  constructor(private serviceDelegate: any) { 'ngInject'; }
 
   public buildNewServerGroupCommand(application: Application,
                                     provider: string,

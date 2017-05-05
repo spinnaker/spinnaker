@@ -13,8 +13,7 @@ export class FastPropertyDetailsComponentController implements IComponentControl
     return inputValue ? inputValue.split(/\n/).length : 1;
   };
 
-  static get $inject() { return ['authenticationService']; }
-  public constructor(private authenticationService: AuthenticationService ) {}
+  public constructor(private authenticationService: AuthenticationService ) { 'ngInject'; }
 
   public $onInit() {
     // If the property has an existing id then we want to preserve it's stage for rollback

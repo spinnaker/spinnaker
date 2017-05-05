@@ -17,9 +17,7 @@ export class ExecutionStatusController implements IComponentController {
   public sortFilter: any;
   public parameters: { key: string, value: any }[];
 
-  static get $inject(): string[] { return ['executionFilterModel']; }
-
-  constructor(private executionFilterModel: ExecutionFilterModel) {}
+  constructor(private executionFilterModel: ExecutionFilterModel) { 'ngInject'; }
 
   public $onInit(): void {
     // these are internal parameters that are not useful to end users

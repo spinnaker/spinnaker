@@ -30,16 +30,12 @@ class FastPropertyFilterSearchController implements IComponentController {
 
   public properties: any;
 
-  static get $inject() {
-    return [
-      '$element', '$log'
-    ];
-  }
-
   public constructor(
     private $element: JQuery,
     private $log: ILogService
-  ) {}
+  ) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.createFilterCategories(this.properties);

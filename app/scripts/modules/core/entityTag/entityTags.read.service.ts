@@ -8,11 +8,11 @@ import {SETTINGS} from 'core/config/settings';
 
 export class EntityTagsReader {
 
-  static get $inject() { return ['API', '$q', 'retryService']; }
-
   constructor(private API: Api,
               private $q: IQService,
-              private retryService: RetryService) {}
+              private retryService: RetryService) {
+    'ngInject';
+  }
 
   public getAllEntityTags(entityType: string, entityIds: string[]): IPromise<IEntityTags[]> {
     if (!entityIds || !entityIds.length) {

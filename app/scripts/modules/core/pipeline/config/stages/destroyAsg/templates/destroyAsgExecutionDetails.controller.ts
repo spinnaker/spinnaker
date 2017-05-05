@@ -7,11 +7,10 @@ import {BaseExecutionDetailsCtrl,
         IExecutionDetailsScope} from '../../core/baseExecutionDetails.controller';
 
 class DestroyAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
-  static get $inject() { return ['$scope', '$stateParams', 'executionDetailsSectionService']; }
-
   constructor ($scope: IExecutionDetailsScope,
                $stateParams: StateParams,
                executionDetailsSectionService: ExecutionDetailsSectionService) {
+    'ngInject';
     super($scope, $stateParams, executionDetailsSectionService);
 
     super.setScopeConfigSections(['destroyServerGroupConfig', 'taskStatus']);

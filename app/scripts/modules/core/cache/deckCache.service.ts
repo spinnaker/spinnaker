@@ -112,10 +112,6 @@ export interface ICacheMap {
 
 export class DeckCacheService {
 
-  static get $inject(): string[] {
-    return ['$log', 'CacheFactory'];
-  }
-
   private caches: ICacheMap = Object.create(null);
   private cacheProxy: ICacheProxy = Object.create(null);
 
@@ -213,7 +209,9 @@ export class DeckCacheService {
   }
 
   constructor(private $log: ng.ILogService,
-              private CacheFactory: any) {}
+              private CacheFactory: any) {
+    'ngInject';
+  }
 
   public clearCache(namespace: string, key: string): void {
     if (this.caches[key] && this.caches[key].destroy) {

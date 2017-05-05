@@ -15,9 +15,7 @@ import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.
 import {IGceHealthCheck} from 'google/domain';
 
 export class GceHealthCheckReader {
-  static get $inject () { return ['searchService', 'infrastructureCaches']; }
-
-  constructor (private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) {}
+  constructor (private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }
 
   public listHealthChecks (type?: string): ng.IPromise<IGceHealthCheck[]> {
     if (type) {

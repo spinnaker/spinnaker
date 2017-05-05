@@ -17,13 +17,11 @@ export class EditPipelineJsonModalCtrl implements IComponentController {
   public isStrategy: boolean;
   public command: ICommand;
 
-  static get $inject(): string[] {
-    return ['$uibModalInstance', 'jsonUtilityService', 'pipeline'];
-  }
-
   constructor(private $uibModalInstance: IModalServiceInstance,
               private jsonUtilityService: JsonUtilityService,
-              private pipeline: IPipeline) {}
+              private pipeline: IPipeline) {
+    'ngInject';
+  }
 
   private removeImmutableFields(pipeline: IPipeline): void {
     delete pipeline.name;

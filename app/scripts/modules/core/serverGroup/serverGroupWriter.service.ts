@@ -43,13 +43,11 @@ export interface IServerGroupJob extends IJob {
 
 export class ServerGroupWriter {
 
-  static get $inject(): string[] {
-    return ['namingService', 'taskExecutor', 'serverGroupTransformer'];
-  }
-
   constructor(private namingService: NamingService,
-              private executor: TaskExecutor,
-              private transformer: any) {}
+              private taskExecutor: TaskExecutor,
+              private serverGroupTransformer: any) {
+    'ngInject';
+  }
 
   public cloneServerGroup(command: IServerGroupCommand,
                           application: Application): ng.IPromise<ITask> {
@@ -67,8 +65,8 @@ export class ServerGroupWriter {
           command.freeFormDetails)}`;
     }
 
-    return this.executor.executeTask({
-      job: [this.transformer.convertServerGroupCommandToDeployConfiguration(command)],
+    return this.taskExecutor.executeTask({
+      job: [this.serverGroupTransformer.convertServerGroupCommandToDeployConfiguration(command)],
       application,
       description
     });
@@ -85,7 +83,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.executor.executeTask({
+    return this.taskExecutor.executeTask({
       job: [params],
       application,
       description: `Destroy Server Group: ${serverGroup.name}`
@@ -103,7 +101,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.executor.executeTask({
+    return this.taskExecutor.executeTask({
       job: [params],
       application: appName,
       description: `Disable Server Group: ${serverGroup.name}`
@@ -121,7 +119,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.executor.executeTask({
+    return this.taskExecutor.executeTask({
       job: [params],
       application,
       description: `Enable Server Group: ${serverGroup.name}`
@@ -139,7 +137,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.executor.executeTask({
+    return this.taskExecutor.executeTask({
       job: [params],
       application,
       description: `Resize Server Group: ${serverGroup.name} to ${params.capacity.min}/${params.capacity.desired}/${params.capacity.max}`
@@ -155,7 +153,7 @@ export class ServerGroupWriter {
     params.credentials = serverGroup.account;
     params.cloudProvider = serverGroup.type || serverGroup.provider;
 
-    return this.executor.executeTask({
+    return this.taskExecutor.executeTask({
       job: [params],
       application,
       description: `Rollback Server Group: ${serverGroup.name}`
@@ -176,7 +174,7 @@ export class ServerGroupWriter {
       type: 'updateSecurityGroupsForServerGroup'
     };
 
-    return this.executor.executeTask({
+    return this.taskExecutor.executeTask({
       job: [job],
       application,
       description: `Update security groups for ${serverGroup.name}`

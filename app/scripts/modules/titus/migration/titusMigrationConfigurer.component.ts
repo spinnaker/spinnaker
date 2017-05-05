@@ -26,10 +26,10 @@ class TitusMigrationConfigurerController implements ng.IComponentController {
 
   public migrationOptions: string[] = [RollingPushStrategy.type, PipelineStrategy.type];
 
-  static get $inject() { return ['applicationReader', 'pipelineConfigService']; }
-
   public constructor(private applicationReader: ApplicationReader,
-                     private pipelineConfigService: PipelineConfigService) {}
+                     private pipelineConfigService: PipelineConfigService) {
+    'ngInject';
+  }
 
   public pipelineSelected(config: PipelineStrategy): void {
     const selectedPipeline = this.pipelineOptions.find(o => o.id === config.pipelineId);

@@ -21,27 +21,20 @@ class AppengineCloneServerGroupCtrl {
   };
   public taskMonitor: TaskMonitor;
 
-  static get $inject() { return ['$scope',
-                                 '$uibModalInstance',
-                                 'serverGroupCommand',
-                                 'application',
-                                 'taskMonitorBuilder',
-                                 'serverGroupWriter',
-                                 'appengineServerGroupCommandBuilder']; }
-
   constructor(public $scope: any,
               private $uibModalInstance: any,
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
               private taskMonitorBuilder: TaskMonitorBuilder,
               private serverGroupWriter: ServerGroupWriter,
-              commandBuilder: AppengineServerGroupCommandBuilder) {
+              appengineServerGroupCommandBuilder: AppengineServerGroupCommandBuilder) {
+    'ngInject';
     if (['create', 'clone', 'editPipeline'].includes(get<string>(serverGroupCommand, 'viewState.mode'))) {
       $scope.command = serverGroupCommand;
       this.state.loading = false;
       this.initialize();
     } else {
-      commandBuilder.buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
+      appengineServerGroupCommandBuilder.buildNewServerGroupCommand(application, 'appengine', 'createPipeline')
         .then((constructedCommand) => {
           $scope.command = merge(constructedCommand, serverGroupCommand);
           this.state.loading = false;

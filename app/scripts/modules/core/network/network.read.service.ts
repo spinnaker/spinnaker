@@ -14,10 +14,7 @@ export interface INetwork {
 
 export class NetworkReader {
 
-  static get $inject() { return ['API', 'infrastructureCaches']; }
-
-  public constructor(private API: Api,
-                     private infrastructureCaches: InfrastructureCacheService) {}
+  public constructor(private API: Api, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }
 
   public listNetworks(): INetwork[] {
     return this.API.one('networks')

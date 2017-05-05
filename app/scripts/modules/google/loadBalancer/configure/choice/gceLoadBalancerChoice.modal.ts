@@ -9,12 +9,12 @@ class GceLoadBalancerChoiceCtrl implements ng.IComponentController {
   public choices: string[];
   public choice = 'Network';
 
-  static get $inject () { return ['$uibModal', '$uibModalInstance', 'application', 'loadBalancerTypeToWizardMap']; }
-
   constructor(public $uibModal: any,
               public $uibModalInstance: any,
               private application: Application,
-              private loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap) { }
+              private loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap) {
+    'ngInject';
+  }
 
   public $onInit (): void {
     this.choices = map(this.loadBalancerTypeToWizardMap, wizardConfig => wizardConfig.label);

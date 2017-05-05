@@ -12,18 +12,12 @@ export class PropertyPipelineBuilderService {
 
   private fastPropertyPipelineName = '_fp_migrations_';
 
-  static get $inject() {
-    return [
-      '$q',
-      'authenticationService',
-      'pipelineConfigService'
-    ];
-  }
-
   constructor(
     private $q: IQService,
     private authenticationService: AuthenticationService,
-    private pipelineConfigService: PipelineConfigService) {}
+    private pipelineConfigService: PipelineConfigService) {
+    'ngInject';
+  }
 
   public build(command: PropertyCommand): IPromise<PropertyPipeline> {
     const user: IUser = this.authenticationService.getAuthenticatedUser();

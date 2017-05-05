@@ -19,10 +19,7 @@ export interface ITargetImpedanceValidationConfig extends IValidatorConfig {
 }
 
 export class TargetImpedanceValidator implements IStageOrTriggerValidator {
-
-  static get $inject() { return ['pipelineConfigService', 'namingService']; }
-
-  constructor(private pipelineConfigService: PipelineConfigService, private namingService: NamingService) {}
+  constructor(private pipelineConfigService: PipelineConfigService, private namingService: NamingService) { 'ngInject'; }
 
   public validate(pipeline: IPipeline,
                   stage: IStage,

@@ -4,12 +4,10 @@ import {SETTINGS} from 'core/config/settings';
 
 export class AuthenticationInterceptor implements ng.IHttpInterceptor {
 
-  static get $inject() {
-    return ['$q', 'authenticationService'];
-  }
-
   constructor(private $q: ng.IQService,
-              private authService: AuthenticationService) {}
+              private authenticationService: AuthenticationService) {
+    'ngInject';
+  }
 
   // see http://www.couchcoder.com/angular-1-interceptors-using-typescript for more details on why we need to do this
   // in essense, we need to do this because "the ng1 implementaiton of interceptors only keeps references to the handler
@@ -23,13 +21,13 @@ export class AuthenticationInterceptor implements ng.IHttpInterceptor {
       if (config.url === SETTINGS.authEndpoint || config.url.indexOf('http') !== 0) {
         resolve(config);
       } else {
-        const user = this.authService.getAuthenticatedUser();
+        const user = this.authenticationService.getAuthenticatedUser();
 
         // only send the request if the user has authenticated within the refresh window for auth calls
         if (user.authenticated && user.lastAuthenticated + (SETTINGS.authTtl || 600000) > new Date().getTime()) {
           resolve(config);
         } else {
-          this.authService.onAuthentication(() => resolve(config));
+          this.authenticationService.onAuthentication(() => resolve(config));
         }
       }
     });

@@ -12,9 +12,8 @@ export interface IStateChange {
 export class StateEvents {
   public stateChangeSuccess: Subject<IStateChange> = new Subject<IStateChange>();
 
-  static get $inject() { return ['$rootScope']; }
-
   constructor(private $rootScope: IRootScopeService) {
+    'ngInject';
     const onChangeSuccess = (_event: IAngularEvent, to: StateDeclaration, toParams: object, from: StateDeclaration, fromParams: object) => {
       this.stateChangeSuccess.next({ to, toParams, from, fromParams });
     };

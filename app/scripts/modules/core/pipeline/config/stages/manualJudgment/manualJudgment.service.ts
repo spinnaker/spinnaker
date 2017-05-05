@@ -5,9 +5,7 @@ import {IExecution} from 'core/domain/IExecution';
 import {IExecutionStage} from 'core/domain/IExecutionStage';
 
 export class ManualJudgmentService {
-
-  static get $inject() { return ['executionService']; }
-  constructor(private executionService: ExecutionService) {}
+  constructor(private executionService: ExecutionService) { 'ngInject'; }
 
   public provideJudgment(execution: IExecution, stage: IExecutionStage, judgmentStatus: string, judgmentInput?: string): IPromise<IExecution> {
       const matcher = (result: IExecution) => {

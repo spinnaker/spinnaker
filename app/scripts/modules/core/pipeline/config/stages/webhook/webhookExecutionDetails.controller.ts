@@ -8,10 +8,6 @@ import {
 } from 'core/delivery/details/executionDetailsSection.service';
 
 export class WebhookExecutionDetailsCtrl {
-  static get $inject() {
-    return ['$stateParams', 'executionDetailsSectionService', '$scope'];
-  }
-
   public configSections = ['webhookConfig', 'taskStatus'];
   public detailsSection: string;
   public failureMessage: string;
@@ -21,6 +17,7 @@ export class WebhookExecutionDetailsCtrl {
   constructor(private $stateParams: StateParams,
               private executionDetailsSectionService: ExecutionDetailsSectionService,
               private $scope: IScope) {
+    'ngInject';
     this.stage = this.$scope.stage;
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());

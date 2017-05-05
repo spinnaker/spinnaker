@@ -1,12 +1,7 @@
 import {module} from 'angular';
 
 export class RetryService {
-
-  static get inject(): string[] {
-    return ['$timeout', '$q'];
-  }
-
-  constructor(private $timeout: ng.ITimeoutService, private $q: ng.IQService) {}
+  constructor(private $timeout: ng.ITimeoutService, private $q: ng.IQService) { 'ngInject'; }
 
   // interval is in milliseconds
   public buildRetrySequence<T>(func: () => T | ng.IPromise<T>,

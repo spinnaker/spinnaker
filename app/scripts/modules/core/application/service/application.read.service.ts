@@ -22,11 +22,11 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
 
-  static get $inject() { return ['$q', '$log', '$filter', 'API', 'schedulerFactory', 'applicationDataSourceRegistry']; }
-
   public constructor(private $q: ng.IQService, private $log: ng.ILogService, private $filter: ng.IFilterService,
                      private API: Api, private schedulerFactory: SchedulerFactory,
-                     private applicationDataSourceRegistry: ApplicationDataSourceRegistry) {}
+                     private applicationDataSourceRegistry: ApplicationDataSourceRegistry) {
+    'ngInject';
+  }
 
   public listApplications(): ng.IPromise<IApplicationSummary[]> {
     return this.API.all('applications').useCache().getList();

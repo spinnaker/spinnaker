@@ -13,9 +13,7 @@ interface IAppengineServerGroupWriteJob extends IJob {
 }
 
 export class AppengineServerGroupWriter {
-  static get $inject() { return ['taskExecutor']; }
-
-  constructor(private taskExecutor: TaskExecutor) {}
+  constructor(private taskExecutor: TaskExecutor) { 'ngInject'; }
 
   public startServerGroup(serverGroup: IAppengineServerGroup, application: Application): ng.IPromise<ITask> {
     const job = this.buildJob(serverGroup, application, 'startAppEngineServerGroup');

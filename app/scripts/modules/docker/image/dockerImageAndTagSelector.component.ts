@@ -44,12 +44,10 @@ export class DockerImageAndTagSelectorController implements ng.IComponentControl
   public onChange: Function;
   public deferInitialization: boolean;
 
-  static get $inject() {
-    return ['accountService', 'dockerImageReader'];
-  }
-
   constructor(private accountService: AccountService,
-              private dockerImageReader: DockerImageReaderService) {}
+              private dockerImageReader: DockerImageReaderService) {
+    'ngInject';
+  }
 
   private updateOrganizationsList(): void {
     if (this.accountMap) {

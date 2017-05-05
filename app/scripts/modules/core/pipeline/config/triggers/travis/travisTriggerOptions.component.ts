@@ -14,11 +14,7 @@ export class TravisTriggerOptionsController {
   public command: any;
   public builds: IBuild[];
 
-  static get $inject() {
-    return ['$scope', 'igorService'];
-  }
-
-  constructor(private $scope: IScope, private igorService: IgorService) {}
+  constructor(private $scope: IScope, private igorService: IgorService) { 'ngInject'; }
 
   public $onInit() {
     // These fields will be added to the trigger when the form is submitted

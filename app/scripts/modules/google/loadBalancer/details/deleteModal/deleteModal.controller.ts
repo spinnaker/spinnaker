@@ -27,25 +27,15 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   public params: Params = new Params();
   public taskMonitor: any;
 
-  static get $inject () {
-    return [
-      'application',
-      'gceHttpLoadBalancerUtils',
-      'gceHttpLoadBalancerWriter',
-      'loadBalancer',
-      'loadBalancerWriter',
-      'taskMonitorBuilder',
-      '$uibModalInstance',
-    ];
-  }
-
   constructor (private application: Application,
                private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,
                private gceHttpLoadBalancerWriter: any,
                private loadBalancer: any,
                private loadBalancerWriter: LoadBalancerWriter,
                private taskMonitorBuilder: TaskMonitorBuilder,
-               private $uibModalInstance: any) {}
+               private $uibModalInstance: any) {
+    'ngInject';
+  }
 
   public $onInit (): void {
 

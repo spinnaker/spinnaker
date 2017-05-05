@@ -21,11 +21,11 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
   public variableMetadataGroups: IVariableMetadataGroup[];
   private template: IPipelineTemplate;
 
-  static get $inject() { return ['$scope', '$uibModalInstance', 'application', 'source', 'pipelineName', 'variables']; }
-
   constructor(private $scope: IScope, private $uibModalInstance: IModalInstanceService,
               private application: Application, private source: string, public pipelineName: string,
-              public variables: IVariable[]) { }
+              public variables: IVariable[]) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.initialize();

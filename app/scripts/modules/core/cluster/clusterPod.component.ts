@@ -13,8 +13,7 @@ class ClusterPodController implements IComponentController {
   public permalink: string;
   public showCloseButton = false;
 
-  static get $inject(): string[] { return ['urlBuilderService', 'ClusterFilterModel']; }
-  constructor(private urlBuilderService: UrlBuilderService, private ClusterFilterModel: any) {}
+  constructor(private urlBuilderService: UrlBuilderService, private ClusterFilterModel: any) { 'ngInject'; }
 
   public $onInit(): void {
     // using location.host here b/c it provides the port, $location.host() does not.

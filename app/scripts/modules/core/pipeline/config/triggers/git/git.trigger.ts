@@ -34,8 +34,8 @@ class GitTriggerController {
     }
   };
 
-  static get $inject() { return ['trigger', '$scope', 'serviceAccountService']; }
   constructor(public trigger: IGitTrigger, private $scope: IScope, private serviceAccountService: ServiceAccountService) {
+    'ngInject';
     this.initialize();
   }
 

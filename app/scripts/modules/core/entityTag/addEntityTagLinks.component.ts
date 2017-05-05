@@ -18,9 +18,7 @@ class AddEntityTagLinksCtrl implements ng.IComponentController {
   private onUpdate: () => any;
   private ownerOptions: IOwnerOption[];
 
-  static get $inject() { return ['$uibModal']; }
-
-  public constructor(private $uibModal: IModalService) {}
+  public constructor(private $uibModal: IModalService) { 'ngInject'; }
 
   public addTag(tagType: string): void {
     this.$uibModal.open({

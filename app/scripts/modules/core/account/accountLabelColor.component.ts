@@ -7,8 +7,7 @@ class AccountLabelColorController implements IComponentController {
 
   public accountType: string;
 
-  static get $inject(): string[] { return ['accountService']; }
-  constructor(private accountService: AccountService) {}
+  constructor(private accountService: AccountService) { 'ngInject'; }
 
   public $onInit(): void {
     this.accountService.challengeDestructiveActions(this.account).then((isProdAccount) => {

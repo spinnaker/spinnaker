@@ -2,9 +2,7 @@ import {InsightFilterStateModel} from './insightFilterState.model';
 import {INSIGHT_NGMODULE} from './insight.module';
 
 export class InsightFilterCtrl {
-  static get $inject() { return ['InsightFilterStateModel']; }
-  constructor(public InsightFilterStateModel: InsightFilterStateModel) {
-  }
+  constructor(public InsightFilterStateModel: InsightFilterStateModel) { 'ngInject'; }
 }
 
 INSIGHT_NGMODULE.component('insightFilter', {

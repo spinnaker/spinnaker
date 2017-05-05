@@ -22,12 +22,12 @@ class HelpFieldCtrl implements IComponentController {
   private popoverShownStart: number;
   private popoverClose: IPromise<void>;
 
-  static get $inject() { return ['$timeout', '$analytics', 'helpContents', 'helpContentsRegistry']; }
-
   constructor(private $timeout: ITimeoutService,
               private $analytics: any,
               private helpContents: any,
-              private helpContentsRegistry: HelpContentsRegistry) {}
+              private helpContentsRegistry: HelpContentsRegistry) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     if (!this.content && this.key) {

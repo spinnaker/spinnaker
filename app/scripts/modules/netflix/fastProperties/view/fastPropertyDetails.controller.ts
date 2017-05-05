@@ -12,19 +12,11 @@ export class FastPropertyDetailsController {
 
   public property: Property;
 
-  static get $inject() {
-    return [
-      '$uibModal',
-      'fastPropertyReader',
-      'fastProperty',
-      'app'
-    ];
-  }
-
   constructor(private $uibModal: any,
               private fastPropertyReader: any,
               private fastProperty: any,
               private app: Application) {
+    'ngInject';
     this.getProperty();
   }
 

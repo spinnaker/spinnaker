@@ -5,8 +5,8 @@ import { ICache, ICacheFactory } from './deckCache.service';
 export class CollapsibleSectionStateCache {
   private stateCache: ICache;
 
-  static get $inject(): string[] { return ['CacheFactory']; }
   constructor(private CacheFactory: ICacheFactory) {
+    'ngInject';
     const cacheId = 'collapsibleSectionStateCache';
 
     try {

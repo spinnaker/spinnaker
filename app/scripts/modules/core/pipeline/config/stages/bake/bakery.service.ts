@@ -19,9 +19,7 @@ interface IBaseOsOptions {
 
 export class BakeryService {
 
-  static get $inject() { return ['$q', 'API', 'accountService']; }
-
-  public constructor(private $q: ng.IQService, private API: Api, private accountService: AccountService) {}
+  public constructor(private $q: ng.IQService, private API: Api, private accountService: AccountService) { 'ngInject'; }
 
   public getRegions(provider: string): ng.IPromise<string[]> {
     if (has(SETTINGS, `providers.${provider}.bakeryRegions`)) {

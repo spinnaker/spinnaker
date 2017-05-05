@@ -28,9 +28,8 @@ export class RecentHistoryService {
 
   private cache: ICache;
 
-  static get $inject() { return ['deckCacheFactory']; }
-
   constructor(deckCacheFactory: DeckCacheService) {
+    'ngInject';
     deckCacheFactory.createCache('history', 'user', {
       version: 3,
       maxAge: moment.duration(90, 'days').asMilliseconds(),

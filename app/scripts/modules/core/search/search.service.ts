@@ -24,9 +24,7 @@ export class SearchService {
 
   static get defaultPageSize() { return 500; };
 
-  static get $inject() { return ['$log', 'API']; }
-
-  constructor(private $log: ILogService, private API: Api) { }
+  constructor(private $log: ILogService, private API: Api) { 'ngInject'; }
 
   public search<T>(params: ISearchParams, cache: ICache = null): IPromise<ISearchResults<T>> {
     const defaultParams: ISearchParams = {

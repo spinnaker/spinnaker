@@ -81,11 +81,11 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
     this.validators.set(type, validator);
   }
 
-  static get $inject() { return ['$log', '$q', 'pipelineConfig']; }
-
   constructor(private $log: ng.ILogService,
               private $q: ng.IQService,
-              private pipelineConfig: any) {}
+              private pipelineConfig: any) {
+    'ngInject';
+  }
 
   public validatePipeline(pipeline: IPipeline): ng.IPromise<IPipelineValidationResults> {
     const stages: IStage[] = pipeline.stages || [],

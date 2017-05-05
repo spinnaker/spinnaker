@@ -19,9 +19,7 @@ export interface IServiceAccountAccessValidationConfig extends IValidatorConfig 
 
 export class ServiceAccountAccessValidator implements IStageOrTriggerValidator {
 
-  static get $inject() { return ['serviceAccountService']; }
-
-  constructor(private serviceAccountService: ServiceAccountService) {}
+  constructor(private serviceAccountService: ServiceAccountService) { 'ngInject'; }
 
   public validate(_pipeline: IPipeline,
                   stage: ITriggerWithServiceAccount,

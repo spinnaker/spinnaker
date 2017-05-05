@@ -27,9 +27,7 @@ export interface IGceAddress {
 }
 
 class GceAddressReader {
-  static get $inject() { return ['searchService', 'infrastructureCaches']; }
-
-  constructor (private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) {}
+  constructor (private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }
 
   public listAddresses(region?: string): IPromise<IGceAddress[]> {
     if (region) {

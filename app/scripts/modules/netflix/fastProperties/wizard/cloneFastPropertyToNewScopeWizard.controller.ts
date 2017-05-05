@@ -19,16 +19,6 @@ class CloneFastPropertyToNewScopeWizardController {
   public propertyMonitor: any;
   public isEditing = true;
 
-  static get $inject() { return [
-    '$scope',
-    '$uibModalInstance',
-    'title',
-    'property',
-    'applicationName',
-    'pipelineConfigService',
-    'propertyMonitorService',
-  ]; }
-
   constructor (
     public $scope: IScope,
     public $uibModalInstance: IModalServiceInstance,
@@ -38,6 +28,7 @@ class CloneFastPropertyToNewScopeWizardController {
     public pipelineConfigService: any,
     public propertyMonitorService: any
   ) {
+    'ngInject';
     this.isEditing = true;
     this.command.type = PropertyCommandType.CREATE;
     this.command.applicationName = this.applicationName;

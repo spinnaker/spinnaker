@@ -3,12 +3,7 @@ import {API_SERVICE, Api} from 'core/api/api.service';
 import {Scope} from './domain/scope.domain';
 
 export class FastPropertyReaderService {
-
-  static get $inject() {
-    return ['API'];
-  }
-
-  constructor(private API: Api) {}
+  constructor(private API: Api) { 'ngInject'; }
 
   public fetchForAppName(appName: string): IPromise<any> {
     return this.API.all('fastproperties').all('application').one(appName).get();

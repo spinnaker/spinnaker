@@ -111,13 +111,11 @@ export class ClusterFilterService {
 
   private isFilterable: (sortFilter: any) => boolean = this.filterModelService.isFilterable;
 
-  static get $inject() {
-    return ['ClusterFilterModel', 'MultiselectModel', '$log', '$stateParams', 'filterModelService'];
-  }
-
   public constructor(private ClusterFilterModel: any, private MultiselectModel: any,
                      private $log: ILogService, private $stateParams: StateParams,
-                     private filterModelService: any) {}
+                     private filterModelService: any) {
+    'ngInject';
+  }
 
   public clearFilters(): void {
     this.ClusterFilterModel.clearFilters();

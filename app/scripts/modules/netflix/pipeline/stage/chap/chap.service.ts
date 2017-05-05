@@ -7,10 +7,7 @@ export interface IChapTestCase {
 }
 
 export class ChapService {
-
-  static get $inject() { return ['API']; }
-
-  public constructor(private API: Api) {}
+  public constructor(private API: Api) { 'ngInject'; }
 
   public listTestCases(): ng.IPromise<IChapTestCase[]> {
     return this.API.all('chap').all('testcases').getList();

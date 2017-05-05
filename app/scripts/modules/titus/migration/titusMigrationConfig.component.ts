@@ -84,9 +84,7 @@ export class TitusMigrationConfigController implements ng.IComponentController {
   public accounts: any[];
   public regionsByAccount: any = {};
 
-  static get $inject() { return ['accountService']; }
-
-  public constructor(private accountService: any) {}
+  public constructor(private accountService: any) { 'ngInject'; }
 
   public $onInit(): void {
     this.config = this.application.attributes.titusTaskMigration || {

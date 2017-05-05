@@ -38,11 +38,7 @@ export interface IAvailabilityTrendsData {
 }
 
 export class AvailabilityReaderService {
-  static get $inject(): string[] {
-    return ['API'];
-  }
-
-  constructor (private API: Api) {}
+  constructor (private API: Api) { 'ngInject'; }
 
   private parseResult (result: any): IAvailabilityData {
     if (result) {

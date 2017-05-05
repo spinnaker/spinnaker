@@ -21,9 +21,7 @@ export class StageOrTriggerBeforeTypeValidator implements IStageOrTriggerValidat
   // Stores application pipeline configs so we don't needlessly fetch them every time we validate the pipeline
   private pipelineCache: Map<string, IPipeline[]> = new Map();
 
-  static get $inject() { return ['$q', 'pipelineConfigService']; }
-
-  constructor(private $q: ng.IQService, private pipelineConfigService: PipelineConfigService) {}
+  constructor(private $q: ng.IQService, private pipelineConfigService: PipelineConfigService) { 'ngInject'; }
 
   // Exposed for testing
   public clearCache() {

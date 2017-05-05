@@ -19,11 +19,12 @@ export class StickyHeaderController implements ng.IComponentController {
   private isSticky = false;
   private topOffset = 0;
 
-  static get $inject(): string[] { return ['$scope', '$element', '$log', '$window']; }
   public constructor(public $scope: IScope,
                      public $element: JQuery,
                      private $log: ILogService,
-                     private $window: IWindowService) {}
+                     private $window: IWindowService) {
+    'ngInject';
+  }
 
   public $postLink(): void {
     this.id = Math.round(Math.random() * Date.now());
