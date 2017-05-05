@@ -35,8 +35,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
-import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.Response
+import redis.clients.jedis.Transaction
 import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
@@ -120,15 +120,21 @@ class JedisExecutionRepository implements ExecutionRepository {
   @Override
   void store(Orchestration orchestration) {
     withJedis(getJedisPoolForId(orchestration.id)) { Jedis jedis ->
-      storeExecutionInternal(jedis, orchestration)
+      jedis.multi().withCloseable { tx ->
+        storeExecutionInternal(tx, orchestration)
+        tx.exec()
+      }
     }
   }
 
   @Override
   void store(Pipeline pipeline) {
     withJedis(getJedisPoolForId(pipeline.id)) { Jedis jedis ->
-      storeExecutionInternal(jedis, pipeline)
-      jedis.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
+      jedis.multi().withCloseable { tx ->
+        storeExecutionInternal(tx, pipeline)
+        tx.zadd(executionsByPipelineKey(pipeline.pipelineConfigId), pipeline.buildTime, pipeline.id)
+        tx.exec()
+      }
     }
   }
 
@@ -233,7 +239,10 @@ class JedisExecutionRepository implements ExecutionRepository {
   void storeStage(Stage<? extends Execution> stage) {
     Class<? extends Execution> executionType = stage.execution.getClass()
     withJedis(getJedisPoolForId("${executionType.simpleName.toLowerCase()}:${stage.execution.id}")) { Jedis jedis ->
-      storeStageInternal(jedis, executionType, stage)
+      jedis.multi().withCloseable { tx ->
+        storeStageInternal(tx, executionType, stage)
+        tx.exec()
+      }
     }
   }
 
@@ -247,35 +256,41 @@ class JedisExecutionRepository implements ExecutionRepository {
         .hget(key, "stageIndex")
         .tokenize(",")
       stageIds.remove(stageId)
-      jedis.hset(key, "stageIndex", stageIds.join(","))
-      if (jedis.exists("$key:stageIndex")) {
-        jedis.lrem("$key:stageIndex", 0, stageId)
-      } else {
-        jedis.rpush("$key:stageIndex", *stageIds)
-      }
-
+      def hasDiscreteIndex = jedis.exists("$key:stageIndex")
       def keys = jedis
         .hkeys(key)
         .findAll { it.startsWith("stage.$stageId.") }
         .toArray(new String[0])
-      jedis.hdel(key, keys)
+
+      jedis.multi().withCloseable { tx ->
+        tx.hset(key, "stageIndex", stageIds.join(","))
+        if (hasDiscreteIndex) {
+          tx.lrem("$key:stageIndex", 0, stageId)
+        } else {
+          tx.rpush("$key:stageIndex", *stageIds)
+        }
+        tx.hdel(key, keys)
+        tx.exec()
+      }
     }
   }
 
   @Override
-  void addStage(Stage<? extends Execution> stage) {
+  void addStage(Stage stage) {
     if (stage.syntheticStageOwner == null || stage.parentStageId == null) {
       throw new IllegalArgumentException("Only synthetic stages can be inserted ad-hoc")
     }
 
     Class<? extends Execution> executionType = stage.execution.getClass()
     def key = "${executionType.simpleName.toLowerCase()}:${stage.execution.id}"
-    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
-      storeStageInternal(jedis, executionType, stage)
+    withJedis(getJedisPoolForId(key)) { jedis ->
+      jedis.multi().withCloseable { tx ->
+        storeStageInternal(tx, executionType, stage)
 
-      def pos = stage.syntheticStageOwner == STAGE_BEFORE ? BEFORE : AFTER
-      jedis.linsert("$key:stageIndex", pos, stage.parentStageId, stage.id)
-
+        def pos = stage.syntheticStageOwner == STAGE_BEFORE ? BEFORE : AFTER
+        tx.linsert("$key:stageIndex", pos, stage.parentStageId, stage.id)
+        tx.exec()
+      }
       // TODO: not this
       def ids = jedis.lrange("$key:stageIndex", 0, -1)
       jedis.hset(key, "stageIndex", ids.join(","))
@@ -490,13 +505,13 @@ class JedisExecutionRepository implements ExecutionRepository {
     return currentObservable
   }
 
-  private void storeExecutionInternal(JedisCommands jedis, Execution execution) {
+  private void storeExecutionInternal(Transaction tx, Execution execution) {
     def prefix = execution.getClass().simpleName.toLowerCase()
 
     if (!execution.id) {
       execution.id = UUID.randomUUID().toString()
-      jedis.sadd(alljobsKey(execution.getClass()), execution.id)
-      jedis.sadd(appKey(execution.getClass(), execution.application), execution.id)
+      tx.sadd(alljobsKey(execution.getClass()), execution.id)
+      tx.sadd(appKey(execution.getClass(), execution.application), execution.id)
     }
 
     String key = "${prefix}:$execution.id"
@@ -520,8 +535,8 @@ class JedisExecutionRepository implements ExecutionRepository {
     map.stageIndex = execution.stages.id.join(",")
     // TODO: remove this and only use the list
     if (!execution.stages.empty) {
-      jedis.del("$key:stageIndex")
-      jedis.rpush("$key:stageIndex", *execution.stages.id)
+      tx.del("$key:stageIndex")
+      tx.rpush("$key:stageIndex", *execution.stages.id)
     }
     execution.stages.each { stage ->
       map.putAll(serializeStage(stage))
@@ -536,8 +551,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       map.description = execution.description
     }
 
-    jedis.hdel(key, "config")
-    jedis.hmset(key, filterValues(map, notNull()))
+    tx.hdel(key, "config")
+    tx.hmset(key, filterValues(map, notNull()))
   }
 
   private Map<String, String> serializeStage(Stage stage) {
@@ -559,13 +574,13 @@ class JedisExecutionRepository implements ExecutionRepository {
     return map
   }
 
-  private <T extends Execution> void storeStageInternal(Jedis jedis, Class<T> type, Stage<T> stage) {
+  private <T extends Execution> void storeStageInternal(Transaction tx, Class<T> type, Stage<T> stage) {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$stage.execution.id"
 
     def serializedStage = serializeStage(stage)
-    jedis.hmset(key, filterValues(serializedStage, notNull()))
-    jedis.hdel(key, serializedStage.keySet().findAll {
+    tx.hmset(key, filterValues(serializedStage, notNull()))
+    tx.hdel(key, serializedStage.keySet().findAll {
       serializedStage[it] == null
     } as String[])
   }
