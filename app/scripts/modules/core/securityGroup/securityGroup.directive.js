@@ -17,12 +17,9 @@ module.exports = angular.module('spinnaker.core.securityGroup.directive', [])
       },
       link: function (scope, el) {
         var base = last(get(el.parent().inheritedData('$uiView'), '$cfg.path')).state.name;
-        var securityGroup = scope.securityGroup;
 
         scope.sortFilter = SecurityGroupFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
-
-        scope.waypoint = [securityGroup.account, securityGroup.region, securityGroup.name].join(':');
 
         scope.loadDetails = function(e) {
           $timeout(function() {

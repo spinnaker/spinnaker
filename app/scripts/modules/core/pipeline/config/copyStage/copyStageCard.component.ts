@@ -14,8 +14,8 @@ class CopyStageCardComponent implements ng.IComponentOptions {
       <div class="col-md-2">
         <cloud-provider-logo ng-if="$ctrl.stageWrapper.stage.cloudProviderType"
                              class="pull-right"
-                             height="10px"
-                             width="10px"
+                             height="'10px'"
+                             width="'10px'"
                              provider="$ctrl.stageWrapper.stage.cloudProviderType">
         </cloud-provider-logo>
       </div>

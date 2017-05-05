@@ -1,8 +1,8 @@
 /* tslint:disable: no-console */
-import {module} from 'angular';
-import {cloneDeep} from 'lodash';
+import { auto, module } from 'angular';
+import { cloneDeep } from 'lodash';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
 
 export interface ICloudProviderLogo {
   path: string;
@@ -88,6 +88,8 @@ export class CloudProviderRegistry {
 
 }
 
+export let cloudProviderRegistry: CloudProviderRegistry;
 export const CLOUD_PROVIDER_REGISTRY = 'spinnaker.core.cloudProvider.registry';
 module(CLOUD_PROVIDER_REGISTRY, [])
-  .provider('cloudProviderRegistry', CloudProviderRegistry);
+  .provider('cloudProviderRegistry', CloudProviderRegistry)
+  .run(($injector: auto.IInjectorService) => cloudProviderRegistry = <CloudProviderRegistry>$injector.get('cloudProviderRegistry'));

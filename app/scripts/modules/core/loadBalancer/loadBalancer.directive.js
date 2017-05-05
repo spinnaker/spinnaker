@@ -20,8 +20,6 @@ module.exports = angular.module('spinnaker.core.loadBalancer.directive', [])
         scope.sortFilter = LoadBalancerFilterModel.sortFilter;
         scope.$state = $rootScope.$state;
 
-        scope.waypoint = [loadBalancer.account, loadBalancer.region, loadBalancer.name].join(':');
-
         scope.viewModel = {
           instances: loadBalancer.instances.concat(flatten(map(loadBalancer.serverGroups, 'detachedInstances')))
         };

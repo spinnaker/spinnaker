@@ -31,13 +31,13 @@ class ApplicationNameValidationMessagesComponent implements ng.IComponentOptions
   public template = `
     <div class="form-group row slide-in" ng-if="$ctrl.messages.warnings.length">
       <div class="col-sm-9 col-sm-offset-3 warn-message" ng-repeat="warning in $ctrl.messages.warnings">
-        <cloud-provider-logo provider="warning.cloudProvider" height="16px" width="16px"></cloud-provider-logo>
+        <cloud-provider-logo provider="warning.cloudProvider" height="'16px'" width="'16px'"></cloud-provider-logo>
         {{warning.message}}
       </div>
     </div>
     <div class="form-group row slide-in" ng-if="$ctrl.messages.errors.length">
       <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="error in $ctrl.messages.errors">
-        <cloud-provider-logo provider="error.cloudProvider" height="16px" width="16px"></cloud-provider-logo>
+        <cloud-provider-logo provider="error.cloudProvider" height="'16px'" width="'16px'"></cloud-provider-logo>
         {{error.message}}
       </div>
     </div>

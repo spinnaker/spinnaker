@@ -2,17 +2,17 @@
            ng-if="initialized && showSelector && !readOnly"
            class="form-control input-sm">
   <ui-select-match placeholder="Select a provider">
-    <cloud-provider-logo provider="$select.selected" height="14px" width="14px"></cloud-provider-logo>
+    <cloud-provider-logo provider="$select.selected" height="'14px'" width="'14px'"></cloud-provider-logo>
     <cloud-provider-label provider="$select.selected"></cloud-provider-label>
   </ui-select-match>
   <ui-select-choices repeat="provider in providers | filter: $select.search">
     <h5>
-      <cloud-provider-logo provider="provider" height="14px" width="14px"></cloud-provider-logo>
+      <cloud-provider-logo provider="provider" height="'14px'" width="'14px'"></cloud-provider-logo>
       <cloud-provider-label provider="provider"></cloud-provider-label>
     </h5>
   </ui-select-choices>
 </ui-select>
 <p class="form-control-static" ng-if="readOnly">
-  <cloud-provider-logo provider="component[field]" height="14px" width="14px"></cloud-provider-logo>
+  <cloud-provider-logo provider="component[field]" height="'14px'" width="'14px'"></cloud-provider-logo>
   <cloud-provider-label provider="component[field]"></cloud-provider-label>
 </p>

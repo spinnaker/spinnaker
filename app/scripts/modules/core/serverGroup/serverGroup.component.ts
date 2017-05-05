@@ -15,7 +15,6 @@ interface JenkinsViewModel {
 }
 
 interface ViewModel {
-  waypoint: string;
   serverGroup: ServerGroup;
   serverGroupSequence: string[];
   jenkins: JenkinsViewModel;
@@ -94,7 +93,6 @@ export class ServerGroupController implements IComponentController {
     const serverGroup = this.serverGroup;
 
     const viewModel: ViewModel = {
-      waypoint: [serverGroup.account, serverGroup.region, serverGroup.name].join(':'),
       serverGroup: serverGroup,
       serverGroupSequence: (<Function>this.$filter('serverGroupSequence'))(serverGroup.name),
       jenkins: null,

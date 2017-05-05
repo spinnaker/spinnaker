@@ -1,8 +1,4 @@
-<div data-scroll-id="clusters-content"
-     waypoint-container
-     waypoint-container-key="{{application.name}}"
-     waypoint-offset="100">
-
+<div data-scroll-id="clusters-content">
   <div ng-if="$ctrl.initialized">
     <div ng-repeat="group in $ctrl.groups" class="rollup">
       <cluster-pod ng-repeat="subgroup in group.subgroups"
@@ -19,5 +15,4 @@
   <div ng-if="!$ctrl.initialized">
     <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
   </div>
-
 </div>

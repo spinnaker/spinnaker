@@ -1,5 +1,4 @@
 <div class="rollup-pod-server-group clickable clickable-row"
-     waypoint="{{$ctrl.viewModel.waypoint}}"
      analytics-on="click"
      analytics-category="Cluster Pod"
      analytics-event="Load Server Group Details"
@@ -16,7 +15,7 @@
             <div class="col-md-{{ $ctrl.viewModel.images ? 9 : 8 }} col-sm-6 section-title">
               <input type="checkbox" ng-if="$ctrl.sortFilter.multiselect"
                     ng-checked="$ctrl.MultiselectModel.serverGroupIsSelected($ctrl.serverGroup)"/>
-              <cloud-provider-logo provider="$ctrl.viewModel.serverGroup.type" height="16px" width="16px"></cloud-provider-logo>
+              <cloud-provider-logo provider="$ctrl.viewModel.serverGroup.type" height="'16px'" width="'16px'"></cloud-provider-logo>
               <span class="server-group-sequence">{{ $ctrl.viewModel.serverGroupSequence }}</span><span ng-if="$ctrl.viewModel.jenkins || $ctrl.viewModel.images">:</span>
               <a ng-if="$ctrl.viewModel.jenkins"
                 href="{{$ctrl.viewModel.jenkins.href}}"

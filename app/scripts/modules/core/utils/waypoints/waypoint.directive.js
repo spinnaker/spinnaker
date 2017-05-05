@@ -2,10 +2,7 @@
 
 let angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.utils.waypoints.container.directive', [
-  require('./waypoint.service.js'),
-
-])
+module.exports = angular.module('spinnaker.core.utils.waypoints.container.directive', [])
   .directive('waypoint', function () {
     return {
       restrict: 'A',

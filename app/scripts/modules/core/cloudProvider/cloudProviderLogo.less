@@ -1,6 +1,6 @@
 @import "../presentation/less/imports/commonImports.less";
 
-cloud-provider-logo {
+.cloud-provider-logo {
   display: inline-block;
   margin-right: 3px;
   .icon {
@@ -12,10 +12,16 @@ cloud-provider-logo {
 }
 
 .disabled {
-  cloud-provider-logo {
+  .cloud-provider-logo {
     .icon {
       -webkit-filter: opacity(64%);
       filter: opacity(64%);
     }
+  }
+}
+
+.header-text {
+  .cloud-provider-logo {
+    margin-right: 10px;
   }
 }
