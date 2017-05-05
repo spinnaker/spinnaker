@@ -134,7 +134,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       Jedis jedis = (Jedis) serviceProvider
           .getDeployableService(SpinnakerService.Type.REDIS)
           .connectToPrimaryService(deploymentDetails, runtimeSettings);
-      jedis.del("*clouddriver*");
+      jedis.eval("for i, k in ipairs(redis.call('keys', 'com.netflix.spinnaker.clouddriver*')) do redis.call('del', k); end");
     } catch (Exception e) {
       throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
     }
@@ -228,7 +228,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     // Omit the last deployed orcas from being deleted, since they are kept around for rollbacks.
     List<Integer> allOrcas = new ArrayList<>(executionsByServerGroupVersion.keySet());
     allOrcas.sort(Integer::compareTo);
-    System.out.println("orca count = " + allOrcas.size());
 
     int orcaCount = allOrcas.size();
     if (orcaCount <= MAX_REMAINING_SERVER_GROUPS) {
@@ -237,8 +236,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
 
     allOrcas = allOrcas.subList(0, orcaCount - MAX_REMAINING_SERVER_GROUPS);
     for (Integer orcaVersion : allOrcas) {
-      System.out.println("orca version " + orcaVersion);
-      System.out.println("ebsgv " + executionsByServerGroupVersion.get(orcaVersion));
       // TODO(lwander) consult clouddriver to ensure this orca isn't enabled
       if (executionsByServerGroupVersion.get(orcaVersion) == 0) {
         DaemonTaskHandler.message("Reaping old orca instance " + orcaVersion);

@@ -499,6 +499,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     res.setLoadBalancer(lb);
 
     List<Pod> pods = client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "true").list().getItems();
+    pods.addAll(client.pods().inNamespace(namespace).withLabel("load-balancer-" + name, "false").list().getItems());
 
     Map<Integer, List<Instance>> instances = res.getInstances();
     for (Pod pod : pods) {
