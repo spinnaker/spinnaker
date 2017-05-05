@@ -72,7 +72,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       } else {
         Orca orca = serviceProvider
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
-            .connect(deploymentDetails, runtimeSettings);
+            .connectToPrimaryService(deploymentDetails, runtimeSettings);
         DaemonTaskHandler.message("Rolling back " + distributedService.getServiceName() + " via Spinnaker red/black");
         rollbackService(deploymentDetails, orca, distributedService, runtimeSettings.getServiceSettings(service));
       }
@@ -114,7 +114,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
           } else {
             Orca orca = serviceProvider
                 .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
-                .connect(deploymentDetails, runtimeSettings);
+                .connectToPrimaryService(deploymentDetails, runtimeSettings);
             DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via red/black");
             deployServiceWithOrca(deploymentDetails, resolvedConfiguration, orca, distributedService);
           }
@@ -133,7 +133,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     try {
       Jedis jedis = (Jedis) serviceProvider
           .getDeployableService(SpinnakerService.Type.REDIS)
-          .connect(deploymentDetails, runtimeSettings);
+          .connectToPrimaryService(deploymentDetails, runtimeSettings);
       jedis.del("*clouddriver*");
     } catch (Exception e) {
       throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
@@ -204,7 +204,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   private <T extends Account> void reapOrcaServerGroups(AccountDeploymentDetails<T> details,
       SpinnakerRuntimeSettings runtimeSettings,
       DistributedService<Orca, T> orcaService) {
-    Orca orca = orcaService.connect(details, runtimeSettings);
+    Orca orca = orcaService.connectToPrimaryService(details, runtimeSettings);
     Map<String, ActiveExecutions> executions = orca.getActiveExecutions();
     ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
     RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details, orcaSettings);

@@ -96,7 +96,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
   default VaultConnectionDetails buildConnectionDetails(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, String secretName) {
     GoogleVaultServerService vaultService = getVaultServerService();
-    VaultServerService.Vault vault = vaultService.connect(details, runtimeSettings);
+    VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, runtimeSettings);
 
     ServiceSettings vaultSettings = runtimeSettings.getServiceSettings(vaultService);
     RunningServiceDetails vaultDetails = vaultService.getRunningServiceDetails(details, vaultSettings);
@@ -136,7 +136,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     List<ConfigSource> configSources = new ArrayList<>();
     String stagingPath = getSpinnakerStagingPath();
     GoogleVaultServerService vaultService = getVaultServerService();
-    VaultServerService.Vault vault = vaultService.connect(details, resolvedConfiguration.getRuntimeSettings());
+    VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
 
     for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
       for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
@@ -248,7 +248,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     if (!configSources.isEmpty()) {
       GoogleVaultServerService vaultService = getVaultServerService();
-      VaultServerService.Vault vault = vaultService.connect(details, resolvedConfiguration.getRuntimeSettings());
+      VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
 
       String secretName = secretName("config-mounts", version);
       VaultConfigMountSet mountSet = VaultConfigMountSet.fromConfigSources(configSources);
@@ -443,8 +443,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   }
 
   @Override
-  default T connect(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
+  default <S> S connectToService(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(sidecar);
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
 
     Integer enabledVersion = runningServiceDetails.getLatestEnabledVersion();
@@ -459,7 +459,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     }
 
     URI uri = GoogleProviderUtils.openSshTunnel(details, instances.get(0).getId(), settings);
-    return getServiceInterfaceFactory().createService(uri.toString(), getService());
+    return getServiceInterfaceFactory().createService(uri.toString(), sidecar);
   }
 
   @Override

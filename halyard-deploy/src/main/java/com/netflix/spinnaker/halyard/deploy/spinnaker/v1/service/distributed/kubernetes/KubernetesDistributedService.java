@@ -531,13 +531,13 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return res;
   }
 
-  default T connect(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
+  default <S> S connectToService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> service) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(service);
 
     KubernetesProviderUtils.Proxy proxy = KubernetesProviderUtils.openProxy(getJobExecutor(), details);
     String endpoint = KubernetesProviderUtils.proxyServiceEndpoint(proxy, getNamespace(settings), getServiceName(), settings.getPort()).toString();
 
-    return getServiceInterfaceFactory().createService(endpoint, getService());
+    return getServiceInterfaceFactory().createService(endpoint, service);
   }
 
   default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {

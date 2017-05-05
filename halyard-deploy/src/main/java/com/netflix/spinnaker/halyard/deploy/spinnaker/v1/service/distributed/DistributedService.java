@@ -25,7 +25,6 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
@@ -56,12 +55,16 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<A> details, ServiceSettings settings);
   String getServiceName();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
-  T connect(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
+  <S> S connectToService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar);
   String connectCommand(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
   void deleteVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, Integer version);
   boolean isRequiredToBootstrap();
   DeployPriority getDeployPriority();
   SpinnakerService<T> getService();
+
+  default T connectToPrimaryService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
+    return connectToService(details, runtimeSettings, getService());
+  }
 
   default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
     SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();

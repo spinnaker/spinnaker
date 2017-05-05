@@ -64,7 +64,7 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
       List<ConfigSource> configSources,
       boolean recreate) {
     GoogleDistributedService.super.ensureRunning(details, resolvedConfiguration, configSources, recreate);
-    Vault vault = connect(details, resolvedConfiguration.getRuntimeSettings());
+    Vault vault = connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
     getToken(details.getDeploymentName(), vault);
   }
 

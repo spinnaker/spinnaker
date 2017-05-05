@@ -58,7 +58,7 @@ public class KubernetesRedisService extends RedisService implements KubernetesDi
   ServiceInterfaceFactory serviceInterfaceFactory;
 
   @Override
-  public Jedis connect(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  public Jedis connectToPrimaryService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(this);
     List<String> command = Arrays.stream(connectCommand(details, runtimeSettings).split(" ")).collect(Collectors.toList());
     JobRequest request = new JobRequest().setTokenizedCommand(command);

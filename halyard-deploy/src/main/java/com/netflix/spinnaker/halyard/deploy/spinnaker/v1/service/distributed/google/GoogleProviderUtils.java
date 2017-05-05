@@ -66,13 +66,14 @@ class GoogleProviderUtils {
   }
 
   static URI openSshTunnel(AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service) {
-    String key = Proxy.buildKey(details.getDeploymentName(), instanceName);
+    int port = service.getPort();
+    String key = Proxy.buildKey(details.getDeploymentName(), instanceName, port);
 
     Proxy proxy = proxyMap.getOrDefault(key, new Proxy());
     JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
 
     if (proxy.getJobId() == null || !jobExecutor.jobExists(proxy.getJobId())) {
-      proxy.setPort(service.getPort());
+      proxy.setPort(port);
       List<String> command = buildGcloudComputeCommand(details);
 
       command.add("ssh");
@@ -81,10 +82,10 @@ class GoogleProviderUtils {
       command.add("--");
       command.add("-N");
       command.add("-L");
-      command.add(String.format("%d:localhost:%d", service.getPort(), service.getPort()));
+      command.add(String.format("%d:localhost:%d", port, port));
       JobRequest request = new JobRequest().setTokenizedCommand(command);
 
-      DaemonTaskHandler.message("Opening port " + service.getPort() + " against instance " + instanceName);
+      DaemonTaskHandler.message("Opening port " + port + " against instance " + instanceName);
       proxy.setJobId(jobExecutor.startJob(request));
 
       // Wait for the proxy to spin up.
@@ -100,13 +101,15 @@ class GoogleProviderUtils {
       }
 
       proxyMap.put(key, proxy);
+    } else {
+      DaemonTaskHandler.message("Reusing existing SSH tunnel");
     }
 
     try {
       return new URIBuilder()
           .setScheme("http")
           .setHost("localhost")
-          .setPort(proxy.getPort())
+          .setPort(port)
           .build();
     } catch (URISyntaxException e) {
       throw new RuntimeException("Failed to build URI for SSH connection", e);
@@ -249,8 +252,8 @@ class GoogleProviderUtils {
     String jobId = "";
     Integer port;
 
-    static String buildKey(String deployment, String instance) {
-      return String.format("%d:%s:%s", Thread.currentThread().getId(), deployment, instance);
+    static String buildKey(String deployment, String instance, int port) {
+      return String.format("%d:%s:%s:%d", Thread.currentThread().getId(), deployment, instance, port);
     }
   }
 }
