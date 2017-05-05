@@ -32,6 +32,19 @@ module(SERVER_GROUP_STATES, [
       // and deal with the exception in the AllClustersCtrl
       ready: (app: Application) => app.getDataSource('serverGroups').ready().catch(() => null),
     },
+    redirectTo: (transition) => {
+      return transition.injector().getAsync('app').then((app: Application) => {
+        if (app.serverGroups.disabled) {
+          const relativeSref = app.dataSources.find(ds => ds.sref && !ds.disabled).sref;
+          const params = transition.params();
+          // Target the state relative to the `clusters` state
+          const options = { relative: transition.to().name };
+          // Up two state levels first
+          return transition.router.stateService.target('^.^' + relativeSref, params, options);
+        }
+        return null;
+      });
+    },
     params: stateConfigProvider.buildDynamicParams(filterModelConfig),
     data: {
       pageTitleSection: {
