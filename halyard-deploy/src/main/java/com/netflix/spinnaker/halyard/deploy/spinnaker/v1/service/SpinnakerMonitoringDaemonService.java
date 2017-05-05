@@ -69,11 +69,11 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     return SpinnakerMonitoringDaemon.class;
   }
 
-  public static String serviceRegistryProfileName(String serviceName) {
+  private static String serviceRegistryProfileName(String serviceName) {
     return "registry/" + serviceName + ".yml";
   }
 
-  public static String monitoringProfileName() {
+  private static String monitoringProfileName() {
     return "spinnaker-monitoring.yml";
   }
 
@@ -102,8 +102,11 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
   public List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service) {
     List<Profile> result = new ArrayList<>();
     Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(getType());
-    Profile profile = monitoringProfiles.get(serviceRegistryProfileName(service.getServiceName()));
+
+    String profileName = serviceRegistryProfileName(service.getCanonicalName());
+    Profile profile = monitoringProfiles.get(profileName);
     result.add(profile);
+
     profile = monitoringProfiles.get(monitoringProfileName());
     result.add(profile);
     return result;

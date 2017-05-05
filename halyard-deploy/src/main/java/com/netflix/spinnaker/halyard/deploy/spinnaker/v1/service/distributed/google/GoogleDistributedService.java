@@ -61,19 +61,6 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     return "/etc/default/spinnaker";
   }
 
-  default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
-    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
-    ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
-    ServiceSettings thisSettings = runtimeSettings.getServiceSettings(getService());
-
-    List<SidecarService> result = new ArrayList<>();
-    if (monitoringSettings.isEnabled() && thisSettings.isMonitored()) {
-      result.add(monitoringService);
-    }
-
-    return result;
-  }
-
   default List<String> getScopes() {
     List<String> result = new ArrayList<>();
     result.add("https://www.googleapis.com/auth/devstorage.read_only");

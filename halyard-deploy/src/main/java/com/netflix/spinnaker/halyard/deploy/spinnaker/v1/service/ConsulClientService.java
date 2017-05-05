@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
+import com.netflix.spinnaker.clouddriver.consul.api.v1.services.AgentApi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -40,7 +41,7 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-abstract public class ConsulClientService extends SpinnakerService<ConsulClientService.Consul> implements SidecarService {
+abstract public class ConsulClientService extends SpinnakerService<AgentApi> implements SidecarService {
   protected final String CLIENT_OUTPUT_PATH = "/etc/consul.d";
 
   @Autowired
@@ -60,8 +61,8 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulClientS
   }
 
   @Override
-  public Class<Consul> getEndpointClass() {
-    return Consul.class;
+  public Class<AgentApi> getEndpointClass() {
+    return AgentApi.class;
   }
 
   public static String consulClientService(String serviceName) {
@@ -102,8 +103,6 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulClientS
     result.add(profile);
     return result;
   }
-
-  public interface Consul { }
 
   @EqualsAndHashCode(callSuper = true)
   @Data

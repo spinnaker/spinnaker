@@ -40,6 +40,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -158,58 +159,21 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     String namespace = getNamespace(thisServiceSettings);
     KubernetesProviderUtils.createNamespace(details, namespace);
 
-    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
     String name = getServiceName();
     Map<String, String> env = new HashMap<>();
     List<ConfigSource> configSources = new ArrayList<>();
-    ServiceSettings monitoringSettings = resolvedConfiguration.getServiceSettings(monitoringService);
-    if (thisServiceSettings.isMonitored() && monitoringSettings.isEnabled()) {
-      Map<String, Profile> monitoringProfiles = resolvedConfiguration.getProfilesForService(monitoringService.getType());
-
-      String profileName = SpinnakerMonitoringDaemonService.serviceRegistryProfileName(thisService.getCanonicalName());
-      Profile profile = monitoringProfiles.get(profileName);
-
-      assert(profile != null);
-
-      String secretName = KubernetesProviderUtils.componentRegistry(name, version);
-      String mountPoint = Paths.get(profile.getOutputFile()).getParent().toString();
-      env.clear();
-      env.putAll(profile.getEnv());
-
-      KubernetesProviderUtils.upsertSecret(details,
-          Collections.singleton(profile.getStagedFile(getSpinnakerStagingPath())),
-          secretName,
-          namespace);
-
-      configSources.add(new ConfigSource()
-          .setId(secretName)
-          .setMountPath(mountPoint)
-          .setEnv(env)
-      );
-
-      profile = monitoringProfiles.get(SpinnakerMonitoringDaemonService.monitoringProfileName());
-      assert(profile != null);
-
-      secretName = KubernetesProviderUtils.componentMonitoring(name, version);
-      mountPoint = Paths.get(profile.getOutputFile()).getParent().toString();
-      env.clear();
-      env.putAll(profile.getEnv());
-
-      KubernetesProviderUtils.upsertSecret(details,
-          Collections.singleton(profile.getStagedFile(getSpinnakerStagingPath())),
-          secretName,
-          namespace);
-
-      configSources.add(new ConfigSource()
-          .setId(secretName)
-          .setMountPath(mountPoint)
-          .setEnv(env)
-      );
-    }
 
     Map<String, Profile> serviceProfiles = resolvedConfiguration.getProfilesForService(thisService.getType());
-    Map<String, Set<Profile>> collapseByDirectory = new HashMap<>();
     Set<String> requiredFiles = new HashSet<>();
+
+    for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
+      for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
+        serviceProfiles.put(profile.getName(), profile);
+        requiredFiles.addAll(profile.getRequiredFiles());
+      }
+    }
+
+    Map<String, Set<Profile>> collapseByDirectory = new HashMap<>();
 
     for (Map.Entry<String, Profile> entry : serviceProfiles.entrySet()) {
       Profile profile = entry.getValue();
@@ -404,6 +368,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return container;
   }
 
+
   default void ensureRunning(
       AccountDeploymentDetails<KubernetesAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
@@ -414,10 +379,6 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     String serviceName = getServiceName();
     String replicaSetName = serviceName + "-v000";
     int port = settings.getPort();
-    DeploymentEnvironment.Size size = details
-        .getDeploymentConfiguration()
-        .getDeploymentEnvironment()
-        .getSize();
 
     KubernetesClient client = KubernetesProviderUtils.getClient(details);
     KubernetesProviderUtils.createNamespace(details, namespace);
@@ -426,7 +387,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     serviceSelector.put("load-balancer-" + serviceName, "true");
 
     Map<String, String> replicaSetSelector = new HashMap<>();
-    replicaSetSelector.put("server-group", replicaSetName);
+    replicaSetSelector.put("replication-controller", replicaSetName);
 
     Map<String, String> podLabels = new HashMap<>();
     podLabels.putAll(replicaSetSelector);
@@ -456,61 +417,14 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       client.services().inNamespace(namespace).create(serviceBuilder.build());
     }
 
-    List<EnvVar> envVars = settings.getEnv().entrySet().stream().map(e -> {
-      EnvVarBuilder envVarBuilder = new EnvVarBuilder();
-      return envVarBuilder.withName(e.getKey()).withValue(e.getValue()).build();
-    }).collect(Collectors.toList());
+    List<Container> containers = new ArrayList<>();
+    containers.add(ResourceBuilder.buildContainer(serviceName, settings, configSources));
 
-    configSources.forEach(c -> {
-      c.getEnv().entrySet().forEach(envEntry -> {
-        EnvVarBuilder envVarBuilder = new EnvVarBuilder();
-        envVars.add(envVarBuilder.withName(envEntry.getKey())
-            .withValue(envEntry.getValue())
-            .build());
-      });
-    });
-
-    ProbeBuilder probeBuilder = new ProbeBuilder();
-
-    if (settings.getHealthEndpoint() != null) {
-      probeBuilder = probeBuilder
-          .withNewHttpGet()
-          .withNewPort(port)
-          .withPath(settings.getHealthEndpoint())
-          .endHttpGet();
-    } else {
-      probeBuilder = probeBuilder
-          .withNewTcpSocket()
-          .withNewPort()
-          .withIntVal(port)
-          .endPort()
-          .endTcpSocket();
+    for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
+      String sidecarName = sidecarService.getService().getServiceName();
+      ServiceSettings sidecarSettings = resolvedConfiguration.getServiceSettings(sidecarService.getService());
+      containers.add(ResourceBuilder.buildContainer(sidecarName, sidecarSettings, configSources));
     }
-
-    /* TODO(lwander) this needs work
-    DeploymentEnvironment.Size size = details.getDeploymentConfiguration().getDeploymentEnvironment().getSize();
-    SizingTranslation.ServiceSize serviceSize = sizingTranslation.getServiceSize(size, service);
-    Map<String, Quantity> resources = new HashMap<>();
-    resources.put("cpu", new Quantity(serviceSize.getCpu()));
-    resources.put("memory", new Quantity(serviceSize.getRam()));
-    */
-
-    List<VolumeMount> volumeMounts = configSources.stream().map(c -> {
-      return new VolumeMountBuilder().withMountPath(c.getMountPath()).withName(c.getId()).build();
-    }).collect(Collectors.toList());
-    ContainerBuilder containerBuilder = new ContainerBuilder();
-
-    containerBuilder = containerBuilder
-        .withName(serviceName)
-        .withImage(settings.getArtifactId())
-        .withPorts(new ContainerPortBuilder().withContainerPort(port).build())
-        .withVolumeMounts(volumeMounts)
-        .withEnv(envVars)
-        .withReadinessProbe(probeBuilder.build());
-    //  .withNewResources()
-    //  .withLimits(resources)
-    //  .withRequests(resources)
-    //  .endResources();
 
     List<Volume> volumes = configSources.stream().map(c -> {
       return new VolumeBuilder()
@@ -538,7 +452,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
         .withLabels(podLabels)
         .endMetadata()
         .withNewSpec()
-        .withContainers(containerBuilder.build())
+        .withContainers(containers)
         .withTerminationGracePeriodSeconds(5L)
         .withVolumes(volumes)
         .endSpec()

@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
@@ -61,6 +62,19 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   boolean isRequiredToBootstrap();
   DeployPriority getDeployPriority();
   SpinnakerService<T> getService();
+
+  default List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
+    SpinnakerMonitoringDaemonService monitoringService = getMonitoringDaemonService();
+    ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
+    ServiceSettings thisSettings = runtimeSettings.getServiceSettings(getService());
+
+    List<SidecarService> result = new ArrayList<>();
+    if (monitoringSettings.isEnabled() && thisSettings.isMonitored()) {
+      result.add(monitoringService);
+    }
+
+    return result;
+  }
 
   default String getVersionedName(int version) {
     return String.format("%s-v%03d", getServiceName(), version);
@@ -162,6 +176,9 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     }
 
     deployDescription.put("scaleDown", scaleDown + "");
+    if (scaleDown) {
+      deployDescription.put("allowShrinkDownActive", "true");
+    }
 
     List<Map<String, Object>> stages = new ArrayList<>();
     stages.add(deployDescription);

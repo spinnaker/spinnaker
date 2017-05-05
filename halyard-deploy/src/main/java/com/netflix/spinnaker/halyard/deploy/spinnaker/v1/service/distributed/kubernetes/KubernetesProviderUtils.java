@@ -56,6 +56,10 @@ class KubernetesProviderUtils {
   static class Proxy {
     String jobId;
     Integer port;
+
+    static String buildKey(String deployment) {
+      return String.format("%d:%s", Thread.currentThread().getId(), deployment);
+    }
   }
 
   static URI proxyServiceEndpoint(Proxy proxy, String namespace, String serviceName, int servicePort) {
@@ -72,7 +76,7 @@ class KubernetesProviderUtils {
 
   static Proxy openProxy(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details) {
     KubernetesAccount account = details.getAccount();
-    Proxy proxy = proxyMap.getOrDefault(details.getDeploymentName(), new Proxy());
+    Proxy proxy = proxyMap.getOrDefault(Proxy.buildKey(details.getDeploymentName()), new Proxy());
     String jobId = proxy.jobId;
     if (StringUtils.isEmpty(jobId) || !jobExecutor.jobExists(jobId)) {
       DaemonTaskHandler.newStage("Connecting to the Kubernetes cluster in account \"" + account.getName() + "\"");
@@ -102,7 +106,7 @@ class KubernetesProviderUtils {
       Matcher matcher = portPattern.matcher(connectionMessage);
       if (matcher.find()) {
         proxy.setPort(Integer.valueOf(matcher.group(1)));
-        proxyMap.put(details.getDeploymentName(), proxy);
+        proxyMap.put(Proxy.buildKey(details.getDeploymentName()), proxy);
         DaemonTaskHandler.message("Connected to kubernetes cluster for account "
             + account.getName() + " on port " + proxy.getPort());
         DaemonTaskHandler.message("View the kube ui on http://localhost:" + proxy.getPort() + "/ui/");

@@ -24,5 +24,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServic
 import java.util.List;
 
 public interface SidecarService {
+  SpinnakerService getService();
   List<Profile> getSidecarProfiles(GenerateService.ResolvedConfiguration resolvedConfiguration, SpinnakerService service);
 }

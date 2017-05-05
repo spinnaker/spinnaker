@@ -250,7 +250,7 @@ class GoogleProviderUtils {
     Integer port;
 
     static String buildKey(String deployment, String instance) {
-      return String.format("%s:%s", deployment, instance);
+      return String.format("%d:%s:%s", Thread.currentThread().getId(), deployment, instance);
     }
   }
 }
