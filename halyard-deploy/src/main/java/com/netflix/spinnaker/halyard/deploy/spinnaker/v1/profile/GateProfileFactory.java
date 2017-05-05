@@ -17,12 +17,14 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -44,7 +46,7 @@ public class GateProfileFactory extends SpringProfileFactory {
     requiredFiles.addAll(backupRequiredFiles(security.getAuthn()));
     requiredFiles.addAll(backupRequiredFiles(security.getAuthz()));
     GateConfig gateConfig = new GateConfig(endpoints.getServices().getGate(), security);
-    gateConfig.getCors().setAllowedOrigins(endpoints.getServices().getDeck());
+    gateConfig.getCors().setAllowedOriginsPattern(security.getApiSecurity());
     profile.appendContents(yamlToString(gateConfig))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(requiredFiles);
@@ -70,10 +72,13 @@ public class GateProfileFactory extends SpringProfileFactory {
 
     @Data
     static class Cors {
-      private String allowedOrigins;
+      private String allowedOriginsPattern;
 
-      void setAllowedOrigins(ServiceSettings deck) {
-        allowedOrigins = deck.getBaseUrl();
+      void setAllowedOriginsPattern(ApiSecurity apiSecurity) {
+        String corsAccessPattern = apiSecurity.getCorsAccessPattern();
+        if (!StringUtils.isEmpty(corsAccessPattern)) {
+          allowedOriginsPattern = corsAccessPattern;
+        }
       }
     }
   }
