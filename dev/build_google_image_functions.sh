@@ -23,8 +23,8 @@ function create_empty_ssh_key() {
   # https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys
   if [[ ! -f ~/.ssh/google_empty.pub ]]; then
     echo "Creating ~/.ssh/google_empty SSH key"
-    ssh-keygen -N "" -t rsa -f ~/.ssh/google_empty -C $USER
-    sed "s/^ssh-rsa/$USER:ssh-rsa/" -i ~/.ssh/google_empty.pub
+    ssh-keygen -N "" -t rsa -f ~/.ssh/google_empty -C builder
+    sed "s/^ssh-rsa/builder:ssh-rsa/" -i ~/.ssh/google_empty.pub
   fi
 }
 
@@ -44,12 +44,6 @@ function extract_clean_prototype_disk() {
   fi
 
   echo "`date`: Preparing '$worker_instance'"
-  gcloud compute instances add-metadata $worker_instance \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub
-
   gcloud compute instances attach-disk ${worker_instance} \
       --project $PROJECT \
       --account $ACCOUNT \
@@ -57,31 +51,24 @@ function extract_clean_prototype_disk() {
       --disk $prototype_disk \
       --device-name spinnaker
 
-  gcloud compute copy-files \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --ssh-key-file $SSH_KEY_FILE \
-      ${CLEAN_GOOGLE_IMAGE_SCRIPT} \
-      ${EXTRACT_DISK_TO_GCS_SCRIPT} \
-      ${worker_instance}:.
-
   echo "`date`: Cleaning in '$worker_instance'"
-  gcloud compute ssh ${worker_instance} \
+  sudo gcloud alpha compute ssh ${worker_instance} \
+      --internal-ip \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --ssh-key-file $SSH_KEY_FILE \
-      --command="sudo ./clean_google_image.sh spinnaker"
+      --command="sudo bash /spinnaker/dev/clean_google_image.sh spinnaker"
 
   if [[ $output_file != "" ]]; then
     echo "`date`: Extracting disk as tar file '$output_file.'"
-    gcloud compute ssh ${worker_instance} \
-       --project $PROJECT \
+    sudo gcloud alpha compute ssh ${worker_instance} \
+        --internal-ip \
+        --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
         --ssh-key-file $SSH_KEY_FILE \
-        --command="sudo ./extract_disk_to_gcs.sh spinnaker $output_file"
+        --command="sudo bash /spinnaker/dev/extract_disk_to_gcs.sh spinnaker $output_file"
   fi
 
   gcloud compute instances detach-disk ${worker_instance} \
