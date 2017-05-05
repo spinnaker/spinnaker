@@ -77,7 +77,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.titusBakeSt
 
       let buildParams = $.param(stage.repository.buildParameters);
       if (buildParams.length > 0) {
-        url += '&' + buildParams;
+        url += '&' + decodeURIComponent(buildParams);
       }
       stage.package = url;
     };
