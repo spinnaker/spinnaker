@@ -1,11 +1,10 @@
 'use strict';
+var pageTitleServiceModule = require('./pageTitle.service').CORE_PAGETITLE_SERVICE;
 
 describe('Service: pageTitleService', function() {
 
   beforeEach(
-    window.module(
-      require('./pageTitle.service')
-    )
+    window.module(pageTitleServiceModule)
   );
 
   beforeEach(window.inject(function (pageTitleService, $stateParams, $rootScope) {
@@ -22,7 +21,7 @@ describe('Service: pageTitleService', function() {
       expect(document.title).toBe('');
 
       this.pageTitleService.handleRoutingStart();
-      expect(scope.routing).toBe(true);
+      expect(scope.routing).toBeTruthy();
       expect(document.title).toBe('Spinnaker: Loading...');
     });
   });
@@ -32,11 +31,11 @@ describe('Service: pageTitleService', function() {
       var scope = this.$rootScope;
 
       this.pageTitleService.handleRoutingStart();
-      expect(scope.routing).toBe(true);
+      expect(scope.routing).toBeTruthy();
       expect(document.title).toBe('Spinnaker: Loading...');
 
-      this.pageTitleService.handleRoutingError();
-      expect(scope.routing).toBe(false);
+      this.pageTitleService.handleRoutingError({ type: 1 });
+      expect(scope.routing).toBeFalsy();
       expect(document.title).toBe('Spinnaker: Error');
 
     });
@@ -45,7 +44,7 @@ describe('Service: pageTitleService', function() {
   describe('handleRoutingSuccess', function() {
 
     afterEach(function() {
-      expect(this.$rootScope.routing).toBe(false);
+      expect(this.$rootScope.routing).toBeFalsy();
     });
 
     it('falls back to "Spinnaker" when nothing configured', function() {

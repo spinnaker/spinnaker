@@ -23,6 +23,7 @@ import {INSIGHT_NGMODULE} from './insight/insight.module';
 import {REPLACE_FILTER} from './filter/replace.filter';
 import {PIPELINE_TEMPLATE_MODULE} from './pipeline/config/templates/pipelineTemplate.module';
 import {HEALTH_COUNTS_COMPONENT} from './healthCounts/healthCounts.component';
+import {CORE_PAGETITLE_SERVICE} from './pageTitle/pageTitle.service';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -109,7 +110,7 @@ module.exports = angular
     require('./notification/types/slack/slack.notification.type.module.js'),
     require('./notification/types/sms/sms.notification.type.module.js'),
 
-    require('./pageTitle/pageTitle.service.js'),
+    CORE_PAGETITLE_SERVICE,
 
     require('./pipeline/pipelines.module.js'),
     require('./pipeline/config/stages/bake/bakeStage.module.js'),
