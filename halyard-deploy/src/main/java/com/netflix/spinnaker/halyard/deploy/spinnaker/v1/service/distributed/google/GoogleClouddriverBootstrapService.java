@@ -19,11 +19,9 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.VaultService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverBootstrapService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -84,6 +82,7 @@ public class GoogleClouddriverBootstrapService extends ClouddriverBootstrapServi
     profiles.add("bootstrap");
     Settings settings = new Settings(profiles);
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setAddress(buildAddress())
         .setLocation("us-central1-f")
         .setEnabled(true);
     return settings;

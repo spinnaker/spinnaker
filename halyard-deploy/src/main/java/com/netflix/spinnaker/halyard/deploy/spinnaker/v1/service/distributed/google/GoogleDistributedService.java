@@ -53,6 +53,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   String getGoogleImageProject();
   String getStartupScriptPath();
 
+  default String buildAddress() {
+    return String.format("%s.service.spinnaker.consul", getService().getCanonicalName());
+  }
+
   default String getEnvFile() {
     return "/etc/default/spinnaker";
   }
@@ -100,7 +104,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     return String.format("projects/%s/global/images/%s",
         getGoogleImageProject(),
-        String.join("-", "spinnaker", artifactName, version.replace(".", "-")));
+        String.join("-", "spinnaker", artifactName, version.replace(".", "-").replace(":", "-")));
   }
 
   default VaultConnectionDetails buildConnectionDetails(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, String secretName) {
@@ -165,6 +169,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     for (Map.Entry<String, Profile> entry : serviceProfiles.entrySet()) {
       Profile profile = entry.getValue();
       requiredFiles.addAll(profile.getRequiredFiles());
+      env.putAll(profile.getEnv());
 
       String mountPoint = profile.getOutputFile();
       String secretName = secretName("profile-" + profile.getName(), version);
@@ -184,10 +189,12 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
 
+    env.putAll(thisServiceSettings.getEnv());
+
     String envSourceFile = env.entrySet()
         .stream()
         .reduce("",
-            (s, e) -> String.format("%s\n%s=%s", s, e.getKey(), e.getKey()),
+            (s, e) -> String.format("%s\n%s=%s", s, e.getKey(), e.getValue()),
             (s1, s2) -> String.join("\n", s1, s2)
         );
 
@@ -307,7 +314,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         .setScopes(getScopes());
 
     InstanceProperties properties = new InstanceProperties()
-        .setMachineType("n1-standard-1")
+        .setMachineType("n1-highmem-2")
         .setMetadata(metadata)
         .setServiceAccounts(Collections.singletonList(sa))
         .setNetworkInterfaces(Collections.singletonList(networkInterface));

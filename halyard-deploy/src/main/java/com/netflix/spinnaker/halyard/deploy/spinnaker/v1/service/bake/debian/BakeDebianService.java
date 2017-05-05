@@ -35,7 +35,7 @@ public interface BakeDebianService<T> extends BakeService<T> {
   @Override
   default String getStartupCommand() {
     if (getUpstartServiceName() != null) {
-      return "service " + getUpstartServiceName() + " start";
+      return "service " + getUpstartServiceName() + " restart";
     }
 
     return null;
