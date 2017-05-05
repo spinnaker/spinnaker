@@ -73,13 +73,12 @@ public class DeploymentEnvironmentController {
     builder.setUpdate(() -> deploymentEnvironmentService.setDeploymentEnvironment(deploymentName, deploymentEnvironment));
     builder.setSeverity(severity);
 
-    Supplier<ProblemSet> doValidate = ProblemSet::new;
-
     if (validate) {
       builder.setValidate(() -> deploymentEnvironmentService.validateDeploymentEnvironment(deploymentName));
+    } else {
+      builder.setValidate(ProblemSet::new);
     }
 
-    builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());
     builder.setSave(() -> halconfigParser.saveConfig());
 

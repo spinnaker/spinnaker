@@ -101,8 +101,6 @@ class GoogleProviderUtils {
       }
 
       proxyMap.put(key, proxy);
-    } else {
-      DaemonTaskHandler.message("Reusing existing SSH tunnel");
     }
 
     try {

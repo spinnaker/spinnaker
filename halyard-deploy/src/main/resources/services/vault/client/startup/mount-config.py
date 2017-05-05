@@ -5,31 +5,38 @@ import base64
 import json
 import logging
 import subprocess
-import sys
 import os
 import grp
 import pwd
+import time
 
 def mkdirs(path):
     subprocess.check_call(["mkdir", "-p", path])
 
+
+def subprocess_retry(supplier, retries, process_cmd):
+    if retries < 0:
+        logging.fatal("All retries of " + process_cmd + " attempted")
+        raise subprocess.CalledProcessError(process_cmd)
+    try:
+        return supplier()
+    except subprocess.CalledProcessError as err:
+        logging.warning("Subprocess failed " + str(err))
+        time.sleep(5)
+        subprocess_retry(supplier, retries - 1, process_cmd)
+
 def authenticate(address, token):
-    subprocess.check_call(["vault", "auth", "-address", address, token])
+    process = ["vault", "auth", "-address", address, token]
+    subprocess_retry(lambda: subprocess.check_call(process), 5, ' '.join(process))
     logging.info("Successfully authenticated against the vault server")
 
 def read_secret(address, name):
-    try:
-        secret_data = json.loads(subprocess.check_output(["vault", "read", 
-            "-address", address, 
-            "-format", "json",
-            "secret/{}".format(name)])
-        )
-    except Exception as err:
-        logging.fatal("Failed to load secret {name}: {err}".format(
-            name=name,
-            err=err)
-        )
-        sys.exit(1)
+    process = ["vault", "read",
+        "-address", address,
+        "-format", "json",
+        "secret/{}".format(name)]
+    secret_data = subprocess_retry(lambda: json.loads(subprocess.check_output(process)
+    ), 5, ' '.join(process))
 
     logging.info("Retrieved secret {name} with request_id {rid}".format(
         name=name,
