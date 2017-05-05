@@ -146,11 +146,16 @@ class BomGenerator(Annotator):
       else:
         config = dict(GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG)
         gradle_version = self.__version_from_tag(comp)
-        gradle_cmd = ''
+
+        # Gradle complains if the git tag version doesn't match the branch's version, i.e.
+        # in patch releases. As a workaround, we checkout the HEAD commit of the
+        # current branch in a 'detached HEAD' state so Gradle doesn't complain about
+        # our branch version and git tag version not matching.
+        gradle_cmd = 'git rev-parse HEAD | xargs git checkout ;'
         if comp == 'deck':
-          gradle_cmd = './gradlew build -PskipTests'
+          gradle_cmd += ' ./gradlew build -PskipTests'
         else:
-          gradle_cmd = './gradlew {0}-web:installDist -x test'.format(comp)
+          gradle_cmd += ' ./gradlew {0}-web:installDist -x test'.format(comp)
         config['steps'][0]['args'] = ['bash', '-c', gradle_cmd]
         versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
                                                       repo=comp,
