@@ -2,6 +2,7 @@ import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvi
 import {module, IScope} from 'angular';
 import * as moment from 'moment';
 
+import {SETTINGS} from 'core/config/settings';
 import {IGOR_SERVICE, IgorService, BuildServiceType} from 'core/ci/igor.service';
 import {IJobConfig, ParameterDefinitionList} from 'core/domain/IJobConfig';
 import {IStage} from 'core/domain/IStage';
@@ -28,7 +29,6 @@ export class TravisStage {
   public jobParams: ParameterDefinitionList[];
   public filterLimit = 100;
   private filterThreshold = 500;
-
 
 
   constructor(public stage: any,
@@ -147,27 +147,31 @@ module(TRAVIS_STAGE, [
   IGOR_SERVICE,
   PIPELINE_CONFIG_PROVIDER
 ]).config((pipelineConfigProvider: any) => {
-  pipelineConfigProvider.registerStage({
-    label: 'Travis',
-    description: 'Runs a Travis job',
-    key: 'travis',
-    restartable: true,
-    controller: 'TravisStageCtrl',
-    controllerAs: '$ctrl',
-    templateUrl: require('./travisStage.html'),
-    executionDetailsUrl: require('./travisExecutionDetails.html'),
-    executionLabelComponent: TravisExecutionLabel,
-    extraLabelLines: (stage: IStage) => {
-      if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
-        return 0;
-      }
-      const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
-      return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
-    },
-    defaultTimeoutMs: moment.duration(2, 'hours').asMilliseconds(),
-    validators: [
-      {type: 'requiredField', fieldName: 'job'},
-    ],
-    strategy: true,
-  });
+
+  if (SETTINGS.feature.travis) {
+    pipelineConfigProvider.registerStage({
+      label: 'Travis',
+      description: 'Runs a Travis job',
+      key: 'travis',
+      restartable: true,
+      controller: 'TravisStageCtrl',
+      controllerAs: '$ctrl',
+      templateUrl: require('./travisStage.html'),
+      executionDetailsUrl: require('./travisExecutionDetails.html'),
+      executionLabelComponent: TravisExecutionLabel,
+      extraLabelLines: (stage: IStage) => {
+        if (!stage.masterStage.context || !stage.masterStage.context.buildInfo) {
+          return 0;
+        }
+        const lines = stage.masterStage.context.buildInfo.number ? 1 : 0;
+        return lines + (stage.masterStage.context.buildInfo.testResults || []).length;
+      },
+      defaultTimeoutMs: moment.duration(2, 'hours').asMilliseconds(),
+      validators: [
+        {type: 'requiredField', fieldName: 'job'},
+      ],
+      strategy: true,
+    });
+  }
+
 }).controller('TravisStageCtrl', TravisStage);

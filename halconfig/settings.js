@@ -126,5 +126,6 @@ window.spinnakerSettings = {
     roscoMode: true,
     infrastructureStages: false,
     snapshots: false,
+    travis: false,
   },
 };
