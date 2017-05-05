@@ -34,8 +34,11 @@
           <div>
             <a href="{{runUrl}}" target="_blank">Run Details</a>
           </div>
-          <div>
-            <a href="{{canaryReportUrl}}" target="_blank">Canary Report</a>
+          <div ng-repeat="canaryReport in canaryReports">
+            <a href="{{canaryReport.url}}" target="_blank">
+              Canary Report
+              <span ng-if="canaryReports.length > 1"> ({{ canaryReport.key }})</span>
+            </a>
           </div>
         </div>
       </div>

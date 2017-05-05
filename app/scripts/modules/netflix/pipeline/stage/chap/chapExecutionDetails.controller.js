@@ -14,36 +14,41 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.chap.execution
 
     $scope.configSections = ['testRunDetails', 'taskStatus'];
 
-    let initialized = () => {
+    const initialized = () => {
+      const run = $scope.stage.context.run;
       $scope.detailsSection = $stateParams.details;
-      $scope.canaryReportUrl = [
-        NetflixSettings.chap.canaryReportBaseUrl,
-        $scope.stage.context.run.testCase.properties.account,
-        $scope.stage.context.run.testCase.properties.region,
-        $scope.stage.context.run.properties.acaConfigId,
-        $scope.stage.context.run.properties.analysisId,
-      ].join('/');
+
+      $scope.canaryReports = Object.keys(run.properties.analysisIds).map(key => ({
+        key,
+        url: [
+          NetflixSettings.chap.canaryReportBaseUrl,
+          run.testCase.properties.account,
+          run.testCase.properties.region,
+          key,
+          run.properties.analysisIds[key],
+        ].join('/')
+      }));
 
       $scope.testCaseUrl = [
         NetflixSettings.chap.chapBaseUrl,
         'testcases',
-        $scope.stage.context.run.testCase.id,
+        run.testCase.id,
       ].join('/');
 
       $scope.runUrl = [
         NetflixSettings.chap.chapBaseUrl,
         'runs',
-        $scope.stage.context.run.id,
+        run.id,
       ].join('/');
 
       $scope.fitScenarioUrl = [
         NetflixSettings.chap.fitBaseUrl,
         'scenarios',
-        $scope.stage.context.run.testCase.properties.scenario,
+        run.testCase.properties.scenario,
       ].join('/');
     };
 
-    let initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
+    const initialize = () => executionDetailsSectionService.synchronizeSection($scope.configSections, initialized);
 
     initialize();
 
