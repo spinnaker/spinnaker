@@ -1,6 +1,7 @@
 import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
 
+import { ILoadBalancerGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
@@ -16,10 +17,14 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'showServerGroups', param: 'hideServerGroups', displayOption: true, type: 'inverse-boolean' },
 ];
 
+export interface ILoadBalancerFilterModel extends IFilterModel {
+  groups: ILoadBalancerGroup[];
+}
+
 export class LoadBalancerFilterModel {
 
   private mostRecentParams: any;
-  private asFilterModel: IFilterModel;
+  public asFilterModel: ILoadBalancerFilterModel;
 
   constructor(private $rootScope: IRootScopeService, private filterModelService: any, private urlParser: any) {
     'ngInject';

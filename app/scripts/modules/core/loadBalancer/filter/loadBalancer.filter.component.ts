@@ -1,13 +1,14 @@
-import {compact, uniq, map} from 'lodash';
-import {IScope, module} from 'angular';
+import { compact, uniq, map } from 'lodash';
+import { IScope, module } from 'angular';
 
-import {Application} from 'core/application/application.model';
-import {LOAD_BALANCER_FILTER_MODEL} from './loadBalancerFilter.model';
+import { Application } from 'core/application/application.model';
+import { LOAD_BALANCER_FILTER_MODEL } from './loadBalancerFilter.model';
+import { LOAD_BALANCER_FILTER_SERVICE } from './loadBalancer.filter.service';
 
 export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controller';
 
 const ngmodule = module('spinnaker.core.loadBalancer.filter.controller', [
-  require('./loadBalancer.filter.service'),
+  LOAD_BALANCER_FILTER_SERVICE,
   LOAD_BALANCER_FILTER_MODEL,
   require('../../filterModel/dependentFilter/dependentFilter.service'),
   require('./loadBalancerDependentFilterHelper.service'),

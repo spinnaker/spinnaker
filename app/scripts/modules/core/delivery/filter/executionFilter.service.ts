@@ -36,7 +36,7 @@ export class ExecutionFilterService {
       const groups = this.groupExecutions(filtered, application);
 
       this.applyGroupsToModel(groups);
-      this.executionFilterModel.addTags();
+      this.executionFilterModel.asFilterModel.addTags();
       this.lastApplication = application;
       executionFilterModel.groupsUpdated.next();
       return groups;
@@ -44,8 +44,8 @@ export class ExecutionFilterService {
   }
 
   private pipelineNameFilter(execution: IExecution): boolean {
-    if (this.isFilterable(this.executionFilterModel.sortFilter.pipeline)) {
-      const checkedPipelineNames = this.filterModelService.getCheckValues(this.executionFilterModel.sortFilter.pipeline);
+    if (this.isFilterable(this.executionFilterModel.asFilterModel.sortFilter.pipeline)) {
+      const checkedPipelineNames = this.filterModelService.getCheckValues(this.executionFilterModel.asFilterModel.sortFilter.pipeline);
       return includes(checkedPipelineNames, execution.name);
     } else {
       return true;
@@ -86,7 +86,7 @@ export class ExecutionFilterService {
   }
 
   private textFilter(execution: IExecution): boolean {
-    const filter = this.executionFilterModel.sortFilter.filter.toLowerCase();
+    const filter = this.executionFilterModel.asFilterModel.sortFilter.filter.toLowerCase();
     if (!filter) {
       return true;
     }
@@ -95,8 +95,8 @@ export class ExecutionFilterService {
   }
 
   private statusFilter(execution: IExecution): boolean {
-    if (this.isFilterable(this.executionFilterModel.sortFilter.status)) {
-      const checkedStatus = this.filterModelService.getCheckValues(this.executionFilterModel.sortFilter.status);
+    if (this.isFilterable(this.executionFilterModel.asFilterModel.sortFilter.status)) {
+      const checkedStatus = this.filterModelService.getCheckValues(this.executionFilterModel.asFilterModel.sortFilter.status);
       return includes(checkedStatus, execution.status);
     } else {
       return true;
@@ -113,15 +113,15 @@ export class ExecutionFilterService {
 
   private addEmptyPipelines(groups: IExecutionGroup[], application: Application): void {
     const configs = application.pipelineConfigs.data || [];
-    if (!this.isFilterable(this.executionFilterModel.sortFilter.pipeline) &&
-      !this.isFilterable(this.executionFilterModel.sortFilter.status) &&
-      !this.executionFilterModel.sortFilter.filter) {
+    if (!this.isFilterable(this.executionFilterModel.asFilterModel.sortFilter.pipeline) &&
+      !this.isFilterable(this.executionFilterModel.asFilterModel.sortFilter.status) &&
+      !this.executionFilterModel.asFilterModel.sortFilter.filter) {
       configs
         .filter((config: any) => !groups[config.name])
         .forEach((config: any) => groups.push({heading: config.name, config: config, executions: [], targetAccounts: this.extractAccounts(config)}));
     } else {
       configs
-        .filter((config: any) => !groups[config.name] && this.executionFilterModel.sortFilter.pipeline[config.name])
+        .filter((config: any) => !groups[config.name] && this.executionFilterModel.asFilterModel.sortFilter.pipeline[config.name])
         .forEach((config: any) => {
           groups.push({heading: config.name, config: config, executions: [], targetAccounts: this.extractAccounts(config)});
         });
@@ -151,10 +151,10 @@ export class ExecutionFilterService {
     // limit based on sortFilter.count
     let executions: IExecution[] = [];
     forOwn(groupBy(filteredExecutions, 'name'), (groupedExecutions) => {
-      executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)).slice(0, this.executionFilterModel.sortFilter.count));
+      executions = executions.concat(groupedExecutions.sort((a, b) => this.executionSorter(a, b)).slice(0, this.executionFilterModel.asFilterModel.sortFilter.count));
     });
 
-    if (this.executionFilterModel.sortFilter.groupBy === 'name') {
+    if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'name') {
       const executionGroups = groupBy(executions, 'name');
       forOwn(executionGroups, (groupExecutions, key) => {
         const matchId = (config: IPipeline) => config.id === groupExecutions[0].pipelineConfigId;
@@ -170,7 +170,7 @@ export class ExecutionFilterService {
       this.addEmptyPipelines(groups, application);
     }
 
-    if (this.executionFilterModel.sortFilter.groupBy === 'timeBoundary') {
+    if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'timeBoundary') {
       const grouped = this.timeBoundaries.groupByTimeBoundary(executions);
       forOwn(grouped, (groupExecutions: IExecution[], key) => {
         groupExecutions.sort((a, b) => this.executionSorter(a, b));
@@ -183,7 +183,7 @@ export class ExecutionFilterService {
       });
     }
 
-    if (this.executionFilterModel.sortFilter.groupBy === 'none') {
+    if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'none') {
       executions.sort((a, b) => this.executionSorter(a, b));
       groups.push({
         heading: '',
@@ -247,14 +247,14 @@ export class ExecutionFilterService {
   }
 
   private applyGroupsToModel(groups: IExecutionGroup[]): void {
-    this.diffExecutionGroups(this.executionFilterModel.groups, groups);
+    this.diffExecutionGroups(this.executionFilterModel.asFilterModel.groups, groups);
 
     // sort groups in place so Angular doesn't try to update the world
-    this.executionFilterModel.groups.sort((a: IExecutionGroup, b: IExecutionGroup) => this.executionGroupSorter(a, b));
+    this.executionFilterModel.asFilterModel.groups.sort((a: IExecutionGroup, b: IExecutionGroup) => this.executionGroupSorter(a, b));
   }
 
   public executionGroupSorter(a: IExecutionGroup, b: IExecutionGroup): number {
-    if (this.executionFilterModel.sortFilter.groupBy === 'timeBoundary') {
+    if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'timeBoundary') {
       return b.executions[0].startTime - a.executions[0].startTime;
     }
     if (a.config && b.config) {
@@ -292,8 +292,8 @@ export class ExecutionFilterService {
   }
 
   public clearFilters(): void {
-    this.executionFilterModel.clearFilters();
-    this.executionFilterModel.applyParamsToUrl();
+    this.executionFilterModel.asFilterModel.clearFilters();
+    this.executionFilterModel.asFilterModel.applyParamsToUrl();
   }
 }
 

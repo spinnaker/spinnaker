@@ -14,6 +14,9 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'status', type: 'trueKeyObject', },
 ];
 
+interface IExecutionFilterModel extends IFilterModel {
+  groups: IExecutionGroup[];
+}
 export class ExecutionFilterModel {
   // Store count globally for 180 days
   private configViewStateCache: ICache;
@@ -22,14 +25,7 @@ export class ExecutionFilterModel {
   private groupBy: string;
   private showStageDuration: boolean;
 
-  // TODO: Convert filter.model.service to TS, create an interface, and have this class implement said interface
-  public asFilterModel: IFilterModel;
-  // The following get set in filterModelService.configureFilterModel(this, filterModelConfig);
-  public sortFilter: any;
-  public groups: IExecutionGroup[];
-  public addTags: () => void;
-  public clearFilters: () => void;
-  public applyParamsToUrl: () => void;
+  public asFilterModel: IExecutionFilterModel;
   public groupsUpdated: Subject<void> = new Subject<void>();
 
   // This is definitely not the best way to do this, but already have a Subject in here, so just using the same

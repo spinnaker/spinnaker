@@ -27,7 +27,7 @@ describe('Service: executionFilterService', function () {
         service = executionFilterService;
         model = executionFilterModel;
         $timeout = _$timeout_;
-        executionFilterModel.groups = [];
+        executionFilterModel.asFilterModel.groups = [];
         spyOn(model.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
       }
     );
@@ -62,24 +62,24 @@ describe('Service: executionFilterService', function () {
         { name: 'pipeline 2', pipelineConfigId: '2' },
       ];
 
-      model.sortFilter.count = 2;
-      model.sortFilter.groupBy = 'none';
+      model.asFilterModel.sortFilter.count = 2;
+      model.asFilterModel.sortFilter.groupBy = 'none';
 
       service.updateExecutionGroups(application);
       $timeout.flush();
 
-      expect(model.groups.length).toBe(1);
-      expect(model.groups[0].executions.length).toBe(3);
-      expect(model.groups[0].executions.filter((ex: IExecution) => ex.pipelineConfigId === '1').length).toBe(2);
-      expect(model.groups[0].executions.filter((ex: IExecution) => ex.pipelineConfigId === '2').length).toBe(1);
+      expect(model.asFilterModel.groups.length).toBe(1);
+      expect(model.asFilterModel.groups[0].executions.length).toBe(3);
+      expect(model.asFilterModel.groups[0].executions.filter((ex: IExecution) => ex.pipelineConfigId === '1').length).toBe(2);
+      expect(model.asFilterModel.groups[0].executions.filter((ex: IExecution) => ex.pipelineConfigId === '2').length).toBe(1);
 
-      model.sortFilter.groupBy = 'name';
+      model.asFilterModel.sortFilter.groupBy = 'name';
       service.updateExecutionGroups(application);
       $timeout.flush();
 
-      expect(model.groups.length).toBe(2);
-      expect(model.groups[0].executions.length).toBe(2);
-      expect(model.groups[1].executions.length).toBe(1);
+      expect(model.asFilterModel.groups.length).toBe(2);
+      expect(model.asFilterModel.groups[0].executions.length).toBe(2);
+      expect(model.asFilterModel.groups[1].executions.length).toBe(1);
 
     });
 

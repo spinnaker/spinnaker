@@ -29,7 +29,7 @@ export class ExecutionStatusController implements IComponentController {
       'cloudProvider'
     ];
 
-    this.filter = this.executionFilterModel.sortFilter;
+    this.filter = this.executionFilterModel.asFilterModel.sortFilter;
 
     if (this.execution.trigger && this.execution.trigger.parameters) {
       this.parameters = Object.keys(this.execution.trigger.parameters).sort()

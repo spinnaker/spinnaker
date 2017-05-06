@@ -27,7 +27,7 @@ export class ExecutionService {
       return this.getFilteredExecutions(applicationName, {statuses: this.activeStatuses, limit: this.runningLimit});
     }
 
-    private getFilteredExecutions(applicationName: string, {statuses = Object.keys(pickBy(this.executionFilterModel.sortFilter.status || {}, identity)), limit = this.executionFilterModel.sortFilter.count} = {}): IPromise<IExecution[]> {
+    private getFilteredExecutions(applicationName: string, {statuses = Object.keys(pickBy(this.executionFilterModel.asFilterModel.sortFilter.status || {}, identity)), limit = this.executionFilterModel.asFilterModel.sortFilter.count} = {}): IPromise<IExecution[]> {
       const statusString = statuses.map((status) => status.toUpperCase()).join(',') || null;
       return this.API.one('applications', applicationName).all('pipelines').getList({ limit: limit, statuses: statusString})
         .then((data: IExecution[]) => {

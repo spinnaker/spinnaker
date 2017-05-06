@@ -65,7 +65,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       executionId: this.props.execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
-      showStageDuration: executionFilterModel.sortFilter.showStageDuration,
+      showStageDuration: executionFilterModel.asFilterModel.sortFilter.showStageDuration,
     };
 
     const restartedStage = this.props.execution.stages.find(stage => stage.context.restartDetails !== undefined);
@@ -74,7 +74,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       showingDetails: this.invalidateShowingDetails(),
       pipelinesUrl: [SETTINGS.gateUrl, 'pipelines/'].join('/'),
       viewState: initialViewState,
-      sortFilter: executionFilterModel.sortFilter,
+      sortFilter: executionFilterModel.asFilterModel.sortFilter,
       restartDetails: restartedStage ? restartedStage.context.restartDetails : null,
       runningTimeInMs: props.execution.runningTimeInMs
     };

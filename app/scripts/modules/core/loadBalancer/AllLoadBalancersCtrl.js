@@ -2,13 +2,14 @@
 
 const angular = require('angular');
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {LOAD_BALANCER_FILTER_MODEL} from './filter/loadBalancerFilter.model';
+import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { LOAD_BALANCER_FILTER_MODEL } from './filter/loadBalancerFilter.model';
+import { LOAD_BALANCER_FILTER_SERVICE } from './filter/loadBalancer.filter.service';
 
 module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
   require('angular-ui-bootstrap'),
   require('../cloudProvider/providerSelection/providerSelection.service.js'),
-  require('./filter/loadBalancer.filter.service.js'),
+  LOAD_BALANCER_FILTER_SERVICE,
   LOAD_BALANCER_FILTER_MODEL,
   require('../filterModel/filter.tags.directive.js'),
   CLOUD_PROVIDER_REGISTRY,

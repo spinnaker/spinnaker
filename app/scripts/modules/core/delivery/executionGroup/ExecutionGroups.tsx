@@ -29,12 +29,12 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
     super(props);
 
     this.state = {
-      groups: executionFilterModel.groups,
+      groups: executionFilterModel.asFilterModel.groups,
       showingDetails: this.showingDetails()
     }
 
     this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
-    this.groupsUpdatedSubscription = executionFilterModel.groupsUpdated.subscribe(() => { this.setState({groups: executionFilterModel.groups}); });
+    this.groupsUpdatedSubscription = executionFilterModel.groupsUpdated.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups}); });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       const detailsShown = this.showingDetails();
       if (detailsShown !== this.state.showingDetails) {

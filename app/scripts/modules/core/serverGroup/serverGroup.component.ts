@@ -1,13 +1,14 @@
-import {has} from 'lodash';
-import {IComponentController, IComponentOptions, IFilterService, ITimeoutService, IScope, module} from 'angular';
-import {StateService} from 'angular-ui-router';
+import { has } from 'lodash';
+import { IComponentController, IComponentOptions, IFilterService, ITimeoutService, IScope, module } from 'angular';
+import { StateService } from 'angular-ui-router';
 
-import {SERVER_GROUP_SEQUENCE_FILTER} from 'core/cluster/serverGroup.sequence.filter';
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {ENTITY_UI_TAGS_COMPONENT} from 'core/entityTag/entityUiTags.component';
-import {Instance} from 'core/domain/instance';
-import {ServerGroup} from 'core/domain/serverGroup';
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
+import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
+import { ENTITY_UI_TAGS_COMPONENT } from 'core/entityTag/entityUiTags.component';
+import { INSTANCES_COMPONENT } from './../instance/instances.component';
+import { Instance } from 'core/domain/instance';
+import { SERVER_GROUP_SEQUENCE_FILTER } from 'core/cluster/serverGroup.sequence.filter';
+import { ServerGroup } from 'core/domain/serverGroup';
 
 interface JenkinsViewModel {
   number: number;
@@ -143,7 +144,7 @@ module(SERVER_GROUP_COMPONENT, [
   SERVER_GROUP_SEQUENCE_FILTER,
   CLUSTER_FILTER_MODEL,
   require('../cluster/filter/multiselect.model'),
-  require('../instance/instances.directive'),
+  INSTANCES_COMPONENT,
   require('../instance/instanceList.directive'),
   require('./serverGroup.transformer'),
   ENTITY_UI_TAGS_COMPONENT,

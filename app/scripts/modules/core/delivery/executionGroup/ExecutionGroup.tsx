@@ -62,7 +62,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
       poll: null,
       canTriggerPipelineManually: !!pipelineConfig,
       canConfigure: !!(pipelineConfig || this.strategyConfig),
-      showAccounts: executionFilterModel.sortFilter.groupBy === 'name',
+      showAccounts: executionFilterModel.asFilterModel.sortFilter.groupBy === 'name',
       pipelineConfig,
     };
   }
@@ -85,7 +85,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   private getSectionCacheKey(): string {
-    return executionService.getSectionCacheKey(executionFilterModel.sortFilter.groupBy, this.props.application.name, this.props.group.heading);
+    return executionService.getSectionCacheKey(executionFilterModel.asFilterModel.sortFilter.groupBy, this.props.application.name, this.props.group.heading);
   };
 
   private toggle(): void {
