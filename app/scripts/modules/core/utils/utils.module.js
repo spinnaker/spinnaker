@@ -16,4 +16,6 @@ module.exports = angular.module('spinnaker.utils', [
   require('./infiniteScroll.directive.js'),
   RENDER_IF_FEATURE,
   STICKY_HEADER_COMPONENT,
+  require('./waypoints/waypoint.directive'),
+  require('./waypoints/waypointContainer.directive'),
 ]);

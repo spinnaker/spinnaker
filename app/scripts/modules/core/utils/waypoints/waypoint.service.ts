@@ -5,7 +5,7 @@ import { $timeout, $rootScope } from 'ngimport';
 
 interface IViewPlacement {
   top: number;
-  elem: Element;
+  elem: string;
 }
 
 interface IWaypoint {
@@ -48,7 +48,7 @@ export class WaypointService {
           waypoints.each((_index, waypoint) => {
             const waypointRect = waypoint.getBoundingClientRect();
             if (waypointRect.bottom >= topThreshold && waypointRect.top <= containerRect.bottom) {
-                inView.push({ top: waypointRect.top, elem: waypoint });
+                inView.push({ top: waypointRect.top, elem: waypoint.getAttribute('waypoint') });
             }
           });
           this.waypointRegistry[key] = {
@@ -86,7 +86,7 @@ export class WaypointService {
             containerScrollTop = container.scrollTop();
 
       candidates.every((candidate) => {
-        const elem = $(candidate.elem);
+        const elem = $('[waypoint="' + candidate.elem + '"]', container);
         if (elem.length) {
           container.scrollTop(containerScrollTop + elem.offset().top - candidate.top);
           container.trigger('scroll');
