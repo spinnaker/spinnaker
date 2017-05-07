@@ -43,6 +43,11 @@ public class BakeDebianDeckService extends DeckService implements BakeDebianServ
   final String upstartServiceName = "apache2";
 
   @Override
+  public String getStartupCommand() {
+    return String.join("\n", "a2ensite spinnaker", "service apache2 restart");
+  }
+
+  @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     return new ArrayList<>();
   }

@@ -33,19 +33,52 @@ public class GoogleDistributedServiceProvider extends DistributedServiceProvider
   GoogleClouddriverBootstrapService clouddriverBootstrapService;
 
   @Autowired
+  GoogleClouddriverService clouddriverService;
+
+  @Autowired
   GoogleConsulClientService consulClientService;
 
   @Autowired
   GoogleConsulServerService consulServerService;
 
   @Autowired
+  GoogleDeckService deckService;
+
+  @Autowired
+  GoogleEchoService echoService;
+
+  @Autowired
+  GoogleFiatService fiatService;
+
+  @Autowired
+  GoogleFront50Service front50Service;
+
+  @Autowired
+  GoogleGateService gateService;
+
+  @Autowired
+  GoogleIgorService igorService;
+
+  @Autowired
+  GoogleOrcaBootstrapService orcaBootstrapService;
+
+  @Autowired
+  GoogleOrcaService orcaService;
+
+  @Autowired
   GoogleMonitoringDaemonService monitoringDaemonService;
 
   @Autowired
-  GoogleVaultServerService vaultServerService;
+  GoogleRoscoService roscoService;
 
   @Autowired
   GoogleRedisBootstrapService redisBootstrapService;
+
+  @Autowired
+  GoogleRedisService redisService;
+
+  @Autowired
+  GoogleVaultServerService vaultServerService;
 
   // For serialization
   public GoogleDistributedServiceProvider() {}

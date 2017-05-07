@@ -25,6 +25,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfac
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,41 +39,15 @@ public class GoogleClouddriverBootstrapService extends ClouddriverBootstrapServi
   final DeployPriority deployPriority = new DeployPriority(6);
   final boolean requiredToBootstrap = true;
 
+  @Delegate
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
-  GoogleMonitoringDaemonService monitoringDaemonService;
-
-  @Autowired
-  ArtifactService artifactService;
-
-  @Autowired
-  ServiceInterfaceFactory serviceInterfaceFactory;
-
-  @Autowired
-  String googleImageProject;
-
-  @Autowired
-  String startupScriptPath;
-
-  @Autowired
-  GoogleVaultClientService vaultClientService;
-
-  @Autowired
-  GoogleVaultServerService vaultServerService;
-
-  @Autowired
-  GoogleConsulClientService consulClientService;
-
-  @Autowired
-  GoogleConsulServerService consulServerService;
+  GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {
     List<SidecarService> result = GoogleDistributedService.super.getSidecars(runtimeSettings);
-    result.add(consulClientService);
-    result.add(vaultClientService);
+    result.add(getConsulClientService());
+    result.add(getVaultClientService());
     return result;
   }
 

@@ -399,7 +399,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     String serviceName = getService().getServiceName();
 
     migs = migs.stream()
-        .filter(ig -> ig.getName().startsWith(serviceName))
+        .filter(ig -> ig.getName().startsWith(serviceName + "-v"))
         .collect(Collectors.toList());
 
     Map<Integer, List<RunningServiceDetails.Instance>> instances = migs.stream().reduce(new HashMap<>(),

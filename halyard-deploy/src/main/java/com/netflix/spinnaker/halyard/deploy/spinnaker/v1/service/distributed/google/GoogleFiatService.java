@@ -20,26 +20,22 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RedisConfProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisBootstrapService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.FiatService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class GoogleRedisBootstrapService extends RedisBootstrapService implements GoogleDistributedService<Jedis> {
-  final DeployPriority deployPriority = new DeployPriority(8);
-  final boolean requiredToBootstrap = true;
+public class GoogleFiatService extends FiatService implements GoogleDistributedService<FiatService.Fiat> {
+  final DeployPriority deployPriority = new DeployPriority(4);
+  final boolean requiredToBootstrap = false;
 
   @Delegate
   @Autowired
@@ -53,24 +49,13 @@ public class GoogleRedisBootstrapService extends RedisBootstrapService implement
     return result;
   }
 
-  @Autowired
-  RedisConfProfileFactory redisConfProfileFactory;
-
-  @Override
-  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-    List<Profile> result = new ArrayList<>();
-    result.add(redisConfProfileFactory.getProfile("redis.conf", "/etc/redis/redis.conf", deploymentConfiguration, endpoints));
-    return result;
-  }
-
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings();
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setAddress(buildAddress())
         .setLocation("us-central1-f")
-        .setSafeToUpdate(true)
-        .setEnabled(true);
+        .setEnabled(deploymentConfiguration.getSecurity().getAuthz().isEnabled());
     return settings;
   }
 }

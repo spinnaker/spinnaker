@@ -22,7 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RedisConfProfileFactory;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisBootstrapService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -37,7 +37,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class GoogleRedisBootstrapService extends RedisBootstrapService implements GoogleDistributedService<Jedis> {
+public class GoogleRedisService extends RedisService implements GoogleDistributedService<Jedis> {
   final DeployPriority deployPriority = new DeployPriority(8);
   final boolean requiredToBootstrap = true;
 
@@ -69,7 +69,7 @@ public class GoogleRedisBootstrapService extends RedisBootstrapService implement
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setAddress(buildAddress())
         .setLocation("us-central1-f")
-        .setSafeToUpdate(true)
+        .setSafeToUpdate(false)
         .setEnabled(true);
     return settings;
   }
