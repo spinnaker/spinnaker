@@ -8,9 +8,10 @@ import {IExecution} from 'core/domain/IExecution';
 import {IExecutionStage} from 'core/domain/IExecutionStage';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SETTINGS} from 'core/config/settings';
+import { ApplicationDataSource } from '../../application/service/applicationDataSource';
 
 export class ExecutionService {
-  private activeStatuses: string[] = ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED'];
+  public get activeStatuses(): string[] { return ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED']; }
   private runningLimit = 30;
 
   constructor(private $http: IHttpService,
@@ -100,7 +101,7 @@ export class ExecutionService {
       return value;
     }
 
-    public waitUntilNewTriggeredPipelineAppears(application: Application, pipelineName: string, triggeredPipelineId: string): IPromise<any> {
+    public waitUntilNewTriggeredPipelineAppears(application: Application, triggeredPipelineId: string): IPromise<any> {
       return this.getRunningExecutions(application.name).then((executions: IExecution[]) => {
         const match = executions.find((execution) => execution.id === triggeredPipelineId);
         const deferred = this.$q.defer();
@@ -109,7 +110,7 @@ export class ExecutionService {
           return deferred.promise;
         } else {
           return this.$timeout(() => {
-            return this.waitUntilNewTriggeredPipelineAppears(application, pipelineName, triggeredPipelineId);
+            return this.waitUntilNewTriggeredPipelineAppears(application, triggeredPipelineId);
           }, 1000);
         }
       });
@@ -302,20 +303,20 @@ export class ExecutionService {
       }).join(':');
     }
 
-    public updateExecution(application: Application, updatedExecution: IExecution): void {
-      if (application.executions.data && application.executions.data.length) {
-        application.executions.data.forEach((currentExecution: IExecution, idx: number) => {
+    public updateExecution(application: Application, updatedExecution: IExecution, dataSource: ApplicationDataSource = application.executions): void {
+      if (dataSource.data && dataSource.data.length) {
+        dataSource.data.forEach((currentExecution: IExecution, idx: number) => {
           if (updatedExecution.id === currentExecution.id) {
             updatedExecution.stringVal = JSON.stringify(updatedExecution, this.jsonReplacer);
             if (updatedExecution.status !== currentExecution.status) {
               this.transformExecution(application, updatedExecution);
-              application.executions.data[idx] = updatedExecution;
-              application.executions.dataUpdated();
+              dataSource.data[idx] = updatedExecution;
+              dataSource.dataUpdated();
             } else {
               if (currentExecution.stringVal !== updatedExecution.stringVal) {
                 this.transformExecution(application, updatedExecution);
                 this.synchronizeExecution(currentExecution, updatedExecution);
-                application.executions.dataUpdated();
+                dataSource.dataUpdated();
               }
             }
           }
@@ -333,6 +334,18 @@ export class ExecutionService {
         .then((executionsByConfigId) => {
           return executionsByConfigId[0];
         });
+    }
+
+    public getExecutionsForConfigIds(application: Application, pipelineConfigIds: string, limit: number, statuses: string): IPromise<IExecution[]> {
+      return this.API.all('executions').getList({ limit, pipelineConfigIds, statuses })
+        .then((data: IExecution[]) => {
+          if (data) {
+            data.forEach((execution: IExecution) => this.transformExecution(application, execution));
+            return data.sort((a, b) => b.startTime - (a.startTime || Date.now()));
+          }
+          return [];
+        })
+        .catch(() => [] as IExecution[]);
     }
 
     public patchExecution(executionId: string, stageId: string, data: any): IPromise<any> {

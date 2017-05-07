@@ -126,9 +126,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
     let startPipeline = (command) => {
       this.viewState.triggeringExecution = true;
       return pipelineConfigService.triggerPipeline(this.application.name, command.pipelineName, command.trigger).then(
-        (result) => {
-          var newPipelineId = result.ref.split('/').pop();
-          var monitor = executionService.waitUntilNewTriggeredPipelineAppears(this.application, command.pipelineName, newPipelineId);
+        (newPipelineId) => {
+          var monitor = executionService.waitUntilNewTriggeredPipelineAppears(this.application, newPipelineId);
           monitor.then(() => {
             this.viewState.triggeringExecution = false;
           });

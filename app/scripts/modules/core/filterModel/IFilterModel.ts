@@ -9,6 +9,7 @@ export interface IFilterConfig {
   filterTranslator?: {[key: string]: string}
   displayOption?: boolean;
   defaultValue?: string;
+  array?: boolean;
 }
 
 export interface IFilterModel {

@@ -34,6 +34,7 @@
                  class="form-control input-sm"
                  data-purpose="fastProperty-key"
                  ng-model="$ctrl.command.property.key"
+                 ng-change="$ctrl.setCompletionState()"
                  placeholder="Enter a fast property key"/>
         </div>
       </div>
@@ -83,6 +84,23 @@
             ng-model="$ctrl.command.property.description"
             placeholder="Enter description"
             name="description">
+          </textarea>
+        </div>
+      </div>
+
+
+      <!--
+        COMMENT
+      -->
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">Comment</div>
+        <div class="col-sm-9">
+          <textarea
+            class="form-control input-sm"
+            ng-disabled="$ctrl.isDeleting || $ctrl.disableAll"
+            ng-model="$ctrl.command.property.comment"
+            placeholder="Enter comment (optional)"
+            name="comment">
           </textarea>
         </div>
       </div>

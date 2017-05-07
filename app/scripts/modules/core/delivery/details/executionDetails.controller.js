@@ -11,16 +11,6 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {
     var controller = this;
 
-    controller.standalone = controller.standalone || false;
-
-    // This is pretty dirty but executionDetails has its dirty tentacles
-    // all over the place. This makes the conversion of the execution directive
-    // to a component safe until we tackle converting all the controllers
-    // TODO: Convert all the execution details controllers to ES6 controllers and remove references to $scope
-    $scope.standalone = controller.standalone;
-    $scope.application = controller.application;
-    $scope.execution = controller.execution;
-
     function getStageParams(stageId) {
       const summaries = (controller.execution.stageSummaries || []);
       const stageIndex = summaries.findIndex(s => (s.stages || []).some(s2 => s2.id === stageId));
@@ -137,6 +127,15 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
 
     this.$onInit = () => {
       this.setSourceUrls();
+      this.standalone = this.standalone || false;
+
+      // This is pretty dirty but executionDetails has its dirty tentacles
+      // all over the place. This makes the conversion of the execution directive
+      // to a component safe until we tackle converting all the controllers
+      // TODO: Convert all the execution details controllers to ES6 controllers and remove references to $scope
+      $scope.standalone = this.standalone;
+      $scope.application = this.application;
+      $scope.execution = this.execution;
     };
 
     $scope.$on('$stateChangeSuccess', () => this.setSourceUrls());

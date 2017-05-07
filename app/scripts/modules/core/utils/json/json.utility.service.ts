@@ -125,5 +125,6 @@ export class JsonUtilityService {
   }
 }
 
+export const jsonUtilityService = new JsonUtilityService();
 export const JSON_UTILITY_SERVICE = 'spinnaker.core.utils.json.service';
 module(JSON_UTILITY_SERVICE, []).service('jsonUtilityService', JsonUtilityService);

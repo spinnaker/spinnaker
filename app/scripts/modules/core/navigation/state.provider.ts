@@ -51,12 +51,13 @@ export class StateConfigProvider implements IServiceProvider {
     this.$urlRouterProvider.when(base, replacement);
   }
 
-  public buildDynamicParams(paramConfig: IFilterConfig[]): ParamDeclaration {
+  public buildDynamicParams(paramConfig: IFilterConfig[]): {[key: string]: (ParamDeclaration | any)} {
     return paramConfig.reduce((acc: any, p) => {
       const param = p.param || p.model;
       acc[param] = {
         type: p.type || 'string',
-        dynamic: true
+        dynamic: true,
+        array: p.array,
       };
       return acc;
     }, {});

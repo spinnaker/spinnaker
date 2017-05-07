@@ -6,6 +6,7 @@ export interface IExecution extends IOrchestratedItem {
   id: string;
   trigger: IExecutionTrigger;
   stages: IExecutionStage[];
+  context?: { [key: string]: any };
   user: string;
   application: string;
   deploymentTargets: string[];

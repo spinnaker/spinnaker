@@ -3,6 +3,7 @@ import {IComponentControllerService, mock} from 'angular';
 import {FastPropertyDetailsComponentController, FAST_PROPERTY_DETAILS_COMPONENT} from './propertyDetails.component';
 import {PropertyCommand} from '../../domain/propertyCommand.model';
 import {Property} from '../../domain/property.domain';
+import { V2ModalWizardService } from 'core/modal/wizard/v2modalWizard.service';
 
 describe('propertyDetailsComponent test', function () {
 
@@ -22,8 +23,9 @@ describe('propertyDetailsComponent test', function () {
 
   beforeEach(
     mock
-      .inject(( _$componentController_: IComponentControllerService) => {
+      .inject(( _$componentController_: IComponentControllerService, v2modalWizardService: V2ModalWizardService) => {
         $componentController = _$componentController_;
+        spyOn(v2modalWizardService, 'markComplete').and.callFake(() => {});
       })
   );
 

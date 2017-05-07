@@ -1,22 +1,8 @@
-<div class="details-panel">
-
-  <div class="header" ng-if="!details.property">
+<div class="details-panel" ng-if="details.property || details.propertyNotFound">
+  <div class="header">
     <div class="close-button">
       <a class="btn btn-link"
-         ui-sref="^">
-        <span class="glyphicon glyphicon-remove"></span>
-      </a>
-    </div>
-    <h4 class="text-center">
-      <span us-spinner="{radius:20, width:6, length: 12}"></span>
-    </h4>
-  </div>
-
-
-  <div class="header" ng-if="details.property">
-    <div class="close-button">
-      <a class="btn btn-link"
-         ui-sref="^">
+         ng-click="details.close()">
         <span class="glyphicon glyphicon-remove"></span>
       </a>
     </div>
@@ -26,7 +12,7 @@
       </h3>
     </div>
 
-    <div>
+    <div ng-if="details.property">
       <div class="actions">
         <div class="dropdown" uib-dropdown dropdown-append-to-body>
           <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
@@ -37,20 +23,28 @@
             <li><a href ng-click="details.cloneToNewScope(details.property)">Clone with new scope</a></li>
           </ul>
         </div>
+        <button class="btn btn-sm btn-default push-right" ng-click="details.showHistory()">History</button>
         <div class="clearfix"></div>
       </div>
     </div>
   </div>
 
+  <div class="content text-center" ng-if="details.propertyNotFound">
+    Could not find the selected property.
+  </div>
+
   <div class="content" ng-if="details.property">
     <collapsible-section heading="Fast Property Information" expanded="true">
-      <dl class="dl-horizontal dl-wide">
+      <dl class="dl-horizontal dl-narrow">
 
         <dt>Description</dt>
         <dd>{{details.property.description}}</dd>
 
+        <dt ng-if="details.property.comment">Comment</dt>
+        <dd ng-if="details.property.comment">{{details.property.comment}}</dd>
+
         <dt>Id</dt>
-        <dd>{{details.property.propertyId}}</dd>
+        <dd><copy-to-clipboard text="details.property.propertyId" tool-tip="'Copy property ID to clipboard'"></copy-to-clipboard></dd>
 
         <dt>Env</dt>
         <dd><account-tag account="details.property.env" pad="right"></account-tag><dd>
@@ -67,10 +61,10 @@
         <dt>Source</dt>
         <dd>{{details.property.sourceOfUpdate}}</dd>
 
-        <dt>Email Notification</dt>
+        <dt>Email</dt>
         <dd>{{details.property.email}}</dd>
 
-        <dt>Last Updated By</dt>
+        <dt>Updated By</dt>
         <dd>{{details.property.updatedBy}}</dd>
 
         <dt>Updated On</dt>
@@ -82,7 +76,7 @@
     </collapsible-section>
 
     <collapsible-section heading="Scope" expanded="true">
-      <dl class="dl-horizontal dl-wide">
+      <dl class="dl-horizontal dl-narrow">
         <dt>App</dt>
         <dd>{{details.property.appId}}</dd>
 

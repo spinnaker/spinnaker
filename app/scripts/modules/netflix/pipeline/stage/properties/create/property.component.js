@@ -30,7 +30,7 @@ module.exports =
     };
 
     this.refreshOptions = (search) => {
-      const newPropKeyList = this.propertyList.map(prop => prop.key);
+      const newPropKeyList = (this.propertyList || []).map(prop => prop.key);
       if (search && !newPropKeyList.includes(search)) {
         newPropKeyList.unshift(search);
       }

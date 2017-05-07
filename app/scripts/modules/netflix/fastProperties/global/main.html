@@ -1,0 +1,29 @@
+<div class="page-header">
+  <div class="container application-header">
+    <h2 data-purpose="view-header"><span class="glyphicon glyphicon-equalizer"></span> Properties</h2>
+    <div class="application-nav">
+      <div class="nav-section">
+        <a ui-sref=".properties"
+           ng-class="{active: $state.includes('**.properties.**')}">
+          Active Properties
+        </a>
+        <a ui-sref=".rollouts"
+           ng-class="{active: $state.includes('**.rollouts.**')}">
+          Rollouts
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container scrollable-columns">
+  <div class="secondary-panel">
+    <div class="insight">
+      <div class="nav-content global-properties-container" data-scroll-id="nav-content">
+        <global-properties-list app="app" ng-if="$state.includes('**.properties.**')"></global-properties-list>
+        <global-rollouts app="app" ng-if="$state.includes('**.rollouts.**')"></global-rollouts>
+      </div>
+      <div ui-view="detail" class="detail-content" style="width: 345px;"></div>
+    </div>
+  </div>
+</div>

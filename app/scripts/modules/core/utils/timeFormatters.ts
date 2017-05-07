@@ -1,5 +1,6 @@
 import { module } from 'angular';
 import * as moment from 'moment';
+import { memoize } from 'lodash';
 import { react2angular } from 'react2angular';
 
 import { SETTINGS } from 'core/config/settings';
@@ -41,7 +42,7 @@ export function relativeTime(input: any) {
   return thisMoment.isValid() ? thisMoment.fromNow() : '-';
 }
 
-export function fastPropertyTime(input: any) {
+export const fastPropertyTime = memoize((input: any) => {
   if (input) {
     input = input.replace('[UTC]', '');
     const thisMoment = moment(input);
@@ -49,7 +50,7 @@ export function fastPropertyTime(input: any) {
   } else {
     return '--';
   }
-}
+});
 
 export function timePickerTime(input: any) {
   if (input && !isNaN(input.hours) && !isNaN(input.minutes)) {

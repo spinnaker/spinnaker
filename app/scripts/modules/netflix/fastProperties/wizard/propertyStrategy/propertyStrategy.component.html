@@ -15,7 +15,7 @@
       <span is-visible="$ctrl.command.strategy.isManual()"
             class="glyphicon glyphicon-ok-circle selected-indicator"></span>
       <div class="panel-heading">
-        <span class="icon glyphicon glyphicon-cog"></span>
+        <span class="icon fa fa-cog"></span>
         <h4>Manual</h4>
       </div>
     </button>
@@ -26,7 +26,7 @@
       <span is-visible="$ctrl.command.strategy.isAca()"
             class="glyphicon glyphicon-ok-circle selected-indicator"></span>
       <div class="panel-heading">
-        <span class="icon glyphicon glyphicon-tasks"></span>
+        <span class="icon fa fa-tasks"></span>
         <h4>ACA</h4>
       </div>
     </button>
@@ -34,10 +34,10 @@
     <button class="property-strategy-button"
             ng-click="$ctrl.selectForcePush()"
             ng-class="{active: $ctrl.command.strategy.isForcePush()}">
-      <span is-visible="$ctrl.command.strategy.isBreakGlass()"
+      <span is-visible="$ctrl.command.strategy.isForcePush()"
             class="glyphicon glyphicon-ok-circle selected-indicator"></span>
       <div class="panel-heading">
-        <span class="icon glyphicon glyphicon-warning-sign"></span>
+        <span class="icon fa fa-exclamation-triangle"></span>
         <h4>Force Push</h4>
       </div>
     </button>

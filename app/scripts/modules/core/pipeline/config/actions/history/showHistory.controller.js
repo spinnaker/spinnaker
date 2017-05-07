@@ -4,16 +4,16 @@ const angular = require('angular');
 
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
+import {DIFF_VIEW_COMPONENT} from './diffView.component';
 
 require('./showHistory.less');
 
 module.exports = angular
   .module('spinnaker.core.pipeline.config.actions.history.controller', [
     PIPELINE_CONFIG_SERVICE,
-    require('core/utils/jQuery'),
     JSON_UTILITY_SERVICE,
     require('./diffSummary.component'),
-    require('./diffView.component'),
+    DIFF_VIEW_COMPONENT,
   ])
   .controller('ShowHistoryCtrl', function ($window, pipelineConfigService, jsonUtilityService,
                                            pipelineConfigId, currentConfig,

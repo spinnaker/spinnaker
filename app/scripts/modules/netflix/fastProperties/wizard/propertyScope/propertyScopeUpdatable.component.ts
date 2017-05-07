@@ -1,9 +1,9 @@
 import { module, IComponentController, IComponentOptions} from 'angular';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from '../../scope/fastPropertyScopeSearchCategory.service';
 import { FAST_PROPERTY_READ_SERVICE } from '../../fastProperty.read.service';
-import {PropertyCommand} from '../../domain/propertyCommand.model';
-import {Scope} from '../../domain/scope.domain';
-import {IImpactCounts} from '../../domain/impactCounts.interface';
+import { PropertyCommand } from '../../domain/propertyCommand.model';
+import { Scope } from '../../domain/scope.domain';
+import { IImpactCounts } from '../../domain/impactCounts.interface';
 
 export class FastPropertyScopeReadOnlyComponentController implements IComponentController {
   public isEditing = false;

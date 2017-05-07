@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
-
+import {DIFF_VIEW_COMPONENT} from 'core/pipeline/config/actions/history/diffView.component';
 let angular = require('angular');
 
 require('./snapshotDiff.modal.less');
@@ -15,7 +15,7 @@ module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.control
     CONFIRMATION_MODAL_SERVICE,
     JSON_UTILITY_SERVICE,
     require('../../pipeline/config/actions/history/diffSummary.component.js'),
-    require('../../pipeline/config/actions/history/diffView.component.js'),
+    DIFF_VIEW_COMPONENT,
   ])
   .controller('SnapshotDiffModalCtrl', function (availableAccounts, application, $filter, $uibModalInstance,
                                                  snapshotReader, snapshotWriter, jsonUtilityService, confirmationModalService) {

@@ -68,9 +68,12 @@ export class PipelineConfigService {
     return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(pipeline.id).data(pipeline).put();
   }
 
-  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<ITriggerPipelineResponse> {
+  public triggerPipeline(applicationName: string, pipelineName: string, body: any = {}): IPromise<string> {
     body.user = this.authenticationService.getAuthenticatedUser().name;
-    return this.API.one('pipelines').one(applicationName).one(pipelineName).data(body).post();
+    return this.API.one('pipelines').one(applicationName).one(pipelineName).data(body).post()
+      .then((result: ITriggerPipelineResponse) => {
+        return result.ref.split('/').pop();
+    });
   }
 
   public getDownstreamStageIds(pipeline: IPipeline, stage: IStage): (string | number)[] {
@@ -111,9 +114,11 @@ export class PipelineConfigService {
     return uniq(upstreamStages);
   }
 
-  public startAdHocPipeline(body: any): IPromise<void> {
+  public startAdHocPipeline(body: any): IPromise<string> {
     body.user = this.authenticationService.getAuthenticatedUser().name;
-    return this.API.one('pipelines').one('start').data(body).post();
+    return this.API.one('pipelines').one('start').data(body).post().then((result: ITriggerPipelineResponse) => {
+      return result.ref.split('/').pop();
+    });
   }
 
   private sortPipelines(pipelines: IPipeline[]): IPromise<IPipeline[]> {

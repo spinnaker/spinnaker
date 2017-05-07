@@ -35,7 +35,7 @@
     <div ng-if="ctrl.state.error">
       <h4 class="text-center">There was an error loading the snapshot history for this application.</h4>
     </div>
-    <form role="form" class="form-horizontal flex-fill show-history" ng-if="ctrl.snapshots.length > 1">
+    <form role="form" class="form-horizontal flex-fill" ng-if="ctrl.snapshots.length > 1">
       <div class="form-group flex-fill">
         <h3 class="text-center" ng-if="ctrl.state.loading">loading...</h3>
         <diff-view diff="ctrl.diff" ng-if="ctrl.snapshots" class="flex-fill"></diff-view>

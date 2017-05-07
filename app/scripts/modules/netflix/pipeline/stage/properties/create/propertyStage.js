@@ -41,6 +41,8 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     vm.chosenApps = {};
 
     vm.stage = stage;
+    vm.scopeSelected = !!vm.stage.scope;
+
     vm.stage.scope = vm.stage.scope || {};
     vm.stage.scope.env = vm.stage.scope.env || 'prod';
     vm.stage.scope.appIdList = [$scope.application.name];
@@ -62,7 +64,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     let getPropertiesForApp = (appName) => {
       fastPropertyReader.fetchForAppName(appName)
         .then((props) => {
-          vm.appPropertyList = props.propertiesList;
+          vm.appPropertyList = props;
           vm.applicationsLoaded = true;
         });
     };
@@ -72,10 +74,12 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
       vm.stage.scope = scopeOption;
       vm.stage.scope.env = selectedEnv;
       vm.stage.scope.appIdList = [vm.stage.scope.appId];
+      vm.scopeSelected = true;
     };
 
     vm.resetScope = () => {
       vm.stage.scope = {env: vm.stage.scope.env};
+      vm.scopeSelected = false;
     };
 
     vm.refreshAppList = (query) => {

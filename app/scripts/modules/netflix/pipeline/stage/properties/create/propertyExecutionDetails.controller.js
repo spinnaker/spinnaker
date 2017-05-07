@@ -10,7 +10,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.detai
   EXECUTION_DETAILS_SECTION_SERVICE,
   require('core/delivery/details/executionDetailsSectionNav.directive.js')
 ])
-  .controller('PropertyExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
+  .controller('PropertyExecutionDetailsCtrl', function ($scope, $stateParams, $state, executionDetailsSectionService) {
 
     $scope.configSections = ['propertiesConfig', 'taskStatus'];
 
@@ -24,6 +24,17 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.property.detai
       $scope.scope = $scope.stage.context.scope;
       $scope.propertyAction = $scope.stage.context.propertyAction;
       $scope.pipelineStatus = $scope.execution.status;
+    };
+
+    this.getSrefTarget = () => {
+      const currentState = $state.current.name;
+      if (currentState.includes('.properties.')) {
+        return '.execution';
+      }
+      if (currentState.includes('.rollouts.')) {
+        return '.rollouts.execution';
+      }
+      return '^.^.propInsights.properties';
     };
 
     this.propertyScopeForDisplay = () => {

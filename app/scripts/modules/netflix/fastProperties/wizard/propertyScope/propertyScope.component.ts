@@ -1,19 +1,25 @@
 import { module, IComponentController, IComponentOptions} from 'angular';
+
 import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component';
 import { FAST_PROPERTY_READ_SERVICE } from '../../fastProperty.read.service';
-import {PropertyCommand} from '../../domain/propertyCommand.model';
-import {Scope} from '../../domain/scope.domain';
+import { PropertyCommand } from '../../domain/propertyCommand.model';
+import { Scope } from '../../domain/scope.domain';
+import { V2ModalWizardService } from 'core/modal/wizard/v2modalWizard.service';
 
 export class FastPropertyScopeComponentController implements IComponentController {
+
   public isEditing = false;
   public impactCount: string;
   public impactLoading: boolean;
   public selectedScope: any;
   public command: PropertyCommand;
 
+  constructor(private v2modalWizardService: V2ModalWizardService) {}
+
   public selectScope(scopeOption: Scope) {
     this.selectedScope = scopeOption.copy();
     this.command.scopes.push(this.selectedScope);
+    this.v2modalWizardService.markComplete('scope');
   }
 
   public toggleEditScope(scopeIndex: number): void {
@@ -24,6 +30,9 @@ export class FastPropertyScopeComponentController implements IComponentControlle
 
   public removeScope(scopeIndex: number): void {
     this.command.scopes.splice(scopeIndex, 1);
+    if (this.command.scopes.length === 0) {
+      this.v2modalWizardService.markIncomplete('scope');
+    }
   }
 }
 

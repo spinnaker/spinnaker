@@ -45,9 +45,12 @@ export class ApplicationModelBuilder {
 
 }
 
+export let applicationModelBuilder: ApplicationModelBuilder = undefined;
 export const APPLICATION_MODEL_BUILDER = 'spinnaker.core.application.model.builder';
+
 module(APPLICATION_MODEL_BUILDER, [
   require('../presentation/robotToHumanFilter/robotToHuman.filter'),
   SCHEDULER_FACTORY,
 ])
-  .service('applicationModelBuilder', ApplicationModelBuilder);
+  .service('applicationModelBuilder', ApplicationModelBuilder)
+  .run(($injector: any) => applicationModelBuilder = <ApplicationModelBuilder>$injector.get('applicationModelBuilder'));

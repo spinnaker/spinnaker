@@ -1,17 +1,16 @@
-import './fastPropetyScopeSearch.less';
+import { debounce, uniqWith, isEqual, values } from 'lodash';
+import { module, IComponentController, IComponentOptions, IQService} from 'angular';
 
 import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
-
-import {debounce, uniqWith, isEqual} from 'lodash';
-import { module, IComponentController, IComponentOptions, IQService} from 'angular';
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
+import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
-import {Scope} from '../domain/scope.domain';
-import values = require('lodash/values');
-import {Application} from 'core/application/application.model';
-import {ICluster} from 'core/domain/ICluster';
-import {ServerGroup} from 'core/domain/serverGroup';
-import {FAST_PROPERTY_READ_SERVICE} from '../fastProperty.read.service';
+import { Scope } from '../domain/scope.domain';
+import { Application } from 'core/application/application.model';
+import { ICluster } from 'core/domain/ICluster';
+import { ServerGroup } from 'core/domain/serverGroup';
+import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
+
+import './fastPropetyScopeSearch.less';
 
 export class FastPropertyScopeSearchComponentController implements IComponentController {
 

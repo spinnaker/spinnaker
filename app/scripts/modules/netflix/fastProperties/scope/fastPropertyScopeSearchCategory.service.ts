@@ -1,8 +1,8 @@
 import {flatMap, uniqBy, mergeWith, flatten} from 'lodash';
-import { module } from 'angular';
+import { IQService, module } from 'angular';
 
-import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
-import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
+import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
+import { FAST_PROPERTY_READ_SERVICE, FastPropertyReaderService } from '../fastProperty.read.service';
 import { Application } from 'core/application/application.model';
 import {Scope} from '../domain/scope.domain';
 import {IImpactCounts} from '../domain/impactCounts.interface';
@@ -37,15 +37,15 @@ export class FastPropertyScopeCategoryService {
     [CATEGORY.APPLICATIONS]: this.impactCountForApplication.bind(this),
     [CATEGORY.CLUSTERS]: this.impactCountForCluster.bind(this),
     [CATEGORY.SERVER_GROUPS]: this.impactCountForServerGroup.bind(this),
-    [CATEGORY.INSTANCES]: this.impactCountForInstnace.bind(this),
+    [CATEGORY.INSTANCES]: this.impactCountForInstance.bind(this),
     [CATEGORY.STACK]: this.impactCountForStack.bind(this),
     [CATEGORY.REGIONS]: this.impactCountForRegions.bind(this),
     [CATEGORY.GLOBAL]: this.impactCountForGlobal.bind(this)
   };
 
-  constructor(private $q: ng.IQService,
-              private applicationReader: any,
-              private fastPropertyReader: any) {
+  constructor(private $q: IQService,
+              private applicationReader: ApplicationReader,
+              private fastPropertyReader: FastPropertyReaderService) {
     'ngInject';
   }
 
@@ -65,7 +65,9 @@ export class FastPropertyScopeCategoryService {
 
   public impactCountForGlobal() {
     const countPromises = this.regions.map((region: any ) => {
-      return this.fastPropertyReader.fetchImpactCountForScope({region: region.region});
+      const scope = new Scope();
+      scope.region = region.region;
+      return this.fastPropertyReader.fetchImpactCountForScope(scope);
     });
 
     return this.$q.all(countPromises)
@@ -244,11 +246,11 @@ export class FastPropertyScopeCategoryService {
     scope.region = selected.region;
     scope.asg = selected.serverGroup;
     scope.serverId = selected.instanceId;
-    scope.instanceCounts = this.impactCountForInstnace();
+    scope.instanceCounts = this.impactCountForInstance();
     return [scope];
   }
 
-  private impactCountForInstnace(): IImpactCounts {
+  private impactCountForInstance(): IImpactCounts {
     return {up: 1}; // hard code it, assume the instance is up if not ¯\_(ツ)_/¯
   }
 

@@ -1,4 +1,4 @@
-<div class="canary-details" ng-controller="PropertyExecutionDetailsCtrl as propertyDetailsCtrl">
+<div class="canary-details" ng-controller="PropertyExecutionDetailsCtrl as ctrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
   <div class="step-section-details" ng-if="detailsSection === 'propertiesConfig'">
@@ -9,16 +9,33 @@
         </div>
         <table class="table">
           <thead>
-            <td><strong>Key</strong></td>
-            <td><strong>Value</strong></td>
+            <th><strong>Key</strong></th>
+            <th ng-if="!originalProperties.length">Value</th>
+            <th ng-if="originalProperties.length">Previous Value</th>
+            <th ng-if="originalProperties.length">New Value</th>
           </thead>
           <tbody>
-          <tr ng-repeat="prop in properties">
+          <tr ng-repeat-start="prop in properties">
             <td>
-              <strong>{{ prop.key }}</strong>
+              <strong>
+                <a ui-sref="{{ctrl.getSrefTarget()}}({propertyId: prop.propertyId, application: prop.appId})">
+                  {{ prop.key }}
+                </a>
+              </strong>
+            </td>
+            <td ng-if="originalProperties.length">
+              {{originalProperties[$index].value}}
             </td>
             <td>
               <strong>{{ prop.value }}</strong>
+            </td>
+          </tr>
+          <tr ng-repeat-end>
+            <td colspan="4">
+              <div ng-if="prop.comment">
+                <b>Comment:</b>
+                <span ng-bind="prop.comment"></span>
+              </div>
             </td>
           </tr>
           </tbody>
@@ -30,7 +47,7 @@
         <div >
           <h5>Scope</h5>
           <dl class="dl-horizontal dl-narrow">
-            <div ng-repeat="(key, value) in propertyDetailsCtrl.propertyScopeForDisplay()" ng-if="value !== ''">
+            <div ng-repeat="(key, value) in ctrl.propertyScopeForDisplay()" ng-if="value !== ''">
               <dt>{{key}}</dt>
               <dd>{{value}}</dd>
             </div>
@@ -40,17 +57,17 @@
 
     </div>
 
-    <div class="row" ng-if="stage.context.exception || propertyDetailsCtrl.isExecutionTerminalOrCanceled()">
+    <div class="row" ng-if="stage.context.exception || ctrl.isExecutionTerminalOrCanceled()">
       <div class="col-md-12">
         <div class="alert alert-danger" ng-if="stage.context.exception" >
-          {{propertyDetailsCtrl.getErrorMessage()}}
+          {{ctrl.getErrorMessage()}}
         </div>
-        <div class="alert alert-danger" ng-if="propertyDetailsCtrl.isExecutionTerminalOrCanceled()">
+        <div class="alert alert-danger" ng-if="ctrl.isExecutionTerminalOrCanceled()">
           <p>This pipeline ended with a status of {{pipelineStatus}}. The property was rolled back to its original state.</p>
-          <p ng-if="propertyAction && propertyDetailsCtrl.wasCreateAction()">
+          <p ng-if="propertyAction && ctrl.wasCreateAction()">
             Properties that where created during this stage where deleted.
           </p>
-          <table class="table" ng-if="propertyAction && !propertyDetailsCtrl.wasCreateAction()">
+          <table class="table" ng-if="propertyAction && !ctrl.wasCreateAction()">
             <thead>
             <td><strong>Key</strong></td>
             <td><strong>Value</strong></td>

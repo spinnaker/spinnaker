@@ -11,7 +11,9 @@
              ng-paste="$ctrl.dispatchQueryInput($event)"
              ng-cut="$ctrl.dispatchQueryInput($event)"
       />
-      <span class="glyphicon glyphicon-search form-control-feedback" uib-tooltip-html="ctrl.tooltip"
+      <span class="glyphicon glyphicon-search form-control-feedback"
+            style="right: 0"
+            uib-tooltip-html="ctrl.tooltip"
             tooltip-placement="right"></span>
     </div>
   </div>
@@ -21,7 +23,7 @@
 <div ng-if="$ctrl.query" >
 
   <h2 ng-if="$ctrl.querying" class="text-center">
-    <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span>
+    <span class="fa fa-cog fa-spin"></span>
   </h2>
 
   <div

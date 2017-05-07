@@ -100,9 +100,8 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   private startPipeline(command: IPipelineCommand): IPromise<void> {
     this.setState({triggeringExecution: true});
     return pipelineConfigService.triggerPipeline(this.props.application.name, command.pipelineName, command.trigger).then(
-      (result) => {
-        const newPipelineId = result.ref.split('/').pop();
-        const monitor = executionService.waitUntilNewTriggeredPipelineAppears(this.props.application, command.pipelineName, newPipelineId);
+      (newPipelineId) => {
+        const monitor = executionService.waitUntilNewTriggeredPipelineAppears(this.props.application, newPipelineId);
         monitor.then(() => this.setState({triggeringExecution: false}));
         this.setState({poll: monitor});
       },
@@ -179,7 +178,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
     return (
       <div className={`execution-group ${this.isShowingDetails() ? 'showing-details' : 'details-hidden'}`}>
         { group.heading && (
-          <Sticky className="clickable execution-group-header" onClick={this.handleHeadingClicked} topOffset={-3}>
+          <Sticky className="clickable sticky-header" onClick={this.handleHeadingClicked} topOffset={-3}>
             <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
               <span className={`glyphicon pipeline-toggle glyphicon-chevron-${this.state.open ? 'down' : 'right'}`}/>
               <div className="shadowed">

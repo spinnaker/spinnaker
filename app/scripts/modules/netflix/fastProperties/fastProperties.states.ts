@@ -1,26 +1,67 @@
-import {module} from 'angular';
-import {StateParams} from 'angular-ui-router';
+import { IScope, module } from 'angular';
+import { filterNames } from './view/filter/fastPropertyFilterSearch.component';
 
 import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
 } from 'core/application/application.state.provider';
+import { FAST_PROPERTY_ROLLOUTS_COMPONENT } from './view/rollouts/fastPropertyRollouts.component';
+import { APPLICATION_PROPERTIES_COMPONENT } from './view/applicationProperties.component';
+import { GLOBAL_PROPERTIES_COMPONENT } from './global/globalFastProperties.component';
+import { GLOBAL_ROLLOUTS_COMPONENT } from './global/globalRollouts.component';
+import { Application } from 'core/application/application.model';
+import { ApplicationReader } from '../../core/application/service/application.read.service';
 
 export const FAST_PROPERTY_STATES = 'spinnaker.netflix.fastProperties.states';
 module(FAST_PROPERTY_STATES, [
   APPLICATION_STATE_PROVIDER,
   STATE_CONFIG_PROVIDER,
+  FAST_PROPERTY_ROLLOUTS_COMPONENT,
+  APPLICATION_PROPERTIES_COMPONENT,
+  GLOBAL_PROPERTIES_COMPONENT,
+  GLOBAL_ROLLOUTS_COMPONENT,
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
-  const globalFastPropertyRolloutExecutionDetails: INestedState = {
+  const filterParamsConfig = filterNames.map(f => { return { model: f, array: true }; });
+  const filterParams = stateConfigProvider.buildDynamicParams(filterParamsConfig);
+  filterParams.propertyId = {
+    dynamic: true,
+    type: 'string',
+    value: null,
+  };
+  filterParams.sortBy = {
+    dynamic: true,
+    type: 'string',
+    value: 'key',
+  };
+  filterParams.q = {
+    dynamic: true,
+    value: null,
+  };
+
+  const detailsView = {
+    templateUrl: require('./view/details/fastPropertyDetails.html'),
+    controller: 'FastPropertiesDetailsController',
+    controllerAs: 'details'
+  };
+
+  // Shared by application and global views
+  const executionDetails: INestedState = {
     name: 'execution',
     url: '/:executionId?refId&stage&step&details',
     params: {
       stage: {
-        value: '0',
+        dynamic: true,
+        type: 'int',
+        value: 0,
       },
       step: {
-        value: '0',
+        dynamic: true,
+        type: 'int',
+        value: 0,
+      },
+      details: {
+        dynamic: true,
       }
     },
     data: {
@@ -31,70 +72,22 @@ module(FAST_PROPERTY_STATES, [
     }
   };
 
-  const globalFastPropertyRollouts: INestedState = {
-    name: 'executions',
-    url: '/rollouts',
-    views: {
-      'master': {
-        templateUrl: require('./dataNav/fastPropertyRollouts.html'),
-        controller: 'FastPropertyRolloutController',
-        controllerAs: 'rollout'
-      }
-    },
-    data: {
-      pageTitleSection: {
-        title: 'Fast Property Rollout'
-      }
-    },
-    children: [globalFastPropertyRolloutExecutionDetails]
-
-  };
-
-  const applicationFastPropertyDetails: INestedState = {
-    name: 'propertyDetails',
-    url: '/:propertyId',
-    reloadOnSearch: true,
-    views: {
-      'detail@../propInsights': {
-        templateUrl: require('./view/fastPropertyDetails.html'),
-        controller: 'FastPropertiesDetailsController',
-        controllerAs: 'details'
-      }
-    },
-    resolve: {
-      fastProperty: ['$stateParams', ($stateParams: StateParams) => {
-        return {
-          propertyId: $stateParams['propertyId'],
-        };
-      }]
-    },
-    data: {
-      pageTitleDetails: {
-        title: 'Fast Property Details',
-        propertyId: 'propertyId',
-        accountParam: 'accountId',
-        regionParam: 'region'
-      },
-      history: {
-        type: 'properties',
-      },
-    }
-  };
-
-
-  const applicationFastProperty: INestedState = {
+  /*
+    Application-specific views
+   */
+  const applicationFastProperties: INestedState = {
     name: 'properties',
-    url: '/properties',
-    reloadOnSearch: false,
+    url: `/properties?propertyId&sortBy&${stateConfigProvider.paramsToQuery(filterParamsConfig)}`,
     views: {
       'master': {
-        templateUrl: require('./view/properties.html'),
-        controller: 'FastPropertiesController',
-        controllerAs: 'fp'
+        template: '<application-fast-properties application="app" class="flex-fill"></application-fast-properties>',
+        controller: ($scope: IScope, app: Application) => { $scope.app = app; }
       },
+      'detail': detailsView
     },
+    params: filterParams,
     children: [
-      applicationFastPropertyDetails
+      executionDetails
     ]
   };
 
@@ -112,65 +105,53 @@ module(FAST_PROPERTY_STATES, [
       }
     },
     children: [
-      applicationFastProperty
+      applicationFastProperties
     ]
   };
 
-  const globalFastPropertyDetails: INestedState = {
-    name: 'globalFastPropertyDetails',
-    url: '/:propertyId',
-    reloadOnSearch: true,
+  /*
+    Global Properties views
+   */
+
+  const globalFastPropertyRollouts: INestedState = {
+    name: 'rollouts',
+    url: `/rollouts?propertyId&${stateConfigProvider.paramsToQuery(filterParamsConfig)}`,
     views: {
-      'detail@../data': {
-        templateUrl: require('./view/fastPropertyDetails.html'),
-        controller: 'FastPropertiesDetailsController',
-        controllerAs: 'details'
-      }
-    },
-    resolve: {
-      fastProperty: ['$stateParams', ($stateParams: StateParams) => {
-        return {
-          propertyId: $stateParams.propertyId,
-        };
-      }]
+      'master': {
+        template: `<fast-property-rollouts></fast-property-rollouts>`,
+      },
+      'detail': detailsView,
     },
     data: {
-      pageTitleDetails: {
-        title: 'Fast Property Details',
-        propertyId: 'propertyId',
-        accountParam: 'accountId',
-        regionParam: 'region'
-      },
-      history: {
-        type: 'properties',
-      },
-    }
-  };
+      pageTitleSection: {
+        title: 'Fast Property Rollouts'
+      }
+    },
+    params: filterParams,
+    children: [executionDetails]
 
+  };
 
   const globalFastProperties: INestedState = {
     name: 'properties',
-    url: '/properties',
-    reloadOnSearch: false,
+    url: `/properties?propertyId&q&sortBy&${stateConfigProvider.paramsToQuery(filterParamsConfig)}`,
     views: {
-      'master': {
-        templateUrl: require('./view/properties.html'),
-        controller: 'FastPropertiesController',
-        controllerAs: 'fp'
-      }
+      'detail': detailsView,
     },
-    children: [
-      globalFastPropertyDetails
-    ]
+    params: filterParams,
   };
 
   const data: INestedState = {
     name: 'data',
     url: '/data',
-    reloadOnSearch: false,
     views: {
       'main@': {
-        templateUrl: require('./dataNav/main.html'),
+        templateUrl: require('./global/main.html'),
+        controller: ($scope: IScope, app: Application) => {
+          $scope.app = app;
+          app.global = true;
+          app.enableAutoRefresh($scope);
+        }
       }
     },
     data: {
@@ -179,9 +160,9 @@ module(FAST_PROPERTY_STATES, [
       }
     },
     resolve: {
-      app: (): any => {
-        return null;
-      }
+      app: ['applicationReader', (applicationReader: ApplicationReader) => {
+        return applicationReader.getApplication('spinnakerfp');
+      }],
     },
     children: [
       globalFastProperties,
@@ -189,7 +170,6 @@ module(FAST_PROPERTY_STATES, [
     ]
   };
 
-  applicationStateProvider.addChildState(globalFastPropertyRollouts);
   applicationStateProvider.addChildState(propInsights);
   stateConfigProvider.addToRootState(data);
 });

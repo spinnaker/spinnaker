@@ -17,45 +17,6 @@
     .form-group {
       margin: 0 -15px;
     }
-    .history {
-      color: #000000;
-      font-size: 80%;
-      overflow-x: visible;
-      margin: 0;
-      padding-bottom: 0;
-      .match, .add, .remove {
-        &::before {
-          position: relative;
-          left: 0;
-        }
-      }
-      .match {
-        color: @mid_grey;
-        &::before {
-          content: ' ';
-        }
-      }
-
-      .add {
-        background-color: #eaffea; // copied from GitHub
-        &::before {
-          content: '+';
-        }
-      }
-
-      .remove {
-        background-color: #ffecec; // also copied from GitHub
-        &::before {
-          content: '-';
-        }
-      }
-      .form-group {
-        margin-bottom: 0;
-      }
-      &::-webkit-scrollbar {
-        height: 8px;
-      }
-    }
     .summary-nav {
       cursor: pointer;
       z-index: 2;
@@ -93,5 +54,67 @@
     color: @unhealthy_red_border;
     display: inline-block;
     margin-left: 5px;
+  }
+}
+
+.diff {
+  color: #000000;
+  font-size: 80%;
+  overflow-x: visible;
+  margin: 0;
+  padding-bottom: 0;
+  .match, .add, .remove {
+    &::before {
+      position: relative;
+      left: 0;
+    }
+  }
+  .match {
+    color: @mid_grey;
+    &::before {
+      content: ' ';
+    }
+  }
+
+  .add {
+    background-color: #eaffea; // copied from GitHub
+    &::before {
+      content: '+';
+    }
+  }
+
+  .remove {
+    background-color: #ffecec; // also copied from GitHub
+    &::before {
+      content: '-';
+    }
+  }
+  .form-group {
+    margin-bottom: 0;
+  }
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+}
+
+diff-view {
+  display: block;
+}
+
+.diff-inline {
+  max-width: 300px;
+  overflow-x: auto;
+  diff-view {
+    display: inline-block;
+    .diff {
+      display: block;
+      height: 100%;
+      padding: 0 10px;
+      border: none;
+      box-shadow: none;
+    }
+    .summary-nav {
+      display: none;
+    }
   }
 }

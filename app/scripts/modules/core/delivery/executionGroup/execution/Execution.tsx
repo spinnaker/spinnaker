@@ -35,6 +35,8 @@ interface IExecutionProps {
   application: Application;
   execution: IExecution;
   standalone?: boolean;
+  title?: string;
+  dataSourceKey?: string;
 }
 
 interface IExecutionState {
@@ -48,6 +50,10 @@ interface IExecutionState {
 
 @autoBindMethods
 export class Execution extends React.Component<IExecutionProps, IExecutionState> {
+  public static defaultProps: Partial<IExecutionProps> = {
+    dataSourceKey: 'executions'
+  };
+
   private activeRefresher: any;
   private stateChangeSuccessSubscription: Subscription;
   private runningTime: OrchestratedItemRunningTime;
@@ -59,16 +65,17 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   constructor(props: IExecutionProps) {
     super(props);
+    const { execution, application } = this.props;
 
     const initialViewState = {
       activeStageId: Number($stateParams.stage),
-      executionId: this.props.execution.id,
+      executionId: execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
       showStageDuration: executionFilterModel.asFilterModel.sortFilter.showStageDuration,
     };
 
-    const restartedStage = this.props.execution.stages.find(stage => stage.context.restartDetails !== undefined);
+    const restartedStage = execution.stages.find(stage => stage.context.restartDetails !== undefined);
 
     this.state = {
       showingDetails: this.invalidateShowingDetails(),
@@ -79,17 +86,18 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       runningTimeInMs: props.execution.runningTimeInMs
     };
 
-    if (this.props.execution.isRunning && !this.props.standalone) {
-      this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(this.props.execution.stages.length / 10));
+    if (execution.isRunning && !this.props.standalone) {
+      this.activeRefresher = schedulerFactory.createScheduler(1000 * Math.ceil(execution.stages.length / 10));
       let refreshing = false;
       this.activeRefresher.subscribe(() => {
-        if (refreshing) {
+        if (refreshing || !execution.isRunning) {
           return;
         }
         refreshing = true;
-        executionService.getExecution(this.props.execution.id).then((execution: IExecution) => {
+        executionService.getExecution(execution.id).then((updated: IExecution) => {
           if (this.mounted) {
-            executionService.updateExecution(this.props.application, execution);
+            const dataSource = application.getDataSource(this.props.dataSourceKey);
+            executionService.updateExecution(application, updated, dataSource);
           }
           refreshing = false;
         });
@@ -117,7 +125,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public toggleDetails(stageIndex?: number): void {
-    if (this.props.execution.id === $state.params.executionId && $state.current.name.includes('.executions.execution') && stageIndex === undefined) {
+    if (this.props.execution.id === $state.params.executionId && $state.current.name.includes('.execution') && stageIndex === undefined) {
       $state.go('^');
       return;
     }
@@ -134,7 +142,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
         $state.go('^');
       }
     } else {
-      if ($state.current.name.includes('.executions.execution') || this.props.standalone) {
+      if ($state.current.name.endsWith('.execution') || this.props.standalone) {
         $state.go('.', params);
       } else {
         $state.go('.execution', params);
@@ -157,7 +165,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       body: '<p>This will permanently delete the execution history.</p>',
       submitMethod: () => executionService.deleteExecution(this.props.application, this.props.execution.id).then( () => {
         if (this.props.standalone) {
-          $state.go('^.^.executions');
+          $state.go('^');
         }
       })
     });
@@ -262,6 +270,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     ));
 
     const executionMarkerWidth = `${100 / this.props.execution.stageSummaries.length}%`;
+    const showExecutionName = !this.props.title && this.state.sortFilter.groupBy !== 'name';
     const executionMarkers = this.props.execution.stageSummaries.map((stage) => (
       <ExecutionMarker
         key={stage.refId}
@@ -278,7 +287,12 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     return (
       <div className={`execution ${this.state.showingDetails ? 'show-details' : 'details-hidden'}`} id={`execution-${this.props.execution.id}`}>
         <div className={`execution-overview group-by-${this.state.sortFilter.groupBy}`}>
-          { this.state.sortFilter.groupBy !== 'name' && (
+          { this.props.title && (
+            <h4 className="execution-name">
+             {this.props.title}
+            </h4>
+          )}
+          { showExecutionName && (
             <h4 className="execution-name">
               {accountLabels}
               {this.props.execution.name}

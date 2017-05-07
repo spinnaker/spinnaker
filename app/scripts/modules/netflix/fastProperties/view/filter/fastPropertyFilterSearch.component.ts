@@ -1,5 +1,9 @@
 import {compact, findIndex, uniqWith} from 'lodash';
-import {module, ILogService, IComponentOptions, IComponentController} from 'angular';
+import { module, ILogService, IComponentOptions, IComponentController } from 'angular';
+import { Subject } from 'rxjs/Subject';
+import { StateService, StateParams } from 'angular-ui-router';
+
+import { IFilter, IFilterTag } from 'core/filterModel/FilterTags';
 
 interface IFastProperty {
   scope: IFastPropertyScope;
@@ -16,6 +20,7 @@ interface IFastPropertyScope {
   cluster: string;
 }
 
+export const filterNames = ['substring', 'key', 'value', 'app', 'env', 'region', 'stack', 'cluster'];
 
 class FastPropertyFilterSearchController implements IComponentController {
   public querying = false;
@@ -23,24 +28,35 @@ class FastPropertyFilterSearchController implements IComponentController {
   public categories: any = [];
   public query: string;
   public filteredCategories: any[];
-  public filters: any;
+  public filters: IFilterTag[];
   public focussedResult: any;
-  public createFilterTag: any;
   public showAllCategories = false;
+  public filtersUpdatedStream: Subject<IFilterTag[]>;
 
   public properties: any;
 
-  public constructor(
+  constructor (
     private $element: JQuery,
-    private $log: ILogService
+    private $log: ILogService,
+    private $stateParams: StateParams,
+    private $state: StateService,
   ) {
     'ngInject';
   }
 
   public $onInit(): void {
-    this.createFilterCategories(this.properties);
+    const filterTags = this.paramsToTagList();
+    const filters = uniqWith(filterTags, (a: IFilterTag, b: IFilterTag) => a.label === b.label && a.value === b.value);
+    this.filters = filters;
+    if (this.filtersUpdatedStream) {
+      this.filtersUpdatedStream.next(filters);
+    }
+    this.setStateParams();
   }
 
+  public $onChanges(): void {
+    this.createFilterCategories(this.properties);
+  }
 
   private displayAllCategories(): void {
     this.filteredCategories = this.categories;
@@ -70,13 +86,18 @@ class FastPropertyFilterSearchController implements IComponentController {
 
 
   public tagAndClearFilter(category: string, result: string): void {
-    const copy = this.filters.list.splice(0);
+    const copy = this.filters.splice(0);
     const tagBody = {label: category, value: result};
     copy.push(this.createFilterTag(tagBody));
-    this.filters.list = uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value);
+    this.filters.length = 0;
+    this.filters.push(...uniqWith(copy, (a: any, b: any) => a.label === b.label && a.value === b.value));
     this.$element.find('input').val('');
     this.showSearchResults = false;
     this.query = null;
+    if (this.filtersUpdatedStream) {
+      this.filtersUpdatedStream.next(this.filters);
+    }
+    this.setStateParams();
   }
 
 
@@ -142,6 +163,23 @@ class FastPropertyFilterSearchController implements IComponentController {
     }
   }
 
+  public createFilterTag(tag: IFilter): IFilterTag {
+    if (tag) {
+      return {
+        label: tag.label,
+        value: tag.value,
+        clear: () => {
+          this.filters = this.filters.filter(f => !(f.label === tag.label && f.value === tag.value));
+          if (this.filtersUpdatedStream) {
+            this.filtersUpdatedStream.next(this.filters);
+          }
+          this.setStateParams();
+        }
+      }
+    }
+    return null;
+  }
+
   private focusLastSearchResult(event: any) {
     try {
       event.preventDefault();
@@ -198,24 +236,42 @@ class FastPropertyFilterSearchController implements IComponentController {
     }
     return acc;
   }
+
+  private paramsToTagList(): IFilterTag[] {
+    const tagList = [] as IFilterTag[];
+    filterNames.forEach(f => {
+      if (this.$stateParams[f]) {
+        (this.$stateParams[f] as string[]).forEach(v => {
+          tagList.push(this.createFilterTag({label: f, value: v}));
+        });
+      }
+    });
+    return tagList;
+  }
+
+  private setStateParams(): void {
+    const newFilters = filterNames.reduce((acc: any, filterName) => {
+      acc[filterName] = this.filters.filter(f => f.label === filterName).map(f => f.value);
+      return acc;
+    }, {});
+    this.$state.go('.', newFilters);
+  }
+
 }
 
 
-class FastPropertyFilterSearchComponent implements IComponentOptions {
-
-  public bindings: any = {
-    'properties': '<',
-    'filters': '=',
-    'createFilterTag': '='
-  };
-  public controller: any = FastPropertyFilterSearchController;
-  public controllerAs = 'fpFilter';
-  public templateUrl: string = require('./fastPropertyFilterSearch.component.html');
-
-}
+export const fastPropertyFilterSearchComponent: IComponentOptions = {
+  bindings: {
+    properties: '<',
+    filtersUpdatedStream: '<',
+  },
+  controller: FastPropertyFilterSearchController,
+  controllerAs: 'fpFilter',
+  templateUrl: require('./fastPropertyFilterSearch.component.html'),
+};
 
 export const FAST_PROPERTY_SEARCH_COMPONENT = 'spinnaker.netflix.fastPropertyFilterSearch.component';
 
 module(FAST_PROPERTY_SEARCH_COMPONENT, [])
-  .component('fastPropertyFilterSearch', new FastPropertyFilterSearchComponent());
+  .component('fastPropertyFilterSearch', fastPropertyFilterSearchComponent);
 
