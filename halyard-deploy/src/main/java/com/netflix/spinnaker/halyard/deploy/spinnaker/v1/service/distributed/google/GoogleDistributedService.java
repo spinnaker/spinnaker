@@ -209,6 +209,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<ConfigSource> configSources,
       boolean recreate) {
+    DaemonTaskHandler.newStage("Deploying " + getServiceName() + " via GCE API");
     int version = 0;
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
@@ -220,7 +221,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     boolean exists = runningServiceDetails.getLatestEnabledVersion() != null;
     if (!recreate && exists) {
-      DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart.");
+      DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart");
       return;
     } else if (exists) {
       DaemonTaskHandler.message("Recreating existing " + getServiceName() + "...");
@@ -247,6 +248,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     metadataItems.add(items);
 
     if (!configSources.isEmpty()) {
+      DaemonTaskHandler.message("Mounting config in vault server");
       GoogleVaultServerService vaultService = getVaultServerService();
       VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
 
@@ -256,6 +258,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
       VaultConnectionDetails connectionDetails = buildConnectionDetails(details, resolvedConfiguration.getRuntimeSettings(), secretName);
 
+      DaemonTaskHandler.message("Placing vault connection details into instance metadata");
       items = new Metadata.Items()
           .setKey("vault_address")
           .setValue(connectionDetails.getAddress());
@@ -283,6 +286,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
           .setKey("consul-members") // TODO(lwander) change to consul_members for consistency w/ vault
           .setValue(instancesValue);
 
+      DaemonTaskHandler.message("Placing consul connection details into instance metadata");
       metadataItems.add(items);
     }
 
@@ -322,6 +326,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     String instanceTemplateUrl;
     Operation operation;
     try {
+      DaemonTaskHandler.message("Creating an instance template");
       operation = compute.instanceTemplates().insert(project, template).execute();
       instanceTemplateUrl = operation.getTargetLink();
       GoogleProviderUtils.waitOnGlobalOperation(compute, project, operation);
@@ -336,6 +341,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     manager.setName(migName);
 
     try {
+      DaemonTaskHandler.message("Deploying the instance group manager");
       operation = compute.instanceGroupManagers().insert(project, settings.getLocation(), manager).execute();
       GoogleProviderUtils.waitOnZoneOperation(compute, project, settings.getLocation(), operation);
     } catch (IOException e) {
@@ -343,6 +349,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     }
 
     long running = 0;
+    DaemonTaskHandler.message("Waiting for instances to appear 'RUNNING'");
     while (running < 1) {
       running = getRunningServiceDetails(details, settings)
           .getInstances()
@@ -351,7 +358,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
           .filter(RunningServiceDetails.Instance::isRunning)
           .count();
 
-      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(1));
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(2));
     }
   }
 

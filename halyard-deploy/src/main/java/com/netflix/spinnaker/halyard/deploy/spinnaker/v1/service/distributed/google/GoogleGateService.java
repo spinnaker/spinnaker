@@ -55,7 +55,6 @@ public class GoogleGateService extends GateService implements GoogleDistributedS
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getApiSecurity());
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setAddress(buildAddress())
         .setLocation("us-central1-f")
         .setEnabled(true);
     return settings;

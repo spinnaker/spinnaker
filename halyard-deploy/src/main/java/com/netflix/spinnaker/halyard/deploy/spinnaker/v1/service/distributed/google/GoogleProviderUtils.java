@@ -19,9 +19,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.Firewall;
-import com.google.api.services.compute.model.Network;
-import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.*;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -30,10 +28,12 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.IOException;
@@ -42,6 +42,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -74,12 +75,14 @@ class GoogleProviderUtils {
 
     if (proxy.getJobId() == null || !jobExecutor.jobExists(proxy.getJobId())) {
       proxy.setPort(port);
-      List<String> command = buildGcloudComputeCommand(details);
+      List<String> command = new ArrayList<>();
 
       command.add("ssh");
-      command.add("--zone=" + service.getLocation());
-      command.add(instanceName);
-      command.add("--");
+      command.add("ubuntu@" + getInstanceIp(details, instanceName));
+      command.add("-o");
+      command.add("StrictHostKeyChecking=no");
+      command.add("-i");
+      command.add("~/.ssh/google_compute_engine"); // TODO(lwander) move away from default ssh keys
       command.add("-N");
       command.add("-L");
       command.add(String.format("%d:localhost:%d", port, port));
@@ -88,10 +91,14 @@ class GoogleProviderUtils {
       DaemonTaskHandler.message("Opening port " + port + " against instance " + instanceName);
       proxy.setJobId(jobExecutor.startJob(request));
 
-      // Wait for the proxy to spin up.
-      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
-
       JobStatus status = jobExecutor.updateJob(proxy.jobId);
+
+      while (status == null) {
+        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(2));
+        status = jobExecutor.updateJob(proxy.jobId);
+      }
+
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
 
       // This should be a long-running job.
       if (status.getState() == JobStatus.State.COMPLETED) {
@@ -237,12 +244,25 @@ class GoogleProviderUtils {
     return credentials.getCompute();
   }
 
-  static List<String> buildGcloudComputeCommand(AccountDeploymentDetails<GoogleAccount> details) {
-    List<String> result = new ArrayList<>();
-    result.add("gcloud");
-    result.add("compute");
-    result.add("--project=" + details.getAccount().getProject());
-    return result;
+  static String getInstanceIp(AccountDeploymentDetails<GoogleAccount> details, String instanceName) {
+    Compute compute = getCompute(details);
+    Instance instance = null;
+    try {
+      instance = compute.instances().get(details.getAccount().getProject(), "us-central1-f", instanceName).execute();
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Unable to get instance " + instanceName);
+    }
+
+    return instance.getNetworkInterfaces()
+        .stream()
+        .map(i -> i.getAccessConfigs().stream()
+            .map(AccessConfig::getNatIP)
+            .filter(ip -> !StringUtils.isEmpty(ip))
+            .findFirst()
+        ).filter(Optional::isPresent)
+        .map(Optional::get)
+        .findFirst()
+        .orElseThrow(() -> new HalException(FATAL, "No public IP associated with" + instanceName));
   }
 
   @Data

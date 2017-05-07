@@ -53,7 +53,6 @@ public class GoogleDeckService extends DeckService implements GoogleDistributedS
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     Settings settings = new Settings(deploymentConfiguration.getSecurity().getUiSecurity());
     settings.setArtifactId(getArtifactId(deploymentConfiguration.getName()))
-        .setAddress(buildAddress())
         .setLocation("us-central1-f")
         .setEnabled(true);
     return settings;

@@ -101,10 +101,11 @@ public class DaemonTask<C, T> {
   }
 
   void cleanupResources() {
+    log.info(this + " killing all jobs");
     jobExecutor.cancelAllJobs();
     for (DaemonTask child : children) {
       if (child != null) {
-        log.info("Interrupting child " + child);
+        log.info(this + "Interrupting child " + child);
 
         if (timedOut) {
           child.timeout();
@@ -172,7 +173,7 @@ public class DaemonTask<C, T> {
 
     TaskRepository.getTask(childTask.getUuid());
 
-    log.info("Collected child task " + childTask + " with state " + childTask.getState());
+    log.info(this + "Collected child task " + childTask + " with state " + childTask.getState());
     if (childTask.getResponse() == null) {
       throw new RuntimeException("Child response may not be null.");
     }
