@@ -37,7 +37,7 @@ import yaml
 
 from annotate_source import Annotator
 from build_release import BackgroundProcess
-from publish_bom import format_release_branch
+from publish_bom import format_stable_branch
 from spinnaker.run import check_run_quick
 
 
@@ -57,6 +57,8 @@ class HalyardPublisher(object):
     self.__stable_branch = ''
     self.__stable_version = options.stable_version
     self.__stable_version_tag = ''
+    self.__docs_repo_name = options.docs_repo_name
+    self.__docs_repo_owner = options.docs_repo_owner
 
   def __checkout_halyard_repo(self):
     """Clones the Halyard git repo at the commit at which we built the nightly version.
@@ -132,7 +134,7 @@ class HalyardPublisher(object):
     """Pushes a stable branch and git version tag to --github_publisher's Halyard repository.
     """
     major, minor, _ = self.__stable_version.split('.')
-    self.__stable_branch = format_release_branch(major, minor)
+    self.__stable_branch = format_stable_branch(major, minor)
 
     if self.__patch_release:
       check_run_quick('git -C halyard checkout {0}'.format(self.__stable_branch))
@@ -152,11 +154,58 @@ class HalyardPublisher(object):
            .format(tag=self.__stable_version_tag, repo=self.__halyard_repo_uri))
     check_run_quick('git -C halyard push release {tag}'.format(tag=self.__stable_version_tag))
 
+  def __generate_halyard_docs(self):
+    """Builds Halyard's CLI, which writes the new documentation locally to halyard/docs/commands.md
+    """
+    BackgroundProcess.spawn(
+      'Building Halyard\'s CLI to generate documentation...',
+      'cd halyard/halyard-cli; make; cd ../..'  # The Makefile looks up a directory to find `gradlew`.
+    ).check_wait()
+
+  def __publish_halyard_docs(self):
+    """ Formats Halyard's documentation, then creates a pull request against Spinnaker's documentation repository.
+    """
+    docs_source = 'halyard/docs/commands.md'
+    docs_target = '{repo_name}/reference/halyard/commands.md'.format(repo_name=self.__docs_repo_name)
+
+    repo_uri = 'git@github.com:{repo_owner}/{repo_name}'.format(repo_owner=self.__docs_repo_owner,
+                                                                repo_name=self.__docs_repo_name)
+    check_run_quick('git clone {repo_uri}'.format(repo_uri=repo_uri))
+
+    with open(docs_source, 'r') as source:
+      with open(docs_target, 'w') as target:
+        header = '\n'.join([
+          '---',
+          'layout: single',
+          'title:  "Commands"',
+          'sidebar:',
+          '  nav: reference',
+          '---',
+          '',
+          ''
+        ])
+        target.write(header + source.read())
+
+    branch = 'hal-{version}'.format(version=self.__stable_version)
+    commit_message = 'Halyard docs for {version}'.format(version=self.__stable_version)
+
+    check_run_quick('git -C {repo_name} checkout -b {branch}'.format(repo_name=self.__docs_repo_name, branch=branch))
+    check_run_quick('git -C {repo_name} add reference/halyard/commands.md'.format(repo_name=self.__docs_repo_name))
+    check_run_quick('git -C {repo_name} commit -m "{message}"'
+                    .format(repo_name=self.__docs_repo_name, message=commit_message))
+    check_run_quick('git -C {repo_name} push origin {branch}'
+                    .format(repo_name=self.__docs_repo_name, branch=branch))
+    check_run_quick('hub -C {repo_name} pull-request -h {repo_owner}:{branch} -b {repo_owner}:master -m "{message}"'
+                    .format(branch=branch, repo_name=self.__docs_repo_name, repo_owner=self.__docs_repo_owner,
+                            message=commit_message, user='spinnaker-release'))
+
   def publish_stable_halyard(self):
     self.__checkout_halyard_repo()
     self.__tag_halyard_repo()
     self.__build_halyard()
     self.__push_halyard_tag_and_branch()
+    self.__generate_halyard_docs()
+    self.__publish_halyard_docs()
 
   @classmethod
   def init_argument_parser(cls, parser):
@@ -179,6 +228,10 @@ class HalyardPublisher(object):
                         help='Make a patch release.')
     parser.add_argument('--stable_version', default='', required=True,
                         help='The stable version we are publishing the chosen nightly Halyard version as.')
+    parser.add_argument('--docs_repo_name', default='spinnaker.github.io', required=True,
+                        help="The name of the Spinnaker docs repository")
+    parser.add_argument('--docs_repo_owner', default='spinnaker', required=True,
+                        help="The owner of the Spinnaker docs repository")
     # Initialize parser for composed Annotator.
     Annotator.init_argument_parser(parser)
 
