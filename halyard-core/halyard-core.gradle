@@ -5,5 +5,5 @@ dependencies {
   compile spinnaker.dependency('clouddriverAws')
   compile spinnaker.dependency('googleStorage')
 
-  compile "com.beust:jcommander:1.48"
+  compile 'com.beust:jcommander:1.48'
 }

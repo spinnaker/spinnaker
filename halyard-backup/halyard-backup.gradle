@@ -1,11 +1,11 @@
 dependencies {
+  // TODO(lwander) Move to spinnaker-dependencies
+  compile 'com.google.apis:google-api-services-cloudkms:v1-rev8-1.22.0'
+
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('lombok')
   compile spinnaker.dependency('fabric8Api')
-  compile spinnaker.dependency('googleStorage')
 
-  compile project(':halyard-config')
-  compile project(':halyard-core')
   compile project(':halyard-deploy')
 }

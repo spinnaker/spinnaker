@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.backup.services.v1;
 
+import com.netflix.spinnaker.halyard.backup.kms.v1.google.GoogleKms;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
@@ -27,6 +28,9 @@ import org.springframework.stereotype.Component;
 public class BackupService {
   @Autowired
   HalconfigParser halconfigParser;
+
+  @Autowired(required = false)
+  GoogleKms googleKms;
 
   @Autowired
   HalconfigDirectoryStructure directoryStructure;

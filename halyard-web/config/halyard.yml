@@ -18,5 +18,10 @@ endpoints:
   shutdown:
     enabled: true
 
+backup:
+  kms:
+    google:
+      enabled: false
+
 retrofit:
   logLevel: BASIC
