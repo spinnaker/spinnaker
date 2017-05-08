@@ -57,8 +57,10 @@ export class StateConfigProvider implements IServiceProvider {
       acc[param] = {
         type: p.type || 'string',
         dynamic: true,
-        array: p.array,
       };
+      if (p.array) {
+        acc[param].array = true;
+      }
       return acc;
     }, {});
   }
