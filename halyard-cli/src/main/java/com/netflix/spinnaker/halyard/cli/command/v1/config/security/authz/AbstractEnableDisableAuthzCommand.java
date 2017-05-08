@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Parameters(separators = "=")
-public abstract class AbstractEnableDisableRolesCommand extends AbstractConfigCommand {
+public abstract class AbstractEnableDisableAuthzCommand extends AbstractConfigCommand {
   @Override
   public String getCommandName() {
     return isEnable() ? "enable" : "disable";

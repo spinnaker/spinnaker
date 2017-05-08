@@ -17,11 +17,12 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,38 +30,31 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Parameters(separators = "=")
-public class RolesCommand extends AbstractConfigCommand {
+public class AuthzEditCommand extends AbstractConfigCommand {
+  private String commandName = "edit";
+  private String description = "Edit your roles provider settings.";
 
-  public RolesCommand() {
-    super();
-    registerSubcommand(new RolesProviderCommand());
-
-    registerSubcommand(new EditRolesCommand());
-
-    registerSubcommand(new EnableDisableRolesCommandBuilder()
-        .setEnable(true)
-        .build()
-    );
-
-    registerSubcommand(new EnableDisableRolesCommandBuilder()
-        .setEnable(false)
-        .build()
-    );
-  }
-
-  private String commandName = "roles";
-  private String description = "Configure authorization via a roles provider.";
+  @Parameter(
+      names = "--type",
+      description = "Set a roles provider type"
+  )
+  GroupMembership.RoleProviderType type;
 
   @Override
   protected void executeThis() {
     String currentDeployment = getCurrentDeployment();
 
-    new OperationHandler<GroupMembership>()
-        .setOperation(Daemon.getGroupMembership(currentDeployment, true))
+    GroupMembership membership = new OperationHandler<GroupMembership>()
+        .setOperation(Daemon.getGroupMembership(currentDeployment, false))
         .setFailureMesssage("Failed to get configured roles.")
-        .setSuccessMessage("Configured roles: ")
-        .setFormat(AnsiFormatUtils.Format.STRING)
-        .setUserFormatted(true)
         .get();
+
+    membership.setService(type != null ? type : membership.getService());
+
+    new OperationHandler<Void>()
+      .setOperation(Daemon.setGroupMembership(currentDeployment, !noValidate, membership))
+      .setFailureMesssage("Failed to set configured roles.")
+      .setSuccessMessage("Successfully updated roles.")
+      .get();
   }
 }

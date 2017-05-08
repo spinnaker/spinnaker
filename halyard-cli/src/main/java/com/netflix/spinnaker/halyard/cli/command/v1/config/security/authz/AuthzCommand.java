@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.github.GithubRoleProviderCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authz.google.GoogleRoleProviderCommand;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -39,6 +41,10 @@ public class AuthzCommand extends AbstractConfigCommand {
   }
 
   public AuthzCommand() {
-    registerSubcommand(new RolesCommand());
+    registerSubcommand(new AuthzEditCommand());
+    registerSubcommand(new EnableDisableAuthzCommandBuilder().setEnable(true).build());
+    registerSubcommand(new EnableDisableAuthzCommandBuilder().setEnable(false).build());
+    registerSubcommand(new GoogleRoleProviderCommand());
+    registerSubcommand(new GithubRoleProviderCommand());
   }
 }

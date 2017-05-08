@@ -21,16 +21,22 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.GoogleRoleProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import org.springframework.stereotype.Component;
+import org.apache.commons.lang3.StringUtils;
 
-@Component
 public class GoogleRoleProviderValidator extends Validator<GoogleRoleProvider> {
+
   @Override
   public void validate(ConfigProblemSetBuilder p, GoogleRoleProvider n) {
-    if (!n.isEnabled()) {
-      return;
+    if (StringUtils.isEmpty(n.getAdminUsername())) {
+      p.addProblem(Problem.Severity.ERROR, "No admin username specified.");
     }
 
-    p.addProblem(Problem.Severity.WARNING, "No validation exists for google role providers yet.");
+    if (StringUtils.isEmpty(n.getCredentialPath())) {
+      p.addProblem(Problem.Severity.ERROR, "No credentials path specified.");
+    }
+
+    if (StringUtils.isEmpty(n.getDomain())) {
+      p.addProblem(Problem.Severity.ERROR, "No domain specified.");
+    }
   }
 }

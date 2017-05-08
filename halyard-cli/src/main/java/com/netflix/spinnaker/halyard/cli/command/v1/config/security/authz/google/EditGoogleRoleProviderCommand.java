@@ -41,13 +41,13 @@ public class EditGoogleRoleProviderCommand extends AbstractEditRoleProviderComma
 
   @Parameter(
       names = "--admin-username",
-      description = "Your role provider's admin username e.g. ttomsu@spinnaker-test.net"
+      description = "Your role provider's admin username e.g. admin@myorg.net"
   )
   private String adminUsername;
 
   @Parameter(
       names = "--domain",
-      description = "The domain your role provider is configured for e.g. spinnaker-test.net."
+      description = "The domain your role provider is configured for e.g. myorg.net."
   )
   private String domain;
 

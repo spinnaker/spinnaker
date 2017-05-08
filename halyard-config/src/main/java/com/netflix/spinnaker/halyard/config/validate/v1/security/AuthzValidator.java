@@ -17,21 +17,36 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.security.GithubRoleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Authz;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Component;
 
-public class GithubRoleProviderValidator extends Validator<GithubRoleProvider> {
+@Component
+public class AuthzValidator extends Validator<Authz> {
+
+  GoogleRoleProviderValidator googleValidator = new GoogleRoleProviderValidator();
+
+  GithubRoleProviderValidator githubValidator = new GithubRoleProviderValidator();
+
   @Override
-  public void validate(ConfigProblemSetBuilder p, GithubRoleProvider provider) {
-    if (StringUtils.isEmpty(provider.getOrganization())) {
-      p.addProblem(Problem.Severity.ERROR, "No organization specified.");
+  public void validate(ConfigProblemSetBuilder p, Authz z) {
+    if (!z.isEnabled()) {
+      return;
     }
 
-    if (StringUtils.isEmpty(provider.getAccessToken())) {
-      p.addProblem(Problem.Severity.ERROR, "No access token specified.");
+    switch (z.getGroupMembership().getService()) {
+      case GITHUB:
+        githubValidator.validate(p, z.getGroupMembership().getGithub());
+        break;
+      case GOOGLE:
+        googleValidator.validate(p, z.getGroupMembership().getGoogle());
+        break;
+      default:
+        // Used when SAML authentication is enabled. No additional config is needed.
+        break;
     }
   }
 }

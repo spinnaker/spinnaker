@@ -148,15 +148,13 @@
  * [**hal config security authn saml edit**](#hal-config-security-authn-saml-edit)
  * [**hal config security authn saml enable**](#hal-config-security-authn-saml-enable)
  * [**hal config security authz**](#hal-config-security-authz)
- * [**hal config security authz roles**](#hal-config-security-authz-roles)
- * [**hal config security authz roles disable**](#hal-config-security-authz-roles-disable)
- * [**hal config security authz roles edit**](#hal-config-security-authz-roles-edit)
- * [**hal config security authz roles enable**](#hal-config-security-authz-roles-enable)
- * [**hal config security authz roles provider**](#hal-config-security-authz-roles-provider)
- * [**hal config security authz roles provider github**](#hal-config-security-authz-roles-provider-github)
- * [**hal config security authz roles provider github edit**](#hal-config-security-authz-roles-provider-github-edit)
- * [**hal config security authz roles provider google**](#hal-config-security-authz-roles-provider-google)
- * [**hal config security authz roles provider google edit**](#hal-config-security-authz-roles-provider-google-edit)
+ * [**hal config security authz disable**](#hal-config-security-authz-disable)
+ * [**hal config security authz edit**](#hal-config-security-authz-edit)
+ * [**hal config security authz enable**](#hal-config-security-authz-enable)
+ * [**hal config security authz github**](#hal-config-security-authz-github)
+ * [**hal config security authz github edit**](#hal-config-security-authz-github-edit)
+ * [**hal config security authz google**](#hal-config-security-authz-google)
+ * [**hal config security authz google edit**](#hal-config-security-authz-google-edit)
  * [**hal config security ui**](#hal-config-security-ui)
  * [**hal config security ui edit**](#hal-config-security-ui-edit)
  * [**hal config security ui ssl**](#hal-config-security-ui-ssl)
@@ -2461,85 +2459,57 @@ hal config security authz [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 #### Subcommands
- * `roles`: Configure authorization via a roles provider.
-
----
-## hal config security authz roles
-
-Configure authorization via a roles provider.
-
-#### Usage
-```
-hal config security authz roles [parameters] [subcommands]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
  * `disable`: Set Spinnaker's role-based authorization to disabled
  * `edit`: Edit your roles provider settings.
  * `enable`: Set Spinnaker's role-based authorization to enabled
- * `provider`: Configure a roles provider.
+ * `github`: Configure the github role provider.
+ * `google`: Configure the google role provider.
 
 ---
-## hal config security authz roles disable
+## hal config security authz disable
 
 Set Spinnaker's role-based authorization to disabled
 
 #### Usage
 ```
-hal config security authz roles disable [parameters]
+hal config security authz disable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
-## hal config security authz roles edit
+## hal config security authz edit
 
 Edit your roles provider settings.
 
 #### Usage
 ```
-hal config security authz roles edit [parameters]
+hal config security authz edit [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Set a roles provider type
 
 ---
-## hal config security authz roles enable
+## hal config security authz enable
 
 Set Spinnaker's role-based authorization to enabled
 
 #### Usage
 ```
-hal config security authz roles enable [parameters]
+hal config security authz enable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
-## hal config security authz roles provider
-
-Configure a roles provider.
-
-#### Usage
-```
-hal config security authz roles provider [parameters] [subcommands]
-```
-#### Parameters
- * `--no-validate`: (*Default*: `false`) Skip validation.
-#### Subcommands
- * `github`: Configure the github role provider.
- * `google`: Configure the google role provider.
-
----
-## hal config security authz roles provider github
+## hal config security authz github
 
 Configure the github role provider.
 
 #### Usage
 ```
-hal config security authz roles provider github [parameters] [subcommands]
+hal config security authz github [parameters] [subcommands]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2547,13 +2517,13 @@ hal config security authz roles provider github [parameters] [subcommands]
  * `edit`: Edit the github role provider.
 
 ---
-## hal config security authz roles provider github edit
+## hal config security authz github edit
 
 Edit the github role provider.
 
 #### Usage
 ```
-hal config security authz roles provider github edit [parameters]
+hal config security authz github edit [parameters]
 ```
 #### Parameters
  * `--accessToken`: A personal access token of an account with access to your organization's GitHub Teams structure.
@@ -2562,13 +2532,13 @@ hal config security authz roles provider github edit [parameters]
  * `--organization`: The GitHub organization under which to query for GitHub Teams.
 
 ---
-## hal config security authz roles provider google
+## hal config security authz google
 
 Configure the google role provider.
 
 #### Usage
 ```
-hal config security authz roles provider google [parameters] [subcommands]
+hal config security authz google [parameters] [subcommands]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2576,18 +2546,18 @@ hal config security authz roles provider google [parameters] [subcommands]
  * `edit`: Edit the google role provider.
 
 ---
-## hal config security authz roles provider google edit
+## hal config security authz google edit
 
 Edit the google role provider.
 
 #### Usage
 ```
-hal config security authz roles provider google edit [parameters]
+hal config security authz google edit [parameters]
 ```
 #### Parameters
- * `--admin-username`: Your role provider's admin username e.g. ttomsu@spinnaker-test.net
+ * `--admin-username`: Your role provider's admin username e.g. admin@myorg.net
  * `--credential-path`: A path to a valid json service account that can authenticate against the Google role provider.
- * `--domain`: The domain your role provider is configured for e.g. spinnaker-test.net.
+ * `--domain`: The domain your role provider is configured for e.g. myorg.net.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---

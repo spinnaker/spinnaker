@@ -29,5 +29,4 @@ public class GithubRoleProvider extends RoleProvider {
   private String baseUrl;
   private String accessToken;
   private String organization;
-  Integer paginationValue = 100;
 }

@@ -24,18 +24,18 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-public class EnableDisableRolesCommandBuilder implements CommandBuilder {
+public class EnableDisableAuthzCommandBuilder implements CommandBuilder {
   @Setter
   boolean enable;
 
   @Override
   public NestableCommand build() {
-    return new EnableDisableRolesCommand(enable);
+    return new EnableDisableAuthzCommand(enable);
   }
 
   @Parameters(separators = "=")
-  private static class EnableDisableRolesCommand extends AbstractEnableDisableRolesCommand {
-    private EnableDisableRolesCommand(boolean enable) {
+  private static class EnableDisableAuthzCommand extends AbstractEnableDisableAuthzCommand {
+    private EnableDisableAuthzCommand(boolean enable) {
       this.enable = enable;
     }
 

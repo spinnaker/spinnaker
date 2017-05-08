@@ -36,7 +36,7 @@ public class GroupMembership extends Node {
 
   private final String nodeName = "groupMembership";
 
-  private RoleProviderType roleProviderType;
+  private RoleProviderType service = RoleProviderType.NONE;
   private GoogleRoleProvider google = new GoogleRoleProvider();
   private GithubRoleProvider github = new GithubRoleProvider();
 
@@ -64,10 +64,10 @@ public class GroupMembership extends Node {
   }
 
   public enum RoleProviderType {
+    NONE(""),
     GOOGLE("google"),
     GITHUB("github"),
-    LDAP("ldap"),
-    EXTERNAL("external");
+    LDAP("ldap");
 
     @Getter
     final String id;
