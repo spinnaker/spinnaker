@@ -19,21 +19,41 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
                                                providerSelectionService, cloudProviderRegistry,
                                                LoadBalancerFilterModel, loadBalancerFilterService, app ) {
 
-    LoadBalancerFilterModel.activate();
-    this.initialized = false;
+    this.$onInit = () => {
+      const groupsUpdatedSubscription = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => groupsUpdated());
 
-    $scope.application = app;
+      LoadBalancerFilterModel.activate();
 
-    $scope.sortFilter = LoadBalancerFilterModel.sortFilter;
+      this.initialized = false;
+
+      $scope.application = app;
+
+      $scope.sortFilter = LoadBalancerFilterModel.sortFilter;
+
+      app.loadBalancers.ready().then(() => updateLoadBalancerGroups());
+
+      app.activeState = app.loadBalancers;
+      $scope.$on('$destroy', () => {
+        app.activeState = app;
+        groupsUpdatedSubscription.unsubscribe();
+      });
+
+      app.loadBalancers.onRefresh($scope, updateLoadBalancerGroups);
+    };
+
+    let groupsUpdated = () => {
+      $scope.$applyAsync(() => {
+        $scope.groups = LoadBalancerFilterModel.groups;
+        $scope.tags = LoadBalancerFilterModel.tags;
+      });
+    };
 
     this.groupingsTemplate = require('./groupings.html');
 
     let updateLoadBalancerGroups = () => {
-      LoadBalancerFilterModel.applyParamsToUrl();
       $scope.$evalAsync(() => {
         loadBalancerFilterService.updateLoadBalancerGroups(app);
-        $scope.groups = LoadBalancerFilterModel.groups;
-        $scope.tags = LoadBalancerFilterModel.tags;
+        groupsUpdated();
         // Timeout because the updateLoadBalancerGroups method is debounced by 25ms
         $timeout(() => { this.initialized = true; }, 50);
       });
@@ -63,13 +83,5 @@ module.exports = angular.module('spinnaker.core.loadBalancer.controller', [
 
     this.updateLoadBalancerGroups = _.debounce(updateLoadBalancerGroups, 200);
 
-    if (app.loadBalancers.loaded) {
-      updateLoadBalancerGroups();
-    }
-
-    app.activeState = app.loadBalancers;
-    $scope.$on('$destroy', () => app.activeState = app);
-
-    app.loadBalancers.onRefresh($scope, updateLoadBalancerGroups);
   }
 );

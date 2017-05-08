@@ -19,23 +19,46 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
                                                 providerSelectionService, cloudProviderRegistry,
                                                 SecurityGroupFilterModel, securityGroupFilterService) {
 
-    SecurityGroupFilterModel.activate();
-    this.initialized = false;
+    this.$onInit = () => {
+      const groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream.subscribe(() => groupsUpdated());
 
-    $scope.application = app;
+      SecurityGroupFilterModel.activate();
 
-    $scope.sortFilter = SecurityGroupFilterModel.sortFilter;
+      this.initialized = false;
+
+      $scope.application = app;
+
+      $scope.sortFilter = SecurityGroupFilterModel.sortFilter;
+
+      handleRefresh();
+
+      app.activeState = app.securityGroups;
+      $scope.$on('$destroy', () => {
+        app.activeState = app;
+        groupsUpdatedSubscription.unsubscribe();
+      });
+
+      app.securityGroups.ready().then(() => updateSecurityGroups());
+
+      app.securityGroups.onRefresh($scope, handleRefresh);
+
+    };
 
     this.groupingsTemplate = require('./groupings.html');
 
     let updateSecurityGroups = () => {
-      SecurityGroupFilterModel.applyParamsToUrl();
       $scope.$evalAsync(() => {
         securityGroupFilterService.updateSecurityGroups(app);
-        $scope.groups = SecurityGroupFilterModel.groups;
-        $scope.tags = SecurityGroupFilterModel.tags;
+        groupsUpdated();
         // Timeout because the updateSecurityGroups method is debounced by 25ms
         $timeout(() => { this.initialized = true; }, 50);
+      });
+    };
+
+    let groupsUpdated = () => {
+      $scope.$applyAsync(() => {
+        $scope.groups = SecurityGroupFilterModel.groups;
+        $scope.tags = SecurityGroupFilterModel.tags;
       });
     };
 
@@ -76,12 +99,5 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
     let handleRefresh = () => {
       this.updateSecurityGroups();
     };
-
-    handleRefresh();
-
-    app.activeState = app.securityGroups;
-    $scope.$on('$destroy', () => app.activeState = app);
-
-    app.securityGroups.onRefresh($scope, handleRefresh);
   }
 );

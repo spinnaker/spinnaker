@@ -23,25 +23,73 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
                                          executionService, executionFilterModel, executionFilterService,
                                          InsightFilterStateModel) {
 
-    if (executionFilterModel.mostRecentApplication !== $scope.application.name) {
-      executionFilterModel.groups = [];
-      executionFilterModel.mostRecentApplication = $scope.application.name;
-    }
+    this.$onInit = () => {
+      const groupsUpdatedSubscription = executionFilterModel.groupsUpdated.subscribe(() => this.groupsUpdated());
+      if (executionFilterModel.mostRecentApplication !== $scope.application.name) {
+        executionFilterModel.groups = [];
+        executionFilterModel.mostRecentApplication = $scope.application.name;
+      }
 
-    let scrollIntoView = (delay = 200) => scrollToService.scrollTo('#execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
+      let scrollIntoView = (delay = 200) => scrollToService.scrollTo('#execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
 
-    let application = $scope.application;
-    this.application = application;
-    if ($scope.application.notFound) {
-      return;
-    }
+      let application = $scope.application;
+      this.application = application;
+      if ($scope.application.notFound) {
+        return;
+      }
 
-    application.activeState = application.executions;
-    $scope.$on('$destroy', () => {
-      application.activeState = application;
-      application.executions.deactivate();
-      application.pipelineConfigs.deactivate();
-    });
+      application.activeState = application.executions;
+      $scope.$on('$destroy', () => {
+        application.activeState = application;
+        application.executions.deactivate();
+        application.pipelineConfigs.deactivate();
+        groupsUpdatedSubscription.unsubscribe();
+      });
+
+      this.viewState = {
+        loading: true,
+        triggeringExecution: false,
+      };
+
+      application.executions.activate();
+      application.pipelineConfigs.activate();
+
+      application.executions.onRefresh($scope, () => {
+        // if an execution was selected but is no longer present, navigate up
+        if ($state.params.executionId) {
+          if (application.getDataSource('executions').data.every(e => e.id !== $state.params.executionId)) {
+            $state.go('.^');
+          }
+        }
+      });
+
+      $q.all([application.executions.ready(), application.pipelineConfigs.ready()]).then(() => {
+        this.updateExecutionGroups();
+        if ($stateParams.executionId) {
+          scrollIntoView();
+        }
+      });
+
+      this.application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
+
+      $scope.$on('$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) => {
+        // if we're navigating to a different execution on the same page, scroll the new execution into view
+        // or, if we are navigating back to the same execution after scrolling down the page, scroll it into view
+        // but don't scroll it into view if we're navigating to a different stage in the same execution
+        let shouldScroll = false;
+        if (toState.name.indexOf(fromState.name) === 0 && toParams.application === fromParams.application && toParams.executionId) {
+          shouldScroll = true;
+          if (toParams.executionId === fromParams.executionId && toParams.details) {
+            if (toParams.stage !== fromParams.stage || toParams.step !== fromParams.step || toParams.details !== fromParams.details) {
+              shouldScroll = false;
+            }
+          }
+        }
+        if (shouldScroll) {
+          scrollIntoView(0);
+        }
+      });
+    };
 
     this.InsightFilterStateModel = InsightFilterStateModel;
 
@@ -55,41 +103,22 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
 
     this.updateExecutionGroups = (reload) => {
       normalizeExecutionNames();
-      executionFilterModel.applyParamsToUrl();
       if (reload) {
         this.application.executions.refresh(true);
         this.application.executions.reloadingForFilters = true;
       } else {
         executionFilterService.updateExecutionGroups(this.application);
-        this.tags = executionFilterModel.tags;
+        this.groupsUpdated();
         // updateExecutionGroups is debounced by 25ms, so we need to delay setting the loading flag a bit
         $timeout(() => { this.viewState.loading = false; }, 50);
       }
     };
 
-    this.viewState = {
-      loading: true,
-      triggeringExecution: false,
+    this.groupsUpdated = () => {
+      $scope.$applyAsync(() => {
+        this.tags = executionFilterModel.tags;
+      });
     };
-
-    application.executions.activate();
-    application.pipelineConfigs.activate();
-
-    application.executions.onRefresh($scope, () => {
-      // if an execution was selected but is no longer present, navigate up
-      if ($state.params.executionId) {
-        if (application.getDataSource('executions').data.every(e => e.id !== $state.params.executionId)) {
-          $state.go('.^');
-        }
-      }
-    });
-
-    $q.all([application.executions.ready(), application.pipelineConfigs.ready()]).then(() => {
-      this.updateExecutionGroups();
-      if ($stateParams.executionId) {
-        scrollIntoView();
-      }
-    });
 
     $scope.filterCountOptions = [1, 2, 5, 10, 20, 30, 40, 50];
 
@@ -98,12 +127,12 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       this.viewState.initializationError = true;
     };
 
-    function normalizeExecutionNames() {
-      if (application.executions.loadFailure) {
+    let normalizeExecutionNames = () => {
+      if (this.application.executions.loadFailure) {
         dataInitializationFailure();
       }
-      let executions = application.executions.data || [];
-      var configurations = application.pipelineConfigs.data || [];
+      const executions = this.application.executions.data || [];
+      const configurations = this.application.pipelineConfigs.data || [];
       executions.forEach(function(execution) {
         if (execution.pipelineConfigId) {
           var configMatches = configurations.filter(function(configuration) {
@@ -114,9 +143,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
           }
         }
       });
-    }
-
-    this.application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
+    };
 
     this.toggleExpansion = (expand) => {
       this.executionFilterModel.expandSubject.next(expand);
@@ -148,22 +175,4 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
         }
       }).result.then(startPipeline);
     };
-
-    $scope.$on('$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) => {
-      // if we're navigating to a different execution on the same page, scroll the new execution into view
-      // or, if we are navigating back to the same execution after scrolling down the page, scroll it into view
-      // but don't scroll it into view if we're navigating to a different stage in the same execution
-      let shouldScroll = false;
-      if (toState.name.indexOf(fromState.name) === 0 && toParams.application === fromParams.application && toParams.executionId) {
-        shouldScroll = true;
-        if (toParams.executionId === fromParams.executionId && toParams.details) {
-          if (toParams.stage !== fromParams.stage || toParams.step !== fromParams.step || toParams.details !== fromParams.details) {
-            shouldScroll = false;
-          }
-        }
-      }
-      if (shouldScroll) {
-        scrollIntoView(0);
-      }
-    });
   });

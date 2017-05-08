@@ -26,7 +26,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       templateUrl: require('./pipelineConfigurer.html'),
     };
   })
-  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, $window, pageTitleService,
+  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, $window,
                                                  pipelineConfigValidator,
                                                  pipelineConfigService, viewStateCache, overrideRegistry, $location) {
 
@@ -369,7 +369,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       if ($scope.viewState.isDirty) {
         if (!$window.confirm(warningMessage)) {
           event.preventDefault();
-          pageTitleService.handleRoutingCanceled();
         }
       }
     });

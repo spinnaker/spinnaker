@@ -1,5 +1,6 @@
 import { chain, debounce, find, forOwn, groupBy, includes, map, some, sortBy, without } from 'lodash';
 import { ILogService, module } from 'angular';
+import { Subject } from 'rxjs/Subject';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Application } from 'core/application/application.model';
@@ -8,6 +9,9 @@ import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalan
 
 @autoBindMethods
 export class LoadBalancerFilterService {
+
+  public groupsUpdatedStream: Subject<ILoadBalancerGroup[]> = new Subject<ILoadBalancerGroup[]>();
+
   private isFilterable: (object: any) => boolean;
   private getCheckValues: (object: any) => string[];
   private lastApplication: Application;
@@ -122,13 +126,14 @@ export class LoadBalancerFilterService {
   private diffServerGroups(oldGroup: ILoadBalancerGroup, newGroup: ILoadBalancerGroup): void {
     const toRemove: number[] = [];
     oldGroup.serverGroups.forEach((serverGroup, idx) => {
-      serverGroup.stringVal = serverGroup.stringVal || JSON.stringify(serverGroup);
+      serverGroup.stringVal = serverGroup.stringVal || JSON.stringify(serverGroup, this.jsonReplacer);
       const newServerGroup = find(newGroup.serverGroups, { name: serverGroup.name, account: serverGroup.account, region: serverGroup.region });
       if (!newServerGroup) {
         this.$log.debug('server group no longer found, removing:', serverGroup.name, serverGroup.account, serverGroup.region);
         toRemove.push(idx);
       } else {
-        if (serverGroup.stringVal !== JSON.stringify(newServerGroup)) {
+        newServerGroup.stringVal = newServerGroup.stringVal || JSON.stringify(newServerGroup, this.jsonReplacer);
+        if (serverGroup.stringVal !== newServerGroup.stringVal) {
           this.$log.debug('change detected, updating server group:', serverGroup.name, serverGroup.account, serverGroup.region);
           oldGroup.serverGroups[idx] = newServerGroup;
         }
@@ -175,6 +180,13 @@ export class LoadBalancerFilterService {
     return loadBalancer.serverGroups;
   }
 
+  private jsonReplacer(key: any, val: any): string {
+    if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
+      val = undefined;
+    }
+    return val;
+  }
+
   public updateLoadBalancerGroups(application: Application) {
     if (!application) {
       application = this.lastApplication;
@@ -213,6 +225,7 @@ export class LoadBalancerFilterService {
     this.sortGroupsByHeading(groups);
     this.LoadBalancerFilterModel.asFilterModel.addTags();
     this.lastApplication = application;
+    this.groupsUpdatedStream.next(groups);
     return groups;
   };
 }

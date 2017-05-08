@@ -1,6 +1,7 @@
 import { ILogService, module } from 'angular';
 import { debounce, each, forOwn, groupBy, sortBy } from 'lodash';
 import { StateParams } from 'angular-ui-router';
+import { Subject } from 'rxjs/Subject';
 
 import { Application } from 'core/application/application.model';
 import { ServerGroup } from 'core/domain/serverGroup';
@@ -42,6 +43,8 @@ export interface IServerGroupSubgroup {
 type Grouping = IClusterGroup | IClusterSubgroup | IServerGroupSubgroup;
 
 export class ClusterFilterService {
+
+  public groupsUpdatedStream: Subject<IClusterGroup[]> = new Subject<IClusterGroup[]>();
 
   public updateClusterGroups = debounce((application?: Application) => {
     if (!application) {
@@ -104,6 +107,7 @@ export class ClusterFilterService {
     this.ClusterFilterModel.addTags();
     this.lastApplication = application;
     this.addHealthFlags();
+    this.groupsUpdatedStream.next(groups);
     return groups;
   }, 25);
 

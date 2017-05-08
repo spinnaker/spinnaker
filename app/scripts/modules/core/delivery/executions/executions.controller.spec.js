@@ -46,6 +46,7 @@ describe('Controller: pipelineExecutions', function () {
           $stateParams: $stateParams,
           scrollToService: _scrollToService_,
         });
+        controller.$onInit();
       };
     })
   );

@@ -31,29 +31,49 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state,
                                           ClusterFilterModel, MultiselectModel, InsightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry) {
-    this.application = app;
-    ClusterFilterModel.activate();
-    this.initialized = false;
-    this.dataSource = app.getDataSource('serverGroups');
-    this.application = app;
 
-    $scope.sortFilter = ClusterFilterModel.sortFilter;
+    this.$onInit = () => {
+      const groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() => clusterGroupsUpdated());
+      this.application = app;
+      ClusterFilterModel.activate();
+      this.initialized = false;
+      this.dataSource = app.getDataSource('serverGroups');
+      this.application = app;
 
-    this.createLabel = 'Create Server Group';
+      $scope.sortFilter = ClusterFilterModel.sortFilter;
+
+      this.createLabel = 'Create Server Group';
+
+      app.getDataSource('serverGroups').ready().then(
+        () => updateClusterGroups(),
+        () => this.clustersLoadError()
+      );
+
+      app.activeState = app.serverGroups;
+      app.serverGroups.onRefresh($scope, updateClusterGroups);
+      $scope.$on('$destroy', () => {
+        app.activeState = app;
+        MultiselectModel.clearAll();
+        InsightFilterStateModel.filtersHidden = false;
+        groupsUpdatedSubscription.unsubscribe();
+      });
+    };
 
     let updateClusterGroups = () => {
       if (app.getDataSource('serverGroups').fetchOnDemand) {
         InsightFilterStateModel.filtersHidden = true;
       }
-      ClusterFilterModel.applyParamsToUrl();
-      $scope.$evalAsync(() => {
-          clusterFilterService.updateClusterGroups(app);
-          $scope.groups = ClusterFilterModel.groups;
-          $scope.tags = ClusterFilterModel.tags;
-          // Timeout because the updateClusterGroups method is debounced by 25ms
-          $timeout(() => { this.initialized = true; }, 50);
-        }
-      );
+      clusterFilterService.updateClusterGroups(app);
+      clusterGroupsUpdated();
+      // Timeout because the updateClusterGroups method is debounced by 25ms
+      $timeout(() => { this.initialized = true; }, 50);
+    };
+
+    let clusterGroupsUpdated = () => {
+      $scope.$applyAsync(() => {
+        $scope.groups = ClusterFilterModel.groups;
+        $scope.tags = ClusterFilterModel.tags;
+      });
     };
 
     this.toggleMultiselect = () => {
@@ -91,18 +111,5 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
       this.loadError = true;
       this.initialized = true;
     };
-
-    app.getDataSource('serverGroups').ready().then(
-      () => updateClusterGroups(),
-      () => this.clustersLoadError()
-    );
-
-    app.activeState = app.serverGroups;
-    app.serverGroups.onRefresh($scope, updateClusterGroups);
-    $scope.$on('$destroy', () => {
-      app.activeState = app;
-      MultiselectModel.clearAll();
-      InsightFilterStateModel.filtersHidden = false;
-    });
 
   });

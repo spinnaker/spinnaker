@@ -17,7 +17,7 @@ export const filterTagsComponent: IComponentOptions = {
       <a href
          class="clear-filters"
          analytics-on="click" analytics-category="Filter Tags" analytics-event="Clear All clicked"
-         ng-click="$ctrl.clearFilters()" ng-if="tags.length > 1">Clear All</a>
+         ng-click="$ctrl.clearFilters()" ng-if="$ctrl.tags.length > 1">Clear All</a>
     </div>
 `
 };

@@ -2,6 +2,7 @@
 
 import _ from 'lodash';
 let angular = require('angular');
+import { Subject } from 'rxjs/Subject';
 
 import { SECURITY_GROUP_FILTER_MODEL } from './securityGroupFilter.model';
 
@@ -13,6 +14,8 @@ module.exports = angular
   .factory('securityGroupFilterService', function (SecurityGroupFilterModel, filterModelService) {
 
     var lastApplication = null;
+
+    const groupsUpdatedStream = new Subject();
 
     function addSearchFields(securityGroup) {
       if (!securityGroup.searchField) {
@@ -102,6 +105,7 @@ module.exports = angular
       sortGroupsByHeading(groups);
       SecurityGroupFilterModel.addTags();
       lastApplication = application;
+      groupsUpdatedStream.next(groups);
       return groups;
     }, 25);
 
@@ -153,10 +157,11 @@ module.exports = angular
     }
 
     return {
-      updateSecurityGroups: updateSecurityGroups,
-      filterSecurityGroupsForDisplay: filterSecurityGroupsForDisplay,
-      sortGroupsByHeading: sortGroupsByHeading,
-      clearFilters: clearFilters,
+      groupsUpdatedStream,
+      updateSecurityGroups,
+      filterSecurityGroupsForDisplay,
+      sortGroupsByHeading,
+      clearFilters,
     };
   }
 );
