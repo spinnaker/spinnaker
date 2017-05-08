@@ -4,7 +4,7 @@
       <thead>
       <tr>
         <th>Type</th>
-        <th>Details</th>
+        <th class="precondition-details">Details</th>
         <th>Actions</th>
       </tr>
       </thead>
@@ -13,7 +13,7 @@
         <td>
           {{precondition.type|preconditionType}}
         </td>
-        <td>
+        <td class="precondition-details">
           <div ng-repeat="(key, val) in precondition.context">
             <strong>{{key | robotToHuman}}: </strong> {{val}}
           </div>

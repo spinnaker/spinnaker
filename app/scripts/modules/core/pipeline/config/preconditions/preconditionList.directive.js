@@ -5,6 +5,8 @@ let angular = require('angular');
 require('./preconditionList.directive.html');
 require('./modal/editPrecondition.html');
 
+import './preconditionList.directive.less';
+
 module.exports = angular.module('spinnaker.core.pipeline.config.preconditions.preconditionList', [])
     .directive('preconditionList', function () {
       return {
