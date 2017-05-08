@@ -17,11 +17,11 @@
 
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
+import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -30,7 +30,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.GeneralSecurityException;
 
 @Component
 public class ProfileRegistry {
@@ -46,14 +45,9 @@ public class ProfileRegistry {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
 
-    try {
-      httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-      return new Storage.Builder(httpTransport, jsonFactory, null)
-          .setApplicationName(applicationName)
-          .build();
-    } catch (IOException | GeneralSecurityException e) {
-      throw new RuntimeException(e);
-    }
+    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, GoogleCredentials.emptyRequestInitializer())
+        .setApplicationName(applicationName)
+        .build();
   }
 
   public static String profilePath(String artifactName, String version, String profileFileName) {

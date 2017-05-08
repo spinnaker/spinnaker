@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -29,12 +28,12 @@ import com.google.api.services.storage.model.StorageObject;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
+import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.Collections;
 
 @Slf4j
@@ -46,17 +45,19 @@ public class WriteableProfileRegistry {
   String spinconfigBucket;
 
   WriteableProfileRegistry(WriteableProfileRegistryProperties properties) {
+    HttpTransport httpTransport = GoogleCredentials.buildHttpTransport();
+    JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+    GoogleCredential credential;
     try {
-      HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-      JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
-      GoogleCredential credential = loadCredential(httpTransport, jsonFactory, properties.getJsonPath());
-      this.storage = new Storage.Builder(httpTransport, jsonFactory, credential)
-          .setApplicationName("halyard")
-          .build();
-      this.properties = properties;
-    } catch (IOException | GeneralSecurityException e) {
-      throw new IllegalStateException("Failed to set up configured writeable profile registry", e);
+      credential = loadCredential(httpTransport, jsonFactory, properties.getJsonPath());
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load json credential", e);
     }
+
+    this.storage = new Storage.Builder(httpTransport, jsonFactory, GoogleCredentials.setHttpTimeout(credential))
+        .setApplicationName("halyard")
+        .build();
+    this.properties = properties;
   }
 
   private GoogleCredential loadCredential(HttpTransport transport, JsonFactory factory, String jsonPath) throws IOException {
