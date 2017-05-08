@@ -85,10 +85,11 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       disabled: true,
       stop: () => {
         $analytics.eventTrack('Reordered pipeline', {category: 'Pipelines'});
-        var dirty = [];
-        this.application.pipelineConfigs.data.forEach((pipeline, index) => {
-          if (pipeline.index !== index) {
-            pipeline.index = index;
+        const dirty = [];
+        this.application.pipelineConfigs.data.concat(this.application.strategyConfigs.data).forEach((pipeline) => {
+          const newIndex = this.pipelineNames.indexOf(pipeline.name);
+          if (pipeline.index !== newIndex) {
+            pipeline.index = newIndex;
             dirty.push(pipeline);
           }
         });
