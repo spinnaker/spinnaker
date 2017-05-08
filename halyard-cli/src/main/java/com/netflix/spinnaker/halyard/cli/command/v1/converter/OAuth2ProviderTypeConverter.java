@@ -19,14 +19,13 @@ package com.netflix.spinnaker.halyard.cli.command.v1.converter;
 
 import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.ParameterException;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 
-public class OAuthProviderTypeConverter implements IStringConverter<OAuth.Provider> {
+public class OAuth2ProviderTypeConverter implements IStringConverter<OAuth2.Provider> {
   @Override
-  public OAuth.Provider convert(String value) {
+  public OAuth2.Provider convert(String value) {
     try {
-      return OAuth.Provider.fromString(value);
+      return OAuth2.Provider.fromString(value);
     } catch (IllegalArgumentException e) {
       throw new ParameterException(e.getMessage(), e);
     }

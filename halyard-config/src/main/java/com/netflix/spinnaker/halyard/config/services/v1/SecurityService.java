@@ -201,8 +201,8 @@ public class SecurityService {
   public void setAuthnMethod(String deploymentName, AuthnMethod method) {
     Authn authn = getAuthn(deploymentName);
     switch (method.getMethod()) {
-      case OAuth:
-        authn.setOauth((OAuth) method);
+      case OAuth2:
+        authn.setOauth2((OAuth2) method);
         break;
       case SAML:
         authn.setSaml((Saml) method);

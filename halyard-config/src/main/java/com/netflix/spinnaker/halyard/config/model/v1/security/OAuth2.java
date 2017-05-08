@@ -29,7 +29,7 @@ import java.util.HashMap;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class OAuth extends AuthnMethod {
+public class OAuth2 extends AuthnMethod {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
@@ -37,7 +37,7 @@ public class OAuth extends AuthnMethod {
 
   @Override
   public String getNodeName() {
-    return "oauth";
+    return "oauth2";
   }
 
   @Override
@@ -47,7 +47,7 @@ public class OAuth extends AuthnMethod {
 
   @Override
   public Method getMethod() {
-    return Method.OAuth;
+    return Method.OAuth2;
   }
 
   private Client client = new Client();
@@ -73,11 +73,11 @@ public class OAuth extends AuthnMethod {
 
     switch (provider) {
       case GOOGLE:
-        newClient.setAccessTokenUri("https://www.googleapis.com/oauth/v4/token");
-        newClient.setUserAuthorizationUri("https://accounts.google.com/o/oauth/v2/auth");
+        newClient.setAccessTokenUri("https://www.googleapis.com/oauth2/v4/token");
+        newClient.setUserAuthorizationUri("https://accounts.google.com/o/oauth2/v2/auth");
         newClient.setScope("profile email");
 
-        newResource.setUserInfoUri("https://www.googleapis.com/oauth/v3/userinfo");
+        newResource.setUserInfoUri("https://www.googleapis.com/oauth2/v3/userinfo");
 
         newUserInfoMapping.setEmail("email");
         newUserInfoMapping.setFirstName("given_name");
@@ -96,8 +96,8 @@ public class OAuth extends AuthnMethod {
         newUserInfoMapping.setUsername("login");
         break;
       case AZURE:
-        newClient.setAccessTokenUri("https://login.microsoftonline.com/${azureTenantId}/oauth/token");
-        newClient.setUserAuthorizationUri("https://login.microsoftonline.com/${azureTenantId}/oauth/authorize?resource=https://graph.windows.net");
+        newClient.setAccessTokenUri("https://login.microsoftonline.com/${azureTenantId}/oauth2/token");
+        newClient.setUserAuthorizationUri("https://login.microsoftonline.com/${azureTenantId}/oauth2/authorize?resource=https://graph.windows.net");
         newClient.setScope("profile");
         newClient.setClientAuthenticationScheme("query");
 

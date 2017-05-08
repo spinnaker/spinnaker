@@ -14,32 +14,21 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth;
+package com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.oauth2;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.security.authn.AbstractEditAuthnMethodCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.converter.OAuthProviderTypeConverter;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.OAuth2ProviderTypeConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
-import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth;
+import com.netflix.spinnaker.halyard.config.model.v1.security.OAuth2;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class EditOAuthCommand extends AbstractEditAuthnMethodCommand<OAuth> {
+public class EditOAuth2Command extends AbstractEditAuthnMethodCommand<OAuth2> {
   @Getter
-  private AuthnMethod.Method method = AuthnMethod.Method.OAuth;
-
-  @Getter
-  private String shortDescription = "Configure authentication using a OAuth 2.0 identity provider.";
-
-  @Getter
-  private String longDescription = String.join(" ",
-     "The OAuth 2.0 workflow uses the authentication code workflow (commonly known as the",
-     "three-legged workflow) to allow third parties (in this case, Spinnaker's API Gateway,",
-     "Gate) to access user data (in this case, the user's email address for authentication).",
-     "Learn more at https://spinnaker.io/setup/security/authentication/"
-  );
+  private AuthnMethod.Method method = AuthnMethod.Method.OAuth2;
 
   @Parameter(
       names = "--client-id",
@@ -56,9 +45,9 @@ public class EditOAuthCommand extends AbstractEditAuthnMethodCommand<OAuth> {
   @Parameter(
       names = "--provider",
       description = "The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure",
-      converter = OAuthProviderTypeConverter.class
+      converter = OAuth2ProviderTypeConverter.class
   )
-  private OAuth.Provider provider;
+  private OAuth2.Provider provider;
 
   @Parameter(
       names = "--preEstablishedRedirectUri",
@@ -75,11 +64,11 @@ public class EditOAuthCommand extends AbstractEditAuthnMethodCommand<OAuth> {
           "signs between key and value, and additional key/value pairs need to repeat the " +
           "flag. Example: '--userInfoRequirements foo=bar --userInfoRequirements baz=qux'."
   )
-  private OAuth.UserInfoRequirements userInfoRequirements = new OAuth.UserInfoRequirements();
+  private OAuth2.UserInfoRequirements userInfoRequirements = new OAuth2.UserInfoRequirements();
 
   @Override
-  protected AuthnMethod editAuthnMethod(OAuth authnMethod) {
-    OAuth.Client client = authnMethod.getClient();
+  protected AuthnMethod editAuthnMethod(OAuth2 authnMethod) {
+    OAuth2.Client client = authnMethod.getClient();
     client.setClientId(isSet(clientId) ? clientId : client.getClientId());
     client.setClientSecret(isSet(clientSecret) ? clientSecret : client.getClientSecret());
 
