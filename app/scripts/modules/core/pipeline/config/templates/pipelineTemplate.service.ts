@@ -1,9 +1,8 @@
-import {module, IPromise} from 'angular';
-import {$q} from 'ngimport'; // Remove once Gate endpoint has been created.
+import {module, IPromise, IQService} from 'angular';
+import {flatten} from 'lodash';
 import {Api, API_SERVICE} from 'core/api/api.service';
 import {IPipeline} from 'core/domain/IPipeline';
-
-const resolvedTemplate = require('./template.json');
+import autoBindMethods from 'class-autobind-decorator';
 
 export interface IPipelineTemplate {
   id: string;
@@ -55,17 +54,27 @@ export interface IPipelineConfig {
   }
 }
 
+@autoBindMethods
 export class PipelineTemplateService {
-  constructor(private API: Api) { 'ngInject'; }
+
+  constructor(private API: Api, private $q: IQService) { 'ngInject'; }
 
   public getPipelineTemplateFromSourceUrl(/* source: string */): IPromise<IPipelineTemplate> {
     // Uncomment when the Gate endpoint has been created:
     // return api.one('pipelineTemplates').withParams({source}).get();
-    return $q.resolve(resolvedTemplate); // Remove once Gate endpoint has been created.
+    return this.$q.resolve(null); // Remove once Gate endpoint has been created.
   }
 
   public getPipelinePlan(config: IPipelineConfig): IPromise<IPipeline> {
     return this.API.one('pipelines').one('start').post(config);
+  }
+
+  public getPipelineTemplatesByScope(scope: string): IPromise<IPipelineTemplate[]> {
+    return this.API.one('pipelineTemplates').withParams({scope}).get();
+  }
+
+  public getPipelineTemplatesByScopes(scopes: string[]): IPromise<IPipelineTemplate[]> {
+    return this.$q.all(scopes.map(this.getPipelineTemplatesByScope)).then(flatten);
   }
 }
 

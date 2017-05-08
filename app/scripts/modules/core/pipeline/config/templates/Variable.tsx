@@ -1,7 +1,10 @@
 import * as React from 'react';
 import {IVariableMetadata} from './pipelineTemplate.service';
-import {variableInputService, IVariable, IVariableInput} from './variableInput.service';
+import {variableInputService, IVariable, IVariableInputBuilder} from './inputs/variableInput.service';
 import autoBindMethods from 'class-autobind-decorator';
+import {VariableMetadataHelpField} from './VariableMetadataHelpField';
+
+import './Variable.less';
 
 interface IState { }
 
@@ -15,16 +18,19 @@ interface IProps {
 export class Variable extends React.Component<IProps, IState> {
 
   private getVariableInput(): JSX.Element {
-    const input: IVariableInput = variableInputService.getInputForType(this.props.variableMetadata.type);
+    const input: IVariableInputBuilder = variableInputService.getInputForType(this.props.variableMetadata.type);
     return input ? input.getInput(this.props.variable, this.props.onChange) : null;
   }
 
   public render() {
     return (
       <div>
-        <div className="form-group clearfix">
-          <div className="col-md-3 sm-label-right">
-            {this.props.variable.name}
+        <div className="form-group clearfix pipeline-template-variable">
+          <div className="col-md-4">
+            <div className="pull-right">
+              <code>{this.props.variable.name}</code>
+              <VariableMetadataHelpField metadata={this.props.variableMetadata}/>
+            </div>
           </div>
           <div className="col-md-7">
             {this.getVariableInput()}

@@ -81,17 +81,17 @@ class HelpFieldCtrl implements IComponentController {
   }
 }
 
-const helpFieldComponent: IComponentOptions = {
-  bindings: {
+export class HelpFieldComponent implements IComponentOptions {
+  public bindings: any = {
     key: '@',
     fallback: '@',
     content: '@',
     placement: '@',
     expand: '=',
     label: '@'
-  },
-  controller: HelpFieldCtrl,
-  template: `
+  };
+  public controller = HelpFieldCtrl;
+  public template = `
     <div class="text-only" ng-if="$ctrl.label">
       <a href class="help-field" ng-if="!$ctrl.expand && $ctrl.contents.content"
               uib-popover-template="$ctrl.popoverTemplate"
@@ -117,12 +117,30 @@ const helpFieldComponent: IComponentOptions = {
         <span class="small glyphicon glyphicon-question-sign"></span>
       </a>
     </div>
-  `
-};
+  `;
+}
+
+export class HelpFieldWrapperComponent implements IComponentOptions {
+  public bindings: any = {
+    key: '<',
+    fallback: '<',
+    content: '<',
+    placement: '<',
+    expand: '<',
+    label: '<'
+  };
+  public template = `<help-field content="{{::$ctrl.content}}"
+                                 key="{{$ctrl.key}}"
+                                 fallback="{{$ctrl.fallback}}"
+                                 placement="{{$ctrl.placement}}"
+                                 expand="$ctrl.expand"
+                                 label="{{$ctrl.label}}"></help-field>`;
+}
 
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';
 module(HELP_FIELD_COMPONENT, [
   HELP_CONTENTS_REGISTRY,
   require('./helpContents'),
   require('angulartics'),
-]).component('helpField', helpFieldComponent);
+]).component('helpField', new HelpFieldComponent())
+  .component('helpFieldWrapper', new HelpFieldWrapperComponent());

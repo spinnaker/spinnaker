@@ -1,10 +1,12 @@
+import * as React from 'react';
 import {module} from 'angular';
 
 export interface IVariable {
   name: string;
   value: any;
   type: string;
-  errors: IVariableError[];
+  errors?: IVariableError[];
+  hideErrors?: boolean;
 }
 
 export interface IVariableError {
@@ -14,20 +16,27 @@ export interface IVariableError {
   key?: number;
 }
 
-export interface IVariableInput {
+export interface IVariableInputBuilder {
   handles: (type: string) => boolean;
-  getInput: (variable: IVariable, onChange: (variable: IVariable) => void) => JSX.Element;
+  getInput: (variable: IVariable, onChange: (variable: IVariable) => void) => React.ReactElement<IVariableProps>;
 }
+
+export interface IVariableProps {
+  variable: IVariable;
+  onChange: (variable: IVariable) => void;
+}
+
+export interface IVariableState { }
 
 export class VariableInputService {
 
-  private inputs = new Set<IVariableInput>();
+  private inputs = new Set<IVariableInputBuilder>();
 
-  public addInput(input: IVariableInput): void {
+  public addInput(input: IVariableInputBuilder): void {
     this.inputs.add(input);
   }
 
-  public getInputForType(type = 'string'): IVariableInput {
+  public getInputForType(type = 'string'): IVariableInputBuilder {
     return Array.from(this.inputs).find(i => i.handles(type));
   }
 }

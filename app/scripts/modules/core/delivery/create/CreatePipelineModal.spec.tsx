@@ -4,9 +4,11 @@ import {shallow} from 'enzyme';
 
 import {CreatePipelineModal, ICreatePipelineModalProps} from './CreatePipelineModal';
 import {PIPELINE_CONFIG_SERVICE, pipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
+import {PIPELINE_TEMPLATE_SERVICE, pipelineTemplateService} from 'core/pipeline/config/templates/pipelineTemplate.service';
 import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {IPipeline} from 'core/domain/IPipeline';
+import {SETTINGS} from 'core/config/settings';
 
 describe('CreatePipelineModal', () => {
   let $q: IQService;
@@ -18,7 +20,8 @@ describe('CreatePipelineModal', () => {
   beforeEach(
     mock.module(
       APPLICATION_MODEL_BUILDER,
-      PIPELINE_CONFIG_SERVICE
+      PIPELINE_CONFIG_SERVICE,
+      PIPELINE_TEMPLATE_SERVICE
     )
   );
 
@@ -53,36 +56,74 @@ describe('CreatePipelineModal', () => {
     };
   }));
 
-  describe('template instantiation', () => {
-    it('provides a default value when no templates exist', () => {
+  describe('config instantiation', () => {
+    it('provides a default value when no configs exist', () => {
       initializeComponent();
-      const template = component.state.templates[0];
-      expect(component.state.templates.length).toBe(1);
-      expect(template.name).toBe('None');
-      expect(template.application).toBe('app');
-      expect(template.triggers).toEqual([]);
-      expect(template.stages).toEqual([]);
+      const config = component.state.configs[0];
+      expect(component.state.configs.length).toBe(1);
+      expect(config.name).toBe('None');
+      expect(config.application).toBe('app');
+      expect(config.triggers).toEqual([]);
+      expect(config.stages).toEqual([]);
     });
 
-    it('includes the default value when templates exist', () => {
+    it('includes the default value when configs exist', () => {
       initializeComponent([{name: 'some pipeline'}]);
-      expect(component.state.templates.length).toBe(2);
-      expect(component.state.templates[0].name).toBe('None');
-      expect(component.state.templates[1].name).toBe('some pipeline');
+      expect(component.state.configs.length).toBe(2);
+      expect(component.state.configs[0].name).toBe('None');
+      expect(component.state.configs[1].name).toBe('some pipeline');
     });
 
-    it('initializes command with the default template', () => {
+    it('initializes command with the default config', () => {
       initializeComponent([ { name: 'some pipeline' } ]);
-      expect(component.state.templates.length).toBe(2);
-      expect(component.state.templates[0].name).toBe('None');
-      expect(component.state.templates[1].name).toBe('some pipeline');
-      expect(component.state.command.template.name).toBe('None');
+      expect(component.state.configs.length).toBe(2);
+      expect(component.state.configs[0].name).toBe('None');
+      expect(component.state.configs[1].name).toBe('some pipeline');
+      expect(component.state.command.config.name).toBe('None');
     });
 
     it(`includes all config names in the component's state to be used to determine if a name is unique`, () => {
       initializeComponent([{ name: 'a'}, {name: 'b'}]);
-      expect(component.state.templates.length).toBe(3);
+      expect(component.state.configs.length).toBe(3);
       expect(component.state.existingNames).toEqual(['None', 'a', 'b']);
+    });
+  });
+
+  describe('template initialization', () => {
+    beforeEach(() => SETTINGS.feature.pipelineTemplates = true);
+    afterEach(SETTINGS.resetToOriginal);
+
+    it('loads pipeline templates', () => {
+      spyOn(pipelineTemplateService, 'getPipelineTemplatesByScopes').and.callFake(() => {
+        const templates = [
+          {
+            id: 'templateA',
+            scopes: ['global'],
+          },
+          {
+            id: 'templateB',
+            scopes: ['myApp'],
+          }
+        ] as any;
+        return $q.resolve(templates);
+      });
+
+      component.loadPipelineTemplates();
+      $scope.$digest();
+
+      expect(component.state.templates.map(t => t.id)).toEqual(['templateA', 'templateB']);
+    });
+
+    it('sets error flag, message when load is rejected', () => {
+      spyOn(pipelineTemplateService, 'getPipelineTemplatesByScopes').and.callFake(() => {
+        return $q.reject(null);
+      });
+
+      component.loadPipelineTemplates();
+      $scope.$digest();
+
+      expect(component.state.loadError).toEqual(true);
+      expect(component.state.loadErrorMessage).toEqual('No message provided');
     });
   });
 
@@ -164,7 +205,7 @@ describe('CreatePipelineModal', () => {
       });
 
       component.state.command.name = 'new pipeline';
-      component.state.command.template = toCopy;
+      component.state.command.config = toCopy;
 
       component.submit();
       $scope.$digest();
@@ -205,7 +246,7 @@ describe('CreatePipelineModal', () => {
       $scope.$digest();
 
       expect(component.state.saveError).toBe(true);
-      expect(component.state.errorMessage).toBe('something went wrong');
+      expect(component.state.saveErrorMessage).toBe('something went wrong');
     });
 
     it('provides default error message when none provided on failed save', () => {
@@ -218,7 +259,7 @@ describe('CreatePipelineModal', () => {
       $scope.$digest();
 
       expect(component.state.saveError).toBe(true);
-      expect(component.state.errorMessage).toBe('No message provided');
+      expect(component.state.saveErrorMessage).toBe('No message provided');
     });
   });
 });

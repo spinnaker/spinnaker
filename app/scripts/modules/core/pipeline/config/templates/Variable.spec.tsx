@@ -1,9 +1,9 @@
 import {mock} from 'angular';
 import * as React from 'react';
-import {shallow} from 'enzyme';
+import {mount} from 'enzyme';
 import {PIPELINE_TEMPLATE_MODULE} from './pipelineTemplate.module';
 import {Variable} from './Variable';
-import {IVariableError} from './variableInput.service';
+import {IVariableError} from './inputs/variableInput.service';
 import {VariableType} from './pipelineTemplate.service';
 
 describe('Variable component', () => {
@@ -33,7 +33,7 @@ describe('Variable component', () => {
 
   describe('input fields', () => {
     it('renders an input field to match the variable type', () => {
-      const component = shallow(<Variable {...generateProps('string', 'string')} />);
+      const component = mount(<Variable {...generateProps('string', 'string')} />);
 
       component.setProps(generateProps('string', 'string'));
       expect(component.find('input[type="text"]').length).toEqual(1);

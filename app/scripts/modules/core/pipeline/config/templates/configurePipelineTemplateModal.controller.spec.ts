@@ -1,8 +1,7 @@
 import {mock, IScope, IQService} from 'angular';
 
 import {CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, ConfigurePipelineTemplateModalController} from './configurePipelineTemplateModal.controller';
-import {PIPELINE_TEMPLATE_SERVICE, pipelineTemplateService} from './pipelineTemplate.service';
-import {IVariableError} from './variableInput.service';
+import {IVariable, IVariableError} from './inputs/variableInput.service';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {Application} from 'core/application/application.model';
 
@@ -27,8 +26,7 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
   beforeEach(
     mock.module(
       APPLICATION_MODEL_BUILDER,
-      CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
-      PIPELINE_TEMPLATE_SERVICE
+      CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL
     )
   );
 
@@ -41,47 +39,43 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         $scope,
         application,
         $uibModalInstance: {close: $q.resolve(null)},
-        source: 'https://templateSource.com',
+        template: {
+          variables: [
+            {
+              name: 'credentials',
+              group: 'Basic Settings',
+              type: 'string',
+              defaultValue: 'my-google-account',
+            },
+            {
+              name: 'cloudProvider',
+              group: 'Basic Settings',
+              type: 'string',
+              defaultValue: 'gce',
+            },
+            {
+              name: 'someObject',
+              group: 'Advanced Settings',
+              type: 'object',
+              defaultValue: yaml,
+            },
+            {
+              name: 'someList',
+              group: 'Advanced Settings',
+              type: 'list',
+              defaultValue: ['a', 'b', 'c'],
+            },
+            {
+              name: 'someInt',
+              type: 'int',
+              defaultValue: 42,
+            }
+          ]
+        },
         pipelineName: 'My DCD Pipeline',
         variables: null,
       }) as ConfigurePipelineTemplateModalController;
     });
-  });
-
-  beforeEach(() => {
-    spyOn(pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.returnValue($q.resolve({
-      variables: [
-        {
-          name: 'credentials',
-          group: 'Basic Settings',
-          type: 'string',
-          defaultValue: 'my-google-account',
-        },
-        {
-          name: 'cloudProvider',
-          group: 'Basic Settings',
-          type: 'string',
-          defaultValue: 'gce',
-        },
-        {
-          name: 'someObject',
-          group: 'Advanced Settings',
-          type: 'object',
-          defaultValue: yaml,
-        },
-        {
-          name: 'someList',
-          group: 'Advanced Settings',
-          type: 'list',
-          defaultValue: ['a', 'b', 'c'],
-        },
-        {
-          name: 'someInt',
-          type: 'int',
-          defaultValue: 42,
-        }
-      ]
-    }));
   });
 
   describe('data initialization', () => {
@@ -136,6 +130,55 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         someList: ['a', 'b', 'c'],
         someInt: 42
       });
+    });
+  });
+
+  describe('input validation', () => {
+    const createVariable = (type: string, value: any): IVariable => {
+      return {
+        type,
+        value,
+        name: 'variableName'
+      };
+    };
+
+    it('verifies that input variables are not empty', () => {
+      ctrl.initialize();
+      $scope.$digest();
+
+      let v = createVariable('string', '');
+      ctrl.handleVariableChange(v);
+      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+
+      v = createVariable('object', '');
+      ctrl.handleVariableChange(v);
+      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+
+      v = createVariable('float', '');
+      ctrl.handleVariableChange(v);
+      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+
+      v = createVariable('int', '');
+      ctrl.handleVariableChange(v);
+      expect(v.errors).toEqual([{message: 'Field is required.'}]);
+
+      v = createVariable('list', ['']);
+      ctrl.handleVariableChange(v);
+      expect(v.errors).toEqual([{message: 'Field is required.', key: 0}]);
+    });
+
+    it('validates yaml', () => {
+      ctrl.initialize();
+      $scope.$digest();
+
+      let v = createVariable('object', yaml);
+      ctrl.handleVariableChange(v);
+      expect(v.errors.length).toEqual(0);
+
+      const badYaml = `dropped: 'quote`;
+      v = createVariable('object', badYaml);
+      ctrl.handleVariableChange(v);
+      expect(v.errors.length).toEqual(1);
     });
   });
 });

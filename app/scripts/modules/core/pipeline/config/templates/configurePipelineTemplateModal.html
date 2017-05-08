@@ -12,7 +12,7 @@
   <div class="modal-footer">
     <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
     <submit-button label="'Create and Configure'"
-                   is-disabled="ctrl.state.invalid"
+                   is-disabled="!ctrl.formIsValid()"
                    on-click="ctrl.getPipelineConfigPlan()">
     </submit-button>
   </div>

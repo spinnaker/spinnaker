@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {IVariableError} from './variableInput.service'
+import {IVariableError} from './inputs/variableInput.service'
 
 interface IProps {
   errors: IVariableError[]
