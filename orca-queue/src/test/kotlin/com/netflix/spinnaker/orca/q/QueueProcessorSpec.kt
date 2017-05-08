@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.throws
 import com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE
@@ -32,12 +31,16 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 
 class QueueProcessorSpec : Spek({
   describe("execution workers") {
     val queue: Queue = mock()
     val startExecutionHandler: MessageHandler<StartExecution> = mock()
     val configurationErrorHandler: MessageHandler<ConfigurationError> = mock()
+    val ackFunction: () -> Unit = mock()
     val registry: Registry = mock {
       on { createId(any<String>()) } doReturn mock<Id>()
       on { counter(any<Id>()) } doReturn mock<Counter>()
@@ -45,12 +48,12 @@ class QueueProcessorSpec : Spek({
 
     var queueProcessor: QueueProcessor? = null
 
-    fun resetMocks() = reset(queue, startExecutionHandler, configurationErrorHandler)
+    fun resetMocks() = reset(queue, startExecutionHandler, configurationErrorHandler, ackFunction)
 
     beforeGroup {
       queueProcessor = QueueProcessor(
         queue,
-        directExecutor(),
+        BlockingThreadExecutor(),
         registry,
         listOf(startExecutionHandler, configurationErrorHandler)
       )
@@ -90,7 +93,7 @@ class QueueProcessorSpec : Spek({
             whenever(queue.poll(any())).then {
               @Suppress("UNCHECKED_CAST")
               val callback = it.arguments.first() as QueueCallback
-              callback.invoke(message, {})
+              callback.invoke(message, ackFunction)
             }
           }
 
@@ -107,6 +110,10 @@ class QueueProcessorSpec : Spek({
           it("does not invoke other handlers") {
             verify(configurationErrorHandler, never()).invoke(any())
           }
+
+          it("acknowledges the message") {
+            verify(ackFunction).invoke()
+          }
         }
 
         context("it is a subclass of a supported message type") {
@@ -119,7 +126,7 @@ class QueueProcessorSpec : Spek({
             whenever(queue.poll(any())).then {
               @Suppress("UNCHECKED_CAST")
               val callback = it.arguments.first() as QueueCallback
-              callback.invoke(message, {})
+              callback.invoke(message, ackFunction)
             }
           }
 
@@ -136,6 +143,10 @@ class QueueProcessorSpec : Spek({
           it("does not invoke other handlers") {
             verify(startExecutionHandler, never()).invoke(any())
           }
+
+          it("acknowledges the message") {
+            verify(ackFunction).invoke()
+          }
         }
 
         context("it is an unsupported message type") {
@@ -148,7 +159,7 @@ class QueueProcessorSpec : Spek({
             whenever(queue.poll(any())).then {
               @Suppress("UNCHECKED_CAST")
               val callback = it.arguments.first() as QueueCallback
-              callback.invoke(message, {})
+              callback.invoke(message, ackFunction)
             }
           }
 
@@ -162,8 +173,56 @@ class QueueProcessorSpec : Spek({
             verify(startExecutionHandler, never()).invoke(any())
             verify(configurationErrorHandler, never()).invoke(any())
           }
+
+          it("does not acknowledge the message") {
+            verify(ackFunction, never()).invoke()
+          }
+        }
+
+        context("the handler throws an exception") {
+          val message = StartExecution(Pipeline::class.java, "1", "foo")
+
+          beforeGroup {
+            whenever(startExecutionHandler.messageType) doReturn StartExecution::class.java
+            whenever(configurationErrorHandler.messageType) doReturn ConfigurationError::class.java
+
+            whenever(queue.poll(any())).then {
+              @Suppress("UNCHECKED_CAST")
+              val callback = it.arguments.first() as QueueCallback
+              callback.invoke(message, ackFunction)
+            }
+
+            whenever(startExecutionHandler.invoke(any())) doThrow NullPointerException()
+          }
+
+          afterGroup(::resetMocks)
+
+          action("the worker polls the queue") {
+            queueProcessor!!.pollOnce()
+          }
+
+          it("does not acknowledge the message") {
+            verify(ackFunction, never()).invoke()
+          }
         }
       }
     }
   }
 })
+
+class BlockingThreadExecutor : Executor {
+
+  private val delegate = Executors.newSingleThreadExecutor()
+
+  override fun execute(command: Runnable) {
+    val latch = CountDownLatch(1)
+    delegate.execute {
+      try {
+        command.run()
+      } finally {
+        latch.countDown()
+      }
+    }
+    latch.await()
+  }
+}

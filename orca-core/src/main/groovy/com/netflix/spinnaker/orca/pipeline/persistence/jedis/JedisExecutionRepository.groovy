@@ -622,8 +622,10 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.id = stageId
 
         // TODO: temp debug
-        if (map["stage.${stageId}.status".toString()] == null) {
-          log.warn("Stage $stageId data is missing ${map.findAll { k, v -> k.startsWith("stage.$stageId") }}")
+        if (map.keySet().findAll {
+          it.startsWith("stage.${stageId}")
+        }.isEmpty()) {
+          log.warn("Stage data is missing for $stageId of execution $id")
         }
 
         stage.refId = map["stage.${stageId}.refId".toString()]
@@ -632,7 +634,7 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.startTime = map["stage.${stageId}.startTime".toString()]?.toLong()
         stage.endTime = map["stage.${stageId}.endTime".toString()]?.toLong()
         stage.status = map["stage.${stageId}.status".toString()] ? ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()]) : null
-        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()].toBoolean()
+        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()]?.toBoolean() ?: false
         stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
         stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
         stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",") ?: emptySet()

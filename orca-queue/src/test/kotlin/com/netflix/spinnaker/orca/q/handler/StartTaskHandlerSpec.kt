@@ -26,6 +26,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.springframework.context.ApplicationEventPublisher
 
 class StartTaskHandlerSpec : Spek({
@@ -87,6 +88,28 @@ class StartTaskHandlerSpec : Spek({
           stageId shouldEqual message.stageId
           taskId shouldEqual message.taskId
         }
+      }
+    }
+  }
+
+  describe("when the execution repository has a problem") {
+    val pipeline = pipeline {
+      stage {
+        type = singleTaskStage.type
+        singleTaskStage.buildTasks(this)
+      }
+    }
+    val message = StartTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1")
+
+    beforeGroup {
+      whenever(repository.retrievePipeline(message.executionId)) doThrow NullPointerException()
+    }
+
+    afterGroup(::resetMocks)
+
+    it("propagates any exception") {
+      assertThrows(NullPointerException::class.java) {
+        handler.handle(message)
       }
     }
   }
