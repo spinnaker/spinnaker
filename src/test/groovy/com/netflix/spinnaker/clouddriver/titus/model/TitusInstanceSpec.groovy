@@ -61,7 +61,7 @@ class TitusInstanceSpec extends Specification {
     titusInstance.placement?.account == job.environment.account
     titusInstance.placement?.region == task.region
     titusInstance.placement?.zone == task.zone
-    titusInstance.placement?.host == task.data.NetworkConfiguration.EniIPAddress
+    titusInstance.placement?.host == task.host
     titusInstance.placement?.containerIp == task.data.ipAddresses.nfvpc
     titusInstance.resources?.cpu == job.cpu
     titusInstance.resources?.memory == job.memory

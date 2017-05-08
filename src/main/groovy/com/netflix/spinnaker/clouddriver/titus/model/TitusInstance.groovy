@@ -58,7 +58,7 @@ class TitusInstance implements Instance {
     placement.region = task.region
     placement.subnetId = null //TODO(cfieber) what to do here
     placement.zone = task.zone
-    placement.host = task.data?.NetworkConfiguration?.EniIPAddress
+    placement.host = task.host
     placement.containerIp = task.data?.ipAddresses?.nfvpc
 
     resources.cpu = job.cpu
