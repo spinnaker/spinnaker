@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.echo.config
 
-import static retrofit.Endpoints.newFixedEndpoint
-
-import org.apache.commons.codec.binary.Base64
 import com.netflix.spinnaker.echo.rest.RestService
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+import org.apache.commons.codec.binary.Base64
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -34,9 +33,12 @@ import retrofit.client.Client
 import retrofit.client.OkClient
 import retrofit.converter.JacksonConverter
 
+import static retrofit.Endpoints.newFixedEndpoint
+
 /**
  * Rest endpoint configuration
  */
+@Slf4j
 @Configuration
 @ConditionalOnProperty('rest.enabled')
 @CompileStatic
@@ -54,8 +56,44 @@ class RestConfig {
     return LogLevel.valueOf(retrofitLogLevel)
   }
 
+  interface RequestInterceptorAttacher {
+    void attach(RestAdapter.Builder builder, RequestInterceptor interceptor)
+  }
+
   @Bean
-  RestUrls restServices(RestProperties restProperties, Client retrofitClient, LogLevel retrofitLogLevel) {
+  RequestInterceptorAttacher requestInterceptorAttacher() {
+    new RequestInterceptorAttacher() {
+      @Override
+      public void attach(RestAdapter.Builder builder, RequestInterceptor interceptor) {
+        builder.setRequestInterceptor(interceptor)
+      }
+    }
+  }
+
+  interface HeadersFromFile {
+    Map<String, String> headers(String path)
+  }
+
+  @Bean
+  HeadersFromFile headersFromFile() {
+    new HeadersFromFile() {
+      Map<String, String> headers(String path) {
+        Map<String, String> headers = new HashMap<>()
+        new File(path).eachLine { line ->
+          def pair = line.split(":")
+          if (pair.length == 2) {
+            headers[pair[0]] = pair[1].trim()
+          } else {
+            log.warn("Could not parse header '$line' in '$path'")
+          }
+        }
+        return headers
+      }
+    }
+  }
+
+  @Bean
+  RestUrls restServices(RestProperties restProperties, Client retrofitClient, LogLevel retrofitLogLevel, RequestInterceptorAttacher requestInterceptorAttacher, HeadersFromFile headersFromFile) {
 
     RestUrls restUrls = new RestUrls()
 
@@ -68,16 +106,31 @@ class RestConfig {
         .setLogLevel(retrofitLogLevel)
         .setConverter(new JacksonConverter())
 
+      Map<String, String> headers = new HashMap<>()
+
       if (endpoint.username && endpoint.password) {
-        RequestInterceptor authInterceptor = new RequestInterceptor() {
+        String auth = "Basic " + Base64.encodeBase64String("${endpoint.username}:${endpoint.password}".getBytes())
+        headers["Authorization"] = auth
+      }
+
+      if (endpoint.headers) {
+        headers += endpoint.headers
+      }
+
+      if (endpoint.headersFile) {
+        headers += headersFromFile.headers(endpoint.headersFile)
+      }
+
+      if (headers) {
+        RequestInterceptor headerInterceptor = new RequestInterceptor() {
           @Override
           public void intercept(RequestInterceptor.RequestFacade request) {
-            String auth = "Basic " + Base64.encodeBase64String("${endpoint.username}:${endpoint.password}".getBytes())
-            request.addHeader("Authorization", auth)
+            headers.each { k, v ->
+              request.addHeader(k, v)
+            }
           }
         }
-
-        restAdapterBuilder.setRequestInterceptor(authInterceptor)
+        requestInterceptorAttacher.attach(restAdapterBuilder, headerInterceptor)
       }
 
       restUrls.services.add(
@@ -90,5 +143,4 @@ class RestConfig {
 
     restUrls
   }
-
 }
