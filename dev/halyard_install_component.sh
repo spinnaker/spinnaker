@@ -75,11 +75,7 @@ function contains() {
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
-  # TODO(jacobkiefer): CHANGE THIS BACK TO DEFAULT.
-  sudo bash InstallHalyard.sh \
-       --repository 'https://dl.bintray.com/spinnaker-team/spinnakerbuild' \
-       --spinnaker-repository 'https://dl.bintray.com/spinnaker-team/spinnakerbuild' \
-       -y
+  sudo bash InstallHalyard.sh -y
 
   echo "Installing $COMPONENT and optional dependencies..."
   hal config version edit --version $VERSION

@@ -65,11 +65,7 @@ wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/
 sed "s/^printf/echo/" -i InstallHalyard.sh
 sed "s/^start halyard/exit 0/" -i InstallHalyard.sh
 
-# TODO(jacobkiefer): CHANGE THIS BACK TO DEFAULT
-sudo bash InstallHalyard.sh \
-     --repository 'https://dl.bintray.com/spinnaker-team/spinnakerbuild' \
-     --spinnaker-repository 'https://dl.bintray.com/spinnaker-team/spinnakerbuild' \
-     -y
+sudo bash InstallHalyard.sh -y
 echo "Starting Halyard..."
 sudo /opt/halyard/bin/halyard 2>&1 /var/log/spinnaker/halyard/halyard.log &
 sleep 60
