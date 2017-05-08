@@ -19,12 +19,10 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
-import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import retrofit.client.Response;
 import retrofit.http.*;
 
@@ -89,12 +87,12 @@ public interface DaemonService {
       @Body String _ignore);
 
   @GET("/v1/config/deployments/{deploymentName}/configDiff/")
-  DaemonTask<Halconfig, NodeDiff> configDiff(
+  DaemonTask<Halconfig, Object> configDiff(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/deploymentEnvironment/")
-  DaemonTask<Halconfig, DeploymentEnvironment> getDeploymentEnvironment(
+  DaemonTask<Halconfig, Object> getDeploymentEnvironment(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
@@ -105,7 +103,7 @@ public interface DaemonService {
       @Body DeploymentEnvironment deploymentEnvironment);
 
   @GET("/v1/config/deployments/{deploymentName}/features/")
-  DaemonTask<Halconfig, Features> getFeatures(
+  DaemonTask<Halconfig, Object> getFeatures(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
@@ -195,7 +193,7 @@ public interface DaemonService {
       @Body Security security);
 
   @GET("/v1/config/deployments/{deploymentName}/metricStores/")
-  DaemonTask<Halconfig, MetricStores> getMetricStores(
+  DaemonTask<Halconfig, Object> getMetricStores(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
@@ -237,7 +235,7 @@ public interface DaemonService {
       @Body Versions.Version version);
 
   @GET("/v1/config/deployments/{deploymentName}/details/{serviceName}/")
-  DaemonTask<Halconfig, RunningServiceDetails> getServiceDetails(
+  DaemonTask<Halconfig, Object> getServiceDetails(
       @Path("deploymentName") String deploymentName,
       @Path("serviceName") String serviceName,
       @Query("validate") boolean validate);
@@ -349,13 +347,13 @@ public interface DaemonService {
       @Body boolean enabled);
 
   @GET("/v1/config/deployments/{deploymentName}/persistentStorage/{persistentStoreType}/")
-  DaemonTask<Halconfig, PersistentStore> getPersistentStore(
+  DaemonTask<Halconfig, Object> getPersistentStore(
       @Path("deploymentName") String deploymentName,
       @Path("persistentStoreType") String persistentStoreType,
       @Query("validate") boolean validate);
 
   @GET("/v1/config/deployments/{deploymentName}/persistentStorage/")
-  DaemonTask<Halconfig, PersistentStorage> getPersistentStorage(
+  DaemonTask<Halconfig, Object> getPersistentStorage(
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
@@ -450,7 +448,7 @@ public interface DaemonService {
   DaemonTask<Halconfig, String> getLatest();
 
   @GET("/v1/versions/bom/{version}")
-  DaemonTask<Halconfig, BillOfMaterials> getBillOfMaterials(@Path("version") String version);
+  DaemonTask<Halconfig, Object> getBillOfMaterials(@Path("version") String version);
 
   @PUT("/v1/admin/publishProfile/{artifactName}")
   DaemonTask<Halconfig, Void> publishProfile(
