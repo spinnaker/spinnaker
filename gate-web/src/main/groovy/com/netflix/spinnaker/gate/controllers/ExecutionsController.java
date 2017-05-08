@@ -17,6 +17,7 @@ package com.netflix.spinnaker.gate.controllers;
 
 import com.netflix.spinnaker.gate.services.TaskService;
 import com.netflix.spinnaker.gate.services.internal.OrcaService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,11 +40,13 @@ public class ExecutionsController {
     this.orcaService = orcaService;
   }
 
+  @ApiOperation(value = "Retrieve a list of active executions, grouped by Orca instance")
   @RequestMapping(value = "/activeByInstance", method = RequestMethod.GET)
   Map getActiveExecutionsByInstance() {
     return taskService.getActiveExecutionsByInstance();
   }
 
+  @ApiOperation(value = "Retrieve a list of the most recent pipeline executions for the provided `pipelineConfigIds` that match the provided `statuses` query parameter")
   @RequestMapping(method = RequestMethod.GET)
   List getLatestExecutionsByConfigIds(@RequestParam(value = "pipelineConfigIds") String pipelineConfigIds,
                                     @RequestParam(value = "limit", required = false) Integer limit,

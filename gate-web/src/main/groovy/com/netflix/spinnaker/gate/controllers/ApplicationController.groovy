@@ -22,6 +22,7 @@ import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
@@ -51,11 +52,13 @@ class ApplicationController {
   @Autowired
   Environment environment
 
+  @ApiOperation(value = "Retrieve a list of applications")
   @RequestMapping(method = RequestMethod.GET)
   List<Map> getAllApplications() {
     applicationService.getAllApplications()
   }
 
+  @ApiOperation(value = "Retrieve an application's details")
   @RequestMapping(value = "/{application:.+}", method = RequestMethod.GET)
   Map getApplication(@PathVariable("application") String application, @RequestParam(value = "expand", defaultValue = "true") boolean expand) {
     def result = applicationService.getApplication(application, expand)
@@ -69,12 +72,14 @@ class ApplicationController {
     result
   }
 
+  @ApiOperation(value = "Retrieve a list of an application's configuration revision history")
   @RequestMapping(value = "/{application}/history", method = RequestMethod.GET)
   List<Map> getApplicationHistory(@PathVariable("application") String application,
                                   @RequestParam(value = "limit", defaultValue = "20") int limit) {
     return applicationService.getApplicationHistory(application, limit)
   }
 
+  @ApiOperation(value = "Retrieve a list of an application's tasks")
   @RequestMapping(value = "/{application}/tasks", method = RequestMethod.GET)
   List getTasks(@PathVariable("application") String application,
                 @RequestParam(value = "limit", required = false) Integer limit,
@@ -82,6 +87,7 @@ class ApplicationController {
     executionHistoryService.getTasks(application, limit, statuses)
   }
 
+  @ApiOperation(value = "Retrieve a list of an application's pipeline executions")
   @RequestMapping(value = "/{application}/pipelines", method = RequestMethod.GET)
   List getPipelines(@PathVariable("application") String application,
                     @RequestParam(value = "limit", required = false) Integer limit,
@@ -100,11 +106,13 @@ class ApplicationController {
     taskService.cancelPipeline(id, reason)
   }
 
+  @ApiOperation(value = "Retrieve a list of an application's pipeline configurations")
   @RequestMapping(value = "/{application}/pipelineConfigs", method = RequestMethod.GET)
   List getPipelineConfigsForApplication(@PathVariable("application") String application) {
     applicationService.getPipelineConfigsForApplication(application)
   }
 
+  @ApiOperation(value = "Retrieve a pipeline configuration")
   @RequestMapping(value = "/{application}/pipelineConfigs/{pipelineName:.+}", method = RequestMethod.GET)
   Map getPipelineConfig(
     @PathVariable("application") String application, @PathVariable("pipelineName") String pipelineName) {
@@ -113,11 +121,13 @@ class ApplicationController {
     }
   }
 
+  @ApiOperation(value = "Retrieve a list of an application's pipeline strategy configurations")
   @RequestMapping(value = "/{application}/strategyConfigs", method = RequestMethod.GET)
   List getStrategyConfigsForApplication(@PathVariable("application") String application) {
     applicationService.getStrategyConfigsForApplication(application)
   }
 
+  @ApiOperation(value = "Retrieve a pipeline strategy configuration")
   @RequestMapping(value = "/{application}/strategyConfigs/{strategyName}", method = RequestMethod.GET)
   Map getStrategyConfig(@PathVariable("application") String application,
                         @PathVariable("strategyName") String strategyName) {

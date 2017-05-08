@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.ImageService
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -40,6 +41,8 @@ class ImageController {
     imageService.getForAccountAndRegion(provider, account, region, imageId)
   }
 
+  @ApiOperation(value = "Retrieve a list of images, filtered by cloud provider, region, and account",
+                notes = "The query parameter `q` filters the list of images by image name")
   @RequestMapping(value = "/find", method = RequestMethod.GET)
   List<Map> findImages(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
                        @RequestParam(value = "q", required = false) String query,

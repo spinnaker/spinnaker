@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.ServerGroupService
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
@@ -35,6 +36,7 @@ class ServerGroupController {
   @Autowired
   ServerGroupService serverGroupService
 
+  @ApiOperation(value = "Retrieve a list of server groups for a given application")
   @RequestMapping(value = "/applications/{applicationName}/serverGroups", method = RequestMethod.GET)
   List getServerGroups(@PathVariable String applicationName,
                        @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
@@ -43,6 +45,7 @@ class ServerGroupController {
     serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters)
   }
 
+  @ApiOperation(value = "Retrieve a server group's details")
   @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName:.+}", method = RequestMethod.GET)
   Map getServerGroupDetails(@PathVariable String applicationName,
                             @PathVariable String account,

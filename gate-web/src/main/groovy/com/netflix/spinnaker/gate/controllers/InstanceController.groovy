@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.InstanceService
 import groovy.transform.CompileStatic
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -33,6 +34,7 @@ class InstanceController {
   @Autowired
   InstanceService instanceService
 
+  @ApiOperation(value = "Retrieve an instance's details")
   @RequestMapping(value = "/{account}/{region}/{instanceId:.+}", method = RequestMethod.GET)
   Map getInstanceDetails(@PathVariable(value = "account") String account,
                          @PathVariable(value = "region") String region,
@@ -40,6 +42,7 @@ class InstanceController {
     instanceService.getForAccountAndRegion(account, region, instanceId)
   }
 
+  @ApiOperation(value = "Retrieve an instance's console output")
   @RequestMapping(value = "/{account}/{region}/{instanceId}/console", method = RequestMethod.GET)
   Map getConsoleOutput(@PathVariable(value = "account") String account,
                        @PathVariable(value = "region") String region,

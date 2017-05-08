@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.LoadBalancerService
 import groovy.transform.CompileStatic
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 
@@ -28,17 +29,20 @@ class LoadBalancerController {
   @Autowired
   LoadBalancerService loadBalancerService
 
+  @ApiOperation(value = "Retrieve a list of load balancers for a given cloud provider")
   @RequestMapping(value = '/loadBalancers', method = RequestMethod.GET)
   List getAll(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
     loadBalancerService.getAll(provider)
   }
 
+  @ApiOperation(value = "Retrieve a load balancer for a given cloud provider")
   @RequestMapping(value = "/loadBalancers/{name:.+}", method = RequestMethod.GET)
   Map getLoadBalancer(@PathVariable String name,
                       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
     loadBalancerService.get(name, provider)
   }
 
+  @ApiOperation(value = "Retrieve a load balancer's details as a single element list for a given account, region, cloud provider and load balancer name")
   @RequestMapping(value = "/loadBalancers/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   List<Map> getLoadBalancerDetails(@PathVariable String account,
                                    @PathVariable String region,
@@ -47,6 +51,7 @@ class LoadBalancerController {
     loadBalancerService.getDetailsForAccountAndRegion(account, region, name, provider)
   }
 
+  @ApiOperation(value = "Retrieve a list of load balancers for a given application")
   @RequestMapping(value = '/applications/{application}/loadBalancers', method = RequestMethod.GET)
   List<Map> getApplicationLoadBalancers(@PathVariable String application) {
     loadBalancerService.getApplicationLoadBalancers(application)

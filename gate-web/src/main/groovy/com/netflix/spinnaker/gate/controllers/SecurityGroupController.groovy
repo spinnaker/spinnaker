@@ -18,6 +18,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.SecurityGroupService
 import groovy.transform.InheritConstructors
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -29,6 +30,7 @@ class SecurityGroupController {
   @Autowired
   SecurityGroupService securityGroupService
 
+  @ApiOperation(value = "Retrieve a list of security groups, grouped by account, cloud provider, and region")
   @RequestMapping(method = RequestMethod.GET)
   Map all(@RequestParam(value = "id", required = false) String id) {
     if (id) {
@@ -43,6 +45,7 @@ class SecurityGroupController {
     }
   }
 
+  @ApiOperation(value = "Retrieve a list of security groups for a given account, grouped by region")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
   Map allByAccount(
       @PathVariable String account,
@@ -51,6 +54,7 @@ class SecurityGroupController {
     securityGroupService.getForAccountAndProviderAndRegion(account, provider, region)
   }
 
+  @ApiOperation(value = "Retrieve a security group's details")
   @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   Map getSecurityGroup(
       @PathVariable String account,
