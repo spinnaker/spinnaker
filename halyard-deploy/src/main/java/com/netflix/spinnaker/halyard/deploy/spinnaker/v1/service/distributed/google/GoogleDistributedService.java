@@ -215,6 +215,11 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         .setValue(getStartupScript());
     metadataItems.add(items);
 
+    items = new Metadata.Items()
+        .setKey("ssh-keys")
+        .setValue(GoogleProviderUtils.getSshPublicKey());
+    metadataItems.add(items);
+
     if (!configSources.isEmpty()) {
       DaemonTaskHandler.message("Mounting config in vault server");
       GoogleVaultServerService vaultService = getVaultServerService();
@@ -481,6 +486,9 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     List<InstanceGroupManager> migs;
     try {
       migs = compute.instanceGroupManagers().list(account.getProject(), settings.getLocation()).execute().getItems();
+      if (migs == null) {
+        migs = Collections.emptyList();
+      }
     } catch (IOException e) {
       throw new HalException(FATAL, "Failed to load MIGS: " + e.getMessage(), e);
     }

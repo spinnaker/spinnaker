@@ -27,18 +27,23 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
-import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
-import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -50,12 +55,23 @@ import java.util.stream.Collectors;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
+@Slf4j
 class GoogleProviderUtils {
   // Map from service -> the port & job managing the connection.
   private static ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
   public static String getNetworkName() {
     return "spinnaker-hal";
   }
+  public static String getSshKeyFile() {
+    return Paths.get(System.getProperty("user.home"), ".ssh/google_compute_halyard").toString();
+  }
+
+  public static String getSshPublicKeyFile() {
+    return getSshKeyFile() + ".pub";
+  }
+
+  private static int connectRetries = 5;
+  private static int openSshRetries = 5;
 
   static String defaultServiceAccount(AccountDeploymentDetails<GoogleAccount> details) {
     GoogleAccount account = details.getAccount();
@@ -69,6 +85,118 @@ class GoogleProviderUtils {
     }
   }
 
+  static private void ensureSshKeysExist() {
+    File sshKeyFile = new File(getSshKeyFile());
+    if (!sshKeyFile.exists()) {
+      log.info("Generating a new ssh key file...");
+      JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+      List<String> command = new ArrayList<>();
+      command.add("ssh-keygen");
+      command.add("-N"); // no password
+      command.add("");
+      command.add("-t"); // rsa key
+      command.add("rsa");
+      command.add("-f"); // path to keyfile
+      command.add(getSshKeyFile());
+      command.add("-C"); // username sshing into machine
+      command.add("halyard");
+
+      JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+      JobStatus status;
+      try {
+        status = jobExecutor.backoffWait(jobExecutor.startJob(request));
+      } catch (InterruptedException e) {
+        throw new DaemonTaskInterrupted(e);
+      }
+
+      if (status.getResult() == JobStatus.Result.FAILURE) {
+        throw new HalException(FATAL, "ssh-keygen failed: " + status.getStdErr());
+      }
+
+      command = new ArrayList<>();
+      command.add("chmod");
+      command.add("400");
+      command.add(getSshKeyFile());
+
+      request = new JobRequest().setTokenizedCommand(command);
+      try {
+        status = jobExecutor.backoffWait(jobExecutor.startJob(request));
+      } catch (InterruptedException e) {
+        throw new DaemonTaskInterrupted(e);
+      }
+
+      if (status.getResult() == JobStatus.Result.FAILURE) {
+        throw new HalException(FATAL, "chmod failed: " + status.getStdErr() + status.getStdOut());
+      }
+    }
+  }
+
+  static public String getSshPublicKey() {
+    ensureSshKeysExist();
+
+    try {
+      return IOUtils.toString(new FileInputStream(getSshPublicKeyFile()));
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Failed to read ssh public key: " + e.getMessage(), e);
+    }
+  }
+
+  static private Proxy openSshTunnel(String ip, int port, String keyFile) {
+    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+    List<String> command = new ArrayList<>();
+
+    command.add("ssh");
+    command.add("ubuntu@" + ip);
+    command.add("-o");
+    command.add("StrictHostKeyChecking=no");
+    command.add("-i");
+    command.add(keyFile);
+    command.add("-N");
+    command.add("-L");
+    command.add(String.format("%d:localhost:%d", port, port));
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    String jobId = jobExecutor.startJob(request);
+
+    JobStatus status = jobExecutor.updateJob(jobId);
+
+    while (status == null) {
+      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(1));
+      status = jobExecutor.updateJob(jobId);
+    }
+
+    return new Proxy().setJobId(jobId).setPort(port);
+  }
+
+  static private void closeSshTunnel(Proxy proxy) {
+    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+    jobExecutor.cancelJob(proxy.getJobId());
+  }
+
+  static private boolean checkIfProxyIsOpen(Proxy proxy) {
+    boolean connected = false;
+    int tries = 0;
+    int port = proxy.getPort();
+
+    while (!connected && tries < connectRetries) {
+      tries++;
+
+      try {
+        log.info("Attempting to connect to localhost:" + port + "...");
+        Socket testSocket = new Socket("localhost", port);
+        log.info("Connection opened");
+
+        connected = testSocket.isConnected();
+        testSocket.close();
+      } catch (IOException e) {
+        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(3));
+      }
+    }
+
+    return connected;
+  }
+
   static URI openSshTunnel(AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service) {
     int port = service.getPort();
     String key = Proxy.buildKey(details.getDeploymentName(), instanceName, port);
@@ -77,40 +205,34 @@ class GoogleProviderUtils {
     JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
 
     if (proxy.getJobId() == null || !jobExecutor.jobExists(proxy.getJobId())) {
-      proxy.setPort(port);
-      List<String> command = new ArrayList<>();
-
-      command.add("ssh");
-      command.add("ubuntu@" + getInstanceIp(details, instanceName));
-      command.add("-o");
-      command.add("StrictHostKeyChecking=no");
-      command.add("-i");
-      command.add("~/.ssh/google_compute_engine"); // TODO(lwander) move away from default ssh keys
-      command.add("-N");
-      command.add("-L");
-      command.add(String.format("%d:localhost:%d", port, port));
-      JobRequest request = new JobRequest().setTokenizedCommand(command);
-
+      String ip = getInstanceIp(details, instanceName);
+      String keyFile = getSshKeyFile();
       DaemonTaskHandler.message("Opening port " + port + " against instance " + instanceName);
-      proxy.setJobId(jobExecutor.startJob(request));
+      proxy = openSshTunnel(ip, port, keyFile);
+      boolean connected = false;
 
-      JobStatus status = jobExecutor.updateJob(proxy.jobId);
+      int tries = 0;
 
-      while (status == null) {
-        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(2));
-        status = jobExecutor.updateJob(proxy.jobId);
+      while (!connected && tries < connectRetries) {
+        tries++;
+        connected = checkIfProxyIsOpen(proxy);
+
+        if (!connected) {
+          if (jobExecutor.updateJob(proxy.jobId).getState() == JobStatus.State.COMPLETED) {
+            log.warn("Ssh tunnel closed prematurely");
+          }
+
+          log.info("Ssh tunnel never opened, retrying in case the instance hasn't started yet...");
+          closeSshTunnel(proxy);
+          DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+          proxy = openSshTunnel(ip, port, keyFile);
+        }
       }
 
-      DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
-
-      // This should be a long-running job.
-      if (status.getState() == JobStatus.State.COMPLETED) {
-        throw new HalException(Problem.Severity.FATAL,
-            "Unable to establish a proxy against account " + instanceName
-                + ":\n" + status.getStdOut() + "\n" + status.getStdErr());
+      if (!connected) {
+        JobStatus status = jobExecutor.updateJob(proxy.getJobId());
+        throw new HalException(FATAL, "Unable to connect to instance " + instanceName + ": " + status.getStdErr());
       }
-
-      proxyMap.put(key, proxy);
     }
 
     try {
