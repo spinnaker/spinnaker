@@ -52,7 +52,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
 
   @Override
   public String getNodeName() {
-    return providerType().getId();
+    return providerType().getName();
   }
 
   abstract public ProviderType providerType();
@@ -62,15 +62,24 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     AWS("aws"),
     AZURE("azure"),
     DOCKERREGISTRY("dockerRegistry"),
-    GOOGLE("google"),
+    GOOGLE("google", "gce"),
     KUBERNETES("kubernetes"),
     OPENSTACK("openstack"),
     ORACLEBMCS("oraclebmcs");
 
     @Getter
+    String name;
+
+    @Getter
     String id;
 
-    ProviderType(String id) {
+    ProviderType(String name) {
+      this.name = name;
+      this.id = name;
+    }
+
+    ProviderType(String name, String id) {
+      this.name = name;
       this.id = id;
     }
   }

@@ -30,9 +30,6 @@ import org.springframework.stereotype.Component;
 @Data
 public class GoogleMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
   ArtifactService artifactService;
 
   @Override

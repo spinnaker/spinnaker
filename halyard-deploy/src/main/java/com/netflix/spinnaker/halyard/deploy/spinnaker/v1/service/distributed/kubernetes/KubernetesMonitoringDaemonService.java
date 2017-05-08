@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,11 +32,9 @@ import org.springframework.stereotype.Component;
 @Component
 @Data
 public class KubernetesMonitoringDaemonService extends SpinnakerMonitoringDaemonService {
+  @Delegate
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
-  ArtifactService artifactService;
+  KubernetesDistributedServiceDelegate distributedServiceDelegate;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
@@ -48,9 +47,9 @@ public class KubernetesMonitoringDaemonService extends SpinnakerMonitoringDaemon
 
   private String getArtifactId(String deploymentName) {
     String artifactName = getArtifact().getName();
-    String version = artifactService.getArtifactVersion(deploymentName, getArtifact());
+    String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, dockerRegistry);
+    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry());
     return KubernetesUtil.getImageId(image);
   }
 }

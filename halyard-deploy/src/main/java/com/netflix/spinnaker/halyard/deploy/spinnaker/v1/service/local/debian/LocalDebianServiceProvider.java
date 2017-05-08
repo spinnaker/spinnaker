@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 @Component
 public class LocalDebianServiceProvider extends LocalServiceProvider {
   @Autowired
-  private String debianRepository;
+  private ArtifactSources artifactSources;
 
   @Autowired
   LocalDebianClouddriverService clouddriverService;
@@ -91,7 +92,7 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
     bindings = new HashMap<>();
     bindings.put("prepare-environment", "true");
     bindings.put("install-redis", "true");
-    bindings.put("debian-repository", debianRepository);
+    bindings.put("debian-repository", artifactSources.getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("service-action", "restart");
     bindings.put("upstart-init", upstartInit);

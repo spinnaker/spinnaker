@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
@@ -35,6 +36,9 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
   @Autowired
   AccountService accountService;
 
+  @Autowired
+  ArtifactSources artifactSources;
+
   @Override
   public SpinnakerArtifact getArtifact() {
     return SpinnakerArtifact.CLOUDDRIVER;
@@ -50,6 +54,8 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
     }
 
     Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), deploymentEnvironment.getAccountName());
+
+    account.makeBootstrappingAccount(artifactSources);
 
     if (account instanceof SupportsConsul) {
       SupportsConsul consulAccount = (SupportsConsul) account;

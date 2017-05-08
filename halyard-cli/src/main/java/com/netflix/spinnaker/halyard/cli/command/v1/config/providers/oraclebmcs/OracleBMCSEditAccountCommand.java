@@ -20,7 +20,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.oraclebmcs.Oracle
 @Parameters(separators = "=")
 public class OracleBMCSEditAccountCommand extends AbstractEditAccountCommand<OracleBMCSAccount> {
   protected String getProviderName() {
-    return Provider.ProviderType.ORACLEBMCS.getId();
+    return Provider.ProviderType.ORACLEBMCS.getName();
   }
 
   @Parameter(

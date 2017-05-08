@@ -18,12 +18,10 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisBootstrapService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -32,20 +30,9 @@ import redis.clients.jedis.Jedis;
 @Component
 @Data
 public class KubernetesRedisBootstrapService extends RedisBootstrapService implements KubernetesDistributedService<Jedis> {
+  @Delegate
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
-  KubernetesMonitoringDaemonService monitoringDaemonService;
-
-  @Autowired
-  ArtifactService artifactService;
-
-  @Autowired
-  ServiceInterfaceFactory serviceInterfaceFactory;
-
-  @Autowired
-  JobExecutor jobExecutor;
+  KubernetesDistributedServiceDelegate distributedServiceDelegate;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

@@ -20,13 +20,12 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,26 +36,9 @@ import java.util.List;
 @Component
 @Data
 public class GoogleVaultServerService extends VaultServerService implements GoogleDistributedService<VaultServerService.Vault> {
+  @Delegate
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
-  GoogleMonitoringDaemonService monitoringDaemonService;
-
-  @Autowired
-  ArtifactService artifactService;
-
-  @Autowired
-  ServiceInterfaceFactory serviceInterfaceFactory;
-
-  @Autowired
-  String googleImageProject;
-
-  @Autowired
-  String startupScriptPath;
-
-  @Autowired
-  GoogleConsulServerService consulServerService;
+  GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
   public void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,
@@ -82,11 +64,6 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     /* vault server may not stage profiles, since it acts as our config server */
     return new ArrayList<>();
-  }
-
-  @Override
-  public GoogleVaultServerService getVaultServerService() {
-    return this;
   }
 
   public String getArtifactId(String deploymentName) {

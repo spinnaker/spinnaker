@@ -18,13 +18,11 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaBootstrapService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,17 +33,9 @@ import java.util.List;
 @Component
 @Data
 public class KubernetesOrcaBootstrapService extends OrcaBootstrapService implements KubernetesDistributedService<OrcaService.Orca> {
+  @Delegate
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
-  KubernetesMonitoringDaemonService monitoringDaemonService;
-
-  @Autowired
-  ArtifactService artifactService;
-
-  @Autowired
-  ServiceInterfaceFactory serviceInterfaceFactory;
+  KubernetesDistributedServiceDelegate distributedServiceDelegate;
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

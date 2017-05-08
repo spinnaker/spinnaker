@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -37,7 +38,7 @@ import java.util.stream.Collectors;
 @Component
 public class BakeDebianServiceProvider extends BakeServiceProvider {
   @Autowired
-  private String debianRepository;
+  private ArtifactSources artifactSources;
 
   @Autowired
   BakeDebianClouddriverService clouddriverService;
@@ -107,7 +108,7 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
 
     resource = new JarResource("/debian/pre-bake.sh");
     bindings = new HashMap<>();
-    bindings.put("debian-repository", debianRepository);
+    bindings.put("debian-repository", artifactSources.getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("upstart-init", upstartInit);
     bindings.put("startup-file", Paths.get(startupScriptPath, "startup.sh").toString());

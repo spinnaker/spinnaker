@@ -16,7 +16,7 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
+package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -26,10 +26,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GoogleDistributedServiceDelegate {
+public class KubernetesDistributedServiceDelegate {
   @Autowired
-  @Getter
-  GoogleMonitoringDaemonService monitoringDaemonService;
+  ArtifactSources artifactSources;
+
+  public String getDockerRegistry() {
+    return artifactSources.getDockerRegistry();
+  }
 
   @Autowired
   @Getter
@@ -40,29 +43,6 @@ public class GoogleDistributedServiceDelegate {
   ServiceInterfaceFactory serviceInterfaceFactory;
 
   @Autowired
-  ArtifactSources artifactSources;
-
-  @Autowired
   @Getter
-  String startupScriptPath;
-
-  @Autowired
-  @Getter
-  GoogleVaultClientService vaultClientService;
-
-  @Autowired
-  @Getter
-  GoogleVaultServerService vaultServerService;
-
-  @Autowired
-  @Getter
-  GoogleConsulClientService consulClientService;
-
-  @Autowired
-  @Getter
-  GoogleConsulServerService consulServerService;
-
-  public String getGoogleImageProject() {
-    return artifactSources.getGoogleImageProject();
-  }
+  KubernetesMonitoringDaemonService monitoringDaemonService;
 }

@@ -53,6 +53,9 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FAT
 class GoogleProviderUtils {
   // Map from service -> the port & job managing the connection.
   private static ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
+  public static String getNetworkName() {
+    return "spinnaker-hal";
+  }
 
   static String defaultServiceAccount(AccountDeploymentDetails<GoogleAccount> details) {
     GoogleAccount account = details.getAccount();
@@ -156,7 +159,7 @@ class GoogleProviderUtils {
   }
 
   static String ensureSpinnakerNetworkExists(AccountDeploymentDetails<GoogleAccount> details) {
-    String networkName = "spinnaker-hal";
+    String networkName = getNetworkName();
     String project = details.getAccount().getProject();
 
     Compute compute = getCompute(details);

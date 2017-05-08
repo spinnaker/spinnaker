@@ -19,7 +19,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 @Parameters(separators = "=")
 public class OracleBMCSAccountCommand extends AbstractAccountCommand {
   protected String getProviderName() {
-    return Provider.ProviderType.ORACLEBMCS.getId();
+    return Provider.ProviderType.ORACLEBMCS.getName();
   }
 
   public OracleBMCSAccountCommand() {

@@ -20,13 +20,15 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
 import com.netflix.frigga.Names;
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
+import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
-import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
+import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
@@ -120,7 +122,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
   @Override
   default List<ConfigSource> stageProfiles(AccountDeploymentDetails<GoogleAccount> details,
-      GenerateService.ResolvedConfiguration resolvedConfiguration) {
+      ResolvedConfiguration resolvedConfiguration) {
 
     String deploymentName = details.getDeploymentName();
     SpinnakerService thisService = getService();
@@ -204,59 +206,25 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         RandomStringUtils.random(5, true, true));
   }
 
-  @Override
-  default void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,
-      GenerateService.ResolvedConfiguration resolvedConfiguration,
-      List<ConfigSource> configSources,
-      boolean recreate) {
-    DaemonTaskHandler.newStage("Deploying " + getServiceName() + " via GCE API");
-    int version = 0;
-    ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-
+  default List<Metadata.Items> getMetadata(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, List<ConfigSource> configSources, Integer version) {
+    List<Metadata.Items> metadataItems = new ArrayList<>();
     String deploymentName = details.getDeploymentName();
-    GoogleAccount account = details.getAccount();
-    Compute compute = GoogleProviderUtils.getCompute(details);
-    String project = account.getProject();
-
-    boolean exists = runningServiceDetails.getLatestEnabledVersion() != null;
-    if (!recreate && exists) {
-      DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart");
-      return;
-    } else if (exists) {
-      DaemonTaskHandler.message("Recreating existing " + getServiceName() + "...");
-      try {
-        // TODO delete corresponding instance template here too (right now it's useful to keep for debugging, though).
-        Operation operation = compute.instanceGroupManagers().delete(project, settings.getLocation(), getVersionedName(version)).execute();
-        GoogleProviderUtils.waitOnZoneOperation(compute, project, settings.getLocation(), operation);
-      } catch (IOException e) {
-        throw new HalException(FATAL, "Failed to delete service " + getServiceName(), e);
-      }
-    }
-
-    InstanceGroupManager manager = new InstanceGroupManager();
-
-    InstanceTemplate template = new InstanceTemplate()
-        .setName(getServiceName() + "-hal-" + System.currentTimeMillis())
-        .setDescription("Halyard-generated instance template for deploying Spinnaker");
 
     Metadata.Items items = new Metadata.Items()
         .setKey("startup-script")
         .setValue(getStartupScript());
-
-    List<Metadata.Items> metadataItems = new ArrayList<>();
     metadataItems.add(items);
 
     if (!configSources.isEmpty()) {
       DaemonTaskHandler.message("Mounting config in vault server");
       GoogleVaultServerService vaultService = getVaultServerService();
-      VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
+      VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, runtimeSettings);
 
       String secretName = secretName("config-mounts", version);
       VaultConfigMountSet mountSet = VaultConfigMountSet.fromConfigSources(configSources);
       secretName = vaultService.writeVaultConfigMountSet(deploymentName, vault, secretName, mountSet);
 
-      VaultConnectionDetails connectionDetails = buildConnectionDetails(details, resolvedConfiguration.getRuntimeSettings(), secretName);
+      VaultConnectionDetails connectionDetails = buildConnectionDetails(details, runtimeSettings, secretName);
 
       DaemonTaskHandler.message("Placing vault connection details into instance metadata");
       items = new Metadata.Items()
@@ -276,7 +244,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     }
 
     GoogleConsulServerService consulServerService = getConsulServerService();
-    RunningServiceDetails consulServerDetails = consulServerService.getRunningServiceDetails(details, resolvedConfiguration.getServiceSettings(consulServerService));
+    RunningServiceDetails consulServerDetails = consulServerService.getRunningServiceDetails(details, runtimeSettings.getServiceSettings(consulServerService));
     Integer latestConsulVersion = consulServerDetails.getLatestEnabledVersion();
     if (latestConsulVersion != null) {
       List<RunningServiceDetails.Instance> instances = consulServerDetails.getInstances().get(latestConsulVersion);
@@ -290,7 +258,46 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       metadataItems.add(items);
     }
 
-    Metadata metadata = new Metadata().setItems(metadataItems);
+    return metadataItems;
+  }
+
+  @Override
+  default void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,
+      ResolvedConfiguration resolvedConfiguration,
+      List<ConfigSource> configSources,
+      boolean recreate) {
+    DaemonTaskHandler.newStage("Deploying " + getServiceName() + " via GCE API");
+    int version = 0;
+    ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
+
+    GoogleAccount account = details.getAccount();
+    Compute compute = GoogleProviderUtils.getCompute(details);
+    String project = account.getProject();
+    String zone = settings.getLocation();
+
+    boolean exists = runningServiceDetails.getLatestEnabledVersion() != null;
+    if (!recreate && exists) {
+      DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart");
+      return;
+    } else if (exists) {
+      DaemonTaskHandler.message("Recreating existing " + getServiceName() + "...");
+      try {
+        // TODO delete corresponding instance template here too (right now it's useful to keep for debugging, though).
+        Operation operation = compute.instanceGroupManagers().delete(project, zone, getVersionedName(version)).execute();
+        GoogleProviderUtils.waitOnZoneOperation(compute, project, settings.getLocation(), operation);
+      } catch (IOException e) {
+        throw new HalException(FATAL, "Failed to delete service " + getServiceName(), e);
+      }
+    }
+
+    InstanceGroupManager manager = new InstanceGroupManager();
+
+    InstanceTemplate template = new InstanceTemplate()
+        .setName(getServiceName() + "-hal-" + System.currentTimeMillis())
+        .setDescription("Halyard-generated instance template for deploying Spinnaker");
+
+    Metadata metadata = new Metadata().setItems(getMetadata(details, resolvedConfiguration.getRuntimeSettings(), configSources, version));
 
     AccessConfig accessConfig = new AccessConfig()
         .setName("External NAT")
@@ -311,9 +318,13 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         .setNetworkInterfaces(Collections.singletonList(networkInterface));
 
     AttachedDisk disk = new AttachedDisk()
-        .setBoot(true);
+        .setBoot(true)
+        .setAutoDelete(true)
+        .setType("PERSISTENT");
 
     AttachedDiskInitializeParams diskParams = new AttachedDiskInitializeParams()
+        .setDiskSizeGb(20L)
+        .setDiskStorageType(GCEUtil.buildDiskTypeUrl(project, zone, GoogleDiskType.PD_SSD))
         .setSourceImage(getArtifactId(details.getDeploymentName()));
 
     disk.setInitializeParams(diskParams);
@@ -369,7 +380,77 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
   @Override
   default Map<String, Object> getServerGroupDescription(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, List<ConfigSource> configSources) {
-    return new HashMap<>();
+    GoogleAccount account = details.getAccount();
+    Integer version = getLatestEnabledServiceVersion(details, runtimeSettings.getServiceSettings(getService()));
+    if (version == null) {
+      version = 0;
+    } else {
+      version++;
+    }
+
+    Names name = Names.parseName(getServiceName());
+    String app = name.getApp();
+    String stack = name.getStack();
+    String detail = name.getDetail();
+    String network = GoogleProviderUtils.getNetworkName();
+    Map<String, String> metadata = getMetadata(details, runtimeSettings, configSources, version).stream()
+        .reduce(new HashMap<String, String>(),
+            (h1, item) -> {
+              h1.put(item.getKey(), item.getValue());
+              return h1;
+            },
+            (h1, h2) -> {
+              h1.putAll(h2);
+              return h1;
+            }
+        );
+    String serviceAccountEmail = GoogleProviderUtils.defaultServiceAccount(details);
+    List<String> scopes = getScopes();
+    String accountName = account.getName();
+
+    Map<String, Object> deployDescription = new HashMap<>();
+    deployDescription.put("application", app);
+    deployDescription.put("stack", stack);
+    deployDescription.put("freeFormDetails", detail);
+    deployDescription.put("network", network);
+    deployDescription.put("metadata", metadata);
+    deployDescription.put("serviceAccountEmail", serviceAccountEmail);
+    deployDescription.put("authScopes", scopes);
+    deployDescription.put("accountName", accountName);
+    deployDescription.put("account", accountName);
+    return deployDescription;
+
+    /* TODO(lwander): Google's credential class cannot be serialized as-is, making this type of construction impossible
+    BasicGoogleDeployDescription deployDescription = new BasicGoogleDeployDescription();
+    deployDescription.setApplication(app);
+    deployDescription.setStack(stack);
+    deployDescription.setFreeFormDetails(detail);
+
+    deployDescription.setNetwork(network);
+    deployDescription.setInstanceMetadata(metadata);
+    deployDescription.setServiceAccountEmail(serviceAccountEmail);
+    deployDescription.setAuthScopes(scopes);
+    // Google's credentials constructor prevents us from neatly creating a deploy description with only a name supplied
+    String jsonKey = null;
+    if (!StringUtils.isEmpty(account.getJsonPath())) {
+      try {
+        jsonKey = IOUtils.toString(new FileInputStream(account.getJsonPath()));
+      } catch (IOException e) {
+        throw new RuntimeException("Unvalidated json path found during deployment: " + e.getMessage(), e);
+      }
+    }
+
+    deployDescription.setCredentials(new GoogleNamedAccountCredentials.Builder()
+        .name(account.getName())
+        .jsonKey(jsonKey)
+        .project(account.getProject())
+        .build()
+    );
+
+    return new ObjectMapper().convertValue(deployDescription, new TypeReference<Map<String, Object>>() { });
+    */
+
+
   }
 
   @Override
@@ -394,6 +475,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   @Override
   default RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<GoogleAccount> details, ServiceSettings settings) {
     RunningServiceDetails result = new RunningServiceDetails();
+    result.setLoadBalancer(new RunningServiceDetails.LoadBalancer().setExists(true)); // All GCE load balancing is done via consul
     Compute compute = GoogleProviderUtils.getCompute(details);
     GoogleAccount account = details.getAccount();
     List<InstanceGroupManager> migs;

@@ -25,13 +25,12 @@ import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -45,17 +44,9 @@ import java.util.stream.Collectors;
 @Component
 @Data
 public class KubernetesRedisService extends RedisService implements KubernetesDistributedService<Jedis> {
+  @Delegate
   @Autowired
-  private String dockerRegistry;
-
-  @Autowired
-  KubernetesMonitoringDaemonService monitoringDaemonService;
-
-  @Autowired
-  ArtifactService artifactService;
-
-  @Autowired
-  ServiceInterfaceFactory serviceInterfaceFactory;
+  KubernetesDistributedServiceDelegate distributedServiceDelegate;
 
   @Override
   public Jedis connectToPrimaryService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {

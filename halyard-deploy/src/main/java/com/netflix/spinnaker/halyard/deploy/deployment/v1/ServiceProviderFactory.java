@@ -83,7 +83,7 @@ public class ServiceProviderFactory {
       case GOOGLE:
         return googleDistributedServiceProvider;
       default:
-        throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getId());
+        throw new IllegalArgumentException("No Clustered Simple Deployment for " + providerType.getName());
     }
   }
 }

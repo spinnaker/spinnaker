@@ -112,10 +112,10 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
             DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via provider API");
             deployServiceManually(deploymentDetails, resolvedConfiguration, distributedService, safeToUpdate);
           } else {
+            DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via red/black");
             Orca orca = serviceProvider
                 .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
                 .connectToPrimaryService(deploymentDetails, runtimeSettings);
-            DaemonTaskHandler.newStage("Deploying " + distributedService.getServiceName() + " via red/black");
             deployServiceWithOrca(deploymentDetails, resolvedConfiguration, orca, distributedService);
           }
 
