@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.security.SpinnakerUser
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.User
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,12 +38,14 @@ class CredentialsController {
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
   @PostFilter("hasPermission(filterObject.name, 'ACCOUNT', 'READ')")
+  @ApiOperation(value = "Retrieve a list of accounts")
   @RequestMapping(method = RequestMethod.GET)
   List<ClouddriverService.Account> getAccounts(@SpinnakerUser User user) {
     credentialsService.getAccounts(user?.roles ?: [])
   }
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
+  @ApiOperation(value = "Retrieve an account's details")
   @RequestMapping(value = '/{account}', method = RequestMethod.GET)
   Map getAccount(@PathVariable("account") String account) {
     credentialsService.getAccount(account)

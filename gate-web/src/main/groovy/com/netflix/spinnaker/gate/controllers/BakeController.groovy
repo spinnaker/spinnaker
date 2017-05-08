@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.BakeService
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -34,16 +35,19 @@ class BakeController {
   @Autowired
   BakeService bakeService
 
+  @ApiOperation(value = "Retrieve a list of available bakery base images, grouped by cloud provider")
   @RequestMapping(value = "/options", method = RequestMethod.GET)
   def bakeOptions() {
     bakeService.bakeOptions()
   }
 
+  @ApiOperation(value = "Retrieve a list of available bakery base images for a given cloud provider")
   @RequestMapping(value = "/options/{cloudProvider}", method = RequestMethod.GET)
   def bakeOptions(@PathVariable("cloudProvider") String cloudProvider) {
     bakeService.bakeOptions(cloudProvider)
   }
 
+  @ApiOperation(value = "Retrieve the logs for a given bake")
   @RequestMapping(value = "/logs/{region}/{statusId}", method = RequestMethod.GET)
   def lookupLogs(@PathVariable("region") String region,
                  @PathVariable("statusId") String statusId) {

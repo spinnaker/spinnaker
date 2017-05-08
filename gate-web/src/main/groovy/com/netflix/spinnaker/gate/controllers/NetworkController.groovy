@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.NetworkService
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -30,11 +31,13 @@ class NetworkController {
   @Autowired
   NetworkService networkService
 
+  @ApiOperation(value = "Retrieve a list of networks, grouped by cloud provider")
   @RequestMapping(method = RequestMethod.GET)
   Map all() {
     networkService.getNetworks()
   }
 
+  @ApiOperation(value = "Retrieve a list of networks for a given cloud provider")
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
   List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
     networkService.getNetworks(cloudProvider)
