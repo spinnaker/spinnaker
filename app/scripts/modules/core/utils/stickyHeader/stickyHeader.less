@@ -14,31 +14,23 @@
       box-shadow: 0 8px 6px -6px @mid_lighter_grey;
     }
   }
-  &.heading-sticky {
-    position: fixed;
-    z-index: 2;
-    margin: 0;
-    box-shadow: none;
-    .shadowed {
-      box-shadow: 0 8px 6px -6px @mid_lighter_grey;
-    }
-    .sticky-only {
-      display: inline;
-    }
-    .shadowed {
-      display: flex;
-      flex: 1 1 auto;
-      background-color: @pod_header_blue;
-      align-items: center;
-    }
-  }
-  &.not-sticky {
-    top: unset;
-    z-index: 3;
-  }
-
-  &.sticky-only {
-    display: none;
-  }
   .clearfix();
+}
+
+.heading-sticky {
+  position: fixed;
+  z-index: 2;
+  margin: 0;
+  .sticky-only {
+    display: inline;
+  }
+}
+.not-sticky {
+  top: unset;
+  width: 100%;
+  z-index: 3;
+}
+
+.sticky-only {
+  display: none;
 }
