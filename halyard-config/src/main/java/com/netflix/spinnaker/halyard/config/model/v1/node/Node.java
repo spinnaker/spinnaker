@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.config.model.v1.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import lombok.Getter;
@@ -371,5 +372,10 @@ abstract public class Node implements Validatable {
     recursiveConsume(fileFinder);
 
     return files;
+  }
+
+  public <T> T cloneNode(Class<T> tClass) {
+    ObjectMapper mapper = new ObjectMapper();
+    return mapper.convertValue(mapper.convertValue(this, Map.class), tClass);
   }
 }

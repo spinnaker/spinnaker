@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 
-import com.amazonaws.services.codepipeline.model.Artifact;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
@@ -83,6 +82,7 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
 
   @Override
   public void makeBootstrappingAccount(ArtifactSources artifactSources) {
+    super.makeBootstrappingAccount(artifactSources);
     imageProjects.add(artifactSources.getGoogleImageProject());
   }
 }

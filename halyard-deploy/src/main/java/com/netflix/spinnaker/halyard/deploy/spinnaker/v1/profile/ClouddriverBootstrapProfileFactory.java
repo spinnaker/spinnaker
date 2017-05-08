@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
@@ -55,6 +56,11 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
 
     Account account = accountService.getAnyProviderAccount(deploymentConfiguration.getName(), deploymentEnvironment.getAccountName());
 
+    // We make a clone to modify a provider account only within the bootstrapping instance
+    Providers providers = deploymentConfiguration.getProviders();
+    Providers clonedProviders = providers.cloneNode(Providers.class);
+    deploymentConfiguration.setProviders(clonedProviders);
+
     account.makeBootstrappingAccount(artifactSources);
 
     if (account instanceof SupportsConsul) {
@@ -70,7 +76,6 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
       log.warn("Attempting to perform a distributed deployment to account \"" + account.getName() + "\" without a discovery mechanism");
     }
 
-    Providers providers = deploymentConfiguration.getProviders();
     List<String> files = backupRequiredFiles(providers);
     profile.appendContents(yamlToString(providers))
         .appendContents(profile.getBaseContents())
