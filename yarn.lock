@@ -444,16 +444,6 @@ angular-cron-gen@0.0.21:
   version "0.0.21"
   resolved "https://registry.yarnpkg.com/angular-cron-gen/-/angular-cron-gen-0.0.21.tgz#faa2bb35252a77892244dc895255b34dd6f734bf"
 
-angular-filter@^0.5.15:
-  version "0.5.16"
-  resolved "https://registry.yarnpkg.com/angular-filter/-/angular-filter-0.5.16.tgz#e71f4086c068e40716655036c22670f8a6985886"
-  dependencies:
-    angular "*"
-
-angular-hotkeys@^1.7.0:
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/angular-hotkeys/-/angular-hotkeys-1.7.0.tgz#052e6b6f44dfcd824427798b7f10e1917e8700a1"
-
 "angular-loader@file:./angular-loader":
   version "1.0.0"
   dependencies:
@@ -512,7 +502,7 @@ angular2react@^2.0.0:
     react "^15.4.2"
     react-dom "^15.4.2"
 
-angular@*, angular@>=1.5.0, angular@^1.4.0, angular@^1.6.3, angular@~1.6.3:
+angular@>=1.5.0, angular@^1.4.0, angular@^1.6.3, angular@~1.6.3:
   version "1.6.3"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.6.3.tgz#5d34b799234e8fa17c6a3a14e0258733935f43e7"
 
@@ -4359,10 +4349,6 @@ object.values@^1.0.3:
 obuf@^1.0.0, obuf@^1.1.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/obuf/-/obuf-1.1.1.tgz#104124b6c602c6796881a042541d36db43a5264e"
-
-octicons@^2.2.0:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/octicons/-/octicons-2.4.1.tgz#a2ed2d050bd12aad3477506f749540e8e62979b9"
 
 on-finished@~2.3.0:
   version "2.3.0"

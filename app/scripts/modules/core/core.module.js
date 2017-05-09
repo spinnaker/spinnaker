@@ -56,7 +56,6 @@ module.exports = angular
     require('angular-ui-router').default,
     UI_ROUTER_STATE_SHIM,
     require('angular-ui-bootstrap'),
-    require('exports-loader?"angular.filter"!angular-filter'),
     require('exports-loader?"ui.select"!ui-select'),
     require('imports-loader?define=>false!exports-loader?"angularSpinner"!angular-spinner'),
 
