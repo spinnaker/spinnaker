@@ -94,6 +94,19 @@ public class AnsiUi {
     AnsiPrinter.err.println(builder.toString());
   }
 
+  public static void listRemediation(String message) {
+    AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
+        .setIndentFirstLine(false)
+        .setIndentWidth(4);
+
+    builder.addSnippet("  - ")
+        .addStyle(AnsiStyle.BOLD);
+
+    builder.addSnippet(message);
+
+    AnsiPrinter.err.println(builder.toString());
+  }
+
   public static void success(String message) {
     AnsiParagraphBuilder builder = new AnsiParagraphBuilder()
         .setIndentFirstLine(false)

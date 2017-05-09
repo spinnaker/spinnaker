@@ -215,7 +215,7 @@ public class ResponseUnwrapper {
 
         if (options != null && !options.isEmpty()) {
           AnsiUi.remediation("Options include: ");
-          options.forEach(AnsiUi::listItem);
+          options.forEach(AnsiUi::listRemediation);
         }
 
         // Newline between errors
