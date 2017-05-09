@@ -35,7 +35,7 @@ object DiscoveryActivatedSpec : Spek({
 
   describe("a discovery-activated poller") {
 
-    val target: Function0<Unit> = mock()
+    val target: () -> Unit = mock()
     val subject = object : DiscoveryActivated {
       override val log = LoggerFactory.getLogger(this::class.java)
       override val enabled = AtomicBoolean(false)

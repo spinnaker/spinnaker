@@ -46,7 +46,7 @@ object DeadMessageHandlerSpec : SubjectSpek<DeadMessageHandler>({
     }
 
     it("terminates the execution") {
-      verify(queue).push(CompleteExecution(message, TERMINAL))
+      verify(queue).push(CompleteExecution(message))
     }
   }
 

@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.q.CancelStage
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.MessageHandler
 import com.netflix.spinnaker.orca.q.Queue
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
@@ -37,28 +39,51 @@ open class CompleteExecutionHandler
   private val publisher: ApplicationEventPublisher
 ) : MessageHandler<CompleteExecution> {
 
+  private val log = LoggerFactory.getLogger(javaClass)
+
   override fun handle(message: CompleteExecution) {
-    val status = if (message.execution.shouldOverrideSuccess()) {
-      TERMINAL
-    } else {
-      message.status
+    message.withExecution { execution ->
+      if (execution.getStatus().complete) {
+        log.info("Execution ${execution.getId()} already completed with ${execution.getStatus()} status")
+      } else {
+        execution.determineFinalStatus { status ->
+          repository.updateStatus(message.executionId, status)
+          publisher.publishEvent(
+            ExecutionComplete(this, message.executionType, message.executionId, status)
+          )
+          if (status != SUCCEEDED) {
+            execution.topLevelStages.filter { it.getStatus() == RUNNING }.forEach {
+              queue.push(CancelStage(it))
+            }
+          }
+        }
+      }
     }
-    repository.updateStatus(message.executionId, status)
-    publisher.publishEvent(
-      ExecutionComplete(this, message.executionType, message.executionId, status)
-    )
   }
+
+  private fun Execution<*>.determineFinalStatus(block: (ExecutionStatus) -> Unit) {
+    topLevelStages.let { stages ->
+      if (stages.map { it.getStatus() }.all { it in setOf(SUCCEEDED, SKIPPED, FAILED_CONTINUE) }) {
+        block.invoke(SUCCEEDED)
+      } else if (stages.any { it.getStatus() == TERMINAL }) {
+        block.invoke(TERMINAL)
+      } else if (stages.any { it.getStatus() == CANCELED }) {
+        block.invoke(CANCELED)
+      } else if (stages.any { it.getStatus() == STOPPED }) {
+        block.invoke(if (shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
+      } else {
+        log.warn("${javaClass.simpleName} ${getId()} does not appear to be complete")
+      }
+    }
+  }
+
+  private val Execution<*>.topLevelStages
+    get(): List<Stage<*>> = getStages().filter { it.getParentStageId() == null }
 
   private fun Execution<*>.shouldOverrideSuccess(): Boolean =
     getStages()
-      .filter { it.getStatus() == FAILED_CONTINUE }
+      .filter { it.getStatus() == STOPPED }
       .any { it.getContext()["completeOtherBranchesThenFail"] == true }
-
-  private val CompleteExecution.execution
-    get(): Execution<*> = when (executionType) {
-      Pipeline::class.java -> repository.retrievePipeline(executionId)
-      else -> repository.retrieveOrchestration(executionId)
-    }
 
   override val messageType = CompleteExecution::class.java
 }

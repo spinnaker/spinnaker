@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.ConfigurationError
@@ -35,6 +34,6 @@ open class ConfigurationErrorHandler
   override val messageType = ConfigurationError::class.java
 
   override fun handle(message: ConfigurationError) {
-    queue.push(CompleteExecution(message, TERMINAL))
+    queue.push(CompleteExecution(message))
   }
 }

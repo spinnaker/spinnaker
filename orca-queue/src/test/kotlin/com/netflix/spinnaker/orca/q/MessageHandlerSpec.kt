@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.q
 
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.throws
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.nhaarman.mockito_kotlin.mock
@@ -54,7 +53,7 @@ object MessageHandlerSpec : SubjectSpek<MessageHandler<*>>({
   fun resetMocks() = reset(queue, handleCallback)
 
   describe("when the handler is passed the wrong type of message") {
-    val message = CompleteExecution(Pipeline::class.java, "1", "foo", SUCCEEDED)
+    val message = CompleteExecution(Pipeline::class.java, "1", "foo")
 
     afterGroup(::resetMocks)
 

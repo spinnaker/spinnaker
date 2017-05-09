@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
+import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe

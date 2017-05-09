@@ -18,12 +18,9 @@ package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.ExecutionComplete
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.CompleteExecution
-import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.pipeline
-import com.netflix.spinnaker.orca.q.stage
+import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
@@ -42,29 +39,16 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
   fun resetMocks() = reset(queue, repository, publisher)
 
-  describe("when an execution completes successfully") {
-    val pipeline = pipeline { }
-    val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", SUCCEEDED)
-
-    beforeGroup {
-      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-    }
-
-    afterGroup(::resetMocks)
-
-    action("the handler receives a message") {
-      subject.handle(message)
-    }
-
-    it("updates the execution") {
-      verify(repository).updateStatus(message.executionId, SUCCEEDED)
-    }
-  }
-
-  setOf(TERMINAL, CANCELED).forEach { status ->
-    describe("when an execution fails with $status status") {
-      val pipeline = pipeline()
-      val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", status)
+  setOf(SUCCEEDED, TERMINAL, CANCELED).forEach { stageStatus ->
+    describe("when an execution completes and has a single stage with $stageStatus status") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          status = stageStatus
+        }
+      }
+      val message = CompleteExecution(pipeline)
 
       beforeGroup {
         whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -77,70 +61,128 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
       }
 
       it("updates the execution") {
-        verify(repository).updateStatus(message.executionId, status)
-      }
-    }
-  }
-
-  setOf(SUCCEEDED, TERMINAL, CANCELED).forEach { status ->
-    describe("when an execution completes with $status status") {
-      val pipeline = pipeline()
-      val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", status)
-
-      beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-      }
-
-      afterGroup(::resetMocks)
-
-      action("the handler receives a message") {
-        subject.handle(message)
+        verify(repository).updateStatus(message.executionId, stageStatus)
       }
 
       it("publishes an event") {
         verify(publisher).publishEvent(check<ExecutionComplete> {
           it.executionType shouldEqual pipeline.javaClass
           it.executionId shouldEqual pipeline.id
-          it.status shouldEqual status
+          it.status shouldEqual stageStatus
         })
+      }
+
+      it("does not queue any other commands") {
+        verifyZeroInteractions(queue)
       }
     }
   }
 
-  setOf(SUCCEEDED, TERMINAL, CANCELED).forEach { status ->
-    describe("when an execution had already completed but  with $status status") {
-      val pipeline = pipeline()
-      val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", status)
-
-      beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-      }
-
-      afterGroup(::resetMocks)
-
-      action("the handler receives a message") {
-        subject.handle(message)
-      }
-
-      it("publishes an event") {
-        verify(publisher).publishEvent(check<ExecutionComplete> {
-          it.executionType shouldEqual pipeline.javaClass
-          it.executionId shouldEqual pipeline.id
-          it.status shouldEqual status
-        })
-      }
-    }
-  }
-
-  describe("when a stage status was FAILED_CONTINUE but should fail the pipeline at the end") {
+  describe("an execution appears to complete but other branches are still running") {
     val pipeline = pipeline {
+      application = "foo"
       stage {
-        type = "dummy"
-        status = FAILED_CONTINUE
+        refId = "1"
+        status = SUCCEEDED
+      }
+      stage {
+        refId = "2"
+        status = RUNNING
+      }
+    }
+    val message = CompleteExecution(pipeline)
+
+    beforeGroup {
+      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+    }
+
+    afterGroup(::resetMocks)
+
+    action("the handler receives a message") {
+      subject.handle(message)
+    }
+
+    it("waits for the other branch(es)") {
+      verify(repository, never()).updateStatus(eq(pipeline.id), any())
+    }
+
+    it("does not publish any events") {
+      verifyZeroInteractions(publisher)
+    }
+
+    it("does not queue any other commands") {
+      verifyZeroInteractions(queue)
+    }
+  }
+
+  setOf(TERMINAL, CANCELED).forEach { stageStatus ->
+    describe("a stage signals branch completion with $stageStatus but other branches are still running") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          status = stageStatus
+        }
+        stage {
+          refId = "2"
+          status = RUNNING
+        }
+        stage {
+          refId = "3"
+          status = RUNNING
+        }
+      }
+      val message = CompleteExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("updates the pipeline status") {
+        verify(repository).updateStatus(pipeline.id, stageStatus)
+      }
+
+      it("publishes an event") {
+        verify(publisher).publishEvent(check<ExecutionComplete> {
+          it.executionType shouldEqual pipeline.javaClass
+          it.executionId shouldEqual pipeline.id
+          it.status shouldEqual stageStatus
+        })
+      }
+
+      it("cancels other stages") {
+        verify(queue).push(CancelStage(pipeline.stageByRef("2")))
+        verify(queue).push(CancelStage(pipeline.stageByRef("3")))
+        verifyNoMoreInteractions(queue)
+      }
+    }
+  }
+
+  describe("when a stage status was STOPPED but should fail the pipeline at the end") {
+    val pipeline = pipeline {
+      application = "foo"
+      stage {
+        refId = "1a"
+        status = STOPPED
         context["completeOtherBranchesThenFail"] = true
       }
+      stage {
+        refId = "1b"
+        requisiteStageRefIds = setOf("1a")
+        status = NOT_STARTED
+      }
+      stage {
+        refId = "2"
+        status = SUCCEEDED
+      }
     }
-    val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", SUCCEEDED)
+    val message = CompleteExecution(pipeline)
 
     beforeGroup {
       whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -155,17 +197,39 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
     it("updates the execution") {
       verify(repository).updateStatus(message.executionId, TERMINAL)
     }
+
+    it("publishes an event") {
+      verify(publisher).publishEvent(check<ExecutionComplete> {
+        it.executionType shouldEqual pipeline.javaClass
+        it.executionId shouldEqual pipeline.id
+        it.status shouldEqual TERMINAL
+      })
+    }
+
+    it("does not queue any other commands") {
+      verifyZeroInteractions(queue)
+    }
   }
 
-  describe("when a stage status was FAILED_CONTINUE and should not fail the pipeline at the end") {
+  describe("when a stage status was STOPPED and should not fail the pipeline at the end") {
     val pipeline = pipeline {
+      application = "foo"
       stage {
-        type = "dummy"
-        status = FAILED_CONTINUE
+        refId = "1a"
+        status = STOPPED
         context["completeOtherBranchesThenFail"] = false
       }
+      stage {
+        refId = "1b"
+        requisiteStageRefIds = setOf("1a")
+        status = NOT_STARTED
+      }
+      stage {
+        refId = "2"
+        status = SUCCEEDED
+      }
     }
-    val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", SUCCEEDED)
+    val message = CompleteExecution(pipeline)
 
     beforeGroup {
       whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -179,6 +243,18 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
     it("updates the execution") {
       verify(repository).updateStatus(message.executionId, SUCCEEDED)
+    }
+
+    it("publishes an event") {
+      verify(publisher).publishEvent(check<ExecutionComplete> {
+        it.executionType shouldEqual pipeline.javaClass
+        it.executionId shouldEqual pipeline.id
+        it.status shouldEqual SUCCEEDED
+      })
+    }
+
+    it("does not queue any other commands") {
+      verifyZeroInteractions(queue)
     }
   }
 })

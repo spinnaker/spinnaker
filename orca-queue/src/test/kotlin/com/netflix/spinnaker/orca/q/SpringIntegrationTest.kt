@@ -23,21 +23,19 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
-import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import com.netflix.spinnaker.orca.q.handler.shouldEqual
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
+import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.junit.After
 import org.junit.Before
@@ -93,6 +91,84 @@ class SpringIntegrationTest {
     context.runToCompletion(pipeline, runner::start)
 
     repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
+  }
+
+  @Test fun `can run a fork join pipeline`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+      }
+      stage {
+        refId = "2a"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+      }
+      stage {
+        refId = "2b"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+      }
+      stage {
+        refId = "3"
+        requisiteStageRefIds = setOf("2a", "2b")
+        type = "dummy"
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.runToCompletion(pipeline, runner::start)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2a").status shouldEqual SUCCEEDED
+      stageByRef("2b").status shouldEqual SUCCEEDED
+      stageByRef("3").status shouldEqual SUCCEEDED
+    }
+  }
+
+  @Test fun `can run a pipeline that ends in a branch`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+      }
+      stage {
+        refId = "2a"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+      }
+      stage {
+        refId = "2b1"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+      }
+      stage {
+        refId = "2b2"
+        requisiteStageRefIds = setOf("2b1")
+        type = "dummy"
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.runToCompletion(pipeline, runner::start)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2a").status shouldEqual SUCCEEDED
+      stageByRef("2b1").status shouldEqual SUCCEEDED
+      stageByRef("2b2").status shouldEqual SUCCEEDED
+    }
   }
 
   @Test fun `can skip stages`() {
@@ -168,12 +244,14 @@ class SpringIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start)
 
-    argumentCaptor<Stage<Pipeline>>().apply {
-      verify(dummyTask, atLeastOnce()).execute(capture())
-      allValues.map { it.refId }.toSet() shouldEqual setOf("1", "2a1", "2b")
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual TERMINAL
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2a1").status shouldEqual TERMINAL
+      stageByRef("2a2").status shouldEqual NOT_STARTED
+      stageByRef("2b").status shouldEqual SUCCEEDED
+      stageByRef("3").status shouldEqual NOT_STARTED
     }
-
-    repository.retrievePipeline(pipeline.id).status shouldEqual TERMINAL
   }
 
   @Test fun `stages set to allow failure will proceed in spite of errors`() {
@@ -213,12 +291,14 @@ class SpringIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start)
 
-    argumentCaptor<Stage<Pipeline>>().apply {
-      verify(dummyTask, atLeastOnce()).execute(capture())
-      allValues.map { it.refId }.toSet() shouldEqual setOf("1", "2a1", "2a2", "2b", "3")
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2a1").status shouldEqual FAILED_CONTINUE
+      stageByRef("2a2").status shouldEqual SUCCEEDED
+      stageByRef("2b").status shouldEqual SUCCEEDED
+      stageByRef("3").status shouldEqual SUCCEEDED
     }
-
-    repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
   }
 
   @Test fun `stages set to allow failure but fail the pipeline will run to completion but then mark the pipeline failed`() {
@@ -232,7 +312,8 @@ class SpringIntegrationTest {
         refId = "2a1"
         type = "dummy"
         requisiteStageRefIds = listOf("1")
-        context["continuePipeline"] = true
+        context["continuePipeline"] = false
+        context["failPipeline"] = false
         context["completeOtherBranchesThenFail"] = true
       }
       stage {
@@ -259,12 +340,14 @@ class SpringIntegrationTest {
 
     context.runToCompletion(pipeline, runner::start)
 
-    argumentCaptor<Stage<Pipeline>>().apply {
-      verify(dummyTask, atLeastOnce()).execute(capture())
-      allValues.map { it.refId }.toSet() shouldEqual setOf("1", "2a1", "2a2", "2b", "3")
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual TERMINAL
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2a1").status shouldEqual STOPPED
+      stageByRef("2a2").status shouldEqual NOT_STARTED
+      stageByRef("2b").status shouldEqual SUCCEEDED
+      stageByRef("3").status shouldEqual NOT_STARTED
     }
-
-    repository.retrievePipeline(pipeline.id).status shouldEqual TERMINAL
   }
 }
 

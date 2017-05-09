@@ -188,6 +188,9 @@ data class CancelStage(
 ) : Message(), StageLevel {
   constructor(source: StageLevel) :
     this(source.executionType, source.executionId, source.application, source.stageId)
+
+  constructor(stage: Stage<*>) :
+    this(stage.getExecution().javaClass, stage.getExecution().getId(), stage.getExecution().getApplication(), stage.getId())
 }
 
 data class StartExecution(
@@ -202,14 +205,13 @@ data class StartExecution(
 data class CompleteExecution(
   override val executionType: Class<out Execution<*>>,
   override val executionId: String,
-  override val application: String,
-  val status: ExecutionStatus
+  override val application: String
 ) : Message(), ExecutionLevel {
-  constructor(source: ExecutionLevel, status: ExecutionStatus) :
-    this(source.executionType, source.executionId, source.application, status)
+  constructor(source: ExecutionLevel) :
+    this(source.executionType, source.executionId, source.application)
 
-  constructor(source: Execution<*>, status: ExecutionStatus) :
-    this(source.javaClass, source.getId(), source.getApplication(), status)
+  constructor(source: Execution<*>) :
+    this(source.javaClass, source.getId(), source.getApplication())
 }
 
 data class ResumeExecution(

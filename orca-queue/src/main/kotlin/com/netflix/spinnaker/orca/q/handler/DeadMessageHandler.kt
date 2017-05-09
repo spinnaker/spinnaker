@@ -29,7 +29,7 @@ import org.springframework.stereotype.Component
     when (message) {
       is TaskLevel -> queue.push(CompleteTask(message, TERMINAL))
       is StageLevel -> queue.push(CompleteStage(message, TERMINAL))
-      is ExecutionLevel -> queue.push(CompleteExecution(message, TERMINAL))
+      is ExecutionLevel -> queue.push(CompleteExecution(message))
       else -> log.error("Unhandled message type ${message.javaClass}")
     }
   }

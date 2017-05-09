@@ -58,7 +58,7 @@ object QueueProcessorSpec : SubjectSpek<QueueProcessor>({
     }
 
     describe("when disabled in discovery") {
-      beforeGroup {
+      beforeEachTest {
         subject.onApplicationEvent(RemoteStatusChangedEvent(StatusChangeEvent(UP, OUT_OF_SERVICE)))
       }
 

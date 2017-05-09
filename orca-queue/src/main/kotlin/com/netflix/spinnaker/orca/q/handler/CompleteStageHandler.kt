@@ -48,7 +48,7 @@ open class CompleteStageHandler
       } else {
         queue.push(CancelStage(message))
         if (stage.getSyntheticStageOwner() == null) {
-          queue.push(CompleteExecution(message, message.status))
+          queue.push(CompleteExecution(message))
         } else {
           queue.push(message.copy(stageId = stage.getParentStageId()))
         }
@@ -68,6 +68,7 @@ open class CompleteStageHandler
           queue.push(StartStage(it))
         }
       } else if (getSyntheticStageOwner() == STAGE_BEFORE) {
+        // TODO: I'm not convinced this is a good approach, we should probably signal completion of the branch and have downstream handler no-op if other branches are incomplete
         parent().let { parent ->
           if (parent.allBeforeStagesComplete()) {
             if (parent.getTasks().isNotEmpty()) {
@@ -86,7 +87,7 @@ open class CompleteStageHandler
           queue.push(CompleteStage(parent, SUCCEEDED))
         }
       } else {
-        queue.push(CompleteExecution(execution, SUCCEEDED))
+        queue.push(CompleteExecution(execution))
       }
     }
   }
