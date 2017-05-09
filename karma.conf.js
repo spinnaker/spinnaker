@@ -46,7 +46,6 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-junit-reporter'),
       require('karma-mocha-reporter'),
-      require('karma-coverage')
     ],
 
     // list of files / patterns to exclude
@@ -66,7 +65,7 @@ module.exports = function (config) {
     logLevel: config.DEBUG,
 
     // jUnit Report output
-    reporters: ['progress', 'mocha', 'coverage'],
+    reporters: ['progress', 'mocha'],
 
     // the default configuration
     junitReporter: {
@@ -75,11 +74,6 @@ module.exports = function (config) {
 
     mochaReporter: {
      ignoreSkipped: true,
-    },
-
-    coverageReporter: {
-     type : 'html',
-     dir : 'coverage/'
     },
 
     client: {

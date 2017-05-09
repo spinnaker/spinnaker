@@ -24,6 +24,5 @@ build/
 dist/
 transpiled/
 
-# Test & Coverage
-coverage/
+# Test Results
 test-results.xml

@@ -1,8 +1,0 @@
-{
-  "account": "my-google-account",
-  "email": "e2e-test@email.com",
-  "cloudProvider": "gce",
-  "region": "us-central1",
-  "zone": "us-central1-f",
-  "gateUrl": "http://localhost:8084"
-}
