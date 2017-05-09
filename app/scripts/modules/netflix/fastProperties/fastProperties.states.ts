@@ -38,6 +38,9 @@ module(FAST_PROPERTY_STATES, [
     dynamic: true,
     value: null,
   };
+  filterParams.tab = {
+    dynamic: true,
+  };
 
   const detailsView = {
     templateUrl: require('./view/details/fastPropertyDetails.html'),
@@ -77,7 +80,7 @@ module(FAST_PROPERTY_STATES, [
    */
   const applicationFastProperties: INestedState = {
     name: 'properties',
-    url: `/properties?propertyId&sortBy&${stateConfigProvider.paramsToQuery(filterParamsConfig)}`,
+    url: `/properties?propertyId&sortBy&tab&${stateConfigProvider.paramsToQuery(filterParamsConfig)}`,
     views: {
       'master': {
         template: '<application-fast-properties application="app" class="flex-fill"></application-fast-properties>',

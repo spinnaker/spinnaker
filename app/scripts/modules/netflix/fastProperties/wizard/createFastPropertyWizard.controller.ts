@@ -1,6 +1,7 @@
 import { module, IScope } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService, RawParams } from 'angular-ui-router';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import { has } from 'lodash';
 
 import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.component';
 import { FAST_PROPERTY_SCOPE_COMPONENT } from './propertyScope/propertyScope.component';
@@ -44,29 +45,48 @@ class CreateFastPropertyWizardController {
     return !!this.command.pipeline;
   }
 
-  public startPipeline(pipeline: PropertyPipeline): void {
-    this.state.submitting = true;
-    this.pipelineConfigService.startAdHocPipeline(pipeline).then((executionId) => {
-      this.fastPropertyReader.waitForPromotionPipelineToAppear(this.application, executionId)
-        .then((execution: IExecution) => {
-          const propertyId = execution.context.persistedProperties[0].propertyId;
-          let nextState = this.$state.current.name.endsWith('.execution') ? '.' : '.execution';
-          if (this.application.global) {
-            nextState = '^.rollouts.execution';
-          }
-          this.$state.go(nextState, { executionId, propertyId });
-          this.$uibModalInstance.close();
-        });
-    });
-  }
-
-
   public isValid(): boolean {
     return !!this.command.pipeline && !!this.command.property.isValid() && this.command.scopes.length > 0;
   }
 
   public cancel(): void {
     this.$uibModalInstance.dismiss();
+  }
+
+  public startPipeline(pipeline: PropertyPipeline): void {
+    this.state.submitting = true;
+    const propertyFound = (e: IExecution) => has(e, 'context.persistedProperties[0].propertyId');
+    this.pipelineConfigService.startAdHocPipeline(pipeline).then((executionId) => {
+      this.fastPropertyReader.waitForPromotionPipelineToAppear(this.application, executionId, propertyFound)
+        .then((execution: IExecution) => {
+          this.$state.go(this.getNextState(), this.getNextParams(execution));
+          this.$uibModalInstance.close();
+        });
+    });
+  }
+
+  private getNextParams(execution: IExecution): RawParams {
+    const propertyId = execution.context.persistedProperties[0].propertyId;
+    const nextParams: RawParams = { propertyId };
+    if (this.command.strategy.isForcePush()) {
+      return nextParams;
+    }
+    nextParams.executionId = execution.id;
+    if (!this.application.global) {
+      nextParams.tab = 'rollouts';
+    }
+    return nextParams;
+  }
+
+  private getNextState(): string {
+    if (this.command.strategy.isForcePush()) {
+      return '.';
+    }
+    let nextState = this.$state.current.name.endsWith('.execution') ? '.' : '.execution';
+    if (this.application.global) {
+      nextState = '^.rollouts.execution';
+    }
+    return nextState;
   }
 
 }

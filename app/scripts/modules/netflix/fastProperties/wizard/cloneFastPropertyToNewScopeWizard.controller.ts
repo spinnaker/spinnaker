@@ -1,5 +1,6 @@
 import { module, IScope } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService, RawParams } from 'angular-ui-router';
+import { has } from 'lodash';
 
 import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.component';
 import { FAST_PROPERTY_SCOPE_COMPONENT } from './propertyScope/propertyScope.component';
@@ -13,7 +14,7 @@ import { PropertyCommand } from '../domain/propertyCommand.model';
 import { IPlatformProperty } from '../domain/platformProperty.model';
 import { Application } from 'core/application/application.model';
 import { FastPropertyReaderService } from '../fastProperty.read.service';
-import { IExecution } from '../../../core/domain/IExecution';
+import { IExecution } from 'core/domain/IExecution';
 
 interface IState {
   submitting: boolean;
@@ -46,34 +47,47 @@ class CloneFastPropertyToNewScopeWizardController {
     return !!this.command.pipeline;
   }
 
-  public startPipeline(pipeline: PropertyPipeline): void {
-    this.state.submitting = true;
-    this.pipelineConfigService.startAdHocPipeline(pipeline).then((executionId) => {
-      this.fastPropertyReader.waitForPromotionPipelineToAppear(this.application, executionId)
-        .then((execution: IExecution) => {
-          const propertyId = execution.context.persistedProperties[0].propertyId;
-          let nextState = this.$state.current.name.endsWith('.execution') ? '.' : '.execution';
-          if (this.application.global) {
-            if (this.$state.current.name.includes('.properties')) {
-              nextState = '^.rollouts.execution';
-            } else {
-              nextState = this.$state.current.name.includes('.rollouts.execution') ? '.' : '.execution';
-            }
-          }
-          this.application.getDataSource('propertyPromotions').refresh().then(() => {
-            this.$state.go(nextState, { executionId, propertyId });
-            this.$uibModalInstance.close();
-          });
-        });
-    });
-  }
-
   public isValid(): boolean {
     return !!this.command.pipeline && !!this.command.property.isValid() && this.command.scopes.length > 0;
   }
 
   public cancel(): void {
     this.$uibModalInstance.dismiss();
+  }
+
+  public startPipeline(pipeline: PropertyPipeline): void {
+    this.state.submitting = true;
+    const propertyFound = (e: IExecution) => has(e, 'context.persistedProperties[0].propertyId');
+    this.pipelineConfigService.startAdHocPipeline(pipeline).then((executionId) => {
+      this.fastPropertyReader.waitForPromotionPipelineToAppear(this.application, executionId, propertyFound)
+        .then((execution: IExecution) => {
+          this.$state.go(this.getNextState(), this.getNextParams(execution));
+        });
+    });
+  }
+
+  private getNextParams(execution: IExecution): RawParams {
+    const propertyId = execution.context.persistedProperties[0].propertyId;
+    const nextParams: RawParams = { propertyId };
+    if (this.command.strategy.isForcePush()) {
+      return nextParams;
+    }
+    nextParams.executionId = execution.id;
+    if (!this.application.global) {
+      nextParams.tab = 'rollouts';
+    }
+    return nextParams;
+  }
+
+  private getNextState(): string {
+    if (this.command.strategy.isForcePush()) {
+      return '.';
+    }
+    let nextState = this.$state.current.name.endsWith('.execution') ? '.' : '.execution';
+    if (this.application.global) {
+      nextState = '^.rollouts.execution';
+    }
+    return nextState;
   }
 
 }

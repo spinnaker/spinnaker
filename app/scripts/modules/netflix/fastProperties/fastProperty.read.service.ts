@@ -126,9 +126,10 @@ export class FastPropertyReaderService {
     )
   }
 
-  public waitForPromotionPipelineToAppear(application: Application, executionId: string): IPromise<IExecution> {
+  public waitForPromotionPipelineToAppear(application: Application, executionId: string, matcher?: (e: IExecution) => boolean): IPromise<IExecution> {
+    matcher = matcher || (() => true);
     return this.getPromotionsForApplication(application.name, ['RUNNING', 'SUCCEEDED', 'TERMINAL']).then((executions: IExecution[]) => {
-      const match = executions.find(e => e.id === executionId);
+      const match = executions.find(e => e.id === executionId && matcher(e));
       const deferred = this.$q.defer<IExecution>();
       if (match) {
         if (!application.global) {
@@ -139,7 +140,7 @@ export class FastPropertyReaderService {
         return deferred.promise;
       } else {
         return this.$timeout(() => {
-          return this.waitForPromotionPipelineToAppear(application, executionId);
+          return this.waitForPromotionPipelineToAppear(application, executionId, matcher);
         }, 2000);
       }
     });
