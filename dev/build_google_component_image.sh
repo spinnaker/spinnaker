@@ -15,6 +15,7 @@
 # limitations under the License.
 
 set -e
+set -o pipefail
 
 # Import some functions from other scripts.
 source $(dirname $0)/build_google_image_functions.sh
@@ -206,12 +207,23 @@ function create_component_image() {
 
   delete_prototype_disk
 
+  # Set $PROJECT to the publish project so we can clear the target
+  # image and disk if it exists.
+  PROJECT=$PUBLISH_PROJECT
+  delete_disk_if_exists $TARGET_IMAGE
+  delete_image_if_exists $TARGET_IMAGE
   bash spinnaker/google/dev/publish_gce_release.sh \
+    --zone $ZONE \
     --service_account $ACCOUNT \
     --original_image $TARGET_IMAGE \
     --original_project $BUILD_PROJECT \
     --publish_image $TARGET_IMAGE \
     --publish_project $PUBLISH_PROJECT
+
+  # Clear the image and disk from the build project after the copy.
+  PROJECT=$BUILD_PROJECT
+  delete_disk_if_exists $TARGET_IMAGE
+  delete_image_if_exists $TARGET_IMAGE
 }
 
 
@@ -258,18 +270,23 @@ SSH_KEY_FILE=$HOME/.ssh/google_empty
 fix_defaults
 create_empty_ssh_key
 
-PIDS=
-
 for artifact in "${!COMPONENTS[@]}"; do
   service=${COMPONENTS[$artifact]}
   LOG="create-${service}-image.log"
   echo "Creating component image for $service with artifact $artifact; output will be logged to $LOG..."
   create_component_image $artifact $service &> $LOG &
-  PID=$!
-  PIDS+=($PID)
 done
-echo "Waiting on PIDs: ${PIDS[@]}..."
-wait ${PIDS[@]}
+
+# We track the subprocesses by job instead of pid since
+# waiting for the pids requires the subprocesses still be running.
+# If we are waiting for process i, and process i+1 finishes, `wait`
+# will fail to find process i+1 and incorrectly fail and exit.
+# Job IDs exist and can be waited on even after the actual subprocess exits.
+FAILED=0
+for job in $(jobs -p); do
+  echo "Waiting for job $job"
+  wait $job || let "FAILED+=1"
+done
 
 for logfile in *-image.log; do
   echo "---- start $logfile ----"
@@ -278,5 +295,13 @@ for logfile in *-image.log; do
   echo ""
   echo "---- end $logfile ----"
 done
+
+if [ "$FAILED" == "0" ]; then
+  echo "All jobs succeeded."
+else
+  echo "Some jobs failed. Exiting..."
+  exit "$FAILED"
+fi
+
 
 echo "`date`: DONE"
