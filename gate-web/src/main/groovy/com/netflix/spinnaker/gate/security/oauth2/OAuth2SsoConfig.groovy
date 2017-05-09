@@ -21,19 +21,27 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
+import org.springframework.boot.autoconfigure.web.ServerProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.cloud.security.oauth2.sso.EnableOAuth2Sso
 import org.springframework.cloud.security.oauth2.sso.OAuth2SsoConfigurer
 import org.springframework.cloud.security.oauth2.sso.OAuth2SsoConfigurerAdapter
+import org.springframework.cloud.security.oauth2.sso.OAuth2SsoProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
+import org.springframework.security.core.AuthenticationException
+import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
+import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter
 import org.springframework.stereotype.Component
+
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 /**
  * Each time a class extends WebSecurityConfigurerAdapter, a new set of matchers + filters gets added
@@ -97,6 +105,15 @@ class OAuth2SsoConfig {
     @Autowired
     ExternalAuthTokenFilter externalAuthTokenFilter
 
+    @Autowired
+    private OAuth2SsoProperties sso
+
+    @Autowired
+    private ServerProperties serverProperties
+
+    @Autowired
+    private AuthorizationCodeResourceDetails details
+
     @Override
     void match(OAuth2SsoConfigurer.RequestMatchers matchers) {
       matchers.antMatchers('/**')
@@ -105,7 +122,30 @@ class OAuth2SsoConfig {
     @Override
     void configure(HttpSecurity http) throws Exception {
       authConfig.configure(http)
+
+      // There isn't a good, built in way to get the redirect to /login be over https when the
+      // server itself doesn't terminate the SSL connection, so we have to override it.
+      if (!serverProperties.ssl?.enabled && details.preEstablishedRedirectUri?.startsWith("https")) {
+        http.exceptionHandling().authenticationEntryPoint(new ExternalSslEntryPoint(sso.getLoginPath()))
+      }
+
       http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
+    }
+  }
+
+  /**
+   * This class exists to change the login redirect (to /login) from http to https in instances
+   * where the SSL is terminated outside of this server.
+   */
+  static class ExternalSslEntryPoint extends LoginUrlAuthenticationEntryPoint {
+
+    ExternalSslEntryPoint(String loginFormUrl) {
+      super(loginFormUrl)
+    }
+
+    @Override
+    protected String buildRedirectUrlToLoginPage(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
+      return super.buildRedirectUrlToLoginPage(request, response, authException).replaceFirst("http", "https")
     }
   }
 }
