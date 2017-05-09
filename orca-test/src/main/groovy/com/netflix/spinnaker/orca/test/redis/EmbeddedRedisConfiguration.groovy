@@ -27,7 +27,7 @@ import redis.clients.util.Pool
 @Configuration
 class EmbeddedRedisConfiguration {
 
-  @Bean
+  @Bean(destroyMethod = "destroy")
   EmbeddedRedis redisServer() {
     def redis = EmbeddedRedis.embed()
     redis.jedis.withCloseable { Jedis jedis ->
