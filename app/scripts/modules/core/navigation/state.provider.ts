@@ -17,6 +17,10 @@ export class StateConfigProvider implements IServiceProvider {
   private root: INestedState = {
     name: 'home',
     abstract: true,
+    url: '?{debug:boolean}',
+    params: {
+      debug: { dynamic: true }
+    },
     children: [],
   };
 

@@ -24,6 +24,7 @@ import {REPLACE_FILTER} from './filter/replace.filter';
 import {PIPELINE_TEMPLATE_MODULE} from './pipeline/config/templates/pipelineTemplate.module';
 import {HEALTH_COUNTS_COMPONENT} from './healthCounts/healthCounts.component';
 import {CORE_PAGETITLE_SERVICE} from './pageTitle/pageTitle.service';
+import {INTERCEPTOR_MODULE} from './interceptor/interceptor.module';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -95,6 +96,7 @@ module.exports = angular
 
     INSIGHT_NGMODULE.name,
     require('./instance/instance.module.js'),
+    INTERCEPTOR_MODULE,
 
     require('./loadBalancer/loadBalancer.module.js'),
 
