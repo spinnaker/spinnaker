@@ -21,8 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.config.RedisExecutionLogProperties
-import com.netflix.spinnaker.orca.q.ExecutionLogEntry
-import com.netflix.spinnaker.orca.q.ExecutionLogRepository
+import com.netflix.spinnaker.orca.log.ExecutionLogEntry
+import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Duration

@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.orca.q.ExecutionLogRepository
+import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import com.netflix.spinnaker.orca.q.redis.RedisExecutionLogRepository
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression

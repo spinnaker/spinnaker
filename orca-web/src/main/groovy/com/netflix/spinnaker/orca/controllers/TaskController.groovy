@@ -20,6 +20,8 @@ import java.time.Clock
 import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
+import com.netflix.spinnaker.orca.log.ExecutionLogEntry
+import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import com.netflix.spinnaker.orca.model.OrchestrationViewModel
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker
@@ -29,8 +31,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.ExecutionLogEntry
-import com.netflix.spinnaker.orca.q.ExecutionLogRepository
 import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors

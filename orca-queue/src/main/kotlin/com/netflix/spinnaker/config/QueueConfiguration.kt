@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.orca.q.BlackholeExecutionLogRepository
-import com.netflix.spinnaker.orca.q.ExecutionLogRepository
+import com.netflix.spinnaker.orca.log.BlackholeExecutionLogRepository
+import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
@@ -34,7 +34,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.Executors.newCachedThreadPool
 
 @Configuration
-@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q"))
+@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log"))
 open class QueueConfiguration {
   @Bean @ConditionalOnMissingBean(Clock::class)
   open fun systemClock(): Clock = Clock.systemDefaultZone()
