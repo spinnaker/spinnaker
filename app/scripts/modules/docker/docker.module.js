@@ -9,5 +9,6 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular.module('spinnaker.deck.docker', [
-  require('./pipeline/stages/bake/dockerBakeStage.js')
+  require('./pipeline/stages/bake/dockerBakeStage.js'),
+  require('./pipeline/trigger/dockerTrigger.module'),
 ]);

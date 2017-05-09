@@ -9,7 +9,6 @@ import {GIT_TRIGGER} from './git/git.trigger';
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger', [
     require('../stages/stage.module.js'),
     require('./cron/cronTrigger.module.js'),
-    require('./docker/dockerTrigger.module.js'),
     GIT_TRIGGER,
     require('./jenkins/jenkinsTrigger.module.js'),
     TRAVIS_TRIGGER,
