@@ -47,7 +47,8 @@ import static com.google.common.collect.Maps.filterValues
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.DEFAULT_EXECUTION_ENGINE
 import static com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import static java.lang.System.currentTimeMillis
-import static java.util.Collections.*
+import static java.util.Collections.emptyList
+import static java.util.Collections.emptyMap
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.AFTER
 import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE
 
@@ -55,12 +56,11 @@ import static redis.clients.jedis.BinaryClient.LIST_POSITION.BEFORE
 @Slf4j
 class JedisExecutionRepository implements ExecutionRepository {
 
-  private static
-  final TypeReference<List<Task>> LIST_OF_TASKS = new TypeReference<List<Task>>() {
-  }
-  private static
-  final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT = new TypeReference<Map<String, Object>>() {
-  }
+  private static final TypeReference<List<Task>> LIST_OF_TASKS =
+    new TypeReference<List<Task>>() {}
+  private static final TypeReference<Map<String, Object>> MAP_STRING_TO_OBJECT =
+    new TypeReference<Map<String, Object>>() {}
+
   private final Pool<Jedis> jedisPool
   private final Optional<Pool<Jedis>> jedisPoolPrevious
   private final ObjectMapper mapper = OrcaObjectMapper.newInstance()
@@ -590,8 +590,18 @@ class JedisExecutionRepository implements ExecutionRepository {
     def prefix = type.simpleName.toLowerCase()
     def key = "$prefix:$id"
     if (jedis.exists(key)) {
-      Map<String, String> map = jedis.hgetAll(key)
-      def stageIds = jedis.exists("$key:stageIndex") ? jedis.lrange("$key:stageIndex", 0, -1) : (map.stageIndex ?: "").tokenize(",")
+
+      // read data transactionally as addStage may modify data between reading
+      // stage index and pipeline hash
+      Map<String, String> map
+      List<String> stageIds
+      jedis.multi().withCloseable { tx ->
+        tx.hgetAll(key)
+        tx.lrange("$key:stageIndex", 0, -1)
+        def results = tx.exec()
+        map = results[0]
+        stageIds = results[1] ?: (map.stageIndex ?: "").tokenize(",")
+      }
 
       def execution = type.newInstance()
       execution.id = id
@@ -621,24 +631,16 @@ class JedisExecutionRepository implements ExecutionRepository {
         def stage = new Stage<>()
         stage.stageNavigator = stageNavigator
         stage.id = stageId
-
-        // TODO: temp debug
-        if (map.keySet().findAll {
-          it.startsWith("stage.${stageId}")
-        }.isEmpty()) {
-          log.warn("Stage data is missing for $stageId of execution $id")
-        }
-
         stage.refId = map["stage.${stageId}.refId".toString()]
         stage.type = map["stage.${stageId}.type".toString()]
         stage.name = map["stage.${stageId}.name".toString()]
         stage.startTime = map["stage.${stageId}.startTime".toString()]?.toLong()
         stage.endTime = map["stage.${stageId}.endTime".toString()]?.toLong()
-        stage.status = map["stage.${stageId}.status".toString()] ? ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()]) : null
-        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()]?.toBoolean() ?: false
+        stage.status = ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()])
+        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()]?.toBoolean()
         stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
         stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
-        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",") ?: emptySet()
+        stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")
         stage.scheduledTime = map["stage.${stageId}.scheduledTime".toString()]?.toLong()
         stage.context = map["stage.${stageId}.context".toString()] ? mapper.readValue(map["stage.${stageId}.context".toString()], MAP_STRING_TO_OBJECT) : emptyMap()
         stage.tasks = map["stage.${stageId}.tasks".toString()] ? mapper.readValue(map["stage.${stageId}.tasks".toString()], LIST_OF_TASKS) : emptyList()
