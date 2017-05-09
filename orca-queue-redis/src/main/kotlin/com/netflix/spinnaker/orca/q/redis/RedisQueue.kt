@@ -28,11 +28,11 @@ import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.Transaction
 import redis.clients.util.Pool
 import java.io.Closeable
+import java.io.IOException
 import java.time.Clock
 import java.time.Duration
 import java.time.Duration.ZERO
 import java.time.temporal.TemporalAmount
-import java.util.*
 import java.util.UUID.randomUUID
 import javax.annotation.PreDestroy
 
@@ -63,12 +63,12 @@ class RedisQueue(
     pool.resource.use { redis ->
       redis.apply {
         pop(queueKey, unackedKey, ackTimeout)
-          ?.also { hincrBy(attemptsKey, it, 1) }
-          ?.let { id -> Pair(UUID.fromString(id), hget(messagesKey, id)) }
-          ?.let { (id, json) -> Pair(id, mapper.readValue<Message>(json)) }
-          ?.let { (id, payload) ->
-            callback.invoke(payload) {
-              ack(id)
+          ?.also { id -> hincrBy(attemptsKey, id, 1) }
+          ?.let { id ->
+            readMessage(id) { payload ->
+              callback.invoke(payload) {
+                ack(id)
+              }
             }
           }
       }
@@ -88,10 +88,6 @@ class RedisQueue(
   @PreDestroy override fun close() {
     log.info("stopping redelivery watcher for $this")
     redeliveryWatcher.close()
-  }
-
-  private fun ack(id: UUID) {
-    ack(id.toString())
   }
 
   private fun ack(id: String) {
@@ -116,17 +112,47 @@ class RedisQueue(
             ids.forEach { id ->
               val attempts = hgetInt(attemptsKey, id)
               if (attempts >= Queue.maxRedeliveries) {
-                log.warn("Message $id with payload ${hget(messagesKey, id)} exceeded max re-deliveries")
-                hget(messagesKey, id)
-                  .let { json -> mapper.readValue<Message>(json) }
-                  .let { handleDeadMessage(it) }
-                  .also { ack(id) }
+                readMessage(id) { message ->
+                  log.warn("Message $id with payload $message exceeded max re-deliveries")
+                  handleDeadMessage(message)
+                  ack(id)
+                }
               } else {
                 log.warn("Re-delivering message $id after $attempts attempts")
                 move(unackedKey, queueKey, ZERO, setOf(id))
               }
             }
           }
+      }
+    }
+  }
+
+  /**
+   * Tries to read the message with the specified [id] passing it to [block].
+   * If it's not accessible for whatever reason any references are cleaned up.
+   */
+  private fun Jedis.readMessage(id: String, block: (Message) -> Unit) {
+    val json = hget(messagesKey, id)
+    if (json == null) {
+      log.error("Payload for message $id is missing")
+      // clean up what is essentially an unrecoverable message
+      multi {
+        zrem(queueKey, id)
+        zrem(unackedKey, id)
+        hdel(attemptsKey, id)
+      }
+    } else {
+      try {
+        val message = mapper.readValue<Message>(json)
+        block.invoke(message)
+      } catch(e: IOException) {
+        log.error("Failed to read message $id", e)
+        multi {
+          zrem(queueKey, id)
+          zrem(unackedKey, id)
+          hdel(messagesKey, id)
+          hdel(attemptsKey, id)
+        }
       }
     }
   }

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
+import org.slf4j.LoggerFactory
 import java.io.Closeable
 import java.util.concurrent.Executors.newSingleThreadScheduledExecutor
 import java.util.concurrent.TimeUnit
@@ -29,7 +30,7 @@ import java.util.concurrent.TimeUnit.SECONDS
  * dedicated thread.
  */
 class ScheduledAction(
-  action: () -> Unit,
+  private val action: () -> Unit,
   initialDelay: Long = 10,
   delay: Long = 10,
   unit: TimeUnit = SECONDS
@@ -37,7 +38,17 @@ class ScheduledAction(
 
   private val executor = newSingleThreadScheduledExecutor()
   private val watcher = executor
-    .scheduleWithFixedDelay(action, initialDelay, delay, unit)
+    .scheduleWithFixedDelay({
+      try {
+        action.invoke()
+      } catch(e: Exception) {
+        // this really indicates a code issue but if it's not caught here it
+        // will kill the scheduled action.
+        log.error("Uncaught exception in scheduled action", e)
+      }
+    }, initialDelay, delay, unit)
+
+  private val log = LoggerFactory.getLogger(javaClass)
 
   override fun close() {
     watcher.cancel(false)

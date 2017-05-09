@@ -591,6 +591,8 @@ class JedisExecutionRepository implements ExecutionRepository {
     def key = "$prefix:$id"
     if (jedis.exists(key)) {
       Map<String, String> map = jedis.hgetAll(key)
+      def stageIds = jedis.exists("$key:stageIndex") ? jedis.lrange("$key:stageIndex", 0, -1) : (map.stageIndex ?: "").tokenize(",")
+
       def execution = type.newInstance()
       execution.id = id
       execution.application = map.application
@@ -615,7 +617,6 @@ class JedisExecutionRepository implements ExecutionRepository {
         execution.executionEngine = DEFAULT_EXECUTION_ENGINE
       }
 
-      def stageIds = jedis.exists("$key:stageIndex") ? jedis.lrange("$key:stageIndex", 0, -1) : (map.stageIndex ?: "").tokenize(",")
       stageIds.each { stageId ->
         def stage = new Stage<>()
         stage.stageNavigator = stageNavigator
