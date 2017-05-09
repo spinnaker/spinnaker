@@ -11,6 +11,7 @@ import { FAST_PROPERTY_HISTORY_COMPONENT } from '../history/fastPropertyHistory.
 import { Application } from 'core/application/application.model';
 import { Property } from '../../domain/property.domain';
 import { stateEvents } from 'core/state.events';
+import { fastPropertyTtl } from 'core/utils/timeFormatters';
 
 export class FastPropertyDetailsController {
 
@@ -18,6 +19,7 @@ export class FastPropertyDetailsController {
   private locationChangeSuccessSubscription: Subscription;
   private dataRefreshUnsubscribe: () => void;
   public propertyNotFound = false;
+  public propertyExpires: string;
 
   constructor(private $uibModal: IModalService,
               private fastPropertyReader: FastPropertyReaderService,
@@ -62,6 +64,11 @@ export class FastPropertyDetailsController {
       .then((results: Property) => {
         this.property = results;
         this.propertyNotFound = false;
+        if (this.property.ttl && this.property.ts) {
+          this.propertyExpires = fastPropertyTtl(this.property.ts, this.property.ttl);
+        } else {
+          this.propertyExpires = null;
+        }
       })
       .catch(() => {
         const otherEnv = env === 'prod' ? 'test' : 'prod';

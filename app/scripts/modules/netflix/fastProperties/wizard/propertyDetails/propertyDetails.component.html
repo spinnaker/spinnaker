@@ -124,6 +124,28 @@
         </div>
       </div>
 
+
+      <!--
+        TTL
+      -->
+
+      <div class="form-group row">
+        <div class="col-sm-3 sm-label-right">
+          TTL (seconds)
+          <help-field key="fastProperty.ttl"></help-field>
+        </div>
+        <div class="col-sm-9">
+          <input
+            type="number"
+            name="ttl"
+            class="form-control input-sm"
+            style="width: 100px"
+            min="0"
+            ng-disabled="$ctrl.isDeleting || $ctrl.disableAll"
+            ng-model="$ctrl.command.property.ttl"/>
+        </div>
+      </div>
+
     </div>
 
     <!--

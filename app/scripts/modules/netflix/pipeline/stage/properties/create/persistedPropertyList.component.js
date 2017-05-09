@@ -25,7 +25,8 @@ module.exports = angular
       }
       var newProperty = {
         updatedBy: user.name,
-        sourceOfUpdate: 'spinnaker'
+        sourceOfUpdate: 'spinnaker',
+        ttl: 0,
       };
       vm.stage.persistedProperties.push(newProperty);
     };

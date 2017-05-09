@@ -15,6 +15,8 @@ export class Property {
   public cmcTicket: string;
   public region?: string;
   public stack?: string;
+  public ttl?: number;
+  public ts: string;
 
   public appId: string;
   public scope: Scope;
@@ -45,6 +47,7 @@ export class Property {
     property.value = platformProperty.value;
     property.email = platformProperty.email;
     property.cmcTicket = platformProperty.updatedBy;
+    property.ttl = platformProperty.ttl;
 
     return property;
   }

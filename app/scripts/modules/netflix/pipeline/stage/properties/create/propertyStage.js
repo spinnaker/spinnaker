@@ -23,7 +23,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
         executionSummaryUrl: require('./propertyExecutionSummary.html'),
         executionLabelComponent: PropertyExecutionLabel,
         controller: 'PropertyStageCtrl',
-        controllerAs: 'propertyStage',
+        controllerAs: 'ctrl',
         accountExtractor: (stage) => stage.context.scope.env,
         validators: [
           { type: 'requiredField', fieldName: 'email' },
@@ -80,6 +80,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
     vm.resetScope = () => {
       vm.stage.scope = {env: vm.stage.scope.env};
       vm.scopeSelected = false;
+      this.customizingScope = false;
     };
 
     vm.refreshAppList = (query) => {
@@ -113,6 +114,14 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
       vm.applicationSelected(vm.stage.scope.appIdList);
     };
 
+    vm.customizeScope = () => {
+      this.customizingScope = true;
+      this.appIdList = $scope.stage.scope.appIdList.join(', ');
+    };
+
+    vm.appIdListChanged = () => {
+      $scope.stage.scope.appIdList = this.appIdList ? this.appIdList.split(/,\s?/) : [];
+    };
 
     vm.applicationsLoaded = false;
     getPropertiesForApp($scope.application.name);

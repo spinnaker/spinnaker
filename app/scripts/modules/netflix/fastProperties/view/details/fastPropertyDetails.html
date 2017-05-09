@@ -70,6 +70,9 @@
         <dt>Updated On</dt>
         <dd>{{details.property.ts | fastPropertyTime}}</dd>
 
+        <dt ng-if="details.propertyExpires">Expires</dt>
+        <dd ng-if="details.propertyExpires">{{details.propertyExpires}}</dd>
+
         <dt>CMC Ticket</dt>
         <dd>{{details.property.cmcTicket}}</dd>
       </dl>

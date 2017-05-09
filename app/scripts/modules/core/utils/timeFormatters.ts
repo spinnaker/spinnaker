@@ -52,6 +52,16 @@ export const fastPropertyTime = memoize((input: any) => {
   }
 });
 
+export const fastPropertyTtl = (input: any, seconds: number) => {
+  if (input) {
+    input = input.replace('[UTC]', '');
+    const thisMoment = moment(input);
+    return thisMoment.isValid() ? thisMoment.add(seconds, 'second').format('YYYY-MM-DD HH:mm:ss z') : '-';
+  } else {
+    return '--';
+  }
+};
+
 export function timePickerTime(input: any) {
   if (input && !isNaN(input.hours) && !isNaN(input.minutes)) {
     const hours = parseInt(input.hours, 10),
