@@ -21,7 +21,7 @@ import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.QueueSpec
 import com.netflix.spinnaker.orca.q.QueueSpec.Companion.clock
 
-class InMemoryQueueSpec : QueueSpec<InMemoryQueue>(
+object InMemoryQueueSpec : QueueSpec<InMemoryQueue>(
   ::createQueue,
   InMemoryQueue::redeliver
 )

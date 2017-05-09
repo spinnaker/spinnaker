@@ -23,20 +23,22 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.springframework.context.ApplicationEventPublisher
 
-class StartTaskHandlerSpec : Spek({
+object StartTaskHandlerSpec : SubjectSpek<StartTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
-  val handler = StartTaskHandler(queue, repository, publisher, clock)
+  subject {
+    StartTaskHandler(queue, repository, publisher, clock)
+  }
 
   fun resetMocks() = reset(queue, repository, publisher)
 
@@ -56,7 +58,7 @@ class StartTaskHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("marks the task as running") {
@@ -109,7 +111,7 @@ class StartTaskHandlerSpec : Spek({
 
     it("propagates any exception") {
       assertThrows(NullPointerException::class.java) {
-        handler.handle(message)
+        subject.handle(message)
       }
     }
   }

@@ -22,14 +22,17 @@ import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 
-class DeadMessageHandlerSpec : Spek({
+object DeadMessageHandlerSpec : SubjectSpek<DeadMessageHandler>({
 
   val queue: Queue = mock()
-  val handler = DeadMessageHandler()
+
+  subject {
+    DeadMessageHandler()
+  }
 
   fun resetMocks() = reset(queue)
 
@@ -39,7 +42,7 @@ class DeadMessageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(queue, message)
+      subject.handle(queue, message)
     }
 
     it("terminates the execution") {
@@ -53,7 +56,7 @@ class DeadMessageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(queue, message)
+      subject.handle(queue, message)
     }
 
     it("terminates the stage") {
@@ -67,7 +70,7 @@ class DeadMessageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(queue, message)
+      subject.handle(queue, message)
     }
 
     it("terminates the task") {

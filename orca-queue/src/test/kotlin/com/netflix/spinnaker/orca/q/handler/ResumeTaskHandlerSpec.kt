@@ -22,16 +22,18 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 
-class ResumeTaskHandlerSpec : Spek({
+object ResumeTaskHandlerSpec : SubjectSpek<ResumeTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
 
-  val handler = ResumeTaskHandler(queue, repository)
+  subject {
+    ResumeTaskHandler(queue, repository)
+  }
 
   fun resetMocks() = reset(queue, repository)
 
@@ -58,7 +60,7 @@ class ResumeTaskHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("sets the stage status to running") {

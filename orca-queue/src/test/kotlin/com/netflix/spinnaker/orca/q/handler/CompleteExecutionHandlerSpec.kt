@@ -25,18 +25,20 @@ import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.pipeline
 import com.netflix.spinnaker.orca.q.stage
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
 
-class CompleteExecutionHandlerSpec : Spek({
+object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
 
-  val handler = CompleteExecutionHandler(queue, repository, publisher)
+  subject {
+    CompleteExecutionHandler(queue, repository, publisher)
+  }
 
   fun resetMocks() = reset(queue, repository, publisher)
 
@@ -51,7 +53,7 @@ class CompleteExecutionHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("updates the execution") {
@@ -71,7 +73,7 @@ class CompleteExecutionHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("updates the execution") {
@@ -92,7 +94,32 @@ class CompleteExecutionHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
+      }
+
+      it("publishes an event") {
+        verify(publisher).publishEvent(check<ExecutionComplete> {
+          it.executionType shouldEqual pipeline.javaClass
+          it.executionId shouldEqual pipeline.id
+          it.status shouldEqual status
+        })
+      }
+    }
+  }
+
+  setOf(SUCCEEDED, TERMINAL, CANCELED).forEach { status ->
+    describe("when an execution had already completed but  with $status status") {
+      val pipeline = pipeline()
+      val message = CompleteExecution(Pipeline::class.java, pipeline.id, "foo", status)
+
+      beforeGroup {
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
       }
 
       it("publishes an event") {
@@ -122,7 +149,7 @@ class CompleteExecutionHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("updates the execution") {
@@ -147,7 +174,7 @@ class CompleteExecutionHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("updates the execution") {

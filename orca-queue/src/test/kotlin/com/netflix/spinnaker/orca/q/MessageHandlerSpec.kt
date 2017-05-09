@@ -25,27 +25,29 @@ import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 
-class MessageHandlerSpec : Spek({
+object MessageHandlerSpec : SubjectSpek<MessageHandler<*>>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val handleCallback: (Message) -> Unit = mock()
 
-  val handler = object : MessageHandler<ConfigurationError> {
-    override val queue
-      get() = queue
+  subject {
+    object : MessageHandler<ConfigurationError> {
+      override val queue
+        get() = queue
 
-    override val repository
-      get() = repository
+      override val repository
+        get() = repository
 
-    override val messageType = ConfigurationError::class.java
+      override val messageType = ConfigurationError::class.java
 
-    override fun handle(message: ConfigurationError) {
-      handleCallback.invoke(message)
+      override fun handle(message: ConfigurationError) {
+        handleCallback.invoke(message)
+      }
     }
   }
 
@@ -58,7 +60,7 @@ class MessageHandlerSpec : Spek({
 
     action("the handler receives a message") {
       assertThat(
-        { handler.invoke(message) },
+        { subject.invoke(message) },
         throws<IllegalArgumentException>()
       )
     }
@@ -74,7 +76,7 @@ class MessageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.invoke(message)
+      subject.invoke(message)
     }
 
     it("does invoke the handler") {

@@ -28,30 +28,32 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import java.time.Clock.fixed
 import java.time.Instant.now
 import java.time.ZoneId.systemDefault
 import java.time.temporal.ChronoUnit.HOURS
 import java.time.temporal.ChronoUnit.MINUTES
 
-class RestartStageHandlerSpec : Spek({
+object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val clock = fixed(now(), systemDefault())
 
-  val handler = RestartStageHandler(
-    queue,
-    repository,
-    listOf(
-      singleTaskStage,
-      stageWithSyntheticBefore
-    ),
-    clock
-  )
+  subject {
+    RestartStageHandler(
+      queue,
+      repository,
+      listOf(
+        singleTaskStage,
+        stageWithSyntheticBefore
+      ),
+      clock
+    )
+  }
 
   fun resetMocks() = reset(queue, repository)
 
@@ -80,7 +82,7 @@ class RestartStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("does not modify the stage status") {
@@ -128,7 +130,7 @@ class RestartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("resets the stage's status") {
@@ -230,7 +232,7 @@ class RestartStageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("removes downstream stages' tasks") {
@@ -303,7 +305,7 @@ class RestartStageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("removes join stages' tasks") {

@@ -30,7 +30,7 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.springframework.context.ApplicationEventPublisher
 
-class CompleteStageHandlerSpec : Spek({
+object CompleteStageHandlerSpec : Spek({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()

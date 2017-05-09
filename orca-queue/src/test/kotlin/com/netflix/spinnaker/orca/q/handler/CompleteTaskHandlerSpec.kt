@@ -27,20 +27,22 @@ import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
 
-class CompleteTaskHandlerSpec : Spek({
+object CompleteTaskHandlerSpec : SubjectSpek<CompleteTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
-  val handler = CompleteTaskHandler(queue, repository, publisher, clock)
+  subject {
+    CompleteTaskHandler(queue, repository, publisher, clock)
+  }
 
   fun resetMocks() = reset(queue, repository, publisher)
 
@@ -62,7 +64,7 @@ class CompleteTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("updates the task state in the stage") {
@@ -113,7 +115,7 @@ class CompleteTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("updates the task state in the stage") {
@@ -155,7 +157,7 @@ class CompleteTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("updates the task state in the stage") {
@@ -204,7 +206,7 @@ class CompleteTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("repeats the loop") {
@@ -245,7 +247,7 @@ class CompleteTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("updates the task state in the stage") {

@@ -24,6 +24,7 @@ repositories {
 dependencies {
   testCompile "org.junit.platform:junit-platform-runner:$junitVersion"
   testCompile "org.jetbrains.spek:spek-api:$spekVersion"
+  testCompile "org.jetbrains.spek:spek-subject-extension:$spekVersion"
   testCompile "com.nhaarman:mockito-kotlin:1.4.0"
   testCompile "com.natpryce:hamkrest:1.3.0.0"
   testCompile "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"

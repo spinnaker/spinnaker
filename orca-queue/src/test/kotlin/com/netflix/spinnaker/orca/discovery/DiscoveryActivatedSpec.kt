@@ -31,7 +31,7 @@ import org.jetbrains.spek.api.dsl.it
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
-class DiscoveryActivatedSpec : Spek({
+object DiscoveryActivatedSpec : Spek({
 
   describe("a discovery-activated poller") {
 

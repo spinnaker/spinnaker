@@ -23,16 +23,18 @@ import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 
-class ConfigurationErrorHandlerSpec : Spek({
+object ConfigurationErrorHandlerSpec : SubjectSpek<ConfigurationErrorHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
 
-  val handler = ConfigurationErrorHandler(queue, repository)
+  subject {
+    ConfigurationErrorHandler(queue, repository)
+  }
 
   fun resetMocks() = reset(queue)
 
@@ -45,7 +47,7 @@ class ConfigurationErrorHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("marks the execution as terminal") {

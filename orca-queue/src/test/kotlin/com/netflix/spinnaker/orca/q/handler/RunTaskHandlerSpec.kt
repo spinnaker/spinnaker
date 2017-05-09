@@ -27,15 +27,15 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
 import java.lang.RuntimeException
 import java.time.Duration
 
-class RunTaskHandlerSpec : Spek({
+object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
@@ -43,7 +43,9 @@ class RunTaskHandlerSpec : Spek({
   val exceptionHandler: ExceptionHandler<in Exception> = mock()
   val clock = fixedClock()
 
-  val handler = RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler))
+  subject {
+    RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler))
+  }
 
   fun resetMocks() = reset(queue, repository, task, exceptionHandler)
 
@@ -71,7 +73,7 @@ class RunTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("executes the task") {
@@ -109,7 +111,7 @@ class RunTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("re-queues the command") {
@@ -141,7 +143,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("marks the task TERMINAL") {
@@ -166,7 +168,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup { pipeline.stages.first().context.clear() }
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("marks the task STOPPED") {
@@ -191,7 +193,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup { pipeline.stages.first().context.clear() }
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("marks the task FAILED_CONTINUE") {
@@ -233,7 +235,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("marks the task as terminal") {
@@ -269,7 +271,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("re-runs the task") {
@@ -299,7 +301,7 @@ class RunTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("emits an event indicating that the task was canceled") {
@@ -340,7 +342,7 @@ class RunTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("marks the task as canceled") {
@@ -381,7 +383,7 @@ class RunTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("marks the task as paused") {
@@ -417,7 +419,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("fails the task") {
@@ -456,7 +458,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("executes the task") {
@@ -491,7 +493,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("fails the task") {
@@ -532,7 +534,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("executes the task") {
@@ -569,7 +571,7 @@ class RunTaskHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("fails the task") {
@@ -608,7 +610,7 @@ class RunTaskHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("merges stage and global contexts") {
@@ -642,7 +644,7 @@ class RunTaskHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("does not run any tasks") {

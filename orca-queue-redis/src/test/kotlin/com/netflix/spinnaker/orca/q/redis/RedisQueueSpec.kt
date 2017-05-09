@@ -22,7 +22,7 @@ import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.QueueSpec
 import com.netflix.spinnaker.orca.q.QueueSpec.Companion.clock
 
-class RedisQueueSpec : QueueSpec<RedisQueue>(
+object RedisQueueSpec : QueueSpec<RedisQueue>(
   ::createQueue,
   RedisQueue::redeliver,
   ::shutdownCallback

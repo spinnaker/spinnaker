@@ -23,17 +23,19 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 
-class PauseStageHandlerSpec : Spek({
+object PauseStageHandlerSpec : SubjectSpek<PauseStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
 
-  val handler = PauseStageHandler(queue, repository)
+  subject {
+    PauseStageHandler(queue, repository)
+  }
 
   fun resetMocks() = reset(queue, repository)
 
@@ -59,7 +61,7 @@ class PauseStageHandlerSpec : Spek({
     afterGroup(::resetMocks)
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     it("updates the stage state") {
@@ -90,7 +92,7 @@ class PauseStageHandlerSpec : Spek({
     }
 
     action("the handler receives a message") {
-      handler.handle(message)
+      subject.handle(message)
     }
 
     afterGroup(::resetMocks)

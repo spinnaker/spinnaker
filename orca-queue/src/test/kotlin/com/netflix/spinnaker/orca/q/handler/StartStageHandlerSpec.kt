@@ -36,36 +36,38 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
 
-class StartStageHandlerSpec : Spek({
+object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
-  val handler = StartStageHandler(
-    queue,
-    repository,
-    listOf(
-      singleTaskStage,
-      multiTaskStage,
-      stageWithSyntheticBefore,
-      stageWithSyntheticAfter,
-      stageWithParallelBranches,
-      rollingPushStage,
-      zeroTaskStage,
-      stageWithSyntheticAfterAndNoTasks
-    ),
-    publisher,
-    clock,
-    ContextParameterProcessor()
-  )
+  subject {
+    StartStageHandler(
+      queue,
+      repository,
+      listOf(
+        singleTaskStage,
+        multiTaskStage,
+        stageWithSyntheticBefore,
+        stageWithSyntheticAfter,
+        stageWithParallelBranches,
+        rollingPushStage,
+        zeroTaskStage,
+        stageWithSyntheticAfterAndNoTasks
+      ),
+      publisher,
+      clock,
+      ContextParameterProcessor()
+    )
+  }
 
   fun resetMocks() = reset(queue, repository, publisher)
 
@@ -86,7 +88,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("updates the stage status") {
@@ -140,7 +142,7 @@ class StartStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("updates the stage status") {
@@ -181,7 +183,7 @@ class StartStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("updates the stage status") {
@@ -220,7 +222,7 @@ class StartStageHandlerSpec : Spek({
       }
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       afterGroup(::resetMocks)
@@ -278,7 +280,7 @@ class StartStageHandlerSpec : Spek({
         }
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         afterGroup(::resetMocks)
@@ -316,7 +318,7 @@ class StartStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("attaches the synthetic stage to the pipeline") {
@@ -366,7 +368,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("doesn't build its tasks") {
@@ -399,7 +401,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("injects a 'wait for execution window' stage before any other synthetic stages") {
@@ -438,7 +440,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("builds tasks for the main branch") {
@@ -491,7 +493,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("builds tasks for the branch") {
@@ -526,7 +528,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("builds tasks for the main branch") {
@@ -575,7 +577,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("proceeds with the first synthetic stage as normal") {
@@ -604,7 +606,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("skips the stage") {
@@ -635,7 +637,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("emits an error event") {
@@ -656,7 +658,7 @@ class StartStageHandlerSpec : Spek({
       afterGroup(::resetMocks)
 
       action("the handler receives a message") {
-        handler.handle(message)
+        subject.handle(message)
       }
 
       it("emits an error event") {

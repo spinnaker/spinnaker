@@ -27,15 +27,15 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
-class QueueProcessorSpec : Spek({
+object QueueProcessorSpec : SubjectSpek<QueueProcessor>({
   describe("execution workers") {
     val queue: Queue = mock()
     val startExecutionHandler: MessageHandler<StartExecution> = mock()
@@ -46,12 +46,10 @@ class QueueProcessorSpec : Spek({
       on { counter(any<Id>()) } doReturn mock<Counter>()
     }
 
-    var queueProcessor: QueueProcessor? = null
-
     fun resetMocks() = reset(queue, startExecutionHandler, configurationErrorHandler, ackFunction)
 
-    beforeGroup {
-      queueProcessor = QueueProcessor(
+    subject {
+      QueueProcessor(
         queue,
         BlockingThreadExecutor(),
         registry,
@@ -61,13 +59,13 @@ class QueueProcessorSpec : Spek({
 
     describe("when disabled in discovery") {
       beforeGroup {
-        queueProcessor!!.onApplicationEvent(RemoteStatusChangedEvent(StatusChangeEvent(UP, OUT_OF_SERVICE)))
+        subject.onApplicationEvent(RemoteStatusChangedEvent(StatusChangeEvent(UP, OUT_OF_SERVICE)))
       }
 
       afterGroup(::resetMocks)
 
       action("the worker runs") {
-        queueProcessor!!.pollOnce()
+        subject.pollOnce()
       }
 
       it("does not poll the queue") {
@@ -78,8 +76,8 @@ class QueueProcessorSpec : Spek({
     describe("when enabled in discovery") {
       val instanceUpEvent = RemoteStatusChangedEvent(StatusChangeEvent(OUT_OF_SERVICE, UP))
 
-      beforeGroup {
-        queueProcessor!!.onApplicationEvent(instanceUpEvent)
+      beforeEachTest {
+        subject.onApplicationEvent(instanceUpEvent)
       }
 
       describe("when a message is on the queue") {
@@ -100,7 +98,7 @@ class QueueProcessorSpec : Spek({
           afterGroup(::resetMocks)
 
           action("the worker polls the queue") {
-            queueProcessor!!.pollOnce()
+            subject.pollOnce()
           }
 
           it("passes the message to the correct handler") {
@@ -133,7 +131,7 @@ class QueueProcessorSpec : Spek({
           afterGroup(::resetMocks)
 
           action("the worker polls the queue") {
-            queueProcessor!!.pollOnce()
+            subject.pollOnce()
           }
 
           it("passes the message to the correct handler") {
@@ -166,7 +164,7 @@ class QueueProcessorSpec : Spek({
           afterGroup(::resetMocks)
 
           action("the worker polls the queue") {
-            assertThat({ queueProcessor!!.pollOnce() }, throws<IllegalStateException>())
+            assertThat({ subject.pollOnce() }, throws<IllegalStateException>())
           }
 
           it("does not invoke any handlers") {
@@ -198,7 +196,7 @@ class QueueProcessorSpec : Spek({
           afterGroup(::resetMocks)
 
           action("the worker polls the queue") {
-            queueProcessor!!.pollOnce()
+            subject.pollOnce()
           }
 
           it("does not acknowledge the message") {
@@ -210,7 +208,7 @@ class QueueProcessorSpec : Spek({
   }
 })
 
-class BlockingThreadExecutor : Executor {
+private class BlockingThreadExecutor : Executor {
 
   private val delegate = Executors.newSingleThreadExecutor()
 

@@ -24,23 +24,25 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.subject.SubjectSpek
 
-class CancelStageHandlerSpec : Spek({
+object CancelStageHandlerSpec : SubjectSpek<CancelStageHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val executor = MoreExecutors.directExecutor()
   val cancellableStage: CancelableStageDefinitionBuilder = mock()
 
-  val handler = CancelStageHandler(
-    queue,
-    repository,
-    listOf(singleTaskStage, cancellableStage),
-    executor
-  )
+  subject {
+    CancelStageHandler(
+      queue,
+      repository,
+      listOf(singleTaskStage, cancellableStage),
+      executor
+    )
+  }
 
   fun resetMocks() = reset(queue, repository, cancellableStage)
 
@@ -93,7 +95,7 @@ class CancelStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("invokes the cancel routine for the stage") {
@@ -122,7 +124,7 @@ class CancelStageHandlerSpec : Spek({
         afterGroup(::resetMocks)
 
         action("the handler receives a message") {
-          handler.handle(message)
+          subject.handle(message)
         }
 
         it("does not run any cancel routine") {
