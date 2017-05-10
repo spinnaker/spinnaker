@@ -32,8 +32,11 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import toDuration
+import toInstant
 import java.time.Clock
 import java.time.Duration
+import java.time.Duration.ZERO
 import java.time.Instant
 import java.time.temporal.TemporalAmount
 
@@ -56,7 +59,7 @@ open class RunTaskHandler
         queue.push(CompleteTask(message, CANCELED))
       } else if (execution.getStatus() == PAUSED) {
         queue.push(PauseTask(message))
-      } else if (task.isTimedOut(stage)) {
+      } else if (task.isTimedOut(stage, taskModel)) {
         // TODO: probably want something specific in the execution log
         queue.push(CompleteTask(message, TERMINAL))
       } else {
@@ -136,15 +139,12 @@ open class RunTaskHandler
       else -> Duration.ofSeconds(1)
     }
 
-  private fun Task.isTimedOut(stage: Stage<*>): Boolean =
+  private fun Task.isTimedOut(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task): Boolean =
     when (this) {
       is RetryableTask -> {
-        val startTime = Instant.ofEpochMilli(stage.firstTask()?.startTime ?: stage.getStartTime())
-        val pausedDuration = stage.getExecution().pausedDuration()
-        if (Duration
-          .between(startTime, clock.instant())
-          .minus(pausedDuration)
-          .toMillis() > timeout) {
+        val startTime = taskModel.startTime.toInstant()
+        val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
+        if (Duration.between(startTime, clock.instant()).minus(pausedDuration) > timeout.toDuration()) {
           log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after ${Duration.between(startTime, clock.instant())}")
           true
         } else {
@@ -154,8 +154,14 @@ open class RunTaskHandler
       else -> false
     }
 
-  private fun Execution<*>.pausedDuration() =
-    Duration.ofMillis(getPaused()?.pausedMs ?: 0)
+  private fun Execution<*>.pausedDurationRelativeTo(instant: Instant?): Duration {
+    val pausedDetails = getPaused()
+    if (pausedDetails != null) {
+      return if (pausedDetails.pauseTime.toInstant()?.isAfter(instant) ?: false) {
+        Duration.ofMillis(pausedDetails.pausedMs)
+      } else ZERO
+    } else return ZERO
+  }
 
   private fun Stage<*>.processTaskOutput(result: TaskResult) {
     if (result.stageOutputs.isNotEmpty()) {

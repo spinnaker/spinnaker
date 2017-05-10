@@ -56,10 +56,10 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       val pipeline = pipeline {
         stage {
           type = "whatever"
-          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -92,10 +92,10 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       val pipeline = pipeline {
         stage {
           type = "whatever"
-          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -125,10 +125,10 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         stage {
           refId = "1"
           type = "whatever"
-          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -209,10 +209,10 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       val pipeline = pipeline {
         stage {
           type = "whatever"
-          startTime = clock.instant().toEpochMilli()
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
           }
         }
       }
@@ -402,11 +402,11 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         val pipeline = pipeline {
           stage {
             type = "whatever"
-            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -441,11 +441,11 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
           }
           stage {
             type = "whatever"
-            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -476,11 +476,11 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
           }
           stage {
             type = "whatever"
-            startTime = clock.instant().minusMillis(timeout.plusMinutes(1).toMillis() + 1).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.plusMinutes(1).toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -506,59 +506,20 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         }
       }
 
-      context("the execution spent a long time running before stages") {
+      context("the execution had been paused but only before this task started running") {
         val timeout = Duration.ofMinutes(5)
         val pipeline = pipeline {
-          stage {
-            type = "whatever"
-            startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
-            task {
-              id = "1"
-              implementingClass = DummyTask::class.qualifiedName
-              status = SUCCEEDED
-              startTime = clock.instant().minusMillis(timeout.toMillis() - 1).toEpochMilli()
-            }
-            task {
-              id = "2"
-              implementingClass = DummyTask::class.qualifiedName
-              status = RUNNING
-            }
+          paused = PausedDetails().apply {
+            pauseTime = clock.instant().minus(Minutes.of(10)).toEpochMilli()
+            resumeTime = clock.instant().minus(Minutes.of(9)).toEpochMilli()
           }
-        }
-        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "2", DummyTask::class.java)
-
-        beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
-        }
-
-        afterGroup(::resetMocks)
-
-        action("the handler receives a message") {
-          subject.handle(message)
-        }
-
-        it("executes the task") {
-          verify(task).execute(any())
-        }
-      }
-
-      context("the execution spent a long time running before stages but is timed out anyway") {
-        val timeout = Duration.ofMinutes(5)
-        val pipeline = pipeline {
           stage {
             type = "whatever"
-            startTime = clock.instant().minusMillis(timeout.toMillis() + 2).toEpochMilli()
             task {
               id = "1"
               implementingClass = DummyTask::class.qualifiedName
-              status = SUCCEEDED
-              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
-            }
-            task {
-              id = "2"
-              implementingClass = DummyTask::class.qualifiedName
               status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
             }
           }
         }
@@ -591,12 +552,12 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         context["override"] = "global"
         stage {
           type = "whatever"
-          startTime = clock.instant().toEpochMilli()
           context["stage"] = "foo"
           context["override"] = "stage"
           task {
             id = "1"
             implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
           }
         }
       }
