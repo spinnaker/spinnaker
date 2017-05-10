@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
-import com.netflix.spinnaker.orca.ExecutionStatus.FAILED_CONTINUE
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
@@ -97,10 +96,10 @@ fun Stage<*>.upstreamStages(): List<Stage<*>> =
  * @return `true` if all upstream stages of this stage were run successfully.
  */
 fun Stage<*>.allUpstreamStagesComplete(): Boolean =
-  upstreamStages().all { it.getStatus() in listOf(SUCCEEDED, FAILED_CONTINUE) }
+  upstreamStages().all { it.getStatus() in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }
 
 fun Stage<*>.beforeStages(): List<Stage<*>> =
   getExecution().getStages().filter { it.getParentStageId() == getId() && it.getSyntheticStageOwner() == STAGE_BEFORE }
 
 fun Stage<*>.allBeforeStagesComplete(): Boolean =
-  beforeStages().all { it.getStatus() == SUCCEEDED }
+  beforeStages().all { it.getStatus() in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }
