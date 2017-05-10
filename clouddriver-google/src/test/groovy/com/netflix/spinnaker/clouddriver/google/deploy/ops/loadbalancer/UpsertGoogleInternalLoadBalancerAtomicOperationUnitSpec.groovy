@@ -82,6 +82,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     def regionalOperations = Mock(Compute.RegionOperations)
     def regionalBackendServiceOperationGet = Mock(Compute.RegionOperations.Get)
+    def regionalForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
 
     def regions = Mock(Compute.Regions)
     def regionsList = Mock(Compute.Regions.List)
@@ -90,6 +91,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def forwardingRules = Mock(Compute.ForwardingRules)
     def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
     def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+    def forwardingRuleInsertOp = new Operation(
+        targetLink: "forwarding-rule",
+        name: LOAD_BALANCER_NAME,
+        status: DONE)
 
     def healthChecks = Mock(Compute.HealthChecks)
     def healthChecksGet = Mock(Compute.HealthChecks.Get)
@@ -147,7 +152,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> null
       1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
-      1 * forwardingRulesInsert.execute()
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
       2 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
@@ -165,9 +170,11 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
 
-      1 * computeMock.regionOperations() >> regionalOperations
+      2 * computeMock.regionOperations() >> regionalOperations
       1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
       1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
+      1 * regionalOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> regionalForwardingRuleOperationGet
+      1 * regionalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should update backend service if it exists."() {
@@ -188,6 +195,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     def regionalOperations = Mock(Compute.RegionOperations)
     def regionalBackendServiceOperationGet = Mock(Compute.RegionOperations.Get)
+    def regionalForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
 
     def regions = Mock(Compute.Regions)
     def regionsList = Mock(Compute.Regions.List)
@@ -196,6 +204,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def forwardingRules = Mock(Compute.ForwardingRules)
     def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
     def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+    def forwardingRuleInsertOp = new Operation(
+        targetLink: "forwarding-rule",
+        name: LOAD_BALANCER_NAME,
+        status: DONE)
 
     def healthChecks = Mock(Compute.HealthChecks)
     def healthChecksGet = Mock(Compute.HealthChecks.Get)
@@ -253,7 +265,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> null
       1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
-      1 * forwardingRulesInsert.execute()
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
       2 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
@@ -271,9 +283,11 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
 
-      1 * computeMock.regionOperations() >> regionalOperations
+      2 * computeMock.regionOperations() >> regionalOperations
       1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
       1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
+      1 * regionalOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> regionalForwardingRuleOperationGet
+      1 * regionalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should update health check if it exists."() {
@@ -294,6 +308,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     def regionalOperations = Mock(Compute.RegionOperations)
     def regionalBackendServiceOperationGet = Mock(Compute.RegionOperations.Get)
+    def regionalForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
 
     def regions = Mock(Compute.Regions)
     def regionsList = Mock(Compute.Regions.List)
@@ -302,6 +317,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def forwardingRules = Mock(Compute.ForwardingRules)
     def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
     def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
+    def forwardingRuleInsertOp = new Operation(
+        targetLink: "forwarding-rule",
+        name: LOAD_BALANCER_NAME,
+        status: DONE)
 
     def healthChecks = Mock(Compute.HealthChecks)
     def healthChecksGet = Mock(Compute.HealthChecks.Get)
@@ -359,7 +378,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
       1 * forwardingRulesGet.execute() >> null
       1 * forwardingRules.insert(PROJECT_NAME, REGION, _) >> forwardingRulesInsert
-      1 * forwardingRulesInsert.execute()
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
       2 * computeMock.healthChecks() >> healthChecks
       1 * healthChecks.get(PROJECT_NAME, "basic-check") >> healthChecksGet
@@ -377,8 +396,10 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> healthChecksInsertOp
 
-      1 * computeMock.regionOperations() >> regionalOperations
+      2 * computeMock.regionOperations() >> regionalOperations
       1 * regionalOperations.get(PROJECT_NAME, REGION, BACKEND_SERVICE_OP_NAME) >> regionalBackendServiceOperationGet
       1 * regionalBackendServiceOperationGet.execute() >> backendServicesInsertOp
+      1 * regionalOperations.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> regionalForwardingRuleOperationGet
+      1 * regionalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 }

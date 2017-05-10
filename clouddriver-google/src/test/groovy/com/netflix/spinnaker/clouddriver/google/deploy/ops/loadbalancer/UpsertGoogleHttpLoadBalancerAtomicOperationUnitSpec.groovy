@@ -82,6 +82,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalBackendServiceOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalUrlMapOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
+      def globalForwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -119,7 +120,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
 
       def input = [
         accountName       : ACCOUNT_NAME,
@@ -204,10 +208,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.insert(PROJECT_NAME, _) >> globalForwardingRulesInsert
       1 * globalForwardingRules.get(PROJECT_NAME, _) >> globalForwardingRulesGet
-      1 * globalForwardingRulesInsert.execute() >> insertOp
+      1 * globalForwardingRulesInsert.execute() >> forwardingRuleInsertOp
       1 * globalForwardingRulesGet.execute() >> null
 
-      6 * computeMock.globalOperations() >> globalOperations
+      7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
       3 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
@@ -216,6 +220,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalUrlMapOperationGet.execute() >> httpHealthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
       1 * globalTargetHttpProxyOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
+      1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should create an HTTP Load Balancer with minimal description"() {
@@ -236,6 +242,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalBackendServiceOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalUrlMapOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
+      def globalForwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -273,7 +280,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
       def input = [
         accountName       : ACCOUNT_NAME,
         "loadBalancerName": LOAD_BALANCER_NAME,
@@ -328,10 +338,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.insert(PROJECT_NAME, _) >> globalForwardingRulesInsert
       1 * globalForwardingRules.get(PROJECT_NAME, _) >> globalForwardingRulesGet
-      1 * globalForwardingRulesInsert.execute() >> insertOp
+      1 * globalForwardingRulesInsert.execute() >> forwardingRuleInsertOp
       1 * globalForwardingRulesGet.execute() >> null
 
-      4 * computeMock.globalOperations() >> globalOperations
+      5 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
@@ -340,6 +350,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalUrlMapOperationGet.execute() >> httpHealthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
       1 * globalTargetHttpProxyOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
+      1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should create an HTTPS Load Balancer when certificate specified"() {
@@ -360,6 +372,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalBackendServiceOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalUrlMapOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalTargetHttpsProxyOperationGet = Mock(Compute.GlobalOperations.Get)
+      def globalForwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -397,7 +410,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
       def input = [
         accountName       : ACCOUNT_NAME,
         "loadBalancerName": LOAD_BALANCER_NAME,
@@ -452,10 +468,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.insert(PROJECT_NAME, _) >> globalForwardingRulesInsert
       1 * globalForwardingRules.get(PROJECT_NAME, _) >> globalForwardingRulesGet
-      1 * globalForwardingRulesInsert.execute() >> insertOp
+      1 * globalForwardingRulesInsert.execute() >> forwardingRuleInsertOp
       1 * globalForwardingRulesGet.execute() >> null
 
-      4 * computeMock.globalOperations() >> globalOperations
+      5 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
@@ -464,6 +480,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalUrlMapOperationGet.execute() >> httpHealthChecksInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpsProxyOperationGet
       1 * globalTargetHttpsProxyOperationGet.execute() >> httpHealthChecksInsertOp
+      1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
+      1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should update health check when it exists and needs updated"() {
@@ -484,6 +502,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalBackendServiceOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalUrlMapOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
+      def globalForwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -521,7 +540,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
 
       def input = [
         accountName       : ACCOUNT_NAME,
@@ -606,10 +628,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.insert(PROJECT_NAME, _) >> globalForwardingRulesInsert
       1 * globalForwardingRules.get(PROJECT_NAME, _) >> globalForwardingRulesGet
-      1 * globalForwardingRulesInsert.execute() >> insertOp
+      1 * globalForwardingRulesInsert.execute() >> forwardingRuleInsertOp
       1 * globalForwardingRulesGet.execute() >> null
 
-      6 * computeMock.globalOperations() >> globalOperations
+      7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksUpdateOp
       3 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
@@ -618,6 +640,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalUrlMapOperationGet.execute() >> urlMapsInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
       1 * globalTargetHttpProxyOperationGet.execute() >> targetHttpProxiesInsertOp
+      1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
+      1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should update backend service if it exists and needs updated"() {
@@ -638,6 +662,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalBackendServiceOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalUrlMapOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
+      def globalForwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -680,7 +705,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
 
       def input = [
         accountName       : ACCOUNT_NAME,
@@ -767,10 +795,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.insert(PROJECT_NAME, _) >> globalForwardingRulesInsert
       1 * globalForwardingRules.get(PROJECT_NAME, _) >> globalForwardingRulesGet
-      1 * globalForwardingRulesInsert.execute() >> insertOp
+      1 * globalForwardingRulesInsert.execute() >> forwardingRuleInsertOp
       1 * globalForwardingRulesGet.execute() >> null
 
-      6 * computeMock.globalOperations() >> globalOperations
+      7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksUpdateOp
       2 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
@@ -781,6 +809,8 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalUrlMapOperationGet.execute() >> urlMapsInsertOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
       1 * globalTargetHttpProxyOperationGet.execute() >> targetHttpProxiesInsertOp
+      1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
+      1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should update url map if it exists and needs updated"() {
@@ -801,6 +831,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalBackendServiceOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalUrlMapOperationGet = Mock(Compute.GlobalOperations.Get)
       def globalTargetHttpProxyOperationGet = Mock(Compute.GlobalOperations.Get)
+      def globalForwardingRuleOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
@@ -844,7 +875,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       def globalForwardingRules = Mock(Compute.GlobalForwardingRules)
       def globalForwardingRulesInsert = Mock(Compute.GlobalForwardingRules.Insert)
       def globalForwardingRulesGet = Mock(Compute.GlobalForwardingRules.Get)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
 
       def input = [
         accountName       : ACCOUNT_NAME,
@@ -931,10 +965,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       2 * computeMock.globalForwardingRules() >> globalForwardingRules
       1 * globalForwardingRules.insert(PROJECT_NAME, _) >> globalForwardingRulesInsert
       1 * globalForwardingRules.get(PROJECT_NAME, _) >> globalForwardingRulesGet
-      1 * globalForwardingRulesInsert.execute() >> insertOp
+      1 * globalForwardingRulesInsert.execute() >> forwardingRuleInsertOp
       1 * globalForwardingRulesGet.execute() >> null
 
-      6 * computeMock.globalOperations() >> globalOperations
+      7 * computeMock.globalOperations() >> globalOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksUpdateOp
       2 * globalOperations.get(PROJECT_NAME, BACKEND_SERVICE_OP_NAME) >> globalBackendServiceOperationGet
@@ -945,5 +979,7 @@ class UpsertGoogleHttpLoadBalancerAtomicOperationUnitSpec extends Specification 
       1 * globalUrlMapOperationGet.execute() >> urlMapsUpdateOp
       1 * globalOperations.get(PROJECT_NAME, TARGET_HTTP_PROXY_OP_NAME) >> globalTargetHttpProxyOperationGet
       1 * globalTargetHttpProxyOperationGet.execute() >> targetHttpProxiesInsertOp
+      1 * globalOperations.get(PROJECT_NAME, LOAD_BALANCER_NAME) >> globalForwardingRuleOperationGet
+      1 * globalForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 }

@@ -232,7 +232,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         subnetwork: GCEUtil.buildSubnetworkUrl(project, region, description.subnet),
         ports: description.ports
       )
-      safeRetry.doRetry(
+      Operation forwardingRuleOp = safeRetry.doRetry(
         { timeExecute(
               compute.forwardingRules().insert(project, region, forwardingRule),
               "compute.forwardingRules.insert",
@@ -243,7 +243,16 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         [],
         [action: "insert", phase: BASE_PHASE, operation: "compute.forwardingRules.insert", (TAG_SCOPE): SCOPE_GLOBAL],
         registry
-      )
+      ) as Operation
+
+      // Orca's orchestration for upserting a Google load balancer does not contain a task
+      // to wait for the state of the platform to show that a load balancer was created (for good reason,
+      // that would be a complicated operation). Instead, Orca waits for Clouddriver to execute this operation
+      // and do a force cache refresh. We should wait for the whole load balancer to be created in the platform
+      // before we exit this upsert operation, so we wait for the forwarding rule to be created before continuing
+      // so we _know_ the state of the platform when we do a force cache refresh.
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, forwardingRuleOp.getName(),
+          null, task, "forwarding rule " + description.loadBalancerName, BASE_PHASE)
     }
 
     task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."

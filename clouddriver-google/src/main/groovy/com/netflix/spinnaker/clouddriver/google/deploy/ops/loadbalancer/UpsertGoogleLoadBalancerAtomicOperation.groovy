@@ -31,6 +31,7 @@ import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
@@ -38,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map> {
   private static final String BASE_PHASE = "UPSERT_LOAD_BALANCER"
+
+  @Autowired
+  SafeRetry safeRetry
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -425,11 +429,27 @@ class UpsertGoogleLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map>
         portRange: description.portRange
       )
 
-      // We won't block on this operation since nothing else depends on its completion.
-      timeExecute(
-          compute.forwardingRules().insert(project, region, forwardingRule),
-          "compute.forwardingRules.insert",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region)
+      Operation forwardingRuleOperation = safeRetry.doRetry(
+          { timeExecute(
+              compute.forwardingRules().insert(project, region, forwardingRule),
+              "compute.forwardingRules.insert",
+              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
+          "Regional forwarding rule ${description.loadBalancerName}",
+          task,
+          [400, 403, 412],
+          [],
+          [action: "insert", phase: BASE_PHASE, operation: "compute.forwardingRules.insert", (TAG_SCOPE): SCOPE_GLOBAL],
+          registry
+      ) as Operation
+
+      // Orca's orchestration for upserting a Google load balancer does not contain a task
+      // to wait for the state of the platform to show that a load balancer was created (for good reason,
+      // that would be a complicated operation). Instead, Orca waits for Clouddriver to execute this operation
+      // and do a force cache refresh. We should wait for the whole load balancer to be created in the platform
+      // before we exit this upsert operation, so we wait for the forwarding rule to be created before continuing
+      // so we _know_ the state of the platform when we do a force cache refresh.
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, forwardingRuleOperation.getName(),
+          null, task, "forwarding rule " + GCEUtil.getLocalName(targetPoolResourceLink), BASE_PHASE)
     }
   }
 }

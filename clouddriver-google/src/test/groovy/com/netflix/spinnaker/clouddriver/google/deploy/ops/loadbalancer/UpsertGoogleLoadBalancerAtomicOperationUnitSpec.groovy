@@ -98,6 +98,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def regionOperations = Mock(Compute.RegionOperations)
       def globalHealthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
       def regionTargetPoolOperationGet = Mock(Compute.RegionOperations.Get)
+      def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
       def httpHealthChecksInsertOp = new Operation(
@@ -110,13 +111,16 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           targetLink: "target-pool",
           name: TARGET_POOL_OP_NAME,
           status: DONE)
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
       def regions = Mock(Compute.Regions)
       def regionsList = Mock(Compute.Regions.List)
       def regionsListReal = new RegionList(
           items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
-      def insertOp = new Operation(targetLink: "link")
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -127,6 +131,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
+      operation.safeRetry = safeRetry
       operation.registry = registry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
@@ -164,14 +169,16 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.IPAddress == IP_ADDRESS && it.IPProtocol == IP_PROTOCOL_TCP && it.portRange == Constants.DEFAULT_PORT_RANGE}) >>
         forwardingRulesInsert
-      1 * forwardingRulesInsert.execute() >> insertOp
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
       1 * computeMock.globalOperations() >> globalOperations
-      1 * computeMock.regionOperations() >> regionOperations
+      2 * computeMock.regionOperations() >> regionOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> regionForwardingRuleOperationGet
+      1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should create a network load balancer with port range and health checks"() {
@@ -188,6 +195,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       def regionOperations = Mock(Compute.RegionOperations)
       def globalHealthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
       def regionTargetPoolOperationGet = Mock(Compute.RegionOperations.Get)
+      def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksInsert = Mock(Compute.HttpHealthChecks.Insert)
       def httpHealthChecksInsertOp = new Operation(
@@ -206,7 +214,10 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -219,6 +230,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -255,14 +267,16 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.IPAddress == IP_ADDRESS && it.IPProtocol == IP_PROTOCOL_TCP && it.portRange == PORT_RANGE}) >>
         forwardingRulesInsert
-      1 * forwardingRulesInsert.execute() >> insertOp
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
       1 * computeMock.globalOperations() >> globalOperations
-      1 * computeMock.regionOperations() >> regionOperations
+      2 * computeMock.regionOperations() >> regionOperations
       1 * globalOperations.get(PROJECT_NAME, HEALTH_CHECK_OP_NAME) >> globalHealthCheckOperationGet
       1 * globalHealthCheckOperationGet.execute() >> httpHealthChecksInsertOp
       1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> regionForwardingRuleOperationGet
+      1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should create a network load balancer without health checks if none are specified"() {
@@ -282,7 +296,11 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
-      def insertOp = new Operation(targetLink: "link")
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
+      def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -291,6 +309,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -319,11 +338,13 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * targetPoolsInsert.execute() >> targetPoolsInsertOp
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.insert(PROJECT_NAME, REGION_US, _) >> forwardingRulesInsert
-      1 * forwardingRulesInsert.execute() >> insertOp
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
-      1 * computeMock.regionOperations() >> regionOperations
+      2 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> regionForwardingRuleOperationGet
+      1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should create a network load balancer with the specified IP protocol if it is supported"() {
@@ -343,7 +364,11 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           items: [new Region(name: REGION_US), new Region(name: REGION_ASIA), new Region(name: REGION_EUROPE)])
       def forwardingRules = Mock(Compute.ForwardingRules)
       def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
-      def insertOp = new Operation(targetLink: "link")
+      def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new UpsertGoogleLoadBalancerDescription(
           loadBalancerName: LOAD_BALANCER_NAME,
@@ -353,6 +378,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -383,11 +409,13 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.IPAddress == null && it.IPProtocol == IP_PROTOCOL_UDP && it.portRange == Constants.DEFAULT_PORT_RANGE}) >>
         forwardingRulesInsert
-      1 * forwardingRulesInsert.execute() >> insertOp
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
 
-      1 * computeMock.regionOperations() >> regionOperations
+      2 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION_US, TARGET_POOL_OP_NAME) >> regionTargetPoolOperationGet
       1 * regionTargetPoolOperationGet.execute() >> targetPoolsInsertOp
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> regionForwardingRuleOperationGet
+      1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
   }
 
   void "should neither create anything new, nor edit anything existing, if a forwarding rule with the same name already exists in the same region"() {
@@ -420,6 +448,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -461,6 +490,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -535,6 +565,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -618,6 +649,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -665,6 +697,11 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
           healthChecks: [HEALTH_CHECK_NAME]
         )
       ])
+      def regionForwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
+      def forwardingRuleInsertOp = new Operation(
+          targetLink: "forwarding-rule",
+          name: LOAD_BALANCER_NAME,
+          status: DONE)
       def httpHealthChecks = Mock(Compute.HttpHealthChecks)
       def httpHealthChecksList = Mock(Compute.HttpHealthChecks.List)
       def httpHealthChecksListReal = new HttpHealthCheckList(items: [
@@ -703,6 +740,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -739,16 +777,18 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
       // Poll for completion of forwarding rule delete.
-      1 * computeMock.regionOperations() >> regionOperations
+      2 * computeMock.regionOperations() >> regionOperations
       1 * regionOperations.get(PROJECT_NAME, REGION_US, DELETE_FORWARDING_RULE_OP_NAME) >> regionOperationsGet
       1 * regionOperationsGet.execute() >> forwardingRulesDeleteOp
+      1 * regionOperations.get(PROJECT_NAME, REGION_US, LOAD_BALANCER_NAME) >> regionForwardingRuleOperationGet
+      1 * regionForwardingRuleOperationGet.execute() >> forwardingRuleInsertOp
 
       // Create new forwarding rule.
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.insert(PROJECT_NAME, REGION_US,
         {it.name == LOAD_BALANCER_NAME && it.IPProtocol == IP_PROTOCOL_TCP && it.portRange == PORT_RANGE}) >>
         forwardingRulesInsert
-      1 * forwardingRulesInsert.execute()
+      1 * forwardingRulesInsert.execute() >> forwardingRuleInsertOp
   }
 
   void "should add health check and update target pool if existing target pool does not have specified health check"() {
@@ -797,6 +837,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -898,6 +939,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
       operation.googleOperationPoller =
         new GoogleOperationPoller(
           googleConfigurationProperties: new GoogleConfigurationProperties(),
@@ -1003,6 +1045,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -1099,6 +1142,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -1196,6 +1240,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
@@ -1295,6 +1340,7 @@ class UpsertGoogleLoadBalancerAtomicOperationUnitSpec extends Specification {
         credentials: credentials)
       @Subject def operation = new UpsertGoogleLoadBalancerAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
