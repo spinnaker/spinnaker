@@ -1,11 +1,10 @@
 'use strict';
 
-import {ACCOUNT_LABEL_COLOR_COMPONENT} from './accountLabelColor.component';
+import { ACCOUNT_TAG_COMPONENT } from './accountTag.component';
 
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.account', [
-  require('./accountTag.directive.js'),
   require('./providerToggles.directive.js'),
-  ACCOUNT_LABEL_COLOR_COMPONENT,
+  ACCOUNT_TAG_COMPONENT,
 ]);

@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { find, flatten, uniq } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { AccountLabelColor } from 'core/account/AccountLabelColor';
+import { AccountTag } from 'core/account/AccountTag';
 import { Application } from 'core/application/application.model';
 import { IPipeline } from 'core/domain/IPipeline';
 import { Execution } from './execution/Execution';
@@ -170,8 +170,8 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
     const pipelineDescription = pipelineConfig && pipelineConfig.description;
     const hasRunningExecutions = group.runningExecutions && group.runningExecutions.length > 0;
 
-    const deploymentAccountLabels = (this.state.deploymentAccounts || []).map((account: string) => <AccountLabelColor key={account} account={account}/>);
-    const groupTargetAccountLabels = (group.targetAccounts || []).map((account: string) => <AccountLabelColor key={account} account={account}/>);
+    const deploymentAccountLabels = (this.state.deploymentAccounts || []).map((account: string) => <AccountTag key={account} account={account}/>);
+    const groupTargetAccountLabels = (group.targetAccounts || []).map((account: string) => <AccountTag key={account} account={account}/>);
     // Adding running time to the key is a hack until we can figure out the redux story for executions
     const executions = (group.executions || []).map((execution: IExecution) => <Execution key={execution.stringVal} execution={execution} application={this.props.application}/>)
 
@@ -182,8 +182,10 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
             <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
               <span className={`glyphicon pipeline-toggle glyphicon-chevron-${this.state.open ? 'down' : 'right'}`}/>
               <div className="shadowed">
-                {this.state.showAccounts && deploymentAccountLabels}
-                {groupTargetAccountLabels}
+                <div className="heading-tag">
+                  {this.state.showAccounts && deploymentAccountLabels}
+                  {groupTargetAccountLabels}
+                </div>
                 <h4 className="execution-group-title">
                   {group.heading}
                   {pipelineDescription && <span> <Tooltip value={pipelineDescription}><span className="glyphicon glyphicon-info-sign"/></Tooltip></span>}

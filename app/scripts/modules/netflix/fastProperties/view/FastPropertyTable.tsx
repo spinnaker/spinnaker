@@ -94,7 +94,7 @@ export class FastPropertyTable extends React.Component<IProps, IState> {
       </thead>);
 
     const rows = this.props.properties.slice(0, MAX_PROPERTIES_TO_DISPLAY).map(property => {
-      const accountLabelClass = `label label-default account-label account-label-${property.env}`;
+      const accountLabelClass = `label label-default account-tag account-tag-${property.env}`;
       const rowClass = `small clickable ${this.state.activeRow === property.propertyId ? 'info' : ''}`;
       const longProp = (property.value || '').length > overflowAtChars;
       return (

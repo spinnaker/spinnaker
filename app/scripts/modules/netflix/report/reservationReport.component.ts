@@ -84,6 +84,5 @@ class ReservationReportComponent implements IComponentOptions {
 export const RESERVATION_REPORT_COMPONENT = 'spinnaker.amazon.serverGroup.report.reservationReport.directive';
 module(RESERVATION_REPORT_COMPONENT, [
     RESERVATION_REPORT_READER,
-    require('core/account/accountTag.directive.js')
   ])
   .component('reservationReport', new ReservationReportComponent());

@@ -23,5 +23,5 @@ class ClusterMatchesComponent implements IComponentOptions {
 }
 
 export const CLUSTER_MATCHES_COMPONENT = 'spinnaker.core.widget.cluster.clusterMatches.component';
-module(CLUSTER_MATCHES_COMPONENT, [require('core/account/accountTag.directive.js')])
+module(CLUSTER_MATCHES_COMPONENT, [])
   .component('clusterMatches', new ClusterMatchesComponent());

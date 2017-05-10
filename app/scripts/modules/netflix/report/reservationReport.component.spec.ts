@@ -1,14 +1,15 @@
-import {ICompileService, IHttpBackendService, IQService, IRootScopeService, mock} from 'angular';
+import { ICompileService, IHttpBackendService, IQService, IRootScopeService, mock } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
-import {RESERVATION_REPORT_COMPONENT} from './reservationReport.component';
-import {ReservationReportReader} from 'netflix/report/reservationReport.read.service';
-import {AccountService} from 'core/account/account.service';
+import { SETTINGS } from 'core/config/settings';
+import { RESERVATION_REPORT_COMPONENT } from './reservationReport.component';
+import { ReservationReportReader } from 'netflix/report/reservationReport.read.service';
+import { AccountService } from 'core/account/account.service';
+import { ACCOUNT_TAG_COMPONENT } from 'core/account/accountTag.component';
 
 describe('Directives: reservation report', function () {
 
   require('./reservationReport.component.html');
-  beforeEach(mock.module(RESERVATION_REPORT_COMPONENT));
+  beforeEach(mock.module(RESERVATION_REPORT_COMPONENT, ACCOUNT_TAG_COMPONENT));
 
   let http: IHttpBackendService;
   let scope: IRootScopeService;

@@ -2,7 +2,9 @@ import {module, IComponentController, IComponentOptions} from 'angular';
 
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 
-class AccountLabelColorController implements IComponentController {
+import './accountTag.less';
+
+class AccountTagController implements IComponentController {
   public account: string;
 
   public accountType: string;
@@ -16,16 +18,16 @@ class AccountLabelColorController implements IComponentController {
   }
 }
 
-export class AccountLabelColorComponent implements IComponentOptions {
+export class AccountTagComponent implements IComponentOptions {
   public bindings: any = {
-    account: '<'
+    account: '<',
   };
-  public controller: any = AccountLabelColorController;
+  public controller: any = AccountTagController;
   public template = '<span class="account-tag account-tag-{{$ctrl.accountType}}">{{$ctrl.account}}</span>';
 }
 
-export const ACCOUNT_LABEL_COLOR_COMPONENT = 'spinnaker.core.account.accountLabelColor';
-module(ACCOUNT_LABEL_COLOR_COMPONENT, [
+export const ACCOUNT_TAG_COMPONENT = 'spinnaker.core.account.accountTag';
+module(ACCOUNT_TAG_COMPONENT, [
   ACCOUNT_SERVICE
 ])
-  .component('accountLabelColor', new AccountLabelColorComponent());
+  .component('accountTag', new AccountTagComponent());

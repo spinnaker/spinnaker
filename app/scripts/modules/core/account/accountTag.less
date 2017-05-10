@@ -1,0 +1,33 @@
+@import (reference) "~core/presentation/less/imports/colors.less";
+
+.account-tag {
+  display: inline;
+  padding: 2px 6px 3px 6px;
+  font-size: 75%;
+  text-align: center;
+  text-transform: uppercase;
+  color: #ffffff;
+  background-color: #777;
+  white-space: nowrap;
+  font-weight: 600;
+  &.account-tag-prod {
+    background-color: @unhealthy_red;
+  }
+}
+
+.heading-tag {
+  .account-tag {
+    font-size: 100%;
+    font-weight: 400;
+    display: flex;
+    min-height: 36px;
+    line-height: 16px;
+    align-items: center;
+    flex: 0 0 auto;
+    padding: 0 15px;
+    border-right: 1px solid @lightest_grey;
+    .glyphicon {
+      margin-right: 3px;
+    }
+  }
+}

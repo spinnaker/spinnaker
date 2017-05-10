@@ -21,7 +21,7 @@ import { schedulerFactory } from 'core/scheduler/scheduler.factory';
 import { stateEvents } from 'core/state.events';
 
 // react components
-import { AccountLabelColor } from 'core/account/AccountLabelColor';
+import { AccountTag } from 'core/account/AccountTag';
 import { CopyToClipboard } from 'core/utils/clipboard/CopyToClipboard';
 import { ExecutionDetails } from 'core/delivery/details/ExecutionDetails';
 import { ExecutionMarker } from './ExecutionMarker';
@@ -266,7 +266,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
 
   public render() {
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
-      <AccountLabelColor key={account} account={account}/>
+      <AccountTag key={account} account={account}/>
     ));
 
     const executionMarkerWidth = `${100 / this.props.execution.stageSummaries.length}%`;
