@@ -165,7 +165,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     { log.error("Error: ${it.message}") }
             )
 
-            builds.parallelStream().forEach(
+            builds.stream().forEach(
                     { Project project ->
                         try {
                             boolean addToCache = false
@@ -198,6 +198,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                                                         Project oldProject = new Project(name: project.name, lastBuild: build)
                                                         if (build.number != lastBuild
                                                                 || (build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building)) {
+                                                            log.info  "sending event for intermediate build ${build.number}"
                                                             postEvent(echoService, cachedBuilds, oldProject, master)
                                                         }
                                                     } catch (e) {
