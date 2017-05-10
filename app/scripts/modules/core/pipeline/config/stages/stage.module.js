@@ -4,13 +4,16 @@ let angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {API_SERVICE} from 'core/api/api.service';
+import {BASE_EXECUTION_DETAILS_CTRL} from './core/baseExecutionDetails.controller';
 import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 import {PIPELINE_BAKE_STAGE_CHOOSE_OS} from 'core/pipeline/config/stages/bake/bakeStageChooseOs.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
+  ACCOUNT_SERVICE,
   API_SERVICE,
+  BASE_EXECUTION_DETAILS_CTRL,
   PIPELINE_CONFIG_PROVIDER,
   PIPELINE_CONFIG_SERVICE,
   require('./overrideTimeout/overrideTimeout.directive.js'),
@@ -18,7 +21,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   require('./optionalStage/optionalStage.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
   PIPELINE_BAKE_STAGE_CHOOSE_OS,
-  ACCOUNT_SERVICE,
   require('./core/stageConfigField/stageConfigField.directive.js'),
 ])
   .directive('pipelineConfigStage', function() {

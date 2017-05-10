@@ -1,13 +1,13 @@
-import {module} from 'angular';
-import {get, has} from 'lodash';
+import { module } from 'angular';
+import { get, has } from 'lodash';
 
+import { IPipeline, IStage, IStageOrTriggerTypeConfig, ITrigger } from 'core/domain';
 import {
-  PIPELINE_CONFIG_VALIDATOR, IStageOrTriggerTypeConfig, IStageOrTriggerValidator, IValidatorConfig,
+  IStageOrTriggerValidator,
+  IValidatorConfig,
+  PIPELINE_CONFIG_VALIDATOR,
   PipelineConfigValidator
 } from './pipelineConfig.validator';
-import {IStage} from 'core/domain/IStage';
-import {ITrigger} from 'core/domain/ITrigger';
-import {IPipeline} from 'core/domain/IPipeline';
 
 export interface IRequiredFieldValidationConfig extends IValidatorConfig {
   fieldName: string;

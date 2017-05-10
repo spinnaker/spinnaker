@@ -5,7 +5,6 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClusterStage', [
   ACCOUNT_SERVICE,
-  require('./scaleDownClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,6 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.scaleDownClus
       cloudProvider: 'gce',
       templateUrl: require('./scaleDownClusterStage.html'),
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
+      executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

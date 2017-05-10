@@ -14,7 +14,6 @@ class DisableAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
     super($scope, $stateParams, executionDetailsSectionService);
 
     super.setScopeConfigSections(['disableServerGroupConfig', 'taskStatus']);
-    super.initialize();
   }
 }
 
@@ -23,5 +22,4 @@ export const DISABLE_ASG_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.stage
 module(DISABLE_ASG_EXECUTION_DETAILS_CTRL, [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ]).controller('disableAsgExecutionDetailsCtrl', DisableAsgExecutionDetailsCtrl);

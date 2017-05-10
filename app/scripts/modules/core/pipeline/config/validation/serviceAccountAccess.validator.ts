@@ -1,13 +1,16 @@
-import {module} from 'angular';
+import { module } from 'angular';
+
+import { SETTINGS } from 'core/config/settings';
+import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
+import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
+import { PIPELINE_CONFIG_SERVICE } from '../services/pipelineConfig.service';
 
 import {
-  IStageOrTriggerValidator, IValidatorConfig, IStageOrTriggerTypeConfig,
-  PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator
+  IStageOrTriggerValidator,
+  IValidatorConfig,
+  PIPELINE_CONFIG_VALIDATOR,
+  PipelineConfigValidator
 } from './pipelineConfig.validator';
-import {IPipeline, IStage} from 'core/domain/index';
-import {PIPELINE_CONFIG_SERVICE} from '../services/pipelineConfig.service';
-import {ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
-import {SETTINGS} from 'core/config/settings';
 
 export interface ITriggerWithServiceAccount extends IStage {
   runAsUser: string;

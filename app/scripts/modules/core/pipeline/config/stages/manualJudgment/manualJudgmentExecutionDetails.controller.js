@@ -10,7 +10,6 @@ module.exports = angular
     require('angular-ui-router').default,
     MANUAL_JUDGMENT_COMPONENT,
     EXECUTION_DETAILS_SECTION_SERVICE,
-    require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   ])
   .controller('ManualJudgmentExecutionDetailsCtrl', function ($scope, $stateParams, manualJudgmentService,
                                                               executionDetailsSectionService) {

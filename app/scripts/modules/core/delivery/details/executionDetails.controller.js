@@ -83,7 +83,7 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
       $state.go('.', { step: null });
     };
 
-    const getDetailsSourceUrl = function() {
+    const getDetailsSourceUrl = () => {
       if ($stateParams.step !== undefined) {
         let stages = controller.execution.stageSummaries || [];
         var stageSummary = stages[getCurrentStage()];
@@ -93,6 +93,13 @@ module.exports = angular.module('spinnaker.executionDetails.controller', [
           $scope.stage = step;
           var stageConfig = pipelineConfig.getStageConfig(step);
           if (stageConfig && stageConfig.executionDetailsUrl) {
+            if (stageConfig.executionConfigSections) {
+              $scope.configSections = stageConfig.executionConfigSections;
+            } else {
+              if (stageConfig.executionDetailsUrl !== this.executionDetailsUrl) {
+                $scope.configSections = []; // assume the stage's execution details controller will set it
+              }
+            }
             return stageConfig.executionDetailsUrl;
           }
           return require('./defaultExecutionDetails.html');

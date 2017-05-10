@@ -1,8 +1,7 @@
 import { auto, mock } from 'angular';
 import { map } from 'lodash';
 
-import { IStage } from 'core/domain';
-import { ITriggerTypeConfig, IStageTypeConfig } from './validation/pipelineConfig.validator';
+import { IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from './pipelineConfigProvider';
 
 describe('pipelineConfigProvider: API', function() {

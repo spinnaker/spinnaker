@@ -34,6 +34,7 @@ module(APPENGINE_STOP_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE])
       key: 'stopAppEngineServerGroup',
       templateUrl: require('./stopServerGroupStage.html'),
       executionDetailsUrl: require('./stopServerGroupExecutionDetails.html'),
+      executionConfigSections: ['stopServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./stopServerGroupStepLabel.html'),
       controller: 'appengineStopServerGroupStageCtrl',
       controllerAs: 'stopServerGroupStageCtrl',

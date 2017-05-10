@@ -8,7 +8,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancer.executionDetails.controller', [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('createLoadBalancerExecutionDetailsCtrl', function ($scope, $stateParams, cloudProviderRegistry,

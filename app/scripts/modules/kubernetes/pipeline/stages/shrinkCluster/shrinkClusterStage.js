@@ -5,7 +5,6 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.shrinkClusterStage', [
   ACCOUNT_SERVICE,
-  require('./shrinkClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,6 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.shrink
       cloudProvider: 'kubernetes',
       templateUrl: require('./shrinkClusterStage.html'),
       executionDetailsUrl: require('./shrinkClusterExecutionDetails.html'),
+      executionConfigSections: ['shrinkClusterConfig', 'taskStatus'],
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

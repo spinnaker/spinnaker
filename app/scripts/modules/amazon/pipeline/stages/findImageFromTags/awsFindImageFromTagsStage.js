@@ -8,7 +8,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findImageFromTagsStage', [
   BAKERY_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
-  require('./findImageFromTagsExecutionDetails.controller.js'),
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -16,6 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findImageFrom
       cloudProvider: 'aws',
       templateUrl: require('./findImageFromTagsStage.html'),
       executionDetailsUrl: require('./findImageFromTagsExecutionDetails.html'),
+      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'packageName', },
         { type: 'requiredField', fieldName: 'regions', },

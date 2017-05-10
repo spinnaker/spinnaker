@@ -34,6 +34,7 @@ module(APPENGINE_START_SERVER_GROUP_STAGE, [ACCOUNT_SERVICE])
       key: 'startAppEngineServerGroup',
       templateUrl: require('./startServerGroupStage.html'),
       executionDetailsUrl: require('./startServerGroupExecutionDetails.html'),
+      executionConfigSections: ['startServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./startServerGroupStepLabel.html'),
       controller: 'appengineStartServerGroupStageCtrl',
       controllerAs: 'startServerGroupStageCtrl',

@@ -14,6 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.scriptStage', [
         controllerAs: 'scriptStageCtrl',
         templateUrl: require('./scriptStage.html'),
         executionDetailsUrl: require('./scriptExecutionDetails.html'),
+        executionConfigSections: ['scriptConfig', 'taskStatus'],
         strategy: true,
       });
     })

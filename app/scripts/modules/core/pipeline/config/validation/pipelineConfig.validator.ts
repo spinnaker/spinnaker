@@ -1,11 +1,15 @@
-import {module} from 'angular';
-import {Subject} from 'rxjs';
+import { module } from 'angular';
+import { Subject } from 'rxjs';
 
-import {IExecutionStageSummary} from 'core/domain/index';
-import {IStage} from 'core/domain/IStage';
-import {IPipeline} from 'core/domain/IPipeline';
-import {ITrigger} from 'core/domain/ITrigger';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import {
+  IPipeline,
+  IStage,
+  IStageOrTriggerTypeConfig,
+  IStageTypeConfig,
+  ITrigger,
+  ITriggerTypeConfig
+} from 'core/domain';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
 
 export interface IStageValidationResults {
   stage: IStage;
@@ -27,38 +31,6 @@ export interface IValidatorConfig {
   fieldName?: string;
   fieldLabel?: string;
   checkParentTriggers?: boolean;
-}
-
-export interface IStageOrTriggerTypeConfig {
-  label: string;
-  description: string;
-  key: string;
-  templateUrl: string;
-  controller: string;
-  controllerAs: string;
-  validators: IValidatorConfig[];
-}
-
-export interface ITriggerTypeConfig extends IStageOrTriggerTypeConfig {
-  manualExecutionHandler?: string;
-}
-
-export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
-  executionDetailsUrl: string;
-  executionStepLabelUrl?: string;
-  defaultTimeoutMs?: number;
-  provides?: string;
-  providesFor?: string[];
-  cloudProvider?: string;
-  cloudProviders?: string[];
-  alias?: string;
-  useBaseProvider?: boolean;
-  executionLabelComponent?: React.Component<{ stage: IExecutionStageSummary }, any>;
-  accountExtractor?: (stage: IStage) => string;
-  extraLabelLines?: (stage: IStage) => number;
-  restartable?: boolean;
-  synthetic?: boolean;
-  nameToCheckInTest?: string;
 }
 
 export interface IStageOrTriggerValidator {

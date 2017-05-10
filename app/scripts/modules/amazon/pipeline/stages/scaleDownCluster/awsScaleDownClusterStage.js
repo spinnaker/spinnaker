@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.scaleDownClusterStage', [
-  require('./scaleDownClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -11,6 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.scaleDownClus
       cloudProvider: 'aws',
       templateUrl: require('./scaleDownClusterStage.html'),
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
+      executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

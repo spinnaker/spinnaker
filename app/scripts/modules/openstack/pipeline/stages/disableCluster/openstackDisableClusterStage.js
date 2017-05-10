@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.disableClusterStage', [
-  require('./disableClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -11,6 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.disable
       cloudProvider: 'openstack',
       templateUrl: require('./disableClusterStage.html'),
       executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
+      executionConfigSections: ['disableClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},

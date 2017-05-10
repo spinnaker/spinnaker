@@ -2,15 +2,13 @@ import { auto, IServiceProvider, module } from 'angular';
 import { cloneDeep, intersection, memoize } from 'lodash';
 import { $log } from 'ngimport';
 
-
 import { Application } from 'core/application/application.model';
-import { IExecution, IStage } from 'core/domain';
-import { ITriggerTypeConfig, IStageTypeConfig } from './validation/pipelineConfig.validator';
+import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;
-};
+}
 
 export class PipelineConfigProvider implements IServiceProvider {
   private $injector: auto.IInjectorService;

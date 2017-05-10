@@ -4,7 +4,6 @@ let angular = require('angular');
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProcessStage', [
-  require('./modifyScalingProcessExecutionDetails.controller'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -15,6 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.modifyScalingProc
       controller: 'ModifyScalingProcessStageCtrl',
       templateUrl: require('./modifyScalingProcessStage.html'),
       executionDetailsUrl: require('./modifyScalingProcessExecutionDetails.html'),
+      executionConfigSections: ['modifyScalingProcessesConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'target', },

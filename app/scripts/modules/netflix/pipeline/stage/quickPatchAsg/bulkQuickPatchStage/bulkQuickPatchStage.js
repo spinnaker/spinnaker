@@ -14,5 +14,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsg.
       label: 'Bulk Quick Patch ASG',
       description: 'Bulk Quick Patches an ASG',
       executionDetailsUrl: require('./bulkQuickPatchStageExecutionDetails.html'),
+      executionConfigSection: ['bulkQuickPatchStageConfig', 'taskStatus'],
     });
   });

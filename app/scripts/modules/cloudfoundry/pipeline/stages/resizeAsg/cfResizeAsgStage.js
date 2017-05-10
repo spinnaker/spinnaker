@@ -5,7 +5,6 @@ import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage', [
-  require('./resizeAsgExecutionDetails.controller.js'),
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
@@ -15,6 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.resizeAsgStage
       cloudProvider: 'cf',
       templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
+      executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       validators: [
         {

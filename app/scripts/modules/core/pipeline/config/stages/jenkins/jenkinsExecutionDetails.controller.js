@@ -7,7 +7,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

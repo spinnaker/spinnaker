@@ -10,7 +10,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryD
   require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE,
   require('./canaryDeploymentHistory.service.js')
 ])

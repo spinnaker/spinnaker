@@ -12,7 +12,6 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.
   require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   URL_BUILDER_SERVICE
 ])
   .controller('openstackCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,

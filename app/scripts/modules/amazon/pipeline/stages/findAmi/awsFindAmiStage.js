@@ -3,7 +3,6 @@
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage', [
-  require('./findAmiExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -12,6 +11,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage'
       cloudProvider: 'aws',
       templateUrl: require('./findAmiStage.html'),
       executionDetailsUrl: require('./findAmiExecutionDetails.html'),
+      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},

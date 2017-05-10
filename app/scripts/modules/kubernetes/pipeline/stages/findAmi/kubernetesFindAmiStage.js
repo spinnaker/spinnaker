@@ -6,7 +6,6 @@ import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvi
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAmiStage', [
   PIPELINE_CONFIG_PROVIDER,
-  require('./findAmiExecutionDetails.controller.js'),
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
@@ -15,6 +14,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAm
       cloudProvider: 'kubernetes',
       templateUrl: require('./findAmiStage.html'),
       executionDetailsUrl: require('./findAmiExecutionDetails.html'),
+      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},

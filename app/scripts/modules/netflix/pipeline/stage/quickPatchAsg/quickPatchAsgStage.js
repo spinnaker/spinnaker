@@ -24,6 +24,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgS
         controllerAs: 'QuickPatchAsgStageCtrl',
         templateUrl: require('./quickPatchAsgStage.html'),
         executionDetailsUrl: require('./quickPatchAsgExecutionDetails.html'),
+        executionConfigSections: ['quickPatchServerGroupConfig'],
         accountExtractor: (stage) => stage.context.account,
         validators: [
           {

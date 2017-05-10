@@ -8,7 +8,6 @@ let angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executionDetails.controller', [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ])
   .controller('pipelineExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

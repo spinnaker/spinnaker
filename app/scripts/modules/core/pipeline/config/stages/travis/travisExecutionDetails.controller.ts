@@ -51,5 +51,4 @@ export class TravisExecutionDetailsCtrl {
 export const TRAVIS_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.core.pipeline.stage.travis.executionDetails.controller';
 module(TRAVIS_EXECUTION_DETAILS_CONTROLLER, [
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ]).controller('TravisExecutionDetailsCtrl', TravisExecutionDetailsCtrl);

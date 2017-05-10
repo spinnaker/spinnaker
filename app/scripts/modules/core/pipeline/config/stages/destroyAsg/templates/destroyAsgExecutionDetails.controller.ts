@@ -14,7 +14,6 @@ class DestroyAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
     super($scope, $stateParams, executionDetailsSectionService);
 
     super.setScopeConfigSections(['destroyServerGroupConfig', 'taskStatus']);
-    super.initialize();
   }
 }
 
@@ -23,5 +22,4 @@ export const DESTROY_ASG_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.stage
 module(DESTROY_ASG_EXECUTION_DETAILS_CTRL, [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ]).controller('destroyAsgExecutionDetailsCtrl', DestroyAsgExecutionDetailsCtrl);

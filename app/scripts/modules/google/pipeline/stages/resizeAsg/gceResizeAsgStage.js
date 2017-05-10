@@ -8,7 +8,6 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
-  require('./resizeAsgExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -16,6 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.resizeAsgStag
       cloudProvider: 'gce',
       templateUrl: require('./resizeAsgStage.html'),
       executionDetailsUrl: require('./resizeAsgExecutionDetails.html'),
+      executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeAsgStepLabel.html'),
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],

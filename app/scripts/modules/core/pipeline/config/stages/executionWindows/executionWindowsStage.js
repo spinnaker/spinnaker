@@ -10,6 +10,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindowsS
       description: 'Restricts execution of stage during specified period of time',
       key: 'restrictExecutionDuringTimeWindow',
       executionDetailsUrl: require('./executionWindowsDetails.html'),
+      executionConfigSections: ['windowConfig', 'taskStatus'],
     });
   })
   .run(function(pipelineConfig, executionWindowsTransformer) {

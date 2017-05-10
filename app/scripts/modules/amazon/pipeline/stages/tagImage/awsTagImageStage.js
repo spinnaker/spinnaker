@@ -6,7 +6,6 @@ let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.tagImageStage', [
   PIPELINE_CONFIG_PROVIDER,
-  require('./tagImageExecutionDetails.controller.js'),
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -14,6 +13,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.tagImageStage
       cloudProvider: 'aws',
       templateUrl: require('./tagImageStage.html'),
       executionDetailsUrl: require('./tagImageExecutionDetails.html'),
+      executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
   .controller('awsTagImageStageCtrl', function($scope) {

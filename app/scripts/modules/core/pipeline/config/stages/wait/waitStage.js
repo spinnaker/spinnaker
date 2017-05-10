@@ -2,9 +2,12 @@
 
 const angular = require('angular');
 
+import {SKIP_WAIT_COMPONENT} from './skipWait.component';
 import {WaitExecutionLabel} from './WaitExecutionLabel';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
+module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [
+  SKIP_WAIT_COMPONENT,
+])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       label: 'Wait',
@@ -12,6 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.waitStage', [])
       key: 'wait',
       templateUrl: require('./waitStage.html'),
       executionDetailsUrl: require('./waitExecutionDetails.html'),
+      executionConfigSections: ['waitConfig', 'taskStatus'],
       executionLabelComponent: WaitExecutionLabel,
       useCustomTooltip: true,
       strategy: true,

@@ -53,5 +53,4 @@ export class WebhookExecutionDetailsCtrl {
 export const WEBHOOK_EXECUTION_DETAILS_CONTROLLER = 'spinnaker.core.pipeline.stage.webhook.executionDetails.controller';
 module(WEBHOOK_EXECUTION_DETAILS_CONTROLLER, [
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ]).controller('WebhookExecutionDetailsCtrl', WebhookExecutionDetailsCtrl);

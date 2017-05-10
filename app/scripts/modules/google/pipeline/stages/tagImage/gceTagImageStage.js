@@ -8,7 +8,6 @@ import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvi
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.tagImageStage', [
   ACCOUNT_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
-  require('./tagImageExecutionDetails.controller.js'),
 ])
   .config(function (pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -16,6 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.tagImageStage
       cloudProvider: 'gce',
       templateUrl: require('./tagImageStage.html'),
       executionDetailsUrl: require('./tagImageExecutionDetails.html'),
+      executionConfigSections: ['tagImageConfig', 'taskStatus'],
     });
   })
   .controller('gceTagImageStageCtrl', function($scope, accountService) {

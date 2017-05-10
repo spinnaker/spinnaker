@@ -1,23 +1,25 @@
+import { mock } from 'angular';
 import Spy = jasmine.Spy;
-import {mock} from 'angular';
+import { SETTINGS } from 'core/config/settings';
 
-import {PipelineConfigService} from '../services/pipelineConfig.service';
+import { IPipeline, IStage, IStageTypeConfig } from 'core/domain';
+import { ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
+import { PipelineConfigService } from '../services/pipelineConfig.service';
 import {
-  PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator,
-  IPipelineValidationResults, IStageTypeConfig, IValidatorConfig, ICustomValidator
+  ICustomValidator,
+  IPipelineValidationResults,
+  IValidatorConfig,
+  PIPELINE_CONFIG_VALIDATOR,
+  PipelineConfigValidator
 } from './pipelineConfig.validator';
-import {IRequiredFieldValidationConfig} from './requiredField.validator';
+import { IRequiredFieldValidationConfig } from './requiredField.validator';
+import { IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount } from './serviceAccountAccess.validator';
+import { IStageBeforeTypeValidationConfig } from './stageBeforeType.validator';
 import {
   IStageOrTriggerBeforeTypeValidationConfig,
   StageOrTriggerBeforeTypeValidator
 } from './stageOrTriggerBeforeType.validator';
-import {IStageBeforeTypeValidationConfig} from './stageBeforeType.validator';
-import {ITargetImpedanceValidationConfig} from './targetImpedance.validator';
-import {IStage} from 'core/domain/IStage';
-import {IPipeline} from 'core/domain/IPipeline';
-import {IServiceAccountAccessValidationConfig, ITriggerWithServiceAccount} from './serviceAccountAccess.validator';
-import {ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
-import {SETTINGS} from 'core/config/settings';
+import { ITargetImpedanceValidationConfig } from './targetImpedance.validator';
 
 describe('pipelineConfigValidator', () => {
   let pipeline: IPipeline,

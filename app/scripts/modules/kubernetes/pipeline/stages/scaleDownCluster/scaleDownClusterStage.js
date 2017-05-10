@@ -5,7 +5,6 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.scaleDownClusterStage', [
   ACCOUNT_SERVICE,
-  require('./scaleDownClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,6 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.scaleD
       cloudProvider: 'kubernetes',
       templateUrl: require('./scaleDownClusterStage.html'),
       executionDetailsUrl: require('./scaleDownClusterExecutionDetails.html'),
+      executionConfigSections: ['scaleDownClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingFullSizeServerGroups', fieldLabel: 'Keep [X] full size Server Groups'},

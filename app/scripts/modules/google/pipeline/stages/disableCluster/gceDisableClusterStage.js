@@ -5,7 +5,6 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableClusterStage', [
   ACCOUNT_SERVICE,
-  require('./disableClusterExecutionDetails.controller.js')
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,6 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableCluste
       cloudProvider: 'gce',
       templateUrl: require('./disableClusterStage.html'),
       executionDetailsUrl: require('./disableClusterExecutionDetails.html'),
+      executionConfigSections: ['disableClusterConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'remainingEnabledServerGroups', fieldLabel: 'Keep [X] enabled Server Groups'},

@@ -1,4 +1,4 @@
-import { IScope } from 'angular';
+import { IScope, module } from 'angular';
 import { StateParams } from 'angular-ui-router';
 
 import { ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
@@ -15,6 +15,10 @@ export class BaseExecutionDetailsCtrl {
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
   }
 
+  public $onInit() {
+    this.initialize();
+  }
+
   protected setScopeConfigSections(sections: string[]): void {
     this.$scope.configSections = sections;
   }
@@ -27,3 +31,7 @@ export class BaseExecutionDetailsCtrl {
     this.$scope.detailsSection = this.$stateParams.details;
   }
 }
+
+export const BASE_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.config.stages.core.baseExecutionDetails.controller';
+
+module(BASE_EXECUTION_DETAILS_CTRL, []).controller('BaseExecutionDetailsCtrl', BaseExecutionDetailsCtrl);

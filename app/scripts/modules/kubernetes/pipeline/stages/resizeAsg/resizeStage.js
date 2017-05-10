@@ -9,7 +9,6 @@ import './resizeStage.less';
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resizeStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),
   ACCOUNT_SERVICE,
-  require('./resizeExecutionDetails.controller.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -17,6 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resize
       cloudProvider: 'kubernetes',
       templateUrl: require('./resizeStage.html'),
       executionDetailsUrl: require('./resizeExecutionDetails.html'),
+      executionConfigSections: ['resizeServerGroupConfig', 'taskStatus'],
       executionStepLabelUrl: require('./resizeStepLabel.html'),
       validators: [
         {

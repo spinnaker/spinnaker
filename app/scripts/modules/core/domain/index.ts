@@ -18,3 +18,6 @@ export * from './IStrategy'
 export * from './IEntityTags';
 export * from './ICluster';
 export * from './IOrchestratedItem';
+export * from './IStageTypeConfig';
+export * from './IStageOrTriggerTypeConfig';
+export * from './ITriggerTypeConfig';

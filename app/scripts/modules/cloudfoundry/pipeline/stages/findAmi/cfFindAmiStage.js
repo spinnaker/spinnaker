@@ -7,7 +7,6 @@ import {CloudFoundryProviderSettings} from '../../../cf.settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage', [
   LIST_EXTRACTOR_SERVICE,
-  require('./findAmiExecutionDetails.controller.js'),
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
@@ -16,6 +15,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage',
       cloudProvider: 'cf',
       templateUrl: require('./findAmiStage.html'),
       executionDetailsUrl: require('./findAmiExecutionDetails.html'),
+      executionConfigSections: ['findImageConfig', 'taskStatus'],
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },
         { type: 'requiredField', fieldName: 'selectionStrategy', fieldLabel: 'Server Group Selection'},

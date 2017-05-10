@@ -14,7 +14,6 @@ class ShrinkClusterExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
     super($scope, $stateParams, executionDetailsSectionService);
 
     super.setScopeConfigSections(['shrinkClusterConfig', 'taskStatus']);
-    super.initialize();
   }
 }
 
@@ -23,5 +22,4 @@ export const SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.st
 module(SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL, [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
 ]).controller('shrinkClusterExecutionDetailsCtrl', ShrinkClusterExecutionDetailsCtrl);

@@ -9,7 +9,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.detail
   require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('core/delivery/details/executionDetailsSectionNav.directive.js'),
   require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')
 ])
   .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams,

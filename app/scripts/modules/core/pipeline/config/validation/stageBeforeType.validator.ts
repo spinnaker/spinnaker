@@ -1,15 +1,14 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
+import { IPipeline, IStage, IStageOrTriggerTypeConfig } from 'core/domain';
+
+import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from '../services/pipelineConfig.service';
 import {
-  PIPELINE_CONFIG_SERVICE,
-  PipelineConfigService
-} from '../services/pipelineConfig.service';
-import {
-  IStageOrTriggerTypeConfig, IStageOrTriggerValidator, IValidatorConfig,
-  PipelineConfigValidator, PIPELINE_CONFIG_VALIDATOR
+  IStageOrTriggerValidator,
+  IValidatorConfig,
+  PIPELINE_CONFIG_VALIDATOR,
+  PipelineConfigValidator
 } from './pipelineConfig.validator';
-import {IStage} from 'core/domain/IStage';
-import {IPipeline} from 'core/domain/IPipeline';
 
 export interface IStageBeforeTypeValidationConfig extends IValidatorConfig {
   stageTypes?: string[];
