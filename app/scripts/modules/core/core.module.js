@@ -246,9 +246,7 @@ module.exports = angular
     uiSelectConfig.appendToBody = true;
   })
   .run(function($stateRegistry, $uiRouter) {
-
-    // Type javascript:vis() in the browser url
-    window.vis = function() {
+    function launchVisualizer() {
       const collapsedStates = [
         'home.data',
         'home.project',
@@ -269,7 +267,48 @@ module.exports = angular
       // eslint-disable-next-line no-underscore-dangle
       collapsedStates.forEach(state => $stateRegistry.get(state).$$state()._collapsed = true);
 
-      System.import('ui-router-visualizer').then(vis => $uiRouter.plugin(vis.Visualizer));
+      return System.import('ui-router-visualizer').then(vis => $uiRouter.plugin(vis.Visualizer));
+    }
+
+    function toggleVisualizer(enabled) {
+      if (enabled) {
+        return launchVisualizer();
+      } else {
+        const plugin = $uiRouter.getPlugin('visualizer');
+        plugin && $uiRouter.dispose(plugin);
+      }
+    }
+
+    // Values allowed: TRANSITION (true), HOOK, RESOLVE, UIVIEW, VIEWCONFIG, or ALL
+    function toggleTrace(newValue) {
+      let trace = $uiRouter.trace;
+      trace.disable();
+      if (typeof newValue === 'string') {
+        if (newValue.toUpperCase() === 'TRUE') {
+          trace.enable('TRANSITION');
+        } else if (newValue.toUpperCase() === 'ALL') {
+          trace.enable();
+        } else {
+          let traceValues = newValue.split(',').map(str => str.trim().toUpperCase());
+          trace.enable(...traceValues);
+        }
+      }
+    }
+
+    const paramChangedHandler = (paramName, changedHandler) => (transition) => {
+      const previousValue = transition.params('from')[paramName];
+      const newValue = transition.params('to')[paramName];
+
+      if (previousValue === newValue) {
+        return null;
+      }
+      return changedHandler(newValue, previousValue);
     };
+
+    $uiRouter.transitionService.onBefore({}, paramChangedHandler('vis', toggleVisualizer));
+    $uiRouter.transitionService.onBefore({}, paramChangedHandler('trace', toggleTrace));
+
+    // Type javascript:vis() in the browser url or add `&vis=true` to the spinnaker query params
+    window.vis = launchVisualizer;
   });
 

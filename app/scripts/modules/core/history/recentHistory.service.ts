@@ -1,11 +1,11 @@
-import {module} from 'angular';
+import { module } from 'angular';
 import * as moment from 'moment';
-import {sortBy, find} from 'lodash';
+import { omit, sortBy, find } from 'lodash';
 
-import {UUIDGenerator} from 'core/utils/uuid.service';
-import {DECK_CACHE_SERVICE, ICache, DeckCacheService} from 'core/cache/deckCache.service';
+import { UUIDGenerator } from 'core/utils/uuid.service';
+import { DECK_CACHE_SERVICE, ICache, DeckCacheService } from 'core/cache/deckCache.service';
+import { Ng1StateDeclaration } from 'angular-ui-router';
 import IAngularEvent = angular.IAngularEvent;
-import {Ng1StateDeclaration} from 'angular-ui-router';
 
 interface ICacheEntryStateMigrator {
   // a string literal in the state to be replaced (not a regex)
@@ -137,7 +137,8 @@ module(RECENT_HISTORY_SERVICE, [
   .run(($rootScope: ng.IRootScopeService, recentHistoryService: RecentHistoryService) => {
     $rootScope.$on('$stateChangeSuccess', (_event: IAngularEvent, toState: Ng1StateDeclaration, toParams: any) => {
       if (toState.data && toState.data.history) {
-        recentHistoryService.addItem(toState.data.history.type, toState.name, toParams, toState.data.history.keyParams);
+        const params = omit(toParams || {}, ['debug', 'vis', 'trace']);
+        recentHistoryService.addItem(toState.data.history.type, toState.name, params, toState.data.history.keyParams);
       }
     });
   });
