@@ -46,7 +46,7 @@ class CredentialsController {
 
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @ApiOperation(value = "Retrieve an account's details")
-  @RequestMapping(value = '/{account}', method = RequestMethod.GET)
+  @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
   Map getAccount(@PathVariable("account") String account) {
     credentialsService.getAccount(account)
   }
