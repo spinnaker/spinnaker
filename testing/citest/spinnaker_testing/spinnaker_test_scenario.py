@@ -146,6 +146,11 @@ class SpinnakerTestScenario(sk.AgentTestScenario):
              ' is "native".'.format(system=cls.ENDPOINT_SUBSYSTEM))
 
     builder.add_argument(
+        '--network_protocol', default='http',
+        help='The network protocol to use talking to the native port.'
+        ' The default is "http", but this could be changed to "https".')
+
+    builder.add_argument(
         '--native_port', default=defaults.get('NATIVE_PORT', None),
         help='Port number that {system} is running on.'
              ' This parameter is only used if the spinnaker host platform'
