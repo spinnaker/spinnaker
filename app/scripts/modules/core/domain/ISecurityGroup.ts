@@ -18,6 +18,7 @@ export interface ISecurityGroup {
   account?: string;
   accountId?: string;
   accountName?: string;
+  application?: string;
   cloudProvider?: string;
   credentials?: string;
   entityTags?: IEntityTags;

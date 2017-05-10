@@ -63,7 +63,8 @@
     "quotemark": [
       true,
       "single",
-      "avoid-escape"
+      "avoid-escape",
+      "jsx-double"
     ],
     "radix": true,
     "semicolon": [

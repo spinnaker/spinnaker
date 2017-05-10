@@ -8,17 +8,6 @@ import {
 import {VariableError} from '../VariableError';
 import autoBindMethods from 'class-autobind-decorator';
 
-export class ListInputBuilder implements IVariableInputBuilder {
-
-  public handles(type: string): boolean {
-    return type === 'list';
-  }
-
-  public getInput(variable: IVariable, onChange: (values: IVariable) => void) {
-    return <ListInput variable={variable} onChange={onChange}/>
-  }
-}
-
 @autoBindMethods()
 class ListInput extends React.Component<IVariableProps, IVariableState> {
 
@@ -75,6 +64,17 @@ class ListInput extends React.Component<IVariableProps, IVariableState> {
   private handleAddValue(): void {
     const list = this.props.variable.value.slice().concat(['']);
     this.props.onChange({value: list, type: this.props.variable.type, name: this.props.variable.name});
+  }
+}
+
+export class ListInputBuilder implements IVariableInputBuilder {
+
+  public handles(type: string): boolean {
+    return type === 'list';
+  }
+
+  public getInput(variable: IVariable, onChange: (values: IVariable) => void) {
+    return <ListInput variable={variable} onChange={onChange}/>
   }
 }
 

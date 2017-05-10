@@ -179,7 +179,7 @@ export class Sticky extends React.Component<IProps, IState> {
     style.zIndex = this.state.zIndex;
 
     return (
-      <div {...this.state.passthroughProps} className={className} style={style} ref={this.refCallback}>
+      <div {...this.state.passthroughProps as {}} className={className} style={style} ref={this.refCallback}>
         {this.props.children}
       </div>
     );

@@ -6,17 +6,6 @@ import {
 import autoBindMethods from 'class-autobind-decorator';
 import {VariableError} from '../VariableError';
 
-export class StringInputBuilder implements IVariableInputBuilder {
-
-  public handles(type: string): boolean {
-    return type === 'string';
-  }
-
-  public getInput(variable: IVariable, onChange: (variable: IVariable) => void) {
-    return <StringInput variable={variable} onChange={onChange}/>;
-  }
-}
-
 @autoBindMethods
 class StringInput extends React.Component<IVariableProps, IVariableState> {
 
@@ -37,6 +26,17 @@ class StringInput extends React.Component<IVariableProps, IVariableState> {
 
   private extractValue(e: React.ChangeEvent<HTMLInputElement>) {
     this.props.onChange({value: e.target.value, type: this.props.variable.type, name: this.props.variable.name});
+  }
+}
+
+export class StringInputBuilder implements IVariableInputBuilder {
+
+  public handles(type: string): boolean {
+    return type === 'string';
+  }
+
+  public getInput(variable: IVariable, onChange: (variable: IVariable) => void) {
+    return <StringInput variable={variable} onChange={onChange}/>;
   }
 }
 

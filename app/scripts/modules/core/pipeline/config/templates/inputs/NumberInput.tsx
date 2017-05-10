@@ -7,17 +7,6 @@ import {
 import autoBindMethods from 'class-autobind-decorator';
 import {VariableError} from '../VariableError';
 
-export class NumberInputBuilder implements IVariableInputBuilder {
-
-  public handles(type: string): boolean {
-    return ['float', 'int'].includes(type);
-  }
-
-  public getInput(variable: IVariable, onChange: (variable: IVariable) => void) {
-    return <NumberInput variable={variable} onChange={onChange}/>
-  }
-}
-
 @autoBindMethods
 class NumberInput extends React.Component<IVariableProps, IVariableState> {
 
@@ -39,6 +28,17 @@ class NumberInput extends React.Component<IVariableProps, IVariableState> {
   private extractValue(e: React.ChangeEvent<HTMLInputElement>) {
     const value: string = e.target.value; // Comes back from input as a string, not a number.
     this.props.onChange({value, type: this.props.variable.type, name: this.props.variable.name});
+  }
+}
+
+export class NumberInputBuilder implements IVariableInputBuilder {
+
+  public handles(type: string): boolean {
+    return ['float', 'int'].includes(type);
+  }
+
+  public getInput(variable: IVariable, onChange: (variable: IVariable) => void) {
+    return <NumberInput variable={variable} onChange={onChange}/>
   }
 }
 

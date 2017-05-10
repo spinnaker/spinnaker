@@ -140,7 +140,7 @@ export class ExecutionFilterService {
   }
 
   private fixName(execution: IExecution, application: Application): void {
-    const config: IPipeline = find<{id: string}, IPipeline>(application.pipelineConfigs.data, { id: execution.pipelineConfigId });
+    const config: IPipeline = find<IPipeline>(application.pipelineConfigs.data, { id: execution.pipelineConfigId });
     if (config) {
       execution.name = config.name;
     }
