@@ -1,8 +1,12 @@
 @import (reference) "~core/presentation/less/imports/colors.less";
 
 .account-tag {
+  &:empty {
+    display: none;
+  }
   display: inline;
   padding: 2px 6px 3px 6px;
+  margin-right: 2px;
   font-size: 75%;
   text-align: center;
   text-transform: uppercase;
@@ -16,6 +20,7 @@
 }
 
 .heading-tag {
+  display: flex;
   .account-tag {
     font-size: 100%;
     font-weight: 400;
@@ -25,6 +30,7 @@
     align-items: center;
     flex: 0 0 auto;
     padding: 0 15px;
+    margin-right: 0;
     border-right: 1px solid @lightest_grey;
     .glyphicon {
       margin-right: 3px;
