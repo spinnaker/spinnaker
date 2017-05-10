@@ -168,6 +168,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
             'ipProtocol': 'TCP',
             'portRange': spec['port'],
             'loadBalancerName': self.__lb_name,
+            'name': self.__lb_name,
             'healthCheck': {
                 'port': spec['port'],
                 'timeoutSec': spec['timeoutSec'],
