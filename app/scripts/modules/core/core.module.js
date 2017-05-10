@@ -25,6 +25,7 @@ import {PIPELINE_TEMPLATE_MODULE} from './pipeline/config/templates/pipelineTemp
 import {HEALTH_COUNTS_COMPONENT} from './healthCounts/healthCounts.component';
 import {CORE_PAGETITLE_SERVICE} from './pageTitle/pageTitle.service';
 import {INTERCEPTOR_MODULE} from './interceptor/interceptor.module';
+import {REACT_MODULE} from './react.module';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -146,6 +147,7 @@ module.exports = angular
     require('./pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),
     require('./presentation/presentation.module.js'),
     REPLACE_FILTER,
+    REACT_MODULE,
 
     require('./search/search.module.js'),
     require('./securityGroup/securityGroup.module.js'),
