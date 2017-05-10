@@ -163,7 +163,7 @@ class HalyardPublisher(object):
     ).check_wait()
 
   def __publish_halyard_docs(self):
-    """ Formats Halyard's documentation, then pushes to Spinnaker's documentation repository.
+    """ Formats Halyard's documentation, then creates a pull request against Spinnaker's documentation repository.
     """
     docs_source = 'halyard/docs/commands.md'
     docs_target = '{repo_name}/reference/halyard/commands.md'.format(repo_name=self.__docs_repo_name)
@@ -186,11 +186,18 @@ class HalyardPublisher(object):
         ])
         target.write(header + source.read())
 
-    commit_message = 'docs(halyard): {version}'.format(version=self.__stable_version)
+    branch = 'hal-{version}'.format(version=self.__stable_version)
+    commit_message = 'Halyard docs for {version}'.format(version=self.__stable_version)
+
+    check_run_quick('git -C {repo_name} checkout -b {branch}'.format(repo_name=self.__docs_repo_name, branch=branch))
     check_run_quick('git -C {repo_name} add reference/halyard/commands.md'.format(repo_name=self.__docs_repo_name))
     check_run_quick('git -C {repo_name} commit -m "{message}"'
                     .format(repo_name=self.__docs_repo_name, message=commit_message))
-    check_run_quick('git -C {repo_name} push origin master'.format(repo_name=self.__docs_repo_name))
+    check_run_quick('git -C {repo_name} push origin {branch}'
+                    .format(repo_name=self.__docs_repo_name, branch=branch))
+    check_run_quick('hub -C {repo_name} pull-request -h {repo_owner}:{branch} -b {repo_owner}:master -m "{message}"'
+                    .format(branch=branch, repo_name=self.__docs_repo_name, repo_owner=self.__docs_repo_owner,
+                            message=commit_message, user='spinnaker-release'))
 
   def publish_stable_halyard(self):
     self.__checkout_halyard_repo()
