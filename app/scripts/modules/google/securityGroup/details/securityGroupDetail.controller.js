@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.securityGroup.gce.details.controller'
   SECURITY_GROUP_WRITER,
   CONFIRMATION_MODAL_SERVICE,
   require('../clone/cloneSecurityGroup.controller.js'),
-  require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   GCE_SECURITY_GROUP_HELP_TEXT_SERVICE,
 ])

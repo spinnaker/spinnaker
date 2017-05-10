@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
-  require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('kubernetesInstanceDetailsController', function ($scope, $state, $uibModal,

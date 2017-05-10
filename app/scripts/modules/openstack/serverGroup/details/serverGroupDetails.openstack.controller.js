@@ -28,7 +28,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   RUNNING_TASKS_DETAILS_COMPONENT,
   require('../configure/ServerGroupCommandBuilder.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
-  require('core/utils/selectOnDblClick.directive.js'),
   require('../serverGroup.transformer.js'),
 ])
   .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,

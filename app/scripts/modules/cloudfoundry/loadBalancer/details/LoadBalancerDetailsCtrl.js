@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', 
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
-  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('cfLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app,
                                                      confirmationModalService, accountService, loadBalancerWriter, loadBalancerReader, $q) {

@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WRITER,
-  require('core/utils/selectOnDblClick.directive.js'),
   require('../paramsMixin.js'),
   RUNNING_TASKS_DETAILS_COMPONENT,
 ])

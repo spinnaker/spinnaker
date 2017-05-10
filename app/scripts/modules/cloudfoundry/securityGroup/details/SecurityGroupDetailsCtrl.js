@@ -10,7 +10,6 @@ module.exports = angular.module('spinnaker.securityGroup.cf.details.controller',
   require('angular-ui-router').default,
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
-  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('cfSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, accountService,
                                                       app, securityGroupReader) {

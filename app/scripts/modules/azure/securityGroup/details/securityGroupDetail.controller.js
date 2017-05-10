@@ -14,7 +14,6 @@ module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.con
   require('../securityGroup.write.service.js'),
   CONFIRMATION_MODAL_SERVICE,
   require('../clone/cloneSecurityGroup.controller.js'),
-  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureSecurityGroupDetailsCtrl', function ($scope, $state, resolvedSecurityGroup, app,
                                                     confirmationModalService, azureSecurityGroupWriter, securityGroupReader,

@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),
-  require('core/utils/selectOnDblClick.directive.js'),
 ])
     .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                       cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,

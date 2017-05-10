@@ -17,8 +17,7 @@ module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
-  require('core/utils/selectOnDblClick.directive.js'),
-  require('../../../titus/instance/details/instance.details.controller.js'),
+  require('titus/instance/details/instance.details.controller.js'),
 ])
   .controller('netflixTitusInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                          instanceWriter, confirmationModalService, recentHistoryService,

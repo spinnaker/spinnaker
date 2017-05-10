@@ -11,7 +11,6 @@ module.exports = angular.module('spinnaker.loadBalancer.openstack.details.contro
     ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,
-    require('core/utils/selectOnDblClick.directive.js'),
   ])
   .controller('openstackLoadBalancerDetailsController', function ($scope, $state, $uibModal, loadBalancer, app,
                                                                   confirmationModalService, accountService, loadBalancerWriter, subnetReader, $q) {

@@ -18,7 +18,6 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
   require('core/subnet/subnetTag.component.js'),
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
-  require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
   require('core/instance/details/instanceLinks.component'),
 ])

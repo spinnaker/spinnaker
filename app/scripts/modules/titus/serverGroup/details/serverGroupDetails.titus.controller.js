@@ -22,7 +22,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   RUNNING_TASKS_DETAILS_COMPONENT,
   require('./resize/resizeServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),
-  require('core/utils/selectOnDblClick.directive.js'),
   CLUSTER_TARGET_BUILDER
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,

@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.details.controller',
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
-  require('core/utils/selectOnDblClick.directive.js'),
   SUBNET_READ_SERVICE,
 ])
   .controller('awsLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, $q, loadBalancer, app,

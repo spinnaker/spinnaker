@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   CONFIRMATION_MODAL_SERVICE,
-  require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('kubernetesSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, accountService, app,

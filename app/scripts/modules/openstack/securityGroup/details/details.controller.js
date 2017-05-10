@@ -13,7 +13,6 @@ module.exports = angular.module('spinnaker.securityGroup.openstack.details.contr
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
-  require('core/utils/selectOnDblClick.directive.js'),
   CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('openstackSecurityGroupDetailsController', function ($scope, $state, resolvedSecurityGroup, app,

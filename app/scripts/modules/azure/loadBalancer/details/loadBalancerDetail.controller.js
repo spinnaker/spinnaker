@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller
   LOAD_BALANCER_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('core/presentation/collapsibleSection/collapsibleSection.directive.js'),
-  require('core/utils/selectOnDblClick.directive.js'),
 ])
   .controller('azureLoadBalancerDetailsCtrl', function ($scope, $state, $exceptionHandler, $uibModal, loadBalancer, app,
                                                    securityGroupReader, confirmationModalService, loadBalancerWriter, loadBalancerReader, $q) {
