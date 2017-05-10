@@ -40,7 +40,6 @@ class FastPropertyScopeReadOnlyComponent implements IComponentOptions {
 export const FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT = 'spinnaker.netflix.fastProperty.scope.readOnly.component';
 
 module(FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT, [
-  require('core/search/searchResult/searchResult.directive'),
   FAST_PROPERTY_READ_SERVICE,
   FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE
 ])

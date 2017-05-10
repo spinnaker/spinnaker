@@ -47,7 +47,6 @@ class FastPropertyScopeComponent implements IComponentOptions {
 export const FAST_PROPERTY_SCOPE_COMPONENT = 'spinnaker.netflix.fastProperty.scope.component';
 
 module(FAST_PROPERTY_SCOPE_COMPONENT, [
-  require('core/search/searchResult/searchResult.directive'),
   FAST_PROPERTY_READ_SERVICE,
   FAST_PROPERTY_SCOPE_SEARCH_COMPONENT
 ])
