@@ -25,6 +25,7 @@ endpoints.health.sensitive: false
 slack:
   enabled: ${services.echo.notifications.slack.enabled:false}
   token: ${services.echo.notifications.slack.token}
+  botName: ${services.echo.notifications.slack.botName}
 
 spring:
   mail:
