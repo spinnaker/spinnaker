@@ -29,6 +29,7 @@
 
 set -e
 set -u
+set -o pipefail
 
 SERVICE_ACCOUNT=${SERVICE_ACCOUNT:-""}
 ORIGINAL_ARTIFACT_REPO_PATH=${ORIGINAL_ARTIFACT_REPO_PATH:-""}
@@ -57,7 +58,7 @@ function validate_args() {
   die_if_empty "$ORIGINAL_PROJECT_ID" "--original_project_id"
   die_if_empty "$ZONE" "--zone"
 
-  
+
   if [[ "$PUBLISH_ARTIFACT_REPO_PATH" && ! "$ORIGINAL_ARTIFACT_REPO_PATH" ]] \
       || [[ ! "$PUBLISH_ARTIFACT_REPO_PATH" \
            && "$ORIGINAL_ARTIFACT_REPO_PATH" ]]; then
@@ -178,7 +179,7 @@ gcloud compute disks delete "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
 if [[ "$PUBLISH_ARTIFACT_REPO_PATH" ]]; then
   echo "Copying artifact repository"
   copy_artifact_repository \
-      "$ORIGINAL_ARTIFACT_REPO_PATH" "$PUBLISH_ARTIFACT_REPO_PATH" 
+      "$ORIGINAL_ARTIFACT_REPO_PATH" "$PUBLISH_ARTIFACT_REPO_PATH"
 fi
 
 echo "Published $PUBLISH_IMAGE to $PUBLISH_PROJECT_ID."

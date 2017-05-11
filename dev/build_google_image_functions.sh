@@ -106,13 +106,30 @@ function image_from_prototype_disk() {
 }
 
 
+function delete_disk_if_exists() {
+  local target_disk="$1"
+
+  echo "gcloud compute disks describe $target_disk --project $PROJECT --account $ACCOUNT --zone $ZONE"
+  if gcloud compute disks describe $target_disk \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE &> /dev/null; then
+    echo "`date`: Deleting preexisting disk '$target_disk' in '$PROJECT'"
+    gcloud compute disks delete $target_disk \
+           --project $PROJECT \
+           --account $ACCOUNT \
+           --zone $ZONE
+  fi
+}
+
+
 function delete_image_if_exists() {
   local target_image="$1"
 
   if gcloud compute images describe $target_image \
       --project $PROJECT \
       --account $ACCOUNT &> /dev/null; then
-    echo "`date`: Deleting preexisting '$target_image' in '$PROJECT'"
+    echo "`date`: Deleting preexisting image '$target_image' in '$PROJECT'"
     gcloud compute images delete $target_image \
       --project $PROJECT \
       --account $ACCOUNT \
