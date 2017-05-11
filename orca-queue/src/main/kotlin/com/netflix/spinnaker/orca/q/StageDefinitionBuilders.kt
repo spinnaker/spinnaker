@@ -165,8 +165,8 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
         val stageName = context.getOrDefault("name", stage.getName()).toString()
         @Suppress("UNCHECKED_CAST")
         when (execution) {
-          is Pipeline -> newStage(execution, stageType, stageName, context, stage as Stage<Pipeline>, STAGE_BEFORE)
-          is Orchestration -> newStage(execution, stageType, stageName, context, stage as Stage<Orchestration>, STAGE_BEFORE)
+          is Pipeline -> newStage(execution, stageType, stageName, context.filterKeys { it != "restrictExecutionDuringTimeWindow" }, stage as Stage<Pipeline>, STAGE_BEFORE)
+          is Orchestration -> newStage(execution, stageType, stageName, context.filterKeys { it != "restrictExecutionDuringTimeWindow" }, stage as Stage<Orchestration>, STAGE_BEFORE)
           else -> throw IllegalStateException()
         }
       }
@@ -191,7 +191,7 @@ private fun Stage<out Execution<*>>.buildExecutionWindow(): Stage<*>? {
         execution,
         RestrictExecutionDuringTimeWindow.TYPE,
         RestrictExecutionDuringTimeWindow.TYPE, // TODO: base on stage.name?
-        getContext(),
+        getContext().filterKeys { it != "restrictExecutionDuringTimeWindow" },
         this as Stage<Pipeline>,
         STAGE_BEFORE
       )
@@ -199,7 +199,7 @@ private fun Stage<out Execution<*>>.buildExecutionWindow(): Stage<*>? {
         execution,
         RestrictExecutionDuringTimeWindow.TYPE,
         RestrictExecutionDuringTimeWindow.TYPE, // TODO: base on stage.name?
-        getContext(),
+        getContext().filterKeys { it != "restrictExecutionDuringTimeWindow" },
         this as Stage<Orchestration>,
         STAGE_BEFORE
       )

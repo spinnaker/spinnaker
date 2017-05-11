@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.natpryce.hamkrest.allElements
+import com.natpryce.hamkrest.equalTo
+import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import com.netflix.discovery.StatusChangeEvent
 import com.netflix.spectator.api.Counter
@@ -26,6 +29,7 @@ import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler
+import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode.Builder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -53,6 +57,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.lang.Thread.sleep
 import java.time.Duration
+import java.time.ZonedDateTime.now
 import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -349,6 +354,41 @@ class SpringIntegrationTest {
       stageByRef("3").status shouldEqual NOT_STARTED
     }
   }
+
+  @Test fun `can run a stage with an execution window`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+        context = mapOf(
+          "restrictExecutionDuringTimeWindow" to true,
+          "restrictedExecutionWindow" to mapOf(
+            "days" to (1..7).toList(),
+            "whitelist" to listOf(mapOf(
+              "startHour" to now().hour,
+              "startMin" to 0,
+              "endHour" to now().hour + 1,
+              "endMin" to 0
+            ))
+          )
+        )
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.runToCompletion(pipeline, runner::start)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stages.size shouldEqual 2
+      stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
+      stages.map { it.status } shouldMatch allElements(equalTo(SUCCEEDED))
+    }
+  }
 }
 
 @Configuration
@@ -357,7 +397,8 @@ class SpringIntegrationTest {
   QueueConfiguration::class,
   EmbeddedRedisConfiguration::class,
   JedisExecutionRepository::class,
-  StageNavigator::class
+  StageNavigator::class,
+  RestrictExecutionDuringTimeWindow::class
 )
 open class TestConfig {
   @Bean open fun registry(): Registry = mock {
