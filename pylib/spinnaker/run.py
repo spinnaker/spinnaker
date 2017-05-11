@@ -32,7 +32,7 @@ class RunResult(collections.namedtuple('RunResult',
   pass
 
 
-def __collect_from_stream(stream, buffer, echo_stream):
+def __collect_from_stream(stream, buffer, echo_stream, observe_data):
   """Read all the input from a stream.
 
   Args:
@@ -61,10 +61,13 @@ def __collect_from_stream(stream, buffer, echo_stream):
   # Chunk together all the data we just received.
   if collected:
       buffer.append(''.join(collected))
+  if observe_data:
+    observe_data(collected)
   return len(collected)
 
 
-def run_and_monitor(command, echo=True, input=None):
+def run_and_monitor(command, echo=True, input=None,
+                    observe_stdout=None, observe_stderr=None):
   """Run the provided command in a subprocess shell.
 
   Args:
@@ -99,14 +102,14 @@ def run_and_monitor(command, echo=True, input=None):
   err = []
   echo_out = sys.stdout if echo else None
   echo_err = sys.stderr if echo else None
-  while (__collect_from_stream(process.stdout, out, echo_out)
-         or  __collect_from_stream(process.stderr, err, echo_err)
+  while (__collect_from_stream(process.stdout, out, echo_out, observe_stdout)
+         or  __collect_from_stream(process.stderr, err, echo_err, observe_stderr)
          or process.poll() is None):
       pass
 
   # Get any trailing data from termination race condition
-  __collect_from_stream(process.stdout, out, echo_out)
-  __collect_from_stream(process.stderr, err, echo_err)
+  __collect_from_stream(process.stdout, out, echo_out, observe_stdout)
+  __collect_from_stream(process.stderr, err, echo_err, observe_stderr)
 
   return RunResult(process.returncode, ''.join(out), ''.join(err))
 
