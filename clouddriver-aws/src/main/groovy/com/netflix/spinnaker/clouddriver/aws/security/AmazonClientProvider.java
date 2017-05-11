@@ -92,6 +92,7 @@ public class AmazonClientProvider {
     private int maxConnections = 200;
     private int maxConnectionsPerRoute = 20;
     private boolean uzeGzip = true;
+    private boolean addSpinnakerUserToUserAgent = false;
     private ServiceLimitConfiguration serviceLimitConfiguration = new ServiceLimitConfigurationBuilder().build();
     private Registry registry = new NoopRegistry();
 
@@ -165,6 +166,11 @@ public class AmazonClientProvider {
       return this;
     }
 
+    public Builder addSpinnakerUserToUserAgent(boolean addSpinnakerUserToUserAgent) {
+      this.addSpinnakerUserToUserAgent = addSpinnakerUserToUserAgent;
+      return this;
+    }
+
     public AmazonClientProvider build() {
       HttpClient client = this.httpClient;
       if (client == null) {
@@ -179,6 +185,15 @@ public class AmazonClientProvider {
       RetryPolicy policy = buildPolicy();
       AWSProxy proxy = this.proxy;
       EddaTimeoutConfig eddaTimeoutConfig = this.eddaTimeoutConfig == null ? EddaTimeoutConfig.DEFAULT : this.eddaTimeoutConfig;
+
+      final List<RequestHandler2> requestHandlers;
+      if (addSpinnakerUserToUserAgent) {
+        requestHandlers = new ArrayList<>(this.requestHandlers.size() + 1);
+        requestHandlers.addAll(this.requestHandlers);
+        requestHandlers.add(new AddSpinnakerUserToUserAgentRequestHandler());
+      } else {
+        requestHandlers = this.requestHandlers;
+      }
 
       return new AmazonClientProvider(client, mapper, templater, policy, requestHandlers, proxy, eddaTimeoutConfig, uzeGzip, serviceLimitConfiguration, registry);
     }

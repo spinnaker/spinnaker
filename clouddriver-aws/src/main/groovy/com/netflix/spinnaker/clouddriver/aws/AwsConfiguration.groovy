@@ -107,6 +107,7 @@ class AwsConfiguration {
       .useGzip(awsConfigurationProperties.client.useGzip)
       .serviceLimitConfiguration(serviceLimitConfiguration)
       .registry(registry)
+      .addSpinnakerUserToUserAgent(awsConfigurationProperties.client.addSpinnakerUserToUserAgent)
       .build()
   }
 

@@ -30,6 +30,7 @@ class AwsConfigurationProperties {
     int maxConnections = 200
     int maxConnectionsPerRoute = 20
     boolean useGzip = true
+    boolean addSpinnakerUserToUserAgent = false
   }
 
   @Canonical
