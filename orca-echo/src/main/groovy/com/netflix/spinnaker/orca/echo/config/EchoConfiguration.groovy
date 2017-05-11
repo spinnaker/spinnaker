@@ -73,8 +73,8 @@ class EchoConfiguration {
   }
 
   @Bean
-  EchoNotifyingStageListener echoNotifyingStageExecutionListener(EchoService echoService) {
-    new EchoNotifyingStageListener(echoService)
+  EchoNotifyingStageListener echoNotifyingStageExecutionListener(EchoService echoService, ExecutionRepository repository) {
+    new EchoNotifyingStageListener(echoService, repository)
   }
 
   @Bean

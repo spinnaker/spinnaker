@@ -6,6 +6,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -16,9 +17,10 @@ class EchoNotifyingStageListenerSpec extends Specification {
 
   def echoService = Mock(EchoService)
   def persister = Stub(Persister)
+  def repository = Mock(ExecutionRepository)
 
   @Subject
-  def echoListener = new EchoNotifyingStageListener(echoService)
+  def echoListener = new EchoNotifyingStageListener(echoService, repository)
 
   @Shared
   def pipelineStage = new Stage<>(new Pipeline(), "test", "test", [:])

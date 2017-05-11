@@ -42,8 +42,7 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
   fun TaskLevel.withTask(block: (Stage<*>, Task) -> Unit) =
     withStage { stage ->
       stage
-        .getTasks()
-        .find { it.id == taskId }
+        .taskById(taskId)
         .let { task ->
           if (task == null) {
             queue.push(InvalidTaskId(this))
@@ -56,8 +55,7 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
   fun StageLevel.withStage(block: (Stage<*>) -> Unit) =
     withExecution { execution ->
       execution
-        .getStages()
-        .find { it.getId() == stageId }
+        .stageById(stageId)
         .let { stage ->
           if (stage == null) {
             queue.push(InvalidStageId(this))

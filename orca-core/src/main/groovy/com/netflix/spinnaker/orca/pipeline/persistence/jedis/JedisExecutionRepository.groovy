@@ -247,6 +247,16 @@ class JedisExecutionRepository implements ExecutionRepository {
   }
 
   @Override
+  void updateStageContext(Stage<? extends Execution> stage) {
+    def execution = stage.execution
+    def type = execution.getClass().simpleName.toLowerCase()
+    def key = "${type}:${execution.id}"
+    withJedis(getJedisPoolForId(key)) { Jedis jedis ->
+      jedis.hset(key, "stage.${stage.id}.context", mapper.writeValueAsString(stage.context))
+    }
+  }
+
+  @Override
   void removeStage(Execution execution, String stageId) {
     Class<? extends Execution> executionType = execution.getClass()
     def key = "${executionType.simpleName.toLowerCase()}:${execution.id}"

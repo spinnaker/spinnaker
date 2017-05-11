@@ -43,6 +43,7 @@ open class StartTaskHandler
       task.status = RUNNING
       task.startTime = clock.millis()
       repository.storeStage(stage)
+
       queue.push(RunTask(message, task.id, task.type))
 
       publisher.publishEvent(TaskStarted(this, stage, task))

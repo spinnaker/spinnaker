@@ -147,6 +147,14 @@ public class Stage<T extends Execution<T>> implements Serializable {
   @JsonIgnore
   private final AtomicInteger stageCounter = new AtomicInteger(0);
 
+  public Task taskById(String taskId) {
+    return tasks
+      .stream()
+      .filter(it -> it.getId().equals(taskId))
+      .findFirst()
+      .orElse(null);
+  }
+
   /**
    * Gets the last stage preceding this stage that has the specified type.
    */

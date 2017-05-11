@@ -192,8 +192,8 @@ abstract class EchoEventIntegrationSpec<R extends ExecutionRunner> extends Speci
     }
 
     @Bean
-    EchoNotifyingStageListener echoNotifyingStageListener(EchoService echoService) {
-      new EchoNotifyingStageListener(echoService)
+    EchoNotifyingStageListener echoNotifyingStageListener(EchoService echoService, ExecutionRepository repository) {
+      new EchoNotifyingStageListener(echoService, repository)
     }
 
     @Bean

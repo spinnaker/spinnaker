@@ -19,6 +19,8 @@ public interface ExecutionRepository {
 
   void storeStage(Stage<? extends Execution> stage);
 
+  void updateStageContext(Stage<? extends Execution> stage);
+
   void removeStage(Execution execution, String stageId);
 
   void addStage(Stage stage);

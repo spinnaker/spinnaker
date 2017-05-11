@@ -168,6 +168,7 @@ class RedisQueue(
   private fun Jedis.pop(from: String, to: String, delay: TemporalAmount = ZERO) =
     zrangeByScore(from, 0.0, score(), 0, 1)
       .takeIf {
+        // TODO: this isn't right, `it` is a set (often an empty one)
         getSet("$locksKey:$it", currentInstanceId) in listOf(null, currentInstanceId)
       }
       ?.also {
