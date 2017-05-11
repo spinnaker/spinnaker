@@ -70,7 +70,7 @@ public class HalCommand extends NestableCommand {
     registerSubcommand(new VersionCommand());
   }
 
-  private String getVersion() {
+  static String getVersion() {
     return Optional
         .ofNullable(HalCommand.class.getPackage().getImplementationVersion()).orElse("Unknown");
   }

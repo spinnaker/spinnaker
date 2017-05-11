@@ -332,6 +332,7 @@ public abstract class NestableCommand {
 
   public String generateDocs() {
     StringBuilder toc = new StringBuilder();
+    toc.append("_Version: " + HalCommand.getVersion() + "_\n\n");
     toc.append("# Table of Contents\n\n");
     StringBuilder body = new StringBuilder();
     toc.append("\n");
