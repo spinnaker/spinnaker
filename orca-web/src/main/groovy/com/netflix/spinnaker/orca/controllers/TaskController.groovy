@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
@@ -72,6 +73,9 @@ class TaskController {
 
   @Autowired(required = false)
   ExecutionLogRepository executionLogRepository
+
+  @Autowired
+  ContextParameterProcessor contextParameterProcessor
 
   @Value('${tasks.daysOfExecutionHistory:14}')
   int daysOfExecutionHistory
@@ -280,6 +284,19 @@ class TaskController {
       }
     }
     pipeline
+  }
+
+  @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'READ')")
+  @RequestMapping(value = "/pipelines/{id}/evaluateExpression", method = RequestMethod.GET)
+  Map evaluateExpressionForExecution(@PathVariable("id") String id,
+                                     @RequestParam("expression") String expression){
+    def execution = executionRepository.retrievePipeline(id)
+    def evaluated = contextParameterProcessor.process(
+      [expression: expression],
+      [execution: execution],
+      false
+    )
+    return [result: evaluated?.expression]
   }
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
