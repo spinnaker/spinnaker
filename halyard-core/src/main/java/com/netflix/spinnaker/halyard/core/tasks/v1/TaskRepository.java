@@ -125,6 +125,8 @@ public class TaskRepository {
     String name;
     State state;
     String lastEvent;
+    Exception fatalException;
+    List<String> jobs = new ArrayList<>();
     List<String> children = new ArrayList<>();
 
     public ShallowTaskInfo() { }
@@ -133,6 +135,8 @@ public class TaskRepository {
       this.uuid = task.getUuid();
       this.name = task.getName();
       this.state = task.getState();
+      this.fatalException = task.getFatalError();
+      this.jobs = task.getRunningJobs();
 
       if (!task.getEvents().isEmpty()) {
         this.lastEvent = task.getEvents().get(task.getEvents().size() - 1).toString();

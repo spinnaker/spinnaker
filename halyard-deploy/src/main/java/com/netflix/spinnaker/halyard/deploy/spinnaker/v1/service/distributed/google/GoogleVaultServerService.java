@@ -41,6 +41,11 @@ public class GoogleVaultServerService extends VaultServerService implements Goog
   GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
 
   @Override
+  public String getDefaultInstanceType() {
+    return "n1-standard-1";
+  }
+
+  @Override
   public void ensureRunning(AccountDeploymentDetails<GoogleAccount> details,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
       List<ConfigSource> configSources,

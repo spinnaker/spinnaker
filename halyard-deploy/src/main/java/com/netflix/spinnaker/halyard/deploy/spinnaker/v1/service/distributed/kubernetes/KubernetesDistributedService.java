@@ -58,7 +58,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
   ObjectMapper getObjectMapper();
 
   default JobExecutor getJobExecutor() {
-    return DaemonTaskHandler.getTask().getJobExecutor();
+    return DaemonTaskHandler.getJobExecutor();
   }
 
   default String getNamespace(ServiceSettings settings) {
@@ -149,7 +149,8 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       GenerateService.ResolvedConfiguration resolvedConfiguration) {
     SpinnakerService thisService = getService();
     ServiceSettings thisServiceSettings = resolvedConfiguration.getServiceSettings(thisService);
-    Integer version = getLatestEnabledServiceVersion(details, thisServiceSettings);
+    SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
+    Integer version = getRunningServiceDetails(details, runtimeSettings).getLatestEnabledVersion();
     if (version == null) {
       version = 0;
     } else {
@@ -166,7 +167,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     Map<String, Profile> serviceProfiles = resolvedConfiguration.getProfilesForService(thisService.getType());
     Set<String> requiredFiles = new HashSet<>();
 
-    for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
+    for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
       for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
         serviceProfiles.put(profile.getName(), profile);
         requiredFiles.addAll(profile.getRequiredFiles());
@@ -375,6 +376,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       List<ConfigSource> configSources,
       boolean recreate) {
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
+    SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
     String namespace = getNamespace(settings);
     String serviceName = getServiceName();
     String replicaSetName = serviceName + "-v000";
@@ -420,7 +422,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     List<Container> containers = new ArrayList<>();
     containers.add(ResourceBuilder.buildContainer(serviceName, settings, configSources));
 
-    for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
+    for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
       String sidecarName = sidecarService.getService().getServiceName();
       ServiceSettings sidecarSettings = resolvedConfiguration.getServiceSettings(sidecarService.getService());
       containers.add(ResourceBuilder.buildContainer(sidecarName, sidecarSettings, configSources));
@@ -464,10 +466,10 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       if (recreate) {
         client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).delete();
 
-        RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
+        RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
         while (runningServiceDetails.getLatestEnabledVersion() != null) {
           DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
-          runningServiceDetails = getRunningServiceDetails(details, settings);
+          runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
         }
       } else {
         create = false;
@@ -478,16 +480,18 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       client.extensions().replicaSets().inNamespace(namespace).create(replicaSetBuilder.build());
     }
 
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
     Integer version = runningServiceDetails.getLatestEnabledVersion();
     while (version == null || runningServiceDetails.getInstances().get(version).stream().anyMatch(i -> !(i.isHealthy() && i.isRunning()))) {
       DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
-      runningServiceDetails = getRunningServiceDetails(details, settings);
+      runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
       version = runningServiceDetails.getLatestEnabledVersion();
     }
   }
 
-  default RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings) {
+  @Override
+  default RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     RunningServiceDetails res = new RunningServiceDetails();
 
     KubernetesClient client = KubernetesProviderUtils.getClient(details);
@@ -543,9 +547,9 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
   default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
     Map<Integer, List<Instance>> instances = runningServiceDetails.getInstances();
-    Integer latest = getLatestEnabledServiceVersion(details, settings);
+    Integer latest = runningServiceDetails.getLatestEnabledVersion();
     String namespace = getNamespace(settings);
 
     List<Instance> latestInstances = instances.get(latest);

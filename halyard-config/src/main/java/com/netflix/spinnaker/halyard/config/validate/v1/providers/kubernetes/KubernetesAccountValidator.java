@@ -184,7 +184,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
   }
 
   public void ensureKubectlExists(ConfigProblemSetBuilder p) {
-    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+    JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
     JobRequest request = new JobRequest()
         .setTokenizedCommand(Collections.singletonList("kubectl"))
         .setTimeoutMillis(TimeUnit.SECONDS.toMillis(10));

@@ -52,7 +52,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   List<String> getHealthProviders();
   Map<String, List<String>> getAvailabilityZones(ServiceSettings settings);
   Provider.ProviderType getProviderType();
-  RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<A> details, ServiceSettings settings);
+  RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
   String getServiceName();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
   <S> S connectToService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar);
@@ -85,17 +85,6 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
 
   default String getRegion(ServiceSettings settings) {
     return settings.getLocation();
-  }
-
-  default Integer getLatestEnabledServiceVersion(AccountDeploymentDetails<A> details, ServiceSettings settings) {
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-    List<Integer> versions = new ArrayList<>(runningServiceDetails.getInstances().keySet());
-    if (versions.isEmpty()) {
-      return null;
-    }
-
-    versions.sort(Integer::compareTo);
-    return versions.get(versions.size() - 1);
   }
 
   default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details, ServiceSettings settings) {

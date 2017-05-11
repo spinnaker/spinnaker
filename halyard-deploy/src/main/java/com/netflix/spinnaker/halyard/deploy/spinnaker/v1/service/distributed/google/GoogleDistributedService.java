@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
 import com.google.api.services.compute.model.*;
 import com.netflix.frigga.Names;
@@ -26,6 +27,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
@@ -54,6 +56,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   ServiceInterfaceFactory getServiceInterfaceFactory();
   String getGoogleImageProject();
   String getStartupScriptPath();
+
+  default String getDefaultInstanceType() {
+    return "n1-highmem-2" ;
+  }
 
   default String buildAddress() {
     return String.format("%s.service.spinnaker.consul", getService().getCanonicalName());
@@ -101,13 +107,13 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, runtimeSettings);
 
     ServiceSettings vaultSettings = runtimeSettings.getServiceSettings(vaultService);
-    RunningServiceDetails vaultDetails = vaultService.getRunningServiceDetails(details, vaultSettings);
+    RunningServiceDetails vaultDetails = vaultService.getRunningServiceDetails(details, runtimeSettings);
     Integer latestVaultVersion = vaultDetails.getLatestEnabledVersion();
     if (latestVaultVersion == null) {
       throw new IllegalStateException("No vault services have been started yet. This is a bug.");
     }
 
-    List<RunningServiceDetails.Instance> instances = vaultDetails.getInstances().get(vaultDetails.getLatestEnabledVersion());
+    List<RunningServiceDetails.Instance> instances = vaultDetails.getInstances().get(latestVaultVersion);
     if (instances.isEmpty()) {
       throw new IllegalStateException("Current vault service has no running instances. This is a bug.");
     }
@@ -123,12 +129,12 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   @Override
   default List<ConfigSource> stageProfiles(AccountDeploymentDetails<GoogleAccount> details,
       ResolvedConfiguration resolvedConfiguration) {
-
     String deploymentName = details.getDeploymentName();
+    SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
     SpinnakerService thisService = getService();
     ServiceSettings thisServiceSettings = resolvedConfiguration.getServiceSettings(thisService);
     Map<String, String> env = new HashMap<>();
-    Integer version = getLatestEnabledServiceVersion(details, thisServiceSettings);
+    Integer version = getRunningServiceDetails(details, runtimeSettings).getLatestEnabledVersion();
     if (version == null) {
       version = 0;
     } else {
@@ -138,9 +144,9 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     List<ConfigSource> configSources = new ArrayList<>();
     String stagingPath = getSpinnakerStagingPath();
     GoogleVaultServerService vaultService = getVaultServerService();
-    VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, resolvedConfiguration.getRuntimeSettings());
+    VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, runtimeSettings);
 
-    for (SidecarService sidecarService : getSidecars(resolvedConfiguration.getRuntimeSettings())) {
+    for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
       for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
         String secretName = secretName(profile.getName(), version);
         String mountPoint = Paths.get(profile.getOutputFile()).toString();
@@ -249,7 +255,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     }
 
     GoogleConsulServerService consulServerService = getConsulServerService();
-    RunningServiceDetails consulServerDetails = consulServerService.getRunningServiceDetails(details, runtimeSettings.getServiceSettings(consulServerService));
+    RunningServiceDetails consulServerDetails = consulServerService.getRunningServiceDetails(details, runtimeSettings);
     Integer latestConsulVersion = consulServerDetails.getLatestEnabledVersion();
     if (latestConsulVersion != null) {
       List<RunningServiceDetails.Instance> instances = consulServerDetails.getInstances().get(latestConsulVersion);
@@ -272,28 +278,23 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       List<ConfigSource> configSources,
       boolean recreate) {
     DaemonTaskHandler.newStage("Deploying " + getServiceName() + " via GCE API");
-    int version = 0;
+    Integer version = 0;
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(getService());
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
+    SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
 
     GoogleAccount account = details.getAccount();
     Compute compute = GoogleProviderUtils.getCompute(details);
     String project = account.getProject();
     String zone = settings.getLocation();
 
-    boolean exists = runningServiceDetails.getLatestEnabledVersion() != null;
+    boolean exists = runningServiceDetails.getInstances().containsKey(version);
     if (!recreate && exists) {
       DaemonTaskHandler.message("Service " + getServiceName() + " is already deployed and not safe to restart");
       return;
     } else if (exists) {
       DaemonTaskHandler.message("Recreating existing " + getServiceName() + "...");
-      try {
-        // TODO delete corresponding instance template here too (right now it's useful to keep for debugging, though).
-        Operation operation = compute.instanceGroupManagers().delete(project, zone, getVersionedName(version)).execute();
-        GoogleProviderUtils.waitOnZoneOperation(compute, project, settings.getLocation(), operation);
-      } catch (IOException e) {
-        throw new HalException(FATAL, "Failed to delete service " + getServiceName(), e);
-      }
+      deleteVersion(details, settings, version);
     }
 
     InstanceGroupManager manager = new InstanceGroupManager();
@@ -302,7 +303,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         .setName(getServiceName() + "-hal-" + System.currentTimeMillis())
         .setDescription("Halyard-generated instance template for deploying Spinnaker");
 
-    Metadata metadata = new Metadata().setItems(getMetadata(details, resolvedConfiguration.getRuntimeSettings(), configSources, version));
+    Metadata metadata = new Metadata().setItems(getMetadata(details, runtimeSettings, configSources, version));
 
     AccessConfig accessConfig = new AccessConfig()
         .setName("External NAT")
@@ -317,7 +318,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
         .setScopes(getScopes());
 
     InstanceProperties properties = new InstanceProperties()
-        .setMachineType("n1-highmem-2")
+        .setMachineType(getDefaultInstanceType())
         .setMetadata(metadata)
         .setServiceAccounts(Collections.singletonList(sa))
         .setNetworkInterfaces(Collections.singletonList(networkInterface));
@@ -364,15 +365,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       throw new HalException(FATAL, "Failed to create instance group to run artifact " + settings.getArtifactId() + ": " + e.getMessage(), e);
     }
 
-    long running = 0;
-    DaemonTaskHandler.message("Waiting for instances to appear 'RUNNING'");
-    while (running < 1) {
-      running = getRunningServiceDetails(details, settings)
-          .getInstances()
-          .getOrDefault(version, new ArrayList<>())
-          .stream()
-          .filter(RunningServiceDetails.Instance::isRunning)
-          .count();
+    boolean ready = false;
+    DaemonTaskHandler.message("Waiting for all instances to become healthy.");
+    while (!ready) {
+      ready = getRunningServiceDetails(details, runtimeSettings).getLatestEnabledVersion() == version;
 
       DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(2));
     }
@@ -386,7 +382,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   @Override
   default Map<String, Object> getServerGroupDescription(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, List<ConfigSource> configSources) {
     GoogleAccount account = details.getAccount();
-    Integer version = getLatestEnabledServiceVersion(details, runtimeSettings.getServiceSettings(getService()));
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+    Integer version = runningServiceDetails.getLatestEnabledVersion();
     if (version == null) {
       version = 0;
     } else {
@@ -409,6 +406,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
               return h1;
             }
         );
+
     String serviceAccountEmail = GoogleProviderUtils.defaultServiceAccount(details);
     List<String> scopes = getScopes();
     String accountName = account.getName();
@@ -454,13 +452,11 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     return new ObjectMapper().convertValue(deployDescription, new TypeReference<Map<String, Object>>() { });
     */
-
-
   }
 
   @Override
   default List<String> getHealthProviders() {
-    return Collections.singletonList("google");
+    return Collections.singletonList("Discovery");
   }
 
   @Override
@@ -478,7 +474,8 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   }
 
   @Override
-  default RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<GoogleAccount> details, ServiceSettings settings) {
+  default RunningServiceDetails getRunningServiceDetails(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     RunningServiceDetails result = new RunningServiceDetails();
     result.setLoadBalancer(new RunningServiceDetails.LoadBalancer().setExists(true)); // All GCE load balancing is done via consul
     Compute compute = GoogleProviderUtils.getCompute(details);
@@ -493,6 +490,17 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       throw new HalException(FATAL, "Failed to load MIGS: " + e.getMessage(), e);
     }
 
+    boolean consulEnabled = getSidecars(runtimeSettings).stream()
+        .anyMatch(s -> s.getService().getType().equals(SpinnakerService.Type.CONSUL_CLIENT));
+
+    Set<String> healthyConsulInstances = consulEnabled ?
+        getConsulServerService().connectToPrimaryService(details, runtimeSettings)
+            .serviceHealth(getService().getCanonicalName(), true).stream()
+            .map(s -> s != null && s.getNode() != null ? s.getNode().getNodeName() : null)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet()) :
+        new HashSet<>();
+
     String serviceName = getService().getServiceName();
 
     migs = migs.stream()
@@ -505,12 +513,16 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
           Integer version = names.getSequence();
           List<RunningServiceDetails.Instance> computeInstances;
           try {
-            computeInstances = compute
-                .instanceGroupManagers()
+            List<ManagedInstance> managedInstances = compute.instanceGroupManagers()
                 .listManagedInstances(account.getProject(), settings.getLocation(), mig.getName())
                 .execute()
-                .getManagedInstances()
-                .stream()
+                .getManagedInstances();
+
+            if (managedInstances == null) {
+              managedInstances = new ArrayList<>();
+            }
+
+            computeInstances = managedInstances.stream()
                 .map(i -> {
                       String instanceUrl = i.getInstance();
                       String instanceStatus = i.getInstanceStatus();
@@ -520,7 +532,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
                           .setId(instanceName)
                           .setLocation(settings.getLocation())
                           .setRunning(running)
-                          .setHealthy(running); // todo(lwander) depend on consul health here where possible.
+                          .setHealthy(!consulEnabled || healthyConsulInstances.contains(instanceName));
                     }
                 ).collect(Collectors.toList());
           } catch (IOException e) {
@@ -539,11 +551,9 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     return result;
   }
 
-  @Override
-  default <S> S connectToService(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar) {
+  default <S> URI sshTunnelIntoService(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(sidecar);
-    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, settings);
-
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
     Integer enabledVersion = runningServiceDetails.getLatestEnabledVersion();
     if (enabledVersion == null) {
       throw new HalException(FATAL, "Cannot connect to " + getServiceName() + " when no server groups have been deployed yet");
@@ -555,17 +565,71 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
       throw new HalException(FATAL, "Cannot connect to " + getServiceName() + " when no instances have been deployed yet");
     }
 
-    URI uri = GoogleProviderUtils.openSshTunnel(details, instances.get(0).getId(), settings);
-    return getServiceInterfaceFactory().createService(uri.toString(), sidecar);
+    try {
+      return GoogleProviderUtils.openSshTunnel(details, instances.get(0).getId(), settings);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+  }
+
+  @Override
+  default <S> S connectToService(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar) {
+    return getServiceInterfaceFactory().createService(sshTunnelIntoService(details, runtimeSettings, sidecar).toString(), sidecar);
   }
 
   @Override
   default String connectCommand(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
-    return null;
+    RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
+    Integer version = runningServiceDetails.getLatestEnabledVersion();
+    if (version == null) {
+      throw new HalException(FATAL, "No version of " + getServiceName() + " to connect to.");
+    }
+
+    List<RunningServiceDetails.Instance> instances = runningServiceDetails.getInstances().get(version);
+    if (instances.isEmpty()) {
+      throw new HalException(FATAL, "Version " + version + " of " + getServiceName() + " has no instances to connect to");
+    }
+
+    RunningServiceDetails.Instance instance = instances.get(0);
+    String instanceName = instance.getId();
+    String zone = instance.getLocation();
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
+    int port = settings.getPort();
+
+    return String.format("gcloud compute ssh %s --zone %s -- -L %d:localhost:%d -N", instanceName, zone, port, port);
   }
 
   @Override
   default void deleteVersion(AccountDeploymentDetails<GoogleAccount> details, ServiceSettings settings, Integer version) {
+    String migName = getVersionedName(version);
+    String zone = settings.getLocation();
+    String project = details.getAccount().getProject();
+    Compute compute = GoogleProviderUtils.getCompute(details);
+    InstanceGroupManager mig;
+    try {
+      mig = compute.instanceGroupManagers().get(project, zone, migName).execute();
+    } catch (GoogleJsonResponseException e) {
+      if (e.getStatusCode() == 404) {
+        return;
+      } else {
+        throw new HalException(FATAL, "Failed to load mig " + migName + " in " + zone, e);
+      }
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Failed to load mig " + migName + " in " + zone, e);
+    }
 
+    try {
+      GoogleProviderUtils.waitOnZoneOperation(compute, project, zone, compute.instanceGroupManagers().delete(project, zone, migName).execute());
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Failed to delete mig " + migName + " in " + zone, e);
+    }
+
+    String instanceTemplateName = mig.getInstanceTemplate();
+    instanceTemplateName = instanceTemplateName.substring(instanceTemplateName.lastIndexOf('/') + 1);
+    try {
+      GoogleProviderUtils.waitOnGlobalOperation(compute, project, compute.instanceTemplates().delete(project, instanceTemplateName).execute());
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Failed to delete template " + instanceTemplateName + " in " + zone, e);
+    }
   }
 }

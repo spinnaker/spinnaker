@@ -19,6 +19,8 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.google;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RedisConfProfileFactory;
@@ -44,6 +46,11 @@ public class GoogleRedisService extends RedisService implements GoogleDistribute
   @Delegate
   @Autowired
   GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+
+  @Override
+  public Jedis connectToPrimaryService(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    return new Jedis(sshTunnelIntoService(details, runtimeSettings, getService()));
+  }
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {

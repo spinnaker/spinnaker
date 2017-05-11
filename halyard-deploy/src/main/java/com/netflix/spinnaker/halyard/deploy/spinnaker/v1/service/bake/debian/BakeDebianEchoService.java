@@ -35,7 +35,7 @@ import java.util.List;
 @Data
 @Component
 public class BakeDebianEchoService extends EchoService implements BakeDebianService<EchoService.Echo> {
-  final String upstartServiceName = "clouddriver";
+  final String upstartServiceName = "echo";
 
   @Autowired
   ArtifactService artifactService;

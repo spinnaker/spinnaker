@@ -2,6 +2,8 @@ package com.netflix.spinnaker.halyard.core.tasks.v1;
 
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.job.v1.DaemonLocalJobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import lombok.extern.slf4j.Slf4j;
 
@@ -15,6 +17,7 @@ import java.util.function.Supplier;
 @Slf4j
 public class DaemonTaskHandler {
   private static ThreadLocal<DaemonTask> localTask = new ThreadLocal<>();
+  private static JobExecutor jobExecutor;
 
   static void setTask(DaemonTask task) {
     localTask.set(task);
@@ -99,6 +102,18 @@ public class DaemonTaskHandler {
     DaemonTask task = getTask();
     long timeout = task != null ? task.getTimeout() : TaskRepository.DEFAULT_TIMEOUT;
     return submitTask(taskSupplier, name, timeout);
+  }
+
+  public static JobExecutor getJobExecutor() {
+    if (getTask() == null) {
+      throw new IllegalStateException("Cannot request a job executor from outside a daemon task");
+    }
+
+    if (jobExecutor == null) {
+      jobExecutor = new DaemonLocalJobExecutor();
+    }
+
+    return jobExecutor;
   }
 
   public static void setContext(Object context) {

@@ -100,8 +100,9 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         continue;
       }
 
+      DaemonTaskHandler.newStage("Determining status of " + distributedService.getServiceName());
       boolean safeToUpdate = settings.isSafeToUpdate();
-      RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails, settings);
+      RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails, runtimeSettings);
 
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
         deployServiceManually(deploymentDetails, resolvedConfiguration, distributedService, safeToUpdate);
@@ -170,7 +171,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       DistributedService distributedService) {
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
     ServiceSettings settings = resolvedConfiguration.getServiceSettings(distributedService.getService());
-    RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details, settings);
+    RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details, runtimeSettings);
     Supplier<String> idSupplier;
     if (!runningServiceDetails.getLoadBalancer().isExists()) {
       Map<String, Object> task = distributedService.buildUpsertLoadBalancerTask(details, runtimeSettings);
@@ -207,7 +208,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     Orca orca = orcaService.connectToPrimaryService(details, runtimeSettings);
     Map<String, ActiveExecutions> executions = orca.getActiveExecutions();
     ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
-    RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details, orcaSettings);
+    RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details, runtimeSettings);
 
     Map<String, Integer> executionsByInstance = new HashMap<>();
 

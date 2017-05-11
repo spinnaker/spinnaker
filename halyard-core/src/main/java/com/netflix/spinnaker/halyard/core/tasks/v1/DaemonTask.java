@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -36,9 +34,9 @@ public class DaemonTask<C, T> {
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
+  List<String> runningJobs = new ArrayList<>();
 
   @JsonIgnore Thread runner;
-  @JsonIgnore final JobExecutor jobExecutor;
   @JsonIgnore C context;
   @JsonIgnore String currentStage;
 
@@ -46,7 +44,6 @@ public class DaemonTask<C, T> {
   public DaemonTask(@JsonProperty("name") String name, @JsonProperty("timeout") long timeout) {
     this.name = name;
     this.uuid = UUID.randomUUID().toString();
-    this.jobExecutor = new JobExecutorLocal();
     this.timeout = timeout;
   }
 
@@ -87,12 +84,12 @@ public class DaemonTask<C, T> {
     }
   }
 
-  public void timeout() {
+  void timeout() {
     timedOut = true;
     interrupt();
   }
 
-  public boolean isInterrupted() {
+  private boolean isInterrupted() {
     return runner.isInterrupted();
   }
 
@@ -101,11 +98,12 @@ public class DaemonTask<C, T> {
   }
 
   void cleanupResources() {
-    log.info(this + " killing all jobs");
-    jobExecutor.cancelAllJobs();
+    log.info(this + " killing all jobs created by this task " + String.join(", ", runningJobs));
+    DaemonTaskHandler.getJobExecutor().cancelJobs(new ArrayList<>(runningJobs));
+
     for (DaemonTask child : children) {
       if (child != null) {
-        log.info(this + "Interrupting child " + child);
+        log.info(this + " interrupting child " + child);
 
         if (timedOut) {
           child.timeout();

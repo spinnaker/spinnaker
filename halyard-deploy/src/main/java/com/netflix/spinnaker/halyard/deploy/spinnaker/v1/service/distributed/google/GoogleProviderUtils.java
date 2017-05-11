@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
+import org.springframework.util.SocketUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -59,19 +60,19 @@ import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FAT
 class GoogleProviderUtils {
   // Map from service -> the port & job managing the connection.
   private static ConcurrentHashMap<String, Proxy> proxyMap = new ConcurrentHashMap<>();
-  public static String getNetworkName() {
+  static String getNetworkName() {
     return "spinnaker-hal";
   }
-  public static String getSshKeyFile() {
+  private static String getSshKeyFile() {
     return Paths.get(System.getProperty("user.home"), ".ssh/google_compute_halyard").toString();
   }
 
-  public static String getSshPublicKeyFile() {
+  private static String getSshPublicKeyFile() {
     return getSshKeyFile() + ".pub";
   }
 
   private static int connectRetries = 5;
-  private static int openSshRetries = 5;
+  private static int openSshRetries = 10;
 
   static String defaultServiceAccount(AccountDeploymentDetails<GoogleAccount> details) {
     GoogleAccount account = details.getAccount();
@@ -88,8 +89,12 @@ class GoogleProviderUtils {
   static private void ensureSshKeysExist() {
     File sshKeyFile = new File(getSshKeyFile());
     if (!sshKeyFile.exists()) {
+      if (!sshKeyFile.getParentFile().exists()) {
+        sshKeyFile.getParentFile().mkdirs();
+      }
+
       log.info("Generating a new ssh key file...");
-      JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+      JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
       List<String> command = new ArrayList<>();
       command.add("ssh-keygen");
       command.add("-N"); // no password
@@ -142,10 +147,24 @@ class GoogleProviderUtils {
     }
   }
 
-  static private Proxy openSshTunnel(String ip, int port, String keyFile) {
-    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+  static private Proxy openSshTunnel(String ip, int port, String keyFile) throws InterruptedException {
+    JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
     List<String> command = new ArrayList<>();
 
+    // Make sure we don't have an entry for this host already (GCP recycles IPs).
+    command.add("ssh-keygen");
+    command.add("-R");
+    command.add(ip);
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+    JobStatus status = jobExecutor.backoffWait(jobExecutor.startJob(request));
+
+    if (status.getResult() != JobStatus.Result.SUCCESS) {
+      throw new HalException(FATAL, "Unable to remove old host entry " + status.getStdErr());
+    }
+
+    int localPort = SocketUtils.findAvailableTcpPort();
+
+    command.clear();
     command.add("ssh");
     command.add("ubuntu@" + ip);
     command.add("-o");
@@ -154,23 +173,23 @@ class GoogleProviderUtils {
     command.add(keyFile);
     command.add("-N");
     command.add("-L");
-    command.add(String.format("%d:localhost:%d", port, port));
-    JobRequest request = new JobRequest().setTokenizedCommand(command);
+    command.add(String.format("%d:localhost:%d", localPort, port));
+    request = new JobRequest().setTokenizedCommand(command);
 
     String jobId = jobExecutor.startJob(request);
 
-    JobStatus status = jobExecutor.updateJob(jobId);
+    status = jobExecutor.updateJob(jobId);
 
     while (status == null) {
       DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(1));
       status = jobExecutor.updateJob(jobId);
     }
 
-    return new Proxy().setJobId(jobId).setPort(port);
+    return new Proxy().setJobId(jobId).setPort(localPort);
   }
 
   static private void closeSshTunnel(Proxy proxy) {
-    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+    JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
     jobExecutor.cancelJob(proxy.getJobId());
   }
 
@@ -190,42 +209,40 @@ class GoogleProviderUtils {
         connected = testSocket.isConnected();
         testSocket.close();
       } catch (IOException e) {
-        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(3));
+        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
       }
     }
 
     return connected;
   }
 
-  static URI openSshTunnel(AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service) {
+  static URI openSshTunnel(AccountDeploymentDetails<GoogleAccount> details, String instanceName, ServiceSettings service) throws InterruptedException {
     int port = service.getPort();
     String key = Proxy.buildKey(details.getDeploymentName(), instanceName, port);
 
     Proxy proxy = proxyMap.getOrDefault(key, new Proxy());
-    JobExecutor jobExecutor = DaemonTaskHandler.getTask().getJobExecutor();
+    JobExecutor jobExecutor = DaemonTaskHandler.getJobExecutor();
 
     if (proxy.getJobId() == null || !jobExecutor.jobExists(proxy.getJobId())) {
       String ip = getInstanceIp(details, instanceName);
       String keyFile = getSshKeyFile();
-      DaemonTaskHandler.message("Opening port " + port + " against instance " + instanceName);
-      proxy = openSshTunnel(ip, port, keyFile);
+      log.info("Opening port " + port + " against instance " + instanceName);
       boolean connected = false;
-
       int tries = 0;
 
-      while (!connected && tries < connectRetries) {
+      while (!connected && tries < openSshRetries) {
         tries++;
+        proxy = openSshTunnel(ip, port, keyFile);
         connected = checkIfProxyIsOpen(proxy);
 
         if (!connected) {
           if (jobExecutor.updateJob(proxy.jobId).getState() == JobStatus.State.COMPLETED) {
-            log.warn("Ssh tunnel closed prematurely");
+            log.warn("SSH tunnel closed prematurely");
           }
 
-          log.info("Ssh tunnel never opened, retrying in case the instance hasn't started yet...");
+          log.info("SSH tunnel never opened, retrying in case the instance hasn't started yet... (" + tries + "/" + openSshRetries + ")");
           closeSshTunnel(proxy);
-          DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
-          proxy = openSshTunnel(ip, port, keyFile);
+          DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(10));
         }
       }
 
@@ -233,13 +250,15 @@ class GoogleProviderUtils {
         JobStatus status = jobExecutor.updateJob(proxy.getJobId());
         throw new HalException(FATAL, "Unable to connect to instance " + instanceName + ": " + status.getStdErr());
       }
+
+      proxyMap.put(key, proxy);
     }
 
     try {
       return new URIBuilder()
           .setScheme("http")
           .setHost("localhost")
-          .setPort(port)
+          .setPort(proxy.getPort())
           .build();
     } catch (URISyntaxException e) {
       throw new RuntimeException("Failed to build URI for SSH connection", e);
@@ -266,7 +285,7 @@ class GoogleProviderUtils {
     });
   }
 
-  static void waitOnOperation(Supplier<Operation> operationSupplier) {
+  private static void waitOnOperation(Supplier<Operation> operationSupplier) {
     Operation operation = operationSupplier.get();
     while (!operation.getStatus().equals("DONE")) {
       if (operation.getError() != null) {
@@ -299,7 +318,7 @@ class GoogleProviderUtils {
     }
 
     if (!exists) {
-      String networkUrl = null;
+      String networkUrl;
       Network network = new Network()
           .setAutoCreateSubnetworks(true)
           .setName(networkName)

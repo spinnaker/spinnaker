@@ -45,7 +45,8 @@ public class OrcaRunner {
       Map<String, Object> execution = orca.getRef(id);
       return objectMapper.convertValue(execution, Task.class).getExecution();
     };
-    monitor(getPipeline, orca);
+
+    monitor(getPipeline);
   }
 
   public void monitorPipeline(Supplier<String> submitPipeline, Orca orca) {
@@ -55,7 +56,8 @@ public class OrcaRunner {
       Map<String, Object> execution = orca.getRef(id);
       return objectMapper.convertValue(execution, Pipeline.class);
     };
-    monitor(getPipeline, orca);
+
+    monitor(getPipeline);
   }
 
   private String getTaskEndpoint(Supplier<String> submitter) {
@@ -115,7 +117,7 @@ public class OrcaRunner {
     return new ProblemBuilder(Problem.Severity.FATAL, message.toString()).build();
   }
 
-  private void monitor(Supplier<Pipeline> getPipeline, Orca orca) {
+  private void monitor(Supplier<Pipeline> getPipeline) {
     String status;
     Pipeline pipeline;
     Set<String> loggedTasks = new HashSet<>();
@@ -125,7 +127,7 @@ public class OrcaRunner {
 
       while (status.equalsIgnoreCase("running") || status.equalsIgnoreCase("not_started")) {
         logPipelineOutput(pipeline, loggedTasks);
-        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+        DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(10));
         pipeline = getPipeline.get();
         status = pipeline.getStatus();
       }

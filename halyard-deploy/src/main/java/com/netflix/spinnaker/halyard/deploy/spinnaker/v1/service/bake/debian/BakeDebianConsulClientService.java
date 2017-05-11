@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
-import com.netflix.spinnaker.clouddriver.consul.api.v1.services.AgentApi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
@@ -28,6 +27,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulCl
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.consul.ConsulClientStartupProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConsulClientService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.consul.ConsulApi;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +42,7 @@ import java.util.Map;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Component
-public class BakeDebianConsulClientService extends ConsulClientService implements BakeDebianService<AgentApi> {
+public class BakeDebianConsulClientService extends ConsulClientService implements BakeDebianService<ConsulApi> {
   @Autowired
   ArtifactService artifactService;
 

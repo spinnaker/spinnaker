@@ -119,11 +119,10 @@ public class GenerateService {
         continue;
       }
 
-      DaemonTaskHandler.message("Building profiles for " + service.getCanonicalName());
       List<Profile> profiles = service.getProfiles(deploymentConfiguration, runtimeSettings);
 
       String pluralModifier = profiles.size() == 1 ? "" : "s";
-      DaemonTaskHandler.message("Generated " + profiles.size() + " profile" + pluralModifier + " for " + service.getCanonicalName());
+      String profileMessage = "Generated " + profiles.size() + " profile" + pluralModifier;
       Map<String, Profile> outputProfiles = processProfiles(profiles);
 
       List<Profile> customProfiles = userProfileNames.stream()
@@ -133,7 +132,8 @@ public class GenerateService {
           .collect(Collectors.toList());
 
       pluralModifier = customProfiles.size() == 1 ? "" : "s";
-      DaemonTaskHandler.message("Discovered " + customProfiles.size() + " custom profile" + pluralModifier + " for " + service.getCanonicalName());
+      profileMessage += " and discovered " + customProfiles.size() + " custom profile" + pluralModifier + " for " + service.getCanonicalName();
+      DaemonTaskHandler.message(profileMessage);
       outputProfiles.putAll(processProfiles(customProfiles));
 
       serviceProfiles.put(service.getType(), outputProfiles);
