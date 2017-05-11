@@ -99,4 +99,8 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @PATCH("/pipelines/{executionId}/stages/{stageId}")
   Map updatePipelineStage(@Path("executionId") String executionId, @Path("stageId") String stageId, @Body Map context)
+
+  @Headers("Accept: application/json")
+  @GET("/pipelines/{id}/evaluateExpression")
+  Map evaluateExpressionForExecution(@Path("id") String executionId, @Query("expression") String pipelineExpression)
 }

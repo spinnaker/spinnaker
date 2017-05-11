@@ -153,6 +153,19 @@ class PipelineController {
     }
   }
 
+  @ApiOperation(value = "Evaluate a pipeline expression using the provided execution as context")
+  @RequestMapping(value = "{id}/evaluateExpression")
+  Map evaluateExpressionForExecution(@PathVariable("id") String id,
+                                     @RequestParam("expression") String pipelineExpression) {
+    try {
+      pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
+    } catch (RetrofitError e) {
+      if (e.response?.status == 404) {
+        throw new PipelineNotFoundException()
+      }
+    }
+  }
+
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @InheritConstructors
   static class PipelineNotFoundException extends RuntimeException {}

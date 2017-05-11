@@ -119,6 +119,10 @@ class PipelineService {
     orcaService.restartPipelineStage(executionId, stageId, context)
   }
 
+  Map evaluateExpressionForExecution(String executionId, String pipelineExpression) {
+    orcaService.evaluateExpressionForExecution(executionId, pipelineExpression)
+  }
+
   @InheritConstructors
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "pipeline config not found!")
   static class PipelineConfigNotFoundException extends RuntimeException {}
