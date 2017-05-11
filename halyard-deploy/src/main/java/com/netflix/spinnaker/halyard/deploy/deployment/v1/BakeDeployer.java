@@ -43,7 +43,7 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       List<String> serviceNames) {
     List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceNames)
         .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
+        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .collect(Collectors.toList());
 
     Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {

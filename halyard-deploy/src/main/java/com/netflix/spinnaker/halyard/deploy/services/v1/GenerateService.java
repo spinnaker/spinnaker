@@ -115,7 +115,7 @@ public class GenerateService {
       }
 
       ServiceSettings settings = runtimeSettings.getServiceSettings(service);
-      if (settings == null || !settings.isEnabled()) {
+      if (settings == null || !settings.getEnabled()) {
         continue;
       }
 

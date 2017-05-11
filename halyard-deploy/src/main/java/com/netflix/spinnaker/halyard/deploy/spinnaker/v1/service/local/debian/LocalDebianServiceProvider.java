@@ -76,7 +76,7 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
     List<String> serviceNames = new ArrayList<>(installCommands.keySet());
     List<String> upstartNames = getLocalServices(serviceNames)
         .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
+        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .map(i -> ((LocalDebianService) i).getUpstartServiceName())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
@@ -104,7 +104,7 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
   public RemoteAction clean(DeploymentDetails details, SpinnakerRuntimeSettings runtimeSettings) {
     String uninstallArtifacts = String.join("\n", getServices()
         .stream()
-        .filter(s -> s != null && runtimeSettings.getServiceSettings(s).isEnabled())
+        .filter(s -> s != null && runtimeSettings.getServiceSettings(s).getEnabled())
         .map(s -> ((LocalDebianService) s).uninstallArtifactCommand())
         .collect(Collectors.toList()));
 

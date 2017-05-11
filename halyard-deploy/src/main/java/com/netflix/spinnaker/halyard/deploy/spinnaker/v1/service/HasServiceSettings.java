@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 
 public interface HasServiceSettings<T> {
   ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration);
+  ServiceSettings getDefaultServiceSettings(DeploymentConfiguration deploymentConfiguration);
   SpinnakerService<T> getService();
   SpinnakerArtifact getArtifact();
   String getServiceName();

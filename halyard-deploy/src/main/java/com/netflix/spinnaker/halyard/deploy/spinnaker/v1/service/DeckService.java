@@ -33,9 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -102,15 +100,17 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
-    int port = 9000;
+    Integer port = 9000;
     String address = "localhost";
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
-    boolean enabled = true;
-    boolean safeToUpdate = true;
-    boolean monitored = false;
-    boolean sidecar = false;
+    Boolean enabled = true;
+    Boolean safeToUpdate = true;
+    Boolean monitored = false;
+    Boolean sidecar = false;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() {}
 

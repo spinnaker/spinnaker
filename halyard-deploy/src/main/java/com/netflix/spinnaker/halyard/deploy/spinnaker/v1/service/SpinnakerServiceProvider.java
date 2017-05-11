@@ -39,7 +39,9 @@ abstract public class SpinnakerServiceProvider<D extends DeploymentDetails> {
       SpinnakerService service = getSpinnakerService(type);
       if (service != null) {
         log.info("Building service settings entry for " + service.getServiceName());
-        ServiceSettings settings = service.buildServiceSettings(deploymentConfiguration);
+        ServiceSettings settings = service.getDefaultServiceSettings(deploymentConfiguration);
+        settings.mergePreferThis(service.buildServiceSettings(deploymentConfiguration));
+
         endpoints.setServiceSettings(type, settings);
       }
     }

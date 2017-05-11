@@ -33,10 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -82,7 +79,7 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
     List<Profile> results = new ArrayList<>();
     for (Map.Entry<Type, ServiceSettings> entry : endpoints.getAllServiceSettings().entrySet()) {
       ServiceSettings settings = entry.getValue();
-      if (settings.isMonitored() && settings.isEnabled()) {
+      if (settings.getMonitored() && settings.getEnabled()) {
         String serviceName = entry.getKey().getCanonicalName();
         String profileName = serviceRegistryProfileName(serviceName);
         String profilePath = Paths.get(REGISTRY_OUTPUT_PATH, serviceName + ".yml").toString();
@@ -117,15 +114,17 @@ abstract public class SpinnakerMonitoringDaemonService extends SpinnakerService<
   @EqualsAndHashCode(callSuper = true)
   @Data
   public class Settings extends ServiceSettings {
-    int port = 8008;
+    Integer port = 8008;
     String address = "localhost";
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
-    boolean enabled = true;
-    boolean safeToUpdate = true;
-    boolean monitored = false;
-    boolean sidecar = true;
+    Boolean enabled = true;
+    Boolean safeToUpdate = true;
+    Boolean monitored = false;
+    Boolean sidecar = true;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
   }
 
   @Override

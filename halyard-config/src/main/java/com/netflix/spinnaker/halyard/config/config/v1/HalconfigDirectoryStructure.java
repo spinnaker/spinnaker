@@ -36,6 +36,10 @@ public class HalconfigDirectoryStructure {
     return ensureRelativeHalDirectory(deploymentName, "profiles");
   }
 
+  public Path getUserServiceSettingsPath(String deploymentName) {
+    return ensureRelativeHalDirectory(deploymentName, "service-settings");
+  }
+
   public Path getVaultTokenPath(String deploymentName) {
     Path halconfigPath = Paths.get(halconfigDirectory, deploymentName);
     ensureDirectory(halconfigPath);

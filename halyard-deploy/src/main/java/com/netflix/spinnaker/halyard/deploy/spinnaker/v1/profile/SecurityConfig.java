@@ -26,7 +26,7 @@ public class SecurityConfig {
   User user = new User();
 
   SecurityConfig(ServiceSettings settings) {
-    if (settings.isBasicAuthEnabled()) {
+    if (settings.getBasicAuthEnabled() == null || settings.getBasicAuthEnabled()) {
       String username = settings.getUsername();
       String password = settings.getPassword();
       assert(username != null && password != null);

@@ -98,8 +98,9 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
   }
 
   @Override
-  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings) {
-    Map<String, Object> pipeline = DistributedService.super.buildRollbackPipeline(details, settings);
+  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
+    Map<String, Object> pipeline = DistributedService.super.buildRollbackPipeline(details, runtimeSettings);
 
     List<Map<String, Object>> stages = (List<Map<String, Object>>) pipeline.get("stages");
     assert(stages != null && !stages.isEmpty());
@@ -282,7 +283,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     containers.add(container);
 
     ServiceSettings monitoringSettings = runtimeSettings.getServiceSettings(monitoringService);
-    if (monitoringSettings.isEnabled() && serviceSettings.isMonitored()) {
+    if (monitoringSettings.getEnabled() && serviceSettings.getMonitored()) {
       serviceSettings = runtimeSettings.getServiceSettings(monitoringService);
       container = buildContainer(monitoringService.getServiceName(), serviceSettings, configSources, size);
       containers.add(container);

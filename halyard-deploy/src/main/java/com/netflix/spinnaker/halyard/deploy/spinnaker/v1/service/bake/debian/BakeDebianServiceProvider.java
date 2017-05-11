@@ -94,7 +94,7 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
     List<String> serviceNames = new ArrayList<>(installCommands.keySet());
     List<String> upstartNames = getPrioritizedBakeableServices(serviceNames)
         .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
+        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .map(i -> ((BakeDebianService) i).getUpstartServiceName())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());

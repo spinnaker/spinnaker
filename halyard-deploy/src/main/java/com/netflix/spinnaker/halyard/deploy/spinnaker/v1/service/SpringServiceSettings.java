@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang.RandomStringUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,14 +35,10 @@ abstract public class SpringServiceSettings extends ServiceSettings {
 
     String key = "SPRING_PROFILES_ACTIVE";
     String val = profiles.stream().collect(Collectors.joining(","));
-    env.put(key, val);
+    getEnv().put(key, val);
   }
 
   SpringServiceSettings() {}
-
-  SpringServiceSettings(List<String> profiles) {
-    setProfiles(profiles);
-  }
 
   public void enableAuth() {
     setBasicAuthEnabled(true);

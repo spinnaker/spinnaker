@@ -26,9 +26,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -60,18 +58,19 @@ abstract public class ConsulServerService extends SpinnakerService<ConsulApi> {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
-    int port = 8500;
+    Integer port = 8500;
     // Address is how the service is looked up.
     String address = "localhost";
     // Host is what's bound to by the service.
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
-    boolean enabled = true;
-    boolean safeToUpdate = false;
-    boolean monitored = false;
-    boolean sidecar = false;
-    int targetSize = 3;
+    Boolean enabled = true;
+    Boolean safeToUpdate = false;
+    Boolean monitored = false;
+    Boolean sidecar = false;
+    Integer targetSize = 3;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() { }
   }

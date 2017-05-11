@@ -40,7 +40,7 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       List<String> serviceNames) {
     List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceNames)
         .stream()
-        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).isEnabled())
+        .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .collect(Collectors.toList());
 
     Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {

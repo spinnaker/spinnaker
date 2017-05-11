@@ -28,10 +28,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -62,10 +59,11 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
-    boolean enabled = true;
-    boolean safeToUpdate = true;
-    boolean monitored = false;
-    boolean sidecar = true;
+    Boolean enabled = true;
+    Boolean safeToUpdate = true;
+    Boolean monitored = false;
+    Boolean sidecar = true;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() { }
   }

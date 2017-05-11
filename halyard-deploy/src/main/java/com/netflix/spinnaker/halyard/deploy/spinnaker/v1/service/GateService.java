@@ -30,7 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -75,15 +77,17 @@ abstract public class GateService extends SpringService<GateService.Gate> {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends SpringServiceSettings {
-    int port = 8084;
+    Integer port = 8084;
     String address = "localhost";
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
-    boolean enabled = true;
-    boolean safeToUpdate = true;
-    boolean monitored = true;
-    boolean sidecar = false;
+    Boolean enabled = true;
+    Boolean safeToUpdate = true;
+    Boolean monitored = true;
+    Boolean sidecar = false;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() {}
 

@@ -33,10 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -77,7 +74,7 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
     for (Map.Entry<Type, ServiceSettings> entry : endpoints.getAllServiceSettings().entrySet()) {
       ServiceSettings settings = entry.getValue();
       Type type = entry.getKey();
-      if (!settings.isSidecar() && settings.isEnabled()) {
+      if (!settings.getSidecar() && settings.getEnabled()) {
         String serviceName = type.getCanonicalName();
         String profileName = consulClientService(serviceName);
         String profilePath = Paths.get(CLIENT_OUTPUT_PATH, serviceName + ".json").toString();
@@ -107,17 +104,19 @@ abstract public class ConsulClientService extends SpinnakerService<ConsulApi> im
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
-    int port = 8500;
+    Integer port = 8500;
     // Address is how the service is looked up.
     String address = "localhost";
     // Host is what's bound to by the service.
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = null;
-    boolean enabled = true;
-    boolean safeToUpdate = true;
-    boolean monitored = false;
-    boolean sidecar = true;
+    Boolean enabled = true;
+    Boolean safeToUpdate = true;
+    Boolean monitored = false;
+    Boolean sidecar = true;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() { }
   }

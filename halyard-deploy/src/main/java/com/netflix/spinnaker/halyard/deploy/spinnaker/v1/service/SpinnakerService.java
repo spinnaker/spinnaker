@@ -18,7 +18,10 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -27,9 +30,14 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ProfileFactory;
 import lombok.Data;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +45,7 @@ import java.util.Optional;
 
 @Data
 @Component
+@Slf4j
 abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
   @Autowired
   String spinnakerStagingPath;
@@ -46,6 +55,12 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
 
   @Autowired
   ArtifactService artifactService;
+
+  @Autowired
+  Yaml yamlParser;
+
+  @Autowired
+  HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Override
   public SpinnakerService<T> getService() {
@@ -59,6 +74,27 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
 
   public String getCanonicalName() {
     return getType().getCanonicalName();
+  }
+
+  public ServiceSettings getDefaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    File userSettingsFile = new File(
+        halconfigDirectoryStructure.getUserServiceSettingsPath(deploymentConfiguration.getName()).toString(),
+        getCanonicalName() + ".yml"
+    );
+
+    if (userSettingsFile.exists()) {
+      try {
+        log.info("Reading user provided service settings from " + userSettingsFile);
+        return objectMapper.convertValue(
+            yamlParser.load(new FileInputStream(userSettingsFile)),
+            ServiceSettings.class
+        );
+      } catch (FileNotFoundException e) {
+        throw new HalException(Problem.Severity.FATAL, "Unable to read provided user settings: " + e.getMessage(), e);
+      }
+    } else {
+      return new ServiceSettings();
+    }
   }
 
   abstract public Type getType();

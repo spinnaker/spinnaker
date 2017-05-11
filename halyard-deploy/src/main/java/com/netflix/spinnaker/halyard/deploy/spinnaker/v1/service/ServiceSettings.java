@@ -24,8 +24,10 @@ import lombok.Data;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -34,10 +36,12 @@ import java.util.Map;
  * can be changed, so we'll keep these here too. On the other hand, properties like Name, ArtifactType, etc... are all
  * fixed, and can't be changed between deployments. Ideally, if someone supplied ServiceSettings to Halyard, Halyard would
  * have everything it needs to run a deployment.
+ *
+ * Warning: Do not define default values for the below fields in this class, since they will override user-supplied values.
  */
 @Data
-abstract public class ServiceSettings {
-  int port;
+public class ServiceSettings {
+  Integer port;
   // A port open only to the internal network
   Integer internalPort;
   String address;
@@ -46,18 +50,48 @@ abstract public class ServiceSettings {
   String healthEndpoint;
   @JsonIgnore String username;
   @JsonIgnore String password;
-  Map<String, String> env = new HashMap<>();
+  Map<String, String> env;
   String artifactId;
   String overrideBaseUrl;
   String location;
-  boolean enabled;
-  boolean basicAuthEnabled;
-  boolean monitored;
-  boolean sidecar;
-  boolean safeToUpdate;
-  int targetSize = 1;
+  Boolean enabled;
+  Boolean basicAuthEnabled;
+  Boolean monitored;
+  Boolean sidecar;
+  Boolean safeToUpdate;
+  Integer targetSize;
 
-  public ServiceSettings() {}
+  public ServiceSettings() { }
+
+  void mergePreferThis(ServiceSettings other) {
+    Arrays.stream(getClass().getDeclaredMethods()).forEach(m -> {
+      m.setAccessible(true);
+      if (!m.getName().startsWith("get")) {
+        return;
+      }
+
+      String setterName = "s" + m.getName().substring(1);
+      Method s;
+      try {
+        s = getClass().getDeclaredMethod(setterName, m.getReturnType());
+      } catch (NoSuchMethodException e) {
+        return;
+      }
+
+      try {
+        Object oThis = m.invoke(this);
+        Object oOther = m.invoke(other);
+
+        if (oThis == null) {
+          s.invoke(this, oOther);
+        }
+      } catch (IllegalAccessException | InvocationTargetException e) {
+        throw new RuntimeException("Unable to merge service settings: " + e.getMessage(), e);
+      } finally {
+        m.setAccessible(false);
+      }
+    });
+  }
 
   private URIBuilder buildBaseUri() {
     if (StringUtils.isEmpty(overrideBaseUrl)) {

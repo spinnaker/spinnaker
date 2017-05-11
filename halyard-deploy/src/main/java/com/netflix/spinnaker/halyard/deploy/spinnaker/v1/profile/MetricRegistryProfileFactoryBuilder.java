@@ -59,7 +59,7 @@ public class MetricRegistryProfileFactoryBuilder {
         URI uri;
         try {
           String baseUrl;
-          if (settings.isBasicAuthEnabled()) {
+          if (settings.getBasicAuthEnabled()) {
             baseUrl = settings.getAuthBaseUrl();
           } else {
             baseUrl = settings.getBaseUrl();

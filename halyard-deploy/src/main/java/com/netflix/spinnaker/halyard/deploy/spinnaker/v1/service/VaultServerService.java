@@ -41,9 +41,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -225,12 +223,14 @@ abstract public class VaultServerService extends SpinnakerService<VaultServerSer
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
-    int port = 8200;
+    Integer port = 8200;
 
-    boolean enabled = true;
-    boolean safeToUpdate = false;
-    boolean monitored = false;
-    boolean sidecar = true;
+    Boolean enabled = true;
+    Boolean safeToUpdate = false;
+    Boolean monitored = false;
+    Boolean sidecar = true;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() { }
   }

@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -78,17 +79,19 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends SpringServiceSettings {
-    int port = 8087;
+    Integer port = 8087;
     // Address is how the service is looked up.
     String address = "localhost";
     // Host is what's bound to by the service.
     String host = "0.0.0.0";
     String scheme = "http";
     String healthEndpoint = "/health";
-    boolean enabled = true;
-    boolean safeToUpdate = true;
-    boolean monitored = true;
-    boolean sidecar = false;
+    Boolean enabled = true;
+    Boolean safeToUpdate = true;
+    Boolean monitored = true;
+    Boolean sidecar = false;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() {}
   }

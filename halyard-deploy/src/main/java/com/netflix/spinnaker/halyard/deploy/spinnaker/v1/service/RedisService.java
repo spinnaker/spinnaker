@@ -27,9 +27,7 @@ import lombok.EqualsAndHashCode;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -58,17 +56,19 @@ abstract public class RedisService extends SpinnakerService<Jedis> {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
-    int port = 6379;
+    Integer port = 6379;
     // Address is how the service is looked up.
     String address = "localhost";
     // Host is what's bound to by the service.
     String host = "0.0.0.0";
     String scheme = "redis";
     String healthEndpoint = null;
-    boolean enabled = true;
-    boolean safeToUpdate = false;
-    boolean monitored = false;
-    boolean sidecar = false;
+    Boolean enabled = true;
+    Boolean safeToUpdate = false;
+    Boolean monitored = false;
+    Boolean sidecar = false;
+    Integer targetSize = 1;
+    Map<String, String> env = new HashMap<>();
 
     public Settings() {
       env.put("MASTER", "true");

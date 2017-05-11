@@ -61,11 +61,11 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceNames)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = runtimeSettings.getServiceSettings(service);
-      if (!settings.isEnabled()) {
+      if (!settings.getEnabled()) {
         continue;
       }
 
-      boolean safeToUpdate = settings.isSafeToUpdate();
+      boolean safeToUpdate = settings.getSafeToUpdate();
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
         // Do nothing, the bootstrapping services should already be running, and the services that can't be updated
         // having nothing to rollback to
@@ -74,7 +74,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
             .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
             .connectToPrimaryService(deploymentDetails, runtimeSettings);
         DaemonTaskHandler.message("Rolling back " + distributedService.getServiceName() + " via Spinnaker red/black");
-        rollbackService(deploymentDetails, orca, distributedService, runtimeSettings.getServiceSettings(service));
+        rollbackService(deploymentDetails, orca, distributedService, runtimeSettings);
       }
     }
   }
@@ -96,12 +96,12 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceNames)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = resolvedConfiguration.getServiceSettings(service);
-      if (!settings.isEnabled()) {
+      if (!settings.getEnabled()) {
         continue;
       }
 
       DaemonTaskHandler.newStage("Determining status of " + distributedService.getServiceName());
-      boolean safeToUpdate = settings.isSafeToUpdate();
+      boolean safeToUpdate = settings.getSafeToUpdate();
       RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails, runtimeSettings);
 
       if (distributedService.isRequiredToBootstrap() || !safeToUpdate) {
@@ -195,9 +195,9 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   private <T extends Account> void rollbackService(AccountDeploymentDetails<T> details,
       Orca orca,
       DistributedService distributedService,
-      ServiceSettings settings) {
+      SpinnakerRuntimeSettings runtimeSettings) {
     DaemonTaskHandler.newStage("Rolling back " + distributedService.getServiceName());
-    Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details, settings);
+    Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details, runtimeSettings);
     Supplier<String> idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
   }

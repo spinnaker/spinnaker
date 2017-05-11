@@ -20,6 +20,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
@@ -72,7 +74,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     ServiceSettings thisSettings = runtimeSettings.getServiceSettings(getService());
 
     List<SidecarService> result = new ArrayList<>();
-    if (monitoringSettings.isEnabled() && thisSettings.isMonitored()) {
+    if (monitoringSettings.getEnabled() && thisSettings.getMonitored()) {
       result.add(monitoringService);
     }
 
@@ -87,7 +89,17 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     return settings.getLocation();
   }
 
-  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details, ServiceSettings settings) {
+  default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
+    RunningServiceDetails serviceDetails = getRunningServiceDetails(details, runtimeSettings);
+    Integer version = serviceDetails.getLatestEnabledVersion();
+    if (version == null) {
+      throw new HalException(Problem.Severity.FATAL, "There are no enabled server groups for service " + getServiceName() + " nothing to rollback to.");
+    }
+
+    int targetSize = serviceDetails.getInstances().get(version).size();
+    targetSize = targetSize == 0 ? 1 : targetSize;
+
+    ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     Map<String, Object> baseDescription = new HashMap<>();
     baseDescription.put("cloudProvider", getProviderType().getId());
     baseDescription.put("cloudProviderType", getProviderType().getId());
@@ -96,7 +108,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
     baseDescription.put("cluster", getServiceName());
 
     Map<String, Object> capacity = new HashMap<>();
-    capacity.put("desired", settings.getTargetSize() + "");
+    capacity.put("desired", targetSize);
 
     Map<String, Object> resizeDescription = new HashMap<>();
     resizeDescription.putAll(baseDescription);
