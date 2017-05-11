@@ -18,7 +18,9 @@ package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
+import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Delete a firewall rule from the specified project.
@@ -27,6 +29,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleS
  */
 class DeleteGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Void> {
   private static final String BASE_PHASE = "DELETE_SECURITY_GROUP"
+
+  @Autowired
+  SafeRetry safeRetry
 
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
@@ -49,8 +54,20 @@ class DeleteGoogleSecurityGroupAtomicOperation extends GoogleAtomicOperation<Voi
     def project = description.credentials.project
     def firewallRuleName = description.securityGroupName
 
-    timeExecute(compute.firewalls().delete(project, firewallRuleName),
-                "compute.firewalls.delete", TAG_SCOPE, SCOPE_GLOBAL)
+    safeRetry.doRetry(
+        {
+          timeExecute(
+              compute.firewalls().delete(project, firewallRuleName),
+              "compute.firewalls.delete",
+              TAG_SCOPE, SCOPE_GLOBAL)
+        },
+        "Firewall rule ${firewallRuleName}",
+        task,
+        [400, 403, 412],
+        [404],
+        [action: "delete", phase: BASE_PHASE, operation: "compute.firewalls.delete", (TAG_SCOPE): SCOPE_GLOBAL],
+        registry
+    )
 
     task.updateStatus BASE_PHASE, "Done deleting security group $firewallRuleName."
     null

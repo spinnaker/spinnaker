@@ -20,8 +20,10 @@ import com.google.api.services.compute.Compute
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeleteGoogleSecurityGroupDescription
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -29,9 +31,12 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
   private static final SECURITY_GROUP_NAME = "spinnaker-test-sg"
   private static final ACCOUNT_NAME = "prod"
   private static final PROJECT_NAME = "my-project"
+  @Shared
+  SafeRetry safeRetry
 
   def setupSpec() {
     TaskRepository.threadLocalTask.set(Mock(Task))
+    safeRetry = new SafeRetry(maxRetries: 10, maxWaitInterval: 60000, retryIntervalBase: 0, jitterMultiplier: 0)
   }
 
   void "should delete firewall rule"() {
@@ -46,6 +51,7 @@ class DeleteGoogleSecurityGroupAtomicOperationUnitSpec extends Specification {
                                                                  credentials: credentials)
       @Subject def operation = new DeleteGoogleSecurityGroupAtomicOperation(description)
       operation.registry = registry
+      operation.safeRetry = safeRetry
 
     when:
       operation.operate([])
