@@ -39,3 +39,5 @@ private fun shutdownCallback() {
   println("shutting down the redis")
   redis?.destroy()
 }
+
+// TODO: test instance locking once I can figure out how to extend tests
