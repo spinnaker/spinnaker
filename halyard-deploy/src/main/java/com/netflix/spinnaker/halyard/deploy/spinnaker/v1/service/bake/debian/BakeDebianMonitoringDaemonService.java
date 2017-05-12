@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
@@ -36,6 +37,7 @@ import java.util.List;
 @Component
 public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements BakeDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
   final String upstartServiceName = "spinnaker-monitoring";
+  final String pipRequirementsFile = "/opt/spinnaker-monitoring/requirements.txt";
 
   @Autowired
   ArtifactService artifactService;
@@ -51,6 +53,15 @@ public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemon
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(true);
+  }
+
+  @Override
+  public String installArtifactCommand(DeploymentDetails deploymentDetails) {
+    String installCommand = BakeDebianService.super.installArtifactCommand(deploymentDetails);
+    return String.join("\n", installCommand,
+        "sed -i -e 's/#@ //g' " + pipRequirementsFile,
+        "pip install " + pipRequirementsFile
+        );
   }
 
   public String getArtifactId(String deploymentName) {

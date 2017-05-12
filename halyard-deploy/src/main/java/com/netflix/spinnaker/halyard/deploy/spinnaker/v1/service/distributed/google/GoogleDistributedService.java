@@ -416,7 +416,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     deployDescription.put("stack", stack);
     deployDescription.put("freeFormDetails", detail);
     deployDescription.put("network", network);
-    deployDescription.put("metadata", metadata);
+    deployDescription.put("instanceMetadata", metadata);
     deployDescription.put("serviceAccountEmail", serviceAccountEmail);
     deployDescription.put("authScopes", scopes);
     deployDescription.put("accountName", accountName);

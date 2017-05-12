@@ -20,7 +20,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
