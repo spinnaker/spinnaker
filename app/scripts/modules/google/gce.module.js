@@ -108,7 +108,10 @@ module.exports = angular.module('spinnaker.gce', [
       subnet: {
         renderer: 'gceSubnetRenderer',
       },
-      snapshotsEnabled: true
+      snapshotsEnabled: true,
+      applicationProviderFields:{
+        templateUrl: require('./applicationProviderFields/gceFields.html'),
+      },
     });
   });
 

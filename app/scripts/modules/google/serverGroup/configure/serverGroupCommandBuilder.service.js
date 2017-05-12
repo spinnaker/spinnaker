@@ -240,6 +240,8 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
       var defaultCredentials = defaults.account || GCEProviderSettings.defaults.account;
       var defaultRegion = defaults.region || GCEProviderSettings.defaults.region;
       var defaultZone = defaults.zone || GCEProviderSettings.defaults.zone;
+      var associatePublicIpAddress = _.has(application, 'attributes.providerSettings.gce.associatePublicIpAddress') ?
+        application.attributes.providerSettings.gce.associatePublicIpAddress : true;
 
       var command = {
         application: application.name,
@@ -248,7 +250,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         zone: defaultZone,
         regional: false, // TODO(duftler): Externalize this default alongside defaultRegion and defaultZone.
         network: 'default',
-        associatePublicIpAddress: true,
+        associatePublicIpAddress: associatePublicIpAddress,
         canIpForward: false,
         strategy: '',
         capacity: {
