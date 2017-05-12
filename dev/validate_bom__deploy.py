@@ -24,10 +24,15 @@ import stat
 import tempfile
 import time
 
-from spinnaker.run import run_quick, check_run_quick, check_run_and_monitor
+from spinnaker.run import (
+    run_quick,
+    check_run_quick,
+    check_run_and_monitor,
+    run_and_monitor)
 
 
-SUPPORTED_DEPLOYMENT_TYPES = ['localdebian']
+SUPPORTED_DEPLOYMENT_TYPES = ['localdebian', 'distributed']
+SUPPORTED_DISTRIBUTED_PLATFORMS = ['kubernetes']
 
 def ensure_empty_ssh_key(path):
   """Ensure there is an ssh key at the given path.
@@ -36,8 +41,8 @@ def ensure_empty_ssh_key(path):
   can use it for ssh/scp.
   """
 
-  path += '.pub'
-  if os.path.exists(path):
+  pub_path = path + '.pub'
+  if os.path.exists(pub_path):
     return
 
   logging.debug('Creating %s SSH key', path)
@@ -100,7 +105,11 @@ class BaseValidateBomDeployer(object):
     """The options bound at construction."""
     return self.__options
 
-  def __init__(self, options):
+  def __init__(self, options, runtime_class=None):
+    if runtime_class:
+      self.__spinnaker_deployer = runtime_class(options)
+    else:
+      self.__spinnaker_deployer = self
     self.__options = options
 
   def make_port_forward_command(self, service, local_port, remote_port):
@@ -109,7 +118,8 @@ class BaseValidateBomDeployer(object):
     Returns:
       array of commandline arguments to create a subprocess with.
     """
-    raise NotImplementedError(self.__class__.__name__)
+    return self.__spinnaker_deployer.do_make_port_forward_command(
+        service, local_port, remote_port)
 
   def deploy(self, config_script, files_to_upload):
     """Deploy and configure spinnaker.
@@ -124,48 +134,58 @@ class BaseValidateBomDeployer(object):
          instance before running the config_script. Presumably these will
          be referenced by the script.
     """
-    platform = self.options.deploy_platform
-    logging.info('Deploying to %s...', platform)
-    script = self.make_deploy_script_statements()
+    platform = self.options.deploy_hal_platform
+    logging.info('Deploying with hal on %s...', platform)
+    script = []
+    self.add_install_hal_script_statements(script)
+    self.add_platform_deploy_script_statements(script)
     script.extend(config_script)
+    self.add_hal_deploy_script_statements(script)
     script.append('hal --color=false deploy apply')
+    self.add_post_deploy_statements(script)
 
     if not self.options.deploy_deploy:
       logging.warning('Skipping deployment because --deploy_deploy=false\n'
                       ' Would have run:\n%s\n and uploaded:\n%s\n\n',
                       script, files_to_upload)
       return
-    self.deploy_helper(script, files_to_upload)
+    self.do_deploy(script, files_to_upload)
     logging.info('Finished deploying to %s', platform)
 
   def undeploy(self):
     """Remove the spinnaker deployment and reclaim resources."""
-    platform = self.options.deploy_platform
-    logging.info('Undeploying from %s...', platform)
+    # Consider also undeploying from options.deploy_spinnaker_platform
+    # with self.__runtime_deployer
+    platform = self.options.deploy_hal_platform
+    logging.info('Undeploying hal on %s...', platform)
     if not self.options.deploy_undeploy:
       logging.warning(
-          'Skipping deployment because --deploy_undeploy=false\n')
+          'Skipping undeploy because --deploy_undeploy=false\n')
       return
 
-    self.undeploy_helper()
+    self.do_undeploy()
     logging.info('Finished undeploying from %s', platform)
 
-  def deploy_helper(self, script, files_to_upload):
+  def do_make_port_forward_command(self, service, local_port, remote_port):
+    """Hook for concrete platforms to return the port forwarding command.
+
+    Returns:
+      array of commandline arguments to create a subprocess with.
+    """
+    raise NotImplementedError(self.__class__.__name__)
+
+  def do_deploy(self, script, files_to_upload):
     """Hook for specialized platforms to implement the concrete deploy()."""
     # pylint: disable=unused-argument
-    options = self.options
-    raise NotImplementedError(options.deploy_platform)
+    raise NotImplementedError(self.__class__.__name__)
 
-  def undeploy_helper(self):
+  def do_undeploy(self):
     """Hook for specialized platforms to implement the concrete undeploy()."""
-    options = self.options
-    raise NotImplementedError(options.deploy_platform)
+    raise NotImplementedError(self.__class__.__name__)
 
-  def make_deploy_script_statements(self):
-    """Returns the sequence of Bash statements to fetch and run InstallHalyard.
-    """
+  def add_install_hal_script_statements(self, script):
+    """Adds the sequence of Bash statements to fetch and install halyard."""
     options = self.options
-    script = []
     script.append('curl -s -O {url}'.format(url=options.halyard_install_script))
     install_params = ['-y']
     if options.halyard_repository is not None:
@@ -175,10 +195,102 @@ class BaseValidateBomDeployer(object):
           ['--spinnaker-repository', options.spinnaker_repository])
     script.append('sudo bash ./InstallHalyard.sh {install_params}'
                   .format(install_params=' '.join(install_params)))
-
-    script.append('hal --color=false config deploy edit --type {type}'
-                  .format(type=options.deploy_spinnaker_type))
     return script
+
+  def add_platform_deploy_script_statements(self, script):
+    """Hook for deployment platform to add specific hal statements."""
+    pass
+
+  def add_hal_deploy_script_statements(self, script):
+    """Adds the hal deploy statements prior to "apply"."""
+    options = self.options
+    type_args = ['--type', options.deploy_spinnaker_type]
+
+    if options.deploy_spinnaker_type == 'distributed':
+      # Kubectl required for the next hal command, so install it if needed.
+      script.append(
+          'if ! `which kubectl >& /dev/null`; then'
+          ' curl -LO https://storage.googleapis.com/kubernetes-release/release'
+          '/$(curl -s https://storage.googleapis.com/kubernetes-release/release'
+          '/stable.txt)/bin/linux/amd64/kubectl'
+          '; chmod +x ./kubectl'
+          '; sudo mv ./kubectl /usr/local/bin/kubectl'
+          '; fi')
+      if options.injected_deploy_spinnaker_account:
+        type_args.extend(['--account-name',
+                          options.injected_deploy_spinnaker_account])
+
+    script.append('hal --color=false config deploy edit {args}'
+                  .format(args=' '.join(type_args)))
+
+  def add_post_deploy_statements(self, script):
+    """Add any statements following "hal deploy apply"."""
+    pass
+
+
+class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Google Cloud Platform.
+
+  This class is not intended to be constructed directly. Instead see the
+  free function make_deployer() in this module.
+  """
+  def __init__(self, options, **kwargs):
+    super(KubernetesValidateBomDeployer, self).__init__(options, **kwargs)
+
+  @classmethod
+  def init_platform_argument_parser(cls, parser):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for the free function init_argument_parser().
+    """
+    parser.add_argument(
+        '--deploy_k8s_namespace',
+        default='spinnaker',
+        help='Namespace for the account Spinnaker is deployed into.')
+
+  @classmethod
+  def validate_options_helper(cls, options):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for make_deployer().
+    """
+    if options.deploy_distributed_platform != 'kubernetes':
+      return
+
+    if not options.k8s_account_name:
+      raise ValueError('--deploy_distributed_platform="kubernetes" requires'
+                       ' a --k8s_account_name be configured.')
+    if hasattr(options, "injected_deploy_spinnaker_account"):
+      raise ValueError('deploy_spinnaker_account was already set to "{0}"'
+                       .format(options.injected_deploy_spinnaker_account))
+    options.injected_deploy_spinnaker_account = options.k8s_account_name
+
+  def do_make_port_forward_command(self, service, local_port, remote_port):
+    """Implements interface."""
+    options = self.options
+
+    k8s_namespace = options.deploy_k8s_namespace
+    response = check_run_quick(
+        'kubectl get pods --namespace {namespace}'
+        ' | gawk -F "[[:space:]]+" "/{service}-v/ {{print \\$1}}" | tail -1'
+        .format(namespace=k8s_namespace, service=service))
+    service_pod = response.stdout.strip()
+
+    return [
+        'kubectl', '--namespace', options.deploy_k8s_namespace,
+        'port-forward', service_pod,
+        '{local}:{remote}'.format(local=local_port, remote=remote_port)
+    ]
+
+  def do_deploy(self, script, files_to_upload):
+    """Implements the BaseBomValidateDeployer interface."""
+    super(KubernetesValidateBomDeployer, self).do_deploy(
+        script, files_to_upload)
+
+  def do_undeploy(self):
+    """Implements the BaseBomValidateDeployer interface."""
+    super(KubernetesValidateBomDeployer, self).do_undeploy()
+    # kubectl delete namespace spinnaker
 
 
 class GoogleValidateBomDeployer(BaseValidateBomDeployer):
@@ -190,8 +302,8 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
 
   EMPTY_SSH_KEY = os.path.join(os.environ['HOME'], '.ssh', 'google_empty')
 
-  def __init__(self, options):
-    super(GoogleValidateBomDeployer, self).__init__(options)
+  def __init__(self, options, **kwargs):
+    super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
 
   @classmethod
   def init_platform_argument_parser(cls, parser):
@@ -202,15 +314,15 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     parser.add_argument(
         '--google_deploy_project',
         default=None,
-        help='Google project to deploy to if --deploy_platform is "gce".')
+        help='Google project to deploy to if --deploy_hal_platform is "gce".')
     parser.add_argument(
         '--google_deploy_zone',
         default='us-central1-f',
-        help='Google zone to deploy to if --deploy_platform is "gce".')
+        help='Google zone to deploy to if --deploy_hal_platform is "gce".')
     parser.add_argument(
         '--google_deploy_instance',
         default=None,
-        help='Google instance to deploy to if --deploy_platform is "gce".')
+        help='Google instance to deploy to if --deploy_hal_platform is "gce".')
 
   @classmethod
   def validate_options_helper(cls, options):
@@ -223,7 +335,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     if not options.google_deploy_instance:
       raise ValueError('--google_deploy_instance not specified.')
 
-  def make_port_forward_command(self, service, local_port, remote_port):
+  def do_make_port_forward_command(self, service, local_port, remote_port):
     """Implements interface."""
     options = self.options
     return [
@@ -237,13 +349,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
             local_port=local_port, remote_port=remote_port),
         '-N']
 
-  def make_deploy_script_statements(self):
-    """Generates the sequence of bash statements to deploy to GCP."""
-    script = (super(GoogleValidateBomDeployer, self)
-              .make_deploy_script_statements())
-    return script
-
-  def deploy_helper(self, script, files_to_upload):
+  def do_deploy(self, script, files_to_upload):
     """Implements the BaseBomValidateDeployer interface."""
     options = self.options
     ensure_empty_ssh_key(self.EMPTY_SSH_KEY)
@@ -313,9 +419,18 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
                 ssh_key=self.EMPTY_SSH_KEY,
                 script_name=os.path.basename(script_path)))
 
-  def undeploy_helper(self):
+  def do_undeploy(self):
     """Implements the BaseBomValidateDeployer interface."""
     options = self.options
+    if options.deploy_spinnaker_type == 'distributed':
+      run_and_monitor('gcloud compute ssh'
+          ' --ssh-key-file {ssh_key}'
+          ' --project {project} --zone {zone} {instance}'
+          ' --command "sudo hal deploy clean"'
+          .format(project=options.google_deploy_project,
+                  zone=options.google_deploy_zone,
+                  instance=options.google_deploy_instance,
+                  ssh_key=self.EMPTY_SSH_KEY))
     check_run_and_monitor(
         'gcloud -q compute instances delete'
         ' --project {project} --zone {zone} {instance}'
@@ -330,18 +445,38 @@ def make_deployer(options):
   Args:
     options: [Namespace] from an argument parser given to init_argument_parser
   """
-  if options.deploy_platform == 'gce':
-    klass = GoogleValidateBomDeployer
+  if options.deploy_hal_platform == 'gce':
+    hal_klass = GoogleValidateBomDeployer
   else:
     raise ValueError(
-        'Invalid --deploy_platform=%s', options.deploy_platform)
+        'Invalid --deploy_hal_platform=%s', options.deploy_hal_platform)
 
   if options.deploy_spinnaker_type not in SUPPORTED_DEPLOYMENT_TYPES:
     raise ValueError(
         'Invalid --deploy_spinnaker_type "{0}". Must be one of {1}'
         .format(options.deploy_spinnaker_type, SUPPORTED_DEPLOYMENT_TYPES))
-  klass.validate_options_helper(options)
-  return klass(options)
+
+  # This is the class for accessing the Spinnaker deployment if other than Hal.
+  spin_klass = None
+
+  if options.deploy_spinnaker_type == 'distributed':
+    if (options.deploy_distributed_platform
+        not in SUPPORTED_DISTRIBUTED_PLATFORMS):
+      raise ValueError(
+          'A "distributed" deployment requires --deploy_distributed_platform')
+    if options.deploy_distributed_platform == 'kubernetes':
+      spin_klass = KubernetesValidateBomDeployer
+    else:
+      raise ValueError(
+          'Unknown --deploy_distributed_platform.'
+          ' This must be the value of one of the following parameters: {0}'
+          .format(SUPPORTED_DISTRIBUTED_PLATFORMS))
+
+  hal_klass.validate_options_helper(options)
+  if spin_klass:
+    spin_klass.validate_options_helper(options)
+
+  return hal_klass(options, runtime_class=spin_klass)
 
 
 def init_argument_parser(parser):
@@ -372,11 +507,18 @@ def init_argument_parser(parser):
 
   parser.add_argument(
       '--deploy_spinnaker_type', required=True, choices=SUPPORTED_DEPLOYMENT_TYPES,
-      help=('The type of spinnaker deployment to create.'))
+      help='The type of spinnaker deployment to create.')
 
   parser.add_argument(
-      '--deploy_platform', required=True, choices=['gce'],
-      help='Deploy to platform.')
+      '--deploy_hal_platform', required=True, choices=['gce'],
+      help='Platform to deploy Halyard onto.'
+           ' Halyard will then deploy Spinnaker.')
+
+  parser.add_argument(
+      '--deploy_distributed_platform', default='kubernetes',
+      choices=SUPPORTED_DISTRIBUTED_PLATFORMS,
+      help='The paltform to deploy spinnaker to when'
+           ' --deploy_spinnaker_type=distributed')
 
   parser.add_argument(
       '--deploy_deploy', default=True,
@@ -391,3 +533,4 @@ def init_argument_parser(parser):
            ' This is for facilitating debugging with this script.')
 
   GoogleValidateBomDeployer.init_platform_argument_parser(parser)
+  KubernetesValidateBomDeployer.init_platform_argument_parser(parser)

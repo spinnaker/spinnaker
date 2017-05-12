@@ -11,7 +11,6 @@ aliases:
     spinnaker_aws_account: $aws_account_name
     aws_profile: citest
 
-
 tests:
   bake_and_deploy_test:
     requires:
@@ -98,12 +97,14 @@ tests:
     args:
       alias: [standard_google_provider_params]
 
-  kubernetes_smoke_test:
+  kube_smoke_test:
     requires:
       configuration:
         k8s_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     api: gate
+    args:
+      spinnaker_kubernetes_account: $k8s_account_name
 
   aws_kato_test:
     requires:

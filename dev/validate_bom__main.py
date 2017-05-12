@@ -24,7 +24,7 @@ This program will:
 
 Sample usage:
 ./validate_bom.sh \
-  --deploy_platform=gce \
+  --deploy_hal_platform=gce \
   --deploy_spinnaker_type=localdebian \
   --google_deploy_project=$PROJECT \
   --google_deploy_instance=$INSTANCE \
@@ -32,6 +32,25 @@ Sample usage:
   --gcs_storage_bucket=$BUCKET \
   --google_account_credentials=$GOOGLE_CREDENTIAL_PATH \
   --google_account_project=$PROJECT
+
+//dev/validate_bom.sh \
+  --google_deploy_project=$PROJECT \
+  --google_deploy_instance=$INSTANCE \
+  --spinnaker_storage=gcs \
+  --gcs_storage_bucket=$BUCKET \
+  --gcs_storage_credentials=$GOOGLE_CREDENTIAL_PATH  \
+  --google_account_credentials=$GOOGLE_CREDENTIAL_PATH \
+  --google_account_project=$PROJECT \
+  --k8s_account_credentials=$HOME/.kube/config \
+  --k8s_account_docker_account=my-docker-account \
+  --docker_account_address=https://index.docker.io \
+  --docker_account_repositories=library/nginx \
+  --deploy_hal_platform=gce \
+  --deploy_spinnaker_type=distributed \
+  --deploy_k8s_namespace=spinnaker \
+  --test_include=(kube|front50) \
+  --deploy_undeploy=false \
+  --deploy_deploy=false
 """
 
 
@@ -45,7 +64,7 @@ import validate_bom__test
 
 def build_report(options):
   """Report on the test results."""
-  logging.info('SKIP BUILD_REPORT on %s', options.deploy_platform)
+  logging.info('SKIP BUILD_REPORT on %s', options.deploy_hal_platform)
 
 
 def main():
@@ -65,14 +84,14 @@ def main():
   config_script = validate_bom__config.make_script(options)
   file_set = validate_bom__config.get_files_to_upload(options)
 
-  deployer.deploy(config_script, file_set)
+  try:
+    deployer.deploy(config_script, file_set)
 
-  test_controller = validate_bom__test.ValidateBomTestController(deployer)
-  test_controller.run_tests()
-
-  deployer.undeploy()
-
-  build_report(options)
+    test_controller = validate_bom__test.ValidateBomTestController(deployer)
+    test_controller.run_tests()
+  finally:
+    deployer.undeploy()
+    build_report(options)
 
   def dump_list(name, entries):
     """Write out all the names from the test results."""
@@ -105,6 +124,6 @@ if __name__ == '__main__':
   logging.basicConfig(
       format='%(levelname).1s %(asctime)s.%(msecs)03d %(message)s',
       datefmt='%H:%M:%S',
-      level=logging.INFO)
+      level=logging.DEBUG)
 
   sys.exit(main())
