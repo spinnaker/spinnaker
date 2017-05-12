@@ -62,7 +62,8 @@ window.spinnakerSettings = {
         account: googlePrimaryAccount,
         region: googleDefaultRegion,
         zone: googleDefaultZone,
-      }
+      },
+      associatePublicIpAddress: true,
     },
     aws: {
       defaults: {
