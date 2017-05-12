@@ -40,7 +40,6 @@ import org.springframework.expression.spel.support.StandardEvaluationContext
 import org.springframework.expression.spel.support.StandardTypeLocator
 
 import java.lang.reflect.Method
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.concurrent.atomic.AtomicReference
 
@@ -153,6 +152,8 @@ class ContextParameterProcessor {
       evaluationContext.registerFunction('toInt', ContextUtilities.getDeclaredMethod("toInt", String))
       evaluationContext.registerFunction('toFloat', ContextUtilities.getDeclaredMethod("toFloat", String))
       evaluationContext.registerFunction('toBoolean', ContextUtilities.getDeclaredMethod("toBoolean", String))
+      evaluationContext.registerFunction('toBase64', ContextUtilities.getDeclaredMethod("toBase64", String))
+      evaluationContext.registerFunction('fromBase64', ContextUtilities.getDeclaredMethod("fromBase64", String))
 
       // only add methods that are context sensitive at stage evaluation time
       if (allowUnknownKeys) {
@@ -311,6 +312,14 @@ abstract class ContextUtilities {
 
   static String judgment(Object context, String id) {
     context.stages?.find { it.name == id && it.type == 'manualJudgment' }?.context?.judgmentInput
+  }
+
+  static String toBase64(String text) {
+    Base64.getEncoder().encodeToString(text.getBytes())
+  }
+
+  static String fromBase64(String text) {
+    new String(Base64.getDecoder().decode(text), 'UTF-8')
   }
 
 }

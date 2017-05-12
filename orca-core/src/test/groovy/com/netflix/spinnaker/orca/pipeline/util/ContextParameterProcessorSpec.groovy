@@ -78,6 +78,12 @@ class ContextParameterProcessorSpec extends Specification {
     //successful case: 'http://captive.apple.com/' | 'this should work'
   }
 
+  def "base64 encode and decode"() {
+    expect:
+    contextParameterProcessor.process([test: '${#toBase64("Yo Dawg")}'], [:], true).test == 'WW8gRGF3Zw=='
+    contextParameterProcessor.process([test: '${#fromBase64("WW8gRGF3Zw==")}'], [:], true).test == 'Yo Dawg'
+  }
+
   @Unroll
   def "should not System.exit"() {
     when:
