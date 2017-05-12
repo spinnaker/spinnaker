@@ -27,11 +27,6 @@ module(SERVER_GROUP_STATES, [
         controllerAs: 'ctrl'
       }
     },
-    resolve: {
-      // prevents flash of filters if fetchOnDemand is enabled; catch any exceptions so the route resolves
-      // and deal with the exception in the AllClustersCtrl
-      ready: (app: Application) => app.getDataSource('serverGroups').ready().catch(() => null),
-    },
     redirectTo: (transition) => {
       return transition.injector().getAsync('app').then((app: Application) => {
         if (app.serverGroups.disabled) {

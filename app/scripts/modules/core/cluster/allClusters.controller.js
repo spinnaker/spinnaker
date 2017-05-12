@@ -33,6 +33,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
                                           ClusterFilterModel, MultiselectModel, InsightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     this.$onInit = () => {
+      InsightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
       const groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() => clusterGroupsUpdated());
       this.application = app;
       ClusterFilterModel.activate();
@@ -45,7 +46,10 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
       this.createLabel = 'Create Server Group';
 
       app.getDataSource('serverGroups').ready().then(
-        () => updateClusterGroups(),
+        () => {
+          InsightFilterStateModel.filtersHidden = false;
+          updateClusterGroups();
+        },
         () => this.clustersLoadError()
       );
 
