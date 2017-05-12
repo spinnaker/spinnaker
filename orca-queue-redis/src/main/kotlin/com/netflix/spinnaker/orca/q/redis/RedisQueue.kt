@@ -119,7 +119,7 @@ class RedisQueue(
                 }
               } else {
                 log.warn("Re-delivering message $id after $attempts attempts")
-                move(unackedKey, queueKey, ZERO, id)
+                move(unackedKey, queueKey, ZERO, setOf(id))
               }
             }
           }
@@ -167,24 +167,25 @@ class RedisQueue(
    */
   private fun Jedis.pop(from: String, to: String, delay: TemporalAmount = ZERO) =
     zrangeByScore(from, 0.0, score(), 0, 1)
-      .firstOrNull()
-      .takeIf { id ->
-        id != null && getSet("$locksKey:$id", currentInstanceId) in listOf(null, currentInstanceId)
+      .takeIf {
+        // TODO: this isn't right, `it` is a set (often an empty one)
+        getSet("$locksKey:$it", currentInstanceId) in listOf(null, currentInstanceId)
       }
-      ?.also { id ->
-        expire("$locksKey:$id", lockTtlSeconds)
-        move(from, to, delay, id)
+      ?.also {
+        expire("$locksKey:$it", lockTtlSeconds)
+        move(from, to, delay, it)
       }
+      ?.firstOrNull()
 
   /**
-   * Move [value] from sorted set [from] to sorted set [to]
+   * Move [values] from sorted set [from] to sorted set [to]
    */
-  private fun Jedis.move(from: String, to: String, delay: TemporalAmount, value: String) {
-    if (value.isNotEmpty()) {
+  private fun Jedis.move(from: String, to: String, delay: TemporalAmount, values: Set<String>) {
+    if (values.isNotEmpty()) {
       val score = score(delay)
       multi {
-        zrem(from, value)
-        zadd(to, score, value)
+        zrem(from, *values.toTypedArray())
+        zadd(to, values.associate { Pair(it, score) })
       }
     }
   }
