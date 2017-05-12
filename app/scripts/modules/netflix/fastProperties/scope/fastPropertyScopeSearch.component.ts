@@ -1,4 +1,4 @@
-import { debounce, uniqWith, isEqual, values } from 'lodash';
+import { debounce, values } from 'lodash';
 import { module, IComponentController, IComponentOptions, IQService} from 'angular';
 
 import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
@@ -6,7 +6,6 @@ import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
 import { Scope } from '../domain/scope.domain';
 import { Application } from 'core/application/application.model';
-import { ICluster } from 'core/domain/ICluster';
 import { ServerGroup } from 'core/domain/serverGroup';
 import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 
@@ -175,17 +174,17 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
 
     const appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
       if (applicationNames.includes(app.name)) {
-        app.clusters.forEach((cluster: ICluster) => {
-          cluster.serverGroups.forEach((serverGroup: ServerGroup) => {
+        app.getDataSource('serverGroups').data.forEach((serverGroup: ServerGroup) => {
+          if (!acc.some(r => r.region === serverGroup.region && r.stack === serverGroup.stack)) {
             acc.push({
               region: serverGroup.region,
               application: app.name,
-              cluster: serverGroup.cluster
+              stack: serverGroup.stack
             });
-          });
+          }
         });
       }
-      return uniqWith(acc, isEqual);
+      return acc;
     }, []);
 
     categories.unshift({order: 79, category: 'Stack', results: appsClusters });
