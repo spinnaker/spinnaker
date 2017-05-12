@@ -142,8 +142,11 @@ public class DeployService {
       resolvedConfiguration = generateService.generateConfig(deploymentName, serviceNames);
     }
 
-    Path path = halconfigDirectoryStructure.getGenerateResultPath(deploymentName);
-    configParser.atomicWrite(path, resolvedConfiguration);
+    Path serviceSettingsPath = halconfigDirectoryStructure.getServiceSettingsPath(deploymentName);
+    configParser.atomicWrite(serviceSettingsPath, resolvedConfiguration.getRuntimeSettings());
+
+    Path serviceProfilesPath = halconfigDirectoryStructure.getServiceProfilesPath(deploymentName);
+    configParser.atomicWrite(serviceProfilesPath, resolvedConfiguration.getServiceProfiles());
 
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);

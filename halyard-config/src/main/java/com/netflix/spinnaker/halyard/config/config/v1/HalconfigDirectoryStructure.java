@@ -77,9 +77,14 @@ public class HalconfigDirectoryStructure {
     return ensureDirectory(Paths.get(halconfigDirectory, ".backup", "required-files"));
   }
 
-  public Path getGenerateResultPath(String deploymentName) {
+  public Path getServiceSettingsPath(String deploymentName) {
     File history = ensureRelativeHalDirectory(deploymentName, "history").toFile();
-    return new File(history, "generateResult").toPath();
+    return new File(history, "service-settings.yml").toPath();
+  }
+
+  public Path getServiceProfilesPath(String deploymentName) {
+    File history = ensureRelativeHalDirectory(deploymentName, "history").toFile();
+    return new File(history, "service-profiles.yml").toPath();
   }
 
   private Path ensureRelativeHalDirectory(String deploymentName, String directoryName) {
