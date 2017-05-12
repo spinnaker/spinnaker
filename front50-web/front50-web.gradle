@@ -40,6 +40,7 @@ dependencies {
   compile project(":front50-pipelines")
   compile project(":front50-migrations")
   compile project(":front50-azure")
+  compile project(":front50-oracle-bmcs")
 
   spinnaker.group "bootWeb"
 

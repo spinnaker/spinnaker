@@ -1,0 +1,58 @@
+class DownloadTask extends DefaultTask {
+  @Input
+  String sourceUrl
+
+  @OutputFile
+  File target
+
+  @TaskAction
+  void download() {
+    ant.get(src: sourceUrl, dest: target)
+  }
+}
+
+final File sdkDownloadLocation = project.file('build/sdkdownload')
+final File sdkLocation = project.file('build/bmcs-sdk')
+
+// Oracle BMCS SDK isn't published to any maven repo (yet!), so we manually download, unpack and add to compile deps
+task fetchSdk(type: DownloadTask) {
+  sourceUrl = 'https://github.com/oracle/bmcs-java-sdk/releases/download/v1.2.5/oracle-bmcs-java-sdk.zip'
+  target = sdkDownloadLocation
+}
+
+task unpackSdk(type: Sync) {
+  dependsOn('fetchSdk')
+  from zipTree(tasks.fetchSdk.target)
+  into sdkLocation
+  include "**/*.jar"
+  exclude "**/*-sources.jar"
+  exclude "**/*-javadoc.jar"
+  exclude "apidocs/**"
+  exclude "examples/**"
+  exclude "**/*jackson*.jar"
+  exclude "**/*jersey*.jar"
+  exclude "**/hk2*.jar"
+  exclude "**/*guava*.jar"
+  exclude "**/commons*.jar"
+  exclude "**/aopalliance*.jar"
+  exclude "**/javassist*.jar"
+  exclude "**/slf*.jar"
+  exclude "**/osgi*.jar"
+  exclude "**/validation*.jar"
+  exclude "**/jsr305*.jar"
+}
+
+task cleanSdk(type: Delete) {
+  delete sdkLocation, sdkDownloadLocation
+}
+
+tasks.clean.dependsOn('cleanSdk')
+tasks.compileJava.dependsOn('unpackSdk')
+
+dependencies {
+  compile project(":front50-core")
+
+  compile fileTree(sdkLocation)
+
+  testCompile project(":front50-test")
+}

@@ -9,3 +9,5 @@ vendor/
 .bundle/
 *.iml
 .idea
+
+front50-oracle-bmcs/bmcs-sdk
