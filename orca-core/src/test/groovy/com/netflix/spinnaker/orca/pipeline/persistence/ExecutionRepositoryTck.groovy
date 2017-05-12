@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository
 import redis.clients.jedis.Jedis
@@ -778,5 +779,29 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
       stages.size() == 6
       stages.name == ["one-whatever", "one", "two-whatever", "two", "three-whatever", "three"]
     }
+  }
+
+  def "can save a stage with all data"() {
+    given:
+    def pipeline = Pipeline
+      .builder()
+      .withApplication("orca")
+      .withName("dummy-pipeline")
+      .withStage("one")
+      .build()
+
+    repository.store(pipeline)
+
+    def stage = newStage(pipeline, "whatever", "one-whatever", [:], pipeline.namedStage("one"), STAGE_BEFORE)
+    stage.lastModified = new Stage.LastModifiedDetails(user: "rfletcher@netflix.com", allowedAccounts: ["whatever"], lastModifiedTime: System.currentTimeMillis())
+    stage.startTime = System.currentTimeMillis()
+    stage.endTime = System.currentTimeMillis()
+    stage.refId = "1<1"
+
+    when:
+    repository.storeStage(stage)
+
+    then:
+    notThrown(Exception)
   }
 }

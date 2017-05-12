@@ -590,9 +590,13 @@ class JedisExecutionRepository implements ExecutionRepository {
 
     def serializedStage = serializeStage(stage)
     tx.hmset(key, filterValues(serializedStage, notNull()))
-    tx.hdel(key, serializedStage.keySet().findAll {
+
+    def keysToRemove = serializedStage.keySet().findAll {
       serializedStage[it] == null
-    } as String[])
+    }
+    if (!keysToRemove.empty) {
+      tx.hdel(key, keysToRemove as String[])
+    }
   }
 
   @CompileDynamic
