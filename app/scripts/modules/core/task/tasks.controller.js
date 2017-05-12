@@ -17,7 +17,7 @@ module.exports = angular.module('spinnaker.core.task.controller', [
   CONFIRMATION_MODAL_SERVICE,
   DISPLAYABLE_TASKS_FILTER
 ])
-  .controller('TasksCtrl', function ($scope, $state, $q, app, viewStateCache, taskWriter, confirmationModalService) {
+  .controller('TasksCtrl', function ($scope, $state, $stateParams, $q, app, viewStateCache, taskWriter, confirmationModalService) {
 
     if (app.notFound) {
       return;
@@ -54,7 +54,18 @@ module.exports = angular.module('spinnaker.core.task.controller', [
       viewState.itemsPerPage = tasksViewStateCache.get('#common') ? tasksViewStateCache.get('#common').itemsPerPage : 20;
 
       $scope.viewState = viewState;
+      setTaskFilter();
     }
+
+    const setTaskFilter = () => {
+      const taskId = $stateParams.taskId;
+      if (!$scope.viewState.expandedTasks.includes(taskId)) {
+        controller.toggleDetails(taskId);
+      }
+      $scope.viewState.nameFilter = taskId;
+      $scope.viewState.taskStateFilter = '';
+      controller.sortTasksAndResetPaginator();
+    };
 
     controller.taskStateFilter = 'All';
     controller.application = application;
@@ -241,19 +252,6 @@ module.exports = angular.module('spinnaker.core.task.controller', [
     // angular ui btn-radio doesn't support the ng-change or ng-click directives
     $scope.$watch('viewState.taskStateFilter', controller.sortTasksAndResetPaginator);
     $scope.$watch('viewState', cacheViewState, true);
-
-    // The taskId will not be available in the $stateParams that would be passed into this controller
-    // because that field belongs to a child state. So we have to watch for a $stateChangeSuccess event, then set
-    // the value on the scope
-    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
-      var taskId = toParams.taskId;
-      if (!$scope.viewState.expandedTasks.includes(taskId)) {
-        controller.toggleDetails(taskId);
-      }
-      $scope.viewState.nameFilter = taskId;
-      $scope.viewState.taskStateFilter = '';
-      controller.sortTasksAndResetPaginator();
-    });
 
     initializeViewState();
 
