@@ -1,0 +1,95 @@
+<div class="details-panel"
+     ng-class="{ disabled: ctrl.serverGroup.isDisabled }">
+  <div class="header" ng-if="ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+  <div class="header" ng-if="!ctrl.state.loading">
+    <div class="close-button">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <h3 select-on-dbl-click>
+        {{ctrl.serverGroup.name}}
+      </h3>
+    </div>
+    <div>
+      <div class="actions" ng-class="{ insights: ctrl.serverGroup.insightActions.length > 0 }">
+        <div class="dropdown" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+            Server Group Actions <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li><a href ng-if="!ctrl.serverGroup.disabled" ng-click="ctrl.disableServerGroup()">Disable</a></li>
+            <li><a href ng-if="ctrl.serverGroup.disabled" ng-click="ctrl.enableServerGroup()">Enable</a></li>
+            <li><a href ng-click="ctrl.destroyServerGroup()">Destroy</a></li>
+            <li><a href ng-click="ctrl.resizeServerGroup()">Resize</a></li>
+            <li><a href ng-click="ctrl.rollbackServerGroup()">Rollback</a></li>
+          </ul>
+        </div>
+        <div class="dropdown" ng-if="ctrl.serverGroup.insightActions.length > 0" uib-dropdown dropdown-append-to-body>
+          <button type="button" class="btn btn-sm btn-default dropdown-toggle" uib-dropdown-toggle>
+            Insight <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" uib-dropdown-menu role="menu">
+            <li ng-repeat="action in ctrl.serverGroup.insightActions"><a target=_blank href="{{action.url}}">{{action.label}}</a></li>
+          </ul>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <div class="content" ng-if="!ctrl.state.loading">
+    <h4 class="text-center" ng-if="ctrl.serverGroup.isDisabled">[SERVER GROUP IS DISABLED]</h4>
+    <server-group-running-tasks-details server-group="ctrl.serverGroup"></server-group-running-tasks-details>
+    <collapsible-section heading="Server Group Information" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Created</dt>
+        <dd>{{ctrl.serverGroup.createdTime | timestamp}}</dd>
+        <dt>In</dt>
+        <dd>
+          <account-tag account="ctrl.serverGroup.account" pad="right"></account-tag>
+          {{ctrl.serverGroup.region}}
+        </dd>
+        <dt>VCN</dt>
+        <dd>{{ctrl.serverGroup.network.name}}</dd>
+        <dt>Subnet</dt>
+        <dd>{{ctrl.serverGroup.subnet.name}}</dd>
+        <dt>Avail Domain</dt>
+        <dd>{{ctrl.serverGroup.zone}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Size" expanded="true">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Desired</dt>
+        <dd>{{ctrl.serverGroup.capacity.desired}}</dd>
+        <dt>Current</dt>
+        <dd>{{ctrl.serverGroup.instances.length}}</dd>
+      </dl>
+    </collapsible-section>
+    <collapsible-section heading="Launch Configuration">
+      <dl class="dl-horizontal dl-flex">
+        <dt>Name</dt>
+        <dd>{{ctrl.serverGroup.name}}</dd>
+        <dt>Image</dt>
+        <dd>{{ctrl.serverGroup.image.name}}</dd>
+        <dt>Instance Type</dt>
+        <dd>{{ctrl.serverGroup.launchConfig.shape}}</dd>
+        <dt>VCN</dt>
+        <dd>{{ctrl.serverGroup.network.name}}</dd>
+        <dt>Subnet</dt>
+        <dd>{{ctrl.serverGroup.subnet.name}}</dd>
+      </dl>
+    </collapsible-section>
+  </div>
+</div>

@@ -59,6 +59,13 @@ window.spinnakerSettings = {
         iamProfile: '{{application}}InstanceProfile',
       },
     },
+    oraclebmcs: {
+      defaults: {
+        account: 'DEFAULT',
+        region: 'us-phoenix-1',
+        bakeryRegions: ['us-phoenix-1']
+      }
+    },
     openstack: {
       defaults: {
         account: 'test',

@@ -1,0 +1,54 @@
+'use strict';
+
+let angular = require('angular');
+
+import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+
+module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize.controller', [
+  require('core/application/modal/platformHealthOverride.directive.js'),
+  require('core/task/modal/reason.directive.js'),
+  TASK_MONITOR_BUILDER,
+  require('./resizeCapacity.component.js'),
+  require('oracle/common/footer.component.js'),
+])
+  .controller('oraclebmcsResizeServerGroupCtrl', function ($scope, $uibModalInstance, taskMonitorBuilder, application, serverGroup) {
+    $scope.serverGroup = serverGroup;
+    $scope.application = application;
+    $scope.verification = {};
+    $scope.command = {};
+    $scope.formMethods = {};
+
+    if (application && application.attributes) {
+      if (application.attributes.platformHealthOnlyShowOverride && application.attributes.platformHealthOnly) {
+        $scope.command.interestingHealthProviderNames = ['Oracle'];
+      }
+
+      $scope.command.platformHealthOnlyShowOverride = application.attributes.platformHealthOnlyShowOverride;
+    }
+
+    this.isValid = function () {
+      if (!$scope.verification.verified) {
+        return false;
+      }
+      return $scope.formMethods.formIsValid();
+    };
+
+    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+      application: application,
+      title: 'Resizing ' + serverGroup.name,
+      modalInstance: $uibModalInstance,
+    });
+
+    this.resize = function () {
+      this.submitting = true;
+      if (!this.isValid()) {
+        return;
+      }
+
+      $scope.taskMonitor.submit($scope.formMethods.submitMethod);
+    };
+
+    this.cancel = function () {
+      $uibModalInstance.dismiss();
+    };
+  });
