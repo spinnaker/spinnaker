@@ -1,7 +1,7 @@
 <!doctype html>
 <html class="no-js" ng-app="netflix.spinnaker">
 <head>
-  <title ng-bind="pageTitle">Spinnaker</title>
+  <title>Spinnaker</title>
   <meta charset="utf-8">
   <meta name="description" content="">
   <meta name="viewport" content="width=device-width">

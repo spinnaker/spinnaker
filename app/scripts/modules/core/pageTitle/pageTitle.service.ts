@@ -30,13 +30,12 @@ interface IPageDataParts {
 }
 
 export class PageTitleService {
-  public static $inject = [ '$rootScope', '$stateParams', '$transitions' ];
-
   private previousPageTitle = 'Spinnaker';
+  private routeCount = 0;
 
   constructor(private $rootScope: IScope, private $stateParams: StateParams, $transitions: TransitionService) {
-    $rootScope.routing = 0;
-
+    'ngInject';
+    document.title = 'Spinnaker: Loading...';
     $transitions.onStart({}, transition => {
       this.handleRoutingStart();
       const onSuccess = () => this.handleRoutingSuccess(transition.to().data);
@@ -46,13 +45,15 @@ export class PageTitleService {
   }
 
   public handleRoutingStart(): void {
-    this.$rootScope.routing++;
+    this.routeCount++;
     this.previousPageTitle = document.title;
+    this.setRoutingFlag();
     document.title = 'Spinnaker: Loading...';
   }
 
   public handleRoutingError(rejection: Rejection): void {
-    this.$rootScope.routing--;
+    this.routeCount--;
+    this.setRoutingFlag();
     const cancelled = rejection.type === RejectType.ABORTED;
     document.title = cancelled ? this.previousPageTitle : 'Spinnaker: Error';
   }
@@ -126,6 +127,10 @@ export class PageTitleService {
       section: this.configureSection(data.pageTitleSection),
       details: this.configureDetails(data.pageTitleDetails)
     };
+  }
+
+  private setRoutingFlag() {
+    this.$rootScope.routing = this.routeCount > 0;
   }
 }
 

@@ -18,7 +18,7 @@ describe('Service: pageTitleService', function() {
       var scope = this.$rootScope;
 
       expect(scope.routing).toBeFalsy();
-      expect(document.title).toBe('');
+      document.title = 'Spinnaker!';
 
       this.pageTitleService.handleRoutingStart();
       expect(scope.routing).toBeTruthy();
