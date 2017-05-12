@@ -367,7 +367,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
     function configureServerGroupCommandForEditing(command) {
       command.viewState.disableStrategySelection = true;
       command.viewState.hideClusterNamePreview = true;
-      command.viewState.readOnlyFields = { credentials: true, region: true, subnet: true };
+      command.viewState.readOnlyFields = { credentials: true, region: true, subnet: true, useSourceCapacity: true };
       delete command.strategy;
     }
 
@@ -393,7 +393,8 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
                   command.viewState.overrides = {
                     capacity: {
                       min: 1, max: 1, desired: 1,
-                    }
+                    },
+                    useSourceCapacity: false,
                   };
                   command.viewState.disableNoTemplateSelection = true;
                   command.viewState.customTemplateMessage = 'Select a template to configure the canary and baseline ' +
