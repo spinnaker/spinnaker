@@ -269,7 +269,7 @@ export class FastPropertyScopeCategoryService {
   public getApplicationByName(applicationName: string): ng.IPromise<Application> {
     return this.applicationReader.getApplication(applicationName)
       .then((application: Application) => {
-        return application.refresh(true)
+        return application.serverGroups.ready()
           .then(() => {
             return application;
           });

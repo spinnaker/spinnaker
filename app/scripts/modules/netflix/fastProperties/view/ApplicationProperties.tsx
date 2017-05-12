@@ -3,7 +3,6 @@ import { groupBy } from 'lodash';
 import { Subscription } from 'rxjs/Subscription';
 import autoBindMethods from 'class-autobind-decorator';
 import { Subject } from 'rxjs/Subject';
-import { Tooltip } from 'react-bootstrap';
 
 import { Property } from '../domain/property.domain';
 import { Application } from 'core/application/application.model';
@@ -155,11 +154,8 @@ export class ApplicationProperties extends React.Component<IProps, IState> {
           </div>
           <div className="form-group pull-right">
             <button className="btn btn-sm btn-default" onClick={this.createFastProperty} style={{margin: '3px'}}>
-              <span className="glyphicon glyphicon-plus-sign visible-lg-inline"/>
-              <Tooltip value="Create Fast Property" id="createFastProperty">
-                <span className="glyphicon glyphicon-plus-sign visible-md-inline visible-sm-inline"/>
-              </Tooltip>
-              <span className="visible-lg-inline"> Create Fast Property</span>
+              <span className="glyphicon glyphicon-plus-sign"/>
+              <span> Create Fast Property</span>
             </button>
           </div>
 
