@@ -84,7 +84,7 @@ export const trueKeyObjectParamType = {
   decode: (val: string) => {
     if (val) {
       const r: any = {};
-      val.split(',').forEach(k => r[k] = true);
+      val.split(',').map(k => k.replace(/%2c/g, ',')).forEach(k => r[k] = true);
       return r;
     }
     return {};
@@ -92,7 +92,7 @@ export const trueKeyObjectParamType = {
   encode: (val: any) => {
     if (val) {
       const r = Object.keys(val).filter(k => val[k]);
-      return r.length ? r.sort().join(',') : null;
+      return r.length ? r.sort().map(k => k.replace(/,/g, '%2c')).join(',') : null;
     }
     return null;
   },
