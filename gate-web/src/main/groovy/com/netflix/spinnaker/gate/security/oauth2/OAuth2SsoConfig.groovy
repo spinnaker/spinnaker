@@ -21,7 +21,6 @@ import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration
-import org.springframework.boot.autoconfigure.web.ServerProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.cloud.security.oauth2.sso.EnableOAuth2Sso
 import org.springframework.cloud.security.oauth2.sso.OAuth2SsoConfigurer
@@ -106,13 +105,7 @@ class OAuth2SsoConfig {
     ExternalAuthTokenFilter externalAuthTokenFilter
 
     @Autowired
-    private OAuth2SsoProperties sso
-
-    @Autowired
-    private ServerProperties serverProperties
-
-    @Autowired
-    private AuthorizationCodeResourceDetails details
+    ExternalSslAwareEntryPoint entryPoint
 
     @Override
     void match(OAuth2SsoConfigurer.RequestMatchers matchers) {
@@ -123,29 +116,29 @@ class OAuth2SsoConfig {
     void configure(HttpSecurity http) throws Exception {
       authConfig.configure(http)
 
-      // There isn't a good, built in way to get the redirect to /login be over https when the
-      // server itself doesn't terminate the SSL connection, so we have to override it.
-      if (!serverProperties.ssl?.enabled && details.preEstablishedRedirectUri?.startsWith("https")) {
-        http.exceptionHandling().authenticationEntryPoint(new ExternalSslEntryPoint(sso.getLoginPath()))
-      }
-
+      http.exceptionHandling().authenticationEntryPoint(entryPoint)
       http.addFilterBefore(externalAuthTokenFilter, AbstractPreAuthenticatedProcessingFilter.class)
     }
   }
 
   /**
-   * This class exists to change the login redirect (to /login) from http to https in instances
-   * where the SSL is terminated outside of this server.
+   * This class exists to change the login redirect (to /login) to the same URL as the
+   * preEstablishedRedirectUri, if set, where the SSL is terminated outside of this server.
    */
-  static class ExternalSslEntryPoint extends LoginUrlAuthenticationEntryPoint {
+  @Component
+  static class ExternalSslAwareEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
-    ExternalSslEntryPoint(String loginFormUrl) {
-      super(loginFormUrl)
+    @Autowired
+    private AuthorizationCodeResourceDetails details
+
+    @Autowired
+    ExternalSslAwareEntryPoint(OAuth2SsoProperties sso) {
+      super(sso.loginPath)
     }
 
     @Override
-    protected String buildRedirectUrlToLoginPage(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
-      return super.buildRedirectUrlToLoginPage(request, response, authException).replaceFirst("http", "https")
+    protected String determineUrlToUseForThisRequest(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) {
+      return details.preEstablishedRedirectUri ?: super.determineUrlToUseForThisRequest(request, response, exception)
     }
   }
 }
