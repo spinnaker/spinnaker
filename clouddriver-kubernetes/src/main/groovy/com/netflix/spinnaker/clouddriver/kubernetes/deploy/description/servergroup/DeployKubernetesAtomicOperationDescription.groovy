@@ -177,6 +177,13 @@ enum KubernetesPullPolicy {
 class KubernetesEnvVarSource {
   KubernetesSecretSource secretSource
   KubernetesConfigMapSource configMapSource
+  KubernetesFieldRefSource fieldRef
+}
+
+@AutoClone
+@Canonical
+class KubernetesFieldRefSource {
+  String fieldPath
 }
 
 @AutoClone

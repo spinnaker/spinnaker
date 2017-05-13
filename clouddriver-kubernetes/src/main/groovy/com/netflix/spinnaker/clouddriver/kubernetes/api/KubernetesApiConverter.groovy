@@ -418,6 +418,9 @@ class KubernetesApiConverter {
           } else if (envVar.envSource.secretSource) {
             def secret = envVar.envSource.secretSource
             res = res.withNewSecretKeyRef(secret.key, secret.secretName)
+          } else if (envVar.envSource.fieldRef) {
+            def fieldPath = envVar.envSource.fieldRef.fieldPath
+            res = res.withNewFieldRef().withFieldPath(fieldPath)
           } else {
             return null
           }
@@ -535,6 +538,9 @@ class KubernetesApiConverter {
         } else if (envVar.valueFrom.secretKeyRef) {
           def secret = envVar.valueFrom.secretKeyRef
           source.secretSource = new KubernetesSecretSource(key: secret.key, secretName: secret.name)
+        } else if (envVar.valueFrom.fieldRef) {
+          def fieldPath = envVar.valueFrom.fieldRef.fieldPath;
+          source.fieldRef = new KubernetesFieldRefSource(fieldPath: fieldPath)
         } else {
           return null
         }
