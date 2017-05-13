@@ -228,7 +228,13 @@ function process_args() {
 
 
 function create_cleaner_instance() {
+  # see https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#instance-only
+  local key=$(cat $HOME/.ssh/google_empty.pub)
+  if [[ $key == ssh-rsa* ]]; then
+      key="$LOGNAME:$key"
+  fi
   gcloud compute instances create ${CLEANER_INSTANCE} \
+      --metadata ssh-keys="$key" \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \

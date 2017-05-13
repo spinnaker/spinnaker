@@ -154,7 +154,7 @@ function create_component_prototype_disk() {
   sleep 120 # Wait for the startup scripts to complete.
 
   echo "`date`: Installing $component and spinnaker-monitoring onto '$BUILD_INSTANCE'"
-  sudo gcloud alpha compute ssh $BUILD_INSTANCE \
+  gcloud alpha compute ssh $BUILD_INSTANCE \
     --internal-ip \
     --project $BUILD_PROJECT \
     --account $ACCOUNT \
@@ -164,7 +164,7 @@ function create_component_prototype_disk() {
 
   if [[ "$UPDATE_OS" == "true" ]]; then
     echo "`date`: Updating distribution on '$BUILD_INSTANCE'"
-    sudo gcloud alpha compute ssh $BUILD_INSTANCE \
+    gcloud alpha compute ssh $BUILD_INSTANCE \
       --internal-ip \
       --project $BUILD_PROJECT \
       --account $ACCOUNT \
