@@ -1,0 +1,194 @@
+aws:
+  bakeryDefaults:
+    baseImages:
+    - baseImage:
+        id: ubuntu
+        shortDescription: v12.04
+        detailedDescription: Ubuntu Precise Pangolin v12.04
+        packageType: deb
+        templateFile: aws-ebs.json
+      virtualizationSettings:
+      - region: us-east-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-d4aed0bc
+        sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-4f285a2f
+        sshUserName: ubuntu
+      - region: us-west-2
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-59396769
+        sshUserName: ubuntu
+      - region: us-east-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-8007b2e8
+        sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-3a12605a
+        sshUserName: ubuntu
+    - baseImage:
+        id: trusty
+        shortDescription: v14.04
+        detailedDescription: Ubuntu Trusty Tahr v14.04
+        packageType: deb
+      virtualizationSettings:
+      - region: us-east-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-9eaa1cf6
+        sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-12512d72
+        sshUserName: ubuntu
+      - region: us-west-2
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-3d50120d
+        sshUserName: ubuntu
+      - region: eu-central-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-87564feb
+        sshUserName: ubuntu
+      - region: eu-west-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-f95ef58a
+        sshUserName: ubuntu
+      - region: us-east-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-98aa1cf0
+        sshUserName: ubuntu
+      - region: us-west-1
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-59502c39
+        sshUserName: ubuntu
+      - region: us-west-2
+        virtualizationType: pv
+        instanceType: m3.medium
+        sourceAmi: ami-37501207
+        sshUserName: ubuntu
+    - baseImage:
+        id: windows-2012-r2
+        shortDescription: 2012 R2
+        detailedDescription: Windows Server 2012 R2 Base
+        packageType: nupkg
+        templateFile: aws-windows-2012-r2.json
+        osType: windows
+      virtualizationSettings:
+      - region: us-east-1
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-21414f36
+        winRmUserName: Administrator
+
+azure:
+  bakeryDefaults:
+    templateFile: azure-linux.json
+    baseImages:
+    - baseImage:
+        id: ubuntu
+        shortDescription: v14.05
+        detailedDescription: Ubuntu Server 14.04.5-LTS
+        publisher: Canonical
+        offer: UbuntuServer
+        sku: 14.04.5-LTS
+        version: 14.04.201612130
+        osType: Linux
+        packageType: deb
+    - baseImage:
+        id: centos
+        shortDescription: 7
+        detailedDescription: OpenLogic CentOS 7.1.20150731
+        publisher: OpenLogic
+        offer: CentOS
+        sku: 7.1
+        version: 7.1.20150731
+        osType: Linux
+        packageType: rpm
+    - baseImage:
+        id: windows-2012-r2
+        shortDescription: 2012 R2
+        detailedDescription: Windows Server 2012 R2 Datacenter
+        publisher: MicrosoftWindowsServer
+        offer: WindowsServer
+        sku: 2012-R2-Datacenter
+        version: 4.0.20170111
+        osType: windows
+        packageType: nupkg
+        templateFile: azure-windows-2012-r2.json
+
+docker:
+  bakeryDefaults:
+    baseImages:
+    - baseImage:
+        id: precise
+        shortDescription: v12.04
+        detailedDescription: Ubuntu Precise Pangolin v12.04
+        packageType: deb
+      virtualizationSettings:
+        sourceImage: ubuntu:precise
+    - baseImage:
+        id: trusty
+        shortDescription: v14.04
+        detailedDescription: Ubuntu Trusty Tahr v14.04
+        packageType: deb
+      virtualizationSettings:
+        sourceImage: ubuntu:trusty
+
+google:
+  bakeryDefaults:
+    baseImages:
+    - baseImage:
+        id: precise
+        shortDescription: v12.04
+        detailedDescription: Ubuntu Precise Pangolin v12.04
+        packageType: deb
+        isImageFamily: true
+      virtualizationSettings:
+        sourceImageFamily: ubuntu-1204-lts
+    - baseImage:
+        id: trusty
+        shortDescription: v14.04
+        detailedDescription: Ubuntu Trusty Tahr v14.04
+        packageType: deb
+        isImageFamily: true
+      virtualizationSettings:
+        sourceImageFamily: ubuntu-1404-lts
+    - baseImage:
+        id: xenial
+        shortDescription: v16.04
+        detailedDescription: Ubuntu Xenial Xerus v16.04
+        packageType: deb
+        isImageFamily: true
+      virtualizationSettings:
+        sourceImageFamily: ubuntu-1604-lts
+
+openstack:
+  bakeryDefaults:
+    baseImages:
+    - baseImage:
+        id: vivid
+        shortDescription: 15.04
+        detailedDescription: Ubuntu Vivid Vervet v15.04
+        packageType: deb
+      virtualizationSettings:
+      - region: r1
+        instanceType: smem-2vcpu
+        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818d
+        sshUserName: ubuntu
+      - region: r2
+        instanceType: smem-2vcpu
+        sourceImageId: b12f2467-cfca-4a65-b29b-d11b8c46818e
+        sshUserName: ubuntu
