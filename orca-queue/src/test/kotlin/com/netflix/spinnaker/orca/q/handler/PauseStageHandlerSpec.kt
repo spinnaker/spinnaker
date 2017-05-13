@@ -27,6 +27,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object PauseStageHandlerSpec : SubjectSpek<PauseStageHandler>({
@@ -34,7 +35,7 @@ object PauseStageHandlerSpec : SubjectSpek<PauseStageHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
 
-  subject {
+  subject(GROUP) {
     PauseStageHandler(queue, repository)
   }
 

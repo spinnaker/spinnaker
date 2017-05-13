@@ -27,6 +27,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object CancelStageHandlerSpec : SubjectSpek<CancelStageHandler>({
@@ -35,7 +36,7 @@ object CancelStageHandlerSpec : SubjectSpek<CancelStageHandler>({
   val executor = MoreExecutors.directExecutor()
   val cancellableStage: CancelableStageDefinitionBuilder = mock()
 
-  subject {
+  subject(GROUP) {
     CancelStageHandler(
       queue,
       repository,

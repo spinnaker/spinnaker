@@ -26,6 +26,7 @@ import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.springframework.context.ApplicationEventPublisher
@@ -37,7 +38,7 @@ object StartTaskHandlerSpec : SubjectSpek<StartTaskHandler>({
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
-  subject {
+  subject(GROUP) {
     StartTaskHandler(queue, repository, publisher, clock)
   }
 

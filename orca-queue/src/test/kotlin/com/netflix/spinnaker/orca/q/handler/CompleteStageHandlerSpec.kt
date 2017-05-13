@@ -27,6 +27,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
 
@@ -37,7 +38,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
 
-  subject {
+  subject(GROUP) {
     CompleteStageHandler(queue, repository, publisher, clock)
   }
 

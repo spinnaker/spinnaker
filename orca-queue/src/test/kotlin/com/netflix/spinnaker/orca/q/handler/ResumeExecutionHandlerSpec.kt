@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object ResumeExecutionHandlerSpec : SubjectSpek<ResumeExecutionHandler>({
@@ -30,7 +31,7 @@ object ResumeExecutionHandlerSpec : SubjectSpek<ResumeExecutionHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
 
-  subject {
+  subject(GROUP) {
     ResumeExecutionHandler(queue, repository)
   }
 

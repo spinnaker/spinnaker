@@ -26,6 +26,7 @@ import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object MessageHandlerSpec : SubjectSpek<MessageHandler<*>>({
@@ -34,7 +35,7 @@ object MessageHandlerSpec : SubjectSpek<MessageHandler<*>>({
   val repository: ExecutionRepository = mock()
   val handleCallback: (Message) -> Unit = mock()
 
-  subject {
+  subject(GROUP) {
     object : MessageHandler<ConfigurationError> {
       override val queue
         get() = queue

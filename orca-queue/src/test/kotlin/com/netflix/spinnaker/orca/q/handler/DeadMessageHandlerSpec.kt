@@ -24,13 +24,14 @@ import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object DeadMessageHandlerSpec : SubjectSpek<DeadMessageHandler>({
 
   val queue: Queue = mock()
 
-  subject {
+  subject(GROUP) {
     DeadMessageHandler()
   }
 

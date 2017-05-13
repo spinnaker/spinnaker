@@ -24,6 +24,7 @@ import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
 object ResumeStageHandlerSpec : SubjectSpek<ResumeStageHandler>({
@@ -31,7 +32,7 @@ object ResumeStageHandlerSpec : SubjectSpek<ResumeStageHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
 
-  subject {
+  subject(GROUP) {
     ResumeStageHandler(queue, repository)
   }
 

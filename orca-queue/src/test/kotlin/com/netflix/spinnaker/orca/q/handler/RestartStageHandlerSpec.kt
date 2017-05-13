@@ -31,6 +31,7 @@ import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import java.time.Clock.fixed
 import java.time.Instant.now
@@ -44,7 +45,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
   val repository: ExecutionRepository = mock()
   val clock = fixed(now(), systemDefault())
 
-  subject {
+  subject(GROUP) {
     RestartStageHandler(
       queue,
       repository,

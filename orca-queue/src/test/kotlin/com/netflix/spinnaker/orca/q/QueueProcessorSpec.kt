@@ -30,6 +30,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.SCOPE
 import org.jetbrains.spek.subject.SubjectSpek
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
@@ -48,7 +49,7 @@ object QueueProcessorSpec : SubjectSpek<QueueProcessor>({
 
     fun resetMocks() = reset(queue, startExecutionHandler, configurationErrorHandler, ackFunction)
 
-    subject {
+    subject(SCOPE) {
       QueueProcessor(
         queue,
         BlockingThreadExecutor(),

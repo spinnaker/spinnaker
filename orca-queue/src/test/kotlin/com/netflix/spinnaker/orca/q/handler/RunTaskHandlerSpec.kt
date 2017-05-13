@@ -31,6 +31,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
 import java.lang.RuntimeException
@@ -44,7 +45,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
   val exceptionHandler: ExceptionHandler<in Exception> = mock()
   val clock = fixedClock()
 
-  subject {
+  subject(GROUP) {
     RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler))
   }
 
