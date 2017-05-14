@@ -1,4 +1,5 @@
-import { chain, debounce, find, forOwn, groupBy, includes, map, some, sortBy, without } from 'lodash';
+import { chain, find, forOwn, groupBy, includes, map, some, sortBy, without } from 'lodash';
+import { Debounce } from 'lodash-decorators';
 import { ILogService, module } from 'angular';
 import { Subject } from 'rxjs/Subject';
 import autoBindMethods from 'class-autobind-decorator';
@@ -23,7 +24,6 @@ export class LoadBalancerFilterService {
     this.isFilterable = filterModelService.isFilterable;
     this.getCheckValues = filterModelService.getCheckValues;
 
-    this.updateLoadBalancerGroups = debounce(this.updateLoadBalancerGroups, 25);
   }
 
   private addSearchFields(loadBalancer: ILoadBalancer): void {
@@ -75,7 +75,7 @@ export class LoadBalancerFilterService {
       this.isFilterable(this.LoadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone);
   }
 
-  private shouldShowInstance(instance: Instance): boolean {
+  public shouldShowInstance(instance: Instance): boolean {
     if (this.isFilterable(this.LoadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone)) {
       const checkedAvailabilityZones = this.getCheckValues(this.LoadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone);
       if (!checkedAvailabilityZones.includes(instance.zone)) {
@@ -187,7 +187,8 @@ export class LoadBalancerFilterService {
     return val;
   }
 
-  public updateLoadBalancerGroups(application: Application) {
+  @Debounce(25)
+  public updateLoadBalancerGroups(application: Application): void {
     if (!application) {
       application = this.lastApplication;
       if (!this.lastApplication) {
@@ -226,13 +227,14 @@ export class LoadBalancerFilterService {
     this.LoadBalancerFilterModel.asFilterModel.addTags();
     this.lastApplication = application;
     this.groupsUpdatedStream.next(groups);
-    return groups;
   };
 }
 
+export let loadBalancerFilterService: LoadBalancerFilterService = undefined;
 export const LOAD_BALANCER_FILTER_SERVICE = 'spinnaker.core.loadBalancer.filter.service';
 module(LOAD_BALANCER_FILTER_SERVICE, [
   LOAD_BALANCER_FILTER_MODEL,
   require('../../filterModel/filter.model.service.js')
 ]).factory('loadBalancerFilterService', (LoadBalancerFilterModel: LoadBalancerFilterModel, filterModelService: any, $log: ILogService) =>
-                                        new LoadBalancerFilterService(LoadBalancerFilterModel, filterModelService, $log));
+                                        new LoadBalancerFilterService(LoadBalancerFilterModel, filterModelService, $log))
+  .run(($injector: any) => loadBalancerFilterService = <LoadBalancerFilterService>$injector.get('loadBalancerFilterService'));

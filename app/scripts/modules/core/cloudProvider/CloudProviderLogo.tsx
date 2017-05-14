@@ -10,7 +10,7 @@ interface IProps {
   provider: string;
   height: string;
   width: string;
-  showTooltip: boolean;
+  showTooltip?: boolean;
 }
 
 interface IState {

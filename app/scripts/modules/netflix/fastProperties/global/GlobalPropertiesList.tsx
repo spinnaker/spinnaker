@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { groupBy, debounce } from 'lodash';
+import { groupBy } from 'lodash';
+import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs/Subject';
 import autoBindMethods from 'class-autobind-decorator';
 import { Tooltip } from 'react-bootstrap';
@@ -56,22 +57,6 @@ export class GlobalPropertiesList extends React.Component<IProps, IState> {
   private filtersUpdatedStream: Subject<IFilterTag[]> = new Subject<IFilterTag[]>();
   private stateChangeListener: Subscription;
 
-  private performSearch = debounce((searchTerm: string) => {
-    $state.go('.', {q: searchTerm});
-    this.setState({loading: true});
-    fastPropertyReader.search(searchTerm).then((data) => {
-      return data.map((fp) => {
-        fp.appId = fp.appId || 'All (Global)';
-        return fp;
-      });
-    }).then((searchResults) => {
-      this.setState({loading: false});
-      this.allPropertiesChanged(searchResults);
-    }).catch(() => {
-      this.setState({filteredProperties: undefined, groupedProperties: undefined, loading: false});
-    });
-  }, 300);
-
   private searchEntered(e: React.ChangeEvent<HTMLInputElement>): void {
     const searchTerm = e.target.value;
     this.setState({searchTerm});
@@ -95,6 +80,24 @@ export class GlobalPropertiesList extends React.Component<IProps, IState> {
     }
     this.stateChangeListener = stateEvents.stateChangeSuccess.subscribe(() => this.filtersChanged(this.state.filters));
   }
+
+  @Debounce(300)
+  private performSearch(searchTerm: string): void {
+    $state.go('.', {q: searchTerm});
+    this.setState({loading: true});
+    fastPropertyReader.search(searchTerm).then((data) => {
+      return data.map((fp) => {
+        fp.appId = fp.appId || 'All (Global)';
+        return fp;
+      });
+    }).then((searchResults) => {
+      this.setState({loading: false});
+      this.allPropertiesChanged(searchResults);
+    }).catch(() => {
+      this.setState({filteredProperties: undefined, groupedProperties: undefined, loading: false});
+    });
+  }
+
 
   public componentWillUnmount() {
     this.filtersUpdatedStream = null;

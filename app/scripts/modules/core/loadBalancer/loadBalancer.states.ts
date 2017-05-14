@@ -5,10 +5,12 @@ import { INestedState, StateConfigProvider } from 'core/navigation/state.provide
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/application/application.state.provider';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
+import { LOAD_BALANCERS_COMPONENT } from 'core/loadBalancer/loadBalancers.component';
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [
-  APPLICATION_STATE_PROVIDER
+  APPLICATION_STATE_PROVIDER,
+  LOAD_BALANCERS_COMPONENT
 ]).config((applicationStateProvider: ApplicationStateProvider, stateConfigProvider: StateConfigProvider) => {
 
   const loadBalancerDetails: INestedState = {
@@ -67,9 +69,7 @@ module(LOAD_BALANCER_STATES, [
         template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
       },
       'master': {
-        templateUrl: require('../loadBalancer/all.html'),
-        controller: 'AllLoadBalancersCtrl',
-        controllerAs: 'ctrl'
+        template: '<load-balancers app="$resolve.app" style="display: flex;flex: 1 1 auto"></load-balancers>',
       }
     },
     params: stateConfigProvider.buildDynamicParams(filterModelConfig),

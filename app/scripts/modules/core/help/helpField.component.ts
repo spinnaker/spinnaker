@@ -122,7 +122,7 @@ export class HelpFieldComponent implements IComponentOptions {
 
 export class HelpFieldWrapperComponent implements IComponentOptions {
   public bindings: any = {
-    key: '<',
+    id: '<',
     fallback: '<',
     content: '<',
     placement: '<',
@@ -130,7 +130,7 @@ export class HelpFieldWrapperComponent implements IComponentOptions {
     label: '<'
   };
   public template = `<help-field content="{{::$ctrl.content}}"
-                                 key="{{$ctrl.key}}"
+                                 key="{{::$ctrl.id}}"
                                  fallback="{{$ctrl.fallback}}"
                                  placement="{{$ctrl.placement}}"
                                  expand="$ctrl.expand"

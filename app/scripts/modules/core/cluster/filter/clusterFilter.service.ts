@@ -1,5 +1,6 @@
 import { ILogService, module } from 'angular';
-import { debounce, each, forOwn, groupBy, sortBy } from 'lodash';
+import { each, forOwn, groupBy, sortBy } from 'lodash';
+import { Debounce } from 'lodash-decorators';
 import { StateParams } from 'angular-ui-router';
 import { Subject } from 'rxjs/Subject';
 
@@ -8,7 +9,7 @@ import { ServerGroup } from 'core/domain/serverGroup';
 import { ICluster } from 'core/domain';
 import { Instance } from 'core/domain/instance';
 import { IEntityTags } from 'core/domain/IEntityTags';
-import { CLUSTER_FILTER_MODEL } from './clusterFilter.model';
+import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
 
 interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
@@ -46,7 +47,20 @@ export class ClusterFilterService {
 
   public groupsUpdatedStream: Subject<IClusterGroup[]> = new Subject<IClusterGroup[]>();
 
-  public updateClusterGroups = debounce((application?: Application) => {
+  private lastApplication: Application;
+
+  private isFilterable: (sortFilter: any) => boolean = this.filterModelService.isFilterable;
+
+  public constructor(private ClusterFilterModel: ClusterFilterModel,
+                     private MultiselectModel: any,
+                     private $log: ILogService,
+                     private $stateParams: StateParams,
+                     private filterModelService: any) {
+    'ngInject';
+  }
+
+  @Debounce(25)
+  public updateClusterGroups(application?: Application): void {
     if (!application) {
       application = this.lastApplication;
       if (!this.lastApplication) {
@@ -104,42 +118,31 @@ export class ClusterFilterService {
     });
 
     this.sortGroupsByHeading(groups);
-    this.ClusterFilterModel.addTags();
+    this.ClusterFilterModel.asFilterModel.addTags();
     this.lastApplication = application;
     this.addHealthFlags();
     this.groupsUpdatedStream.next(groups);
-    return groups;
-  }, 25);
-
-  private lastApplication: Application;
-
-  private isFilterable: (sortFilter: any) => boolean = this.filterModelService.isFilterable;
-
-  public constructor(private ClusterFilterModel: any, private MultiselectModel: any,
-                     private $log: ILogService, private $stateParams: StateParams,
-                     private filterModelService: any) {
-    'ngInject';
   }
 
   public clearFilters(): void {
-    this.ClusterFilterModel.clearFilters();
-    this.ClusterFilterModel.applyParamsToUrl();
+    this.ClusterFilterModel.asFilterModel.clearFilters();
+    this.ClusterFilterModel.asFilterModel.applyParamsToUrl();
   }
 
   public shouldShowInstance(instance: Instance): boolean {
-    if (this.isFilterable(this.ClusterFilterModel.sortFilter.availabilityZone)) {
-      const checkedAvailabilityZones: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.availabilityZone);
+    if (this.isFilterable(this.ClusterFilterModel.asFilterModel.sortFilter.availabilityZone)) {
+      const checkedAvailabilityZones: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.asFilterModel.sortFilter.availabilityZone);
       if (!checkedAvailabilityZones.includes(instance.availabilityZone)) {
         return false;
       }
     }
-    if (this.isFilterable(this.ClusterFilterModel.sortFilter.status)) {
-      const allCheckedValues: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.status);
+    if (this.isFilterable(this.ClusterFilterModel.asFilterModel.sortFilter.status)) {
+      const allCheckedValues: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.asFilterModel.sortFilter.status);
       const checkedStatus = allCheckedValues.filter(s => s !== 'Disabled');
       if (!checkedStatus.length) {
         return true;
       }
-      if (this.ClusterFilterModel.sortFilter.status.Disabled) {
+      if (this.ClusterFilterModel.asFilterModel.sortFilter.status.Disabled) {
         // filtering should be performed on the server group; always show instances
         return true;
       }
@@ -150,33 +153,33 @@ export class ClusterFilterService {
 
   public overrideFiltersForUrl(result: any): void {
     if (result.href.includes('/clusters')) {
-      this.ClusterFilterModel.clearFilters();
-      this.ClusterFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
+      this.ClusterFilterModel.asFilterModel.clearFilters();
+      this.ClusterFilterModel.asFilterModel.sortFilter.filter = result.serverGroup ? result.serverGroup :
         result.cluster ? 'cluster:' + result.cluster : '';
       if (result.account) {
         const acct: any = {};
         acct[result.account] = true;
-        this.ClusterFilterModel.sortFilter.account = acct;
+        this.ClusterFilterModel.asFilterModel.sortFilter.account = acct;
       }
       if (result.region) {
         const reg: any = {};
         reg[result.region] = true;
-        this.ClusterFilterModel.sortFilter.region = reg;
+        this.ClusterFilterModel.asFilterModel.sortFilter.region = reg;
       }
       if (result.stack) {
         const stack: any = {};
         stack[result.stack] = true;
-        this.ClusterFilterModel.sortFilter.stack = stack;
+        this.ClusterFilterModel.asFilterModel.sortFilter.stack = stack;
       }
       if (result.detail) {
         const detail: any = {};
         detail[result.detail] = true;
-        this.ClusterFilterModel.sortFilter.detail = detail;
+        this.ClusterFilterModel.asFilterModel.sortFilter.detail = detail;
       }
       if (result.category) {
         const category: any = {};
         category[result.category] = true;
-        this.ClusterFilterModel.sortFilter.category = category;
+        this.ClusterFilterModel.asFilterModel.sortFilter.category = category;
       }
       if (this.$stateParams.application === result.application) {
         this.updateClusterGroups();
@@ -204,7 +207,7 @@ export class ClusterFilterService {
   private updateMultiselectInstanceGroups(serverGroups: ServerGroup[]): void {
     // removes instance groups, selection of instances that are no longer visible;
     // adds new instance ids if selectAll is enabled for an instance group
-    if (this.ClusterFilterModel.sortFilter.listInstances && this.ClusterFilterModel.sortFilter.multiselect) {
+    if (this.ClusterFilterModel.asFilterModel.sortFilter.listInstances && this.ClusterFilterModel.asFilterModel.sortFilter.multiselect) {
       let instancesSelected = 0;
       this.MultiselectModel.instanceGroups.forEach((instanceGroup: any) => {
         const match = serverGroups.find((serverGroup) => {
@@ -238,7 +241,7 @@ export class ClusterFilterService {
   }
 
   private updateMultiselectServerGroups(serverGroups: ServerGroup[]): void {
-    if (this.ClusterFilterModel.sortFilter.multiselect) {
+    if (this.ClusterFilterModel.asFilterModel.sortFilter.multiselect) {
       if (this.MultiselectModel.serverGroups.length) {
         const remainingKeys = serverGroups.map(s => this.MultiselectModel.makeServerGroupKey(s));
         const toRemove: number[] = [];
@@ -256,8 +259,8 @@ export class ClusterFilterService {
   }
 
   private instanceTypeFilters(serverGroup: ServerGroup): boolean {
-    if (this.isFilterable(this.ClusterFilterModel.sortFilter.instanceType)) {
-      const checkedInstanceTypes: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.sortFilter.instanceType);
+    if (this.isFilterable(this.ClusterFilterModel.asFilterModel.sortFilter.instanceType)) {
+      const checkedInstanceTypes: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.asFilterModel.sortFilter.instanceType);
       return checkedInstanceTypes.includes(serverGroup.instanceType);
     } else {
       return true;
@@ -269,25 +272,25 @@ export class ClusterFilterService {
   }
 
   private shouldFilterInstances(): boolean {
-    return this.isFilterable(this.ClusterFilterModel.sortFilter.availabilityZone) ||
-      (this.isFilterable(this.ClusterFilterModel.sortFilter.status) &&
-      !this.ClusterFilterModel.sortFilter.status.hasOwnProperty('Disabled'));
+    return this.isFilterable(this.ClusterFilterModel.asFilterModel.sortFilter.availabilityZone) ||
+      (this.isFilterable(this.ClusterFilterModel.asFilterModel.sortFilter.status) &&
+      !this.ClusterFilterModel.asFilterModel.sortFilter.status.hasOwnProperty('Disabled'));
   }
 
   private instanceCountFilter(serverGroup: ServerGroup): boolean {
     let shouldInclude = true;
-    if (this.ClusterFilterModel.sortFilter.minInstances && !isNaN(this.ClusterFilterModel.sortFilter.minInstances)) {
-      shouldInclude = serverGroup.instances.length >= this.ClusterFilterModel.sortFilter.minInstances;
+    if (this.ClusterFilterModel.asFilterModel.sortFilter.minInstances && !isNaN(this.ClusterFilterModel.asFilterModel.sortFilter.minInstances)) {
+      shouldInclude = serverGroup.instances.length >= this.ClusterFilterModel.asFilterModel.sortFilter.minInstances;
     }
-    if (shouldInclude && this.ClusterFilterModel.sortFilter.maxInstances !== null
-      && !isNaN(this.ClusterFilterModel.sortFilter.maxInstances)) {
-        shouldInclude = serverGroup.instances.length <= this.ClusterFilterModel.sortFilter.maxInstances;
+    if (shouldInclude && this.ClusterFilterModel.asFilterModel.sortFilter.maxInstances !== null
+      && !isNaN(this.ClusterFilterModel.asFilterModel.sortFilter.maxInstances)) {
+        shouldInclude = serverGroup.instances.length <= this.ClusterFilterModel.asFilterModel.sortFilter.maxInstances;
     }
     return shouldInclude;
   }
 
   private textFilter(serverGroup: ServerGroup): boolean {
-    const filter: string = this.ClusterFilterModel.sortFilter.filter.toLowerCase();
+    const filter: string = this.ClusterFilterModel.asFilterModel.sortFilter.filter.toLowerCase();
     if (!filter) {
       return true;
     }
@@ -361,13 +364,13 @@ export class ClusterFilterService {
   }
 
   private sortGroupsByHeading(groups: IClusterGroup[]): void {
-    this.diffSubgroups(this.ClusterFilterModel.groups, groups);
+    this.diffSubgroups(this.ClusterFilterModel.asFilterModel.groups, groups);
     // sort groups in place so Angular doesn't try to update the world
-    this.ClusterFilterModel.groups.sort((a: IClusterGroup, b: IClusterGroup) => a.heading.localeCompare(b.heading));
+    this.ClusterFilterModel.asFilterModel.groups.sort((a: IClusterGroup, b: IClusterGroup) => a.heading.localeCompare(b.heading));
   }
 
   private addHealthFlags(): void {
-    this.ClusterFilterModel.groups.forEach((group: IClusterGroup) => {
+    this.ClusterFilterModel.asFilterModel.groups.forEach((group: IClusterGroup) => {
       group.subgroups.forEach((subgroup: IClusterSubgroup) => {
         subgroup.hasDiscovery = subgroup.subgroups.some(g => this.hasDiscovery(g));
         subgroup.hasLoadBalancers = subgroup.subgroups.some(g => this.hasLoadBalancers(g));
@@ -469,10 +472,12 @@ export class ClusterFilterService {
 
 }
 
+export let clusterFilterService: ClusterFilterService;
 export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
 module(CLUSTER_FILTER_SERVICE, [
   require('angular-ui-router').default,
   CLUSTER_FILTER_MODEL,
   require('./multiselect.model'),
   require('../../filterModel/filter.model.service'),
-]).service('clusterFilterService', ClusterFilterService);
+]).service('clusterFilterService', ClusterFilterService)
+  .run(($injector: any) => clusterFilterService = <ClusterFilterService>$injector.get('clusterFilterService'));

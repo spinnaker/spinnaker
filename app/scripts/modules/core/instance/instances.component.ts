@@ -1,13 +1,18 @@
 import * as $ from 'jquery';
-import { get, last, sortBy } from 'lodash';
-import { IComponentController, IComponentOptions, IRootScopeService, IScope, ITimeoutService, module } from 'angular';
-import { PathNode, StateService } from 'angular-ui-router';
+import { get, last } from 'lodash';
+import { StateParams, PathNode, StateService } from '@uirouter/core';
+import { IChangesObject, IComponentController, IComponentOptions, IOnChangesObject, IRootScopeService, IScope, ITimeoutService, module } from 'angular';
 
 import { Instance } from 'core/domain';
 
 interface IActiveInstance {
   instanceId: string;
   provider: string;
+}
+
+interface IOnChanges extends IOnChangesObject {
+  instances: IChangesObject<Instance[]>;
+  highlight: IChangesObject<string>;
 }
 
 export class InstancesController implements IComponentController {
@@ -21,7 +26,8 @@ export class InstancesController implements IComponentController {
                      private $scope: IScope,
                      private $element: JQuery,
                      private $timeout: ITimeoutService,
-                     private $state: StateService) {
+                     private $state: StateService,
+                     private $stateParams: StateParams) {
     'ngInject';
   }
 
@@ -32,15 +38,18 @@ export class InstancesController implements IComponentController {
 
   private renderInstances(): void {
     this.activeInstance = null;
-    const instances = sortBy(this.instances, 'launchTime');
+    const instances = (this.instances || []).sort((a, b) => a.launchTime - b.launchTime);
+    const showingDetails = this.$state.current.name.endsWith('.instanceDetails'),
+          showingId = this.$stateParams.instanceId,
+          showingProvider = this.$stateParams.provider;
+
     const innerHtml = '<div class="instances">' + instances.map((instance) => {
-        const id = instance.id,
-              params = { instanceId: instance.id, provider: instance.provider };
+        const id = instance.id;
         let activeClass = '';
 
-        if (this.$state.includes('**.instanceDetails', params)) {
+        if (showingDetails && showingId === instance.id && showingProvider === instance.provider) {
           activeClass = ' active';
-          this.activeInstance = params;
+          this.activeInstance = { instanceId: instance.id, provider: instance.provider };
         }
         if (this.highlight === id) {
           activeClass += ' highlighted';
@@ -106,6 +115,12 @@ export class InstancesController implements IComponentController {
     this.$scope.$watch('highlight', () => this.renderInstances());
   }
 
+  public $onChanges(changes: IOnChanges): void {
+    if (changes.instances && !changes.instances.isFirstChange()) {
+      this.renderInstances();
+    }
+  }
+
   public $onDestroy(): void {
     this.removeTooltips();
     this.$element.unbind('mouseover');
@@ -121,6 +136,16 @@ export class InstancesComponent implements IComponentOptions {
   public controller: any = InstancesController;
 }
 
+export class InstancesWrapperComponent implements IComponentOptions {
+  public bindings: any = {
+    instances: '<',
+    highlight: '<'
+  };
+  public controller: any = InstancesController;
+  public template = `<instances instances="$ctrl.instances" highlight="$ctrl.highlight"/>`;
+}
+
 export const INSTANCES_COMPONENT = 'spinnaker.core.instance.instances.component';
 module(INSTANCES_COMPONENT, [])
-  .component('instances', new InstancesComponent());
+  .component('instances', new InstancesComponent())
+  .component('instancesWrapper', new InstancesWrapperComponent());

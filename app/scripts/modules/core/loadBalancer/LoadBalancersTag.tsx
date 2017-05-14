@@ -160,7 +160,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
           )}
           { this.state.showPopover && (
             <div className="menu-load-balancers">
-              <div>
+              <div className="menu-load-balancers-header">
                 Load Balancers
               </div>
               {sortBy(this.state.loadBalancers, 'name').map((loadBalancer) => <LoadBalancerListItem key={loadBalancer.name} loadBalancer={loadBalancer} onItemClick={this.showLoadBalancerDetails}/>)}

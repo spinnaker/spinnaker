@@ -4,7 +4,6 @@ import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
 import { ILoadBalancerGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 
-export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
   { model: 'account', param: 'acct', type: 'trueKeyObject' },
@@ -102,7 +101,10 @@ export class LoadBalancerFilterModel {
   }
 }
 
+export let loadBalancerFilterModel: LoadBalancerFilterModel;
+export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
 module(LOAD_BALANCER_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
   require('core/navigation/urlParser.service'),
-]).service('LoadBalancerFilterModel', LoadBalancerFilterModel);
+]).service('LoadBalancerFilterModel', LoadBalancerFilterModel)
+  .run(($injector: any) => loadBalancerFilterModel = <LoadBalancerFilterModel>$injector.get('LoadBalancerFilterModel'));

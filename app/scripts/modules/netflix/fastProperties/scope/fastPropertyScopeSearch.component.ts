@@ -1,4 +1,5 @@
-import { debounce, values } from 'lodash';
+import { values } from 'lodash';
+import { Debounce } from 'lodash-decorators';
 import { module, IComponentController, IComponentOptions, IQService} from 'angular';
 
 import { CATEGORY_BUTTON_LIST_COMPONENT } from './categoryButtonList.component';
@@ -69,7 +70,6 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
               private fastPropertyScopeSearchCategoryService: FastPropertyScopeCategoryService) {
     'ngInject';
     this.search = infrastructureSearchService();
-    this.executeQuery = debounce(this.executeQuery, 400);
   }
 
   public clearFilters() {
@@ -103,7 +103,8 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
     this.executeQuery();
   }
 
-  private executeQuery() {
+  @Debounce(400)
+  private executeQuery(): void {
     this.querying = true;
     this.search
       .query(this.query)

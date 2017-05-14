@@ -2,14 +2,15 @@
 
 const angular = require('angular');
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {CLUSTER_POD_COMPONENT} from 'core/cluster/clusterPod.component';
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import {CLUSTER_FILTER} from './filter/clusterFilter.component';
-import {INSIGHT_NGMODULE} from 'core/insight/insight.module';
-import {CLUSTER_FILTER_MODEL} from '../cluster/filter/clusterFilter.model';
-import {FILTER_TAGS_COMPONENT} from '../filterModel/filterTags.component';
+import { CLOUD_PROVIDER_REGISTRY } from 'core/cloudProvider/cloudProvider.registry';
+import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
+import { CLUSTER_POD_COMPONENT } from 'core/cluster/clusterPod.component';
+import { SERVER_GROUP_COMMAND_BUILDER_SERVICE } from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
+import { CLUSTER_FILTER } from './filter/clusterFilter.component';
+import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
+import { CLUSTER_FILTER_MODEL } from '../cluster/filter/clusterFilter.model';
+import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
+import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
 
 import './rollups.less';
 
@@ -20,7 +21,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   CLUSTER_FILTER,
   CLUSTER_POD_COMPONENT,
   require('../account/account.module'),
-  require('../cloudProvider/providerSelection/providerSelection.service'),
+  PROVIDER_SELECTION_SERVICE,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   FILTER_TAGS_COMPONENT,
   require('../utils/waypoints/waypointContainer.directive'),

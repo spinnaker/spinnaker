@@ -1,8 +1,9 @@
+import { ITaggedEntity } from './ITaggedEntity';
 import { ServerGroup } from './serverGroup';
 import { InstanceCounts } from './instanceCounts';
 import { Instance } from './instance';
 
-export interface ILoadBalancer {
+export interface ILoadBalancer extends ITaggedEntity {
   account?: string;
   cloudProvider?: string;
   name?: string;

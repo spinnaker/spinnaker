@@ -21,3 +21,4 @@ export * from './IOrchestratedItem';
 export * from './IStageTypeConfig';
 export * from './IStageOrTriggerTypeConfig';
 export * from './ITriggerTypeConfig';
+export * from './ITaggedEntity';

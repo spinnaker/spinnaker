@@ -5,7 +5,7 @@ import {HelpFieldWrapperComponent} from './helpField.component';
 import {ReactInjector} from 'core/react.module';
 
 interface IHelpFieldProps {
-  key?: string;
+  id?: string;
   fallback?: string;
   content?: string;
   placement?: string;

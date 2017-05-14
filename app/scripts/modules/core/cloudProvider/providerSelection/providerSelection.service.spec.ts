@@ -1,36 +1,49 @@
-'use strict';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {SETTINGS} from 'core/config/settings';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from 'core/application/application.model';
+import { mock, IQService, IScope, IRootScopeService } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+
+import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { PROVIDER_SELECTION_SERVICE, ProviderSelectionService } from './providerSelection.service';
+import { SETTINGS } from 'core/config/settings';
 
 describe('providerSelectionService: API', () => {
 
-  let cloudProvider;
+  let cloudProvider: any;
   beforeEach(
-    window.module(
+    mock.module(
       CLOUD_PROVIDER_REGISTRY,
-      function (cloudProviderRegistryProvider) {
+      function (cloudProviderRegistryProvider: any) {
         cloudProvider = cloudProviderRegistryProvider;
       }
     )
   );
 
-  beforeEach(window.module(require('./providerSelection.service'), ACCOUNT_SERVICE));
+  beforeEach(mock.module(APPLICATION_MODEL_BUILDER, PROVIDER_SELECTION_SERVICE, ACCOUNT_SERVICE));
 
   // required to ensure registry provider is available
-  let $q, $scope, $modal, accountService, cloudProviderRegistry, providerService;
+  let $q: IQService,
+      $scope: IScope,
+      $modal: IModalService,
+      accountService: AccountService,
+      cloudProviderRegistry: CloudProviderRegistry,
+      providerService: ProviderSelectionService,
+      applicationBuilder: ApplicationModelBuilder;
   beforeEach(
-    window.inject(
-      (_$q_, $rootScope, _$uibModal_, _accountService_, _cloudProviderRegistry_, _providerSelectionService_) => {
+    mock.inject(
+      (_$q_: IQService, $rootScope: IRootScopeService, _$uibModal_: IModalService, _accountService_: AccountService, _cloudProviderRegistry_: CloudProviderRegistry, _providerSelectionService_: ProviderSelectionService, _applicationModelBuilder_: ApplicationModelBuilder) => {
         $q = _$q_;
         $scope = $rootScope.$new();
         $modal = _$uibModal_;
         accountService = _accountService_;
         cloudProviderRegistry = _cloudProviderRegistry_;
         providerService = _providerSelectionService_;
+        applicationBuilder = _applicationModelBuilder_;
       }));
 
-  let hasValue, providers;
+  let hasValue: boolean,
+      providers: string[];
   beforeEach(() => {
     spyOn(accountService, 'listProviders').and.callFake(() => $q.when(providers));
     spyOn(cloudProviderRegistry, 'hasValue').and.callFake(() => hasValue);
@@ -41,7 +54,7 @@ describe('providerSelectionService: API', () => {
     });
   });
 
-  beforeEach(function () {
+  beforeEach(() => {
     SETTINGS.providers.testProvider = {
       defaults: {
         account: 'testProviderAccount',
@@ -52,19 +65,16 @@ describe('providerSelectionService: API', () => {
 
   afterEach(SETTINGS.resetToOriginal);
 
-  let application, config;
+  let application: Application,
+      config: any;
   beforeEach(() => {
 
     hasValue = false;
     providers = [];
     delete SETTINGS.defaultProvider;
 
-    application = {
-      name: 'testApplication',
-      attributes: {
-        cloudProviders: 'testProvider'
-      }
-    };
+    application = applicationBuilder.createApplication();
+    application.attributes = { cloudProviders: 'testProvider' };
 
     config = {
       name: 'testProvider',

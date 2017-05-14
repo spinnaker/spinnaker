@@ -26,7 +26,7 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "strictNullChecks": false, // should really get to a place where we can turn this on
-    "target": "es5",
+    "target": "es6",
     "typeRoots": [
       "node_modules/@types"
     ]

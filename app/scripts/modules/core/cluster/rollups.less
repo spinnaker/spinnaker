@@ -23,6 +23,11 @@ server-group {
       box-shadow: 0 8px 6px -6px #999999;
     }
   }
+  .heading-sticky {
+    > h4 {
+      box-shadow: 0 8px 6px -6px #999999;
+    }
+  }
 }
 
 .row.rollup-entry {
@@ -183,7 +188,7 @@ table.instances {
     border-left: 1px solid @lightest_grey;
     font-weight: 600;
   }
-  health-counts {
+  .health-counts {
     flex: 0 0 auto;
     background-color: @light_grey;
     padding: 0 10px;
@@ -257,12 +262,12 @@ running-tasks-tag {
   padding: 0;
   box-shadow: 0 0 2px 0 #dddddd;
   min-width: 150px;
-  div {
+  .menu-load-balancers-header {
     font-weight: 600;
     color: #eeeeee;
     background-color: @mid_grey;
   }
-  div, a {
+  .menu-load-balancers-header, a {
     text-transform: none;
     font-size: 82.5%;
     padding: 5px 10px;
@@ -274,7 +279,7 @@ running-tasks-tag {
     border-bottom: 1px solid #d1d1d1;
     white-space: nowrap;
 
-    health-counts {
+    .health-counts {
       margin-left: 5px;
       .instance-health-counts {
         float: none !important;
@@ -386,6 +391,11 @@ load-balancers-tag {
         background-color: fade(@lightest_grey, 90%);
       }
     }
+    .heading-sticky {
+      > h6 {
+        background-color: fade(@lightest_grey, 90%);
+      }
+    }
     .rollup-pod-server-group {
       .server-group-title {
         background-color: rgba(255, 255, 255, .90);
@@ -459,14 +469,14 @@ load-balancers-tag {
 
   .disabled {
     opacity: 1;
-    .section-title, health-counts, load-balancers-tag .badge, instances {
+    .section-title, .health-counts, .load-balancers-tag .badge, .instances {
       opacity: 0.4;
     }
     .icon-server-group {
       color: @mid_grey;
     }
     &:hover {
-      .section-title, health-counts, load-balancers-tag .badge, instances {
+      .section-title, .health-counts, .load-balancers-tag .badge, .instances {
         opacity: 0.7;
       }
     }
@@ -488,7 +498,7 @@ load-balancers-tag {
   }
 }
 
-instances {
+.instances {
   display: block;
 }
 

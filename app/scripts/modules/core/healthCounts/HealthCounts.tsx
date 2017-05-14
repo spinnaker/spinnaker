@@ -130,22 +130,26 @@ export class HealthCounts extends React.Component<IProps, IState> {
 
     if (percentLabel !== 'n/a') {
       return (
-        <Tooltip template={legend} placement={this.props.legendPlacement}>
-          <span className="counter instance-health-counts">
-            {counts}
-            {container.unknown !== this.state.total && (<span> : <span className={this.state.statusClass}>{percentLabel}</span></span>)}
-          </span>
-        </Tooltip>
+        <div className="health-counts">
+          <Tooltip template={legend} placement={this.props.legendPlacement}>
+            <span className="counter instance-health-counts">
+              {counts}
+              {container.unknown !== this.state.total && (<span> : <span className={this.state.statusClass}>{percentLabel}</span></span>)}
+            </span>
+          </Tooltip>
+        </div>
       );
     } else if (container.outOfService) {
       return (
-        <Tooltip template={legend}>
-          <span className="counter instance-health-counts">
-            <span>
-              {container.outOfService} <span className="glyphicon glyphicon-minus disabled small"/>
+        <div className="health-counts">
+          <Tooltip template={legend}>
+            <span className="counter instance-health-counts">
+              <span>
+                {container.outOfService} <span className="glyphicon glyphicon-minus disabled small"/>
+              </span>
             </span>
-          </span>
-        </Tooltip>
+          </Tooltip>
+        </div>
       );
     } else {
       return null;

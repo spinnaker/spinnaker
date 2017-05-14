@@ -1,6 +1,7 @@
 
 import { ILogService, module } from 'angular';
-import { chain, compact, debounce, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
+import { chain, compact, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
+import { Debounce } from 'lodash-decorators';
 
 import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
@@ -11,9 +12,6 @@ export class ExecutionFilterService {
   private lastApplication: Application = null;
   private isFilterable: (sortFilterModel: any[]) => boolean;
 
-  // this gets called every time the URL changes, so we debounce it a tiny bit
-  public updateExecutionGroups: (application: Application) => IExecutionGroup[];
-
   constructor(private executionFilterModel: ExecutionFilterModel,
               private timeBoundaries: any,
               private $log: ILogService,
@@ -21,26 +19,26 @@ export class ExecutionFilterService {
               private pipelineConfig: any) {
     'ngInject';
     this.isFilterable = filterModelService.isFilterable;
+  }
 
-    this.updateExecutionGroups = debounce((application: Application) => {
-      if (!application) {
-        application = this.lastApplication;
-        if (!this.lastApplication) {
-          return null;
-        }
+  @Debounce(25)
+  public updateExecutionGroups(application: Application): void {
+    if (!application) {
+      application = this.lastApplication;
+      if (!this.lastApplication) {
+        return null;
       }
-      const executions = application.executions.data || [];
-      executions.forEach((execution: IExecution) => this.fixName(execution, application));
-      const filtered: IExecution[] = this.filterExecutionsForDisplay(application.executions.data);
+    }
+    const executions = application.executions.data || [];
+    executions.forEach((execution: IExecution) => this.fixName(execution, application));
+    const filtered: IExecution[] = this.filterExecutionsForDisplay(application.executions.data);
 
-      const groups = this.groupExecutions(filtered, application);
+    const groups = this.groupExecutions(filtered, application);
+    this.applyGroupsToModel(groups);
 
-      this.applyGroupsToModel(groups);
-      this.executionFilterModel.asFilterModel.addTags();
-      this.lastApplication = application;
-      executionFilterModel.groupsUpdated.next();
-      return groups;
-    }, 25);
+    this.executionFilterModel.asFilterModel.addTags();
+    this.lastApplication = application;
+    this.executionFilterModel.groupsUpdated.next();
   }
 
   private pipelineNameFilter(execution: IExecution): boolean {

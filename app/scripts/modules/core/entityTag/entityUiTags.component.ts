@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import {IComponentController, IComponentOptions, module} from 'angular';
 import {IEntityTag} from 'core/domain';
 import './entityUiTags.component.less';
 import {Application} from '../application/application.model';
@@ -9,7 +9,7 @@ import {EntityTagEditorCtrl} from './entityTagEditor.controller';
 import './entityUiTags.popover.less';
 import {IEntityRef} from '../domain/IEntityTags';
 
-class EntityUiTagsCtrl implements ng.IComponentController {
+class EntityUiTagsCtrl implements IComponentController {
 
   public application: Application;
   public entityType: string;
@@ -137,7 +137,7 @@ class EntityUiTagsCtrl implements ng.IComponentController {
   }
 }
 
-class EntityUiTagsComponent implements ng.IComponentOptions {
+class EntityUiTagsComponent implements IComponentOptions {
   public bindings: any = {
     component: '<',
     application: '<',
@@ -182,6 +182,23 @@ class EntityUiTagsComponent implements ng.IComponentOptions {
   `;
 }
 
+export class EntityUiTagsWrapperComponent implements IComponentOptions {
+  public bindings: any = {
+    component: '<',
+    application: '<',
+    pageLocation: '<',
+    onUpdate: '<?',
+    entityType: '<',
+  };
+  public template = `<entity-ui-tags component="$ctrl.component"
+                                     application="$ctrl.application"
+                                     entity-type="{{$ctrl.entityType}}"
+                                     page-location="{{$ctrl.pageLocation}}"
+                                     on-update="$ctrl.onUpdate">
+                     </entity-ui-tags>`;
+}
+
 export const ENTITY_UI_TAGS_COMPONENT = 'spinnaker.core.entityTags.uiTags.component';
 module(ENTITY_UI_TAGS_COMPONENT, [])
-  .component('entityUiTags', new EntityUiTagsComponent());
+  .component('entityUiTags', new EntityUiTagsComponent())
+  .component('entityUiTagsWrapper', new EntityUiTagsWrapperComponent());
