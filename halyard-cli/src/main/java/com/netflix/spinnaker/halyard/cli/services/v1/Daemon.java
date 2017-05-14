@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
@@ -57,6 +58,10 @@ public class Daemon {
 
   public static Supplier<String> getCurrentDeployment() {
     return () -> ResponseUnwrapper.get(getService().getCurrentDeployment());
+  }
+
+  public static Supplier<Void> setCurrentDeployment(String name) {
+    return () -> ResponseUnwrapper.get(getService().setCurrentDeployment(new StringBodyRequest(name)));
   }
 
   public static Supplier<DeploymentConfiguration> getDeploymentConfiguration(String deploymentName, boolean validate) {

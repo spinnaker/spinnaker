@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.*;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.ci.CiCommand;
@@ -40,6 +41,12 @@ public class ConfigCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String description = "Configure, validate, and view your halconfig.";
 
+  @Parameter(
+      names = "--set-current-deployment",
+      description = "If supplied, set the current active deployment to the supplied value, creating it if need-be."
+  )
+  private String setCurrentDeployment;
+
   ConfigCommand() {
     registerSubcommand(new DeploymentEnvironmentCommand());
     registerSubcommand(new FeaturesCommand());
@@ -54,14 +61,21 @@ public class ConfigCommand extends AbstractConfigCommand {
 
   @Override
   protected void executeThis() {
-    String currentDeployment = getCurrentDeployment();
+    if (setCurrentDeployment != null) {
+      new OperationHandler<Void>()
+          .setOperation(Daemon.setCurrentDeployment(setCurrentDeployment))
+          .setSuccessMessage("Updated current deployment to " + setCurrentDeployment)
+          .setFailureMesssage("Failed to update current deployment.")
+          .get();
 
-    new OperationHandler<DeploymentConfiguration>()
-        .setOperation(Daemon.getDeploymentConfiguration(currentDeployment, !noValidate))
-        .setFormat(AnsiFormatUtils.Format.YAML)
-        .setUserFormatted(true)
-        .setSuccessMessage("Configured deployment: ")
-        .setFailureMesssage("Failed to deployment configuration.")
-        .get();
+    } else {
+      new OperationHandler<DeploymentConfiguration>()
+          .setOperation(Daemon.getDeploymentConfiguration(getCurrentDeployment(), !noValidate))
+          .setFormat(AnsiFormatUtils.Format.YAML)
+          .setUserFormatted(true)
+          .setSuccessMessage("Configured deployment: ")
+          .setFailureMesssage("Failed to deployment configuration.")
+          .get();
+      }
   }
 }

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.security.*;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
+import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
@@ -50,6 +51,9 @@ public interface DaemonService {
 
   @GET("/v1/config/currentDeployment/")
   DaemonTask<Halconfig, String> getCurrentDeployment();
+
+  @PUT("/v1/config/currentDeployment/")
+  DaemonTask<Halconfig, Void> setCurrentDeployment(@Body StringBodyRequest name);
 
   @GET("/v1/config/deployments/")
   DaemonTask<Halconfig, List<DeploymentConfiguration>> getDeployments();

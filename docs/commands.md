@@ -353,6 +353,7 @@ hal config [parameters] [subcommands]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--set-current-deployment`: If supplied, set the current active deployment to the supplied value, creating it if need-be.
 #### Subcommands
  * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
