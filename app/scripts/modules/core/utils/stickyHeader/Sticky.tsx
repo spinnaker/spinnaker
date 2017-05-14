@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as PropTypes from 'prop-types';
 import { Subscription } from 'rxjs/Subscription';
 import { $log } from 'ngimport';
 import { omit, throttle } from 'lodash';
@@ -26,7 +27,7 @@ export class Sticky extends React.Component<IProps, IState> {
   };
 
   public static contextTypes: React.ValidationMap<IStickyContext> = {
-    stickyContainer: React.PropTypes.instanceOf(StickyContainer)
+    stickyContainer: PropTypes.instanceOf(StickyContainer)
   };
 
   private static RECOMPUTE_EVENTS = ['resize', 'scroll', 'touchstart', 'touchmove', 'touchend'];
