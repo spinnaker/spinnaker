@@ -22,7 +22,9 @@ import com.netflix.spinnaker.igor.IgorConfigurationProperties
 import com.netflix.spinnaker.igor.history.EchoService
 import com.netflix.spinnaker.igor.history.model.BuildContent
 import com.netflix.spinnaker.igor.history.model.BuildEvent
+import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
@@ -32,7 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
-import rx.Observable
 import rx.Scheduler
 import rx.Scheduler.Worker
 import rx.functions.Action0
@@ -80,8 +81,6 @@ class JenkinsBuildMonitor implements PollingMonitor {
         igorConfigurationProperties.spinnaker.build.pollInterval
     }
 
-    static final String BUILD_IN_PROGRESS = "BUILDING"
-
     @Autowired(required = false)
     DiscoveryClient discoveryClient
 
@@ -113,11 +112,11 @@ class JenkinsBuildMonitor implements PollingMonitor {
         worker.schedulePeriodically(
                 {
                     if (isInService()) {
-                        log.info "- Polling cycle started -"
+                        log.info "- Polling cycle started - ${new Date()}"
                         buildMasters.filteredMap(BuildServiceProvider.JENKINS).keySet().parallelStream().forEach(
                                 { master -> changedBuilds(master) }
                         )
-                        log.info "- Polling cycle done -"
+                        log.info "- Polling cycle done - ${new Date()}"
                     } else {
                         log.info("not in service (lastPoll: ${lastPoll ?: 'n/a'})")
                         lastPoll = null
@@ -134,123 +133,86 @@ class JenkinsBuildMonitor implements PollingMonitor {
         }
     }
 
-    /*
-     * retrieves a list of new builds that are different than the ones in cache and keeps track of the builds it has
+    /**
+     * Gets a list of jobs for this master & processes builds between last poll stamp and a sliding upper bound stamp
+     * Advances the cursor to the upper bound when all builds are completed
+     * Post an event per completed build
+     * @param master: a jenkins master
      */
 
-    List<Map> changedBuilds(String master) {
+    void changedBuilds(String master) {
+        log.info("Checking for new builds for ${master}")
+        def startTime = System.currentTimeMillis()
+        lastPoll = startTime
 
-        log.info('Checking for new builds for ' + master)
-        List<Map> results = []
-
-        lastPoll = System.currentTimeMillis()
-        long thisPoll = lastPoll
         try {
-            List<String> cachedBuilds = cache.getJobNames(master)
+            JenkinsService jenkinsService = buildMasters.map[master] as JenkinsService
+            List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
+            log.info("Jobs on master: ${master} ${jobs.size()}")
 
-            def startTime = System.currentTimeMillis()
-            List<Project> builds = buildMasters.map[master].projects?.list
+            for (Project job : jobs) {
+                if (!job.lastBuild) {
+                    log.info("[${master}:${job.name}] has no builds skipping...")
+                    continue
+                }
 
-            log.info("finding new builds in ${master} : ${builds.size()} items")
+                Long cursor = cache.getLastPollCycleTimestamp(master, job.name)
+                Long lastBuildStamp = job.lastBuild.timestamp as Long
+                Date upperBound = new Date(lastBuildStamp)
 
-            List<String> buildNames = builds*.name
+                log.info("[${master}:${job.name}] last cursor was ${cursor}, last build on this job was at ${upperBound}")
 
-            Observable.from(cachedBuilds).filter { String name ->
-                !(name in buildNames)
-            }.subscribe(
-                    { String jobName ->
-                        log.info "Removing ${master}:${jobName}"
-                        cache.remove(master, jobName)
-                    },
-                    { log.error("Error: ${it.message}") }
-            )
+                if (!cursor) {
+                    log.info("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
+                    cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp);
+                } else {
+                    if (cursor == lastBuildStamp) {
+                        log.info("[${master}:${job.name}] is up to date. skipping")
+                        continue
+                    }
 
-            builds.stream().forEach(
-                    { Project project ->
-                        try {
-                            boolean addToCache = false
-                            Map cachedBuild = null
-                            log.debug "processing build : ${project?.name} : building? ${project?.lastBuild?.building}"
-                            if (!project?.lastBuild) {
-                                log.debug "no builds found for ${project.name}, skipping"
-                            } else if (cachedBuilds.contains(project.name)) {
-                                cachedBuild = cache.getLastBuild(master, project.name)
-                                cache.setLastBuild(master, project.name, project.lastBuild.number, project.lastBuild.building)
-                                if ((project.lastBuild.building != cachedBuild.lastBuildBuilding) ||
-                                        (project.lastBuild.number != Integer.valueOf(cachedBuild.lastBuildLabel))) {
+                    // 1. get all builds between last poll and jenkins last build included
+                    List<Build> allBuilds = (jenkinsService.getBuilds(job.name).getList() ?: []).findAll { build ->
+                        Long buildStamp = build.timestamp as Long
+                        return buildStamp <= lastBuildStamp && buildStamp > cursor
+                    }
 
-                                    addToCache = true
+                    List<Build> currentlyBuilding = allBuilds.findAll { it.building }
+                    List<Build> completedBuilds = allBuilds.findAll { !it.building }
+                    Date lowerBound = new Date(cursor)
 
-                                    log.info "Build changed: ${master}: ${project.name} : ${project.lastBuild.number} : ${project.lastBuild.building}"
+                    log.info("[${master}:${job.name}] ${allBuilds.size()} builds between [$lowerBound} - ${upperBound}], currently running builds -> ${currentlyBuilding*.number}")
 
-                                    if (echoService) {
-                                        int currentBuild = project.lastBuild.number
-                                        int lastBuild = Integer.valueOf(cachedBuild.lastBuildLabel)
-
-                                        log.info "sending build events for builds between ${lastBuild} and ${currentBuild}"
-
-                                        try {
-                                            buildMasters.map[master].getBuilds(project.name).list.sort {
-                                                it.number
-                                            }.each { build ->
-                                                if (build.number >= lastBuild && build.number < currentBuild) {
-                                                    try {
-                                                        Project oldProject = new Project(name: project.name, lastBuild: build)
-                                                        if (build.number != lastBuild
-                                                                || (build.number == lastBuild && cachedBuild.lastBuildBuilding != build.building)) {
-                                                            log.info  "sending event for intermediate build ${build.number}"
-                                                            postEvent(echoService, cachedBuilds, oldProject, master)
-                                                        }
-                                                    } catch (e) {
-                                                        log.error("An error occurred fetching ${master}:${project.name}:${build.number}", e)
-                                                    }
-                                                }
-                                            }
-                                        } catch (e) {
-                                            log.error("failed getting builds for ${master}", e)
-                                        }
-                                    }
-                                }
-                            } else {
-                                log.info "New Build: ${master}: ${project.name} : ${project.lastBuild.number} : " +
-                                        "${project.lastBuild.result}"
-                                addToCache = true
-                                cache.setLastBuild(master, project.name, project.lastBuild.number, project.lastBuild.building)
-                            }
-                            if (addToCache) {
-                                project.lastBuild.result = project?.lastBuild?.result ?: project.lastBuild.building ? BUILD_IN_PROGRESS : ""
-                                log.debug "setting result to ${project.lastBuild.result}"
-                                postEvent(echoService, cachedBuilds, project, master)
-                                results << [previous: cachedBuild, current: project]
-                            }
-                        } catch (e) {
-                            log.error("fail processing build : ${project?.name}", e)
+                    // 2. post events for finished builds
+                    completedBuilds.forEach { build ->
+                        Boolean eventPosted = cache.getEventPosted(master, job.name, cursor, build.number)
+                        if (!eventPosted) {
+                            log.info("[${master}:${job.name}]:${build.number} event posted")
+                            postEvent(echoService, new Project(name: job.name, lastBuild: build), master)
+                            cache.setEventPosted(master, job.name, cursor, build.number)
                         }
                     }
-            )
 
-            log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
-
+                    // 3. advance cursor when all builds have completed in the interval
+                    if (currentlyBuilding.isEmpty()) {
+                        log.info("[${master}:${job.name}] has no other builds between [${lowerBound} - ${upperBound}], advancing cursor to ${lastBuildStamp}")
+                        cache.pruneOldMarkers(master, job.name, cursor)
+                        cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp)
+                    }
+                }
+            }
         } catch (e) {
-            log.error("failed to update master $master", e)
+            log.error("Error processing builds for ${master}", e)
         }
 
-        results
+        log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
     }
 
-    static void postEvent(EchoService echoService, List<String> cachedBuildsForMaster, Project project, String master) {
-        if (!cachedBuildsForMaster) {
-            // avoid publishing an event if this master has no indexed builds (protects against a flushed redis)
-            return
+    static void postEvent(EchoService echoService,  Project project, String master) {
+        if (echoService) {
+            echoService.postEvent(
+                new BuildEvent(content: new BuildContent(project: project, master: master))
+            )
         }
-
-        if (!echoService) {
-            // avoid publishing an event if echo is disabled
-            return
-        }
-
-        echoService.postEvent(
-            new BuildEvent(content: new BuildContent(project: project, master: master))
-        )
     }
 }

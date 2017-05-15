@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.igor.jenkins
 
 import com.netflix.spinnaker.igor.history.EchoService
-import com.netflix.spinnaker.igor.history.model.BuildEvent
+import com.netflix.spinnaker.igor.history.model.Event
 import com.netflix.spinnaker.igor.jenkins.client.model.Build
 import com.netflix.spinnaker.igor.jenkins.client.model.BuildsList
 import com.netflix.spinnaker.igor.jenkins.client.model.Project
@@ -26,7 +26,6 @@ import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.service.BuildMasters
 import rx.schedulers.Schedulers
 import spock.lang.Specification
-import spock.lang.Unroll
 
 /**
  * Tests for JenkinsBuildMonitor
@@ -45,235 +44,138 @@ class JenkinsBuildMonitorSpec extends Specification {
         monitor.scheduler = Schedulers.immediate()
     }
 
-    void 'flag a new build not found in the cache'() {
+    def 'should handle any failure to talk to jenkins graciously' () {
         given:
-        1 * cache.getJobNames(MASTER) >> ['job1']
-        1 * jenkinsService.projects >> new ProjectsList(list: [new Project(name: 'job2', lastBuild: new Build(number: 1))])
-
-        when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
-
-        then:
-        0 * cache.getLastBuild(MASTER, 'job1')
-        1 * cache.setLastBuild(MASTER, 'job2', 1, false)
-        builds.size() == 1
-        builds[0].current.name == 'job2'
-        builds[0].current.lastBuild.number == 1
-        builds[0].previous == null
-    }
-
-    void 'flag existing build with a higher number as changed'() {
-        given:
-        1 * cache.getJobNames(MASTER) >> ['job2']
-        1 * jenkinsService.projects >> new ProjectsList(list: [new Project(name: 'job2', lastBuild: new Build(number: 5))])
-
-        when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
-
-        then:
-        1 * cache.getLastBuild(MASTER, 'job2') >> [lastBuildLabel: 3]
-        1 * cache.setLastBuild(MASTER, 'job2', 5, false)
-        builds[0].current.lastBuild.number == 5
-        builds[0].previous.lastBuildLabel == 3
-    }
-
-    void 'flag builds in a different state as changed'() {
-        given:
-        1 * cache.getJobNames(MASTER) >> ['job3']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job3', lastBuild: new Build(number: 5, building: false))]
-        )
-
-        when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
-
-        then:
-        1 * cache.getLastBuild(MASTER, 'job3') >> [lastBuildLabel: 5, lastBuildRunning: true]
-        1 * cache.setLastBuild(MASTER, 'job3', 5, false)
-        builds[0].current.lastBuild.number == 5
-        builds[0].previous.lastBuildLabel == 5
-        builds[0].current.lastBuild.building == false
-        builds[0].previous.lastBuildRunning == true
-    }
-
-    void 'stale builds are removed'() {
-        given:
-        1 * cache.getJobNames(MASTER) >> ['job3', 'job4']
-        1 * jenkinsService.projects >> new ProjectsList(list: [])
+        jenkinsService.getProjects().getList() >> new Exception("failed")
 
         when:
         monitor.changedBuilds(MASTER)
 
         then:
-        1 * cache.remove(MASTER, 'job3')
-        1 * cache.remove(MASTER, 'job4')
+        notThrown(Exception)
     }
 
-    void 'sends an event for every intermediate build'() {
+    def 'should skip a job with no builds'() {
         given:
-        1 * cache.getJobNames(MASTER) >> ['job']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: false))]
-        )
-        1 * jenkinsService.getBuilds('job') >> new BuildsList(
-            list: [
-                new Build(number: 1),
-                new Build(number: 2),
-                new Build(number: 3, building: false),
-                new Build(number: 4),
-                new Build(number: 5),
-                new Build(number: 6)
-            ]
-        )
-
-        monitor.echoService = Mock(EchoService)
+        jenkinsService.getProjects() >> new ProjectsList(list: [new Project(name: 'job2', lastBuild: null)])
 
         when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
+        monitor.changedBuilds(MASTER)
 
         then:
-        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
-        1 * cache.setLastBuild(MASTER, 'job', 6, false)
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 })
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 4 })
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 5 })
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
+        0 * cache.getLastPollCycleTimestamp(MASTER, 'job2')
+        0 * cache.setLastPollCycleTimestamp(_,_,_)
     }
 
-    void 'emits events only for builds in list'() {
+    def 'should set a timestamp cursor the first time a job is seen'() {
         given:
-        1 * cache.getJobNames(MASTER) >> ['job']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: false))]
-        )
-        1 * jenkinsService.getBuilds('job') >> new BuildsList(
-            list: [
-                new Build(number: 1),
-                new Build(number: 3, building: false),
-                new Build(number: 6)
-            ]
+        def build = new Build(number: 40, timestamp: '1494624092610')
+        jenkinsService.getProjects() >> new ProjectsList(
+            list: [new Project(name: 'job', lastBuild: build)]
         )
 
-        monitor.echoService = Mock(EchoService)
+        and:
+        1 * cache.getLastPollCycleTimestamp(MASTER, 'job') >> null
 
         when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
+        monitor.changedBuilds(MASTER)
 
-        then:
-        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildRunning: true]
-        1 * cache.setLastBuild(MASTER, 'job', 6, false)
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 })
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
+        then: 'cursor is set to last build timestamp'
+        1 * cache.setLastPollCycleTimestamp(MASTER, 'job', 1494624092610)
     }
 
-    void 'does not send event for current unchanged build'() {
+    def 'should exit early if all builds have been processed'() {
         given:
-        1 * cache.getJobNames(MASTER) >> ['job']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: new Build(number: 3, building: true))]
+        def lastBuild = new Build(number: 40, timestamp: '1494624092610')
+        jenkinsService.getProjects() >> new ProjectsList(
+            list: [ new Project(name: 'job', lastBuild: lastBuild) ]
         )
 
-        monitor.echoService = Mock(EchoService)
+        and:
+        1 * cache.getLastPollCycleTimestamp(MASTER, 'job') >> (lastBuild.timestamp as Long)
 
         when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
+        monitor.changedBuilds(MASTER)
 
         then:
-        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 3, lastBuildBuilding: true]
         0 * jenkinsService.getBuilds('job')
-        0 * monitor.echoService.postEvent(_)
     }
 
-    void 'does not send event for past build with already sent event'() {
+    def 'should only post an event for completed builds between last poll and last build'() {
         given:
-        1 * cache.getJobNames(MASTER) >> ['job']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: true))]
-        )
-        1 * jenkinsService.getBuilds('job') >> new BuildsList(
+        def previousCursor = '1494624092609'
+        def stamp1 = '1494624092610'
+        def stamp2 = '1494624092611'
+        def stamp3 = '1494624092612'
+        def lastBuild = new Build(number: 40, timestamp: stamp3)
+        def stamp4 = '1494624092613'
+
+        and: 'previousCursor(lower bound) < stamp1 < stamp2 < stamp3(upper bound) < stamp4'
+        assert new Date(previousCursor as Long) < new Date(stamp1 as Long)
+        assert new Date(stamp1 as Long) < new Date(stamp2 as Long) &&  new Date(stamp2 as Long) < new Date(stamp3 as Long)
+        assert new Date(stamp3 as Long) < new Date(stamp4 as Long)
+
+        and:
+        monitor.echoService = Mock(EchoService)
+        cache.getLastPollCycleTimestamp(MASTER, 'job') >> (previousCursor as Long)
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
+        cache.getEventPosted(_,_,_,_) >> false
+        jenkinsService.getBuilds('job') >> new BuildsList(
             list: [
-                new Build(number: 5, building: false),
-                new Build(number: 6)
+                new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
+                new Build(number: 2, timestamp: stamp1, building: true, result: null),
+                new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS'),
+                new Build(number: 4, timestamp: stamp4, building: false, result: 'SUCCESS'),
+                new Build(number: 5, building: false, result: 'SUCCESS')
             ]
         )
 
-        monitor.echoService = Mock(EchoService)
-
         when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
+        monitor.changedBuilds(MASTER)
 
-        then:
-        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 5, lastBuildBuilding: false]
-        1 * cache.setLastBuild(MASTER, 'job', 6, true)
-        0 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 5 })
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
+        then: 'only builds between lowerBound(previousCursor) and upperbound(stamp3) will fire events'
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
     }
 
-    void 'does not send event for same build'() {
+    def 'should advance the lower bound cursor when all jobs complete'() {
         given:
-        1 * cache.getJobNames(MASTER) >> ['job']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: true))]
-        )
+        def previousCursor = '1494624092609'
+        def stamp1 = '1494624092610'
+        def stamp2 = '1494624092611'
+        def stamp3 = '1494624092612'
+        def lastBuild = new Build(number: 40, timestamp: stamp3)
+        def stamp4 = '1494624092613'
 
+        and: 'previousCursor(lower bound) < stamp1 < stamp2 < stamp3(upper bound) < stamp4'
+        assert new Date(previousCursor as Long) < new Date(stamp1 as Long)
+        assert new Date(stamp1 as Long) < new Date(stamp2 as Long) &&  new Date(stamp2 as Long) < new Date(stamp3 as Long)
+        assert new Date(stamp3 as Long) < new Date(stamp4 as Long)
+
+        and:
         monitor.echoService = Mock(EchoService)
-
-        when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
-
-        then:
-        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: true]
-        0 * jenkinsService.getBuilds('job')
-        0 * monitor.echoService.postEvent({ _ })
-    }
-
-
-    void 'sends event for same build that has finished'() {
-        given:
-        1 * cache.getJobNames(MASTER) >> ['job']
-        1 * jenkinsService.projects >> new ProjectsList(
-            list: [new Project(name: 'job', lastBuild: new Build(number: 6, building: true))]
+        cache.getLastPollCycleTimestamp(MASTER, 'job') >> (previousCursor as Long)
+        jenkinsService.getProjects() >> new ProjectsList(list: [ new Project(name: 'job', lastBuild: lastBuild) ])
+        cache.getEventPosted(_,_,_,_) >> false
+        jenkinsService.getBuilds('job') >> new BuildsList(
+            list: [
+                new Build(number: 1, timestamp: stamp1, building: false, result: 'SUCCESS'),
+                new Build(number: 2, timestamp: stamp1, building: false, result: 'FAILURE'),
+                new Build(number: 3, timestamp: stamp2, building: false, result: 'SUCCESS'),
+                new Build(number: 4, timestamp: stamp4, building: false, result: 'SUCCESS')
+            ]
         )
 
-        monitor.echoService = Mock(EchoService)
-
         when:
-        List<Map> builds = monitor.changedBuilds(MASTER)
+        monitor.changedBuilds(MASTER)
 
-        then:
-        1 * cache.getLastBuild(MASTER, 'job') >> [lastBuildLabel: 6, lastBuildBuilding: false]
-        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 6 })
-    }
+        then: 'only builds between lowerBound(previousCursor) and upperbound(stamp3) will fire events'
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 1 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 2 && it.content.project.lastBuild.result == 'FAILURE'} as Event)
+        1 * monitor.echoService.postEvent({ it.content.project.lastBuild.number == 3 && it.content.project.lastBuild.result == 'SUCCESS'} as Event)
 
-    @Unroll
-    void 'should only publish events if build has been previously seen'() {
-        def echoService = Mock(EchoService)
-        def project = new Project(name: "project")
-        def master = "master"
-
-        when:
-        monitor.postEvent(
-            echoService, cachedBuilds, project, master
-        )
-
-        then:
-        echoServiceCallCount * echoService.postEvent({ BuildEvent event ->
-            assert event.content.project == project
-            assert event.content.master == master
-            return true
-        })
-
-        when: "should short circuit if `echoService` is not available"
-        monitor.postEvent(null, ["job1"], project, master)
-
-        then:
-        notThrown(NullPointerException)
-
-        where:
-        cachedBuilds || echoServiceCallCount
-        null         || 0
-        []           || 0
-        ["job1"]     || 1
-
+        and: 'prune old markers and set new cursor'
+        1 * cache.pruneOldMarkers(MASTER, 'job', 1494624092609)
+        1 * cache.setLastPollCycleTimestamp(MASTER, 'job', 1494624092612)
     }
 }

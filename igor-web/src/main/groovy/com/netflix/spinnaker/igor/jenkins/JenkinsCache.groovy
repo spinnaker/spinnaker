@@ -33,6 +33,8 @@ class JenkinsCache {
     @Autowired
     IgorConfigurationProperties igorConfigurationProperties
 
+    static final String POLL_STAMP = "lastPollCycleTimestamp"
+
     private String getPrefix() {
         igorConfigurationProperties.spinnaker.jedis.prefix
     }
@@ -71,6 +73,43 @@ class JenkinsCache {
             String key = makeKey(master, job)
             resource.hset(key, 'lastBuildLabel', lastBuild as String)
             resource.hset(key, 'lastBuildBuilding', building as String)
+        }
+    }
+
+    void setLastPollCycleTimestamp(String master, String job, Long timestamp) {
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String key = makeKey(master, job)
+            resource.hset(key, POLL_STAMP, timestamp as String)
+        }
+    }
+
+    Long getLastPollCycleTimestamp(String master, String job) {
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String result = resource.hget(makeKey(master, job), POLL_STAMP)
+            return result as Long
+        }
+    }
+
+    Boolean getEventPosted(String master, String job, Long cursor, Integer buildNumber) {
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String key = makeKey(master, job) + ":${POLL_STAMP}:${cursor}"
+            String result = resource.hget(key, buildNumber as String)
+            return result
+        }
+    }
+
+    void setEventPosted(String master, String job, Long cursor, Integer buildNumber) {
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String key = makeKey(master, job) + ":${POLL_STAMP}:${cursor}"
+            resource.hset(key, buildNumber as String, "POSTED")
+        }
+    }
+
+    void pruneOldMarkers(String master, String job, Long cursor) {
+        remove(master, job)
+        jedisPool.resource.withCloseable { Jedis resource ->
+            String key = makeKey(master, job) + ":${POLL_STAMP}:${cursor}"
+            resource.del(key)
         }
     }
 
