@@ -1,7 +1,27 @@
+apply plugin: 'com.google.protobuf'
+
+buildscript {
+  dependencies {
+    classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
+  }
+}
+
+ext {
+  protobufVersion = '3.2.0'
+  grpcVersion = '1.2.+'
+  netflixGrpcVersion = '1.0.+'
+}
+
 dependencies {
-  compile("com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}")
-  compile("com.netflix.spinnaker.clouddriver:clouddriver-eureka:${clouddriverVersion}")
-  compile("com.netflix.spinnaker.clouddriver:clouddriver-aws:${clouddriverVersion}")
+  protobuf group: 'netflix', name: 'titus-api-definitions', version: "1.14"
+
+  compile "com.google.protobuf:protobuf-java:$protobufVersion"
+  compile "io.grpc:grpc-protobuf:$grpcVersion"
+  compile "io.grpc:grpc-stub:$grpcVersion"
+  compile "io.grpc:grpc-netty:$grpcVersion"
+  compile "com.netflix.spinnaker.clouddriver:clouddriver-core:${clouddriverVersion}"
+  compile "com.netflix.spinnaker.clouddriver:clouddriver-eureka:${clouddriverVersion}"
+  compile "com.netflix.spinnaker.clouddriver:clouddriver-aws:${clouddriverVersion}"
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
   compile 'com.squareup.retrofit2:retrofit:2.0.0-beta4'
@@ -10,4 +30,41 @@ dependencies {
   compile 'com.squareup.okhttp3:logging-interceptor:3.1.2'
   testCompile "org.slf4j:slf4j-simple:${spinnaker.version('slf4j')}"
   spinnaker.group('test')
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir "${protobuf.generatedFilesBaseDir}/main/grpc"
+      srcDir "${protobuf.generatedFilesBaseDir}/main/java"
+    }
+  }
+}
+
+task cleanGenerated(type: Delete) {
+  delete "$projectDir/src/generated"
+}
+
+clean.dependsOn cleanGenerated
+
+protobuf {
+  protoc {
+    artifact = "com.google.protobuf:protoc:$protobufVersion"
+  }
+  plugins {
+    grpc {
+      artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
+    }
+    netflix_protoc_wrapper_type {
+      artifact = "netflix.grpc:netflix-protoc-wrapper-type:1.0.0"
+    }
+  }
+  generateProtoTasks {
+    all()*.plugins {
+      grpc {}
+      netflix_protoc_wrapper_type {
+        outputSubDir = "java"
+      }
+    }
+  }
 }

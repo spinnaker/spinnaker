@@ -211,11 +211,6 @@ public class RegionScopedTitusClient implements TitusClient {
     }
 
     @Override
-    public void updateJob(String jobId, Map<String, Object> jobAttributes) {
-        execute("updateJob", titusRestAdapter.updateJob(jobId, jobAttributes));
-    }
-
-    @Override
     public Task getTask(String taskId) {
         return execute("getTask", titusRestAdapter.getTask(taskId));
     }
@@ -271,14 +266,6 @@ public class RegionScopedTitusClient implements TitusClient {
     @Override
     public List<Job> getAllJobs() {
         return getAllJobsStream().collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Job.TaskSummary> getAllTasks() {
-
-        return getAllJobsStream()
-                .flatMap(j -> j.getTasks().stream())
-                .collect(Collectors.toList());
     }
 
     private Stream<Job> getAllJobsStream() {

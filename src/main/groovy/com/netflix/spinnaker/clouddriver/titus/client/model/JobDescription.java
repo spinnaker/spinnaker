@@ -16,7 +16,9 @@
 
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
-import java.util.ArrayList;
+import com.netflix.titus.grpc.protogen.*;
+import com.sun.net.httpserver.Authenticator;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -329,5 +331,117 @@ public class JobDescription {
     public List<String> getSecurityGroups() { return securityGroups; }
 
     public void setSecurityGroups(List<String> securityGroups) { this.securityGroups = securityGroups; }
+
+    public JobDescriptor getGrpcJobDescriptor() {
+
+      // trying to keep the same order as in the proto definition https://stash.corp.netflix.com/projects/TN/repos/titus-api-definitions/browse/src/main/proto/netflix/titus/titus_job_api.proto
+
+      JobDescriptor.Builder jobDescriptorBuilder = JobDescriptor.newBuilder();
+
+      jobDescriptorBuilder.setOwner(Owner.newBuilder().setTeamEmail(user));
+      jobDescriptorBuilder.setAppName(appName);
+
+      JobGroupInfo.Builder jobGroupInfoBuilder = JobGroupInfo.newBuilder();
+      if (jobGroupStack != null) {
+        jobGroupInfoBuilder.setStack(jobGroupStack);
+      }
+      if (jobGroupDetail != null) {
+        jobGroupInfoBuilder.setDetail(jobGroupDetail);
+      }
+      jobGroupInfoBuilder.setSequence(jobGroupSequence);
+
+      jobDescriptorBuilder.setJobGroupInfo(jobGroupInfoBuilder);
+
+      if(!labels.isEmpty()) {
+        jobDescriptorBuilder.putAllLabels(labels);
+      }
+
+      Container.Builder containerBuilder = Container.newBuilder();
+
+      containerBuilder.setName("main");
+
+      Map<String, String> resources = new HashMap<String, String>();
+
+      if (cpu != 0) {
+        resources.put("cpu", String.valueOf(cpu));
+      }
+
+      if (gpu!=0){
+        resources.put("gpu", String.valueOf(gpu));
+      }
+
+      if(networkMbps!=0){
+        resources.put("network", String.valueOf(networkMbps) + "Mbps");
+      }
+
+      if(memory!=0){
+        resources.put("memory", String.valueOf(memory) + "MB");
+      }
+
+      if(disk!=0){
+        resources.put("disk", String.valueOf(disk) + "MB");
+      }
+
+      if(!resources.isEmpty()){
+        containerBuilder.putAllResources(resources);
+      }
+
+      if(!securityGroups.isEmpty()){
+        containerBuilder.putSecurityProfile("securityGroups", String.join(",", securityGroups));
+      }
+
+      if(iamProfile != null) {
+        containerBuilder.putSecurityProfile("iamProfile", iamProfile);
+      }
+
+      containerBuilder.setImage(Image.newBuilder().setName(applicationName + ":" + version));
+
+      if(entryPoint != null){
+        containerBuilder.addEntryPoint(entryPoint);
+      }
+
+      if(!env.isEmpty()){
+        containerBuilder.putAllEnv(env);
+      }
+
+      if(!softConstraints.isEmpty()){
+        containerBuilder.setSoftConstraints(constraintTransformer(softConstraints));
+      }
+
+      if(!hardConstraints.isEmpty()){
+        containerBuilder.setSoftConstraints(constraintTransformer(hardConstraints));
+      }
+
+      jobDescriptorBuilder.addContainers(containerBuilder);
+
+      TaskInstances.Builder taskInstances = TaskInstances.newBuilder();
+      taskInstances.setMin(instancesMin).setMax(instancesMax).setDesired(instancesDesired);
+
+      if(type == "service"){
+        jobDescriptorBuilder.setService(ServiceJobSpec.newBuilder().setContainerId("main").setEnabled(inService).setInstances(taskInstances));
+      }
+
+      if(type == "batch"){
+        BatchJobSpec.Builder batchJobSpec = BatchJobSpec.newBuilder();
+        batchJobSpec.setContainerId("main").setInstances(taskInstances);
+        if(runtimeLimitSecs != 0){
+          batchJobSpec.setRuntimeLimitSecs(runtimeLimitSecs);
+        }
+        if(retries!=0){
+          batchJobSpec.setRetryPolicy(RetryPolicy.newBuilder().setImmediate(RetryPolicy.Immediate.newBuilder().setRetries(retries)));
+        }
+        jobDescriptorBuilder.setBatch(batchJobSpec);
+      }
+
+      return jobDescriptorBuilder.build();
+    }
+
+    private Constraints.Builder constraintTransformer(List<String> constraints){
+      Constraints.Builder constraintsBuilder = Constraints.newBuilder();
+      constraints.forEach( constraint ->
+        { constraintsBuilder.putConstraints(constraint, "true"); }
+      );
+      return constraintsBuilder;
+    }
 
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.titus.client.TitusJobCustomizer
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.credentials.NetflixTitusCredentials
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
+import com.netflix.spinnaker.clouddriver.titus.v3client.RegionScopedV3TitusClient
 import groovy.transform.Immutable
 
 import java.util.concurrent.ConcurrentHashMap
@@ -40,7 +41,7 @@ class TitusClientProvider {
   TitusClient getTitusClient(NetflixTitusCredentials account, String region) {
     final TitusRegion titusRegion = Objects.requireNonNull(account.regions.find { it.name == region }, "region")
     final TitusClientKey key = new TitusClientKey(Objects.requireNonNull(account.name), titusRegion)
-    return titusClients.computeIfAbsent(key, { k -> new RegionScopedTitusClient(k.region, registry, titusJobCustomizers) })
+    return titusClients.computeIfAbsent(key, { k -> account.version == 'v3' ? new RegionScopedV3TitusClient(k.region, registry, titusJobCustomizers) : new RegionScopedTitusClient(k.region, registry, titusJobCustomizers) })
   }
 
   @Immutable(knownImmutableClasses = [TitusRegion])

@@ -51,12 +51,6 @@ public interface TitusClient {
 
     /**
      *
-     * @param jobAttributes
-     */
-    public void updateJob(String jobId, Map<String, Object> jobAttributes);
-
-    /**
-     *
      * @param taskId
      * @return
      */
@@ -102,10 +96,5 @@ public interface TitusClient {
      * @return
      */
     public List<Job> getAllJobs();
-
-    /**
-     * @return
-     */
-    public List<Job.TaskSummary> getAllTasks();
 
 }

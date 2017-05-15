@@ -45,6 +45,10 @@ public class Task {
     private String logs;
     private String snapshots;
 
+    public Task(com.netflix.titus.grpc.protogen.Task grpcTask) {
+      this.id = grpcTask.getId();
+    }
+
     public String getId() {
         return id;
     }

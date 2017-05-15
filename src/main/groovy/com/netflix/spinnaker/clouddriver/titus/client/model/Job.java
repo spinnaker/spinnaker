@@ -201,6 +201,54 @@ public class Job {
 
     public Job() {}
 
+    public Job(com.netflix.titus.grpc.protogen.Job grpcJob){
+      id = grpcJob.getId();
+
+      if(grpcJob.getJobDescriptor().getBatch() != null){
+        type = "batch";
+      } else if(grpcJob.getJobDescriptor().getService() != null){
+        type = "service";
+      }
+      /*
+      private String name;
+      private String type;
+      private List<String> tags;
+      private String applicationName;
+      private String appName;
+      private String user;
+      private String version;
+      private String entryPoint;
+      private String iamProfile;
+      private String capacityGroup;
+      private Boolean inService;
+      private int instances;
+      private int instancesMin;
+      private int instancesMax;
+      private int instancesDesired;
+      private int cpu;
+      private int memory;
+      private int disk;
+      private int gpu;
+      private int networkMbps;
+      private int[] ports;
+      private Map<String, String> environment;
+      private int retries;
+      private int runtimeLimitSecs;
+      private boolean allocateIpAddress;
+      private Date submittedAt;
+      private List<TaskSummary> tasks;
+      private Map<String, String> labels;
+      private List<String> securityGroups;
+      private Set<TitusSecurityGroup> securityGroupDetails;
+      private String jobGroupStack;
+      private String jobGroupDetail;
+      private String jobGroupSequence;
+      private List<String> hardConstraints;
+      private List<String> softConstraints;
+      private Efs efs;
+      */
+    }
+
     public String getId() {
         return id;
     }
