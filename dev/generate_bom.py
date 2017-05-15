@@ -289,25 +289,28 @@ class BomGenerator(Annotator):
     """
     for profile in os.listdir(profile_path):
       full_profile = os.path.join(profile_path, profile)
-      profile_path = full_profile
       if os.path.isfile(full_profile):
-        pass
+        # Don't zip with `tar` if the profile is a file.
+        self.__hal_upload_profile(component, self.__bom_file, full_profile)
       elif os.path.isdir(full_profile):
-        profile_path = '{0}.tar.gz'.format(full_profile)
-        result = run_quick('tar -cvf {0} {1}/*'.format(profile_path, full_profile))
+        tar_path = '{0}.tar.gz'.format(full_profile)
+        result = run_quick('tar -cvf {0} {1}/*'.format(tar_path, full_profile))
         if result.returncode != 0:
           print "Creating a tar archive of '{0}/*' failed with \n{1}\nexiting...".format(full_profile, result.stdout)
           exit(result.returncode)
-        else:
-          continue
+        self.__hal_upload_profile(component, self.__bom_file, tar_path)
+      else:
+        print 'Listed profile was neither a file nor a directory. Ignoring...'
+        continue
 
-      result = run_quick(
-        'hal admin publish profile {0} --color false --bom-path {1} --profile-path {2}'
-        .format(component, self.__bom_file, profile_path)
-      )
-      if result.returncode != 0:
-        print "'hal admin publish profile' command failed with: \n{0}\nexiting...".format(result.stdout)
-        exit(result.returncode)
+  def __hal_upload_profile(self, component, bom_file, profile_path):
+    result = run_quick(
+      'hal admin publish profile {0} --color false --bom-path {1} --profile-path {2}'
+      .format(component, bom_file, profile_path)
+    )
+    if result.returncode != 0:
+      print "'hal admin publish profile' command failed with: \n{0}\nexiting...".format(result.stdout)
+      exit(result.returncode)
 
   def publish_microservice_configs(self):
     for comp in self.COMPONENTS:
