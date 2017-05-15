@@ -141,7 +141,7 @@ public class OrcaConfiguration {
   public static ThreadPoolTaskExecutor applyThreadPoolMetrics(Registry registry,
                                                               ThreadPoolTaskExecutor executor,
                                                               String threadPoolName) {
-    BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGuage =
+    BiConsumer<String, Function<ThreadPoolExecutor, Integer>> createGauge =
       (name, valueCallback) -> {
         Id id = registry
           .createId(format("threadpool.%s", name))
@@ -150,11 +150,11 @@ public class OrcaConfiguration {
         registry.gauge(id, executor, ref -> valueCallback.apply(ref.getThreadPoolExecutor()));
       };
 
-    createGuage.accept("activeCount", ThreadPoolExecutor::getActiveCount);
-    createGuage.accept("maximumPoolSize", ThreadPoolExecutor::getMaximumPoolSize);
-    createGuage.accept("corePoolSize", ThreadPoolExecutor::getCorePoolSize);
-    createGuage.accept("poolSize", ThreadPoolExecutor::getPoolSize);
-    createGuage.accept("blockingQueueSize", e -> e.getQueue().size());
+    createGauge.accept("activeCount", ThreadPoolExecutor::getActiveCount);
+    createGauge.accept("maximumPoolSize", ThreadPoolExecutor::getMaximumPoolSize);
+    createGauge.accept("corePoolSize", ThreadPoolExecutor::getCorePoolSize);
+    createGauge.accept("poolSize", ThreadPoolExecutor::getPoolSize);
+    createGauge.accept("blockingQueueSize", e -> e.getQueue().size());
 
     return executor;
   }

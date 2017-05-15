@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.config.OrcaConfiguration.applyThreadPoolMetrics
 import com.netflix.spinnaker.orca.log.BlackholeExecutionLogRepository
 import com.netflix.spinnaker.orca.log.ExecutionLogRepository
 import com.netflix.spinnaker.orca.q.Queue
@@ -31,7 +33,6 @@ import org.springframework.context.event.SimpleApplicationEventMulticaster
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.Clock
 import java.util.concurrent.Executor
-import java.util.concurrent.Executors.newCachedThreadPool
 
 @Configuration
 @ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log"))
@@ -47,7 +48,15 @@ open class QueueConfiguration {
   open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()
 
   @Bean
-  open fun messageHandlerPool(): Executor = newCachedThreadPool() // TODO: ¯\_(ツ)_/¯
+  open fun messageHandlerPool(registry: Registry): Executor =
+    applyThreadPoolMetrics(
+      registry,
+      ThreadPoolTaskExecutor().apply {
+        corePoolSize = 20
+        maxPoolSize = 150
+      },
+      "messageHandler"
+    )
 
   /**
    * This overrides Spring's default application event multicaster as we need
@@ -63,5 +72,13 @@ open class QueueConfiguration {
       // TODO: should set an error handler as well
     }
 
-  @Bean open fun applicationEventTaskExecutor(): ThreadPoolTaskExecutor = ThreadPoolTaskExecutor()
+  @Bean open fun applicationEventTaskExecutor(registry: Registry): ThreadPoolTaskExecutor =
+    applyThreadPoolMetrics(
+      registry,
+      ThreadPoolTaskExecutor().apply {
+        corePoolSize = 20
+        maxPoolSize = 20
+      },
+      "applicationEventMulticaster"
+    )
 }
