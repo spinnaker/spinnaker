@@ -21,8 +21,8 @@ data class ExecutionLogEntry(
   val executionId: String,
   val timestamp: Instant,
   val eventType: String,
-  val details: Map<String, String>,
-  var currentInstanceId: String
+  val currentInstanceId: String,
+  val details: Map<String, String>
 )
 
 interface ExecutionLogRepository {

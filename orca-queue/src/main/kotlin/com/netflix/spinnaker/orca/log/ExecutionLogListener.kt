@@ -34,18 +34,18 @@ open class ExecutionLogListener
   private fun ExecutionEvent.toLogEntry(): ExecutionLogEntry {
     val details = when (this) {
       is ExecutionComplete -> mapOf("status" to status.name)
-      is StageStarted -> mapOf("type" to stageType, "name" to stageName)
-      is StageComplete -> mapOf("type" to stageType, "name" to stageName, "status" to status.name)
-      is TaskStarted -> mapOf("type" to taskType, "name" to taskName)
-      is TaskComplete -> mapOf("type" to taskType, "name" to taskName, "status" to status.name)
+      is StageStarted -> mapOf("stageId" to stageId, "type" to stageType, "name" to stageName)
+      is StageComplete -> mapOf("stageId" to stageId, "type" to stageType, "name" to stageName, "status" to status.name)
+      is TaskStarted -> mapOf("stageId" to stageId, "taskId" to taskId, "type" to taskType, "name" to taskName)
+      is TaskComplete -> mapOf("stageId" to stageId, "taskId" to taskId, "type" to taskType, "name" to taskName, "status" to status.name)
       else -> emptyMap()
     }
     return ExecutionLogEntry(
       executionId,
       timestamp(),
       javaClass.simpleName,
-      details,
-      currentInstanceId
+      currentInstanceId,
+      details
     )
   }
 }
