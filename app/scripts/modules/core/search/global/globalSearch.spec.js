@@ -1,123 +1,197 @@
 'use strict';
 
-import _ from 'lodash';
+const angular = require('angular');
+import * as $ from 'jquery';
 
-describe('Controller: GlobalSearch', function () {
-  const angular = require('angular');
+import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
+import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+import { INFRASTRUCTURE_SEARCH_SERVICE } from 'core/search/infrastructure/infrastructureSearch.service';
 
-  // load the controller's module
-  beforeEach(
-    window.module(
-      require('./globalSearch.module')
-    )
-  );
+module.exports = angular.module('spinnaker.core.search.global.controller', [
+  require('angulartics'),
+  CLUSTER_FILTER_SERVICE,
+  require('../searchResult/searchResult.directive.js'),
+  require('../searchRank.filter.js'),
+  RECENT_HISTORY_SERVICE,
+  INFRASTRUCTURE_SEARCH_SERVICE
+])
+  .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
+                                           $stateParams, $log, clusterFilterService, $analytics, $sce) {
+    var ctrl = this;
+    var search = infrastructureSearchService.getSearcher();
 
-  describe('keyboard navigation', function() {
-    // Initialize the controller and a mock scope
-    beforeEach(window.inject(function ($controller, $rootScope, $window, $q, ClusterFilterModel, clusterFilterService) {
-      var inputSpy = jasmine.createSpyObj('input', ['focus']),
-          infrastructureSearchService = jasmine.createSpy('infrastructureSearchService');
-      this.$scope = $rootScope.$new();
-      this.$q = $q;
-      this.infrastructureSearchService = infrastructureSearchService;
-      this.infrastructureSearchService.query = angular.noop;
-      this.lodash = _;
-      this.input = inputSpy;
-      this.$element = { find: function() { return inputSpy; } };
+    $scope.showSearchResults = false;
 
-      spyOn(_, 'debounce').and.callFake(function(method) { return method; });
-      spyOn(infrastructureSearchService, 'query').and.callFake(function() {
-        return $q.when([]);
+    ctrl.tooltip = $sce.trustAsHtml('Keyboard shortcut: <span class="keyboard-key">/</span>');
+
+    function reset() {
+      $scope.querying = false;
+      $scope.query = null;
+      $scope.categories = null;
+      $scope.showSearchResults = false;
+      $scope.showRecentItems = false;
+      ctrl.focussedResult = null;
+      $element.find('input').focus();
+    }
+
+    this.searchFieldBlurred = ($blurEvent) => {
+      // if the target is outside the global search (e.g. shift+tab), hide the results
+      if (!$.contains($element.get(0), $blurEvent.relatedTarget)) {
+        this.hideResults();
+      }
+    };
+
+    this.displayResults = () => {
+      if ($scope.query) {
+        $scope.showSearchResults = true;
+        $scope.showRecentItems = false;
+      } else {
+        this.showRecentHistory();
+      }
+    };
+
+    this.hideResults = () => {
+      $scope.showSearchResults = false;
+      $scope.showRecentItems = false;
+    };
+
+    this.showRecentHistory = () => {
+      $scope.recentItems = ['applications', 'projects']
+        .map((category) => {
+          return {
+            category: category,
+            results: recentHistoryService.getItems(category)
+              .map((result) => {
+                let routeParams = Object.assign({}, result.extraData, result.params);
+                search.formatRouteResult(category, routeParams, true).then((name) => result.displayName = name);
+                return result;
+              })
+          };
+        })
+        .filter((category) => {
+          return category.results.length;
+        });
+
+      $scope.hasRecentItems = $scope.recentItems.some((category) => {
+        return category.results.length > 0;
       });
+      $scope.showRecentItems = $scope.hasRecentItems;
+    };
 
-      this.ctrl = $controller('GlobalSearchCtrl', {
-        $scope: this.$scope,
-        $element: this.$element,
-        _ : _,
-        infrastructureSearchService: function() { return infrastructureSearchService; },
-        ClusterFilterModel: ClusterFilterModel,
-        clusterFilterService: clusterFilterService,
-      });
+    this.dispatchQueryInput = function(event) {
+      if ($scope.showSearchResults || $scope.hasRecentItems) {
+        var code = event.which;
+        if (code === 27) { // escape
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'escape (from input)'});
+          return reset();
+        }
+        if (code === 40) { // down
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'arrow down (from input)'});
+          return ctrl.focusFirstSearchResult(event);
+        }
+        if (code === 38) { // up
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'arrow up (from input)'});
+          return ctrl.focusLastSearchResult(event);
+        }
+        if (code === 9) { // tab
+          if (!event.shiftKey) {
+            $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'tab (from input)'});
+            ctrl.focusFirstSearchResult(event);
+          }
+          return;
+        }
+        if (code < 46 && code !== 8) { // bunch of control keys, except delete (46), and backspace (8)
+          return;
+        }
+        if (code === 91 || code === 92 || code === 93) { // left + right command/window, select
+          return;
+        }
+        if (code > 111 && code < 186) { // f keys, misc
+          return;
+        }
+      }
+      ctrl.executeQuery();
+    };
 
-      this.$scope.showSearchResults = true;
-
-    }));
-
-    it('pressing escape closes the search results, clears the query, and focuses on the input', function () {
-      var ctrl = this.ctrl,
-          $scope = this.$scope;
-
-      $scope.query = 'not null';
+    this.executeQuery = _.debounce(function() {
+      $analytics.eventTrack('Global Search', {category: 'Query', label: $scope.query});
       $scope.querying = true;
-      $scope.categories = [];
+      search.query($scope.query).then(function (result) {
+        $scope.$eval(function () {
+          $scope.querying = false;
+          $scope.categories = result.filter((category) => category.results.length);
+          $scope.showSearchResults = !!$scope.query;
+          $scope.showRecentItems = !$scope.query;
+        });
+      });
+    }, 200);
 
-      ctrl.dispatchQueryInput({which: 27});
+    ctrl.clearFilters = r => clusterFilterService.overrideFiltersForUrl(r);
 
-      $scope.$digest();
+    this.focusFirstSearchResult = function focusFirstSearchResult(event) {
+      try {
+        event.preventDefault();
+        $element.find('ul.dropdown-menu').find('a').first().focus();
+      } catch (e) {
+        $log.debug(e);
+      }
+    };
 
-      expect($scope.querying).toBe(false);
-      expect($scope.query).toBe(null);
-      expect($scope.categories).toBe(null);
-      expect($scope.showSearchResults).toBe(false);
-      expect(this.input.focus).toHaveBeenCalled();
-    });
+    this.focusLastSearchResult = function focusLastSearchResult(event) {
+      try {
+        event.preventDefault();
+        $element.find('ul.dropdown-menu').find('a').last().focus();
+      } catch (e) {
+        $log.debug(e);
+      }
+    };
 
-    it('pressing down or tab (without shift) selects the first search result', function () {
-      spyOn(this.ctrl, 'focusFirstSearchResult').and.callFake(angular.noop);
-      var event = {which: 40};
+    this.showSearchResults = function() {
+      if (Object.keys($scope.categories).length > 0) {
+        $scope.showSearchResults = true;
+      }
+    };
 
-      this.ctrl.dispatchQueryInput(event);
-
-      this.$scope.$digest();
-
-      expect(this.ctrl.focusFirstSearchResult).toHaveBeenCalledWith(event);
-
-      event = {which: 9};
-      this.ctrl.dispatchQueryInput(event);
-      this.$scope.$digest();
-
-      expect(this.ctrl.focusFirstSearchResult).toHaveBeenCalledWith(event);
-
-      event = {which: 9, shiftKey: true};
-      this.ctrl.dispatchQueryInput(event);
-      this.$scope.$digest();
-
-      expect(this.ctrl.focusFirstSearchResult).not.toHaveBeenCalledWith(event);
-    });
-
-    it('pressing up selects the last search result', function () {
-      spyOn(this.ctrl, 'focusLastSearchResult').and.callFake(angular.noop);
-
-      var event = {which: 38};
-      this.ctrl.dispatchQueryInput(event);
-      this.$scope.$digest();
-
-      expect(this.ctrl.focusLastSearchResult).toHaveBeenCalledWith(event);
-    });
-
-    it('ignores left, right, shift key events', function() {
-      spyOn(this.ctrl, 'focusLastSearchResult').and.callFake(angular.noop);
-
-      this.ctrl.dispatchQueryInput({which: 39});
-      this.$scope.$digest();
-
-      expect(this.infrastructureSearchService.query).not.toHaveBeenCalled();
-
-      this.ctrl.dispatchQueryInput({which: 37});
-      this.$scope.$digest();
-      expect(this.infrastructureSearchService.query).not.toHaveBeenCalled();
-
-      this.ctrl.dispatchQueryInput({which: 16});
-      this.$scope.$digest();
-      expect(this.infrastructureSearchService.query).not.toHaveBeenCalled();
-
-
-      this.ctrl.dispatchQueryInput({which: 65});
-      this.$scope.$digest();
-      expect(this.infrastructureSearchService.query).toHaveBeenCalled();
-    });
-
-
-
+    this.navigateResults = function(event) {
+      var $target = $(event.target);
+      if (event.which === 27) { // escape
+        $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'escape (from result)'});
+        reset();
+      }
+      if (event.which === 9) { // tab - let it navigate automatically, but close menu if on the last result
+        if ($element.find('ul.dropdown-menu').find('a').last().is(':focus')) {
+          $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'tab (from result)'});
+          ctrl.hideResults();
+          return;
+        }
+      }
+      if (event.which === 40) { // down
+        $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'down (from result)'});
+        ctrl.focussedResult = null;
+        try {
+          $target
+            .parent()
+            .nextAll('li.result')[0]
+            .children[0]
+            .focus();
+        } catch (e) {
+          ctrl.focusFirstSearchResult(event);
+        }
+        event.preventDefault();
+      }
+      if (event.which === 38) { // up
+        $analytics.eventTrack('Global Search', {category: 'Keyboard Nav', label: 'up (from result)'});
+        ctrl.focussedResult = null;
+        try {
+          $target
+            .parent()
+            .prevAll('li.result')[0]
+            .children[0]
+            .focus();
+        } catch (e) {
+          ctrl.focusLastSearchResult(event);
+        }
+        event.preventDefault();
+      }
+    };
   });
-});

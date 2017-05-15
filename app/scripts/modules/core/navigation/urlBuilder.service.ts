@@ -4,9 +4,9 @@ import {module} from 'angular';
 import {StateService} from 'angular-ui-router';
 
 export interface IUrlBuilderInput {
-  account: string;
-  application: string;
-  cluster: string;
+  account?: string;
+  application?: string;
+  cluster?: string;
   detail?: string;
   instanceId?: string;
   loadBalancer?: string;

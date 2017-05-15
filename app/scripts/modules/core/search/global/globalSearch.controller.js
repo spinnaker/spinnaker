@@ -18,7 +18,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
                                            $stateParams, $, $log, clusterFilterService, $analytics, $sce) {
     var ctrl = this;
-    var search = infrastructureSearchService();
+    var search = infrastructureSearchService.getSearcher();
 
     $scope.showSearchResults = false;
 

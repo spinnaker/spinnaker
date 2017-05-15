@@ -2,6 +2,7 @@
 
 let angular = require('angular');
 
+import './ApplicationSearchResultFormatter';
 import {SECONDARY_APPLICATION_NAV_COMPONENT} from './nav/secondaryNav.component';
 
 module.exports = angular

@@ -10,6 +10,7 @@ import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} fro
 import {ENTITY_TAGS_READ_SERVICE, EntityTagsReader} from 'core/entityTag/entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
 import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
+import { ISecurityGroupSearchResult } from './SecurityGroupSearchResultFormatter';
 
 interface IRegionAccount {
   account: string;
@@ -408,11 +409,11 @@ export class SecurityGroupReader {
 
   public loadSecurityGroupsByApplicationName(applicationName: string): IPromise<ISecurityGroup[]> {
 
-    return this.searchService.search<ISecurityGroup>({
+    return this.searchService.search<ISecurityGroupSearchResult>({
       q: applicationName,
       type: 'securityGroups',
       pageSize: 1000
-    }).then((searchResults: ISearchResults<ISecurityGroup>) => {
+    }).then((searchResults: ISearchResults<ISecurityGroupSearchResult>) => {
 
       let result: ISecurityGroup[] = [];
       if (!searchResults || !searchResults.results) {

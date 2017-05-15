@@ -3,6 +3,7 @@
 let angular = require('angular');
 
 import {SERVER_GROUP_STATES} from './serverGroup.states';
+import './ServerGroupSearchResultFormatter';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup', [

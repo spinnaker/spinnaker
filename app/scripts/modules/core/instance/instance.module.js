@@ -3,8 +3,8 @@
 let angular = require('angular');
 
 import {INSTANCE_STATES} from './instance.states';
-
-require('./instanceSelection.less');
+import './InstanceSearchResultFormatter';
+import './instanceSelection.less';
 
 module.exports = angular
   .module('spinnaker.core.instance', [

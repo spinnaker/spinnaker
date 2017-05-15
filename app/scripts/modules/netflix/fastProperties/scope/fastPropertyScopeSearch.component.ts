@@ -8,6 +8,7 @@ import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryS
 import { Scope } from '../domain/scope.domain';
 import { Application } from 'core/application/application.model';
 import { ServerGroup } from 'core/domain/serverGroup';
+import { InfrastructureSearcher, InfrastructureSearchService } from 'core/search/infrastructure/infrastructureSearch.service';
 import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 
 import './fastPropetyScopeSearch.less';
@@ -29,7 +30,7 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
   public applicationDictionary: any = {};
   public showNoImpactListForCategory: any = {};
 
-  private search: any;
+  private search: InfrastructureSearcher;
 
   public $onChanges(changes: any) {
     if (!changes.env.isFirstChange()) {
@@ -65,11 +66,11 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
   }
 
   constructor(private $q: IQService,
-              infrastructureSearchService: any,
+              infrastructureSearchService: InfrastructureSearchService,
               private accountService: AccountService,
               private fastPropertyScopeSearchCategoryService: FastPropertyScopeCategoryService) {
     'ngInject';
-    this.search = infrastructureSearchService();
+    this.search = infrastructureSearchService.getSearcher();
   }
 
   public clearFilters() {
@@ -226,9 +227,7 @@ class FastPropertyScopeSearchComponent implements IComponentOptions {
 }
 
 export const FAST_PROPERTY_SCOPE_SEARCH_COMPONENT = 'spinnaker.netflix.fastproperty.scope.search.component';
-
 module(FAST_PROPERTY_SCOPE_SEARCH_COMPONENT, [
-  require('core/search/infrastructure/infrastructureSearch.service'),
   FAST_PROPERTY_READ_SERVICE,
   ACCOUNT_SERVICE,
   FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE,

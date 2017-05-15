@@ -11,7 +11,7 @@ export interface ISearchParams {
   filter?: {[key: string]: string};
 }
 
-export interface ISearchResults<T> {
+export interface ISearchResults<T extends ISearchResult> {
   results: T[];
   pageNumber?: number;
   pageSize?: number;
@@ -20,13 +20,24 @@ export interface ISearchResults<T> {
   totalMatches?: number;
 }
 
+export interface ISearchResult {
+  type: string;
+  provider: string;
+  displayName?: string;
+  href?: string;
+}
+
+export const getFallbackResults = (): ISearchResults<ISearchResult> => {
+  return { results: [] };
+};
+
 export class SearchService {
 
   static get defaultPageSize() { return 500; };
 
   constructor(private $log: ILogService, private API: Api) { 'ngInject'; }
 
-  public search<T>(params: ISearchParams, cache: ICache = null): IPromise<ISearchResults<T>> {
+  public search<T extends ISearchResult>(params: ISearchParams, cache: ICache = null): IPromise<ISearchResults<T>> {
     const defaultParams: ISearchParams = {
       pageSize: SearchService.defaultPageSize,
     };
@@ -37,16 +48,12 @@ export class SearchService {
     }
     return requestBuilder.get()
       .then((response: ISearchResults<T>[]) => {
-        return response[0] || this.getFallbackResults();
+        return response[0] || getFallbackResults();
       })
       .catch((response: IHttpPromiseCallbackArg<any>) => {
         this.$log.error(response.data, response);
-        return this.getFallbackResults();
+        return getFallbackResults();
       });
-  }
-
-  public getFallbackResults(): ISearchResults<any> {
-    return { results: [] };
   }
 }
 

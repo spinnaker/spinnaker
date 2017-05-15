@@ -9,9 +9,10 @@ import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 import {CORE_PAGETITLE_SERVICE} from 'core/pageTitle/pageTitle.service';
+import {INFRASTRUCTURE_SEARCH_SERVICE} from 'core/search/infrastructure/infrastructureSearch.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
-  require('./infrastructureSearch.service.js'),
+  INFRASTRUCTURE_SEARCH_SERVICE,
   RECENT_HISTORY_SERVICE,
   require('../searchResult/searchResult.directive.js'),
   CORE_PAGETITLE_SERVICE,
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
                                              cacheInitializer, overrideRegistry,
                                              pageTitleService, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
-    var search = infrastructureSearchService();
+    var search = infrastructureSearchService.getSearcher();
 
     $scope.categories = [];
     $scope.projects = [];
