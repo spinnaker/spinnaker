@@ -260,8 +260,10 @@ class CommandOutputMediator(object):
 
   def capture_stderr(self, fragments):
     """Callback for adding text from stderr."""
+    # Display this as info because python unittest.main is printing
+    # normal status to stderr but we want it to show up here as info, not error
     self.__buffered_stderr = self.capture_helper(
-        fragments, self.__buffered_stderr, logging.error)
+        fragments, self.__buffered_stderr, logging.info)
 
   def capture_helper(self, fragments, remaining, method):
     """Helper function managing the buffers and logging."""
@@ -402,7 +404,7 @@ class ValidateBomTestController(object):
     #
     # We dont need to lock because this function is called from within
     # the lock already.
-    logging.debug('RUNNING {0}'.format(' '.join(command)))
+    logging.debug('RUNNING %s', ' '.join(command))
     child = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -410,7 +412,7 @@ class ValidateBomTestController(object):
         stdin=subprocess.PIPE)
     return ForwardedPort(child, local_port)
 
-  def wait_on_service(self, service_name, port=None, timeout=60):
+  def wait_on_service(self, service_name, port=None, timeout=120):
     """Wait for the given service to be available on the specified port.
 
     Args:
@@ -432,6 +434,11 @@ class ValidateBomTestController(object):
     if port is None:
       port = self.__service_port_map[service_name]
 
+    # It seems we have a race condition in the poll
+    # where it thinks the jobs have terminated.
+    # I've only seen this happen once.
+    time.sleep(1)
+
     while forwarding.child.poll() is None:
       try:
         # localhost is hardcoded here because we are port forwarding.
@@ -451,9 +458,9 @@ class ValidateBomTestController(object):
           raise error
         time.sleep(1.0)
 
-    logging.error('It appears {0} is no longer available.'
-                  ' Perhaps the tunnel closed.'
-                  .format(service_name))
+    logging.error('It appears %s is no longer available.'
+                  ' Perhaps the tunnel closed.',
+                  service_name)
     raise RuntimeError('It appears that {0} failed'.format(service_name))
 
   def run_tests(self):
@@ -509,7 +516,8 @@ class ValidateBomTestController(object):
     all_test_profiles = self.test_suite['tests']
 
     logging.info(
-        'Running tests (concurrency=%s).', options.test_concurrency or 'infinite')
+        'Running tests (concurrency=%s).',
+        options.test_concurrency or 'infinite')
 
     thread_pool = ThreadPool(len(all_test_profiles))
     thread_pool.map(self.__run_or_skip_test_profile_entry_wrapper,
@@ -529,7 +537,8 @@ class ValidateBomTestController(object):
     try:
       self.__run_or_skip_test_profile_entry(test_name, spec)
     except Exception as ex:
-      logging.error('Caught exception:\n%s', traceback.format_exc())
+      logging.error('%s threw an exception:\n%s',
+                    test_name, traceback.format_exc())
       with self.__lock:
         self.__failed.append((test_name, 'Caught exception {0}'.format(ex)))
 
@@ -622,6 +631,8 @@ class ValidateBomTestController(object):
     option_dict = vars(self.options)
     aliases_dict = self.test_suite.get('aliases', {})
     for key, value in args.items():
+      if isinstance(value, (int, bool)):
+        value = str(value)
       if key == 'alias':
         for alias_name in value:
           if not alias_name in aliases_dict:
@@ -664,10 +675,13 @@ class ValidateBomTestController(object):
         os.path.join(os.path.dirname(__file__), '..', 'testing'))
     test_path = spec.get('path') or os.path.join(
         testing_root_dir, 'citest', 'tests', '{0}.py'.format(test_name))
+    citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
+    if not os.path.exists(citest_log_dir):
+      os.makedirs(citest_log_dir)
 
     command = [
         'python', test_path,
-        '--log_dir', options.test_log_dir,
+        '--log_dir', citest_log_dir,
         '--native_host', 'localhost',
         '--native_port', str(self.__forwarded_ports[microservice_api].port)
     ]
@@ -712,7 +726,7 @@ class ValidateBomTestController(object):
         logging.info('"%s" had a semaphore contention for %d secs.',
                      test_name, wait_time)
       logging.info('Executing "%s"...', test_name)
-      logging.debug('Running {0}'.format(' '.join(command)))
+      logging.debug('Running %s', ' '.join(command))
       result = run_and_monitor(' '.join(command),
                                echo=False,
                                observe_stdout=capture.capture_stdout,
@@ -746,10 +760,6 @@ def init_argument_parser(parser):
   parser.add_argument(
       '--test_concurrency', default=None, type=int,
       help='Limits how many tests to run at a time. Default is unbounded')
-
-  parser.add_argument(
-      '--test_log_dir', default='.',
-      help='Directory to write test log files.')
 
   parser.add_argument(
       '--test_quota', default='google_backend_services=5,google_cpu=20',
