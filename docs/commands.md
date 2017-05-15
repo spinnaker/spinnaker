@@ -2763,7 +2763,7 @@ Edit configuration for the "oraclebmcs" persistent store.
 hal config storage oraclebmcs edit [parameters]
 ```
 #### Parameters
- * `--bucketName`: The bucket name to store persistent state object in
+ * `--bucket-name`: The bucket name to store persistent state object in
  * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
  * `--fingerprint`: Fingerprint of the public key
  * `--namespace`: The namespace the bucket and objects should be created in
