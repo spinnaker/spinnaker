@@ -48,6 +48,7 @@ import org.junit.runner.RunWith
 import org.springframework.beans.factory.DisposableBean
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.Bean
@@ -57,7 +58,8 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.lang.Thread.sleep
 import java.time.Duration
-import java.time.ZonedDateTime.now
+import java.time.Instant.now
+import java.time.ZoneId
 import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(SpringJUnit4ClassRunner::class)
@@ -69,6 +71,10 @@ class SpringIntegrationTest {
   @Autowired lateinit var repository: ExecutionRepository
   @Autowired lateinit var dummyTask: DummyTask
   @Autowired lateinit var context: ConfigurableApplicationContext
+
+  @Value("\${tasks.executionWindow.timezone:America/Los_Angeles}")
+  lateinit var timeZoneId: String
+  private val timeZone by lazy { ZoneId.of(timeZoneId) }
 
   @Before fun discoveryUp() {
     context.publishEvent(RemoteStatusChangedEvent(StatusChangeEvent(STARTING, UP)))
@@ -366,9 +372,9 @@ class SpringIntegrationTest {
           "restrictedExecutionWindow" to mapOf(
             "days" to (1..7).toList(),
             "whitelist" to listOf(mapOf(
-              "startHour" to now().hour,
+              "startHour" to now().atZone(timeZone).hour,
               "startMin" to 0,
-              "endHour" to now().hour + 1,
+              "endHour" to now().atZone(timeZone).hour + 1,
               "endMin" to 0
             ))
           )
