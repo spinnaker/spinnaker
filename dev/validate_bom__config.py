@@ -73,6 +73,10 @@ class StorageConfigurator(object):
     if options.spinnaker_storage not in ['gcs']:
       raise ValueError('Unknown --spinnaker_storage="{0}"'
                        .format(options.spinnaker_storage))
+    if options.spinnaker_storage == 'gcs':
+      if not options.gcs_storage_bucket:
+        raise ValueError('Specified --spinnaker_storage="gcs"'
+                         ' but not --gcs_storage_bucket')
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
@@ -121,11 +125,17 @@ class AwsConfigurator(object):
     parser.add_argument(
         '--aws_account_regions', default='us-east-1',
         help='The AWS account regions the account will manage.')
+    parser.add_argument(
+        '--aws_account_keypair', default=None,
+        help='The AWS default account keypair to use. If not specified, this'
+        ' will default to "<aws_account_name>-keypair".')
 
   def validate_options(self, options):
     """Implements interface."""
     options.aws_account_enabled = options.aws_account_credentials is not None
-
+    if options.aws_account_name and (options.aws_account_keypair is None):
+      options.aws_account_keypair = '{0}-keypair'.format(
+          options.aws_account_name)
 
   def add_config(self, options, script):
     """Implements interface."""
@@ -135,6 +145,8 @@ class AwsConfigurator(object):
     account_params = [options.aws_account_name]
     if options.aws_account_id:
       account_params.extend(['--account-id', options.aws_account_id])
+    if options.aws_account_keypair:
+      account_params.extend(['--default-keypair', options.aws_account_keypair])
     if options.aws_account_regions:
       account_params.extend(['--account-regions', options.aws_account_regions])
 
@@ -142,9 +154,10 @@ class AwsConfigurator(object):
     script.append('hal --color=false config provider aws enable')
     script.append('hal --color=false config provider aws account add {params}'
                   .format(params=' '.join(account_params)))
-    script.append('sudo chown spinnaker:spinnaker {file}'
-                  .format(file=cred_basename))
     script.append('sudo mkdir -p ~spinnaker/.aws')
+    script.append('sudo chown spinnaker:spinnaker {file} ~spinnaker/.aws'
+                  .format(file=cred_basename))
+    script.append('sudo chmod 600 {file}'.format(file=cred_basename))
     script.append('sudo mv {file} ~spinnaker/.aws/credentials'
                   .format(file=cred_basename))
 
@@ -217,28 +230,40 @@ class KubernetesConfigurator(object):
         '--k8s_account_name', default='my-kubernetes-account',
         help='The name of the primary Kubernetes account to configure.')
     parser.add_argument(
-        '--docker_registry', default=None,
-        help='The docker registry to use with the --k8s_credentials')
+        '--k8s_account_context',
+        help='The kubernetes context for the primary Kubernetes account.')
+    parser.add_argument(
+        '--k8s_account_namespaces',
+        help='The kubernetes namespaces for the primary Kubernetes account.')
+    parser.add_argument(
+        '--k8s_account_docker_account', default=None,
+        help='The docker registry account to use with the --k8s_account')
 
   def validate_options(self, options):
     """Implements interface."""
     options.k8s_account_enabled = options.k8s_account_credentials is not None
     if options.k8s_account_credentials:
-      if not options.docker_registry:
-        raise ValueError('--docker_registry was not specified.')
+      if not options.k8s_account_docker_account:
+        raise ValueError('--k8s_account_docker_account was not specified.')
 
   def add_config(self, options, script):
     """Implements interface."""
     if not options.k8s_account_credentials:
       return
-    if not options.docker_registry:
-      raise ValueError('--k8s_account_credentials without --docker_registry')
+    if not options.k8s_account_docker_account:
+      raise ValueError(
+          '--k8s_account_credentials without --k8s_account_docker_account')
 
     account_params = [options.k8s_account_name]
     account_params.extend([
-        '--docker-registries', options.docker_registry,
+        '--docker-registries', options.k8s_account_docker_account,
         '--kubeconfig-file', os.path.basename(options.k8s_account_credentials)
     ])
+    if options.k8s_account_context:
+      account_params.extend(['--context', options.k8s_account_context])
+    if options.k8s_account_namespaces:
+      account_params.extend(['--namespaces', options.k8s_account_namespaces])
+
     script.append('hal --color=false config provider kubernetes enable')
     script.append('hal --color=false config provider kubernetes account'
                   ' add {params}'
@@ -248,6 +273,61 @@ class KubernetesConfigurator(object):
     """Implements interface."""
     if options.k8s_account_credentials:
       file_set.add(options.k8s_account_credentials)
+
+
+class DockerConfigurator(object):
+  """Controls hal config provider docker."""
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    parser.add_argument(
+        '--docker_account_address', default=None,
+        help='Registry address to pull and deploy images from.')
+    parser.add_argument(
+        '--docker_account_name', default='my-docker-account',
+        help='The name of the primary Docker account to configure.')
+    parser.add_argument(
+        '--docker_account_registry_username', default=None,
+        help='The username for the docker registry.')
+    parser.add_argument(
+        '--docker_account_credentials', default=None,
+        help='Path to plain-text password file.')
+    parser.add_argument(
+        '--docker_account_repositories', default=None,
+        help='Additional list of repositories to cache images from.')
+
+  def validate_options(self, options):
+    """Implements interface."""
+    options.docker_account_enabled = options.docker_account_address is not None
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.docker_account_address:
+      return
+
+    account_params = [options.docker_account_name,
+                      '--address', options.docker_account_address]
+    if options.docker_account_credentials:
+      cred_basename = os.path.basename(options.docker_account_credentials)
+      script.append('sudo chmod 600 {file}'.format(file=cred_basename))
+      account_params.extend(
+          ['--password-file', options.docker_account_credentials])
+    if options.docker_account_registry_username:
+      account_params.extend(
+          ['--username', options.docker_account_registry_username])
+    if options.docker_account_repositories:
+      account_params.extend(
+          ['--repositories', options.docker_account_repositories])
+
+    script.append('hal --color=false config provider docker-registry enable')
+    script.append('hal --color=false config provider docker-registry account'
+                  ' add {params}'
+                  .format(params=' '.join(account_params)))
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    if options.docker_account_credentials:
+      file_set.add(options.docker_account_credentials)
 
 
 class JenkinsConfigurator(object):
@@ -387,6 +467,7 @@ class SecurityConfigurator(object):
 CONFIGURATOR_LIST = [
     StorageConfigurator(),
     AwsConfigurator(),
+    DockerConfigurator(),
     GoogleConfigurator(),
     KubernetesConfigurator(),
     JenkinsConfigurator(),

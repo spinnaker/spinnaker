@@ -73,15 +73,17 @@ how many tests can run at a time. This is enforced at the point of execution,
 after all the setup and filtering has taken place.
 """
 
+# pylint: disable=broad-except
+
 from multiprocessing.pool import ThreadPool
 
+import atexit
 import collections
 import logging
 import os
 import re
 import subprocess
 import socket
-import sys
 import threading
 import time
 import traceback
@@ -336,6 +338,13 @@ class ValidateBomTestController(object):
     """Returns the skipped tests and reasons."""
     return self.__skipped
 
+  def __close_forwarded_ports(self):
+    for forwarding in self.__forwarded_ports.values():
+      try:
+        forwarding[0].kill()
+      except Exception as ex:
+        logging.error('Error terminating child: %s', ex)
+
   def __init__(self, deployer):
     options = deployer.options
     quota_spec = {parts[0]: int(parts[1])
@@ -355,6 +364,7 @@ class ValidateBomTestController(object):
 
     # dictionary of service -> ForwardedPort
     self.__forwarded_ports = {}
+    atexit.register(self.__close_forwarded_ports)
 
     # Map of service names to native ports.
     self.__service_port_map = {
@@ -392,6 +402,7 @@ class ValidateBomTestController(object):
     #
     # We dont need to lock because this function is called from within
     # the lock already.
+    logging.debug('RUNNING {0}'.format(' '.join(command)))
     child = subprocess.Popen(
         command,
         stdout=subprocess.PIPE,
@@ -420,6 +431,7 @@ class ValidateBomTestController(object):
     logging.info('Waiting on "%s..."', service_name)
     if port is None:
       port = self.__service_port_map[service_name]
+
     while forwarding.child.poll() is None:
       try:
         # localhost is hardcoded here because we are port forwarding.
@@ -435,9 +447,13 @@ class ValidateBomTestController(object):
 
       except (urllib2.URLError, Exception) as error:
         if time.time() >= end_time:
+          logging.error('Timing out waiting for %s', service_name)
           raise error
         time.sleep(1.0)
 
+    logging.error('It appears {0} is no longer available.'
+                  ' Perhaps the tunnel closed.'
+                  .format(service_name))
     raise RuntimeError('It appears that {0} failed'.format(service_name))
 
   def run_tests(self):
@@ -493,7 +509,7 @@ class ValidateBomTestController(object):
     all_test_profiles = self.test_suite['tests']
 
     logging.info(
-        'Running tests (concurrency=%d).', options.test_concurrency)
+        'Running tests (concurrency=%s).', options.test_concurrency or 'infinite')
 
     thread_pool = ThreadPool(len(all_test_profiles))
     thread_pool.map(self.__run_or_skip_test_profile_entry_wrapper,
@@ -512,13 +528,10 @@ class ValidateBomTestController(object):
     spec = args[1]
     try:
       self.__run_or_skip_test_profile_entry(test_name, spec)
-    finally:
-      ex_type, ex_value, ex_tb = sys.exc_info()
-      if ex_type is not None:
-        logging.error('Caught exception:\n%s', traceback.format_tb(ex_tb))
-        with self.__lock:
-          self.__failed.append(
-              (test_name, 'Caught exception {0}'.format(ex_value)))
+    except Exception as ex:
+      logging.error('Caught exception:\n%s', traceback.format_exc())
+      with self.__lock:
+        self.__failed.append((test_name, 'Caught exception {0}'.format(ex)))
 
   def __run_or_skip_test_profile_entry(self, test_name, spec):
     """Runs a test from within the thread-pool map() function.
@@ -592,7 +605,6 @@ class ValidateBomTestController(object):
 
     thread_pool = ThreadPool(len(services))
     thread_pool.map(self.wait_on_service, services)
-    print 'TERMINATE: {0}'.format(test_name)
     thread_pool.terminate()
     return True
 
@@ -648,8 +660,10 @@ class ValidateBomTestController(object):
     if not self.validate_test_requirements(test_name, spec):
       return None
 
+    testing_root_dir = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), '..', 'testing'))
     test_path = spec.get('path') or os.path.join(
-        '..', 'testing', 'citest', 'tests', '{0}.py'.format(test_name))
+        testing_root_dir, 'citest', 'tests', '{0}.py'.format(test_name))
 
     command = [
         'python', test_path,
@@ -698,6 +712,7 @@ class ValidateBomTestController(object):
         logging.info('"%s" had a semaphore contention for %d secs.',
                      test_name, wait_time)
       logging.info('Executing "%s"...', test_name)
+      logging.debug('Running {0}'.format(' '.join(command)))
       result = run_and_monitor(' '.join(command),
                                echo=False,
                                observe_stdout=capture.capture_stdout,
@@ -729,7 +744,7 @@ def init_argument_parser(parser):
       help='The path to the set of test profiles.')
 
   parser.add_argument(
-      '--test_concurrency', default=None,
+      '--test_concurrency', default=None, type=int,
       help='Limits how many tests to run at a time. Default is unbounded')
 
   parser.add_argument(

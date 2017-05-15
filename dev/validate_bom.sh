@@ -21,4 +21,4 @@
 export PYTHONPATH=$(dirname $0)/../testing/citest
 export PYTHONPATH=${PYTHONPATH}:$(dirname $0)/../pylib
 
-python validate_bom__main.py "$@"
+python $(dirname $0)/validate_bom__main.py "$@"
