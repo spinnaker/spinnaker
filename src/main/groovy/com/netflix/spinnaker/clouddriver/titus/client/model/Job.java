@@ -17,12 +17,24 @@
 package com.netflix.spinnaker.clouddriver.titus.client.model;
 
 import com.netflix.spinnaker.clouddriver.titus.model.TitusSecurityGroup;
+import com.netflix.titus.grpc.protogen.BatchJobSpec;
+import com.netflix.titus.grpc.protogen.JobDescriptor;
+import com.netflix.titus.grpc.protogen.ServiceJobSpec;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Job {
 
     public static class TaskSummary {
+
+      public TaskSummary() {}
+
+      public TaskSummary(com.netflix.titus.grpc.protogen.Task grpcTask){
+          id = grpcTask.getId();
+          state = TaskState.from( grpcTask.getState().getState().name() );
+        }
+
         private String id;
         private String instanceId;
         private TaskState state;
@@ -204,18 +216,30 @@ public class Job {
     public Job(com.netflix.titus.grpc.protogen.Job grpcJob){
       id = grpcJob.getId();
 
-      if(grpcJob.getJobDescriptor().getBatch() != null){
+      if(grpcJob.getJobDescriptor().getJobSpecCase().getNumber() == JobDescriptor.BATCH_FIELD_NUMBER){
         type = "batch";
-      } else if(grpcJob.getJobDescriptor().getService() != null){
-        type = "service";
+        BatchJobSpec batchJobSpec = grpcJob.getJobDescriptor().getBatch();
+        instancesMin = batchJobSpec.getInstances().getMin();
+        instancesMax = batchJobSpec.getInstances().getMax();
+        instancesDesired = batchJobSpec.getInstances().getDesired();
       }
+
+      if(grpcJob.getJobDescriptor().getJobSpecCase().getNumber() == JobDescriptor.SERVICE_FIELD_NUMBER){
+        type = "service";
+        ServiceJobSpec serviceSpec = grpcJob.getJobDescriptor().getService();
+        inService = serviceSpec.getEnabled();
+        instancesMin = serviceSpec.getInstances().getMin();
+        instancesMax = serviceSpec.getInstances().getMax();
+        instancesDesired = serviceSpec.getInstances().getDesired();
+      }
+
+      labels = grpcJob.getJobDescriptor().getLabelsMap();
+      user = grpcJob.getJobDescriptor().getOwner().getTeamEmail();
+      tasks = grpcJob.getTasksList().stream().map( grpcTask -> new TaskSummary(grpcTask)).collect(Collectors.toList());
+
       /*
       private String name;
-      private String type;
-      private List<String> tags;
       private String applicationName;
-      private String appName;
-      private String user;
       private String version;
       private String entryPoint;
       private String iamProfile;
@@ -237,9 +261,7 @@ public class Job {
       private boolean allocateIpAddress;
       private Date submittedAt;
       private List<TaskSummary> tasks;
-      private Map<String, String> labels;
       private List<String> securityGroups;
-      private Set<TitusSecurityGroup> securityGroupDetails;
       private String jobGroupStack;
       private String jobGroupDetail;
       private String jobGroupSequence;

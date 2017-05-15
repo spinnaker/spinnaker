@@ -30,6 +30,7 @@ import io.grpc.ManagedChannelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -90,12 +91,15 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public Job findJobByName(String jobName) {
-    return new Job(grpcBlockingStub.findJobs(JobQuery.newBuilder().putFiterlingCriteria("labels.name", jobName).build()).getItems(0));
+    JobQuery.Builder jobQuery = JobQuery.newBuilder()
+      .putFiterlingCriteria("labels", "name=" + jobName + ",source=spinnaker");
+    return getJobs(jobQuery).get(0);
   }
 
   @Override
   public List<Job> findJobsByApplication(String application) {
-    return grpcBlockingStub.findJobs(JobQuery.newBuilder().putFiterlingCriteria("appName", application).build()).getItemsList().stream().map(grpcJob -> new Job(grpcJob)).collect(Collectors.toList());
+    JobQuery.Builder jobQuery = JobQuery.newBuilder().putFiterlingCriteria("appName", application);
+    return getJobs(jobQuery);
   }
 
   @Override
@@ -170,7 +174,28 @@ public class RegionScopedV3TitusClient implements TitusClient {
 
   @Override
   public List<Job> getAllJobs() {
-    return grpcBlockingStub.findJobs(JobQuery.newBuilder().putFiterlingCriteria("jobType", "service").build()).getItemsList().stream().map(grpcJob -> new Job(grpcJob)).collect(Collectors.toList());
+    JobQuery.Builder jobQuery = JobQuery.newBuilder()
+      .putFiterlingCriteria("jobType", "SERVICE")
+      .putFiterlingCriteria("labels", "source=spinnaker");
+    return getJobs(jobQuery);
   }
+
+  private List<Job> getJobs(JobQuery.Builder jobQuery) {
+    int currentPage = 0;
+    int allPages;
+    List<Job> jobs = new ArrayList<>();
+    do {
+      jobQuery.setPage(Page.newBuilder().setPageNumber(currentPage).setPageSize(100));
+      JobQuery criteria = jobQuery.build();
+      JobQueryResult resultPage = grpcBlockingStub.findJobs(criteria);
+      jobs.addAll(resultPage.getItemsList().stream().map(grpcJob -> {
+        return new Job(grpcJob);
+      }).collect(Collectors.toList()));
+      allPages = resultPage.getPagination().getAllPages();
+      currentPage++;
+    } while (allPages > currentPage);
+    return jobs;
+  }
+
 
 }

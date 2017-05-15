@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.clouddriver.titus.v3client
 
 import com.netflix.spectator.api.NoopRegistry
-import com.netflix.spinnaker.clouddriver.titus.client.RegionScopedTitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusClient
 import com.netflix.spinnaker.clouddriver.titus.client.TitusRegion
 import com.netflix.spinnaker.clouddriver.titus.client.model.*
@@ -29,6 +28,7 @@ import spock.lang.Specification
 class RegionScopedV3TitusClientSpec extends Specification {
 
   // this isn't really a unit test..
+  @Ignore
   void 'job creation lifecycle'() {
     setup:
     Logger logger = LoggerFactory.getLogger(TitusClient)
@@ -38,9 +38,6 @@ class RegionScopedV3TitusClientSpec extends Specification {
     TitusClient titusClient = new RegionScopedV3TitusClient(titusRegion, new NoopRegistry(), Collections.emptyList());
 
     // ******************************************************************************************************************
-
-    titusClient.getAllJobs()
-
 
     Map<String, String> env = new HashMap<>();
     env.put("debug", "true");
@@ -68,9 +65,9 @@ class RegionScopedV3TitusClientSpec extends Specification {
       .withEntryPoint("ls -la")
       .withIamProfile("TitusContainerRole")
       .withSecurityGroups([
-        'sg-f0f19494',
-        'sg-6321d91b'
-      ])
+      'sg-f0f19494',
+      'sg-6321d91b'
+    ])
       .withPorts([7001] as int[])
       .withEnv(env)
       .withLabels(labels)
@@ -80,14 +77,6 @@ class RegionScopedV3TitusClientSpec extends Specification {
 
     when:
     String jobId = titusClient.submitJob(submitJobRequest);
-
-    titusClient.findJobsByApplication("helix_hello_world_server");
-
-
-
-    job = titusClient.findJobByName("helix_hello_world_server-main-test-v001");
-
-
 
     then:
     jobId != null
@@ -108,18 +97,6 @@ class RegionScopedV3TitusClientSpec extends Specification {
     then:
     logger.info("job by name {}", job);
     job != null
-
-    titusClient.terminateJob(new TerminateJobRequest().withJobId(jobId));
-/*
-    // ******************************************************************************************************************
-
-
-    logger.info("Tasks request at {}", new Date());
-    List<Job.TaskSummary> tasks = titusClient.getAllTasks();
-    logger.info("Tasks response at {}", new Date());
-    logger.info("Tasks");
-    logger.info("-----------------------------------------------------------------------------------------------");
-    logger.info("Task count: {}", tasks.size());
 
     logger.info("Jobs request: {}", new Date());
     List<Job> jobs = titusClient.getAllJobs();
@@ -188,6 +165,7 @@ class RegionScopedV3TitusClientSpec extends Specification {
       Job.TaskSummary task = terminatedJob.getTasks().get(0);
       if (task.getState() == TaskState.DEAD ||
         task.getState() == TaskState.STOPPED ||
+        task.getState() == TaskState.FAILED ||
         task.getState() == TaskState.FINISHED) {
         terminated = true;
         break;
@@ -220,6 +198,6 @@ class RegionScopedV3TitusClientSpec extends Specification {
 
     then:
     !foundAfterTermination
-*/
+
   }
 }
