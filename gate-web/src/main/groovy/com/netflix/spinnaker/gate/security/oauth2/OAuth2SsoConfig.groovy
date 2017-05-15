@@ -126,6 +126,7 @@ class OAuth2SsoConfig {
    * preEstablishedRedirectUri, if set, where the SSL is terminated outside of this server.
    */
   @Component
+  @ConditionalOnExpression(''''${spring.oauth2.client.clientId:}'!=""''')
   static class ExternalSslAwareEntryPoint extends LoginUrlAuthenticationEntryPoint {
 
     @Autowired
