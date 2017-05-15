@@ -294,12 +294,12 @@ class BomGenerator(Annotator):
         pass
       elif os.path.isdir(full_profile):
         profile_path = '{0}.tar.gz'.format(full_profile)
-        result = run_quick('tar -cvf {0} {1}/*'.format(profile_path, full_profile)
+        result = run_quick('tar -cvf {0} {1}/*'.format(profile_path, full_profile))
         if result.returncode != 0:
           print "Creating a tar archive of '{0}/*' failed with \n{1}\nexiting...".format(full_profile, result.stdout)
           exit(result.returncode)
-       else:
-         continue
+        else:
+          continue
 
       result = run_quick(
         'hal admin publish profile {0} --color false --bom-path {1} --profile-path {2}'
