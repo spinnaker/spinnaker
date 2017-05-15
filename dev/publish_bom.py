@@ -129,6 +129,8 @@ class BomPublisher(BomGenerator):
       gist = self.__github.get_user().create_gist(True, {filename: content}, description=description)
       self.__gist_uri = 'https://gist.github.com/{user}/{id}'.format(user=self.__gist_user, id=gist.id)
       print ('Wrote changelog to Gist at {0}.'.format(self.__gist_uri))
+      # Export the changelog gist URI to include in an email notification.
+      os.environ['GIST_URI'] = self.__gist_uri
       return self.__gist_uri
 
   def push_branch_and_tags(self):
