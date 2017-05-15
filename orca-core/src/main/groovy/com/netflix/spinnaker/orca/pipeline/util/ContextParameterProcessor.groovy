@@ -16,20 +16,16 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import java.lang.reflect.Method
+import java.text.SimpleDateFormat
+import java.util.concurrent.atomic.AtomicReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.config.UserConfiguredUrlRestrictions
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.PackageScope
-import org.springframework.expression.AccessException
-import org.springframework.expression.EvaluationContext
-import org.springframework.expression.EvaluationException
-import org.springframework.expression.Expression
-import org.springframework.expression.ExpressionParser
-import org.springframework.expression.ParserContext
-import org.springframework.expression.TypeLocator
-import org.springframework.expression.TypedValue
+import org.springframework.expression.*
 import org.springframework.expression.common.TemplateParserContext
 import org.springframework.expression.spel.SpelEvaluationException
 import org.springframework.expression.spel.SpelMessage
@@ -38,10 +34,6 @@ import org.springframework.expression.spel.support.ReflectiveMethodResolver
 import org.springframework.expression.spel.support.ReflectivePropertyAccessor
 import org.springframework.expression.spel.support.StandardEvaluationContext
 import org.springframework.expression.spel.support.StandardTypeLocator
-
-import java.lang.reflect.Method
-import java.text.SimpleDateFormat
-import java.util.concurrent.atomic.AtomicReference
 
 /**
  * Common methods for dealing with passing context parameters used by both Script and Jenkins stages
@@ -107,7 +99,7 @@ class ContextParameterProcessor {
     if (context.execution) {
       def deployedServerGroups = []
       context.execution.stages.findAll {
-        it.type in ['deploy', 'cloneServerGroup', 'rollingPush'] && it.status == ExecutionStatus.SUCCEEDED
+        it.type in ['deploy', 'createServerGroup', 'cloneServerGroup', 'rollingPush'] && it.status == ExecutionStatus.SUCCEEDED
       }.each { deployStage ->
         if (deployStage.context.'deploy.server.groups') {
           Map deployDetails = [
