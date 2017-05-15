@@ -51,24 +51,52 @@ function extract_clean_prototype_disk() {
       --disk $prototype_disk \
       --device-name spinnaker
 
+  if ! gcloud compute copy-files  \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --ssh-key-file $SSH_KEY_FILE \
+      ${CLEAN_GOOGLE_IMAGE_SCRIPT} \
+      ${EXTRACT_DISK_TO_GCS_SCRIPT} \
+      ${worker_instance}:. ; then
+    # Assume we are in the same project and try the internal IP.
+    # Note that the ssh commands only assume we are in the same project.
+    echo "Could not use gcloud to copy files to the project."
+    echo "Using scp directly."
+    local worker_internal_ip=$(gcloud compute instances describe \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        ${worker_instance} \
+        | grep networkIP \
+        | sed "s/.*: \([0-9\.]\+\)/\1/")
+
+    scp -i $SSH_KEY_FILE \
+       -o StrictHostKeyChecking=no \
+       -o UserKnownHostsFile=/dev/null \
+        ${CLEAN_GOOGLE_IMAGE_SCRIPT} \
+        ${EXTRACT_DISK_TO_GCS_SCRIPT} \
+        ${LOGNAME}@${worker_internal_ip}:~
+  fi
+
   echo "`date`: Cleaning in '$worker_instance'"
-  sudo gcloud alpha compute ssh ${worker_instance} \
+  gcloud alpha compute ssh ${worker_instance} \
       --internal-ip \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
       --ssh-key-file $SSH_KEY_FILE \
-      --command="sudo bash /spinnaker/dev/clean_google_image.sh spinnaker"
+      --command="sudo bash ~${LOGNAME}/clean_google_image.sh spinnaker"
 
   if [[ $output_file != "" ]]; then
     echo "`date`: Extracting disk as tar file '$output_file.'"
-    sudo gcloud alpha compute ssh ${worker_instance} \
+    gcloud alpha compute ssh ${worker_instance} \
         --internal-ip \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
         --ssh-key-file $SSH_KEY_FILE \
-        --command="sudo bash /spinnaker/dev/extract_disk_to_gcs.sh spinnaker $output_file"
+        --command="sudo bash ~${LOGNAME}/extract_disk_to_gcs.sh spinnaker $output_file"
   fi
 
   gcloud compute instances detach-disk ${worker_instance} \
