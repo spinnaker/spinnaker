@@ -39,7 +39,7 @@ junitPlatform {
   platformVersion junitVersion
   filters {
     engines {
-      include "spek"
+      include "spek", "junit-vintage", "junit-jupiter"
     }
   }
 }
