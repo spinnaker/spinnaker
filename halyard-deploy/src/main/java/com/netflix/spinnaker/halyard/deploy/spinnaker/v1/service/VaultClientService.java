@@ -59,6 +59,7 @@ abstract public class VaultClientService extends SpinnakerService<VaultClientSer
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class Settings extends ServiceSettings {
+    Integer port = 8200;
     Boolean enabled = true;
     Boolean safeToUpdate = true;
     Boolean monitored = false;
