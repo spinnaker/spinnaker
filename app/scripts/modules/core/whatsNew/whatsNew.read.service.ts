@@ -1,5 +1,4 @@
 import {module, IHttpService, ILogService, IPromise, IHttpPromiseCallbackArg, IQService} from 'angular';
-import {NetflixSettings} from 'netflix/netflix.settings';
 import {SETTINGS} from 'core/config/settings';
 
 export interface IGistApiResponse {
@@ -26,7 +25,7 @@ export interface IWhatsNewContents {
 export class WhatsNewReader {
 
   private static extractFileContent(data: IGistApiResponse) {
-    const fileName = SETTINGS.feature.netflixMode ? NetflixSettings.whatsNew.fileName : SETTINGS.changelog.fileName;
+    const fileName = SETTINGS.changelog.fileName;
     return data.files[fileName].content;
   }
 
@@ -34,12 +33,8 @@ export class WhatsNewReader {
 
   public getWhatsNewContents(): IPromise<IWhatsNewContents> {
     let gistId: string, accessToken: string;
-    if (SETTINGS.feature.netflixMode) {
-      gistId = NetflixSettings.whatsNew.gistId;
-      accessToken = NetflixSettings.whatsNew.accessToken || null;
-    } else {
-      gistId = SETTINGS.changelog ? SETTINGS.changelog.gistId : null;
-    }
+    gistId = SETTINGS.changelog ? SETTINGS.changelog.gistId : null;
+    accessToken = SETTINGS.changelog ? SETTINGS.changelog.accessToken : null;
     if (!gistId) {
       return this.$q.resolve(null);
     }

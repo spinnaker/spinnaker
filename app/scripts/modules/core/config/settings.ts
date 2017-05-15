@@ -77,6 +77,7 @@ export interface ISpinnakerSettings {
   changelog?: {
     gistId: string;
     fileName: string;
+    accessToken?: string;
   };
 }
 
