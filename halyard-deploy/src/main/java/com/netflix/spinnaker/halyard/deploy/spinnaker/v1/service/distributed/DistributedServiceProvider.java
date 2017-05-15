@@ -52,9 +52,9 @@ abstract public class DistributedServiceProvider<T extends Account> extends Spin
   /**
    * @return the highest priority services first.
    */
-  public List<DistributedService> getPrioritizedDistributedServices(List<String> serviceNames) {
+  public List<DistributedService> getPrioritizedDistributedServices(List<SpinnakerService.Type> serviceTypes) {
     List<DistributedService> result = getFieldsOfType(DistributedService.class).stream()
-        .filter(d -> serviceNames.contains(d.getService().getCanonicalName()))
+        .filter(d -> serviceTypes.contains(d.getService().getType()))
         .collect(Collectors.toList());
 
     result.sort((d1, d2) -> d2.getDeployPriority().compareTo(d1.getDeployPriority()));

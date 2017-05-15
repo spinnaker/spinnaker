@@ -92,6 +92,28 @@ public class DeployService {
     }
   }
 
+  public RemoteAction connectCommand(String deploymentName, List<String> serviceNames) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+    Deployer deployer = getDeployer(deploymentConfiguration);
+    DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
+
+    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
+        .map(SpinnakerService.Type::fromCanonicalName)
+        .collect(Collectors.toList());
+
+    if (serviceTypes.isEmpty()) {
+      serviceTypes.add(SpinnakerService.Type.DECK);
+      serviceTypes.add(SpinnakerService.Type.GATE);
+    }
+
+    RemoteAction result = deployer.connectCommand(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
+    result.setAutoRun(true);
+    result.commitScript(halconfigDirectoryStructure.getConnectScriptPath(deploymentName));
+    return result;
+  }
+
   public void clean(String deploymentName) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
@@ -106,11 +128,15 @@ public class DeployService {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
-    if (serviceNames.isEmpty()) {
-      serviceNames = serviceProvider
+    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
+        .map(SpinnakerService.Type::fromCanonicalName)
+        .collect(Collectors.toList());
+
+    if (serviceTypes.isEmpty()) {
+      serviceTypes = serviceProvider
           .getServices()
           .stream()
-          .map(SpinnakerService::getCanonicalName)
+          .map(SpinnakerService::getType)
           .collect(Collectors.toList());
     }
 
@@ -118,7 +144,7 @@ public class DeployService {
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
-    deployer.rollback(serviceProvider, deploymentDetails, runtimeSettings, serviceNames);
+    deployer.rollback(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
   }
 
   public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String> serviceNames) {
@@ -127,11 +153,15 @@ public class DeployService {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
-    if (serviceNames.isEmpty()) {
-      serviceNames = serviceProvider
+    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
+        .map(SpinnakerService.Type::fromCanonicalName)
+        .collect(Collectors.toList());
+
+    if (serviceTypes.isEmpty()) {
+      serviceTypes = serviceProvider
           .getServices()
           .stream()
-          .map(SpinnakerService::getCanonicalName)
+          .map(SpinnakerService::getType)
           .collect(Collectors.toList());
     }
 
@@ -139,7 +169,7 @@ public class DeployService {
     if (deployOptions.contains(DeployOption.OMIT_CONFIG)) {
       resolvedConfiguration = generateService.generateConfig(deploymentName, Collections.emptyList());
     } else {
-      resolvedConfiguration = generateService.generateConfig(deploymentName, serviceNames);
+      resolvedConfiguration = generateService.generateConfig(deploymentName, serviceTypes);
     }
 
     Path serviceSettingsPath = halconfigDirectoryStructure.getServiceSettingsPath(deploymentName);
@@ -151,8 +181,11 @@ public class DeployService {
     Deployer deployer = getDeployer(deploymentConfiguration);
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
-    RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceNames);
-    action.commitScript(halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
+    RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
+    if (!action.getScript().isEmpty()) {
+      action.commitScript(halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
+    }
+
     return action;
   }
 

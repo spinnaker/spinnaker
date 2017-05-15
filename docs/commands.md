@@ -178,6 +178,7 @@ _Version: 0.21.0-SNAPSHOT_
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy apply**](#hal-deploy-apply)
  * [**hal deploy clean**](#hal-deploy-clean)
+ * [**hal deploy connect**](#hal-deploy-connect)
  * [**hal deploy details**](#hal-deploy-details)
  * [**hal deploy diff**](#hal-deploy-diff)
  * [**hal deploy rollback**](#hal-deploy-rollback)
@@ -2840,6 +2841,7 @@ hal deploy [subcommands]
 #### Subcommands
  * `apply`: Deploy or update the currently configured instance of Spinnaker to a selected environment.
  * `clean`: Remove all Spinnaker artifacts in your target deployment environment.
+ * `connect`: Connect to your Spinnaker deployment.
  * `details`: Get details about your currently deployed Spinnaker installation.
  * `diff`: This shows what changes you have made since Spinnaker was last deployed.
  * `rollback`: Rollback Spinnaker to the prior version on a selected environment.
@@ -2872,6 +2874,20 @@ hal deploy clean [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal deploy connect
+
+This command connects to your Spinnaker deployment, assuming it was already deployed. In the case of the `Local*` deployment type, this is a NoOp.
+
+#### Usage
+```
+hal deploy connect [parameters]
+```
+#### Parameters
+ * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--service-names`: (*Default*: `[]`) When supplied, connect to the specified Spinnaker services. When supplied, connections to the UI & API servers are opened.
 
 ---
 ## hal deploy details

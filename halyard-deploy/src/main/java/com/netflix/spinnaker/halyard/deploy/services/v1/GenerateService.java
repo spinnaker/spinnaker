@@ -81,7 +81,7 @@ public class GenerateService {
    * @param services is the list of services to generate configs for
    * @return a mapping from components to the profile's required local files.
    */
-  public ResolvedConfiguration generateConfig(String deploymentName, List<String> services) {
+  public ResolvedConfiguration generateConfig(String deploymentName, List<SpinnakerService.Type> services) {
     DaemonTaskHandler.newStage("Generating all Spinnaker profile files and endpoints");
     log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
     File spinnakerStaging = new File(spinnakerStagingPath);
@@ -107,7 +107,7 @@ public class GenerateService {
     for (SpinnakerService service : serviceProvider.getServices()) {
       boolean isDesiredService = services
           .stream()
-          .filter(s -> s.equalsIgnoreCase(service.getCanonicalName()))
+          .filter(s -> s.equals(service.getType()))
           .count() > 0;
 
       if (!isDesiredService) {

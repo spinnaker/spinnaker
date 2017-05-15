@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import org.springframework.stereotype.Component;
@@ -37,8 +38,8 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       LocalServiceProvider serviceProvider,
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
-      List<String> serviceNames) {
-    List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceNames)
+      List<SpinnakerService.Type> serviceTypes) {
+    List<LocalService> enabledServices = serviceProvider.getLocalServices(serviceTypes)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .collect(Collectors.toList());
@@ -62,7 +63,25 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
   }
 
   @Override
-  public void rollback(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<String> serviceNames) {
+  public void rollback(
+      LocalServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes) {
     throw new HalException(Problem.Severity.FATAL, "No support for rolling back debian deployments yet.");
+  }
+
+  @Override
+  public RemoteAction connectCommand(
+      LocalServiceProvider serviceProvider,
+      DeploymentDetails deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes) {
+    RemoteAction result = new RemoteAction();
+    result.setScript(String.join("\n",
+        "#!/usr/bin/env bash",
+        "",
+        "echo \"Spinnaker is installed locally on this machine - no work to do.\""));
+    return result;
   }
 }

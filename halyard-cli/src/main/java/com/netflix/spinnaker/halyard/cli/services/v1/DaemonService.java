@@ -69,6 +69,13 @@ public interface DaemonService {
       @Query("validate") boolean validate,
       @Body String _ignore);
 
+  @POST("/v1/config/deployments/{deploymentName}/connect/")
+  DaemonTask<Halconfig, Object> connectToDeployment(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Query("serviceNames") List<String> serviceNames,
+      @Body String _ignore);
+
   @POST("/v1/config/deployments/{deploymentName}/deploy/")
   DaemonTask<Halconfig, Object> deployDeployment(
       @Path("deploymentName") String deploymentName,

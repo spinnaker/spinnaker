@@ -56,9 +56,9 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   public void rollback(DistributedServiceProvider<T> serviceProvider,
       AccountDeploymentDetails<T> deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
-      List<String> serviceNames) {
+      List<SpinnakerService.Type> serviceTypes) {
     DaemonTaskHandler.newStage("Rolling back all updatable services");
-    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceNames)) {
+    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceTypes)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = runtimeSettings.getServiceSettings(service);
       if (!settings.getEnabled()) {
@@ -80,20 +80,31 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   }
 
   @Override
-  public RemoteAction clean(DistributedServiceProvider<T> serviceProvider, AccountDeploymentDetails<T> deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
-    return null;
+  public RemoteAction connectCommand(DistributedServiceProvider<T> serviceProvider, AccountDeploymentDetails<T> deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+    RemoteAction result = new RemoteAction();
+
+    String deckConnection = serviceProvider
+        .getDeployableService(SpinnakerService.Type.DECK)
+        .connectCommand(deploymentDetails, runtimeSettings);
+    String gateConnection = serviceProvider
+        .getDeployableService(SpinnakerService.Type.GATE)
+        .connectCommand(deploymentDetails, runtimeSettings);
+    result.setScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
+    result.setScriptDescription("The generated script will open connections to the API & UI servers using ssh tunnels");
+    result.setAutoRun(false);
+    return result;
   }
 
   @Override
   public RemoteAction deploy(DistributedServiceProvider<T> serviceProvider,
       AccountDeploymentDetails<T> deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,
-      List<String> serviceNames) {
+      List<SpinnakerService.Type> serviceTypes) {
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
 
     DaemonTaskHandler.newStage("Deploying Spinnaker");
     // First deploy all services not owned by Spinnaker
-    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceNames)) {
+    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceTypes)) {
       SpinnakerService service = distributedService.getService();
       ServiceSettings settings = resolvedConfiguration.getServiceSettings(service);
       if (!settings.getEnabled()) {
@@ -142,18 +153,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
 
     reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
 
-    RemoteAction result = new RemoteAction();
-
-    String deckConnection = serviceProvider
-        .getDeployableService(SpinnakerService.Type.DECK)
-        .connectCommand(deploymentDetails, runtimeSettings);
-    String gateConnection = serviceProvider
-        .getDeployableService(SpinnakerService.Type.GATE)
-        .connectCommand(deploymentDetails, runtimeSettings);
-    result.setScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
-    result.setScriptDescription("The generated script will open connections to the API & UI servers using kubectl");
-    result.setAutoRun(false);
-    return result;
+    return new RemoteAction();
   }
 
   private <T extends Account> void deployServiceManually(AccountDeploymentDetails<T> details,

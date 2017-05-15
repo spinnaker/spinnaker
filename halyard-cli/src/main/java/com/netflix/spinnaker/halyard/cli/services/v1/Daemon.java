@@ -274,6 +274,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<RemoteAction> connectToDeployment(String deploymentName, boolean validate, List<String> serviceNames) {
+    return () -> {
+      Object rawDeployResult = ResponseUnwrapper.get(getService().connectToDeployment(deploymentName, validate, serviceNames, ""));
+      return getObjectMapper().convertValue(rawDeployResult, RemoteAction.class);
+    };
+  }
+
   public static Supplier<RemoteAction> deployDeployment(String deploymentName, boolean validate, List<DeployOption> deployOptions, List<String> serviceNames) {
     return () -> {
       Object rawDeployResult = ResponseUnwrapper.get(getService().deployDeployment(deploymentName, validate, deployOptions, serviceNames, ""));

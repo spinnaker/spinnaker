@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
 import io.fabric8.utils.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,15 +92,15 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
   @Override
   public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand) {
     Map<String, String> bindings = new HashMap<>();
-    List<String> serviceNames = new ArrayList<>(installCommands.keySet());
-    List<String> upstartNames = getPrioritizedBakeableServices(serviceNames)
+    List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream().map(SpinnakerService.Type::fromCanonicalName).collect(Collectors.toList());
+    List<String> upstartNames = getPrioritizedBakeableServices(serviceTypes)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .map(i -> ((BakeDebianService) i).getUpstartServiceName())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-    List<String> serviceInstalls = serviceNames.stream()
-        .map(installCommands::get)
+    List<String> serviceInstalls = serviceTypes.stream()
+        .map(t -> installCommands.get(t.getCanonicalName()))
         .collect(Collectors.toList());
 
     TemplatedResource resource = new JarResource("/debian/init.sh");

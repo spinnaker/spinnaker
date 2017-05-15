@@ -22,9 +22,9 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.BakeServiceProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -40,8 +40,8 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       BakeServiceProvider serviceProvider,
       DeploymentDetails deploymentDetails,
       GenerateService.ResolvedConfiguration resolvedConfiguration,
-      List<String> serviceNames) {
-    List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceNames)
+      List<SpinnakerService.Type> serviceTypes) {
+    List<BakeService> enabledServices = serviceProvider.getPrioritizedBakeableServices(serviceTypes)
         .stream()
         .filter(i -> resolvedConfiguration.getServiceSettings(i.getService()).getEnabled())
         .collect(Collectors.toList());
@@ -74,7 +74,12 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
       BakeServiceProvider serviceProvider,
       DeploymentDetails deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
-      List<String> serviceNames) {
+      List<SpinnakerService.Type> serviceTypes) {
     throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be rolled back.");
+  }
+
+  @Override
+  public RemoteAction connectCommand(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+    throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be run or connected to.");
   }
 }

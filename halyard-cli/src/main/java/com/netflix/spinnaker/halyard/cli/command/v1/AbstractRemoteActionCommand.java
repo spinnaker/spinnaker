@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1;
 
-import com.amazonaws.util.StringUtils;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
@@ -30,6 +29,7 @@ import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
 import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
+import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +51,8 @@ abstract public class AbstractRemoteActionCommand extends AbstractConfigCommand 
     RemoteAction result = getRemoteAction().get();
     String scriptPath = result.getScriptPath();
 
-    if (StringUtils.isNullOrEmpty(scriptPath)) {
-      throw new RuntimeException("Expected a script to run, none provided.");
+    if (StringUtils.isEmpty(scriptPath)) {
+      return;
     }
 
     boolean shouldRun;

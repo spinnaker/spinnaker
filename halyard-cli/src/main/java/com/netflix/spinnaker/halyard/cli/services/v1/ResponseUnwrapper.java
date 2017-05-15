@@ -36,7 +36,7 @@ import java.util.stream.IntStream;
 public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 400L;
   private static int cycle;
-  private static String[] cursors = {"◢", "◣", "◤", "◥"};
+  private static String[] cursors = {".", "-", "^"};
   private static boolean interrupted;
 
   public static void interrupt() {

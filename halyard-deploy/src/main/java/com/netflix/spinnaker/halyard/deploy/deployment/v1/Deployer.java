@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.deployment.v1;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
 
 import java.util.List;
@@ -29,13 +30,19 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       S serviceProvider,
       D deploymentDetails,
       ResolvedConfiguration resolvedConfiguration,
-      List<String> serviceNames);
+      List<SpinnakerService.Type> serviceTypes);
 
   void rollback(
       S serviceProvider,
       D deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
-      List<String> serviceNames);
+      List<SpinnakerService.Type> serviceTypes);
+
+  RemoteAction connectCommand(
+      S serviceProvider,
+      D deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes);
 
   default RemoteAction clean(
       S serviceProvider,

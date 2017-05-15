@@ -70,6 +70,7 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
 
     return new OperationHandler<RemoteAction>()
         .setFailureMesssage("Failed to deploy Spinnaker.")
+        .setSuccessMessage("Run `hal deploy connect` to connect to Spinnaker.")
         .setOperation(Daemon.deployDeployment(getCurrentDeployment(), !noValidate, deployOptions, serviceNames));
   }
 }

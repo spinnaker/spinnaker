@@ -21,7 +21,6 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
-import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.UpdateRequestBuilder;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
@@ -34,13 +33,16 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.services.v1.DeployService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/config/deployments")
@@ -99,7 +101,9 @@ public class DeploymentController {
     builder.setSeverity(severity);
 
     builder.setBuildResponse(() -> {
-      generateService.generateConfig(deploymentName, finalServiceNames);
+      generateService.generateConfig(deploymentName, finalServiceNames.stream()
+          .map(SpinnakerService.Type::fromCanonicalName)
+          .collect(Collectors.toList()));
       return null;
     });
 
@@ -127,6 +131,25 @@ public class DeploymentController {
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Clean Deployment of Spinnaker");
+  }
+
+  @RequestMapping(value = "/{deploymentName:.+}/connect/", method = RequestMethod.POST)
+  DaemonTask<Halconfig, RemoteAction> connect(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false) List<String> serviceNames) {
+    StaticRequestBuilder<RemoteAction> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
+
+    List<String> finalServiceNames = serviceNames == null ? new ArrayList<>() : serviceNames;
+
+    builder.setBuildResponse(() -> deployService.connectCommand(deploymentName, finalServiceNames));
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
+    }
+
+    return DaemonTaskHandler.submitTask(builder::build, "Connect to Spinnaker deployment.");
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/rollback/", method = RequestMethod.POST)

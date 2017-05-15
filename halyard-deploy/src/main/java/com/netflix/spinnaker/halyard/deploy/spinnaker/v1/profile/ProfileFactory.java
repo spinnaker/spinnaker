@@ -20,27 +20,14 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
-import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-
-import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 abstract public class ProfileFactory {
   @Autowired
@@ -96,7 +83,7 @@ abstract public class ProfileFactory {
     return node.backupLocalFiles(spinnakerStagingPath);
   }
 
-  protected  String yamlToString(Object o) {
+  protected String yamlToString(Object o) {
     return yamlParser.dump(strictObjectMapper.convertValue(o, Map.class));
   }
 }
