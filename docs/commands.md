@@ -169,6 +169,8 @@ _Version: 0.21.0-SNAPSHOT_
  * [**hal config storage edit**](#hal-config-storage-edit)
  * [**hal config storage gcs**](#hal-config-storage-gcs)
  * [**hal config storage gcs edit**](#hal-config-storage-gcs-edit)
+ * [**hal config storage oraclebmcs**](#hal-config-storage-oraclebmcs)
+ * [**hal config storage oraclebmcs edit**](#hal-config-storage-oraclebmcs-edit)
  * [**hal config storage s3**](#hal-config-storage-s3)
  * [**hal config storage s3 edit**](#hal-config-storage-s3-edit)
  * [**hal config version**](#hal-config-version)
@@ -2661,6 +2663,7 @@ hal config storage [parameters] [subcommands]
  * `azs`: Manage and view Spinnaker configuration for the "azs" persistent store.
  * `edit`: Edit Spinnaker's persistent storage.
  * `gcs`: Manage and view Spinnaker configuration for the "gcs" persistent store.
+ * `oraclebmcs`: Manage and view Spinnaker configuration for the "oraclebmcs" persistent store.
  * `s3`: Manage and view Spinnaker configuration for the "s3" persistent store.
 
 ---
@@ -2735,6 +2738,40 @@ hal config storage gcs edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project you are using to host the GCS bucket as a backing store.
  * `--root-folder`: (*Default*: `spinnaker`) The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
+
+---
+## hal config storage oraclebmcs
+
+Manage and view Spinnaker configuration for the "oraclebmcs" persistent store.
+
+#### Usage
+```
+hal config storage oraclebmcs [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `edit`: Edit configuration for the "oraclebmcs" persistent store.
+
+---
+## hal config storage oraclebmcs edit
+
+Edit configuration for the "oraclebmcs" persistent store.
+
+#### Usage
+```
+hal config storage oraclebmcs edit [parameters]
+```
+#### Parameters
+ * `--bucketName`: The bucket name to store persistent state object in
+ * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--fingerprint`: Fingerprint of the public key
+ * `--namespace`: The namespace the bucket and objects should be created in
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: An Oracle BMCS region (e.g., us-phoenix-1)
+ * `--ssh-private-key-file-path`: Path to the private key in PEM format
+ * `--tenancy-id`: Provide the OCID of the Oracle BMCS Tenancy to use.
+ * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
 
 ---
 ## hal config storage s3

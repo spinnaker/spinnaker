@@ -52,7 +52,8 @@ public abstract class PersistentStore extends Node {
     AZS("azs"),
     GCS("gcs"),
     REDIS("redis"),
-    S3("s3");
+    S3("s3"),
+    ORACLEBMCS("oraclebmcs");
 
     String id;
 

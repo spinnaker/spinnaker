@@ -20,6 +20,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.EditPersistentStorageCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.azs.AzsCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.gcs.GcsCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.oraclebmcs.OracleBMCSCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.s3.S3Command;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -40,6 +41,7 @@ public class PersistentStorageCommand extends AbstractConfigCommand {
     registerSubcommand(new GcsCommand());
     registerSubcommand(new S3Command());
     registerSubcommand(new AzsCommand());
+    registerSubcommand(new OracleBMCSCommand());
     registerSubcommand(new EditPersistentStorageCommand());
   }
 

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.AzsPersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.GcsPersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.OracleBMCSPersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
@@ -96,6 +97,9 @@ public class PersistentStorageService {
         break;
       case AZS:
         persistentStorage.setAzs((AzsPersistentStore) newPersistentStore);
+        break;
+      case ORACLEBMCS:
+        persistentStorage.setOraclebmcs((OracleBMCSPersistentStore) newPersistentStore);
         break;
       default:
         throw new RuntimeException("Unknown persistent store " + newPersistentStore.persistentStoreType());

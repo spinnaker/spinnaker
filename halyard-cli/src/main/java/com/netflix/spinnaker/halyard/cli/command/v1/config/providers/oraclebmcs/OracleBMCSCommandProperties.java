@@ -10,7 +10,7 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.oraclebmcs;
 
 public class OracleBMCSCommandProperties {
-  static final String COMPARTMENT_ID_DESCRIPTION = "Provide the OCID of the Oracle BMCS Compartment to use.";
+  public static final String COMPARTMENT_ID_DESCRIPTION = "Provide the OCID of the Oracle BMCS Compartment to use.";
   public static final String USER_ID_DESCRIPTION = "Provide the OCID of the Oracle BMCS User you're authenticating as";
   public static final String FINGERPRINT_DESCRIPTION = "Fingerprint of the public key";
   public static final String SSH_PRIVATE_KEY_FILE_PATH_DESCRIPTION = "Path to the private key in PEM format";
