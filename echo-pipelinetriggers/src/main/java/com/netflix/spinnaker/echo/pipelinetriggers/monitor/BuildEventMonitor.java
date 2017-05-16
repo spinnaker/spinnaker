@@ -112,6 +112,6 @@ public class BuildEventMonitor extends TriggerMonitor {
   }
 
   private boolean isBuildTrigger(Trigger trigger) {
-    return Arrays.stream(BUILD_TRIGGER_TYPES).anyMatch(triggerType -> trigger.getType().equals(triggerType));
+    return Arrays.stream(BUILD_TRIGGER_TYPES).anyMatch(triggerType -> triggerType.equals(trigger.getType()));
   }
 }
