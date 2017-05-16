@@ -18,6 +18,6 @@ package com.netflix.kayenta.storage;
 
 public interface StorageService {
   boolean servicesAccount(String accountName);
-  <T> T loadObject(String accountName, ObjectType objectType, String objectKey);
+  <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException;
   <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj);
 }

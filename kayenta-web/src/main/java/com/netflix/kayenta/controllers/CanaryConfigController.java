@@ -24,6 +24,7 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,19 +35,20 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/canaryConfig")
 @Slf4j
 public class CanaryConfigController {
 
+  private static Pattern canaryConfigIdPattern = Pattern.compile("[a-z,0-9,\\-,\\_]*");
+
   @Autowired
   AccountCredentialsRepository accountCredentialsRepository;
 
   @Autowired
   StorageServiceRepository storageServiceRepository;
-
-  // TODO(duftler): Lookup by name.
 
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.GET)
   public CanaryConfig loadCanaryConfig(@RequestParam(required = false) final String accountName,
@@ -55,6 +57,8 @@ public class CanaryConfigController {
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+
+    canaryConfigId = canaryConfigId.toLowerCase();
 
     if (storageService.isPresent()) {
       return storageService.get().loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
@@ -71,14 +75,32 @@ public class CanaryConfigController {
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
-    String canaryConfigId = UUID.randomUUID() + "";
 
-    if (storageService.isPresent()) {
-      storageService.get().storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
-    } else {
-      log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
+    if (StringUtils.isEmpty(canaryConfig.getName())) {
+      canaryConfig.setName(UUID.randomUUID() + "");
     }
 
-    return canaryConfigId;
+    if (storageService.isPresent()) {
+      String canaryConfigId = canaryConfig.getName().toLowerCase();
+
+      if (!canaryConfigIdPattern.matcher(canaryConfigId).matches()) {
+        throw new IllegalArgumentException("Canary config cannot be named '" + canaryConfigId +
+          "'. Names must contain only lowercase letters, numbers, dashes (-) and underscores (_).");
+      }
+
+      try {
+        storageService.get().loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+      } catch (IllegalArgumentException e) {
+        storageService.get().storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
+
+        return canaryConfigId;
+      }
+
+      throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
+    } else {
+      log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
+
+      return null;
+    }
   }
 }

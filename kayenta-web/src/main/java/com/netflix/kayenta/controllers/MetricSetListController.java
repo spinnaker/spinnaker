@@ -66,7 +66,7 @@ public class MetricSetListController {
 
   @RequestMapping(consumes = "application/context+json", method = RequestMethod.POST)
   public String storeMetricSetList(@RequestParam(required = false) final String accountName,
-                                    @RequestBody List<MetricSet> metricSetList) throws IOException {
+                                   @RequestBody List<MetricSet> metricSetList) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);

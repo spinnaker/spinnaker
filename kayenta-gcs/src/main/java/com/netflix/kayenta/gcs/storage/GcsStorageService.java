@@ -60,7 +60,7 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
-  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) {
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
