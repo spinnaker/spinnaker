@@ -24,7 +24,6 @@ import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -49,19 +48,9 @@ public class CanaryConfigController {
   @RequestMapping(method = RequestMethod.GET)
   public CanaryConfig loadCanaryConfig(@RequestParam(required = false) final String accountName,
                                        @RequestParam String canaryConfigUUID) {
-    AccountCredentials credentials;
-
-    if (StringUtils.hasLength(accountName)) {
-      credentials = accountCredentialsRepository
-        .getOne(accountName)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    } else {
-      credentials = accountCredentialsRepository
-        .getOne(AccountCredentials.Type.OBJECT_STORE)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account of type " + AccountCredentials.Type.OBJECT_STORE + "."));
-    }
-
-    String resolvedAccountName = credentials.getName();
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.OBJECT_STORE,
+                                                                              accountCredentialsRepository);
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
 
     if (storageService.isPresent()) {
@@ -75,19 +64,9 @@ public class CanaryConfigController {
   @RequestMapping(consumes = "application/context+json", method = RequestMethod.POST)
   public String storeCanaryConfig(@RequestParam(required = false) final String accountName,
                                   @RequestBody CanaryConfig canaryConfig) throws IOException {
-    AccountCredentials credentials;
-
-    if (StringUtils.hasLength(accountName)) {
-      credentials = accountCredentialsRepository
-        .getOne(accountName)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    } else {
-      credentials = accountCredentialsRepository
-        .getOne(AccountCredentials.Type.OBJECT_STORE)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account of type " + AccountCredentials.Type.OBJECT_STORE + "."));
-    }
-
-    String resolvedAccountName = credentials.getName();
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.OBJECT_STORE,
+                                                                              accountCredentialsRepository);
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
     String canaryConfigId = UUID.randomUUID() + "";
 

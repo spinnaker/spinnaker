@@ -27,7 +27,6 @@ import com.netflix.kayenta.storage.StorageServiceRepository;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,19 +58,9 @@ public class FetchController {
                                       @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
                                       @ApiParam(defaultValue = "2017-03-24T15:13:00Z") @RequestParam String intervalStartTime,
                                       @ApiParam(defaultValue = "2017-03-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
-    AccountCredentials credentials;
-
-    if (StringUtils.hasLength(accountName)) {
-      credentials = accountCredentialsRepository
-        .getOne(accountName)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-    } else {
-      credentials = accountCredentialsRepository
-        .getOne(AccountCredentials.Type.METRICS_STORE)
-        .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account of type " + AccountCredentials.Type.METRICS_STORE + "."));
-    }
-
-    String resolvedAccountName = credentials.getName();
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.METRICS_STORE,
+                                                                              accountCredentialsRepository);
     Optional<MetricsService> metricsService = metricsServiceRepository.getOne(resolvedAccountName);
     List<MetricSet> metricSetList;
 
