@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import ch.qos.logback.classic.Level;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.ui.v1.*;
 import com.netflix.spinnaker.halyard.core.DaemonResponse;
@@ -25,14 +26,14 @@ import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonEvent;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask.State;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.IntStream;
 
+@Slf4j
 public class ResponseUnwrapper {
   private static final Long WAIT_MILLIS = 400L;
   private static int cycle;
@@ -47,6 +48,7 @@ public class ResponseUnwrapper {
     int lastTaskCount = 0;
 
     task = Daemon.getTask(task.getUuid());
+    Set<String> loggedEvents = new HashSet<>();
     while (!task.getState().isTerminal()) {
       updateCycle();
       if (interrupted) {
@@ -54,7 +56,9 @@ public class ResponseUnwrapper {
         throw TaskKilledException.interrupted(new InterruptedException("Interrupted by user"));
       }
 
-      lastTaskCount = formatTasks(aggregateTasks(task), lastTaskCount);
+      List<DaemonTask> aggregatedTasks = aggregateTasks(task);
+      lastTaskCount = formatTasks(aggregatedTasks, lastTaskCount);
+      logTasks(aggregatedTasks, loggedEvents);
       try {
         Thread.sleep(WAIT_MILLIS);
       } catch (InterruptedException ignored) {
@@ -63,7 +67,9 @@ public class ResponseUnwrapper {
       task = Daemon.getTask(task.getUuid());
     }
 
-    formatTasks(aggregateTasks(task), lastTaskCount);
+    List<DaemonTask> aggregatedTasks = aggregateTasks(task);
+    formatTasks(aggregatedTasks, lastTaskCount);
+    logTasks(aggregatedTasks, loggedEvents);
 
     DaemonResponse<T> response = task.getResponse();
 
@@ -82,6 +88,28 @@ public class ResponseUnwrapper {
         }
       default:
         return response.getResponseBody();
+    }
+  }
+
+  private static String formatLoggedDaemonTask(DaemonTask task, DaemonEvent event) {
+    return "Message from task " + task.getName() + ": " + event.getStage() + " - " + event.getMessage();
+  }
+
+  private static void logTasks(List<DaemonTask> tasks, Set<String> loggedEvents) {
+    // This is expensive, so don't check all tasks to log unless it's necessary.
+    if (GlobalOptions.getGlobalOptions().getLog() == Level.OFF) {
+      return;
+    }
+
+    for (DaemonTask task : tasks) {
+      for (Object oEvent : task.getEvents()) {
+        DaemonEvent event = (DaemonEvent) oEvent;
+        String loggedEvent = formatLoggedDaemonTask(task, event);
+        if (!loggedEvents.contains(loggedEvent)) {
+          loggedEvents.add(loggedEvent);
+          log.info(loggedEvent);
+        }
+      }
     }
   }
 

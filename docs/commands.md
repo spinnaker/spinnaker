@@ -207,7 +207,7 @@ hal [parameters] [subcommands]
  * `-h, --help`: (*Default*: `false`) Display help text about this command.
  * `-l, --log`: Set the log level of the CLI.
  * `-o, --output`: Format the CLIs output.
- * `-q, --quiet`: Show no task information or messages.
+ * `-q, --quiet`: Show no task information or messages. When disabled, ANSI formatting will be disabled too.
 #### Parameters
  * `--docs`: (*Default*: `false`) Print markdown docs for the hal CLI.
  * `--print-bash-completion`: (*Default*: `false`) Print bash command completion. This is used during the installation of Halyard.
@@ -2887,7 +2887,7 @@ hal deploy connect [parameters]
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--service-names`: (*Default*: `[]`) When supplied, connect to the specified Spinnaker services. When supplied, connections to the UI & API servers are opened.
+ * `--service-names`: (*Default*: `[]`) When supplied, connections to the specified Spinnaker services are opened. When omitted, connections to the UI & API servers are opened to allow you to interact with Spinnaker in your browser.
 
 ---
 ## hal deploy details

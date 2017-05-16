@@ -62,9 +62,10 @@ public abstract class NestableCommand {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
-  @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages.")
+  @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages. When disabled, ANSI formatting will be disabled too.")
   public void setQuiet(boolean quiet) {
     GlobalOptions.getGlobalOptions().setQuiet(quiet);
+    GlobalOptions.getGlobalOptions().setColor(!quiet);
   }
 
   @Parameter(
