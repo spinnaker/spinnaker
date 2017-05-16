@@ -12,7 +12,7 @@ interface ISubmitButtonProps {
 
 export class SubmitButton extends React.Component<ISubmitButtonProps, any> {
   public render() {
-    const { BusyButtonIndicator } = ReactInjector;
+    const { ButtonBusyIndicator } = ReactInjector;
     return (
       <Button
         className="btn btn-primary"
