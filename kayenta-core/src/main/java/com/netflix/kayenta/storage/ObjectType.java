@@ -36,5 +36,5 @@ public enum ObjectType {
   final String group;
 
   @Getter
-  final String defaultMetadataFilename;
+  final String defaultFilename;
 }

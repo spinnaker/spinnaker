@@ -22,8 +22,10 @@ import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +34,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -50,6 +55,7 @@ public class CanaryConfigController {
   @Autowired
   StorageServiceRepository storageServiceRepository;
 
+  @ApiOperation(value = "Retrieve a canary config from object storage")
   @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.GET)
   public CanaryConfig loadCanaryConfig(@RequestParam(required = false) final String accountName,
                                        @PathVariable String canaryConfigId) {
@@ -68,6 +74,7 @@ public class CanaryConfigController {
     }
   }
 
+  @ApiOperation(value = "Write a canary config to object storage")
   @RequestMapping(consumes = "application/context+json", method = RequestMethod.POST)
   public String storeCanaryConfig(@RequestParam(required = false) final String accountName,
                                   @RequestBody CanaryConfig canaryConfig) throws IOException {
@@ -100,6 +107,37 @@ public class CanaryConfigController {
     } else {
       log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
 
+      return null;
+    }
+  }
+
+  @ApiOperation(value = "Delete a canary config")
+  @RequestMapping(value = "/{canaryConfigId:.+}", method = RequestMethod.DELETE)
+  public void deleteCanaryConfig(@RequestParam(required = false) final String accountName,
+                                 @PathVariable String canaryConfigId,
+                                 HttpServletResponse response) {
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.OBJECT_STORE,
+                                                                              accountCredentialsRepository);
+    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+
+    storageService.get().deleteObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+
+    response.setStatus(HttpStatus.NO_CONTENT.value());
+  }
+
+  @ApiOperation(value = "Retrieve a list of canary config ids and timestamps")
+  @RequestMapping(method = RequestMethod.GET)
+  public List<Map<String, Object>> listAllCanaryConfigs(@RequestParam(required = false) final String accountName) {
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.OBJECT_STORE,
+                                                                              accountCredentialsRepository);
+    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+
+    if (storageService.isPresent()) {
+      return storageService.get().listObjectKeys(resolvedAccountName, ObjectType.CANARY_CONFIG);
+    } else {
+      log.debug("No storage service was configured.");
       return null;
     }
   }

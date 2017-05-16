@@ -22,9 +22,9 @@ import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpResponseException;
 import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
+import com.google.api.services.storage.model.Objects;
 import com.google.api.services.storage.model.StorageObject;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
-import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
@@ -38,7 +38,11 @@ import org.springframework.util.StringUtils;
 import javax.validation.constraints.NotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Builder
 @Slf4j
@@ -157,11 +161,83 @@ public class GcsStorageService implements StorageService {
     }
   }
 
+  @Override
+  public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
+    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    Storage storage = credentials.getStorage();
+    String bucketName = credentials.getBucket();
+    String path = keyToPath(credentials, objectType, objectKey);
+
+    try {
+      storage.objects().delete(bucketName, path).execute();
+    } catch (HttpResponseException e) {
+      if (e.getStatusCode() == 404) {
+        return;
+      }
+      throw new IllegalStateException(e);
+    } catch (IOException ioex) {
+      log.error("Failed to delete path {}: {}", path, ioex);
+      throw new IllegalStateException(ioex);
+    }
+  }
+
+  @Override
+  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
+    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    Storage storage = credentials.getStorage();
+    String bucketName = credentials.getBucket();
+    String rootFolder = daoRoot(credentials, objectType.getGroup());
+    String filename = objectType.getDefaultFilename();
+    int skipToOffset = rootFolder.length() + 1;  // + Trailing slash
+    int skipFromEnd = filename.length() + 1;  // + Leading slash
+
+    List<Map<String, Object>> result = new ArrayList<>();
+
+    log.debug("Listing {}", objectType.getGroup());
+
+    try {
+      Storage.Objects.List objectsList = storage.objects().list(bucketName).setPrefix(rootFolder);
+      Objects objects;
+
+      do {
+        objects = objectsList.execute();
+        List<StorageObject> items = objects.getItems();
+
+        if (items != null) {
+          for (StorageObject item : items) {
+            String name = item.getName();
+
+            if (name.endsWith(filename)) {
+              Map<String, Object> objectMetadataMap = new HashMap<String, Object>();
+              long updatedTimestamp = item.getUpdated().getValue();
+
+              objectMetadataMap.put("name", name.substring(skipToOffset, name.length() - skipFromEnd));
+              objectMetadataMap.put("updatedTimestamp", updatedTimestamp);
+              objectMetadataMap.put("updatedTimestampIso", Instant.ofEpochMilli(updatedTimestamp).toString());
+              result.add(objectMetadataMap);
+            }
+          }
+        }
+
+        objectsList.setPageToken(objects.getNextPageToken());
+      } while (objects.getNextPageToken() != null);
+    } catch (IOException e) {
+      log.error("Could not fetch items from Google Cloud Storage: {}", e);
+      return new ArrayList<>();
+    }
+
+    return result;
+  }
+
   private String daoRoot(GoogleNamedAccountCredentials credentials, String daoTypeName) {
     return credentials.getRootFolder() + '/' + daoTypeName;
   }
 
   private String keyToPath(GoogleNamedAccountCredentials credentials, ObjectType objectType, String objectKey) {
-    return daoRoot(credentials, objectType.getGroup()) + '/' + objectKey + '/' + objectType.getDefaultMetadataFilename();
+    return daoRoot(credentials, objectType.getGroup()) + '/' + objectKey + '/' + objectType.getDefaultFilename();
   }
 }
