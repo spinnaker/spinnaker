@@ -31,6 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.SortedSet;
 import java.util.stream.Collectors;
 
 /**
@@ -117,11 +119,18 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     state.put(stageId, Status.VISITING);
     StageDefinition stage = graph.get(stageId);
-
     for (String n : stage.getRequisiteStageRefIds()) {
       Status status = state.get(n);
-      if (status == Status.VISITING) throw new IllegalTemplateConfigurationException(String.format("Cycle detected in graph (discovered on stage: %s)", stageId));
-      if (status == Status.VISITED) continue;
+      if (status == Status.VISITING) {
+        throw new IllegalTemplateConfigurationException(
+          String.format("Cycle detected in graph (discovered on stage: %s)", stageId)
+        );
+      }
+
+      if (status == Status.VISITED) {
+        continue;
+      }
+
       dfs(n, result, state, graph, outOrder);
     }
 
@@ -215,14 +224,20 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
     ensureNoCyclesInDAG(allStages, graph);
   }
 
-  private static void injectBefore(StageDefinition stage, String targetId, List<StageDefinition> allStages) {
-    StageDefinition target = getInjectionTarget(stage.getId(), targetId, allStages);
-    int index = allStages.indexOf(target);
+  private static void injectBefore(StageDefinition stage, List<String> targetIds, List<StageDefinition> allStages) {
+    Set<String> targetEdges = new LinkedHashSet<>();
+    SortedSet<Integer> targetIndexes = new TreeSet<>();
+    for (String targetId : targetIds) {
+      StageDefinition target = getInjectionTarget(stage.getId(), targetId, allStages);
+      targetEdges.addAll(target.getRequisiteStageRefIds());
 
-    stage.getRequisiteStageRefIds().addAll(target.getRequisiteStageRefIds());
-    target.getRequisiteStageRefIds().clear();
-    target.setRequisiteStageRefIds(Collections.singletonList(stage.getId()));
-    allStages.add(index + 1, stage);
+      target.getRequisiteStageRefIds().clear();
+      target.setRequisiteStageRefIds(Collections.singleton(stage.getId()));
+      targetIndexes.add(allStages.indexOf(target));
+    }
+
+    stage.getRequisiteStageRefIds().addAll(targetEdges);
+    allStages.add(targetIndexes.last() + 1, stage);
 
     Map<String, StageDefinition> graph = allStages
       .stream()
@@ -242,7 +257,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       ).forEach((k, v) -> dfs(k, new LinkedHashSet<>(), state, graph, new HashMap<>()));
   }
 
-  private static void injectAfter(StageDefinition stage, String targetId, List<StageDefinition> allStages) {
+  private static void injectAfter(StageDefinition stage, List<String> targetIds, List<StageDefinition> allStages) {
     Map<String, Integer> outOrder = new HashMap<>();
     Set<StageDefinition> sorted = new LinkedHashSet<>();
     Map<String, Status> state = new HashMap<>();
@@ -255,29 +270,34 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
     graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
 
-    StageDefinition target = graph.get(targetId);
-    if (target == null) {
-      throw new IllegalTemplateConfigurationException(String.format("could not inject '%s' stage: unknown target stage id '%s'", stage.getId(), targetId));
+    SortedSet<Integer> targetIndexes = new TreeSet<>();
+    for (String targetId: targetIds) {
+      StageDefinition target = graph.get(targetId);
+      if (target == null) {
+        throw new IllegalTemplateConfigurationException(
+          String.format("could not inject '%s' stage: unknown target stage id '%s'", stage.getId(), targetId)
+        );
+      }
+
+      targetIndexes.add(allStages.indexOf(target));
+      stage.getRequisiteStageRefIds().add(target.getId());
+
+      // 1. find edges to target stage
+      Set<StageDefinition> edges = graph.entrySet()
+        .stream()
+        .filter(s -> s.getValue().getRequisiteStageRefIds().contains(targetId))
+        .map(Map.Entry::getValue)
+        .collect(Collectors.toSet());
+
+      // 2. swap target with stage being inserted
+      edges
+        .stream()
+        .filter(e -> e.getRequisiteStageRefIds().removeIf(targetId::equals))
+        .forEach(e -> e.getRequisiteStageRefIds().add(stage.getId()));
     }
 
-    stage.getRequisiteStageRefIds().add(target.getId());
-    int index = allStages.indexOf(target);
-
-    // 1. find edges to target stage
-    Set<StageDefinition> edges = graph.entrySet()
-      .stream()
-      .filter(s -> s.getValue().getRequisiteStageRefIds().contains(targetId))
-      .map(Map.Entry::getValue)
-      .collect(Collectors.toSet());
-
-    // 2. swap target with stage being inserted
-    edges
-      .stream()
-      .filter(e -> e.getRequisiteStageRefIds().removeIf(targetId::equals))
-      .forEach(e -> e.getRequisiteStageRefIds().add(stage.getId()));
-
     // 3. add in the sorted graph
-    allStages.add(index + 1, stage);
+    allStages.add(targetIndexes.last() + 1, stage);
     graph.put(stage.getId(), stage);
 
     ensureNoCyclesInDAG(allStages, graph);

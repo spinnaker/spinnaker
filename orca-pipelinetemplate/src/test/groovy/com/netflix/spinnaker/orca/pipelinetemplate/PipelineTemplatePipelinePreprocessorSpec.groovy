@@ -183,7 +183,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     result.stages*.name == expectedStageNames
 
     and:
-    result.stages.find { it.name == 'childOfConditionalStage' }.requisiteStageRefIds == childStageRequisiteRefIds
+    result.stages.find { it.name == 'childOfConditionalStage' }.requisiteStageRefIds == childStageRequisiteRefIds as Set
 
     where:
     includeWait || childStageRequisiteRefIds  || expectedStageNames

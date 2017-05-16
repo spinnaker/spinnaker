@@ -20,13 +20,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.LinkedHashSet;
 
 public class StageDefinition implements Identifiable, Conditional {
 
   private String id;
   private String name;
   private InjectionRule inject;
-  private List<String> dependsOn;
+  private Set<String> dependsOn;
   private String type;
   private Map<String, Object> config;
   private List<Map<String, Object>> notifications;
@@ -35,14 +37,14 @@ public class StageDefinition implements Identifiable, Conditional {
   private InheritanceControl inheritanceControl;
   private Boolean removed = false;
 
-  private List<String> requisiteStageRefIds = new ArrayList<>();
+  private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
 
   public static class InjectionRule {
 
     private Boolean first = false;
     private Boolean last = false;
-    private String before;
-    private String after;
+    private List<String> before;
+    private List<String> after;
 
     public Boolean getFirst() {
       return first;
@@ -60,19 +62,19 @@ public class StageDefinition implements Identifiable, Conditional {
       this.last = last;
     }
 
-    public String getBefore() {
+    public List<String> getBefore() {
       return before;
     }
 
-    public void setBefore(String before) {
+    public void setBefore(List<String> before) {
       this.before = before;
     }
 
-    public String getAfter() {
+    public List<String> getAfter() {
       return after;
     }
 
-    public void setAfter(String after) {
+    public void setAfter(List<String> after) {
       this.after = after;
     }
 
@@ -175,11 +177,11 @@ public class StageDefinition implements Identifiable, Conditional {
     this.inject = inject;
   }
 
-  public List<String> getDependsOn() {
-    return Optional.ofNullable(dependsOn).orElse(new ArrayList<>());
+  public Set<String> getDependsOn() {
+    return Optional.ofNullable(dependsOn).orElse(new LinkedHashSet<>());
   }
 
-  public void setDependsOn(List<String> dependsOn) {
+  public void setDependsOn(Set<String> dependsOn) {
     this.dependsOn = dependsOn;
   }
 
@@ -241,11 +243,11 @@ public class StageDefinition implements Identifiable, Conditional {
     this.inheritanceControl = inheritanceControl;
   }
 
-  public List<String> getRequisiteStageRefIds() {
+  public Set<String> getRequisiteStageRefIds() {
     return requisiteStageRefIds;
   }
 
-  public void setRequisiteStageRefIds(List<String> requisiteStageRefIds) {
+  public void setRequisiteStageRefIds(Set<String> requisiteStageRefIds) {
     this.requisiteStageRefIds = requisiteStageRefIds;
   }
 

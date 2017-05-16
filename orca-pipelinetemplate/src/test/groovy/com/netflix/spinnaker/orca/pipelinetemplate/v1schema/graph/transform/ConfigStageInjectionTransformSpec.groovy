@@ -62,7 +62,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     def result = ConfigStageInjectionTransform.createGraph(stages)
 
     then:
-    requisiteStageIds(subject, result) == requisiteStages
+    requisiteStageIds(subject, result) == requisiteStages as Set
 
     where:
     subject || requisiteStages
@@ -122,7 +122,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     then:
     // injected <- s1 <- s2 <- s4
     //           \- s3 <- s5
-    requisiteStageIds('s1', template.stages) == ['injected']
+    requisiteStageIds('s1', template.stages) == ['injected'] as Set
 
     when: 'injecting stage last in dag'
     template = templateBuilder()
@@ -131,30 +131,67 @@ class ConfigStageInjectionTransformSpec extends Specification {
     then:
     // s1 <- s2 <- s4  <- injected
     //     \- s3 <- s5 -/
-    requisiteStageIds('injected', template.stages) == ['s4', 's5']
+    requisiteStageIds('injected', template.stages) == ['s4', 's5'] as Set
 
     when: 'injecting stage before another stage in dag'
     template = templateBuilder()
-    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(before: 's2'))).visitPipelineTemplate(template)
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(before: ['s2']))).visitPipelineTemplate(template)
 
     then:
     // s1 <- injected <- s2 <- s4
     //     \- s3 <- s5
-    requisiteStageIds('s1', template.stages) == []
-    requisiteStageIds('s2', template.stages) == ['injected']
-    requisiteStageIds('s3', template.stages) == ['s1']
-    requisiteStageIds('injected', template.stages) == ['s1']
+    requisiteStageIds('s1', template.stages) == [] as Set
+    requisiteStageIds('s2', template.stages) == ['injected'] as Set
+    requisiteStageIds('s3', template.stages) == ['s1'] as Set
+    requisiteStageIds('injected', template.stages) == ['s1'] as Set
+
+    when: 'injecting stage before a list of stages in dag'
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(before: ['s2', 's3']))).visitPipelineTemplate(template)
+
+    then:
+    // s1 <- injected <- s2 <- s4
+    //          \- s3 <- s5
+    requisiteStageIds('s1', template.stages) == [] as Set
+    requisiteStageIds('s2', template.stages) == ['injected'] as Set
+    requisiteStageIds('s3', template.stages) == ['injected'] as Set
+    requisiteStageIds('injected', template.stages) == ['s1'] as Set
+
+    when: 'injecting new stages that create a cycle (injected, s1, s2)'
+    // injected <- s1 <- s3 <- s5
+    //     \- s2 -/
+    //         \- s4
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(
+      new InjectionRule(before: ['s1', 's2'])
+    )).visitPipelineTemplate(template)
+
+    then:
+    thrown(IllegalStateException)
 
     when: 'injecting stage after another stage in dag'
     template = templateBuilder()
-    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(after: 's2'))).visitPipelineTemplate(template)
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(after: ['s2']))).visitPipelineTemplate(template)
 
     then:
     // s1 <- s2 <- injected <- s4
     //     \- s3 <- s5
-    requisiteStageIds('s2', template.stages) == ['s1']
-    requisiteStageIds('s4', template.stages) == ['injected']
-    requisiteStageIds('injected', template.stages) == ['s2']
+    requisiteStageIds('s2', template.stages) == ['s1'] as Set
+    requisiteStageIds('s4', template.stages) == ['injected'] as Set
+    requisiteStageIds('injected', template.stages) == ['s2'] as Set
+
+    when: 'injecting stage after a list of stages in dag'
+    template = templateBuilder()
+    new ConfigStageInjectionTransform(configBuilder(new InjectionRule(after: ['s2', 's3']))).visitPipelineTemplate(template)
+
+    then:
+    // s1 <- s2 <- injected <- s4
+    //     \- s3 -/
+    //         \- s5
+    requisiteStageIds('s2', template.stages) == ['s1'] as Set
+    requisiteStageIds('s3', template.stages) == ['s1'] as Set
+    requisiteStageIds('s4', template.stages) == ['injected'] as Set
+    requisiteStageIds('injected', template.stages) == ['s2', 's3'] as Set
   }
 
   def 'should de-dupe template-injected stages'() {
@@ -177,7 +214,7 @@ class ConfigStageInjectionTransformSpec extends Specification {
     return allStages.find { it.id == id }
   }
 
-  static List<String> requisiteStageIds(String stageId, List<StageDefinition> allStages) {
+  static Set<String> requisiteStageIds(String stageId, List<StageDefinition> allStages) {
     getStageById(stageId, allStages).requisiteStageRefIds
   }
 }

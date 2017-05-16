@@ -54,7 +54,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
         new StageDefinition(
           id: 'bake',
           type: 'bake',
-          requisiteStageRefIds: [],
+          requisiteStageRefIds: [] as Set,
           config: [
             regions: ['us-west-2', 'us-east-1'],
             package: 'orca-package',
@@ -68,7 +68,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
           id: 'tagImage',
           type: 'tagImage',
           dependsOn: ['bake'],
-          requisiteStageRefIds: ['bake'],
+          requisiteStageRefIds: ['bake'] as Set,
           config: [tags: [stack: 'test']]
         )
       ]
@@ -92,7 +92,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     result.limitConcurrent == true
     result.keepWaitingPipelines == false
     result.stages*.type == ['bake', 'tagImage']
-    result.stages*.requisiteStageRefIds == [[], ['bake']]
+    result.stages*.requisiteStageRefIds == [[] as Set, ['bake'] as Set]
     result.stages.find { it.type == 'bake' }.baseOs == 'trusty'
   }
 }
