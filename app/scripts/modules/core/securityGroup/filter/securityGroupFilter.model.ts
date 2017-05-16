@@ -17,7 +17,7 @@ export const filterModelConfig: IFilterConfig[] = [
 export class SecurityGroupFilterModel {
 
   private mostRecentParams: any;
-  private asFilterModel: IFilterModel;
+  public asFilterModel: IFilterModel;
 
   constructor(private $rootScope: IRootScopeService, private filterModelService: any, private urlParser: any) {
     'ngInject';

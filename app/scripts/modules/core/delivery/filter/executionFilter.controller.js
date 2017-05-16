@@ -16,7 +16,6 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
 ])
   .controller('ExecutionFilterCtrl', function ($scope, $rootScope, $q, pipelineConfigService,
                                                executionFilterService, executionFilterModel, $analytics) {
-
     this.tags = executionFilterModel.tags;
     $scope.sortFilter = executionFilterModel.sortFilter;
 
@@ -61,6 +60,7 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       this.pipelineNames = _.uniq(allOptions);
       this.updateExecutionGroups();
       this.application.executions.reloadingForFilters = false;
+      this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => this.tags = executionFilterModel.tags);
     };
 
     this.application.executions.onRefresh($scope, this.initialize);
@@ -72,6 +72,8 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
       executionFilterModel.activate();
       executionFilterService.updateExecutionGroups(this.application);
     }));
+
+    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
 
     let updatePipelines = (pipelines) => {
       $q.all(pipelines.map(function(pipeline) {

@@ -6,6 +6,7 @@ import { Application } from 'core/application/application.model';
 import { ExecutionGroup } from './ExecutionGroup';
 import { IExecutionGroup } from 'core/domain';
 import { executionFilterModel } from 'core/delivery/filter/executionFilter.model';
+import { executionFilterService } from 'core/delivery/filter/executionFilter.service';
 import { $state } from 'core/uirouter';
 import { stateEvents } from 'core/state.events';
 
@@ -13,12 +14,12 @@ import './executionGroups.less';
 
 interface IProps {
   application: Application;
-};
+}
 
 interface IState {
   groups: IExecutionGroup[];
   showingDetails: boolean;
-};
+}
 
 export class ExecutionGroups extends React.Component<IProps, IState> {
   private applicationRefreshUnsubscribe: () => void;
@@ -34,7 +35,7 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
     }
 
     this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
-    this.groupsUpdatedSubscription = executionFilterModel.groupsUpdated.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups}); });
+    this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups}); });
     this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => {
       const detailsShown = this.showingDetails();
       if (detailsShown !== this.state.showingDetails) {

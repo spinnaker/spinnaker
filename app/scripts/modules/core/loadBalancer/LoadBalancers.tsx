@@ -153,6 +153,8 @@ export class LoadBalancers extends React.Component<IProps, IState> {
       </div>
     );
 
+    const tagCleared = () => this.updateLoadBalancerGroups();
+
     return (
       <div className="main-content load-balancers">
         <div className="header row header-clusters">
@@ -185,7 +187,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
               </button>
             </div>
           </div>
-          <FilterTags tags={this.state.tags} tagCleared={this.updateLoadBalancerGroups} clearFilters={this.clearFilters}/>
+          <FilterTags tags={this.state.tags} tagCleared={tagCleared} clearFilters={this.clearFilters}/>
         </div>
         <StickyContainer className="content" data-scroll-id="loadbalancers-content">
           {groupings}

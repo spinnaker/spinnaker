@@ -2,7 +2,9 @@ import {compact, uniq, map} from 'lodash';
 import {IScope, module} from 'angular';
 
 import {Application} from 'core/application/application.model';
-import {SECURITY_GROUP_FILTER_MODEL} from './securityGroupFilter.model';
+import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securityGroupFilter.model';
+import { IFilterTag } from '../../filterModel/FilterTags';
+import { Subscription } from 'rxjs/Subscription';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 
@@ -20,10 +22,11 @@ export class SecurityGroupFilterCtrl {
   public regionHeadings: string[];
   public sortFilter: any;
   public stackHeadings: string[];
-  public tags: any[];
+  public tags: IFilterTag[];
+  private groupsUpdatedSubscription: Subscription;
 
   constructor(private securityGroupFilterService: any,
-              private SecurityGroupFilterModel: any,
+              private SecurityGroupFilterModel: SecurityGroupFilterModel,
               private dependentFilterService: any,
               private securityGroupDependentFilterHelper: any,
               private $scope: IScope,
@@ -35,16 +38,22 @@ export class SecurityGroupFilterCtrl {
   public $onInit(): void {
     const { $scope, $rootScope, app, SecurityGroupFilterModel, securityGroupFilterService } = this;
 
-    this.sortFilter = SecurityGroupFilterModel.sortFilter;
-    this.tags = SecurityGroupFilterModel.tags;
+    this.sortFilter = SecurityGroupFilterModel.asFilterModel.sortFilter;
+    this.tags = SecurityGroupFilterModel.asFilterModel.tags;
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
-      SecurityGroupFilterModel.activate();
-      securityGroupFilterService.updateSecurityGroups(app);
-    }));
+    this.groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream
+      .subscribe(() => this.tags = SecurityGroupFilterModel.asFilterModel.tags);
 
     this.initialize();
     app.securityGroups.onRefresh($scope, () => this.initialize());
+
+    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
+      SecurityGroupFilterModel.asFilterModel.activate();
+      securityGroupFilterService.updateSecurityGroups(app);
+    }));
+
+    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
+
   }
 
   private updateSecurityGroups(applyParamsToUrl = true): void {
@@ -57,7 +66,7 @@ export class SecurityGroupFilterCtrl {
     } = this;
 
     const { account, region } = dependentFilterService.digestDependentFilters({
-      sortFilter: SecurityGroupFilterModel.sortFilter,
+      sortFilter: SecurityGroupFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region'],
       pool: securityGroupDependentFilterHelper.poolBuilder(app.securityGroups.data)
     });
@@ -66,7 +75,7 @@ export class SecurityGroupFilterCtrl {
     this.regionHeadings = region;
 
     if (applyParamsToUrl) {
-      SecurityGroupFilterModel.applyParamsToUrl();
+      SecurityGroupFilterModel.asFilterModel.applyParamsToUrl();
     }
     securityGroupFilterService.updateSecurityGroups(app);
   };

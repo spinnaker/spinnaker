@@ -235,7 +235,7 @@ module.exports = angular
       });
 
       filterModel.addTags = function() {
-        filterModel.tags.length = 0;
+        filterModel.tags = [];
         filterModelConfig
           .filter(function (property) {
             return !property.displayOption;

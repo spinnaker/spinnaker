@@ -7,8 +7,12 @@ import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { Subject } from 'rxjs/Subject';
 
 export class ExecutionFilterService {
+
+  public groupsUpdatedStream: Subject<IExecutionGroup[]> = new Subject<IExecutionGroup[]>();
+
   private lastApplication: Application = null;
   private isFilterable: (sortFilterModel: any[]) => boolean;
 
@@ -38,7 +42,7 @@ export class ExecutionFilterService {
 
     this.executionFilterModel.asFilterModel.addTags();
     this.lastApplication = application;
-    this.executionFilterModel.groupsUpdated.next();
+    this.groupsUpdatedStream.next(groups);
   }
 
   private pipelineNameFilter(execution: IExecution): boolean {
@@ -295,6 +299,7 @@ export class ExecutionFilterService {
   }
 }
 
+export let executionFilterService: ExecutionFilterService = undefined;
 export const EXECUTION_FILTER_SERVICE = 'spinnaker.core.delivery.filter.executionFilter.service';
 module (EXECUTION_FILTER_SERVICE, [
   EXECUTION_FILTER_MODEL,
@@ -302,4 +307,5 @@ module (EXECUTION_FILTER_SERVICE, [
   require('core/orchestratedItem/timeBoundaries.service'),
   PIPELINE_CONFIG_PROVIDER
 ]).factory('executionFilterService', (executionFilterModel: ExecutionFilterModel, timeBoundaries: any, $log: ILogService, filterModelService: any, pipelineConfig: any) =>
-                                      new ExecutionFilterService(executionFilterModel, timeBoundaries, $log, filterModelService, pipelineConfig));
+                                      new ExecutionFilterService(executionFilterModel, timeBoundaries, $log, filterModelService, pipelineConfig))
+  .run(($injector: any) => executionFilterService = $injector.get('executionFilterService'));

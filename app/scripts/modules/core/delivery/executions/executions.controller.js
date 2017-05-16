@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
                                          InsightFilterStateModel) {
 
     this.$onInit = () => {
-      const groupsUpdatedSubscription = executionFilterModel.groupsUpdated.subscribe(() => this.groupsUpdated());
+      const groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
       if (executionFilterModel.mostRecentApplication !== $scope.application.name) {
         executionFilterModel.groups = [];
         executionFilterModel.mostRecentApplication = $scope.application.name;
@@ -100,6 +100,8 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       executionFilterService.clearFilters();
       this.updateExecutionGroups(true);
     };
+
+    this.forceUpdateExecutionGroups = () => this.updateExecutionGroups(true);
 
     this.updateExecutionGroups = (reload) => {
       normalizeExecutionNames();

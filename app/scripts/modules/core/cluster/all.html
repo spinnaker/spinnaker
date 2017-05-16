@@ -45,8 +45,8 @@
   </div>
   <filter-tags ng-if="!ctrl.dataSource.fetchOnDemand"
                tags="tags"
-               tag-cleared="ctrl.updateClusterGroups()"
-               clear-filters="ctrl.clearFilters()"></filter-tags>
+               tag-cleared="ctrl.updateClusterGroups"
+               clear-filters="ctrl.clearFilters"></filter-tags>
 </div>
 
 <div ng-if="ctrl.dataSource.fetchOnDemand">

@@ -3,7 +3,9 @@ import {IScope, module} from 'angular';
 
 import {CLUSTER_FILTER_SERVICE, ClusterFilterService} from 'core/cluster/filter/clusterFilter.service';
 import {Application} from 'core/application/application.model';
-import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
+import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
+import { Subscription } from 'rxjs/Subscription';
+import { IFilterTag } from '../../filterModel/FilterTags';
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
@@ -24,11 +26,12 @@ class ClusterFilterCtrl {
   public regionHeadings: string[];
   public sortFilter: any;
   public stackHeadings: string[];
-  public tags: any[];
+  public tags: IFilterTag[];
+  private groupsUpdatedSubscription: Subscription;
 
   constructor(public $scope: IScope,
               public clusterFilterService: ClusterFilterService,
-              public ClusterFilterModel: any,
+              public ClusterFilterModel: ClusterFilterModel,
               public $rootScope: IScope,
               public clusterDependentFilterHelper: any,
               public dependentFilterService: any,
@@ -38,9 +41,11 @@ class ClusterFilterCtrl {
 
   public $onInit(): void {
     const { $scope, $rootScope, ClusterFilterModel, clusterFilterService, app } = this;
+    const filterModel = ClusterFilterModel.asFilterModel;
 
-    this.sortFilter = ClusterFilterModel.sortFilter;
-    this.tags = ClusterFilterModel.tags;
+    this.sortFilter = filterModel.sortFilter;
+    this.tags = filterModel.tags;
+    this.groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() => this.tags = filterModel.tags);
 
     if (app.serverGroups.loaded) {
       this.initialize();
@@ -49,16 +54,18 @@ class ClusterFilterCtrl {
     app.serverGroups.onRefresh($scope, () => this.initialize());
 
     $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
-      ClusterFilterModel.activate();
+      ClusterFilterModel.asFilterModel.activate();
       clusterFilterService.updateClusterGroups(app);
     }));
+
+    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {
     const { dependentFilterService, ClusterFilterModel, clusterDependentFilterHelper, clusterFilterService, app } = this;
 
     const { providerType, instanceType, account, availabilityZone, region } = dependentFilterService.digestDependentFilters({
-      sortFilter: ClusterFilterModel.sortFilter,
+      sortFilter: ClusterFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone', 'instanceType'],
       pool: clusterDependentFilterHelper.poolBuilder(app.serverGroups.data)
     });
@@ -69,7 +76,7 @@ class ClusterFilterCtrl {
     this.regionHeadings = region;
     this.instanceTypeHeadings = instanceType;
     if (applyParamsToUrl) {
-      ClusterFilterModel.applyParamsToUrl();
+      ClusterFilterModel.asFilterModel.applyParamsToUrl();
     }
     clusterFilterService.updateClusterGroups(app);
   }
