@@ -244,8 +244,8 @@ services:
 
   stackdriver:
     enabled: ${SPINNAKER_STACKDRIVER_ENABLED:false}
-    projectName: ${SPINNAKER_STACKDRIVER_PROJECT_NAME:${providers.google.primaryCredentials.project}}
-    credentialsPath: ${SPINNAKER_STACKDRIVER_CREDENTIALS_PATH:${providers.google.primaryCredentials.jsonPath}}   
+    projectName: ${providers.google.primaryCredentials.project}
+    credentialsPath: ${providers.google.primaryCredentials.jsonPath} 
 
 
 providers:
