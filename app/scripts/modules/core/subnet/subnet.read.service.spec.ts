@@ -1,7 +1,8 @@
 import {mock} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
-import {SUBNET_READ_SERVICE, SubnetReader, ISubnet} from 'core/subnet/subnet.read.service';
+import {SUBNET_READ_SERVICE, SubnetReader} from 'core/subnet/subnet.read.service';
+import {ISubnet} from 'core/domain';
 
 describe('subnetReader', function() {
 

@@ -6,7 +6,8 @@ import {
   LOAD_BALANCER_READ_SERVICE, LoadBalancerReader,
   ILoadBalancersByAccount
 } from 'core/loadBalancer/loadBalancer.read.service';
-import {SUBNET_READ_SERVICE, SubnetReader, ISubnet} from 'core/subnet/subnet.read.service';
+import {ISubnet} from 'core/domain';
+import {SUBNET_READ_SERVICE, SubnetReader} from 'core/subnet/subnet.read.service';
 import {GCE_HEALTH_CHECK_READER, GceHealthCheckReader} from 'google/healthCheck/healthCheck.read.service';
 import {INetwork} from 'core/network/network.read.service';
 import {IGceHealthCheck} from 'google/domain/healthCheck';

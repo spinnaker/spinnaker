@@ -1,17 +1,7 @@
 import {module} from 'angular';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {API_SERVICE, Api} from 'core/api/api.service';
-
-export interface ISubnet {
-  id: string;
-  name: string;
-  account: string;
-  region: string;
-  type: string;
-  label: string;
-  purpose: string;
-  deprecated: boolean;
-}
+import { ISubnet } from 'core/domain';
 
 export class SubnetReader {
 

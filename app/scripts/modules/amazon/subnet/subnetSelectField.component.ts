@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {get} from 'lodash';
 
-import {ISubnet} from 'core/subnet/subnet.read.service';
+import {ISubnet} from 'core/domain';
 import {Application} from 'core/application/application.model';
 import {AWSProviderSettings} from '../aws.settings';
 
