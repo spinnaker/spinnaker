@@ -14,24 +14,44 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.storage;
+package com.netflix.kayenta.canary;
 
-import com.netflix.kayenta.canary.CanaryConfig;
-import com.netflix.kayenta.metrics.MetricSet;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Singular;
+import lombok.ToString;
 
+import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
+
+@Builder
+@ToString
+@NoArgsConstructor
 @AllArgsConstructor
-public enum ObjectType {
-  CANARY_CONFIG(CanaryConfig.class, "canary_config", "canary_config.json"),
-  METRIC_SET(MetricSet.class, "metrics", "metric_set.json");
+public class CanaryMetricConfig {
 
+  @NotNull
   @Getter
-  final Class<?> clazz;
+  private String name;
 
+  @NotNull
   @Getter
-  final String group;
+  private String serviceName;
 
+  @NotNull
   @Getter
-  final String defaultMetadataFilename;
+  private String query;
+
+  @NotNull
+  @Singular
+  @Getter
+  private List<String> groups;
+
+  @NotNull
+  @Singular
+  @Getter
+  private Map<String, Map> analysisConfigurations;
 }

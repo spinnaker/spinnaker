@@ -14,10 +14,35 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.storage;
+package com.netflix.kayenta.canary;
 
-public interface StorageService {
-  boolean servicesAccount(String accountName);
-  <T> T loadObject(String accountName, ObjectType objectType, String objectKey);
-  <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj);
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+import javax.validation.constraints.NotNull;
+
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+public class CanaryServiceConfig {
+
+  @NotNull
+  @Getter
+  private String name;
+
+  @NotNull
+  @Getter
+  private String type;
+
+  @NotNull
+  @Getter
+  private String region;
+
+  @NotNull
+  @Getter
+  private String environment;
 }

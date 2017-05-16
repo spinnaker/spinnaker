@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -57,14 +58,45 @@ public class GcsStorageService implements StorageService {
   }
 
   @Override
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) {
+    GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
+      .getOne(accountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    Storage storage = credentials.getStorage();
+    String bucketName = credentials.getBucket();
+    String path = keyToPath(credentials, objectType, objectKey);
+
+    try {
+      StorageObject storageObject = storage.objects().get(bucketName, path).execute();
+
+      return deserialize(storage, storageObject, (Class<T>)objectType.getClazz());
+    } catch (IOException e) {
+      if (e instanceof HttpResponseException) {
+        HttpResponseException hre = (HttpResponseException)e;
+        log.error("Failed to load {} {}: {} {}", objectType.getGroup(), objectKey, hre.getStatusCode(), hre.getStatusMessage());
+        if (hre.getStatusCode() == 404) {
+          throw new IllegalArgumentException("No file at path " + path + ".");
+        }
+      }
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private <T> T deserialize(Storage storage, StorageObject object, Class<T> clazz) throws IOException {
+    ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+    Storage.Objects.Get getter = storage.objects().get(object.getBucket(), object.getName());
+    getter.executeMediaAndDownloadTo(output);
+    String json = output.toString("UTF8");
+
+    return objectMapper.readValue(json, clazz);
+  }
+
+  @Override
   public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     Storage storage = credentials.getStorage();
-
-    ensureBucketExists(accountName);
-
     String bucketName = credentials.getBucket();
     String path = keyToPath(credentials, objectType, objectKey);
 

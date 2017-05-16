@@ -35,9 +35,10 @@ kayenta:
 
 swagger:
   enabled: true
-  title: Spinnaker Kayenta API
+  title: Kayenta API
   description:
   contact:
   patterns:
+    - /canaryConfig.*
     - /credentials.*
     - /fetch.*
