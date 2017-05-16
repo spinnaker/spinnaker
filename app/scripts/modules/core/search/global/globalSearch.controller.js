@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import * as $ from 'jquery';
+const $ = require('jquery');
 
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
@@ -9,7 +9,6 @@ import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('angulartics'),
   CLUSTER_FILTER_SERVICE,
-  require('../../utils/jQuery.js'),
   require('../searchResult/searchResult.directive.js'),
   require('../searchRank.filter.js'),
   RECENT_HISTORY_SERVICE,

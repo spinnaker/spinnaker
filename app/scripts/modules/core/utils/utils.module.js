@@ -9,7 +9,6 @@ import { SELECT_ON_DOUBLE_CLICK_DIRECTIVE } from 'core/utils/selectOnDblClick.di
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils', [
-  require('./jQuery.js'),
   require('./moment.js'),
   require('./appendTransform.js'),
   COPY_TO_CLIPBOARD_COMPONENT,

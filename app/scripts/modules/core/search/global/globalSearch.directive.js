@@ -1,11 +1,12 @@
 'use strict';
 
 let angular = require('angular');
+const $ = require('jquery');
 
 module.exports = angular.module('spinnaker.core.search.global.directive', [
   require('./globalSearch.controller.js')
 ])
-  .directive('globalSearch', function($window, $) {
+  .directive('globalSearch', function($window) {
     return {
       restrict: 'E',
       replace: true,
