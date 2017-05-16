@@ -42,6 +42,7 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport.OverallReservationDetail
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReportBuilder
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
@@ -196,9 +197,9 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
       ]
     }
 
-    amazonReservationReport.reservations = reservations.values().sort {
-      a, b -> a.region <=> b.region ?: a.availabilityZone <=> b.availabilityZone ?: a.instanceType <=> b.instanceType ?: a.os <=> b.os
-    }
+    amazonReservationReport.reservations = reservations.values().sort(
+      false, new AmazonReservationReport.DescendingOverallReservationDetailComparator()
+    )
     log.info("Caching ${reservations.size()} items in ${agentType} took ${System.currentTimeMillis() - startTime}ms")
 
     amazonReservationReport.errorsByRegion = errorsByRegion
@@ -208,17 +209,39 @@ class ReservationReportCachingAgent implements CachingAgent, CustomScheduledAgen
 
     // v1 is a legacy report that does not differentiate between vpc and non-vpc reserved instances
     accountReservationDetailSerializer.mergeVpcReservations = true
-    def v1 = objectMapper.convertValue(amazonReservationReport, Map)
+    def v1 = objectMapper.readValue(
+      objectMapper
+        .writerWithView(AmazonReservationReport.Views.V1.class)
+        .writeValueAsString(amazonReservationReport),
+      Map
+    )
 
+    // v2 differentiates reservations between vpc and non-vpc
     accountReservationDetailSerializer.mergeVpcReservations = false
-    def v2 = objectMapper.convertValue(amazonReservationReport, Map)
+    def v2 = objectMapper.readValue(
+      objectMapper
+        .writerWithView(AmazonReservationReport.Views.V2.class)
+        .writeValueAsString(amazonReservationReport),
+      Map
+    )
+
+    // v3 is v2 + allocation of regional reserved instances to cover zonal shortfalls
+    def v3 = objectMapper.readValue(
+      objectMapper
+        .writerWithView(AmazonReservationReport.Views.V3.class)
+        .writeValueAsString(
+        new AmazonReservationReportBuilder.V3().build(objectMapper.convertValue(v2, AmazonReservationReport))
+      ),
+      Map
+    )
 
     metricsSupport.registerMetrics(objectMapper.convertValue(v2, AmazonReservationReport))
 
     return new DefaultCacheResult(
       (RESERVATION_REPORTS.ns): [
         new MutableCacheData("v1", ["report": v1], [:]),
-        new MutableCacheData("v2", ["report": v2], [:])
+        new MutableCacheData("v2", ["report": v2], [:]),
+        new MutableCacheData("v3", ["report": v3], [:])
       ]
     )
   }

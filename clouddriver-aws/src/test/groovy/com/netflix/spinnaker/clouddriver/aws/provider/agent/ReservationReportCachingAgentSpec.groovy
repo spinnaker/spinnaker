@@ -20,9 +20,11 @@ package com.netflix.spinnaker.clouddriver.aws.provider.agent
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonReservationReport
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.util.concurrent.ConcurrentHashMap
 
