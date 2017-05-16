@@ -16,18 +16,21 @@
 
 package com.netflix.kayenta.storage;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.metrics.MetricSet;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.List;
+
 @AllArgsConstructor
 public enum ObjectType {
-  CANARY_CONFIG(CanaryConfig.class, "canary_config", "canary_config.json"),
-  METRIC_SET(MetricSet.class, "metrics", "metric_set.json");
+  CANARY_CONFIG(new TypeReference<CanaryConfig>() {}, "canary_config", "canary_config.json"),
+  METRIC_SET_LIST(new TypeReference<List<MetricSet>>() {}, "metrics", "metric_set.json");
 
   @Getter
-  final Class<?> clazz;
+  final TypeReference typeReference;
 
   @Getter
   final String group;

@@ -17,8 +17,10 @@
 package com.netflix.kayenta.metrics;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Singular;
 import lombok.ToString;
 import org.springframework.util.StringUtils;
@@ -31,6 +33,8 @@ import java.util.stream.Collectors;
 
 @Builder
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 public class MetricSet {
 
   @NotNull

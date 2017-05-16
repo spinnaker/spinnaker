@@ -52,12 +52,12 @@ public class FetchController {
   @Autowired
   StorageServiceRepository storageServiceRepository;
 
-  @RequestMapping(method = RequestMethod.GET)
-  public List<MetricSet> queryMetrics(@RequestParam(required = false) final String accountName,
-                                      @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
-                                      @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
-                                      @ApiParam(defaultValue = "2017-03-24T15:13:00Z") @RequestParam String intervalStartTime,
-                                      @ApiParam(defaultValue = "2017-03-24T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
+  @RequestMapping(value = "/query", method = RequestMethod.GET)
+  public String queryMetrics(@RequestParam(required = false) final String accountName,
+                             @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
+                             @ApiParam(defaultValue = "myapp-v010-") @RequestParam String instanceNamePrefix,
+                             @ApiParam(defaultValue = "2017-05-01T15:13:00Z") @RequestParam String intervalStartTime,
+                             @ApiParam(defaultValue = "2017-05-02T15:27:00Z") @RequestParam String intervalEndTime) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.METRICS_STORE,
                                                                               accountCredentialsRepository);
@@ -77,13 +77,14 @@ public class FetchController {
     // TODO(duftler): This is placeholder logic. Just demonstrating that we can write to the bucket.
     // It is not expected that this would (necessarily) use the same account name as that used for the metrics store.
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    String metricSetListId = UUID.randomUUID() + "";
 
     if (storageService.isPresent()) {
-      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET, UUID.randomUUID() + "", metricSetList);
+      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
     } else {
       log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
     }
 
-    return metricSetList;
+    return metricSetListId;
   }
 }

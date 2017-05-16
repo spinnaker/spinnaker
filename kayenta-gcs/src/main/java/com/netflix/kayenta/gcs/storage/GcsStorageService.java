@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.gcs.storage;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.http.ByteArrayContent;
 import com.google.api.client.http.HttpResponseException;
@@ -23,6 +24,7 @@ import com.google.api.services.storage.Storage;
 import com.google.api.services.storage.model.Bucket;
 import com.google.api.services.storage.model.StorageObject;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
+import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
@@ -69,7 +71,7 @@ public class GcsStorageService implements StorageService {
     try {
       StorageObject storageObject = storage.objects().get(bucketName, path).execute();
 
-      return deserialize(storage, storageObject, (Class<T>)objectType.getClazz());
+      return deserialize(storage, storageObject, objectType.getTypeReference());
     } catch (IOException e) {
       if (e instanceof HttpResponseException) {
         HttpResponseException hre = (HttpResponseException)e;
@@ -82,13 +84,13 @@ public class GcsStorageService implements StorageService {
     }
   }
 
-  private <T> T deserialize(Storage storage, StorageObject object, Class<T> clazz) throws IOException {
+  private <T> T deserialize(Storage storage, StorageObject object, TypeReference typeReference) throws IOException {
     ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
     Storage.Objects.Get getter = storage.objects().get(object.getBucket(), object.getName());
     getter.executeMediaAndDownloadTo(output);
     String json = output.toString("UTF8");
 
-    return objectMapper.readValue(json, clazz);
+    return objectMapper.readValue(json, typeReference);
   }
 
   @Override

@@ -42,3 +42,4 @@ swagger:
     - /canaryConfig.*
     - /credentials.*
     - /fetch.*
+    - /metricSetList.*
