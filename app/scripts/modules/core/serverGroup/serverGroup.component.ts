@@ -6,9 +6,8 @@ import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from 'core/cluster/filter/cl
 import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
 import { ENTITY_UI_TAGS_COMPONENT } from 'core/entityTag/entityUiTags.component';
 import { INSTANCES_COMPONENT } from './../instance/instances.component';
-import { Instance } from 'core/domain/instance';
 import { SERVER_GROUP_SEQUENCE_FILTER } from 'core/cluster/serverGroup.sequence.filter';
-import { ServerGroup } from 'core/domain/serverGroup';
+import { IInstance, IServerGroup } from 'core/domain';
 
 interface JenkinsViewModel {
   number: number;
@@ -16,17 +15,17 @@ interface JenkinsViewModel {
 }
 
 interface ViewModel {
-  serverGroup: ServerGroup;
+  serverGroup: IServerGroup;
   serverGroupSequence: string[];
   jenkins: JenkinsViewModel;
   hasBuildInfo: boolean;
-  instances: Instance[];
+  instances: IInstance[];
   images?: string;
 }
 
 export class ServerGroupController implements IComponentController {
   public cluster: string;
-  public serverGroup: ServerGroup;
+  public serverGroup: IServerGroup;
   public application: string;
   public parentHeading: string;
   public hasLoadBalancers: boolean;

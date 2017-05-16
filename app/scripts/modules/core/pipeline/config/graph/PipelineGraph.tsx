@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { angular2react } from 'angular2react';
 
-import { IExecution, IPipeline } from 'core/domain/index';
+import { IExecution, IPipeline } from 'core/domain';
 import { IExecutionViewState } from './pipelineGraph.service';
 import { IPipelineNode } from './pipelineGraph.service';
 import { PipelineGraphComponent } from './pipeline.graph.component';

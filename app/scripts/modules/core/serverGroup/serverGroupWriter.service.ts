@@ -1,10 +1,9 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {ITask} from 'core/task/task.read.service';
-import {ServerGroup, ISecurityGroup} from 'core/domain';
-import {TASK_EXECUTOR, IJob, TaskExecutor} from 'core/task/taskExecutor';
-import {Application} from 'core/application/application.model';
-import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
+import { Application } from 'core/application/application.model';
+import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
+import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
+import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
 interface ISource {
   asgName: string;
@@ -72,7 +71,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public destroyServerGroup(serverGroup: ServerGroup,
+  public destroyServerGroup(serverGroup: IServerGroup,
                             application: Application,
                             params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
@@ -90,7 +89,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public disableServerGroup(serverGroup: ServerGroup,
+  public disableServerGroup(serverGroup: IServerGroup,
                             appName: string,
                             params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
@@ -108,7 +107,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public enableServerGroup(serverGroup: ServerGroup,
+  public enableServerGroup(serverGroup: IServerGroup,
                            application: Application,
                            params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
@@ -126,7 +125,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public resizeServerGroup(serverGroup: ServerGroup,
+  public resizeServerGroup(serverGroup: IServerGroup,
                            application: Application,
                            params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
@@ -144,7 +143,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public rollbackServerGroup(serverGroup: ServerGroup,
+  public rollbackServerGroup(serverGroup: IServerGroup,
                              application: Application,
                              params: IServerGroupJob = {}): ng.IPromise<ITask> {
 
@@ -160,7 +159,7 @@ export class ServerGroupWriter {
     });
   }
 
-  public updateSecurityGroups(serverGroup: ServerGroup,
+  public updateSecurityGroups(serverGroup: IServerGroup,
                               securityGroups: ISecurityGroup[],
                               application: Application): ng.IPromise<ITask> {
 

@@ -2,7 +2,7 @@ import {module, IScope} from 'angular';
 import {IModalService} from 'angular-ui-bootstrap';
 import {cloneDeep, reduce, mapValues, get, map} from 'lodash';
 
-import {ServerGroup} from 'core/domain/index';
+import { IServerGroup } from 'core/domain';
 import {
   CONFIRMATION_MODAL_SERVICE, ConfirmationModalService,
   IConfirmationModalParams
@@ -377,7 +377,7 @@ class AppengineServerGroupDetailsController {
     return template;
   }
 
-  private expectedAllocationsAfterDisableOperation(serverGroup: ServerGroup, app: Application): {[key: string]: number} {
+  private expectedAllocationsAfterDisableOperation(serverGroup: IServerGroup, app: Application): {[key: string]: number} {
     const loadBalancer = app.getDataSource('loadBalancers').data.find((toCheck: IAppengineLoadBalancer): boolean => {
       const allocations = get(toCheck, 'split.allocations', {});
       const enabledServerGroups = Object.keys(allocations);
@@ -411,8 +411,8 @@ class AppengineServerGroupDetailsController {
   private extractServerGroup(fromParams: IServerGroupFromStateParams): ng.IPromise<void> {
     return this.serverGroupReader
       .getServerGroup(this.app.name, fromParams.accountId, fromParams.region, fromParams.name)
-      .then((serverGroupDetails: ServerGroup) => {
-        let fromApp = this.app.getDataSource('serverGroups').data.find((toCheck: ServerGroup) => {
+      .then((serverGroupDetails: IServerGroup) => {
+        let fromApp = this.app.getDataSource('serverGroups').data.find((toCheck: IServerGroup) => {
           return toCheck.name === fromParams.name &&
             toCheck.account === fromParams.accountId &&
             toCheck.region === fromParams.region;
@@ -421,7 +421,7 @@ class AppengineServerGroupDetailsController {
         if (!fromApp) {
           this.app.getDataSource('loadBalancers').data.some((loadBalancer) => {
             if (loadBalancer.account === fromParams.accountId) {
-              return loadBalancer.serverGroups.some((toCheck: ServerGroup) => {
+              return loadBalancer.serverGroups.some((toCheck: IServerGroup) => {
                 let result = false;
                 if (toCheck.name === fromParams.name) {
                   fromApp = toCheck;

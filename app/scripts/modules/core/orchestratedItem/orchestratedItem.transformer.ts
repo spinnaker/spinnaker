@@ -1,9 +1,7 @@
-import {module} from 'angular';
-import {duration} from 'moment';
+import { module } from 'angular';
+import { duration } from 'moment';
 
-import {IOrchestratedItem, IOrchestratedItemVariable} from 'core/domain/IOrchestratedItem';
-import {ITask} from 'core/task/task.read.service';
-import {TaskStep} from '../domain/taskStep';
+import { IOrchestratedItem, IOrchestratedItemVariable, ITask, ITaskStep } from 'core/domain';
 
 export class OrchestratedItemTransformer {
 
@@ -99,7 +97,7 @@ export class OrchestratedItemTransformer {
       if (!failedTask) {
         return null;
       }
-      const steps: TaskStep[] = failedTask.history;
+      const steps: ITaskStep[] = failedTask.history;
       const exception: any = failedTask.exception;
       if (exception) {
         return exception.message;

@@ -1,15 +1,15 @@
 import { module } from 'angular';
 
-import { TaskStep } from '../domain/taskStep';
+import { ITaskStep } from 'core/domain';
 
 export function displayableTaskFilter() {
   const blacklist = [
     'stageStart', 'stageEnd', 'determineTargetServerGroup'
   ];
-  return function (input: TaskStep[]): TaskStep[] {
-    let result: TaskStep[] = [];
+  return function (input: ITaskStep[]): ITaskStep[] {
+    let result: ITaskStep[] = [];
     if (input) {
-      result = input.filter((test: TaskStep) => {
+      result = input.filter((test: ITaskStep) => {
         return !blacklist.includes(test.name) || test.status === 'TERMINAL';
       });
     }

@@ -1,9 +1,9 @@
 import {module} from 'angular';
-import {ServerGroup} from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 import {Application} from 'core/application/application.model';
 
 class ServerGroupRunningTasksCtrl implements ng.IComponentController {
-  public serverGroup: ServerGroup;
+  public serverGroup: IServerGroup;
   public application: Application;
 }
 

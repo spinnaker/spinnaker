@@ -2,14 +2,14 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 import { isEqual } from 'lodash';
 
-import { InstanceCounts } from 'core/domain';
+import { IInstanceCounts } from 'core/domain';
 import { Placement } from 'core/presentation/Placement';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import './healthCounts.less';
 
 interface IProps {
-  container: InstanceCounts;
+  container: IInstanceCounts;
   additionalLegendText?: string;
   legendPlacement?: Placement;
 };
@@ -24,7 +24,7 @@ interface IState {
 export class HealthCounts extends React.Component<IProps, IState> {
   public static defaultProps: Partial<IProps> = {
     legendPlacement: 'top',
-    container: {} as InstanceCounts
+    container: {} as IInstanceCounts
   };
 
   constructor(props: IProps) {
@@ -32,8 +32,8 @@ export class HealthCounts extends React.Component<IProps, IState> {
     this.state = this.calculatePercent(props.container);
   }
 
-  private calculatePercent(container: InstanceCounts): IState {
-    container = container || {} as InstanceCounts;
+  private calculatePercent(container: IInstanceCounts): IState {
+    container = container || {} as IInstanceCounts;
 
     const up = container.up || 0,
           down = container.down || 0,

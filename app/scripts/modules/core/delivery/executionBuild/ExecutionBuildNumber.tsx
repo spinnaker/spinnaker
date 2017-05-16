@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { IExecution } from 'core/domain/index';
+import { IExecution } from 'core/domain';
 import { $state } from 'core/uirouter';
 
 import './ExecutionBuildNumber.less';

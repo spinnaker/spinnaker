@@ -1,9 +1,9 @@
 import { module } from 'angular';
 
-import { BuildInfo } from '../../domain';
+import { IBuildInfo } from 'core/domain';
 
 export function buildDisplayName() {
-  return function(input: BuildInfo): string {
+  return function(input: IBuildInfo): string {
     if (!input) {
       return '';
     }

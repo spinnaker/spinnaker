@@ -1,14 +1,14 @@
 import {module} from 'angular';
 
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
-import {ServerGroup} from '../domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 import {IOwnerOption} from './entityTagEditor.controller';
 
 export class ClusterTargetBuilder {
 
   constructor(private namingService: NamingService) { 'ngInject'; }
 
-  public buildClusterTargets(serverGroup: ServerGroup): IOwnerOption[] {
+  public buildClusterTargets(serverGroup: IServerGroup): IOwnerOption[] {
     const clusterName = this.namingService.getClusterNameFromServerGroupName(serverGroup.name);
     return [
       {

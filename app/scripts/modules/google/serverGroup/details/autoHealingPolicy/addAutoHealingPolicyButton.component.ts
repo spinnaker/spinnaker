@@ -1,11 +1,11 @@
 import {module} from 'angular';
 import {IModalService} from 'angular-ui-bootstrap';
 import {Application} from 'core/application/application.model';
-import {ServerGroup} from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 
 class GceAddAutoHealingPolicyButtonCtrl implements ng.IComponentController {
   public application: Application;
-  public serverGroup: ServerGroup;
+  public serverGroup: IServerGroup;
 
   constructor(private $uibModal: IModalService) { 'ngInject'; }
 

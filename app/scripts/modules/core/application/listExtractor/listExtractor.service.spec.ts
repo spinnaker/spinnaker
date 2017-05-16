@@ -1,9 +1,8 @@
-import {mock} from 'angular';
-import {LIST_EXTRACTOR_SERVICE, AppListExtractor} from './listExtractor.service';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from '../applicationModel.builder';
-import {Application} from '../application.model';
-import {ServerGroup} from '../../domain/serverGroup';
-import {Instance} from '../../domain/instance';
+import { mock } from 'angular';
+import { IInstance, IServerGroup } from 'core/domain';
+import { Application } from '../application.model';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../applicationModel.builder';
+import { AppListExtractor, LIST_EXTRACTOR_SERVICE } from './listExtractor.service';
 
 describe('appListExtractorService', function () {
 
@@ -16,7 +15,7 @@ describe('appListExtractorService', function () {
     return application;
   };
 
-  const asResult = (instance: Instance) => {
+  const asResult = (instance: IInstance) => {
     const {id, availabilityZone} = instance;
     return { id, availabilityZone };
   };
@@ -108,7 +107,7 @@ describe('appListExtractorService', function () {
     it('should get a list of 1 stacks with a filter on the serverGroup name', function () {
       const application: Application = buildApplication([ {name: 'foo', stack: 'prod'}, {name: 'bar', stack: 'test'} ]);
 
-      const filterByBar = (serverGroup: ServerGroup) => serverGroup.name === 'bar';
+      const filterByBar = (serverGroup: IServerGroup) => serverGroup.name === 'bar';
       const result = service.getStacks([application], filterByBar);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['test']);
@@ -153,7 +152,7 @@ describe('appListExtractorService', function () {
     it('should get a list of 1 cluster with a filter on the cluster name', function () {
       const application: Application = buildApplication([ {cluster: 'deck-main'}, {cluster: 'gate-main'} ]);
 
-      const filterByGate = (serverGroup: ServerGroup) => serverGroup.cluster === 'gate-main';
+      const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
       const result = service.getClusters([application], filterByGate);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['gate-main']);
@@ -195,7 +194,7 @@ describe('appListExtractorService', function () {
         {cluster: 'gate-main', name: 'gate-main-v000'},
         {cluster: 'deck-main', name: 'deck-main-v002'}
       ]);
-      const filterByGate = (serverGroup: ServerGroup) => serverGroup.cluster === 'gate-main';
+      const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
       const result = service.getAsgs([application], filterByGate);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['gate-main-v000']);
@@ -249,8 +248,8 @@ describe('appListExtractorService', function () {
         { cluster: 'gate-main', region: 'us-west-2', instances: [ { availabilityZone: 'us-west-2d' } ] },
         { cluster: 'gate-main', region: 'us-east-1', instances: [ { availabilityZone: 'us-east-1d' } ] },
       ]);
-      const filterByGate = (serverGroup: ServerGroup) => serverGroup.cluster === 'gate-main';
-      const filterByRegion = (serverGroup: ServerGroup) => serverGroup.region === 'us-east-1';
+      const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
+      const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'us-east-1';
       const result = service.getZones([application], filterByGate, filterByRegion);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['us-east-1d']);
@@ -265,9 +264,9 @@ describe('appListExtractorService', function () {
         { cluster: 'gate-main', region: 'eu-west-1', name: 'gate-main-v004', instances: [ { availabilityZone: 'eu-west-1b' } ] },
       ]);
 
-      const filterByGate = (serverGroup: ServerGroup) => serverGroup.cluster === 'gate-main';
-      const filterByRegion = (serverGroup: ServerGroup) => serverGroup.region === 'eu-west-1';
-      const filterByServerGroupName = (serverGroup: ServerGroup) => serverGroup.name === 'gate-main-v004';
+      const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
+      const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'eu-west-1';
+      const filterByServerGroupName = (serverGroup: IServerGroup) => serverGroup.name === 'gate-main-v004';
       const result = service.getZones([application], filterByGate, filterByRegion, filterByServerGroupName);
       expect(result.length).toEqual(1);
       expect(result).toEqual(['eu-west-1b']);
@@ -341,8 +340,8 @@ describe('appListExtractorService', function () {
         { cluster: 'gate-main', region: 'us-east-1', instances: [ { availabilityZone: 'us-east-1d', id: 'i-3333' } ] }
       ]);
 
-      const filterByGate = (serverGroup: ServerGroup) => serverGroup.cluster === 'gate-main';
-      const filterByRegion = (serverGroup: ServerGroup) => serverGroup.region === 'us-east-1';
+      const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
+      const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'us-east-1';
       const result = service.getInstances([application], filterByGate, filterByRegion);
       expect(result.length).toEqual(1);
       expect(result.map(asResult)).toEqual([
@@ -362,9 +361,9 @@ describe('appListExtractorService', function () {
         { cluster: 'gate-main', region: 'eu-west-1', instances: [ { availabilityZone: 'eu-west-1b', id: 'i-12344' } ] },
       ]);
 
-      const filterByGate = (serverGroup: ServerGroup) => serverGroup.cluster === 'gate-main';
-      const filterByRegion = (serverGroup: ServerGroup) => serverGroup.region === 'eu-west-1';
-      const filterByAvailabilityZone = (instance: Instance) => instance.availabilityZone === 'eu-west-1b';
+      const filterByGate = (serverGroup: IServerGroup) => serverGroup.cluster === 'gate-main';
+      const filterByRegion = (serverGroup: IServerGroup) => serverGroup.region === 'eu-west-1';
+      const filterByAvailabilityZone = (instance: IInstance) => instance.availabilityZone === 'eu-west-1b';
       const result = service.getInstances([application], filterByGate, filterByRegion, filterByAvailabilityZone);
       expect(result.length).toEqual(1);
       expect(result.map(asResult)).toEqual([

@@ -2,10 +2,10 @@ import { mock, IQService, IScope } from 'angular';
 import * as React from 'react';
 import { ReactWrapper, mount } from 'enzyme';
 
-import { Application } from '../application/application.model';
+import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
 import { ILoadBalancersTagProps, LoadBalancersTag } from './LoadBalancersTag';
-import { ServerGroup } from 'core/domain';
+import { IServerGroup } from 'core/domain';
 
 describe('<LoadBalancersTag />', () => {
   const lb1 = { name: 'lb1', account: 'prod', region: 'us-east-1', vpcId: 'vpc-1' },
@@ -40,7 +40,7 @@ describe('<LoadBalancersTag />', () => {
       type: 'aws',
       loadBalancers: ['lb1'],
       instances: [],
-    } as ServerGroup;
+    } as IServerGroup;
 
     application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
 
@@ -57,7 +57,7 @@ describe('<LoadBalancersTag />', () => {
       type: 'aws',
       loadBalancers: ['lb1', 'lb2'],
       instances: [],
-    } as ServerGroup;
+    } as IServerGroup;
 
     application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
 
@@ -113,7 +113,7 @@ describe('<LoadBalancersTag />', () => {
           }
         ]
       }
-    ]} as ServerGroup;
+    ]} as IServerGroup;
 
     application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
 

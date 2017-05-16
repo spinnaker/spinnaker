@@ -1,4 +1,4 @@
-import {ILoadBalancer} from 'core/domain/loadBalancer';
+import {ILoadBalancer} from 'core/domain';
 import {IGceBackendService} from './backendService';
 
 export interface IGceLoadBalancer extends ILoadBalancer {

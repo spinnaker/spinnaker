@@ -1,9 +1,9 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {TASK_EXECUTOR, TaskExecutor, IJob} from 'core/task/taskExecutor';
-import {Application} from 'core/application/application.model';
-import {ITask} from 'core/task/task.read.service';
+import { Application } from 'core/application/application.model';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { ITask } from 'core/domain';
+import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ILoadBalancerUpsertDescription extends IJob {
   name: string;

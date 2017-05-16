@@ -8,9 +8,8 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { AccountTag } from 'core/account/AccountTag';
 import { Application } from 'core/application/application.model';
-import { IPipeline } from 'core/domain/IPipeline';
 import { Execution } from './execution/Execution';
-import { IExecution, IExecutionGroup, IPipelineCommand } from 'core/domain';
+import { IExecution, IExecutionGroup, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/delivery/triggers/NextRunTag';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
 import { Tooltip } from 'core/presentation/Tooltip';

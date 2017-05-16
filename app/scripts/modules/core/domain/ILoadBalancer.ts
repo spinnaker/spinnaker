@@ -1,7 +1,7 @@
 import { ITaggedEntity } from './ITaggedEntity';
-import { ServerGroup } from './serverGroup';
-import { InstanceCounts } from './instanceCounts';
-import { Instance } from './instance';
+import { IServerGroup } from './IServerGroup';
+import { IInstanceCounts } from './IInstanceCounts';
+import { IInstance } from './IInstance';
 
 export interface ILoadBalancer extends ITaggedEntity {
   account?: string;
@@ -9,8 +9,8 @@ export interface ILoadBalancer extends ITaggedEntity {
   name?: string;
   detail?: string;
   healthState?: string;
-  instances?: Instance[];
-  instanceCounts?: InstanceCounts;
+  instances?: IInstance[];
+  instanceCounts?: IInstanceCounts;
   loadBalancerType?: string;
   provider?: string;
   region?: string;
@@ -26,7 +26,7 @@ export interface ILoadBalancer extends ITaggedEntity {
 export interface ILoadBalancerGroup {
   heading: string;
   loadBalancer?: ILoadBalancer;
-  serverGroups?: ServerGroup[];
+  serverGroups?: IServerGroup[];
   subgroups?: ILoadBalancerGroup[];
   searchField?: string;
 }

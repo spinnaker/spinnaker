@@ -3,7 +3,7 @@ import {module} from 'angular';
 import {IModalServiceInstance} from 'angular-ui-bootstrap';
 
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
-import {ServerGroup} from 'core/domain';
+import { IServerGroup } from 'core/domain';
 
 interface IViewState {
   loading: boolean;
@@ -37,7 +37,7 @@ export class ScalingActivitiesCtrl implements ng.IComponentController {
 
   public constructor(private $uibModalInstance: IModalServiceInstance,
                      private serverGroupReader: ServerGroupReader,
-                     public serverGroup: ServerGroup) {
+                     public serverGroup: IServerGroup) {
     'ngInject';
     this.serverGroup = serverGroup;
   }

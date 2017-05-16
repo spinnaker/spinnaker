@@ -1,7 +1,7 @@
 import {IGceAutoHealingPolicy} from './autoHealingPolicy';
-import {ServerGroup} from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 
 // TODO(dpeach): fill in the remaining GCE specific properties.
-export interface IGceServerGroup extends ServerGroup {
+export interface IGceServerGroup extends IServerGroup {
   autoHealingPolicy?: IGceAutoHealingPolicy;
 }

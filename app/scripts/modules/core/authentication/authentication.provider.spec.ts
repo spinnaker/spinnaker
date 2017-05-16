@@ -1,6 +1,6 @@
 import {mock} from 'angular';
 
-import {IDeckRootScope} from 'core/domain/deckRootScope';
+import {IDeckRootScope} from 'core/domain';
 import {RedirectService} from './redirect.service';
 import {AuthenticationService} from './authentication.service';
 import {AUTHENTICATION} from './authentication.module';

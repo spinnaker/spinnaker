@@ -1,4 +1,4 @@
-export interface BuildInfo {
+export interface IBuildInfo {
   fullDisplayName: string;
   number: number;
 }

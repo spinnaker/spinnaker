@@ -7,7 +7,7 @@ import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
 import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
 import { Scope } from '../domain/scope.domain';
 import { Application } from 'core/application/application.model';
-import { ServerGroup } from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 import { InfrastructureSearcher, InfrastructureSearchService } from 'core/search/infrastructure/infrastructureSearch.service';
 import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 
@@ -176,7 +176,7 @@ export class FastPropertyScopeSearchComponentController implements IComponentCon
 
     const appsClusters = values(this.applicationDictionary).reduce((acc: any[], app: Application): any[] => {
       if (applicationNames.includes(app.name)) {
-        app.getDataSource('serverGroups').data.forEach((serverGroup: ServerGroup) => {
+        app.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
           if (!acc.some(r => r.region === serverGroup.region && r.stack === serverGroup.stack)) {
             acc.push({
               region: serverGroup.region,

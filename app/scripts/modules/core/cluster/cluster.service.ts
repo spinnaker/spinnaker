@@ -4,8 +4,8 @@ import {forOwn, get, groupBy, has, head, keys, values} from 'lodash';
 import {Api, API_SERVICE} from '../api/api.service';
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 import {taskMatches} from './task.matcher';
-import {ServerGroup} from '../domain/serverGroup';
-import {Application} from '../application/application.model';
+import { IServerGroup } from 'core/domain';
+import {Application} from 'core/application/application.model';
 import {ICluster, IClusterSummary} from '../domain/ICluster';
 import {IExecutionStage} from '../domain/IExecutionStage';
 import {IExecution} from '../domain/IExecution';
@@ -22,7 +22,7 @@ export class ClusterService {
     'ngInject';
   }
 
-  public loadServerGroups(application: Application): IPromise<ServerGroup[]> {
+  public loadServerGroups(application: Application): IPromise<IServerGroup[]> {
     return this.getClusters(application.name).then((clusters: IClusterSummary[]) => {
       const dataSource = application.getDataSource('serverGroups');
       const serverGroupLoader = this.API.one('applications').one(application.name).all('serverGroups');
@@ -35,7 +35,7 @@ export class ClusterService {
       } else {
         this.reconcileClusterDeepLink();
       }
-      return serverGroupLoader.getList().then((serverGroups: ServerGroup[]) => {
+      return serverGroupLoader.getList().then((serverGroups: IServerGroup[]) => {
         serverGroups.forEach(sg => this.addHealthStatusCheck(sg));
         serverGroups.forEach(sg => this.addNameParts(sg));
         return this.$q.all(serverGroups.map(sg => this.serverGroupTransformer.normalizeServerGroup(sg, application)));
@@ -66,12 +66,12 @@ export class ClusterService {
     }
   }
 
-  public addServerGroupsToApplication(application: Application, serverGroups: ServerGroup[] = []): ServerGroup[] {
+  public addServerGroupsToApplication(application: Application, serverGroups: IServerGroup[] = []): IServerGroup[] {
     if (application.serverGroups.data) {
       const data = application.serverGroups.data;
       // remove any that have dropped off, update any that have changed
       const toRemove: number[] = [];
-      data.forEach((serverGroup: ServerGroup, idx: number) => {
+      data.forEach((serverGroup: IServerGroup, idx: number) => {
         const matches = serverGroups.filter((test) =>
           test.name === serverGroup.name &&
           test.account === serverGroup.account &&
@@ -91,7 +91,7 @@ export class ClusterService {
 
       // add any new ones
       serverGroups.forEach((serverGroup) => {
-        if (!application.serverGroups.data.filter((test: ServerGroup) =>
+        if (!application.serverGroups.data.filter((test: IServerGroup) =>
             test.name === serverGroup.name &&
             test.account === serverGroup.account &&
             test.region === serverGroup.region &&
@@ -106,7 +106,7 @@ export class ClusterService {
     }
   }
 
-  public createServerGroupClusters(serverGroups: ServerGroup[]): ICluster[] {
+  public createServerGroupClusters(serverGroups: IServerGroup[]): ICluster[] {
     const clusters: ICluster[] = [];
     const groupedByAccount = groupBy(serverGroups, 'account');
     forOwn(groupedByAccount, (accountServerGroups, account) => {
@@ -137,7 +137,7 @@ export class ClusterService {
       return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
     }
 
-    application.serverGroups.data.forEach((serverGroup: ServerGroup) => {
+    application.serverGroups.data.forEach((serverGroup: IServerGroup) => {
       serverGroup.runningExecutions = [];
       executions.forEach((execution: IExecution) => {
         this.findStagesWithServerGroupInfo(execution.stages).forEach((stage: IExecutionStage) => {
@@ -160,7 +160,7 @@ export class ClusterService {
     if (!application.serverGroups.data) {
       return; // still run if there are no running tasks, since they may have all finished and we need to clear them.
     }
-    application.serverGroups.data.forEach((serverGroup: ServerGroup) => {
+    application.serverGroups.data.forEach((serverGroup: IServerGroup) => {
       if (!serverGroup.runningTasks) {
         serverGroup.runningTasks = [];
       } else {
@@ -201,7 +201,7 @@ export class ClusterService {
     );
   }
 
-  private addProvidersAndServerGroupsToInstances(serverGroups: ServerGroup[]) {
+  private addProvidersAndServerGroupsToInstances(serverGroups: IServerGroup[]) {
     serverGroups.forEach((serverGroup) => {
       serverGroup.instances.forEach((instance) => {
         instance.provider = serverGroup.type || serverGroup.provider;
@@ -211,7 +211,7 @@ export class ClusterService {
     });
   }
 
-  private addNameParts(serverGroup: ServerGroup): void {
+  private addNameParts(serverGroup: IServerGroup): void {
     const nameParts = this.namingService.parseServerGroupName(serverGroup.name);
     serverGroup.app = nameParts.application;
     serverGroup.stack = nameParts.stack;
@@ -220,7 +220,7 @@ export class ClusterService {
     serverGroup.category = 'serverGroup';
   }
 
-  private addHealthStatusCheck(serverGroup: ServerGroup): void {
+  private addHealthStatusCheck(serverGroup: IServerGroup): void {
     serverGroup.instances.forEach((instance) => {
       instance.hasHealthStatus = (instance.health || []).some(h => h.state !== 'Unknown');
     });

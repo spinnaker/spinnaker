@@ -1,13 +1,13 @@
 import {module} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
-import {ServerGroup} from 'core/domain';
+import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
 
   constructor(private $log: ng.ILogService, private API: Api) { 'ngInject'; }
 
-  public getScalingActivities(serverGroup: ServerGroup): ng.IPromise<any[]> {
+  public getScalingActivities(serverGroup: IServerGroup): ng.IPromise<any[]> {
     return this.API
       .one('applications')
       .one(serverGroup.app)

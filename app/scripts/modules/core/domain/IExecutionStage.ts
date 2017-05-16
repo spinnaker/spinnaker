@@ -1,7 +1,7 @@
 import {IOrchestratedItem} from './IOrchestratedItem';
 import {IStage} from './IStage';
 import {IStageStep} from './IStageStep';
-import {Application} from '../application/application.model';
+import {Application} from 'core/application/application.model';
 import {IExecution} from './IExecution';
 
 export interface IRestartDetails {

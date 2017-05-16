@@ -1,6 +1,6 @@
 import {ITimedItem} from './IOrchestratedItem';
 
-export interface TaskStep extends ITimedItem {
+export interface ITaskStep extends ITimedItem {
   name: string;
   status: string;
 }

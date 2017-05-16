@@ -1,7 +1,9 @@
-import {module, noop} from 'angular';
-import {TASK_READ_SERVICE, TaskReader, ITask} from '../task.read.service';
-import {Application} from 'core/application/application.model';
-import {IModalServiceInstance} from 'angular-ui-bootstrap';
+import { module, noop } from 'angular';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
+
+import { Application } from 'core/application/application.model';
+import { ITask } from 'core/domain';
+import { TASK_READ_SERVICE, TaskReader } from '../task.read.service';
 
 export interface ITaskMonitorConfig {
   title: string;

@@ -4,14 +4,14 @@ import {IModalService} from 'angular-ui-bootstrap';
 
 import {AuthenticationService} from 'core/authentication/authentication.service';
 import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {ICluster, IStage, ServerGroup} from 'core/domain/index';
+import {ICluster, IStage, IServerGroup} from 'core/domain';
 import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 import {EDIT_VIP_MODAL_CONTROLLER} from './editVip.modal.controller';
-import {NetflixSettings} from '../../../netflix.settings';
+import {NetflixSettings} from 'netflix/netflix.settings';
 
 interface IVipOverride {
   oldVip: string;
@@ -105,7 +105,7 @@ class IsolatedTestingTargetStageCtrl {
 
     // If the ASG we are cloning has a VIP, generate the new VIP
     if (command.source && command.source.asgName && command.source.region && command.source.account) {
-      this.serverGroupReader.getServerGroup(command.application, command.source.account, command.source.region, command.source.asgName).then((asgDetails: ServerGroup) => {
+      this.serverGroupReader.getServerGroup(command.application, command.source.account, command.source.region, command.source.asgName).then((asgDetails: IServerGroup) => {
         const newOverride: IVipOverride = {
           oldVip: undefined,
           newVip: undefined,

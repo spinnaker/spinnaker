@@ -3,7 +3,7 @@ import {Subscription} from 'rxjs/Subscription';
 import {module} from 'angular';
 import {IModalService, IModalStackService} from 'angular-ui-bootstrap';
 
-import {IDeckRootScope} from '../domain/deckRootScope';
+import {IDeckRootScope} from 'core/domain';
 import {REDIRECT_SERVICE, RedirectService} from './redirect.service';
 import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
 import {SETTINGS} from 'core/config/settings';

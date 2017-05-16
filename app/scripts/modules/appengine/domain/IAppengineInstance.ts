@@ -1,6 +1,6 @@
-import {Instance} from 'core/domain/instance';
+import {IInstance} from 'core/domain';
 
-export interface IAppengineInstance extends Instance {
+export interface IAppengineInstance extends IInstance {
   name: string;
   id: string;
   account?: string;

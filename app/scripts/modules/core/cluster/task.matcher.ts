@@ -1,13 +1,12 @@
-import {has, intersection, map} from 'lodash';
+import { has, intersection, map } from 'lodash';
 
-import {ITask} from '../task/task.read.service';
-import {ServerGroup} from '../domain/serverGroup';
+import { IServerGroup, ITask } from 'core/domain';
 
 export interface ITaskMatcher {
- (task: ITask, serverGroup: ServerGroup): boolean;
+ (task: ITask, serverGroup: IServerGroup): boolean;
 }
 
-function createcopylastasgMatcher(task: ITask, serverGroup: ServerGroup): boolean {
+function createcopylastasgMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   const source: any = task.getValueFor('source'),
         targetAccount: string = task.getValueFor('deploy.account.name'),
         targetRegion: string = task.getValueFor('availabilityZones') ? Object.keys(task.getValueFor('availabilityZones'))[0] : null,
@@ -22,7 +21,7 @@ function createcopylastasgMatcher(task: ITask, serverGroup: ServerGroup): boolea
   return targetMatches || sourceMatches;
 }
 
-function createdeployMatcher(task: ITask, serverGroup: ServerGroup): boolean {
+function createdeployMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   const account: string = task.getValueFor('deploy.account.name'),
         region: string = task.getValueFor('deploy.server.groups') ? Object.keys(task.getValueFor('deploy.server.groups'))[0] : null,
         serverGroupName: string = (serverGroup && region) ? task.getValueFor('deploy.server.groups')[region][0] : null;
@@ -33,14 +32,14 @@ function createdeployMatcher(task: ITask, serverGroup: ServerGroup): boolean {
   return false;
 }
 
-function baseTaskMatcher(task: ITask, serverGroup: ServerGroup): boolean {
+function baseTaskMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   const taskRegion: string = task.getValueFor('regions') ? task.getValueFor('regions')[0] : task.getValueFor('region') || null;
   return serverGroup.account === task.getValueFor('credentials') &&
     serverGroup.region === taskRegion &&
     serverGroup.name === task.getValueFor('asgName');
 }
 
-function instanceIdsTaskMatcher(task: ITask, serverGroup: ServerGroup): boolean {
+function instanceIdsTaskMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   if (task.getValueFor('region') === serverGroup.region && task.getValueFor('credentials') === serverGroup.account) {
     if (task.getValueFor('knownInstanceIds')) {
       return intersection(map(serverGroup.instances, 'id'), task.getValueFor('knownInstanceIds')).length > 0;
@@ -51,7 +50,7 @@ function instanceIdsTaskMatcher(task: ITask, serverGroup: ServerGroup): boolean 
   return false;
 }
 
-function rollbackServerGroupTaskMatcher(task: ITask, serverGroup: ServerGroup): boolean {
+function rollbackServerGroupTaskMatcher(task: ITask, serverGroup: IServerGroup): boolean {
   const account: string = task.getValueFor('credentials'),
         region: string = task.getValueFor('regions') ? task.getValueFor('regions')[0] : null;
 
@@ -62,7 +61,7 @@ function rollbackServerGroupTaskMatcher(task: ITask, serverGroup: ServerGroup): 
   return false;
 }
 
-export function taskMatches(task: ITask, serverGroup: ServerGroup) {
+export function taskMatches(task: ITask, serverGroup: IServerGroup) {
   const matchers: { [type: string]: ITaskMatcher } = {
     createcopylastasg: createcopylastasgMatcher,
     createdeploy: createdeployMatcher,

@@ -1,13 +1,13 @@
-import {module} from 'angular';
-import {TASK_EXECUTOR, TaskExecutor} from '../task/taskExecutor';
-import {Application} from 'core/application/application.model';
-import {IEntityRef, IEntityTags, IEntityTag} from '../domain/IEntityTags';
+import { IPromise, module } from 'angular';
+import { Application } from 'core/application/application.model';
+import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
+import { TASK_EXECUTOR, TaskExecutor } from '../task/taskExecutor';
 
 export class EntityTagWriter {
 
   public constructor(private taskExecutor: TaskExecutor) { 'ngInject'; }
 
-  public upsertEntityTag(application: Application, tag: IEntityTag, entityRef: IEntityRef, isNew: boolean): ng.IPromise<any> {
+  public upsertEntityTag(application: Application, tag: IEntityTag, entityRef: IEntityRef, isNew: boolean): IPromise<ITask> {
     return this.taskExecutor.executeTask({
       application: application,
       description: `${isNew ? 'Create' : 'Update'} entity tag on ${entityRef.entityId}`,

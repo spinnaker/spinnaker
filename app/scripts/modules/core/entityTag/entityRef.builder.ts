@@ -1,13 +1,9 @@
-import {ServerGroup} from '../domain/serverGroup';
-import {ILoadBalancer} from '../domain/loadBalancer';
-import {Application} from '../application/application.model';
-import {IEntityRef} from '../domain/IEntityTags';
-import {ISecurityGroup} from '../domain/ISecurityGroup';
-import {IRegionalCluster} from '../domain/IRegionalCluster';
+import { Application } from 'core/application/application.model';
+import { IEntityRef, ILoadBalancer, IRegionalCluster, ISecurityGroup, IServerGroup } from 'core/domain';
 
 export class EntityRefBuilder {
 
-  public static buildServerGroupRef(serverGroup: ServerGroup): IEntityRef {
+  public static buildServerGroupRef(serverGroup: IServerGroup): IEntityRef {
     return {
       cloudProvider: serverGroup.cloudProvider,
       entityType: 'servergroup',

@@ -2,7 +2,7 @@ import { mock } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ILoadBalancer, ServerGroup, ILoadBalancerGroup } from 'core/domain';
+import { ILoadBalancer, IServerGroup, ILoadBalancerGroup } from 'core/domain';
 import { LOAD_BALANCER_FILTER_SERVICE, LoadBalancerFilterService } from './loadBalancer.filter.service';
 import { LoadBalancerFilterModel } from './loadBalancerFilter.model';
 
@@ -319,7 +319,7 @@ describe('Service: loadBalancerFilterService', function () {
       });
       const newGroup = { heading: 'management', subgroups: [
         { heading: 'elb-1', subgroups: [
-          { heading: 'us-east-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as ServerGroup[] }
+          { heading: 'us-east-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as IServerGroup[] }
         ]}
       ]};
       service.updateLoadBalancerGroups(app);
@@ -342,7 +342,7 @@ describe('Service: loadBalancerFilterService', function () {
       app.loadBalancers.data.push({
         name: 'elb-3', account: 'prod', region: 'eu-west-1', serverGroups: [], vpcName: '',
       });
-      const newSubGroup = { heading: 'elb-3', subgroups: [{heading: 'eu-west-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as ServerGroup[] }]};
+      const newSubGroup = { heading: 'elb-3', subgroups: [{heading: 'eu-west-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as IServerGroup[] }]};
       service.updateLoadBalancerGroups(app);
 
       setTimeout(() => {
@@ -363,7 +363,7 @@ describe('Service: loadBalancerFilterService', function () {
       app.loadBalancers.data.push({
         name: 'elb-2', account: 'test', region: 'eu-west-1', serverGroups: [], vpcName: '',
       });
-      const newSubsubGroup = { heading: 'eu-west-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as ServerGroup[] };
+      const newSubsubGroup = { heading: 'eu-west-1', loadBalancer: app.loadBalancers.data[3], serverGroups: [] as IServerGroup[] };
       service.updateLoadBalancerGroups(app);
 
       setTimeout(() => {

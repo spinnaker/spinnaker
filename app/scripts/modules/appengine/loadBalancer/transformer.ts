@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {chain, get, has, camelCase, filter, cloneDeep, reduce} from 'lodash';
 
-import {InstanceCounts, ILoadBalancer, ServerGroup, Instance} from 'core/domain/index';
+import {IInstanceCounts, ILoadBalancer, IServerGroup, IInstance} from 'core/domain/index';
 import {IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy} from 'appengine/domain/index';
 import {ILoadBalancerUpsertDescription} from 'core/loadBalancer/loadBalancer.write.service';
 import {Application} from 'core/application/application.model';
@@ -84,7 +84,7 @@ export class AppengineLoadBalancerTransformer {
     });
 
     const activeServerGroups = filter(loadBalancer.serverGroups, {isDisabled: false});
-    loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as Instance[];
+    loadBalancer.instances = chain(activeServerGroups).map('instances').flatten().value() as IInstance[];
     return this.$q.resolve(loadBalancer);
   }
 
@@ -107,11 +107,11 @@ export class AppengineLoadBalancerTransformer {
     return new AppengineLoadBalancerUpsertDescription(loadBalancer);
   }
 
-  private buildInstanceCounts(serverGroups: ServerGroup[]): InstanceCounts {
-    const instanceCounts: InstanceCounts = chain(serverGroups)
+  private buildInstanceCounts(serverGroups: IServerGroup[]): IInstanceCounts {
+    const instanceCounts: IInstanceCounts = chain(serverGroups)
       .map('instances')
       .flatten()
-      .reduce((acc: InstanceCounts, instance: any) => {
+      .reduce((acc: IInstanceCounts, instance: any) => {
         if (has(instance, 'health.state')) {
           acc[camelCase(instance.health.state)]++;
         }
@@ -131,7 +131,7 @@ export class AppengineLoadBalancerTransformer {
     instance.healthState = get(instance, 'health.state') || 'OutOfService';
     instance.health = [health];
 
-    return instance as Instance;
+    return instance as IInstance;
   }
 }
 

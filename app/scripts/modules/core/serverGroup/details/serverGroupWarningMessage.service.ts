@@ -1,15 +1,14 @@
-import {module} from 'angular';
-import {has} from 'lodash';
+import { module } from 'angular';
+import { has } from 'lodash';
 
-import {ServerGroup} from 'core/domain';
-import {Application} from 'core/application/application.model';
-import {ICluster} from 'core/domain/ICluster';
-import {IConfirmationModalParams} from 'core/confirmationModal/confirmationModal.service';
+import { Application } from 'core/application/application.model';
+import { IConfirmationModalParams } from 'core/confirmationModal/confirmationModal.service';
+import { ICluster, IServerGroup } from 'core/domain';
 
 export class ServerGroupWarningMessageService {
 
-  public addDestroyWarningMessage(application: Application, serverGroup: ServerGroup, params: IConfirmationModalParams): void {
-    const remainingServerGroups: ServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
+  public addDestroyWarningMessage(application: Application, serverGroup: IServerGroup, params: IConfirmationModalParams): void {
+    const remainingServerGroups: IServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
     if (!remainingServerGroups.length) {
       params.body = `
         <h4 class="error-message">You are destroying the last Server Group in the Cluster.</h4>
@@ -26,19 +25,19 @@ export class ServerGroupWarningMessageService {
     }
   }
 
-  public addDisableWarningMessage(application: Application, serverGroup: ServerGroup, params: IConfirmationModalParams): void {
+  public addDisableWarningMessage(application: Application, serverGroup: IServerGroup, params: IConfirmationModalParams): void {
 
     if (!serverGroup.instanceCounts.up) {
       return;
     }
 
-    const otherServerGroupsInCluster: ServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
-    const remainingActiveServerGroups: ServerGroup[] =
+    const otherServerGroupsInCluster: IServerGroup[] = this.getOtherServerGroupsInCluster(application, serverGroup);
+    const remainingActiveServerGroups: IServerGroup[] =
       otherServerGroupsInCluster.filter(s => !s.isDisabled && s.instanceCounts.up > 0);
     const hasOtherInstances = otherServerGroupsInCluster.some(s => s.instances.length > 0);
 
     if (hasOtherInstances || remainingActiveServerGroups.length === 0 || otherServerGroupsInCluster.length === 0) {
-      const totalActiveInstances = remainingActiveServerGroups.reduce((acc: number, s: ServerGroup) => {
+      const totalActiveInstances = remainingActiveServerGroups.reduce((acc: number, s: IServerGroup) => {
         return s.instanceCounts.up + acc;
       }, serverGroup.instanceCounts.up);
 
@@ -61,14 +60,14 @@ export class ServerGroupWarningMessageService {
     }
   }
 
-  private getOtherServerGroupsInCluster(application: Application, serverGroup: ServerGroup): ServerGroup[] {
+  private getOtherServerGroupsInCluster(application: Application, serverGroup: IServerGroup): IServerGroup[] {
     const cluster: ICluster = application.clusters
       .find((c: ICluster) => c.account === serverGroup.account && c.name === serverGroup.cluster);
     return cluster ? cluster.serverGroups
         .filter(s => s.region === serverGroup.region && s.name !== serverGroup.name) : [];
   }
 
-  private getRemainingServerGroupsForDisplay(serverGroups: ServerGroup[]): string {
+  private getRemainingServerGroupsForDisplay(serverGroups: IServerGroup[]): string {
     return serverGroups
       .sort((a, b) => b.name.localeCompare(a.name))
       .map(sg => {

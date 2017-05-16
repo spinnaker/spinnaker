@@ -1,20 +1,19 @@
-import {module, IComponentOptions, IComponentController} from 'angular';
-import {get} from 'lodash';
+import { IComponentController, IComponentOptions, module } from 'angular';
+import { get } from 'lodash';
 import * as moment from 'moment';
 
-import {Application} from 'core/application/application.model';
-import {TaskStep, InstanceCounts, IStage, ITimedItem} from 'core/domain/index';
-import {ITask} from './task.read.service';
+import { Application } from 'core/application/application.model';
+import { IInstanceCounts, IStage, ITask, ITaskStep, ITimedItem } from 'core/domain';
 
 class PlatformHealthOverrideMessageController implements IComponentController {
   public showMessage: boolean;
   public messageTemplate = require('./platformHealthOverrideMessage.html');
   private application: Application;
-  private step: TaskStep;
+  private step: ITaskStep;
   private task: ITask;
 
   public $onInit(): void {
-    const lastCapacity: InstanceCounts = this.task.getValueFor('lastCapacityCheck');
+    const lastCapacity: IInstanceCounts = this.task.getValueFor('lastCapacityCheck');
     if (lastCapacity) {
       const lastCapacityTotal = lastCapacity.up + lastCapacity.down +
         lastCapacity.outOfService + lastCapacity.unknown + lastCapacity.succeeded + lastCapacity.failed;

@@ -4,8 +4,7 @@ import * as moment from 'moment';
 
 import {SETTINGS} from 'core/config/settings';
 import {IGOR_SERVICE, IgorService, BuildServiceType} from 'core/ci/igor.service';
-import {IJobConfig, ParameterDefinitionList} from 'core/domain/IJobConfig';
-import {IStage} from 'core/domain/IStage';
+import {IJobConfig, ParameterDefinitionList, IStage} from 'core/domain';
 import {TravisExecutionLabel} from './TravisExecutionLabel';
 
 interface IViewState {

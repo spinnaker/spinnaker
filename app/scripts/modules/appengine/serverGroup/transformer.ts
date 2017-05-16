@@ -1,6 +1,6 @@
 import {module} from 'angular';
 
-import {ServerGroup} from 'core/domain/index';
+import { IServerGroup } from 'core/domain/index';
 import {IAppengineServerGroupCommand} from './configure/serverGroupCommandBuilder.service';
 import {IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType} from 'appengine/domain/index';
 
@@ -57,7 +57,7 @@ export class AppengineDeployDescription {
 class AppengineServerGroupTransformer {
   constructor (private $q: ng.IQService) { 'ngInject'; }
 
-  public normalizeServerGroup (serverGroup: ServerGroup): ng.IPromise<ServerGroup> {
+  public normalizeServerGroup (serverGroup: IServerGroup): ng.IPromise<IServerGroup> {
     return this.$q.resolve(serverGroup);
   }
 

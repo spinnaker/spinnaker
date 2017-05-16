@@ -4,7 +4,7 @@ import {cloneDeep} from 'lodash';
 
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {Application} from 'core/application/application.model';
-import {ILoadBalancer} from 'core/domain/loadBalancer';
+import {ILoadBalancer} from 'core/domain';
 
 class AppengineLoadBalancerChoiceModalCtrl {
   public state = {loading: true};

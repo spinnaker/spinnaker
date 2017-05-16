@@ -1,8 +1,7 @@
 import {IPromise, module, IQService} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
-import {IBuild} from 'core/domain/IBuild';
-import {IJobConfig} from 'core/domain/IJobConfig';
+import {IBuild, IJobConfig} from 'core/domain';
 
 export enum BuildServiceType {
   Jenkins, Travis

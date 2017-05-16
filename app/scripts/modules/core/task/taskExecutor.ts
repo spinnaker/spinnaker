@@ -1,6 +1,8 @@
-import {module} from 'angular';
-import {AUTHENTICATION_SERVICE, AuthenticationService} from '../authentication/authentication.service';
-import {TASK_READ_SERVICE, TaskReader, ITask} from 'core/task/task.read.service';
+import { module } from 'angular';
+
+import { ITask } from 'core/domain';
+import { TASK_READ_SERVICE, TaskReader } from 'core/task/task.read.service';
+import { AUTHENTICATION_SERVICE, AuthenticationService } from '../authentication/authentication.service';
 
 export interface IJob {
   account?: string;

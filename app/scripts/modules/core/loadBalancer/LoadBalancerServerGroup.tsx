@@ -5,7 +5,7 @@ import { clone, last, get } from 'lodash';
 import { PathNode } from 'angular-ui-router';
 
 import { $state } from 'core/uirouter';
-import { ILoadBalancer, ServerGroup, Instance } from 'core/domain';
+import { ILoadBalancer, IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
@@ -13,12 +13,12 @@ import { Instances } from 'core/instance/Instances';
 
 interface IProps {
   loadBalancer: ILoadBalancer;
-  serverGroup: ServerGroup;
+  serverGroup: IServerGroup;
   showInstances: boolean; // boolean on sortFilter, but shouldn't be handled here
 }
 
 interface IState {
-  instances: Instance[];
+  instances: IInstance[];
 }
 
 @autoBindMethods

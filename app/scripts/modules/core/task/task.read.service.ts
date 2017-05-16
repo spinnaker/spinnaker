@@ -1,24 +1,7 @@
 import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
-import {TaskStep} from '../domain/taskStep';
-import {IOrchestratedItem} from '../domain/IOrchestratedItem';
 import {ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer} from 'core/orchestratedItem/orchestratedItem.transformer';
-
-interface ITaskVariable {
-  key: string;
-  value: any;
-}
-
-export interface ITask extends IOrchestratedItem {
-  id: string;
-  steps?: TaskStep[];
-  variables: ITaskVariable[];
-  endTime: number;
-  startTime: number;
-  execution: any;
-  history: any;
-  poller?: ng.IPromise<void>;
-}
+import { ITask } from 'core/domain';
 
 export class TaskReader {
 

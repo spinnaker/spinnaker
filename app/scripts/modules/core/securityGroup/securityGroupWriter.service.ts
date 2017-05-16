@@ -1,10 +1,10 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {TASK_EXECUTOR, TaskExecutor, IJob} from 'core/task/taskExecutor';
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {ISecurityGroup} from 'core/domain';
-import {Application} from 'core/application/application.model';
-import {ITask} from 'core/task/task.read.service';
+import { Application } from 'core/application/application.model';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { ISecurityGroup, ITask } from 'core/domain';
+
+import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
 export interface ISecurityGroupJob extends IJob {
   credentials: string;

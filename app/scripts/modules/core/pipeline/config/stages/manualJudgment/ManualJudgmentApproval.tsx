@@ -5,8 +5,7 @@ import * as DOMPurify from 'dompurify';
 import 'react-select/dist/react-select.css';
 import autoBindMethods from 'class-autobind-decorator';
 
-import {IExecution} from 'core/domain/IExecution';
-import {IExecutionStage} from 'core/domain/IExecutionStage';
+import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
 import {manualJudgmentService} from './manualJudgment.service';
 import {ButtonBusyIndicator} from 'core/forms/buttonBusyIndicator/ButtonBusyIndicator';

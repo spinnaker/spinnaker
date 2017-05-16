@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IExecution, IExecutionStageSummary, IPipeline, IStage} from 'core/domain/index';
+import {IExecution, IExecutionStageSummary, IPipeline, IStage} from 'core/domain';
 
 export interface IExecutionViewState {
   activeStageId: number;

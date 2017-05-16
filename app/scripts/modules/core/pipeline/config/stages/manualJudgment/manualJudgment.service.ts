@@ -1,8 +1,7 @@
 import {IPromise, module} from 'angular';
 
 import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
-import {IExecution} from 'core/domain/IExecution';
-import {IExecutionStage} from 'core/domain/IExecutionStage';
+import {IExecution, IExecutionStage} from 'core/domain';
 
 export class ManualJudgmentService {
   constructor(private executionService: ExecutionService) { 'ngInject'; }

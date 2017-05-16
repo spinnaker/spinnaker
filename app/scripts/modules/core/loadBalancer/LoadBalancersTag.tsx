@@ -4,14 +4,14 @@ import autoBindMethods from 'class-autobind-decorator';
 import { sortBy } from 'lodash';
 
 import { Application } from 'core/application/application.model';
-import { Health, ILoadBalancer, ServerGroup } from 'core/domain';
+import { IHealth, ILoadBalancer, IServerGroup } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { $state } from 'core/uirouter';
 
 export interface ILoadBalancersTagProps {
   application: Application;
-  serverGroup: ServerGroup;
+  serverGroup: IServerGroup;
 };
 
 interface IState {
@@ -88,7 +88,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
     loadBalancer.instanceCounts = {up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0};
 
     this.props.serverGroup.instances.forEach(instance => {
-      const lbHealth: Health = instance.health.find(h => h.type === 'LoadBalancer');
+      const lbHealth: IHealth = instance.health.find(h => h.type === 'LoadBalancer');
       if (lbHealth) {
 
         const matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
@@ -103,7 +103,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
 
   private populateLoadBalancers(): void {
     this.props.application.getDataSource('loadBalancers').ready().then(() => {
-      const serverGroup: ServerGroup = this.props.serverGroup;
+      const serverGroup: IServerGroup = this.props.serverGroup;
       const loadBalancers = serverGroup.loadBalancers.map((lbName: string) => {
         const match = this.props.application.getDataSource('loadBalancers')
           .data

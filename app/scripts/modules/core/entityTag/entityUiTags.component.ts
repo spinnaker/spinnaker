@@ -1,7 +1,7 @@
 import {IComponentController, IComponentOptions, module} from 'angular';
 import {IEntityTag} from 'core/domain';
 import './entityUiTags.component.less';
-import {Application} from '../application/application.model';
+import {Application} from 'core/application/application.model';
 import {EntityTagWriter} from './entityTags.write.service';
 import {IModalService} from 'angular-ui-bootstrap';
 import {EntityTagEditorCtrl} from './entityTagEditor.controller';

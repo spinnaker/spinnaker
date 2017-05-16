@@ -1,11 +1,10 @@
 'use strict';
 
-/* eslint consistent-return:0 */
+const angular = require('angular');
+import * as $ from 'jquery';
 
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
-
-let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.search.global.controller', [
   require('angulartics'),
@@ -16,7 +15,7 @@ module.exports = angular.module('spinnaker.core.search.global.controller', [
   RECENT_HISTORY_SERVICE,
 ])
   .controller('GlobalSearchCtrl', function($scope, $element, infrastructureSearchService, recentHistoryService,
-                                           $stateParams, $, $log, clusterFilterService, $analytics, $sce) {
+                                           $stateParams, $log, clusterFilterService, $analytics, $sce) {
     var ctrl = this;
     var search = infrastructureSearchService.getSearcher();
 

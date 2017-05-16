@@ -1,8 +1,7 @@
 import {module} from 'angular';
 import {IModalService} from 'angular-ui-bootstrap';
 
-import {IEntityTag} from 'core/domain';
-import {IEntityRef} from 'core/domain/IEntityTags';
+import {IEntityTag, IEntityRef} from 'core/domain';
 import {ENTITY_TAG_EDITOR_CTRL, EntityTagEditorCtrl, IOwnerOption} from './entityTagEditor.controller';
 import {ENTITY_TAGS_HELP} from './entityTags.help';
 import {Application} from 'core/application/application.model';

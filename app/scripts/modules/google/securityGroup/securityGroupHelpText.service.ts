@@ -1,7 +1,7 @@
 import {module} from 'angular';
 import {has, get} from 'lodash';
 import {Application} from 'core/application/application.model';
-import {ServerGroup} from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 
 export class GceSecurityGroupHelpTextService {
   private serverGroupsIndexedByTag: Map<string, Set<string>>;
@@ -51,7 +51,7 @@ export class GceSecurityGroupHelpTextService {
 
   private indexServerGroupsByTag(): ng.IPromise<void> {
     return this.application.ready().then(() => {
-      this.application.getDataSource('serverGroups').data.forEach((serverGroup: ServerGroup) => {
+      this.application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
         if (has(serverGroup, 'providerMetadata.tags.length') &&
             serverGroup.account === this.account &&
             get(serverGroup, 'providerMetadata.networkName') === this.network) {

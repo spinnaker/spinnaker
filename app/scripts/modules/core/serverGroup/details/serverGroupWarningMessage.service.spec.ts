@@ -4,7 +4,7 @@ import {
   SERVER_GROUP_WARNING_MESSAGE_SERVICE
 } from './serverGroupWarningMessage.service';
 import {ApplicationModelBuilder, APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
-import {ServerGroup} from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 import {Application} from 'core/application/application.model';
 import {IConfirmationModalParams} from 'core/confirmationModal/confirmationModal.service';
 
@@ -12,7 +12,7 @@ describe('serverGroupWarningMessageService', () => {
   let service: ServerGroupWarningMessageService,
       applicationModelBuilder: ApplicationModelBuilder,
       app: Application,
-      serverGroup: ServerGroup;
+      serverGroup: IServerGroup;
 
   beforeEach(mock.module(SERVER_GROUP_WARNING_MESSAGE_SERVICE, APPLICATION_MODEL_BUILDER));
 
@@ -122,7 +122,7 @@ describe('serverGroupWarningMessageService', () => {
         region: 'us-east-1',
         type: 'a'
       };
-      const down: ServerGroup = {
+      const down: IServerGroup = {
         account: 'test',
         cloudProvider: 'aws',
         cluster: 'foo',
@@ -190,7 +190,7 @@ describe('serverGroupWarningMessageService', () => {
         region: 'us-east-1',
         type: 'a'
       };
-      const omitted: ServerGroup = {
+      const omitted: IServerGroup = {
         account: 'test',
         cloudProvider: 'aws',
         cluster: 'foo',
@@ -201,7 +201,7 @@ describe('serverGroupWarningMessageService', () => {
         type: 'a'
       };
 
-      const included: ServerGroup = {
+      const included: IServerGroup = {
         account: 'test',
         cloudProvider: 'aws',
         cluster: 'foo',

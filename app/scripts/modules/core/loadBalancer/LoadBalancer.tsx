@@ -6,7 +6,7 @@ import { PathNode } from 'angular-ui-router';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { ILoadBalancer, Instance, ServerGroup } from 'core/domain';
+import { ILoadBalancer, IInstance, IServerGroup } from 'core/domain';
 import { $state } from 'core/uirouter';
 import { clusterFilterService } from 'core/cluster/filter/clusterFilter.service';
 
@@ -20,14 +20,14 @@ import { stateEvents } from 'core/state.events';
 interface IProps {
   application: Application,
   loadBalancer: ILoadBalancer;
-  serverGroups: ServerGroup[];
+  serverGroups: IServerGroup[];
   showServerGroups?: boolean;
   showInstances?: boolean;
 }
 
 interface IState {
   active: boolean;
-  instances: Instance[];
+  instances: IInstance[];
 }
 
 @autoBindMethods
@@ -67,7 +67,7 @@ export class LoadBalancer extends React.Component<IProps, IState> {
 
     return {
       active: this.isActive(),
-      instances: loadBalancer.instances.concat(flatten(map<Instance, Instance>(loadBalancer.serverGroups, 'detachedInstances'))),
+      instances: loadBalancer.instances.concat(flatten(map<IInstance, IInstance>(loadBalancer.serverGroups, 'detachedInstances'))),
     };
   }
 

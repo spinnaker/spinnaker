@@ -5,7 +5,7 @@ import {CLUSTER_MATCHES_COMPONENT} from 'core/widgets/cluster/clusterMatches.com
 import {CHAOS_MONKEY_HELP} from './chaosMonkey.help';
 import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT} from './chaosMonkeyExceptions.component';
 import {CONFIG_SECTION_FOOTER, IViewState} from '../application/config/footer/configSectionFooter.component';
-import {Application} from '../application/application.model';
+import {Application} from 'core/application/application.model';
 import {SETTINGS} from 'core/config/settings';
 
 import './chaosMonkeyConfig.component.less';

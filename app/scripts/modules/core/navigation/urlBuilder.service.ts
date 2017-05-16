@@ -2,6 +2,7 @@ import {isDate, isObject, isUndefined} from 'lodash';
 import {module} from 'angular';
 
 import {StateService} from 'angular-ui-router';
+import { ITask } from 'core/domain';
 
 export interface IUrlBuilderInput {
   account?: string;
@@ -19,11 +20,6 @@ export interface IUrlBuilderInput {
   taskId?: string;
   type: string;
   vpcId?: string;
-}
-
-export interface ITask {
-  name: string;
-  getValueFor: (key: string) => any;
 }
 
 interface IParams {

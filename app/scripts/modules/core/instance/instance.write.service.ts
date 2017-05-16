@@ -2,10 +2,8 @@ import {module} from 'angular';
 
 import {TASK_EXECUTOR, TaskExecutor, IJob} from 'core/task/taskExecutor';
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
-import {Instance} from 'core/domain/instance';
 import {Application} from 'core/application/application.model';
-import {ITask} from '../task/task.read.service';
-import {ServerGroup} from '../domain/serverGroup';
+import { IInstance, IServerGroup, ITask } from 'core/domain';
 
 export interface IMultiInstanceGroup {
   account: string;
@@ -14,7 +12,7 @@ export interface IMultiInstanceGroup {
   serverGroup: string;
   instanceIds: string[];
   loadBalancers: string[];
-  instances: Instance[];
+  instances: IInstance[];
 }
 
 interface IMultiInstanceJob {
@@ -36,7 +34,7 @@ export class InstanceWriter {
     'ngInject';
   }
 
-  public terminateInstance(instance: Instance, application: Application, params: IJob = {}): ng.IPromise<ITask> {
+  public terminateInstance(instance: IInstance, application: Application, params: IJob = {}): ng.IPromise<ITask> {
     params.type = 'terminateInstances';
     params['instanceIds'] = [instance.id];
     params['region'] = instance.region;
@@ -70,7 +68,7 @@ export class InstanceWriter {
     return this.executeMultiInstanceTask(instanceGroups, application, 'rebootInstances', 'Reboot');
   }
 
-  public rebootInstance(instance: Instance, application: Application, params: any = {}) {
+  public rebootInstance(instance: IInstance, application: Application, params: any = {}) {
     params.type = 'rebootInstances';
     params.instanceIds = [instance.id];
     params.region = instance.region;
@@ -98,7 +96,7 @@ export class InstanceWriter {
     });
   }
 
-  public deregisterInstanceFromLoadBalancer(instance: Instance, application: Application, params: any = {}): ng.IPromise<ITask> {
+  public deregisterInstanceFromLoadBalancer(instance: IInstance, application: Application, params: any = {}): ng.IPromise<ITask> {
     params.type = 'deregisterInstancesFromLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -123,7 +121,7 @@ export class InstanceWriter {
     });
   }
 
-  public registerInstanceWithLoadBalancer(instance: Instance, application: Application, params: any = {}): ng.IPromise<ITask> {
+  public registerInstanceWithLoadBalancer(instance: IInstance, application: Application, params: any = {}): ng.IPromise<ITask> {
     params.type = 'registerInstancesWithLoadBalancer';
     params.instanceIds = [instance.id];
     params.loadBalancerNames = instance.loadBalancers;
@@ -141,7 +139,7 @@ export class InstanceWriter {
     return this.executeMultiInstanceTask(instanceGroups, application, 'enableInstancesInDiscovery', 'Enable', 'in discovery');
 }
 
-  public enableInstanceInDiscovery(instance: Instance, application: Application): ng.IPromise<ITask> {
+  public enableInstanceInDiscovery(instance: IInstance, application: Application): ng.IPromise<ITask> {
     return this.taskExecutor.executeTask({
       job: [
         {
@@ -163,7 +161,7 @@ export class InstanceWriter {
     return this.executeMultiInstanceTask(instanceGroups, application, 'disableInstancesInDiscovery', 'Disable', 'in discovery');
   }
 
-  public disableInstanceInDiscovery(instance: Instance, application: Application): ng.IPromise<ITask> {
+  public disableInstanceInDiscovery(instance: IInstance, application: Application): ng.IPromise<ITask> {
     return this.taskExecutor.executeTask({
       job: [
         {
@@ -189,9 +187,9 @@ export class InstanceWriter {
     });
   }
 
-  public terminateInstanceAndShrinkServerGroup(instance: Instance, application: Application, params: any = {}) {
+  public terminateInstanceAndShrinkServerGroup(instance: IInstance, application: Application, params: any = {}) {
     return this.serverGroupReader.getServerGroup(application.name, instance.account, instance.region, instance.serverGroup).
-      then((serverGroup: ServerGroup) => {
+      then((serverGroup: IServerGroup) => {
         params.type = 'terminateInstanceAndDecrementServerGroup';
         params.instance = instance.id;
         params.serverGroupName = instance.serverGroup;

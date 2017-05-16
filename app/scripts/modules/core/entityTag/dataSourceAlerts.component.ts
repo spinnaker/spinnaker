@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {IEntityTags} from 'core/domain/IEntityTags';
+import {IEntityTags} from 'core/domain';
 
 class DataSourceAlertsCtrl implements ng.IComponentController {
 

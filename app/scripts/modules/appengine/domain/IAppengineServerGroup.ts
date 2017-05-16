@@ -1,6 +1,6 @@
-import {ServerGroup} from 'core/domain/index';
+import { IServerGroup } from 'core/domain';
 
-export interface IAppengineServerGroup extends ServerGroup {
+export interface IAppengineServerGroup extends IServerGroup {
   disabled: boolean;
   env: 'FLEXIBLE' | 'STANDARD';
   scalingPolicy: IAppengineScalingPolicy;

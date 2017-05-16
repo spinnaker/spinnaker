@@ -5,7 +5,7 @@ import {API_SERVICE, Api} from 'core/api/api.service';
 import {NAMING_SERVICE, NamingService, IComponentName} from 'core/naming/naming.service';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {Application} from 'core/application/application.model';
-import {ISecurityGroup, ILoadBalancer, ServerGroup, IServerGroupUsage} from 'core/domain';
+import {ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage} from 'core/domain';
 import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} from './securityGroupTransformer.service';
 import {ENTITY_TAGS_READ_SERVICE, EntityTagsReader} from 'core/entityTag/entityTags.read.service';
 import {SETTINGS} from 'core/config/settings';
@@ -195,7 +195,7 @@ export class SecurityGroupReader {
 
     let notFoundCaught = false;
     const securityGroups: ISecurityGroup[] = [];
-    application.getDataSource('serverGroups').data.forEach((serverGroup: ServerGroup) => {
+    application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
       if (serverGroup.securityGroups) {
         serverGroup.securityGroups.forEach((securityGroupId: string) => {
           try {

@@ -1,12 +1,11 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {INSTANCE_WRITE_SERVICE, InstanceWriter, IMultiInstanceGroup} from 'core/instance/instance.write.service';
-import {ServerGroupReader} from '../serverGroup/serverGroupReader.service';
-import {TaskExecutor, ITaskCommand, IJob} from '../task/taskExecutor';
-import {Instance} from '../domain/instance';
-import {Application} from '../application/application.model';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from '../application/applicationModel.builder';
-import {ServerGroup} from '../domain/serverGroup';
+import { IMultiInstanceGroup, INSTANCE_WRITE_SERVICE, InstanceWriter } from 'core/instance/instance.write.service';
+import { Application } from 'core/application/application.model';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from '../application/applicationModel.builder';
+import { IInstance, IServerGroup } from 'core/domain';
+import { ServerGroupReader } from '../serverGroup/serverGroupReader.service';
+import { IJob, ITaskCommand, TaskExecutor } from '../task/taskExecutor';
 
 describe('Service: instance writer', function () {
   let service: InstanceWriter,
@@ -52,7 +51,7 @@ describe('Service: instance writer', function () {
           maxSize: 4
         }
       };
-      const instance: Instance = {
+      const instance: IInstance = {
         id: 'i-123456',
         account: 'test',
         region: 'us-east-1',
@@ -85,14 +84,14 @@ describe('Service: instance writer', function () {
   describe('multi-instance operations', () => {
 
     let task: ITaskCommand,
-        serverGroupA: ServerGroup,
-        serverGroupB: ServerGroup;
+        serverGroupA: IServerGroup,
+        serverGroupB: IServerGroup;
 
-    function getInstanceGroup(serverGroup: ServerGroup): IMultiInstanceGroup {
+    function getInstanceGroup(serverGroup: IServerGroup): IMultiInstanceGroup {
       return MultiselectModel.getOrCreateInstanceGroup(serverGroup);
     }
 
-    function addInstance(serverGroup: ServerGroup, instance: Instance) {
+    function addInstance(serverGroup: IServerGroup, instance: IInstance) {
       const instanceGroup: IMultiInstanceGroup = getInstanceGroup(serverGroup);
       instanceGroup.instanceIds.push(instance.id);
       instanceGroup.instances.push(instance);

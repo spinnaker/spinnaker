@@ -1,4 +1,4 @@
-export interface InstanceCounts {
+export interface IInstanceCounts {
   [k: string]: any; // Index Signature
 
   up: number;

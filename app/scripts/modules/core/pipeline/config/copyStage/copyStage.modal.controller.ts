@@ -8,7 +8,7 @@ import {
   IApplicationSummary
 } from 'core/application/service/application.read.service';
 import {COPY_STAGE_CARD_COMPONENT} from './copyStageCard.component';
-import {IPipeline, IStage, IStrategy} from 'core/domain/index';
+import {IPipeline, IStage, IStrategy} from 'core/domain';
 
 import './copyStage.modal.less';
 

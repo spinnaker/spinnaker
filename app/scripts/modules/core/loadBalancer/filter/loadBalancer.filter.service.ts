@@ -5,7 +5,7 @@ import { Subject } from 'rxjs/Subject';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Application } from 'core/application/application.model';
-import { ILoadBalancer, ILoadBalancerGroup, Instance, ServerGroup } from 'core/domain';
+import { ILoadBalancer, ILoadBalancerGroup, IInstance, IServerGroup } from 'core/domain';
 import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
 
 @autoBindMethods
@@ -75,7 +75,7 @@ export class LoadBalancerFilterService {
       this.isFilterable(this.LoadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone);
   }
 
-  public shouldShowInstance(instance: Instance): boolean {
+  public shouldShowInstance(instance: IInstance): boolean {
     if (this.isFilterable(this.LoadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone)) {
       const checkedAvailabilityZones = this.getCheckValues(this.LoadBalancerFilterModel.asFilterModel.sortFilter.availabilityZone);
       if (!checkedAvailabilityZones.includes(instance.zone)) {
@@ -171,10 +171,10 @@ export class LoadBalancerFilterService {
     this.LoadBalancerFilterModel.asFilterModel.applyParamsToUrl();
   }
 
-  private filterServerGroups(loadBalancer: ILoadBalancer): ServerGroup[] {
+  private filterServerGroups(loadBalancer: ILoadBalancer): IServerGroup[] {
     if (this.shouldFilterInstances()) {
       return loadBalancer.serverGroups.filter((serverGroup) => {
-        return serverGroup.instances.some((instance: Instance) => this.shouldShowInstance(instance));
+        return serverGroup.instances.some((instance: IInstance) => this.shouldShowInstance(instance));
       });
     }
     return loadBalancer.serverGroups;

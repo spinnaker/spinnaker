@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { angular2react } from 'angular2react';
 
-import { Instance } from 'core/domain';
+import { IInstance } from 'core/domain';
 import { InstancesWrapperComponent } from './instances.component';
 import { ReactInjector } from 'core/react.module';
 
 interface IProps {
-  instances: Instance[];
+  instances: IInstance[];
   highlight?: string;
 }
 

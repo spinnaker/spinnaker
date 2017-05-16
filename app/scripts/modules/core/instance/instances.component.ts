@@ -3,7 +3,7 @@ import { get, last } from 'lodash';
 import { StateParams, PathNode, StateService } from '@uirouter/core';
 import { IChangesObject, IComponentController, IComponentOptions, IOnChangesObject, IRootScopeService, IScope, ITimeoutService, module } from 'angular';
 
-import { Instance } from 'core/domain';
+import { IInstance } from 'core/domain';
 
 interface IActiveInstance {
   instanceId: string;
@@ -11,12 +11,12 @@ interface IActiveInstance {
 }
 
 interface IOnChanges extends IOnChangesObject {
-  instances: IChangesObject<Instance[]>;
+  instances: IChangesObject<IInstance[]>;
   highlight: IChangesObject<string>;
 }
 
 export class InstancesController implements IComponentController {
-  public instances: Instance[];
+  public instances: IInstance[];
   public highlight: string;
 
   private activeInstance: IActiveInstance;

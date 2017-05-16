@@ -1,8 +1,8 @@
-import {IEntityTags} from './IEntityTags';
-import {Instance} from './instance';
-import {InstanceCounts} from './instanceCounts';
-import {IExecution} from './IExecution';
-import {ITask} from '../task/task.read.service';
+import { IEntityTags } from './IEntityTags';
+import { IExecution } from './IExecution';
+import { IInstance } from './IInstance';
+import { IInstanceCounts } from './IInstanceCounts';
+import { ITask } from './ITask';
 
 // remnant from legacy code
 interface IAsg {
@@ -11,7 +11,7 @@ interface IAsg {
   desiredCapacity: number;
 }
 
-export interface ServerGroup {
+export interface IServerGroup {
   account: string;
   app?: string;
   asg?: IAsg;
@@ -22,9 +22,9 @@ export interface ServerGroup {
   clusterEntityTags?: IEntityTags[];
   detail?: string;
   entityTags?: IEntityTags;
-  instanceCounts: InstanceCounts;
+  instanceCounts: IInstanceCounts;
   instanceType?: string;
-  instances: Instance[];
+  instances: IInstance[];
   isDisabled?: boolean;
   launchConfig?: any;
   loadBalancers?: string[];

@@ -1,5 +1,5 @@
-import {ServerGroup} from './serverGroup';
-import {InstanceCounts} from './instanceCounts';
+import { IInstanceCounts } from './IInstanceCounts';
+import { IServerGroup } from './IServerGroup';
 
 export interface IClusterSummary {
   account: string;
@@ -9,6 +9,6 @@ export interface IClusterSummary {
 export interface ICluster extends IClusterSummary {
   cloudProvider: string;
   category: string;
-  serverGroups: ServerGroup[];
-  instanceCounts?: InstanceCounts;
+  serverGroups: IServerGroup[];
+  instanceCounts?: IInstanceCounts;
 }

@@ -3,8 +3,7 @@ import {ENTITY_TAG_WRITER, EntityTagWriter} from './entityTags.write.service';
 import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {Application} from 'core/application/application.model';
 import {UUIDGenerator} from 'core/utils/uuid.service';
-import {IEntityTag} from 'core/domain';
-import {IEntityRef} from 'core/domain/IEntityTags';
+import {IEntityTag, IEntityRef} from 'core/domain';
 import {EntityRefBuilder} from './entityRef.builder';
 import {TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
 

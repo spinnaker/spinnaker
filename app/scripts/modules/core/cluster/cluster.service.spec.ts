@@ -3,9 +3,8 @@ import {find} from 'lodash';
 
 import {CLUSTER_SERVICE, ClusterService} from './cluster.service';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {InstanceCounts} from '../domain/instanceCounts';
-import {ServerGroup} from '../domain/serverGroup';
-import {Application} from '../application/application.model';
+import { IInstanceCounts, IServerGroup } from 'core/domain';
+import {Application} from 'core/application/application.model';
 import {Api} from '../api/api.service';
 
 describe('Service: Cluster', function () {
@@ -54,8 +53,8 @@ describe('Service: Cluster', function () {
       const clusters = Array(251);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups?clusters=').respond(200, []);
-      let serverGroups: ServerGroup[] = null;
-      clusterService.loadServerGroups(application).then((result: ServerGroup[]) => serverGroups = result);
+      let serverGroups: IServerGroup[] = null;
+      clusterService.loadServerGroups(application).then((result: IServerGroup[]) => serverGroups = result);
       $http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(true);
       expect(serverGroups).toEqual([]);
@@ -65,8 +64,8 @@ describe('Service: Cluster', function () {
       const clusters = Array(250);
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
-      let serverGroups: ServerGroup[] = null;
-      clusterService.loadServerGroups(application).then((result: ServerGroup[]) => serverGroups = result);
+      let serverGroups: IServerGroup[] = null;
+      clusterService.loadServerGroups(application).then((result: IServerGroup[]) => serverGroups = result);
       $http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(false);
       expect(serverGroups).toEqual([]);
@@ -78,8 +77,8 @@ describe('Service: Cluster', function () {
       ClusterFilterModel.sortFilter.clusters = {'test:myapp': true};
       $http.expectGET(API.baseUrl + '/applications/app/clusters').respond(200, {test: clusters});
       $http.expectGET(API.baseUrl + '/applications/app/serverGroups').respond(200, []);
-      let serverGroups: ServerGroup[] = null;
-      clusterService.loadServerGroups(application).then((result: ServerGroup[]) => serverGroups = result);
+      let serverGroups: IServerGroup[] = null;
+      clusterService.loadServerGroups(application).then((result: IServerGroup[]) => serverGroups = result);
       $http.flush();
       expect(application.serverGroups.fetchOnDemand).toBe(false);
       expect(ClusterFilterModel.sortFilter.filter).toEqual('clusters:myapp');
@@ -98,8 +97,8 @@ describe('Service: Cluster', function () {
         ];
 
       const clusters = clusterService.createServerGroupClusters(application.serverGroups.data);
-      const cluster0counts: InstanceCounts = clusters[0].instanceCounts;
-      const cluster1counts: InstanceCounts = clusters[1].instanceCounts;
+      const cluster0counts: IInstanceCounts = clusters[0].instanceCounts;
+      const cluster1counts: IInstanceCounts = clusters[1].instanceCounts;
       expect(clusters.length).toBe(2);
       expect(cluster0counts.total).toBe(3);
       expect(cluster0counts.up).toBe(1);
@@ -132,7 +131,7 @@ describe('Service: Cluster', function () {
 
         application.runningTasks.data[0].execution = {stages: [ { type: 'rollbackServerGroup', context: {} }] };
         clusterService.addTasksToServerGroups(application);
-        const serverGroups: ServerGroup[] = application.serverGroups.data;
+        const serverGroups: IServerGroup[] = application.serverGroups.data;
         expect(serverGroups[0].runningTasks.length).toBe(0);
         expect(serverGroups[1].runningTasks.length).toBe(0);
         expect(serverGroups[2].runningTasks.length).toBe(1);
@@ -154,7 +153,7 @@ describe('Service: Cluster', function () {
         ];
 
         clusterService.addTasksToServerGroups(application);
-        const serverGroups: ServerGroup[] = application.serverGroups.data;
+        const serverGroups: IServerGroup[] = application.serverGroups.data;
         expect(serverGroups[0].runningTasks.length).toBe(0);
         expect(serverGroups[1].runningTasks.length).toBe(0);
         expect(serverGroups[2].runningTasks.length).toBe(1);
@@ -174,7 +173,7 @@ describe('Service: Cluster', function () {
         ];
 
         clusterService.addTasksToServerGroups(application);
-        const serverGroups: ServerGroup[] = application.serverGroups.data;
+        const serverGroups: IServerGroup[] = application.serverGroups.data;
         expect(serverGroups[0].runningTasks.length).toBe(0);
         expect(serverGroups[1].runningTasks.length).toBe(0);
         expect(serverGroups[2].runningTasks.length).toBe(0);
@@ -194,7 +193,7 @@ describe('Service: Cluster', function () {
         ];
 
         clusterService.addTasksToServerGroups(application);
-        const serverGroups: ServerGroup[] = application.serverGroups.data;
+        const serverGroups: IServerGroup[] = application.serverGroups.data;
         expect(serverGroups[0].runningTasks.length).toBe(0);
         expect(serverGroups[1].runningTasks.length).toBe(0);
         expect(serverGroups[2].runningTasks.length).toBe(1);
@@ -212,7 +211,7 @@ describe('Service: Cluster', function () {
         ];
 
         clusterService.addTasksToServerGroups(application);
-        const serverGroups: ServerGroup[] = application.serverGroups.data;
+        const serverGroups: IServerGroup[] = application.serverGroups.data;
         expect(serverGroups[0].runningTasks.length).toBe(0);
         expect(serverGroups[1].runningTasks.length).toBe(0);
         expect(serverGroups[2].runningTasks.length).toBe(0);
@@ -229,7 +228,7 @@ describe('Service: Cluster', function () {
         ].forEach((name) => {
         describe(name, () => {
           it ('finds instance within server group (' + name + ')', () => {
-            const serverGroups: ServerGroup[] = application.serverGroups.data;
+            const serverGroups: IServerGroup[] = application.serverGroups.data;
             serverGroups[2].instances = [
               { id: 'in-1', health: null, launchTime: 1, zone: null },
               { id: 'in-2', health: null, launchTime: 1, zone: null },
@@ -262,7 +261,7 @@ describe('Service: Cluster', function () {
       beforeEach(() => {
         this.validateTaskAttached = () => {
           clusterService.addTasksToServerGroups(application);
-          const serverGroups: ServerGroup[] = application.serverGroups.data;
+          const serverGroups: IServerGroup[] = application.serverGroups.data;
           expect(serverGroups[0].runningTasks.length).toBe(0);
           expect(serverGroups[1].runningTasks.length).toBe(0);
           expect(serverGroups[2].runningTasks.length).toBe(1);
@@ -305,7 +304,7 @@ describe('Service: Cluster', function () {
       it('some unknown task', () => {
         this.buildCommonTask('someuknownthing');
         clusterService.addTasksToServerGroups(application);
-        application.serverGroups.data.forEach((serverGroup: ServerGroup) => {
+        application.serverGroups.data.forEach((serverGroup: IServerGroup) => {
           expect(serverGroup.runningTasks.length).toBe(0);
         });
       });

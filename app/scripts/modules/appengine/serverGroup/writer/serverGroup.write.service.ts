@@ -1,9 +1,9 @@
 import {module} from 'angular';
 
 import {TASK_EXECUTOR, ITaskCommand, TaskExecutor, IJob} from 'core/task/taskExecutor';
-import {ITask} from 'core/task/task.read.service';
 import {Application} from 'core/application/application.model';
 import {IAppengineServerGroup} from 'appengine/domain/index';
+import { ITask } from 'core/domain';
 
 interface IAppengineServerGroupWriteJob extends IJob {
   serverGroupName: string;

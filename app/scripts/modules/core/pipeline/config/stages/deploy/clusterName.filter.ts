@@ -1,8 +1,8 @@
-import {module} from 'angular';
-import {StageContext} from 'core/domain/stageContext';
+import { module } from 'angular';
+import { IStageContext } from 'core/domain';
 
 export function clusterNameFilter(namingService: any): any {
-  return function (input: StageContext) {
+  return function (input: IStageContext) {
 
     if (!input) {
       return 'n/a';

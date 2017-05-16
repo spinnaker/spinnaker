@@ -6,7 +6,7 @@ import {
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
 import {StateParams} from 'angular-ui-router';
-import {Application} from '../application/application.model';
+import {Application} from 'core/application/application.model';
 import {ApplicationModelBuilder} from '../application/applicationModel.builder';
 
 export const INSTANCE_STATES = 'spinnaker.core.instance.states';

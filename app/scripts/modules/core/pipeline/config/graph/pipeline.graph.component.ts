@@ -1,7 +1,7 @@
 import { debounce, filter, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, throttle, uniq } from 'lodash';
 import {ISCEService, module} from 'angular';
 
-import { IExecution, IPipeline } from 'core/domain/index';
+import { IExecution, IPipeline } from 'core/domain';
 import { IPipelineValidationResults, PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from '../validation/pipelineConfig.validator';
 import { IExecutionViewState, IPipelineLink, IPipelineNode, PIPELINE_GRAPH_SERVICE, PipelineGraphService } from './pipelineGraph.service';
 import { UUIDGenerator } from 'core/utils/uuid.service';

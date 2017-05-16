@@ -3,7 +3,7 @@ import {module} from 'angular';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
 import {NAMING_SERVICE, NamingService, IComponentName} from 'core/naming/naming.service';
-import {ILoadBalancer} from 'core/domain/loadBalancer';
+import {ILoadBalancer} from 'core/domain';
 
 export interface ILoadBalancersByRegion {
   name: string;

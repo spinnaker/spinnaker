@@ -7,7 +7,7 @@ import { Application } from 'core/application/application.model';
 import {Scope} from '../domain/scope.domain';
 import {IImpactCounts} from '../domain/impactCounts.interface';
 import {ICluster} from 'core/domain/ICluster';
-import {ServerGroup} from 'core/domain/serverGroup';
+import { IServerGroup } from 'core/domain';
 
 export let CATEGORY: any = {
   APPLICATIONS: 'Applications',
@@ -200,7 +200,7 @@ export class FastPropertyScopeCategoryService {
 
     if (foundCluster && foundCluster.serverGroups) {
       const serverGroup = foundCluster.serverGroups
-        .filter((sg: ServerGroup) => sg.name === scope.asg)
+        .filter((sg: IServerGroup) => sg.name === scope.asg)
         .shift();
 
       return serverGroup ? serverGroup.instanceCounts : scope.instanceCounts;
