@@ -11,6 +11,10 @@ aliases:
     spinnaker_aws_account: $aws_account_name
     aws_profile: citest
 
+  standard_azure_provider_params:
+    spinnaker_azure_account: $azure_account_name
+    aws_profile: citest
+
 tests:
   bake_and_deploy_test:
     requires:
@@ -138,9 +142,16 @@ tests:
     args:
       alias: [standard_aws_provider_params]
 
+  azure_smoke_test:
+    requires:
+      configuration:
+        azure_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    api: gate
+    args:
+      alias: [standard_azure_provider_params]
+
 # Add appengine_smoke_test
 #    need to add config support first
 # Add openstack_smoke_test
-#    need to add config support first
-# Add azure_smoke_test
 #    need to add config support first
