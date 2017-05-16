@@ -68,12 +68,15 @@ module.exports = angular.module('spinnaker.core.delivery.filter.executionFilter.
 
     this.initialize();
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
+    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
       executionFilterModel.activate();
       executionFilterService.updateExecutionGroups(this.application);
-    }));
+    });
 
-    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
+    $scope.$on('$destroy', () => {
+      this.groupsUpdatedSubscription.unsubscribe();
+      this.locationChangeUnsubscribe();
+    });
 
     let updatePipelines = (pipelines) => {
       $q.all(pipelines.map(function(pipeline) {

@@ -5,7 +5,7 @@ import {CLUSTER_FILTER_SERVICE, ClusterFilterService} from 'core/cluster/filter/
 import {Application} from 'core/application/application.model';
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
 import { Subscription } from 'rxjs/Subscription';
-import { IFilterTag } from '../../filterModel/FilterTags';
+import { IFilterTag } from 'core/filterModel/FilterTags';
 export const CLUSTER_FILTER = 'spinnaker.core.cluster.filter.component';
 
 const ngmodule = module(CLUSTER_FILTER, [
@@ -28,6 +28,7 @@ class ClusterFilterCtrl {
   public stackHeadings: string[];
   public tags: IFilterTag[];
   private groupsUpdatedSubscription: Subscription;
+  private locationChangeUnsubscribe: () => void;
 
   constructor(public $scope: IScope,
               public clusterFilterService: ClusterFilterService,
@@ -52,13 +53,15 @@ class ClusterFilterCtrl {
     }
 
     app.serverGroups.onRefresh($scope, () => this.initialize());
-
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
-      ClusterFilterModel.asFilterModel.activate();
+    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
+      filterModel.activate();
       clusterFilterService.updateClusterGroups(app);
-    }));
+    });
 
-    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
+    $scope.$on('$destroy', () => {
+      this.groupsUpdatedSubscription.unsubscribe();
+      this.locationChangeUnsubscribe();
+    });
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {

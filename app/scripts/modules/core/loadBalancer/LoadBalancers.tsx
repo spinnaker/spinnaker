@@ -128,6 +128,10 @@ export class LoadBalancers extends React.Component<IProps, IState> {
     this.loadBalancersRefreshUnsubscribe();
   }
 
+  private tagCleared(): void {
+    this.updateLoadBalancerGroups();
+  }
+
   public render(): React.ReactElement<LoadBalancers> {
     const groupings = this.state.initialized ? (
       <div>
@@ -152,8 +156,6 @@ export class LoadBalancers extends React.Component<IProps, IState> {
         <h3><Spinner radius={30} width={8} length={16}/></h3>
       </div>
     );
-
-    const tagCleared = () => this.updateLoadBalancerGroups();
 
     return (
       <div className="main-content load-balancers">
@@ -187,7 +189,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
               </button>
             </div>
           </div>
-          <FilterTags tags={this.state.tags} tagCleared={tagCleared} clearFilters={this.clearFilters}/>
+          <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters}/>
         </div>
         <StickyContainer className="content" data-scroll-id="loadbalancers-content">
           {groupings}

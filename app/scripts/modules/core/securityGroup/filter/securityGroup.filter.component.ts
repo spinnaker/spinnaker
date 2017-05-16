@@ -24,6 +24,7 @@ export class SecurityGroupFilterCtrl {
   public stackHeadings: string[];
   public tags: IFilterTag[];
   private groupsUpdatedSubscription: Subscription;
+  private locationChangeUnsubscribe: () => void;
 
   constructor(private securityGroupFilterService: any,
               private SecurityGroupFilterModel: SecurityGroupFilterModel,
@@ -47,12 +48,15 @@ export class SecurityGroupFilterCtrl {
     this.initialize();
     app.securityGroups.onRefresh($scope, () => this.initialize());
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
+    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
       SecurityGroupFilterModel.asFilterModel.activate();
       securityGroupFilterService.updateSecurityGroups(app);
-    }));
+    });
 
-    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
+    $scope.$on('$destroy', () => {
+      this.groupsUpdatedSubscription.unsubscribe();
+      this.locationChangeUnsubscribe();
+    });
 
   }
 

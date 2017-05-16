@@ -26,6 +26,7 @@ class LoadBalancerFilterCtrl {
   public stackHeadings: string[];
   public tags: IFilterTag[];
   private groupsUpdatedSubscription: Subscription;
+  private locationChangeUnsubscribe: () => void;
 
   constructor(private $scope: IScope,
               private loadBalancerFilterService: any,
@@ -55,12 +56,15 @@ class LoadBalancerFilterCtrl {
 
     app.loadBalancers.onRefresh($scope, () => this.initialize());
 
-    $scope.$on('$destroy', $rootScope.$on('$locationChangeSuccess', () => {
+    this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
       filterModel.activate();
       loadBalancerFilterService.updateLoadBalancerGroups(app);
-    }));
+    });
 
-    $scope.$on('$destroy', () => this.groupsUpdatedSubscription.unsubscribe());
+    $scope.$on('$destroy', () => {
+      this.groupsUpdatedSubscription.unsubscribe();
+      this.locationChangeUnsubscribe();
+    });
 
   }
 

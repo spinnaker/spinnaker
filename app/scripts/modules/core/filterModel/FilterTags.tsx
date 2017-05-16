@@ -24,6 +24,10 @@ export interface IState {
 @autoBindMethods
 export class FilterTags extends React.Component<IProps, IState> {
 
+  public static defaultProps: Partial<IProps> = {
+    tagCleared: () => {}
+  };
+
   constructor(props: IProps) {
     super(props);
     this.state = {
@@ -43,9 +47,7 @@ export class FilterTags extends React.Component<IProps, IState> {
   private generateTag(tag: IFilterTag) {
     const clearFilter = (): void => {
       tag.clear();
-      if (this.props.tagCleared) {
-        this.props.tagCleared();
-      }
+      this.props.tagCleared();
       ReactGA.event({category: 'Filter Tags', action: 'Individual tag removed'});
     };
     return (
