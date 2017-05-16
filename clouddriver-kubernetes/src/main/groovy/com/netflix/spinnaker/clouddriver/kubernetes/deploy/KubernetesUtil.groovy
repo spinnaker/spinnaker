@@ -23,7 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.exception.KubernetesI
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesCredentials
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.Job
+import io.fabric8.kubernetes.api.model.Job
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 import org.springframework.beans.factory.annotation.Value
 
