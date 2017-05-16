@@ -250,6 +250,7 @@ class SpringIntegrationTest {
     }
     repository.store(pipeline)
 
+    whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
     whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
 
@@ -393,6 +394,73 @@ class SpringIntegrationTest {
       stages.size shouldEqual 2
       stages.first().type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
       stages.map { it.status } shouldMatch allElements(equalTo(SUCCEEDED))
+    }
+  }
+
+  // TODO: this test is verifying a bunch of things at once, it would make sense to break it up
+  @Test fun `can resolve expressions in stage contexts`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      context["global"] = "foo"
+      stage {
+        refId = "1"
+        type = "dummy"
+        context = mapOf(
+          "expr" to "\${1 == 1}",
+          "key" to mapOf(
+            "expr" to "\${1 == 1}"
+          )
+        )
+      }
+    }
+    repository.store(pipeline)
+    repository.storeExecutionContext(pipeline.id, pipeline.context)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))
+
+    context.runToCompletion(pipeline, runner::start)
+
+    verify(dummyTask).execute(check {
+      // expressions should be resolved in the stage passes to tasks
+      it.getContext()["expr"] shouldEqual true
+      (it.getContext()["key"] as Map<String, Any>)["expr"] shouldEqual true
+    })
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      println(stages.first().context)
+      // resolved expressions should be persisted
+      stages.first().context["expr"] shouldEqual true
+      (stages.first().context["key"] as Map<String, Any>)["expr"] shouldEqual true
+    }
+  }
+
+  @Test fun `global context is available to tasks`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      context["global"] = "foo"
+      stage {
+        refId = "1"
+        type = "dummy"
+      }
+    }
+    repository.store(pipeline)
+    repository.storeExecutionContext(pipeline.id, pipeline.context)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))
+
+    context.runToCompletion(pipeline, runner::start)
+
+    verify(dummyTask).execute(check {
+      it.getContext()["global"] shouldEqual "foo"
+    })
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      // execution level context should not be permanently added to the stage context
+      stages.first().context.containsKey("global") shouldEqual false
     }
   }
 }

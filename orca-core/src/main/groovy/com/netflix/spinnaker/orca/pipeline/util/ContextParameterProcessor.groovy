@@ -60,9 +60,9 @@ class ContextParameterProcessor {
     ContextUtilities.contextFunctionConfiguration.set(contextFunctionConfiguration)
   }
 
-  Map process(Map parameters, Map context, boolean allowUnknownKeys) {
+  Map<String, Object> process(Map<String, Object> parameters, Map<String, Object> context, boolean allowUnknownKeys) {
     if (!parameters) {
-      return null
+      return [:]
     }
 
     transform(parameters, precomputeValues(context), allowUnknownKeys)
@@ -82,7 +82,7 @@ class ContextParameterProcessor {
     return value?.contains(parserContext.getExpressionPrefix())
   }
 
-  Map precomputeValues(Map context) {
+  Map<String, Object> precomputeValues(Map<String, Object> context) {
 
     if (context.trigger?.parameters) {
       context.parameters = context.trigger.parameters
@@ -120,9 +120,7 @@ class ContextParameterProcessor {
     context
   }
 
-
-
-  protected <T> T transform(T parameters, Map context, boolean allowUnknownKeys) {
+  protected <T> T transform(T parameters, Map<String, Object> context, boolean allowUnknownKeys) {
     if (parameters instanceof Map) {
       return parameters.collectEntries { k, v ->
         [transform(k, context, allowUnknownKeys), transform(v, context, allowUnknownKeys)]

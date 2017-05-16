@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
@@ -30,6 +31,7 @@ import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
@@ -44,9 +46,10 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
   val task: DummyTask = mock()
   val exceptionHandler: ExceptionHandler<in Exception> = mock()
   val clock = fixedClock()
+  val contextParameterProcessor = ContextParameterProcessor()
 
   subject(GROUP) {
-    RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler))
+    RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler), contextParameterProcessor)
   }
 
   fun resetMocks() = reset(queue, repository, task, exceptionHandler)
@@ -566,7 +569,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       val taskResult = TaskResult(SUCCEEDED)
 
       beforeGroup {
-        whenever(task.execute(any<Stage<*>>())) doReturn taskResult
+        whenever(task.execute(any())) doReturn taskResult
         whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
       }
 
@@ -578,11 +581,103 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
 
       it("merges stage and global contexts") {
         verify(task).execute(check {
-          it.getContext() shouldEqual mapOf(
-            "global" to "foo",
-            "stage" to "foo",
-            "override" to "stage"
+          it.getContext().let {
+            it["global"] shouldEqual "foo"
+            it["stage"] shouldEqual "foo"
+            it["override"] shouldEqual "stage"
+          }
+        })
+      }
+    }
+  }
+
+  describe("expressions in the context") {
+    mapOf(
+      "\${1 == 2}" to false,
+      "\${1 == 1}" to true,
+      mapOf("key" to "\${1 == 2}") to mapOf("key" to false),
+      mapOf("key" to "\${1 == 1}") to mapOf("key" to true),
+      mapOf("key" to mapOf("key" to "\${1 == 2}")) to mapOf("key" to mapOf("key" to false)),
+      mapOf("key" to mapOf("key" to "\${1 == 1}")) to mapOf("key" to mapOf("key" to true))
+    ).forEach { expression, expected ->
+      given("an expression $expression in the stage context") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = "whatever"
+            context["expr"] = expression
+            task {
+              id = "1"
+              implementingClass = DummyTask::class.qualifiedName
+              startTime = clock.instant().toEpochMilli()
+            }
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "1", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(task.execute(any())) doReturn TaskResult.SUCCEEDED
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("parses the expression") {
+          verify(task).execute(check {
+            it.getContext()["expr"] shouldEqual expected
+          })
+        }
+      }
+    }
+
+    given("a reference to deployedServerGroups in the stage context") {
+      val pipeline = pipeline {
+        stage {
+          refId = "1"
+          type = "createServerGroup"
+          context = mapOf(
+            "deploy.server.groups" to mapOf(
+              "us-west-1" to listOf(
+                "spindemo-test-v008"
+              )
+            ),
+            "account" to "mgmttest",
+            "region" to "us-west-1"
           )
+          status = SUCCEEDED
+        }
+        stage {
+          refId = "2"
+          requisiteStageRefIds = setOf("1")
+          type = "whatever"
+          context["command"] = "serverGroupDetails.groovy \${ deployedServerGroups[0].account } \${ deployedServerGroups[0].region } \${ deployedServerGroups[0].serverGroup }"
+          task {
+            id = "1"
+            implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
+          }
+        }
+      }
+      val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("2").id, "1", DummyTask::class.java)
+
+      beforeGroup {
+        whenever(task.execute(any())) doReturn TaskResult.SUCCEEDED
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("resolves deployed server groups") {
+        verify(task).execute(check {
+          it.getContext()["command"] shouldEqual "serverGroupDetails.groovy mgmttest us-west-1 spindemo-test-v008"
         })
       }
     }

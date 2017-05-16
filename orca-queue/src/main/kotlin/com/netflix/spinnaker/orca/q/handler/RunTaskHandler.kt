@@ -23,8 +23,10 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.security.AuthenticatedRequest.propagate
 import com.netflix.spinnaker.security.User
@@ -47,7 +49,8 @@ open class RunTaskHandler
   override val repository: ExecutionRepository,
   private val tasks: Collection<Task>,
   private val clock: Clock,
-  private val exceptionHandlers: Collection<ExceptionHandler<in Exception>>
+  private val exceptionHandlers: Collection<ExceptionHandler<in Exception>>,
+  private val contextParameterProcessor: ContextParameterProcessor
 ) : MessageHandler<RunTask> {
 
   private val log: Logger = getLogger(javaClass)
@@ -183,12 +186,23 @@ open class RunTaskHandler
     getContext()["continuePipeline"] == true
 
   private fun Stage<*>.withMergedContext(): Stage<*> {
-    // TODO: this isn't ideal as the additional data will get permanently added to the stage context
-    val context = getExecution().getContext().toMutableMap()
-    context.putAll(getContext())
-    this.setContext(context)
+    val execution = this.getExecution()
+    val transformed = contextParameterProcessor.process(getContext(), mapWithFallback(getContext(), execution), true)
+    setContext(mapWithFallback(transformed, execution))
     return this
   }
+
+  private fun mapWithFallback(transformed: MutableMap<String, Any?>, execution: Execution<*>): MutableMap<String, Any?> =
+    object : MutableMap<String, Any?> by transformed {
+      override fun get(key: String): Any? =
+        transformed.getOrElse(key) {
+          when (key) {
+            "execution" -> execution
+            "trigger" -> if (execution is Pipeline) execution.trigger else null
+            else -> execution.getContext()[key]
+          }
+        }
+    }
 
   private fun shouldRetry(ex: Exception, task: com.netflix.spinnaker.orca.pipeline.model.Task?): ExceptionHandler.Response? {
     val exceptionHandler = exceptionHandlers.find { it.handles(ex) }
