@@ -35,7 +35,7 @@ public class ClouddriverProfileFactory extends SpringProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     Providers providers = deploymentConfiguration.getProviders();
-    List<String> files = backupRequiredFiles(providers);
+    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
     profile.appendContents(yamlToString(providers))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);

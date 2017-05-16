@@ -26,6 +26,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -77,10 +78,11 @@ abstract public class ProfileFactory {
 
   /**
    * @param node is the node to find required files in.
+   * @param deploymentName is the current deployment of Spinnaker being backed up.
    * @return the list of files required by the node to function.
    */
-  protected List<String> backupRequiredFiles(Node node) {
-    return node.backupLocalFiles(spinnakerStagingPath);
+  protected List<String> backupRequiredFiles(Node node, String deploymentName) {
+    return node.backupLocalFiles(Paths.get(spinnakerStagingPath, "dependencies", deploymentName).toString());
   }
 
   protected String yamlToString(Object o) {

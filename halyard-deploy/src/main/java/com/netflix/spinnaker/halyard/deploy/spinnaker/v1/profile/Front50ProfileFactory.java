@@ -54,7 +54,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
       throw new HalException(Problem.Severity.FATAL, "No persistent storage type was configured.");
     }
 
-    List<String> files = backupRequiredFiles(persistentStorage);
+    List<String> files = backupRequiredFiles(persistentStorage, deploymentConfiguration.getName());
     Map<String, Map<String, Object>> persistentStorageMap = new HashMap<>();
 
     NodeIterator children = persistentStorage.getChildren();

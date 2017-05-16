@@ -76,7 +76,7 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
       log.warn("Attempting to perform a distributed deployment to account \"" + account.getName() + "\" without a discovery mechanism");
     }
 
-    List<String> files = backupRequiredFiles(providers);
+    List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
     profile.appendContents(yamlToString(providers))
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);

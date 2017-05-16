@@ -40,10 +40,12 @@ public interface LocalService<T> extends HasServiceSettings<T> {
       String source = profile.getStagedFile(getSpinnakerStagingPath());
       String dest = profile.getOutputFile();
       allCommands.add(String.format("cp -p %s %s", source, dest));
-      allCommands.add(String.format("chown spinnaker %s", dest));
+      allCommands.add(String.format("chown spinnaker:spinnaker %s", dest));
+      allCommands.add(String.format("chmod 600 %s", dest));
 
       for (String requiredFile : profile.getRequiredFiles()) {
-        allCommands.add(String.format("chown spinnaker %s", requiredFile));
+        allCommands.add(String.format("chown spinnaker:spinnaker %s", requiredFile));
+        allCommands.add(String.format("chmod 600 %s", requiredFile));
       }
 
       if (profile.isExecutable()) {
