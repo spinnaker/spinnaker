@@ -10,9 +10,9 @@ import { NetflixSettings } from 'netflix/netflix.settings';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
 import { FastPropertyRollouts } from './rollouts/FastPropertyRollouts';
 import { FastPropertiesList } from './FastPropertiesList';
-import { FastPropertyFilterSearch } from './filter/FastPropertyFilterSearch';
 import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
 import { ReactInjector } from 'core/react';
+import { NetflixReactInjector } from 'netflix/react.injector';
 import { sortProperties } from '../global/GlobalPropertiesList';
 
 interface IProps {
@@ -149,7 +149,7 @@ export class ApplicationProperties extends React.Component<IProps, IState> {
         <div className="form form-inline header">
           <div className="form-group">
             <h3>Properties</h3>
-            <FastPropertyFilterSearch properties={this.state.allProperties} filtersUpdatedStream={this.filtersUpdatedStream}/>
+            <NetflixReactInjector.FastPropertyFilterSearch properties={this.state.allProperties} filtersUpdatedStream={this.filtersUpdatedStream}/>
           </div>
           <div className="form-group pull-right">
             <button className="btn btn-sm btn-default" onClick={this.createFastProperty} style={{margin: '3px'}}>

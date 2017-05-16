@@ -13,7 +13,6 @@ import {SETTINGS} from 'core/config/settings';
 import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
 import {TemplateDescription} from './TemplateDescription';
 import {TemplateSelector} from './TemplateSelector';
-import {Spinner} from 'core/widgets/Spinner';
 
 import './createPipelineModal.less';
 
@@ -240,6 +239,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   }
 
   public render() {
+    const { Spinner } = ReactInjector;
     const nameHasError: boolean = !this.validateNameCharacters();
     const nameIsNotUnique: boolean = !this.validateNameIsUnique();
     const formValid = !nameHasError &&

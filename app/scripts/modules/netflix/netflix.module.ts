@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
 import {
   APPLICATION_DATA_SOURCE_REGISTRY,
@@ -18,6 +18,8 @@ import { NetflixSettings } from './netflix.settings';
 import { RESERVATION_REPORT_COMPONENT } from './report/reservationReport.component';
 import { TABLEAU_STATES } from './tableau/tableau.states';
 import { TEMPLATE_OVERRIDES } from './templateOverride/templateOverrides.module';
+import { NetflixReactInjector } from './react.injector';
+import IInjectorService = angular.auto.IInjectorService;
 
 // load all templates into the $templateCache
 const templates = require.context('./', true, /\.html$/);
@@ -56,6 +58,7 @@ module(NETFLIX_MODULE, [
   require('./serverGroup/networking/networking.module.js'),
   require('./ci/ci.module'),
 ])
+  .run(($injector: IInjectorService) => NetflixReactInjector.initialize($injector))
   .run((cloudProviderRegistry: CloudProviderRegistry,
         applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
 

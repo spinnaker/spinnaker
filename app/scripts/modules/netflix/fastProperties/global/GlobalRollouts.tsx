@@ -2,12 +2,12 @@ import * as React from 'react';
 import { Subject } from 'rxjs/Subject';
 
 import { Application } from 'core/application/application.model';
-import { FastPropertyFilterSearch } from '../view/filter/FastPropertyFilterSearch';
 import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
 import { FastPropertyRollouts } from '../view/rollouts/FastPropertyRollouts';
 import { IExecution } from 'core/domain/IExecution';
 import { Property } from '../domain/property.domain';
 import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
+import { NetflixReactInjector } from 'netflix/react.injector';
 
 interface IProps {
   app: Application,
@@ -73,7 +73,7 @@ export class GlobalRollouts extends React.Component<IProps, IState> {
           <div className="form form-inline header">
             <div className="form-group">
               <h3>Property Rollouts</h3>
-              <FastPropertyFilterSearch properties={extractedProperties} filtersUpdatedStream={this.filtersUpdatedStream}/>
+              <NetflixReactInjector.FastPropertyFilterSearch properties={extractedProperties} filtersUpdatedStream={this.filtersUpdatedStream}/>
             </div>
             <div className="fast-property-filter-tags">
               <FilterTags tags={filters} clearFilters={this.clearFilters}/>

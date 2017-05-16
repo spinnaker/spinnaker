@@ -1,5 +1,4 @@
 import { module, IPromise, IQService, ITimeoutService } from 'angular';
-import IInjectorService = angular.auto.IInjectorService;
 
 import { API_SERVICE, Api } from 'core/api/api.service';
 import { Scope } from './domain/scope.domain';
@@ -167,12 +166,9 @@ export class FastPropertyReaderService {
 
 export const FAST_PROPERTY_READ_SERVICE = 'spinnaker.netflix.fastProperties.read.service';
 
-export let fastPropertyReader: FastPropertyReaderService = undefined;
-
 module(FAST_PROPERTY_READ_SERVICE, [
   API_SERVICE,
   EXECUTION_SERVICE,
   PIPELINE_CONFIG_SERVICE
 ])
-  .service('fastPropertyReader', FastPropertyReaderService)
-  .run(($injector: IInjectorService) => fastPropertyReader = $injector.get('fastPropertyReader') as FastPropertyReaderService);
+  .service('fastPropertyReader', FastPropertyReaderService);

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import { ButtonBusyIndicator } from 'core/forms/buttonBusyIndicator/ButtonBusyIndicator';
+import { ReactInjector } from 'core/react';
 
 interface ISubmitButtonProps {
   onClick: () => void;
@@ -12,6 +12,7 @@ interface ISubmitButtonProps {
 
 export class SubmitButton extends React.Component<ISubmitButtonProps, any> {
   public render() {
+    const { BusyButtonIndicator } = ReactInjector;
     return (
       <Button
         className="btn btn-primary"

@@ -6,7 +6,6 @@ import { Subscription } from 'rxjs/Subscription';
 import { find, flatten, uniq } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { AccountTag } from 'core/account/AccountTag';
 import { Application } from 'core/application/application.model';
 import { Execution } from './execution/Execution';
 import { IExecution, IExecutionGroup, IPipeline, IPipelineCommand } from 'core/domain';
@@ -163,6 +162,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   public render(): React.ReactElement<ExecutionGroup> {
+    const { AccountTag } = ReactInjector;
     const group = this.props.group;
     const pipelineConfig = this.state.pipelineConfig;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;

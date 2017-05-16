@@ -1,7 +1,7 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { AccountTag } from 'core/account/AccountTag';
+import { ReactInjector } from 'core/react';
 import { Application } from 'core/application/application.model';
 import { ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancer } from './LoadBalancer';
@@ -24,7 +24,7 @@ interface IState {
 export class LoadBalancerPod extends React.Component<IProps, IState> {
   public render(): React.ReactElement<LoadBalancerPod> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;
-
+    const { AccountTag } = ReactInjector;
     const subgroups = grouping.subgroups.map((subgroup) => (
       <div key={subgroup.heading} className="pod-subgroup">
         <LoadBalancer

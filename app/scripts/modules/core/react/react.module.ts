@@ -9,5 +9,5 @@ module(REACT_MODULE, [
   STATE_EVENTS,
 ]).run(function ($injector: any) {
   // Make angular services importable and Convert angular components to react
-  ReactInjector.flush($injector);
+  ReactInjector.initialize($injector);
 });

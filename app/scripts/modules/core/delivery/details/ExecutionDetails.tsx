@@ -1,16 +1,8 @@
-import * as React from 'react';
-import { angular2react } from 'angular2react';
-
 import { Application } from 'core/application/application.model';
-import { ExecutionDetailsComponent } from './executionDetails.component';
 import { IExecution } from 'core/domain';
-import { ReactInjector } from 'core/react';
 
-interface IExecutionDetailsProps {
+export interface IExecutionDetailsProps {
   application: Application;
   execution: IExecution;
   standalone: boolean;
 }
-
-export let ExecutionDetails: React.ComponentClass<IExecutionDetailsProps> = undefined;
-ReactInjector.give(($injector: any) => ExecutionDetails = angular2react('executionDetails', new ExecutionDetailsComponent(), $injector) as any);

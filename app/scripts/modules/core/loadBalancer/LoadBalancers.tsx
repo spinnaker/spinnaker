@@ -5,11 +5,9 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
-import { HelpField } from 'core/help/HelpField';
 import { ILoadBalancer, ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerPod } from './LoadBalancerPod';
 import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
-import { Spinner } from 'core/widgets/Spinner';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import { ReactInjector } from 'core/react';
@@ -132,6 +130,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
   }
 
   public render(): React.ReactElement<LoadBalancers> {
+    const { Spinner, HelpField } = ReactInjector;
     const groupings = this.state.initialized ? (
       <div>
         { this.state.groups.map((group) => (

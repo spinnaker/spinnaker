@@ -9,9 +9,7 @@ import { Application } from 'core/application/application.model';
 import { ILoadBalancer, IInstance, IServerGroup } from 'core/domain';
 import { ReactInjector } from 'core/react';
 
-import { EntityUiTags } from 'core/entityTag/EntityUiTags';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
-import { Instances } from 'core/instance/Instances';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
 
@@ -113,7 +111,7 @@ export class LoadBalancer extends React.Component<IProps, IState> {
 
   public render(): React.ReactElement<LoadBalancer> {
     const { application, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
-
+    const { EntityUiTags, Instances } = ReactInjector;
     const ServerGroups = orderBy(serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map((serverGroup) => (
       <LoadBalancerServerGroup
         key={serverGroup.name}

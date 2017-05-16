@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { groupBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { Subject } from 'rxjs/Subject';
+import { Subject, Subscription } from 'rxjs';
 import autoBindMethods from 'class-autobind-decorator';
 import { Tooltip } from 'react-bootstrap';
 
@@ -9,13 +9,11 @@ import { Property } from '../domain/property.domain';
 import { Application } from 'core/application/application.model';
 import { NetflixSettings } from 'netflix/netflix.settings';
 
-import { fastPropertyReader } from '../fastProperty.read.service';
 import { FastPropertiesList } from '../view/FastPropertiesList';
 import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
-import { FastPropertyFilterSearch } from '../view/filter/FastPropertyFilterSearch';
 import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
 import { ReactInjector } from 'core/react';
-import { Subscription } from 'rxjs/Subscription';
+import { NetflixReactInjector } from 'netflix/react.injector';
 
 export interface IGroupedProperties {
   [key: string]: Property[];
@@ -83,7 +81,7 @@ export class GlobalPropertiesList extends React.Component<IProps, IState> {
   private performSearch(searchTerm: string): void {
     ReactInjector.$state.go('.', {q: searchTerm});
     this.setState({loading: true});
-    fastPropertyReader.search(searchTerm).then((data) => {
+    NetflixReactInjector.fastPropertyReader.search(searchTerm).then((data) => {
       return data.map((fp) => {
         fp.appId = fp.appId || 'All (Global)';
         return fp;
@@ -215,7 +213,7 @@ export class GlobalPropertiesList extends React.Component<IProps, IState> {
               />
               {showAllControls && this.createFilterButtons()}
               {showAllControls && (
-                <FastPropertyFilterSearch
+                <NetflixReactInjector.FastPropertyFilterSearch
                   properties={this.state.allProperties}
                   filtersUpdatedStream={this.filtersUpdatedStream}
                 />

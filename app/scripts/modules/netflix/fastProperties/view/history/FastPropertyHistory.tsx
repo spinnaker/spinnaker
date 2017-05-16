@@ -3,9 +3,9 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { timestamp } from 'core/utils/timeFormatters';
 import { Property } from '../../domain/property.domain';
-import { fastPropertyReader } from '../../fastProperty.read.service';
 import { IPropertyHistoryEntry } from '../../domain/propertyHistory.domain';
-import { DiffView } from 'core/pipeline/config/actions/history/DiffView';
+import { NetflixReactInjector } from 'netflix/react.injector';
+import { ReactInjector } from 'core/react';
 
 import './FastPropertyHistory.less';
 
@@ -44,7 +44,7 @@ export class FastPropertyHistory extends React.Component<IProps, IState> {
   private loadHistory(): void {
     this.setState({loading: true});
     const property = this.props.property;
-    fastPropertyReader.getHistory(property.propertyId, property.env)
+    NetflixReactInjector.fastPropertyReader.getHistory(property.propertyId, property.env)
       .then(entries => this.setState({entries, loading: false, loadError: false}))
       .catch(() => this.setState({loading: false, loadError: true}));
   }
@@ -61,6 +61,7 @@ export class FastPropertyHistory extends React.Component<IProps, IState> {
 
   public render() {
     const rows = [] as JSX.Element[];
+    const { DiffView } = ReactInjector;
     this.state.entries.forEach((entry, index) => {
       const diffExpanded = this.state.diffsExpanded.includes(index);
       rows.push((

@@ -15,12 +15,7 @@ import { ReactInjector } from 'core/react';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 
 // react components
-import { AccountTag } from 'core/account/AccountTag';
-import { CopyToClipboard } from 'core/utils/clipboard/CopyToClipboard';
-import { ExecutionDetails } from 'core/delivery/details/ExecutionDetails';
 import { ExecutionMarker } from './ExecutionMarker';
-import { ExecutionStatus } from 'core/delivery/status/ExecutionStatus';
-import { PipelineGraph } from 'core/pipeline/config/graph/PipelineGraph';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import './execution.less';
@@ -267,6 +262,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public render() {
+    const { AccountTag, ExecutionStatus, PipelineGraph, ExecutionDetails, CopyToClipboard } = ReactInjector;
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account}/>
     ));

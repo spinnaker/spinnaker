@@ -9,7 +9,6 @@ import { ILoadBalancer, IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
-import { Instances } from 'core/instance/Instances';
 
 interface IProps {
   loadBalancer: ILoadBalancer;
@@ -58,7 +57,7 @@ export class LoadBalancerServerGroup extends React.Component<IProps, IState> {
 
   public render(): React.ReactElement<LoadBalancerServerGroup> {
     const { loadBalancer, serverGroup, showInstances } = this.props;
-
+    const { Instances } = ReactInjector;
     return (
       <div className={`cluster-container ${serverGroup.isDisabled ? 'disabled' : ''}`} ref={this.refCallback}>
         <div className="server-group-title">
