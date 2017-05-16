@@ -13,9 +13,13 @@ PREPARE_ENVIRONMENT="{%prepare-environment%}"
 
 REPOSITORY_URL="{%debian-repository%}"
 
+echo_err() {
+  echo "$@" 1>&2
+}
+
 ## check that the user is root
 if [[ `/usr/bin/id -u` -ne 0 ]]; then
-  echo "$0 must be executed with root permissions; exiting"
+  echo_err "$0 must be executed with root permissions; exiting"
   exit 1
 fi
 
@@ -39,16 +43,16 @@ fi
 
 if [ "$DISTRO" = "Ubuntu" ]; then
   if [ "${DISTRIB_RELEASE%%.*}" -lt "14" ]; then
-    echo "Not a supported version of Ubuntu"
-    echo "Version is $DISTRIB_RELEASE we require 14.04 or higher"
+    echo_err "Not a supported version of Ubuntu"
+    echo_err "Version is $DISTRIB_RELEASE we require 14.04 or higher"
     exit 1
   fi
 else
-  echo "Not a supported operating system: " $DISTRO
-  echo "It's recommended you use Ubuntu 14.04 or higher."
-  echo ""
-  echo "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
-  echo "if you'd like to see support for your OS and version"
+  echo_err "Not a supported operating system: " $DISTRO
+  echo_err "It's recommended you use Ubuntu 14.04 or higher."
+  echo_err ""
+  echo_err "Please file an issue against https://github.com/spinnaker/spinnaker/issues"
+  echo_err "if you'd like to see support for your OS and version"
   exit 1
 fi
 
