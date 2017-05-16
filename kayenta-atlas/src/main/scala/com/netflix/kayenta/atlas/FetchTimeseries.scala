@@ -17,7 +17,9 @@ package com.netflix.kayenta.atlas
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-case class TimeseriesData(`type`: String, values: List[Double])
+import scala.collection.JavaConversions._
+
+case class TimeseriesData(`type`: String, values: java.util.List[Double])
 
 case class FetchTimeseries(
   @JsonProperty("type") `type`: String,
@@ -37,8 +39,10 @@ case class FetchTimeseries(
 }
 
 object FetchTimeseries {
-  def mergeByTime(data: List[FetchTimeseries]): FetchTimeseries = {
-    if (data.length <= 1) {
+  private def mergeByTime(data: List[FetchTimeseries]): FetchTimeseries = {
+    if (data.isEmpty) {
+      throw new IllegalArgumentException("List cannot be empty")
+    } else if (data.length == 1) {
       data.head
     } else {
       var current = data.head

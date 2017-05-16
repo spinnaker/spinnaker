@@ -15,21 +15,23 @@
  */
 package com.netflix.kayenta.atlas
 
+import java.util
+
 import org.scalatest.FunSuite
 
 class FetchTimeseriesSuite extends FunSuite {
   test("merges two") {
-    val a = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 60, Map(), TimeseriesData("array", List(1, 2, 3)))
-    val b = FetchTimeseries("timeseries", "abc", "query1", "query1", 60, 60, 120, Map(), TimeseriesData("array", List(1, 2, 3)))
+    val a = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 60, Map(), TimeseriesData("array", util.Arrays.asList(1, 2, 3)))
+    val b = FetchTimeseries("timeseries", "abc", "query1", "query1", 60, 60, 120, Map(), TimeseriesData("array", util.Arrays.asList(1, 2, 3)))
 
-    val result = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 120, Map(), TimeseriesData("array", List(1, 2, 3, 1, 2, 3)))
+    val result = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 120, Map(), TimeseriesData("array", util.Arrays.asList(1, 2, 3, 1, 2, 3)))
     assert(FetchTimeseries.merge(List(a, b)) === Map("abc" -> result))
   }
 
   test("merges sparse") {
     val tags = Map.empty[String, String]
-    val a = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 60, tags, TimeseriesData("array", List(1, 2, 3)))
-    val b = FetchTimeseries("timeseries", "abc", "query1", "query1", 120, 60, 240, tags, TimeseriesData("array", List(1, 2, 3)))
+    val a = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 60, tags, TimeseriesData("array", util.Arrays.asList(1, 2, 3)))
+    val b = FetchTimeseries("timeseries", "abc", "query1", "query1", 120, 60, 240, tags, TimeseriesData("array", util.Arrays.asList(1, 2, 3)))
 
     val result = List(1, 2, 3, Double.NaN, 1, 2, 3)
     val actual = FetchTimeseries.merge(List(a, b))("abc")
@@ -39,14 +41,17 @@ class FetchTimeseriesSuite extends FunSuite {
     assert(actual.start === a.start)
     assert(actual.end === b.end)
     assert(actual.step === b.step)
-    val valueMatch = actual.data.values.zip(result).map { a => a._1.equals(a._2) }
-    valueMatch.foreach { v => assert(v, "data array equality")}
+
+    assert(result.length === actual.data.values.size)
+    for (index <- result.indices) {
+      assert(result(index).equals(actual.data.values.get(index)), s"index $index failed to match")
+    }
   }
 
   test("merges very sparse") {
     val tags = Map.empty[String, String]
-    val a = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 60, tags, TimeseriesData("array", List(1, 2, 3)))
-    val b = FetchTimeseries("timeseries", "abc", "query1", "query1", 300, 60, 420, tags, TimeseriesData("array", List(1, 2, 3)))
+    val a = FetchTimeseries("timeseries", "abc", "query1", "query1", 0, 60, 60, tags, TimeseriesData("array", util.Arrays.asList(1, 2, 3)))
+    val b = FetchTimeseries("timeseries", "abc", "query1", "query1", 300, 60, 420, tags, TimeseriesData("array", util.Arrays.asList(1, 2, 3)))
 
     val result = List(1, 2, 3, Double.NaN, Double.NaN, Double.NaN, Double.NaN, 1, 2, 3)
     val actual = FetchTimeseries.merge(List(a, b))("abc")
@@ -56,7 +61,10 @@ class FetchTimeseriesSuite extends FunSuite {
     assert(actual.start === a.start)
     assert(actual.end === b.end)
     assert(actual.step === b.step)
-    val valueMatch = actual.data.values.zip(result).map { a => a._1.equals(a._2) }
-    valueMatch.foreach { v => assert(v, "data array equality")}
+
+    assert(result.length === actual.data.values.size)
+    for (index <- result.indices) {
+      assert(result(index).equals(actual.data.values.get(index)), s"index $index failed to match")
+    }
   }
 }
