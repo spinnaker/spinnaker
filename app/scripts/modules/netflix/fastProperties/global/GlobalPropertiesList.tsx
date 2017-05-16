@@ -14,9 +14,7 @@ import { FastPropertiesList } from '../view/FastPropertiesList';
 import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
 import { FastPropertyFilterSearch } from '../view/filter/FastPropertyFilterSearch';
 import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
-import { modalService } from 'core/modal.service';
-import { $state, $stateParams } from 'core/uirouter';
-import { stateEvents } from 'core/state.events';
+import { ReactInjector } from 'core/react';
 import { Subscription } from 'rxjs/Subscription';
 
 export interface IGroupedProperties {
@@ -39,7 +37,7 @@ interface IState {
 }
 
 export const sortProperties = (properties: Property[]): Property[] => {
-  let sortKey = $stateParams.sortBy || 'key';
+  let sortKey = ReactInjector.$stateParams.sortBy || 'key';
   const isReversed = sortKey.startsWith('-');
   if (isReversed) {
     sortKey = sortKey.substr(1);
@@ -72,18 +70,18 @@ export class GlobalPropertiesList extends React.Component<IProps, IState> {
       filteredProperties: [],
       groupedProperties: null,
       groupedBy: 'none',
-      searchTerm: $stateParams.q || '',
+      searchTerm: ReactInjector.$stateParams.q || '',
     };
     this.filtersUpdatedStream.subscribe((newTags) => this.filtersChanged(newTags));
-    if ($stateParams.q) {
-      this.performSearch($stateParams.q);
+    if (ReactInjector.$stateParams.q) {
+      this.performSearch(ReactInjector.$stateParams.q);
     }
-    this.stateChangeListener = stateEvents.stateChangeSuccess.subscribe(() => this.filtersChanged(this.state.filters));
+    this.stateChangeListener = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.filtersChanged(this.state.filters));
   }
 
   @Debounce(300)
   private performSearch(searchTerm: string): void {
-    $state.go('.', {q: searchTerm});
+    ReactInjector.$state.go('.', {q: searchTerm});
     this.setState({loading: true});
     fastPropertyReader.search(searchTerm).then((data) => {
       return data.map((fp) => {
@@ -156,7 +154,7 @@ export class GlobalPropertiesList extends React.Component<IProps, IState> {
   }
 
   private createFastProperty(): void {
-    modalService.open({
+    ReactInjector.modalService.open({
       templateUrl: require('../wizard/createFastPropertyWizard.html'),
       controller: 'createFastPropertyWizardController',
       controllerAs: 'ctrl',

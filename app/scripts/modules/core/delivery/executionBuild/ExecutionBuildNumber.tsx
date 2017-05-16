@@ -3,7 +3,7 @@ import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { IExecution } from 'core/domain';
-import { $state } from 'core/uirouter';
+import { ReactInjector } from 'core/react';
 
 import './ExecutionBuildNumber.less';
 
@@ -18,6 +18,7 @@ export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberP
   }
 
   private handleParentPipelineClick() {
+    const { $state } = ReactInjector;
     ReactGA.event({category: 'Pipeline', action: 'Execution build number clicked - parent pipeline'});
     const toStateParams = {application: this.props.execution.trigger.parentPipelineApplication, executionId: this.props.execution.trigger.parentPipelineId};
     const toStateOptions = {inherit: false, reload: 'home.applications.application.pipelines.executionDetails'};

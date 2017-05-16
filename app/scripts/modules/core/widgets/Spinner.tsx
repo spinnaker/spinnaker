@@ -2,7 +2,7 @@ import * as React from 'react';
 import { module, IComponentOptions } from 'angular';
 import { angular2react } from 'angular2react';
 
-import { ReactInjector } from 'core/react.module';
+import { ReactInjector } from 'core/react';
 
 interface ISpinnerProps {
   radius: number;

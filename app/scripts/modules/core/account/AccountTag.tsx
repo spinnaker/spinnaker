@@ -2,7 +2,7 @@ import * as React from 'react';
 import { angular2react } from 'angular2react';
 
 import { AccountTagComponent } from './accountTag.component';
-import { ReactInjector } from 'core/react.module';
+import { ReactInjector } from 'core/react';
 
 interface IAccountTagProps {
   account: string;

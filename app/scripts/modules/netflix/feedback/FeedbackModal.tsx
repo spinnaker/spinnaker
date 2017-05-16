@@ -5,7 +5,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { NetflixSettings } from '../netflix.settings';
 import { SubmitButton } from 'core/modal/buttons/SubmitButton';
-import { authenticationService } from 'core/authentication/authentication.service';
+import { ReactInjector } from 'core/react';
 
 const states = {
   EDITING: 0,
@@ -47,7 +47,7 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
     super(props);
     this.state = {
       feedbackState: states.EDITING,
-      userIsAuthenticated: authenticationService.getAuthenticatedUser().authenticated,
+      userIsAuthenticated: ReactInjector.authenticationService.getAuthenticatedUser().authenticated,
       feedback: {
         title: '',
         description: '',
@@ -58,7 +58,7 @@ export class FeedbackModal extends React.Component<IFeedbackModalProps, IFeedbac
 
   private getContactInfo(): string {
     if (this.state.userIsAuthenticated) {
-      return authenticationService.getAuthenticatedUser().name;
+      return ReactInjector.authenticationService.getAuthenticatedUser().name;
     }
     return this.state.feedback.contact;
   }

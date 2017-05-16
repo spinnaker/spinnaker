@@ -6,7 +6,7 @@ import { Application } from 'core/application/application.model';
 import { ExecutionBuildNumber } from 'core/delivery/executionBuild/ExecutionBuildNumber';
 import { ExecutionMarker } from 'core/delivery/executionGroup/execution/ExecutionMarker';
 import { IExecution } from 'core/domain';
-import { $state } from 'core/uirouter';
+import { ReactInjector } from 'core/react';
 import { timestamp } from 'core/utils/timeFormatters';
 
 import './projectPipeline.less';
@@ -34,11 +34,11 @@ export class ProjectPipeline extends React.Component<IProjectPipelineProps, IPro
   }
 
   private handleExecutionTitleClick(): void {
-    $state.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
+    ReactInjector.$state.go('^.application.pipelines.executions.execution', {application: this.props.execution.application, executionId: this.props.execution.id});
   }
 
   private handleStageClick(stageIndex: number) {
-    $state.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
+    ReactInjector.$state.go('^.application.pipelines.executionDetails.execution', {application: this.props.execution.application, executionId: this.props.execution.id, stage: stageIndex})
   }
 
   public render() {

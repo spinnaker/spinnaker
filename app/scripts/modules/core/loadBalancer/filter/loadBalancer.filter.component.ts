@@ -30,18 +30,18 @@ class LoadBalancerFilterCtrl {
 
   constructor(private $scope: IScope,
               private loadBalancerFilterService: any,
-              private LoadBalancerFilterModel: LoadBalancerFilterModel,
+              private loadBalancerFilterModel: LoadBalancerFilterModel,
               private $rootScope: IScope,
               private loadBalancerDependentFilterHelper: any,
               private dependentFilterService: any,
   ) {
     'ngInject';
-    this.sortFilter = LoadBalancerFilterModel.asFilterModel.sortFilter;
+    this.sortFilter = loadBalancerFilterModel.asFilterModel.sortFilter;
   }
 
   public $onInit(): void {
-    const { LoadBalancerFilterModel, loadBalancerFilterService, app, $scope, $rootScope } = this;
-    const filterModel = LoadBalancerFilterModel.asFilterModel;
+    const { loadBalancerFilterModel, loadBalancerFilterService, app, $scope, $rootScope } = this;
+    const filterModel = loadBalancerFilterModel.asFilterModel;
 
     this.tags = filterModel.tags;
     this.groupsUpdatedSubscription = loadBalancerFilterService.groupsUpdatedStream
@@ -69,10 +69,10 @@ class LoadBalancerFilterCtrl {
   }
 
   public updateLoadBalancerGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, LoadBalancerFilterModel, loadBalancerFilterService, loadBalancerDependentFilterHelper, app } = this;
+    const { dependentFilterService, loadBalancerFilterModel, loadBalancerFilterService, loadBalancerDependentFilterHelper, app } = this;
 
     const { availabilityZone, region, account } = dependentFilterService.digestDependentFilters({
-      sortFilter: LoadBalancerFilterModel.asFilterModel.sortFilter,
+      sortFilter: loadBalancerFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone'],
       pool: loadBalancerDependentFilterHelper.poolBuilder(app.loadBalancers.data)
     });
@@ -82,7 +82,7 @@ class LoadBalancerFilterCtrl {
     this.availabilityZoneHeadings = availabilityZone;
 
     if (applyParamsToUrl) {
-      LoadBalancerFilterModel.asFilterModel.applyParamsToUrl();
+      loadBalancerFilterModel.asFilterModel.applyParamsToUrl();
     }
     loadBalancerFilterService.updateLoadBalancerGroups(app);
   }

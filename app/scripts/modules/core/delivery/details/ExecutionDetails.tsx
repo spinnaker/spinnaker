@@ -3,8 +3,8 @@ import { angular2react } from 'angular2react';
 
 import { Application } from 'core/application/application.model';
 import { ExecutionDetailsComponent } from './executionDetails.component';
-import { IExecution } from 'core/domain/IExecution';
-import { ReactInjector } from 'core/react.module';
+import { IExecution } from 'core/domain';
+import { ReactInjector } from 'core/react';
 
 interface IExecutionDetailsProps {
   application: Application;

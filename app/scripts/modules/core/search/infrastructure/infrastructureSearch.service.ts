@@ -100,10 +100,8 @@ export class InfrastructureSearchService {
 }
 
 export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.service';
-export let infrastructureSearchService: InfrastructureSearchService = undefined;
 module(INFRASTRUCTURE_SEARCH_SERVICE, [
   SEARCH_SERVICE,
   URL_BUILDER_SERVICE,
   require('core/cloudProvider/serviceDelegate.service'),
-]).service('infrastructureSearchService', InfrastructureSearchService)
-  .run(($injector: any) => infrastructureSearchService = $injector.get('infrastructureSearchService'));
+]).service('infrastructureSearchService', InfrastructureSearchService);

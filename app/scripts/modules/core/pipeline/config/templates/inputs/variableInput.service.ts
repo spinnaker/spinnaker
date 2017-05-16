@@ -41,8 +41,6 @@ export class VariableInputService {
   }
 }
 
-export let variableInputService: VariableInputService;
 export const VARIABLE_INPUT_SERVICE = 'spinnaker.core.variableInput.service';
 module(VARIABLE_INPUT_SERVICE, [])
-  .service('variableInputService', VariableInputService)
-  .run(($injector: any) => variableInputService = <VariableInputService>$injector.get('variableInputService'));
+  .service('variableInputService', VariableInputService);

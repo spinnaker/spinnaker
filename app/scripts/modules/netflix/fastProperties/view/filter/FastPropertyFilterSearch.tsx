@@ -4,7 +4,7 @@ import { Subject } from 'rxjs/Subject';
 
 import { Property } from '../../domain/property.domain';
 import { IFilterTag } from 'core/filterModel/FilterTags';
-import { ReactInjector } from 'core/react.module';
+import { ReactInjector } from 'core/react';
 import { fastPropertyFilterSearchComponent } from './fastPropertyFilterSearch.component';
 
 interface IProps {

@@ -3,7 +3,6 @@ import autoBindMethods from 'class-autobind-decorator';
 import { Debounce } from 'lodash-decorators';
 import { Subscription } from 'rxjs';
 
-import { $stateParams, $state } from 'core/uirouter';
 import { Application } from 'core/application/application.model';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
 import { HelpField } from 'core/help/HelpField';
@@ -13,11 +12,7 @@ import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
 import { Spinner } from 'core/widgets/Spinner';
 import { Tooltip } from 'core/presentation/Tooltip';
 
-import { cloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
-import { loadBalancerFilterModel } from './filter/loadBalancerFilter.model';
-import { loadBalancerFilterService } from './filter/loadBalancer.filter.service';
-import { modalService } from 'core/modal.service';
-import { providerSelectionService } from 'core/cloudProvider/providerSelection/providerSelection.service';
+import { ReactInjector } from 'core/react';
 
 interface IProps {
   app: Application;
@@ -38,6 +33,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
 
   constructor(props: IProps) {
     super(props);
+    const { $stateParams, loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
     this.state = {
       initialized: false,
       groups: [],
@@ -55,6 +51,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
   }
 
   private groupsUpdated(): void {
+    const { loadBalancerFilterModel } = ReactInjector;
     this.setState({
       groups: loadBalancerFilterModel.asFilterModel.groups,
       tags: loadBalancerFilterModel.asFilterModel.tags,
@@ -63,6 +60,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
 
   @Debounce(200)
   private updateLoadBalancerGroups(): void {
+    const { loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
     loadBalancerFilterModel.asFilterModel.applyParamsToUrl();
     loadBalancerFilterService.updateLoadBalancerGroups(this.props.app);
     this.groupsUpdated();
@@ -73,14 +71,15 @@ export class LoadBalancers extends React.Component<IProps, IState> {
   }
 
   private clearFilters(): void {
-    loadBalancerFilterService.clearFilters();
+    ReactInjector.loadBalancerFilterService.clearFilters();
     this.updateLoadBalancerGroups();
   }
 
   private createLoadBalancer(): void {
+    const { providerSelectionService, cloudProviderRegistry } = ReactInjector;
     providerSelectionService.selectProvider(this.props.app, 'loadBalancer').then((selectedProvider) => {
       const provider = cloudProviderRegistry.getValue(selectedProvider, 'loadBalancer');
-      modalService.open({
+      ReactInjector.modalService.open({
         templateUrl: provider.createLoadBalancerTemplateUrl,
         controller: `${provider.createLoadBalancerController} as ctrl`,
         size: 'lg',
@@ -102,7 +101,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
     if (state.showInstances) {
       params.showInstances = true;
     }
-    $state.go('.', params);
+    ReactInjector.$state.go('.', params);
   }
 
   private handleInputChange(event: any): void {
@@ -110,7 +109,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
-    loadBalancerFilterModel.asFilterModel.sortFilter[name] = value;
+    ReactInjector.loadBalancerFilterModel.asFilterModel.sortFilter[name] = value;
 
     const state: any = {}; // Use any type since we can't infer the property name
     state[name] = value;

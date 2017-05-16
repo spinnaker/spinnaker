@@ -7,15 +7,13 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, IInstance, IServerGroup } from 'core/domain';
-import { $state } from 'core/uirouter';
-import { clusterFilterService } from 'core/cluster/filter/clusterFilter.service';
+import { ReactInjector } from 'core/react';
 
 import { EntityUiTags } from 'core/entityTag/EntityUiTags';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { Instances } from 'core/instance/Instances';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
-import { stateEvents } from 'core/state.events';
 
 interface IProps {
   application: Application,
@@ -44,10 +42,11 @@ export class LoadBalancer extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = this.getState(props);
+    const { stateEvents, clusterFilterService } = ReactInjector;
 
     this.stateChangeListener = stateEvents.stateChangeSuccess.subscribe(
       () => {
-        const active = this.isActive()
+        const active = this.isActive();
         if (this.state.active !== active) {
           this.setState({active});
         }
@@ -59,7 +58,7 @@ export class LoadBalancer extends React.Component<IProps, IState> {
 
   private isActive(): boolean {
     const { loadBalancer } = this.props;
-    return $state.includes('**.loadBalancerDetails', {region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.cloudProvider});
+    return ReactInjector.$state.includes('**.loadBalancerDetails', {region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.cloudProvider});
   }
 
   private getState(props: IProps): IState {
@@ -73,6 +72,7 @@ export class LoadBalancer extends React.Component<IProps, IState> {
 
   private loadDetails(event: React.MouseEvent<HTMLElement>): void {
     event.persist();
+    const { $state } = ReactInjector;
     $timeout(() => {
       const { application, loadBalancer } = this.props;
       // anything handled by ui-sref or actual links should be ignored

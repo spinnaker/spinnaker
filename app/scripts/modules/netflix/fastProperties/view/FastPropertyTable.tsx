@@ -4,8 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { fastPropertyTime } from 'core/utils/timeFormatters';
 import { Property } from '../domain/property.domain';
-import { stateEvents } from 'core/state.events';
-import { $stateParams, $state } from 'core/uirouter';
+import { ReactInjector } from 'core/react';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { MAX_PROPERTIES_TO_DISPLAY } from './FastPropertiesList';
 
@@ -26,13 +25,13 @@ export class FastPropertyTable extends React.Component<IProps, IState> {
   public constructor(props: IProps) {
     super(props);
     this.state = {
-      activeRow: $stateParams.propertyId,
+      activeRow: ReactInjector.$stateParams.propertyId,
     };
-    this.locationChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => this.stateChanged());
+    this.locationChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.stateChanged());
   }
 
   private stateChanged(): void {
-    this.setState({activeRow: $state.params.propertyId});
+    this.setState({activeRow: ReactInjector.$state.params.propertyId});
   }
 
   public componentWillUnmount(): void {
@@ -48,21 +47,22 @@ export class FastPropertyTable extends React.Component<IProps, IState> {
 
     this.setState({activeRow: propertyId});
 
-    $state.go('.', {propertyId});
+    ReactInjector.$state.go('.', {propertyId});
   }
 
   private toggleSort(event: React.MouseEvent<HTMLElement>): void {
     let sortBy = (event.target as HTMLElement).getAttribute('data-sort-key');
-    if ($stateParams.sortBy === sortBy) {
+    if (ReactInjector.$stateParams.sortBy === sortBy) {
       sortBy = '-' + sortBy;
     }
     if (sortBy === 'key') { // default value, just remove from view
       sortBy = null;
     }
-    $state.go('.', {sortBy});
+    ReactInjector.$state.go('.', {sortBy});
   }
 
   private makeHeaderRow(width: number, sortKey: string, label: string): JSX.Element {
+    const { $stateParams } = ReactInjector;
     const isSortedBy = $stateParams.sortBy === sortKey;
     const isReverseSortedBy = $stateParams.sortBy === '-' + sortKey;
     return (

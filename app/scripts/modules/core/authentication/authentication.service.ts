@@ -48,8 +48,6 @@ export class AuthenticationService implements IAuthenticationService {
   }
 }
 
-export let authenticationService: IAuthenticationService = undefined;
 export const AUTHENTICATION_SERVICE = 'spinnaker.authentication.service';
 module(AUTHENTICATION_SERVICE, [])
-  .service('authenticationService', AuthenticationService)
-  .run(($injector: any) => authenticationService = <IAuthenticationService>$injector.get('authenticationService'));
+  .service('authenticationService', AuthenticationService);

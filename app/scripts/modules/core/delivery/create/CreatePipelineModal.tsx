@@ -5,13 +5,12 @@ import autoBindMethods from 'class-autobind-decorator';
 import {$log} from 'ngimport';
 import {IHttpPromiseCallbackArg} from 'angular';
 import {cloneDeep, uniqBy} from 'lodash';
-import {pipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
 import {Application} from 'core/application/application.model';
 import {IPipeline} from 'core/domain/IPipeline';
 import {SubmitButton} from 'core/modal/buttons/SubmitButton';
-import {modalService} from 'core/modal.service';
+import {ReactInjector} from 'core/react';
 import {SETTINGS} from 'core/config/settings';
-import {IPipelineTemplate, pipelineTemplateService} from 'core/pipeline/config/templates/pipelineTemplate.service';
+import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
 import {TemplateDescription} from './TemplateDescription';
 import {TemplateSelector} from './TemplateSelector';
 import {Spinner} from 'core/widgets/Spinner';
@@ -114,7 +113,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     }
 
     this.setState({submitting: true});
-    pipelineConfigService.savePipeline(config as IPipeline)
+    ReactInjector.pipelineConfigService.savePipeline(config as IPipeline)
       .then(() => this.onSaveSuccess(config as IPipeline), this.onSaveFailure);
   }
 
@@ -209,7 +208,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
 
   private openPipelineTemplateConfigModal(): void {
     this.close();
-    modalService.open({
+    ReactInjector.modalService.open({
       size: 'lg',
       templateUrl: require('core/pipeline/config/templates/configurePipelineTemplateModal.html'),
       controller: 'ConfigurePipelineTemplateModalCtrl as ctrl',
@@ -225,7 +224,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
   public loadPipelineTemplates(): void {
     if (SETTINGS.feature.pipelineTemplates) {
       this.setState({loading: true});
-      pipelineTemplateService.getPipelineTemplatesByScopes([this.props.application.name, 'global'])
+      ReactInjector.pipelineTemplateService.getPipelineTemplatesByScopes([this.props.application.name, 'global'])
         .then(templates => {
           templates = uniqBy(templates, 'id');
           this.setState({templates, loading: false});

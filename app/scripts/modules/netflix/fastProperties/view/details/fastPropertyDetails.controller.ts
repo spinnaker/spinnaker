@@ -10,7 +10,7 @@ import { FAST_PROPERTY_READ_SERVICE, FastPropertyReaderService } from '../../fas
 import { FAST_PROPERTY_HISTORY_COMPONENT } from '../history/fastPropertyHistory.component';
 import { Application } from 'core/application/application.model';
 import { Property } from '../../domain/property.domain';
-import { stateEvents } from 'core/state.events';
+import { ReactInjector } from 'core/react';
 import { fastPropertyTtl } from 'core/utils/timeFormatters';
 
 export class FastPropertyDetailsController {
@@ -27,7 +27,7 @@ export class FastPropertyDetailsController {
               private app: Application) {
     'ngInject';
     this.getProperty();
-    this.locationChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => this.getProperty());
+    this.locationChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.getProperty());
     if (app && app.getDataSource('properties')) {
       this.dataRefreshUnsubscribe = app.getDataSource('properties').onRefresh(null, () => this.getProperty());
     }

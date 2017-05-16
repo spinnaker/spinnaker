@@ -469,12 +469,10 @@ export class ClusterFilterService {
 
 }
 
-export let clusterFilterService: ClusterFilterService;
 export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
 module(CLUSTER_FILTER_SERVICE, [
   require('angular-ui-router').default,
   CLUSTER_FILTER_MODEL,
   require('./multiselect.model'),
-  require('../../filterModel/filter.model.service'),
-]).service('clusterFilterService', ClusterFilterService)
-  .run(($injector: any) => clusterFilterService = <ClusterFilterService>$injector.get('clusterFilterService'));
+  require('core/filterModel/filter.model.service'),
+]).service('clusterFilterService', ClusterFilterService);

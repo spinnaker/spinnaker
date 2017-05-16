@@ -5,7 +5,7 @@ import { IExecution, IPipeline } from 'core/domain';
 import { IExecutionViewState } from './pipelineGraph.service';
 import { IPipelineNode } from './pipelineGraph.service';
 import { PipelineGraphComponent } from './pipeline.graph.component';
-import { ReactInjector } from 'core/react.module';
+import { ReactInjector } from 'core/react';
 
 interface IPipelineGraphProps {
   pipeline?: IPipeline;

@@ -7,7 +7,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
-import {manualJudgmentService} from './manualJudgment.service';
+import {ReactInjector} from 'core/react';
 import {ButtonBusyIndicator} from 'core/forms/buttonBusyIndicator/ButtonBusyIndicator';
 
 interface IProps {
@@ -38,7 +38,7 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
   private provideJudgment(judgmentDecision: string): IPromise<void> {
     const judgmentInput: string = this.state.judgmentInput ? this.state.judgmentInput.value : null;
     this.setState({submitting: true, error: false, judgmentDecision});
-    return manualJudgmentService.provideJudgment(this.props.execution, this.props.stage, judgmentDecision, judgmentInput)
+    return ReactInjector.manualJudgmentService.provideJudgment(this.props.execution, this.props.stage, judgmentDecision, judgmentInput)
       .then(() => this.judgmentMade())
       .catch(() => this.judgmentFailure());
   }

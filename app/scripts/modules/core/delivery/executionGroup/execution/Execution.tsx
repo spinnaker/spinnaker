@@ -11,14 +11,8 @@ import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.se
 import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
-import { $state, $stateParams } from 'core/uirouter';
-import { cancelModalService } from 'core/cancelModal/cancelModal.service';
-import { confirmationModalService } from 'core/confirmationModal/confirmationModal.service';
+import { ReactInjector } from 'core/react';
 import { duration, timestamp } from 'core/utils/timeFormatters';
-import { executionFilterModel } from 'core/delivery/filter/executionFilter.model';
-import { executionService } from 'core/delivery/service/execution.service';
-import { schedulerFactory } from 'core/scheduler/scheduler.factory';
-import { stateEvents } from 'core/state.events';
 
 // react components
 import { AccountTag } from 'core/account/AccountTag';
@@ -66,9 +60,10 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   constructor(props: IExecutionProps) {
     super(props);
     const { execution, application } = this.props;
+    const { executionFilterModel, executionService, schedulerFactory } = ReactInjector;
 
     const initialViewState = {
-      activeStageId: Number($stateParams.stage),
+      activeStageId: Number(ReactInjector.$stateParams.stage),
       executionId: execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
@@ -106,6 +101,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   private updateViewStateDetails(): void {
+    const { $stateParams } = ReactInjector;
     const newViewState = clone(this.state.viewState);
     newViewState.activeStageId = Number($stateParams.stage);
     newViewState.executionId = $stateParams.executionId;
@@ -116,15 +112,17 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   private invalidateShowingDetails(): boolean {
+    const { $state, $stateParams } = ReactInjector;
     return (this.props.standalone === true || (this.props.execution.id === $stateParams.executionId &&
       $state.includes('**.execution.**')));
   }
 
   public isActive(stageIndex: number): boolean {
-    return this.state.showingDetails && Number($stateParams.stage) === stageIndex;
+    return this.state.showingDetails && Number(ReactInjector.$stateParams.stage) === stageIndex;
   }
 
   public toggleDetails(stageIndex?: number): void {
+    const { $state } = ReactInjector;
     if (this.props.execution.id === $state.params.executionId && $state.current.name.includes('.execution') && stageIndex === undefined) {
       $state.go('^');
       return;
@@ -159,19 +157,21 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public deleteExecution(): void {
+    const { confirmationModalService, executionService } = ReactInjector;
     confirmationModalService.confirm({
       header: 'Really delete execution?',
       buttonText: 'Delete',
       body: '<p>This will permanently delete the execution history.</p>',
       submitMethod: () => executionService.deleteExecution(this.props.application, this.props.execution.id).then( () => {
         if (this.props.standalone) {
-          $state.go('^');
+          ReactInjector.$state.go('^');
         }
       })
     });
   }
 
   public cancelExecution(): void {
+    const { cancelModalService, executionService } = ReactInjector;
     const hasDeployStage = this.props.execution.stages && this.props.execution.stages.some(stage => stage.type === 'deploy' || stage.type === 'cloneServerGroup');
     cancelModalService.confirm({
       header: `Really stop execution of ${this.props.execution.name}?`,
@@ -183,6 +183,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public pauseExecution(): void {
+    const { confirmationModalService, executionService } = ReactInjector;
     confirmationModalService.confirm({
         header: 'Really pause execution?',
         buttonText: 'Pause',
@@ -192,6 +193,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public resumeExecution(): void {
+    const { confirmationModalService, executionService } = ReactInjector;
     confirmationModalService.confirm({
         header: 'Really resume execution?',
         buttonText: 'Resume',
@@ -202,7 +204,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   public componentDidMount(): void {
     this.mounted = true;
     this.runningTime = new OrchestratedItemRunningTime(this.props.execution, (time: number) => this.setState({ runningTimeInMs: time }));
-    this.stateChangeSuccessSubscription = stateEvents.stateChangeSuccess.subscribe(() => this.updateViewStateDetails());
+    this.stateChangeSuccessSubscription = ReactInjector.stateEvents.stateChangeSuccess.subscribe(() => this.updateViewStateDetails());
   }
 
   public componentWillReceiveProps(nextProps: IExecutionProps): void {

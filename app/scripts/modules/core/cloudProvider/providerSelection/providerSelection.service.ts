@@ -1,5 +1,5 @@
 import { IModalService } from 'angular-ui-bootstrap';
-import { IPromise, module, IQService, auto } from 'angular';
+import { IPromise, module, IQService } from 'angular';
 import { uniq } from 'lodash';
 
 import { ACCOUNT_SERVICE, AccountService } from 'core/account/account.service';
@@ -47,10 +47,8 @@ export class ProviderSelectionService {
   }
 }
 
-export let providerSelectionService: ProviderSelectionService;
 export const PROVIDER_SELECTION_SERVICE = 'spinnaker.cloudProvider.providerSelection.service';
 module (PROVIDER_SELECTION_SERVICE, [
   ACCOUNT_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-]).service('providerSelectionService', ProviderSelectionService)
-  .run(($injector: auto.IInjectorService) => providerSelectionService = <ProviderSelectionService>$injector.get('providerSelectionService'));
+]).service('providerSelectionService', ProviderSelectionService);

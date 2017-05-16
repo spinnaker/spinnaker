@@ -3,7 +3,7 @@ import { angular2react } from 'angular2react';
 
 import { IInstance } from 'core/domain';
 import { InstancesWrapperComponent } from './instances.component';
-import { ReactInjector } from 'core/react.module';
+import { ReactInjector } from 'core/react';
 
 interface IProps {
   instances: IInstance[];

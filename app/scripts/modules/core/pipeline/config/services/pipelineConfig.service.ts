@@ -143,11 +143,9 @@ export class PipelineConfigService {
 
 }
 
-export let pipelineConfigService: PipelineConfigService = undefined;
 export const PIPELINE_CONFIG_SERVICE = 'spinnaker.core.pipeline.config.service';
 module(PIPELINE_CONFIG_SERVICE, [
   API_SERVICE,
   AUTHENTICATION_SERVICE,
   VIEW_STATE_CACHE_SERVICE,
-]).service('pipelineConfigService', PipelineConfigService)
-  .run(($injector: any) => pipelineConfigService = <PipelineConfigService>$injector.get('pipelineConfigService'));
+]).service('pipelineConfigService', PipelineConfigService);

@@ -3,11 +3,15 @@ import * as React from 'react';
 import {shallow} from 'enzyme';
 
 import {CreatePipelineModal, ICreatePipelineModalProps} from './CreatePipelineModal';
-import {PIPELINE_CONFIG_SERVICE, pipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
-import {PIPELINE_TEMPLATE_SERVICE, pipelineTemplateService} from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
+import {
+  PIPELINE_TEMPLATE_SERVICE,
+  PipelineTemplateService
+} from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { ReactInjector, REACT_MODULE } from 'core/react';
 import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {IPipeline} from 'core/domain/IPipeline';
+import {IPipeline} from 'core/domain';
 import {SETTINGS} from 'core/config/settings';
 
 describe('CreatePipelineModal', () => {
@@ -16,16 +20,21 @@ describe('CreatePipelineModal', () => {
   let application: Application;
   let initializeComponent: (configs?: Partial<IPipeline>[]) => void;
   let component: CreatePipelineModal;
+  let pipelineConfigService: PipelineConfigService;
+  let pipelineTemplateService: PipelineTemplateService;
 
   beforeEach(
     mock.module(
       APPLICATION_MODEL_BUILDER,
       PIPELINE_CONFIG_SERVICE,
-      PIPELINE_TEMPLATE_SERVICE
+      PIPELINE_TEMPLATE_SERVICE,
+      REACT_MODULE
     )
   );
 
   beforeEach(mock.inject((_$q_: IQService, $rootScope: IScope, applicationModelBuilder: ApplicationModelBuilder) => {
+    pipelineConfigService = ReactInjector.pipelineConfigService;
+    pipelineTemplateService = ReactInjector.pipelineTemplateService;
     $q = _$q_;
     $scope = $rootScope.$new();
     initializeComponent = (configs = []) => {

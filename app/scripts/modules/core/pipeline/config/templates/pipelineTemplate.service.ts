@@ -78,8 +78,6 @@ export class PipelineTemplateService {
   }
 }
 
-export let pipelineTemplateService: PipelineTemplateService;
 export const PIPELINE_TEMPLATE_SERVICE = 'spinnaker.core.pipelineTemplate.service';
 module(PIPELINE_TEMPLATE_SERVICE, [API_SERVICE])
-  .service('pipelineTemplateService', PipelineTemplateService)
-  .run(($injector: any) => pipelineTemplateService = <PipelineTemplateService>$injector.get('pipelineTemplateService'));
+  .service('pipelineTemplateService', PipelineTemplateService);

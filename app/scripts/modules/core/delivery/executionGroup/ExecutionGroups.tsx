@@ -5,10 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { Application } from 'core/application/application.model';
 import { ExecutionGroup } from './ExecutionGroup';
 import { IExecutionGroup } from 'core/domain';
-import { executionFilterModel } from 'core/delivery/filter/executionFilter.model';
-import { executionFilterService } from 'core/delivery/filter/executionFilter.service';
-import { $state } from 'core/uirouter';
-import { stateEvents } from 'core/state.events';
+import { ReactInjector } from 'core/react';
 
 import './executionGroups.less';
 
@@ -28,11 +25,11 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
 
   constructor(props: IProps) {
     super(props);
-
+    const { executionFilterModel, executionFilterService, stateEvents } = ReactInjector;
     this.state = {
       groups: executionFilterModel.asFilterModel.groups,
       showingDetails: this.showingDetails()
-    }
+    };
 
     this.applicationRefreshUnsubscribe = this.props.application.executions.onRefresh(null, () => { this.forceUpdate(); });
     this.groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => { this.setState({groups: executionFilterModel.asFilterModel.groups}); });
@@ -45,7 +42,7 @@ export class ExecutionGroups extends React.Component<IProps, IState> {
   }
 
   private showingDetails(): boolean {
-    return $state.includes('**.execution');
+    return ReactInjector.$state.includes('**.execution');
   }
 
   public componentWillUnmount(): void {

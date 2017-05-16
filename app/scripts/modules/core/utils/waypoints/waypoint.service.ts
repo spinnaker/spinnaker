@@ -1,6 +1,6 @@
 import * as $ from 'jquery';
 import { sortBy, throttle } from 'lodash';
-import { IScope, auto, module } from 'angular';
+import { IScope, module } from 'angular';
 import { $timeout, $rootScope } from 'ngimport';
 
 interface IViewPlacement {
@@ -98,8 +98,6 @@ export class WaypointService {
   }
 }
 
-export let waypointService: WaypointService = undefined;
 export const WAYPOINT_SERVICE = 'spinnaker.core.utils.waypoints.service';
 module(WAYPOINT_SERVICE, [])
-  .factory('waypointService', () => new WaypointService())
-  .run(($injector: auto.IInjectorService) => waypointService = <WaypointService>$injector.get('waypointService'));
+  .factory('waypointService', () => new WaypointService());

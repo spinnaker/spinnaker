@@ -92,7 +92,6 @@ export class ApplicationReader {
   }
 }
 
-export let applicationReader: ApplicationReader = undefined;
 export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service';
 
 module(APPLICATION_READ_SERVICE, [
@@ -100,5 +99,4 @@ module(APPLICATION_READ_SERVICE, [
   require('../../presentation/robotToHumanFilter/robotToHuman.filter'),
   API_SERVICE,
   APPLICATION_DATA_SOURCE_REGISTRY,
-]).service('applicationReader', ApplicationReader)
-  .run(($injector: any) => applicationReader = <ApplicationReader>$injector.get('applicationReader'));
+]).service('applicationReader', ApplicationReader);

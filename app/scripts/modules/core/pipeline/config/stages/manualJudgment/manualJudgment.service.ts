@@ -16,7 +16,5 @@ export class ManualJudgmentService {
   }
 }
 
-export let manualJudgmentService: ManualJudgmentService = undefined;
 export const MANUAL_JUDGMENT_SERVICE = 'spinnaker.core.pipeline.config.stages.manualJudgment.service';
-module(MANUAL_JUDGMENT_SERVICE, [EXECUTION_SERVICE]).service('manualJudgmentService', ManualJudgmentService)
-  .run(($injector: any) => manualJudgmentService = <ManualJudgmentService>$injector.get('manualJudgmentService'));
+module(MANUAL_JUDGMENT_SERVICE, [EXECUTION_SERVICE]).service('manualJudgmentService', ManualJudgmentService);

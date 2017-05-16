@@ -4,7 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 import { clone, last, get } from 'lodash';
 import { PathNode } from 'angular-ui-router';
 
-import { $state } from 'core/uirouter';
+import { ReactInjector } from 'core/react';
 import { ILoadBalancer, IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
@@ -39,7 +39,7 @@ export class LoadBalancerServerGroup extends React.Component<IProps, IState> {
       serverGroup: serverGroup.name,
       provider: loadBalancer.cloudProvider
     };
-    $state.go('.serverGroup', params, { relative: this.baseRef, inherit: true });
+    ReactInjector.$state.go('.serverGroup', params, { relative: this.baseRef, inherit: true });
   }
 
   private getState(props: IProps): IState {

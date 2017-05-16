@@ -25,8 +25,6 @@ export class VariableValidatorService {
   }
 }
 
-export let variableValidatorService: VariableValidatorService;
 export const VARIABLE_VALIDATOR_SERVICE = 'spinnaker.core.variableValidator.service';
 module(VARIABLE_VALIDATOR_SERVICE, [])
-  .service('variableValidatorService', VariableValidatorService)
-  .run(($injector: any) => variableValidatorService = <VariableValidatorService>$injector.get('variableValidatorService'));
+  .service('variableValidatorService', VariableValidatorService);

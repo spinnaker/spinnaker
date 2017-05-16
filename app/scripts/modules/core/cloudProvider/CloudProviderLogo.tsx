@@ -2,7 +2,7 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Tooltip } from 'core/presentation/Tooltip';
-import { cloudProviderRegistry } from 'core/cloudProvider/cloudProvider.registry';
+import { ReactInjector } from 'core/react';
 
 import './cloudProviderLogo.less';
 
@@ -26,7 +26,7 @@ export class CloudProviderLogo extends React.Component<IProps, IState> {
 
   private getState(props: IProps): IState {
     if (props.showTooltip) {
-      return { tooltip: cloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider };
+      return { tooltip: ReactInjector.cloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider };
     }
     return {};
   }

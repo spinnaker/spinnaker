@@ -35,10 +35,8 @@ export class CollapsibleSectionStateCache {
   }
 }
 
-export let collapsibleSectionStateCache: CollapsibleSectionStateCache = undefined;
 export const COLLAPSIBLE_SECTION_STATE_CACHE = 'spinnaker.core.cache.collapsibleSectionState';
 module(COLLAPSIBLE_SECTION_STATE_CACHE, [
   require('angular-cache')
 ])
-  .service('collapsibleSectionStateCache', CollapsibleSectionStateCache)
-  .run(($injector: any) => collapsibleSectionStateCache = <CollapsibleSectionStateCache>$injector.get('collapsibleSectionStateCache'));
+  .service('collapsibleSectionStateCache', CollapsibleSectionStateCache);

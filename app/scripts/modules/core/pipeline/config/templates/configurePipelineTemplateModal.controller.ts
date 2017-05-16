@@ -5,11 +5,11 @@ import autoBindMethods from 'class-autobind-decorator';
 import {without, chain} from 'lodash';
 import {
   PIPELINE_TEMPLATE_SERVICE, IPipelineTemplate,
-  IVariableMetadata, pipelineTemplateService, IPipelineConfig
+  IVariableMetadata, IPipelineConfig
 } from './pipelineTemplate.service';
 import {IVariable} from './inputs/variableInput.service';
 import {Application} from 'core/application/application.model';
-import {variableValidatorService} from './validators/variableValidator.service';
+import { ReactInjector } from 'core/react';
 
 export interface IVariableMetadataGroup {
   name: string;
@@ -43,7 +43,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
   }
 
   public getPipelineConfigPlan(): void {
-    pipelineTemplateService.getPipelinePlan(this.buildConfig())
+    ReactInjector.pipelineTemplateService.getPipelinePlan(this.buildConfig())
       .then(() => { }).catch(() => { }); // TODO(dpeach)
   }
 
@@ -78,7 +78,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
 
   public handleVariableChange(newVariable: IVariable): void {
     const oldVariable = this.getVariable(newVariable.name);
-    newVariable.errors = variableValidatorService.validate(newVariable);
+    newVariable.errors = ReactInjector.variableValidatorService.validate(newVariable);
     this.variables = without(this.variables, oldVariable).concat([newVariable]);
 
     // `handleVariableChange` is passed to a React component, and Angular has no idea when it has been called.
@@ -123,7 +123,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
       });
     }
     this.variables.forEach(v => {
-      v.errors = variableValidatorService.validate(v);
+      v.errors = ReactInjector.variableValidatorService.validate(v);
     });
   }
 }

@@ -359,7 +359,6 @@ export class ExecutionService {
     }
 }
 
-export let executionService: ExecutionService = undefined;
 export const EXECUTION_SERVICE = 'spinnaker.core.delivery.executions.service';
 module(EXECUTION_SERVICE, [
   EXECUTION_FILTER_MODEL,
@@ -367,5 +366,4 @@ module(EXECUTION_SERVICE, [
   PIPELINE_CONFIG_PROVIDER,
   API_SERVICE
 ]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
-                                new ExecutionService($http, $q, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig))
-  .run(($injector: any) => executionService = <ExecutionService>$injector.get('executionService'));
+                                new ExecutionService($http, $q, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig));

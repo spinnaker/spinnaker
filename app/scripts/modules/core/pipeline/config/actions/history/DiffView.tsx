@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { angular2react } from 'angular2react';
+
 import { IJsonDiff } from 'core/utils/json/json.utility.service';
-import { ReactInjector } from 'core/react.module';
+import { ReactInjector } from 'core/react';
 import { diffViewComponent } from './diffView.component';
 
 interface IProps {

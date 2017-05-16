@@ -14,13 +14,7 @@ import { NextRunTag } from 'core/delivery/triggers/NextRunTag';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { TriggersTag } from 'core/delivery/triggers/TriggersTag';
-import { $state, $stateParams } from 'core/uirouter';
-import { collapsibleSectionStateCache } from 'core/cache/collapsibleSectionStateCache';
-import { executionService } from 'core/delivery/service/execution.service';
-import { executionFilterModel } from 'core/delivery/filter/executionFilter.model';
-import { modalService } from 'core/modal.service';
-import { pipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
-import { stateEvents } from 'core/state.events';
+import { ReactInjector } from 'core/react';
 
 import './executionGroup.less';
 
@@ -48,6 +42,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
 
   constructor(props: IProps) {
     super(props);
+    const { collapsibleSectionStateCache, executionFilterModel } = ReactInjector;
 
     this.strategyConfig = find(this.props.application.strategyConfigs.data, { name: this.props.group.heading }) as IPipeline;
 
@@ -67,11 +62,13 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   private isShowingDetails(): boolean {
+    const { $state, $stateParams } = ReactInjector;
     return this.props.group.executions
           .some((execution: IExecution) => execution.id === $stateParams.executionId && $state.includes('**.execution.**'));
   }
 
   public configure(id: string): void {
+    const { $state } = ReactInjector;
     if (!$state.current.name.includes('.executions.execution')) {
       $state.go('^.pipelineConfig', { pipelineId: id });
     } else {
@@ -80,10 +77,11 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   private hideDetails(): void {
-    $state.go('.^');
+    ReactInjector.$state.go('.^');
   }
 
   private getSectionCacheKey(): string {
+    const { executionService, executionFilterModel } = ReactInjector;
     return executionService.getSectionCacheKey(executionFilterModel.asFilterModel.sortFilter.groupBy, this.props.application.name, this.props.group.heading);
   };
 
@@ -92,11 +90,12 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
     if (this.isShowingDetails()) {
       this.hideDetails();
     }
-    collapsibleSectionStateCache.setExpanded(this.getSectionCacheKey(), open);
+    ReactInjector.collapsibleSectionStateCache.setExpanded(this.getSectionCacheKey(), open);
     this.setState({open});
   }
 
   private startPipeline(command: IPipelineCommand): IPromise<void> {
+    const { executionService, pipelineConfigService } = ReactInjector;
     this.setState({triggeringExecution: true});
     return pipelineConfigService.triggerPipeline(this.props.application.name, command.pipelineName, command.trigger).then(
       (newPipelineId) => {
@@ -108,7 +107,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   public triggerPipeline(): void {
-    modalService.open({
+    ReactInjector.modalService.open({
       templateUrl: require('../manualExecution/manualPipelineExecution.html'),
       controller: 'ManualPipelineExecutionCtrl as vm',
       resolve: {
@@ -120,6 +119,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   public componentDidMount(): void {
+    const { executionFilterModel, stateEvents } = ReactInjector;
     this.expandUpdatedSubscription = executionFilterModel.expandSubject.subscribe((expanded) => {
       if (this.state.open !== expanded) {
         this.toggle();

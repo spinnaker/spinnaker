@@ -4,6 +4,8 @@ import {CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, ConfigurePipelineTemplateModalCo
 import {IVariable, IVariableError} from './inputs/variableInput.service';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {Application} from 'core/application/application.model';
+import {REACT_MODULE} from 'core/react';
+import {PIPELINE_TEMPLATE_MODULE} from './pipelineTemplate.module';
 
 describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
   let ctrl: ConfigurePipelineTemplateModalController,
@@ -26,7 +28,9 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
   beforeEach(
     mock.module(
       APPLICATION_MODEL_BUILDER,
-      CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL
+      CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
+      PIPELINE_TEMPLATE_MODULE,
+      REACT_MODULE
     )
   );
 

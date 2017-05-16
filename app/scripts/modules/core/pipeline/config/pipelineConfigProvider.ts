@@ -193,8 +193,6 @@ export class PipelineConfigProvider implements IServiceProvider {
   }
 }
 
-export let pipelineConfig: PipelineConfigProvider = undefined;
 export const PIPELINE_CONFIG_PROVIDER = 'spinnaker.core.pipeline.config.configProvider';
 module(PIPELINE_CONFIG_PROVIDER, [])
-  .provider('pipelineConfig', PipelineConfigProvider)
-  .run(($injector: auto.IInjectorService) => pipelineConfig = <PipelineConfigProvider>$injector.get('pipelineConfig'));
+  .provider('pipelineConfig', PipelineConfigProvider);

@@ -25,7 +25,7 @@ import {PIPELINE_TEMPLATE_MODULE} from './pipeline/config/templates/pipelineTemp
 import {HEALTH_COUNTS_COMPONENT} from './healthCounts/healthCounts.component';
 import {CORE_PAGETITLE_SERVICE} from './pageTitle/pageTitle.service';
 import {INTERCEPTOR_MODULE} from './interceptor/interceptor.module';
-import {REACT_MODULE} from './react.module';
+import {REACT_MODULE} from './react';
 
 require('../../../fonts/spinnaker/icons.css');
 
@@ -201,6 +201,7 @@ module.exports = angular
       });
     });
   })
+  .run($trace => $trace.enable(1))
   .run(function (cacheInitializer) {
     cacheInitializer.initialize();
   })

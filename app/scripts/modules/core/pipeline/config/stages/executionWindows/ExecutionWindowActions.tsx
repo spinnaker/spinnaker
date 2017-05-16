@@ -3,8 +3,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
-import {confirmationModalService} from 'core/confirmationModal/confirmationModal.service';
-import {executionService} from 'core/delivery/service/execution.service';
+import {ReactInjector} from 'core/react';
 import {timePickerTime} from 'core/utils/timeFormatters';
 import {SystemTimezone} from 'core/utils/SystemTimezone';
 import {DAYS_OF_WEEK} from './daysOfWeek';
@@ -41,6 +40,7 @@ export class ExecutionWindowActions extends React.Component<IProps, IState> {
   }
 
   private finishWaiting(e: React.MouseEvent<HTMLElement>): void {
+    const { confirmationModalService, executionService } = ReactInjector;
     (e.target as HTMLElement).blur(); // forces closing of the popover when the modal opens
     const stage = this.props.stage,
           executionId = this.props.execution.id;

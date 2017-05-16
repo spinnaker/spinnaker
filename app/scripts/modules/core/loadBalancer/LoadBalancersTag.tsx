@@ -7,7 +7,7 @@ import { Application } from 'core/application/application.model';
 import { IHealth, ILoadBalancer, IServerGroup } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { Tooltip } from 'core/presentation/Tooltip';
-import { $state } from 'core/uirouter';
+import { ReactInjector } from 'core/react';
 
 export interface ILoadBalancersTagProps {
   application: Application;
@@ -121,6 +121,7 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
   }
 
   private showLoadBalancerDetails(name: string): void {
+    const { $state } = ReactInjector;
     const serverGroup = this.props.serverGroup;
     ReactGA.event({category: 'Cluster Pod', action: `Load Load Balancer Details (multiple menu)`});
     const nextState = $state.current.name.endsWith('.clusters') ? '.loadBalancerDetails' : '^.loadBalancerDetails';

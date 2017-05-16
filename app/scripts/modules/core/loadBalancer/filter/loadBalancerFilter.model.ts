@@ -101,10 +101,8 @@ export class LoadBalancerFilterModel {
   }
 }
 
-export let loadBalancerFilterModel: LoadBalancerFilterModel;
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
 module(LOAD_BALANCER_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
   require('core/navigation/urlParser.service'),
-]).service('LoadBalancerFilterModel', LoadBalancerFilterModel)
-  .run(($injector: any) => loadBalancerFilterModel = <LoadBalancerFilterModel>$injector.get('LoadBalancerFilterModel'));
+]).service('loadBalancerFilterModel', LoadBalancerFilterModel);

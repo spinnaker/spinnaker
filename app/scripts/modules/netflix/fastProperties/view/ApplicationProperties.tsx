@@ -12,9 +12,7 @@ import { FastPropertyRollouts } from './rollouts/FastPropertyRollouts';
 import { FastPropertiesList } from './FastPropertiesList';
 import { FastPropertyFilterSearch } from './filter/FastPropertyFilterSearch';
 import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
-import { modalService } from 'core/modal.service';
-import { $stateParams, $state } from 'core/uirouter';
-import { stateEvents } from 'core/state.events';
+import { ReactInjector } from 'core/react';
 import { sortProperties } from '../global/GlobalPropertiesList';
 
 interface IProps {
@@ -45,6 +43,7 @@ export class ApplicationProperties extends React.Component<IProps, IState> {
 
   constructor(props: IProps) {
     super(props);
+    const { $stateParams } = ReactInjector;
 
     this.runningDataSource = this.props.application.getDataSource('runningPropertyPromotions');
 
@@ -73,9 +72,9 @@ export class ApplicationProperties extends React.Component<IProps, IState> {
       () => this.setState({runningPromotionsCount: this.runningDataSource.data.length})
     );
     this.filtersUpdatedStream.subscribe((newTags) => this.applyFilters(newTags));
-    this.stateChangeListener = stateEvents.stateChangeSuccess.subscribe(
+    this.stateChangeListener = ReactInjector.stateEvents.stateChangeSuccess.subscribe(
       () => {
-        const activeSection = $stateParams.tab || 'properties';
+        const activeSection = ReactInjector.$stateParams.tab || 'properties';
         this.setState({activeSection});
         this.applyFilters(this.state.filters);
       }
@@ -118,7 +117,7 @@ export class ApplicationProperties extends React.Component<IProps, IState> {
   }
 
   private createFastProperty(): void {
-    modalService.open({
+    ReactInjector.modalService.open({
       templateUrl: require('../wizard/createFastPropertyWizard.html'),
       controller:  'createFastPropertyWizardController',
       controllerAs: 'ctrl',
@@ -132,7 +131,7 @@ export class ApplicationProperties extends React.Component<IProps, IState> {
 
   private handleSelect(event: React.MouseEvent<HTMLElement>): void {
     const activeSection = (event.currentTarget as HTMLElement).getAttribute('data-section');
-    $state.go('.', {tab: activeSection});
+    ReactInjector.$state.go('.', {tab: activeSection});
   }
 
   public render() {

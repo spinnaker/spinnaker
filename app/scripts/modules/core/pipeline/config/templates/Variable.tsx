@@ -1,8 +1,9 @@
 import * as React from 'react';
 import {IVariableMetadata} from './pipelineTemplate.service';
-import {variableInputService, IVariable, IVariableInputBuilder} from './inputs/variableInput.service';
+import {IVariable, IVariableInputBuilder} from './inputs/variableInput.service';
 import autoBindMethods from 'class-autobind-decorator';
 import {VariableMetadataHelpField} from './VariableMetadataHelpField';
+import { ReactInjector } from 'core/react';
 
 import './Variable.less';
 
@@ -18,7 +19,7 @@ interface IProps {
 export class Variable extends React.Component<IProps, IState> {
 
   private getVariableInput(): JSX.Element {
-    const input: IVariableInputBuilder = variableInputService.getInputForType(this.props.variableMetadata.type);
+    const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(this.props.variableMetadata.type);
     return input ? input.getInput(this.props.variable, this.props.onChange) : null;
   }
 

@@ -2,8 +2,8 @@ import * as React from 'react';
 import { angular2react } from 'angular2react';
 
 import { ExecutionStatusComponent } from './executionStatus.component';
-import {IExecution} from 'core/domain/IExecution';
-import { ReactInjector } from 'core/react.module';
+import { IExecution } from 'core/domain';
+import { ReactInjector } from 'core/react';
 
 interface IExecutionStatusProps {
   execution: IExecution;
