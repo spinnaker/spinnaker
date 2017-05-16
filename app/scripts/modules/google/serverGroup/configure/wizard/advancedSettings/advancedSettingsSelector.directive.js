@@ -4,7 +4,7 @@ let angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.google.serverGroup.configure.wizard.advancedSettings.selector.directive', [
-    require('exports-loader?"ui.select"!ui-select'),
+    require('ui-select'),
     require('../securityGroups/tagManager.service.js')
   ])
   .directive('gceServerGroupAdvancedSettingsSelector', function() {
