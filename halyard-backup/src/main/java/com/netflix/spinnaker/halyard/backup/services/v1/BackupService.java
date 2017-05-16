@@ -17,12 +17,16 @@
 
 package com.netflix.spinnaker.halyard.backup.services.v1;
 
-import com.netflix.spinnaker.halyard.backup.kms.v1.google.GoogleKms;
+import com.netflix.spinnaker.halyard.backup.kms.v1.SecureStorage;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.File;
 
 @Component
 public class BackupService {
@@ -30,14 +34,21 @@ public class BackupService {
   HalconfigParser halconfigParser;
 
   @Autowired(required = false)
-  GoogleKms googleKms;
+  SecureStorage secureStorage;
 
   @Autowired
   HalconfigDirectoryStructure directoryStructure;
 
   public void create() {
+    if (secureStorage == null) {
+      // TODO(lwander): point to docs here.
+      throw new HalException(Problem.Severity.FATAL, "You must enable secure storage before proceeding.");
+    }
+
     Halconfig halconfig = halconfigParser.getHalconfig();
     halconfig.backupLocalFiles(directoryStructure.getBackupConfigDependenciesPath().toString());
     halconfigParser.backupConfig();
+
+    secureStorage.backupFile("config", directoryStructure.getBackupConfigPath().toFile());
   }
 }

@@ -18,17 +18,20 @@
 
 package com.netflix.spinnaker.halyard.backup.kms.v1.google;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@ConditionalOnExpression("${backup.kms.google.enabled:false}")
-@EnableConfigurationProperties(GoogleKmsProperties.class)
-public class GoogleKmsConfig {
-  @Bean
-  public GoogleKms googleKms(GoogleKmsProperties properties) {
-    return new GoogleKms(properties);
+import com.netflix.spinnaker.halyard.backup.kms.v1.SecureStorage;
+
+public class GoogleSecureStorage extends SecureStorage {
+  final GoogleKms googleKms;
+  final GoogleStorage googleStorage;
+
+  GoogleSecureStorage(GoogleKms googleKms, GoogleStorage googleStorage) {
+    this.googleKms = googleKms;
+    this.googleStorage = googleStorage;
+  }
+
+  @Override
+  public void storeContents(String name, String contents) {
+    googleStorage.writeBytes(name, googleKms.encryptContents(contents));
   }
 }

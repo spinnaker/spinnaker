@@ -16,7 +16,21 @@
  *
  */
 
-package com.netflix.spinnaker.halyard.backup.kms.v1;
+package com.netflix.spinnaker.halyard.backup.kms.v1.google;
 
-public interface Kms {
+import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+@Data
+@ConfigurationProperties("backup.google")
+public class GoogleSecureStorageProperties {
+  private String jsonPath = "";
+  private String project = "";
+  private String keyRingLocation = "";
+  private String keyRingName = "";
+  private String cryptoKeyName = "";
+
+  private String bucketLocation = "";
+  private String bucket = "";
+  private String rootFolder = "";
 }

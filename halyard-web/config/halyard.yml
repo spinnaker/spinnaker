@@ -19,9 +19,8 @@ endpoints:
     enabled: true
 
 backup:
-  kms:
-    google:
-      enabled: false
+  google:
+    enabled: false
 
 retrofit:
   logLevel: BASIC

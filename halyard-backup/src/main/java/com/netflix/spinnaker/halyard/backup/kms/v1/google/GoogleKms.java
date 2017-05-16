@@ -26,9 +26,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.cloudkms.v1.CloudKMS;
 import com.google.api.services.cloudkms.v1.CloudKMSScopes;
-import com.google.api.services.cloudkms.v1.model.CryptoKey;
-import com.google.api.services.cloudkms.v1.model.KeyRing;
-import com.netflix.spinnaker.halyard.backup.kms.v1.Kms;
+import com.google.api.services.cloudkms.v1.model.*;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import lombok.extern.slf4j.Slf4j;
@@ -36,9 +34,11 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Base64;
+import java.util.Collections;
 
 @Slf4j
-public class GoogleKms implements Kms {
+class GoogleKms {
   private final CloudKMS cloudKms;
   private final String projectId;
   private final String locationId;
@@ -47,23 +47,39 @@ public class GoogleKms implements Kms {
   private final KeyRing keyRing;
   private final CryptoKey cryptoKey;
 
+  private GoogleCredential credential;
+
   private static final String KEY_PURPOSE = "ENCRYPT_DECRYPT";
 
-  public GoogleKms(GoogleKmsProperties properties) {
+  GoogleKms(GoogleSecureStorageProperties properties) {
     cloudKms = buildCredentials(properties);
     projectId = properties.getProject();
-    locationId = locationId(projectId, StringUtils.isEmpty(properties.getLocation()) ? "global" : properties.getLocation());
+    locationId = locationId(projectId, StringUtils.isEmpty(properties.getKeyRingLocation()) ? "global" : properties.getKeyRingLocation());
     keyRingId = keyRingId(locationId, StringUtils.isEmpty(properties.getKeyRingName()) ? "halyard" : properties.getKeyRingName());
     cryptoKeyId = cryptoKeyId(keyRingId, StringUtils.isEmpty(properties.getCryptoKeyName()) ? "config" : properties.getCryptoKeyName());
 
     keyRing = ensureKeyRingExists(cloudKms, locationId, keyRingId);
-    cryptoKey = ensureCryptoKeyExists(cloudKms, keyRingId, cryptoKeyId);
+    cryptoKey = ensureCryptoKeyExists(cloudKms, credential, keyRingId, cryptoKeyId);
   }
 
-  private CloudKMS buildCredentials(GoogleKmsProperties properties) {
+  byte[] encryptContents(String plaintext) {
+    plaintext = Base64.getEncoder().encodeToString(plaintext.getBytes());
+    EncryptRequest encryptRequest = new EncryptRequest().encodePlaintext(plaintext.getBytes());
+    EncryptResponse response;
+    try {
+      response = cloudKms.projects().locations().keyRings().cryptoKeys()
+          .encrypt(cryptoKey.getName(), encryptRequest)
+          .execute();
+    } catch (IOException e) {
+      throw new HalException(Problem.Severity.FATAL, "Failed to encrypt user data: " + e.getMessage(), e);
+    }
+
+    return response.decodeCiphertext();
+  }
+
+  private CloudKMS buildCredentials(GoogleSecureStorageProperties properties) {
     HttpTransport transport = new NetHttpTransport();
     JsonFactory jsonFactory = new JacksonFactory();
-    GoogleCredential credential;
     try {
       credential = loadKmsCredential(transport, jsonFactory, properties.getJsonPath());
     } catch (IOException e) {
@@ -87,7 +103,7 @@ public class GoogleKms implements Kms {
     return String.format("%s/cryptoKeys/%s", keyRingId, cryptoKeyId);
   }
 
-  private static CryptoKey ensureCryptoKeyExists(CloudKMS cloudKms, String keyRingId, String cryptoKeyId) {
+  private static CryptoKey ensureCryptoKeyExists(CloudKMS cloudKms, GoogleCredential credential, String keyRingId, String cryptoKeyId) {
     CryptoKey cryptoKey;
     try {
       cryptoKey = cloudKms.projects().locations().keyRings().cryptoKeys().get(cryptoKeyId).execute();
@@ -104,23 +120,58 @@ public class GoogleKms implements Kms {
     if (cryptoKey == null) {
       String cryptoKeyName = cryptoKeyId.substring(cryptoKeyId.lastIndexOf('/') + 1);
       log.info("Creating a new crypto key " + cryptoKeyName);
-      cryptoKey = createCryptoKey(cloudKms, keyRingId, cryptoKeyName);
+      String user = "serviceAccount:" + credential.getServiceAccountId();
+      cryptoKey = createCryptoKey(cloudKms, keyRingId, cryptoKeyName, user);
     }
 
     return cryptoKey;
   }
 
-  private static CryptoKey createCryptoKey(CloudKMS cloudKms, String keyRingId, String cryptoKeyName) {
+  private static CryptoKey createCryptoKey(CloudKMS cloudKms, String keyRingId, String cryptoKeyName, String user) {
+    CryptoKey cryptoKey;
     try {
-      return cloudKms.projects()
+      cryptoKey = cloudKms.projects()
           .locations()
           .keyRings()
           .cryptoKeys()
           .create(keyRingId, new CryptoKey().setPurpose(KEY_PURPOSE))
           .setCryptoKeyId(cryptoKeyName)
           .execute();
+
     } catch (IOException e) {
       throw new HalException(Problem.Severity.FATAL, "Failed to create a halyard crypto key: " + e.getMessage(), e);
+    }
+
+    Policy policy = getCryptoKeyPolicy(cloudKms, cryptoKey.getName());
+    policy.setBindings(Collections.singletonList(new Binding()
+            .setRole("roles/cloudkms.cryptoKeyEncrypterDecrypter")
+            .setMembers(Collections.singletonList(user))));
+
+    log.info("Updating iam policy for " + cryptoKey.getName());
+    setCryptoKeyPolicy(cloudKms, cryptoKey.getName(), policy);
+
+    return cryptoKey;
+  }
+
+  private static void setCryptoKeyPolicy(CloudKMS cloudKms, String cryptoKeyId, Policy policy) {
+    try {
+      SetIamPolicyRequest iamPolicyRequest = new SetIamPolicyRequest().setPolicy(policy);
+      cloudKms.projects().locations().keyRings().cryptoKeys()
+          .setIamPolicy(cryptoKeyId, iamPolicyRequest)
+          .execute();
+    } catch (IOException e) {
+      throw new HalException(Problem.Severity.FATAL, "Failed to set crypo key policy: " + e.getMessage(), e);
+    }
+  }
+
+
+  private static Policy getCryptoKeyPolicy(CloudKMS cloudKms, String cryptoKeyId) {
+    try {
+      return cloudKms.projects().locations().keyRings().cryptoKeys()
+          .getIamPolicy(cryptoKeyId)
+          .execute();
+    } catch (IOException e) {
+      throw new HalException(Problem.Severity.FATAL, "Failed to load crypo key policy: " + e.getMessage(), e);
     }
   }
 
