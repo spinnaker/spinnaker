@@ -16,6 +16,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
       description: 'Deploys the previously baked or found image',
       strategyDescription: 'Deploys the image specified',
       key: 'deploy',
+      alias: 'createServerGroup',
       templateUrl: require('./deployStage.html'),
       executionDetailsUrl: require('./deployExecutionDetails.html'),
       controller: 'DeployStageCtrl',
