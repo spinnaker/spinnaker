@@ -1,3 +1,5 @@
+apply plugin: 'scala'
+
 dependencies {
   compile project(":kayenta-core")
   compile spinnaker.dependency('bootWeb')
@@ -5,4 +7,27 @@ dependencies {
   spinnaker.group('retrofitDefault')
 
   compile "org.apache.commons:commons-io:1.3.2"
+
+  compile 'org.scala-lang:scala-library-all:2.11.8'
+
+  testCompile 'org.scalatest:scalatest_2.11:latest.release'
+  testCompile 'org.pegdown:pegdown:latest.release'
+}
+
+test << {
+  ant.taskdef(
+          name: 'scalatest',
+          classname: 'org.scalatest.tools.ScalaTestAntTask',
+          classpath: classpath.asPath)
+
+  ant.scalatest(
+          runpath: testClassesDir,
+          fork: 'false',
+          haltonfailure: 'false',
+          suffixes: 'Suite') {
+    wildcard(package: 'com.netflix')
+    reporter(type: 'html', directory: "${buildDir}/reports/tests")
+    reporter(type: 'junitxml', directory: "${buildDir}/test-results/junit")
+    reporter(type: 'stderr', config: "WFD")
+  }
 }
