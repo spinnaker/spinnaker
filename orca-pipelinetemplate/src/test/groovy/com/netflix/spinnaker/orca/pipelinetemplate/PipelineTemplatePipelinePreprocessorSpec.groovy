@@ -191,6 +191,20 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
     false       || ['wait']                   || ['wait', 'childOfConditionalStage']
   }
 
+  @Unroll
+  def 'should be able to set source using jinja'() {
+      when:
+      def result = subject.process(createInjectedTemplateRequest(template))
+
+      then:
+      result.stages*.name == expectedStageNames
+
+      where:
+      template       || expectedStageNames
+      'jinja-001.yml' || ['jinja1']
+      'jinja-002.yml' || ['jinja2']
+    }
+
 
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {
     return [
@@ -214,6 +228,28 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         stages: stages
       ],
       plan: plan
+    ]
+  }
+
+  Map<String, Object> createInjectedTemplateRequest(String templatePath) {
+    return [
+      type: 'templatedPipeline',
+      trigger: [
+        parameters: [
+          template: getClass().getResource("/templates/${templatePath}").toURI()
+        ]
+      ],
+      config: [
+        schema: '1',
+        id: 'myTemplate',
+        pipeline: [
+          application: 'myapp',
+          template: [
+            source: '{{trigger.parameters.template}}'
+          ],
+        ],
+      ],
+      plan: false
     ]
   }
 }

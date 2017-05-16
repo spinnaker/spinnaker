@@ -29,6 +29,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.V1SchemaExecutionGen
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.GraphMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateConfigurationSchemaValidator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.validator.V1TemplateSchemaValidator;
@@ -96,6 +98,8 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     Errors validationErrors = new Errors();
 
+    setTemplateSourceWithJinja(request);
+
     TemplateConfiguration templateConfiguration = request.getConfig();
     new V1TemplateConfigurationSchemaValidator().validate(templateConfiguration, validationErrors);
     if (validationErrors.hasErrors(request.plan)) {
@@ -119,6 +123,11 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration);
 
     return generatedPipeline;
+  }
+
+  private void setTemplateSourceWithJinja(TemplatedPipelineRequest request) {
+    RenderContext context = new DefaultRenderContext(request.getConfig().getPipeline().getApplication(), null, request.getTrigger());
+    request.getConfig().getPipeline().getTemplate().setSource(renderer.render(request.getConfig().getPipeline().getTemplate().getSource(), context ));
   }
 
   private static class TemplatedPipelineRequest {

@@ -1,0 +1,8 @@
+schema: "1"
+id: jinja1
+stages:
+ - id: wait
+   type: wait
+   name: jinja1
+   config:
+     waitTime: 5
