@@ -56,31 +56,53 @@ Sample usage:
 
 import argparse
 import logging
+import os
 import sys
 
 import validate_bom__config
 import validate_bom__deploy
 import validate_bom__test
 
+from spinnaker.run import run_quick
+
+
 def build_report(options):
   """Report on the test results."""
-  logging.info('SKIP BUILD_REPORT on %s', options.deploy_hal_platform)
+  citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
+  response = run_quick(
+      'cd {log_dir}'
+      '; python -m citest.reporting.generate_html_report --index *.journal'
+      .format(log_dir=citest_log_dir))
+  if response.returncode != 0:
+    logging.error('Error building report: %s', response.stdout)
+  logging.info('Logging information is in %s', options.log_dir)
 
+def get_options():
+  """Resolve all the command-line options."""
 
-def main():
-  """The main controller."""
   parser = argparse.ArgumentParser()
+  parser.add_argument('--log_dir', default='./validate_bom_results',
+                      help='Path to root directory for report output.')
 
   validate_bom__config.init_argument_parser(parser)
   validate_bom__deploy.init_argument_parser(parser)
   validate_bom__test.init_argument_parser(parser)
 
   options = parser.parse_args()
-
   validate_bom__config.validate_options(options)
   validate_bom__test.validate_options(options)
-  deployer = validate_bom__deploy.make_deployer(options)
 
+  if not os.path.exists(options.log_dir):
+    os.makedirs(options.log_dir)
+
+  return options
+
+
+def main():
+  """The main controller."""
+  options = get_options()
+
+  deployer = validate_bom__deploy.make_deployer(options)
   config_script = validate_bom__config.make_script(options)
   file_set = validate_bom__config.get_files_to_upload(options)
 
@@ -90,6 +112,7 @@ def main():
     test_controller = validate_bom__test.ValidateBomTestController(deployer)
     test_controller.run_tests()
   finally:
+    deployer.collect_logs()
     deployer.undeploy()
     build_report(options)
 
@@ -115,9 +138,9 @@ def main():
     print 'FAILED {0} of {1}, skipped {2}'.format(
         num_failed, (num_failed + num_passed), num_skipped)
     return -1
-  else:
-    print 'PASSED {0}, skipped {1}'.format(num_passed, num_skipped)
-    return 0
+
+  print 'PASSED {0}, skipped {1}'.format(num_passed, num_skipped)
+  return 0
 
 
 if __name__ == '__main__':

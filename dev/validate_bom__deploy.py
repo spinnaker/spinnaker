@@ -23,6 +23,7 @@ import os
 import stat
 import tempfile
 import time
+import traceback
 
 from spinnaker.run import (
     run_quick,
@@ -33,6 +34,12 @@ from spinnaker.run import (
 
 SUPPORTED_DEPLOYMENT_TYPES = ['localdebian', 'distributed']
 SUPPORTED_DISTRIBUTED_PLATFORMS = ['kubernetes']
+HALYARD_SERVICES = ['halyard']
+SPINNAKER_SERVICES = [
+    'clouddriver', 'echo', 'fiat', 'front50', 'gate', 'igor', 'orca',
+    'rosco'
+]
+
 
 def ensure_empty_ssh_key(path):
   """Ensure there is an ssh key at the given path.
@@ -66,10 +73,11 @@ def write_data_to_secure_path(data, path=None, is_script=False):
   if path is None:
     fd, path = tempfile.mkstemp()
   else:
-    fd = os.open(path, 'w')
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT)
 
   maybe_executable = stat.S_IXUSR if is_script else 0
-  os.fchmod(fd, stat.S_IRUSR | stat.S_IWUSR | maybe_executable)
+  flags = stat.S_IRUSR | stat.S_IWUSR | maybe_executable
+  os.fchmod(fd, flags)
   os.write(fd, data)
   os.close(fd)
   return path
@@ -165,6 +173,29 @@ class BaseValidateBomDeployer(object):
 
     self.do_undeploy()
     logging.info('Finished undeploying from %s', platform)
+
+  def collect_logs(self):
+    """Collect all the microservice log files."""
+    log_dir = os.path.join(self.options.log_dir, 'service_logs')
+    if not os.path.exists(log_dir):
+      os.makedirs(log_dir)
+
+    all_services = list(SPINNAKER_SERVICES)
+    all_services.extend(HALYARD_SERVICES)
+    for service in all_services:
+      try:
+        logging.debug('Fetching logs for "%s"...', service)
+        deployer = (self if service in HALYARD_SERVICES
+                    else self.__spinnaker_deployer)
+        deployer.do_fetch_service_log_file(service, log_dir)
+      except Exception as ex:
+        message = ('Error fetching log for service "{service}": {ex}'
+                   '\n{trace}'
+                   .format(service=service, ex=ex,
+                           trace=traceback.format_exc()))
+        logging.error(message)
+        write_data_to_secure_path(
+            message, os.path.join(log_dir, service + '.log'))
 
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Hook for concrete platforms to return the port forwarding command.
@@ -265,25 +296,48 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
                        .format(options.injected_deploy_spinnaker_account))
     options.injected_deploy_spinnaker_account = options.k8s_account_name
 
-  def do_make_port_forward_command(self, service, local_port, remote_port):
-    """Implements interface."""
-    options = self.options
-
-    k8s_namespace = options.deploy_k8s_namespace
+  def __get_pod_name(self, k8s_namespace, service):
+    """Determine the pod name for the deployed service."""
     response = check_run_quick(
         'kubectl get pods --namespace {namespace}'
         ' | gawk -F "[[:space:]]+" "/{service}-v/ {{print \\$1}}" | tail -1'
         .format(namespace=k8s_namespace, service=service))
-    service_pod = response.stdout.strip()
+    pod = response.stdout.strip()
+    if not pod:
+      message = 'There is no pod for "${service}" in ${namespace}'.format(
+          service=service)
+      logging.error(message)
+      raise ValueError(mesage)
+
+    if response.returncode != 0:
+      message = 'Could not find pod for "${service}".: {error}'.format(
+          service=service,
+        error=response.stdout.strip())
+      logging.error(message)
+      raise ValueError(mesage)
+    else:
+      print '{0} -> "{1}"'.format(service, response.stdout)
+
+    return response.stdout.strip()
+
+  def do_make_port_forward_command(self, service, local_port, remote_port):
+    """Implements interface."""
+    options = self.options
+    k8s_namespace = options.deploy_k8s_namespace
+    service_pod = self.__get_pod_name(k8s_namespace, service)
 
     return [
-        'kubectl', '--namespace', options.deploy_k8s_namespace,
+        'kubectl', '--namespace', k8s_namespace,
         'port-forward', service_pod,
         '{local}:{remote}'.format(local=local_port, remote=remote_port)
     ]
 
   def do_deploy(self, script, files_to_upload):
     """Implements the BaseBomValidateDeployer interface."""
+    # This is not yet supported in this script.
+    # To deploy spinnaker to kubernetes, you need to go through
+    # a halyard VM deployment. Halyard itself can be deployed to K8s.
+    # This script doesnt.
     super(KubernetesValidateBomDeployer, self).do_deploy(
         script, files_to_upload)
 
@@ -292,6 +346,14 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
     super(KubernetesValidateBomDeployer, self).do_undeploy()
     # kubectl delete namespace spinnaker
 
+  def do_fetch_service_log_file(self, service, log_dir):
+    k8s_namespace = self.options.deploy_k8s_namespace
+    service_pod = self.__get_pod_name(k8s_namespace, service)
+    path = os.path.join(log_dir, service + '.log')
+    write_data_to_secure_path('', path)
+    check_run_quick(
+        'kubectl -n {namespace} logs {pod} >> {path}'
+        .format(namespace=k8s_namespace, pod=service_pod, path=path))
 
 class GoogleValidateBomDeployer(BaseValidateBomDeployer):
   """Concrete deployer used to deploy Hal onto Google Cloud Platform.
@@ -423,7 +485,8 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     """Implements the BaseBomValidateDeployer interface."""
     options = self.options
     if options.deploy_spinnaker_type == 'distributed':
-      run_and_monitor('gcloud compute ssh'
+      run_and_monitor(
+          'gcloud compute ssh'
           ' --ssh-key-file {ssh_key}'
           ' --project {project} --zone {zone} {instance}'
           ' --command "sudo hal deploy clean"'
@@ -437,6 +500,23 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
         .format(project=options.google_deploy_project,
                 zone=options.google_deploy_zone,
                 instance=options.google_deploy_instance))
+
+  def do_fetch_service_log_file(self, service, log_dir):
+    """Implements the BaseBomValidateDeployer interface."""
+    options = self.options
+    write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
+    check_run_quick(
+        'gcloud compute copy-files '
+        ' --ssh-key-file {ssh_key}'
+        ' --project {project} --zone {zone}'
+        ' {instance}:/var/log/spinnaker/{service}/{service}.log'
+        ' {log_dir}'
+        .format(project=options.google_deploy_project,
+                zone=options.google_deploy_zone,
+                instance=options.google_deploy_instance,
+                ssh_key=self.EMPTY_SSH_KEY,
+                service=service,
+                log_dir=log_dir))
 
 
 def make_deployer(options):

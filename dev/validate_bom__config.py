@@ -42,6 +42,8 @@ interface, which is provided via free functions.
 
 import os
 
+from validate_bom__deploy import write_data_to_secure_path
+
 
 class StorageConfigurator(object):
   """Controls hal config storage for Spinnaekr Storage ."""
@@ -339,20 +341,25 @@ class JenkinsConfigurator(object):
         '--jenkins_master_name', default=None,
         help='The name of the jenkins master to configure.'
         ' If provided, this also needs --jenkins_master_address, '
-        ' --jenkins_master_user, and an environment variable'
-        ' JENKINS_MASTER_PASSWORD')
+        ' --jenkins_master_user, and --jenkins_master_credentials'
+        ' or an environment variable JENKINS_MASTER_PASSWORD')
     parser.add_argument(
         '--jenkins_master_address', default=None,
         help='The network address of the jenkins master to configure.'
         ' If provided, this also needs --jenkins_master_name, '
-        ' --jenkins_master_user, and an environment variable'
-        ' JENKINS_MASTER_PASSWORD')
+        ' --jenkins_master_user, and --jenkins_master_credentials'
+        ' or an environment variable JENKINS_MASTER_PASSWORD')
     parser.add_argument(
         '--jenkins_master_user', default=None,
         help='The name of the jenkins master to configure.'
         ' If provided, this also needs --jenkins_master_address, '
-        ' --jenkins_master_name, and an environment variable'
-        ' JENKINS_MASTER_PASSWORD')
+        ' --jenkins_master_name, and --jenkins_master_credentials'
+        ' or an environment variable JENKINS_MASTER_PASSWORD')
+    parser.add_argument(
+        '--jenkins_master_credentials', default=None,
+        help='The password for the jenkins master to configure.'
+             ' If provided, this takes pre cedence over'
+             ' any JENKINS_MASTER_PASSWORD environment variable value.')
 
   def validate_options(self, options):
     """Implements interface."""
@@ -368,7 +375,7 @@ class JenkinsConfigurator(object):
                                options.jenkins_master_address,
                                options.jenkins_master_user))
     if (options.jenkins_master_name
-        and os.environ.get('JEKNINS_MASTER_PASSWORD') is None):
+        and os.environ.get('JENKINS_MASTER_PASSWORD') is None):
       raise ValueError('--jenkins_master_name was provided,'
                        ' but no JENKINS_MASTER_PASSWORD environment variable')
     options.jenkins_master_enabled = options.jenkins_master_name is not None
@@ -378,7 +385,14 @@ class JenkinsConfigurator(object):
     name = options.jenkins_master_name or None
     address = options.jenkins_master_address or None
     user = options.jenkins_master_user or None
-    password = os.environ.get('JENKINS_MASTER_PASSWORD')
+    if options.jenkins_master_credentials:
+      password_file = options.jenkins_master_credentials
+    elif os.environ.get('JENKINS_MASTER_PASSWORD', None):
+      password_file = 'jenkins_{name}_password'.format(
+          name=options.jenkins_master_name)
+    else:
+      password_file = None
+
     if ((name is None) != (address is None)
         or (name is None) != (user is None)):
       raise ValueError('Either all of --jenkins_master_name,'
@@ -386,22 +400,30 @@ class JenkinsConfigurator(object):
                        ' or none of them must be supplied.')
     if name is None:
       return
-    if password is None:
+    if password_file is None:
       raise ValueError(
-          'No JENKINS_MASTER_PASSWORD environment variable was supplied.')
+          'No --jenkins_master_credentials or JENKINS_MASTER_PASSWORD'
+          ' environment variable was supplied.')
     script.append('hal --color=false config ci jenkins enable')
     script.append('hal --color=false config ci jenkins master'
                   ' add {name}'
                   ' --address {address}'
                   ' --username {user}'
-                  ' < jenkins_{name}_password'
+                  ' --password < {password_file}'
                   .format(name=options.jenkins_master_name,
                           address=options.jenkins_master_address,
-                          user=options.jenkins_master_user))
+                          user=options.jenkins_master_user,
+                          password_file=os.path.basename(password_file)))
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
-    pass
+    if options.jenkins_master_credentials:
+      file_set.add(options.jenkins_master_credentials)
+    elif os.environ.get('JENKINS_MASTER_PASSWORD', None):
+      path = write_data_to_secure_path(
+          os.environ.get('JENKINS_MASTER_PASSWORD'),
+          'jenkins_{0}_password'.format(options.jenkins_master_name))
+      file_set.add(path)
 
 
 class MonitoringConfigurator(object):
