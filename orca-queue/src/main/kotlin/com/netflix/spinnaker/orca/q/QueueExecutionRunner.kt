@@ -19,6 +19,7 @@ package com.netflix.spinnaker.orca.q
 import com.netflix.spinnaker.orca.pipeline.ExecutionRunner
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine
+import com.netflix.spinnaker.security.AuthenticatedRequest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -31,7 +32,7 @@ import org.springframework.stereotype.Component
     queue.push(StartExecution(execution))
 
   override fun <T : Execution<T>> restart(execution: T, stageId: String) {
-    queue.push(RestartStage(execution, stageId))
+    queue.push(RestartStage(execution, stageId, AuthenticatedRequest.getSpinnakerUser().orElse(null)))
   }
 
   override fun <T : Execution<T>> unpause(execution: T) {

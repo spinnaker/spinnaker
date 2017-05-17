@@ -76,7 +76,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
             startTime = clock.instant().minus(1, HOURS).toEpochMilli()
           }
         }
-        val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id)
+        val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
         beforeGroup {
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -124,7 +124,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
           context["exception"] = "o noes"
         }
       }
-      val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("2").id)
+      val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("2").id, "fzlem@netflix.com")
 
       beforeGroup {
         stageWithSyntheticBefore.plan(pipeline.stageByRef("2>1"))
@@ -157,7 +157,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
         verify(repository).storeStage(check {
           it.getContext().keys shouldNotMatch hasElement("exception")
           it.getContext()["restartDetails"] shouldEqual mapOf(
-            "restartedBy" to "anonymous",
+            "restartedBy" to "fzlem@netflix.com",
             "restartTime" to clock.millis(),
             "previousException" to "o noes"
           )
@@ -244,7 +244,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
         endTime = clock.instant().minus(57, MINUTES).toEpochMilli()
       }
     }
-    val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id)
+    val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
       whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -317,7 +317,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
         endTime = clock.instant().minus(57, MINUTES).toEpochMilli()
       }
     }
-    val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id)
+    val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "fzlem@netflix.com")
 
     beforeGroup {
       whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline

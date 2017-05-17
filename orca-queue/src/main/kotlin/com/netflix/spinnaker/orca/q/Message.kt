@@ -164,10 +164,11 @@ data class RestartStage(
   override val executionType: Class<out Execution<*>>,
   override val executionId: String,
   override val application: String,
-  override val stageId: String
+  override val stageId: String,
+  val user: String?
 ) : Message(), StageLevel {
-  constructor(source: Execution<*>, stageId: String) :
-    this(source.javaClass, source.getId(), source.getApplication(), stageId)
+  constructor(source: Execution<*>, stageId: String, user: String) :
+    this(source.javaClass, source.getId(), source.getApplication(), stageId, user)
 }
 
 data class ResumeStage(
