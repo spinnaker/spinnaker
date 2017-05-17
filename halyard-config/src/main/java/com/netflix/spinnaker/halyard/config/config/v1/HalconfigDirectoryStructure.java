@@ -68,6 +68,10 @@ public class HalconfigDirectoryStructure {
     return ensureRelativeHalDirectory(deploymentName, "history");
   }
 
+  public Path getCachePath() {
+    return ensureDirectory(Paths.get(halconfigDirectory, ".cache"));
+  }
+
   public Path getBackupConfigPath() {
     Path backup = ensureDirectory(Paths.get(halconfigDirectory, ".backup"));
     return new File(backup.toFile(), "config").toPath();
