@@ -32,6 +32,8 @@ public class AtlasResultsHelper {
       return null;
     }
 
+    // TODO: Verify that the times do not overlap.
+    // TODO: Verify that the number of elements in the array is correct.
     atlasResultsList.sort(Comparator.comparingLong(AtlasResults::getStart));
 
     AtlasResults firstAtlasResults = atlasResultsList.get(0);
@@ -71,9 +73,10 @@ public class AtlasResultsHelper {
     return atlasResultsBuilder.data(TimeseriesData.builder().values(values).type(firstAtlasResults.getData().getType()).build()).build();
   }
 
-  static Map<String, AtlasResults> merge(List<AtlasResults> atlasResultsList) {
+  public static Map<String, AtlasResults> merge(List<AtlasResults> atlasResultsList) {
     return atlasResultsList
       .stream()
+      .filter(atlasResults -> !atlasResults.getType().equals("close"))
       .collect(Collectors.groupingBy(AtlasResults::getId))
       .entrySet()
       .stream()

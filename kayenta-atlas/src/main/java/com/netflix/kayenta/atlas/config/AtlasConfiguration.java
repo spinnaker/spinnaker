@@ -95,9 +95,13 @@ public class AtlasConfiguration {
   }
 
   @Bean
-  AtlasRemoteService atlasRemoteService(AtlasConfigurationProperties atlasConfigurationProperties,
+  AtlasRemoteService atlasRemoteService(AtlasSSEConverter atlasSSEConverter,
+                                        AtlasConfigurationProperties atlasConfigurationProperties,
                                         RetrofitClientFactory retrofitClientFactory,
                                         OkHttpClient okHttpClient) {
-    return retrofitClientFactory.createClient(AtlasRemoteService.class, atlasConfigurationProperties.getEndpoint(), okHttpClient);
+    return retrofitClientFactory.createClient(AtlasRemoteService.class,
+                                              atlasSSEConverter,
+                                              atlasConfigurationProperties.getEndpoint(),
+                                              okHttpClient);
   }
 }

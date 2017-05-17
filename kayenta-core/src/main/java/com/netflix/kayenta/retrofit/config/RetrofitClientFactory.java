@@ -20,10 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.retrofit.Slf4jRetrofitLogger;
 import com.squareup.okhttp.OkHttpClient;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import retrofit.Endpoint;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
+import retrofit.converter.Converter;
 import retrofit.converter.JacksonConverter;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -36,21 +38,26 @@ public class RetrofitClientFactory {
   @Value("${retrofit.logLevel:BASIC}")
   String retrofitLogLevel;
 
-  public <T> T createClient(Class<T> type, RemoteService remoteService, OkHttpClient okHttpClient) {
+  @Bean
+  JacksonConverter jacksonConverterWithMapper() {
+    ObjectMapper objectMapper = new ObjectMapper()
+      .setSerializationInclusion(NON_NULL)
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES);
+
+    return new JacksonConverter(objectMapper);
+  }
+
+  public <T> T createClient(Class<T> type, Converter converter, RemoteService remoteService, OkHttpClient okHttpClient) {
     String baseUrl = remoteService.getBaseUrl();
 
     baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
 
     Endpoint endpoint = newFixedEndpoint(baseUrl);
 
-    ObjectMapper objectMapper = new ObjectMapper()
-      .setSerializationInclusion(NON_NULL)
-      .disable(FAIL_ON_UNKNOWN_PROPERTIES);
-
     return new RestAdapter.Builder()
       .setEndpoint(endpoint)
       .setClient(new OkClient(okHttpClient))
-      .setConverter(new JacksonConverter(objectMapper))
+      .setConverter(converter)
       .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
       .setLog(new Slf4jRetrofitLogger(type))
       .build()

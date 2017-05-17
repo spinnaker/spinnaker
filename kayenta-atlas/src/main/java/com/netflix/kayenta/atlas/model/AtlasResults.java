@@ -39,6 +39,11 @@ public class AtlasResults {
 
   @NotNull
   @Getter
+  // TODO(duftler): Might be better to have a different model for results that have messages and no data.
+  private String message;
+
+  @NotNull
+  @Getter
   private String id;
 
   @NotNull

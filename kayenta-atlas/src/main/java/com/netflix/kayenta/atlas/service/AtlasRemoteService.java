@@ -20,8 +20,10 @@ import com.netflix.kayenta.atlas.model.AtlasResults;
 import retrofit.http.GET;
 import retrofit.http.Query;
 
+import java.util.List;
+
 public interface AtlasRemoteService {
 
   @GET("/api/v2/fetch")
-  AtlasResults fetch(@Query("q") String q, @Query("format") String format);
+  List<AtlasResults> fetch(@Query("q") String q);
 }

@@ -147,6 +147,7 @@ class MetricSetMixerServiceSpec extends Specification {
   }
 
   @Unroll
+  // TODO(duftler/mgraff): Consider this case carefully. We may want to in fact backfill the entire list.
   void "null or empty values list should not be backfilled with NaNs, since it is implicitly treated as filled with NaNs by the analysis engine"() {
     setup:
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()

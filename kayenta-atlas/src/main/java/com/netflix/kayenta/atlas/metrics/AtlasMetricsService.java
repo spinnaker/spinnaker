@@ -16,8 +16,8 @@
 
 package com.netflix.kayenta.atlas.metrics;
 
-import com.google.common.collect.ImmutableMap;
 import com.netflix.kayenta.atlas.model.AtlasResults;
+import com.netflix.kayenta.atlas.model.AtlasResultsHelper;
 import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
 import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.metrics.MetricSet;
@@ -33,7 +33,6 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -56,6 +55,8 @@ public class AtlasMetricsService implements MetricsService {
 
   @Override
   // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
+  // Using metricSetName to pass the sse filename for now.
+  // TODO(duftler): Make this api generic.
   public List<MetricSet> queryMetrics(String accountName,
                                       String metricSetName,
                                       String instanceNamePrefix,
@@ -65,34 +66,36 @@ public class AtlasMetricsService implements MetricsService {
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AtlasRemoteService atlasRemoteService = credentials.getAtlasRemoteService();
-    AtlasResults atlasResults = atlasRemoteService.fetch("name,randomValue,:eq,:sum,(,name,),:by", "std.json");
-    Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
-    List<Double> timeSeriesList = atlasResults.getData().getValues();
+    List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(metricSetName);
+    Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
+    List<MetricSet> metricSetList = new ArrayList<>();
 
-    if (timeSeriesList == null) {
-      timeSeriesList = new ArrayList<>();
+    for (AtlasResults atlasResults : idToAtlasResultsMap.values()) {
+      Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
+      List<Double> timeSeriesList = atlasResults.getData().getValues();
+
+      if (timeSeriesList == null) {
+        timeSeriesList = new ArrayList<>();
+      }
+
+      // TODO: Get the metric set name from the request/canary-config.
+      MetricSet.MetricSetBuilder metricSetBuilder =
+        MetricSet.builder()
+          .name("cpu")
+          .startTimeMillis(atlasResults.getStart())
+          .startTimeIso(responseStartTimeInstant.toString())
+          .stepMillis(atlasResults.getStep())
+          .values(timeSeriesList);
+
+      Map<String, String> tags = atlasResults.getTags();
+
+      if (tags != null) {
+        metricSetBuilder.tags(tags);
+      }
+
+      metricSetList.add(metricSetBuilder.build());
     }
 
-    // TODO: Get sample Atlas response with more than one set of results.
-    // Deferring this for now since we're going to move to the /fetch endpoint once that's available in oss Atlas.
-    // We are currently developing against canned output retrieved via OSS Atlas's /graph endpoint.
-
-    // TODO: Get the metric set name from the request/canary-config.
-    MetricSet.MetricSetBuilder metricSetBuilder =
-      MetricSet.builder()
-        .name(metricSetName)
-        .startTimeMillis(atlasResults.getStart())
-        .startTimeIso(responseStartTimeInstant.toString())
-        .stepMillis(atlasResults.getStep())
-        .values(timeSeriesList);
-
-    // TODO: These have to come from the Atlas response. Just not sure from where exactly yet.
-    Map<String, String> tags = ImmutableMap.of("not-sure", "about-tags");
-
-    if (tags != null) {
-      metricSetBuilder.tags(tags);
-    }
-
-    return Collections.singletonList(metricSetBuilder.build());
+    return metricSetList;
   }
 }
