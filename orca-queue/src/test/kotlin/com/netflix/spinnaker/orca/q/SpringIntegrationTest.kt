@@ -99,7 +99,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
   }
@@ -132,7 +132,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual SUCCEEDED
@@ -171,7 +171,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual SUCCEEDED
@@ -196,7 +196,7 @@ class SpringIntegrationTest {
     }
     repository.store(pipeline)
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
 
@@ -215,7 +215,7 @@ class SpringIntegrationTest {
 
     whenever(dummyTask.execute(any())) doReturn TaskResult(TERMINAL)
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).status shouldEqual TERMINAL
   }
@@ -254,7 +254,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
     whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual TERMINAL
@@ -301,7 +301,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
     whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual SUCCEEDED
@@ -350,7 +350,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.execute(argThat { getRefId() == "2a1" })) doReturn TaskResult(TERMINAL)
     whenever(dummyTask.execute(argThat { getRefId() != "2a1" })) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual TERMINAL
@@ -387,7 +387,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     repository.retrievePipeline(pipeline.id).apply {
       status shouldEqual SUCCEEDED
@@ -419,7 +419,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     verify(dummyTask).execute(check {
       // expressions should be resolved in the stage passes to tasks
@@ -451,7 +451,7 @@ class SpringIntegrationTest {
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))
 
-    context.runToCompletion(pipeline, runner::start)
+    context.runToCompletion(pipeline, runner::start, repository)
 
     verify(dummyTask).execute(check {
       it.getContext()["global"] shouldEqual "foo"

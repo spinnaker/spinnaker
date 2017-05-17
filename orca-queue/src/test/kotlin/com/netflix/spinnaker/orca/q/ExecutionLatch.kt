@@ -19,8 +19,12 @@ package com.netflix.spinnaker.orca.q
 import com.natpryce.hamkrest.Matcher
 import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.has
+import com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import org.springframework.context.ApplicationListener
 import org.springframework.context.ConfigurableApplicationContext
 import java.util.concurrent.CountDownLatch
@@ -45,11 +49,23 @@ class ExecutionLatch(matcher: Matcher<ExecutionComplete>)
   fun await() = latch.await(1, TimeUnit.SECONDS)
 }
 
-fun <E : Execution<E>> ConfigurableApplicationContext.runToCompletion(execution: E, launcher: (E) -> Unit) {
+fun <E : Execution<E>> ConfigurableApplicationContext.runToCompletion(execution: E, launcher: (E) -> Unit, repository: ExecutionRepository) {
   val latch = ExecutionLatch(
     has(ExecutionComplete::getExecutionId, equalTo(execution.id))
   )
   addApplicationListener(latch)
   launcher.invoke(execution)
   assert(latch.await()) { "Pipeline did not complete" }
+
+  var complete = false
+  while (!complete) {
+    Thread.sleep(100)
+    complete = when (execution) {
+      is Pipeline -> repository.retrievePipeline(execution.id)
+      else -> repository.retrieveOrchestration(execution.id)
+    }
+      .getStages()
+      .map(Stage<*>::getStatus)
+      .all { it.complete || it == NOT_STARTED }
+  }
 }
