@@ -24,14 +24,14 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
-import java.util.Map;
+import java.util.List;
 
 @Builder
 @ToString
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class AtlasResults {
+public class TimeseriesData {
 
   @NotNull
   @Getter
@@ -39,33 +39,5 @@ public class AtlasResults {
 
   @NotNull
   @Getter
-  private String id;
-
-  @NotNull
-  @Getter
-  private String query;
-
-  @NotNull
-  @Getter
-  private String label;
-
-  @NotNull
-  @Getter
-  private long start;
-
-  @NotNull
-  @Getter
-  private long step;
-
-  @NotNull
-  @Getter
-  private long end;
-
-  @NotNull
-  @Getter
-  private Map<String, String> tags;
-
-  @NotNull
-  @Getter
-  private TimeseriesData data;
+  private List<Double> values;
 }

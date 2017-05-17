@@ -36,8 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Builder
 @Slf4j
@@ -69,7 +67,7 @@ public class AtlasMetricsService implements MetricsService {
     AtlasRemoteService atlasRemoteService = credentials.getAtlasRemoteService();
     AtlasResults atlasResults = atlasRemoteService.fetch("name,randomValue,:eq,:sum,(,name,),:by", "std.json");
     Instant responseStartTimeInstant = Instant.ofEpochMilli(atlasResults.getStart());
-    List<List<Double>> timeSeriesList = atlasResults.getValues();
+    List<Double> timeSeriesList = atlasResults.getData().getValues();
 
     if (timeSeriesList == null) {
       timeSeriesList = new ArrayList<>();
@@ -78,11 +76,6 @@ public class AtlasMetricsService implements MetricsService {
     // TODO: Get sample Atlas response with more than one set of results.
     // Deferring this for now since we're going to move to the /fetch endpoint once that's available in oss Atlas.
     // We are currently developing against canned output retrieved via OSS Atlas's /graph endpoint.
-    List<Double> pointValues =
-      timeSeriesList
-        .stream()
-        .map(timeSeries -> timeSeries.get(0))
-        .collect(Collectors.toList());
 
     // TODO: Get the metric set name from the request/canary-config.
     MetricSet.MetricSetBuilder metricSetBuilder =
@@ -91,7 +84,7 @@ public class AtlasMetricsService implements MetricsService {
         .startTimeMillis(atlasResults.getStart())
         .startTimeIso(responseStartTimeInstant.toString())
         .stepMillis(atlasResults.getStep())
-        .values(pointValues);
+        .values(timeSeriesList);
 
     // TODO: These have to come from the Atlas response. Just not sure from where exactly yet.
     Map<String, String> tags = ImmutableMap.of("not-sure", "about-tags");
