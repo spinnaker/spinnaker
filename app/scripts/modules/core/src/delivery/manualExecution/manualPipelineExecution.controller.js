@@ -117,7 +117,8 @@ module.exports = angular.module('spinnaker.core.delivery.manualPipelineExecution
       addTriggers();
       this.triggerUpdated();
 
-      this.showRebakeOption = pipeline.stages.some((stage) => stage.type === 'bake');
+      const additionalTemplates = pipeline.stages.map(stage => pipelineConfig.getManualExecutionHandlerForStage(stage));
+      this.stageTemplates = _.uniq(_.compact(additionalTemplates));
 
       if (pipeline.parameterConfig && pipeline.parameterConfig.length) {
         this.parameters = {};

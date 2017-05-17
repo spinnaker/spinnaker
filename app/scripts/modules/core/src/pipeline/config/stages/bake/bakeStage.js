@@ -16,6 +16,7 @@ module.exports = angular
       description: 'Bakes an image in the specified region',
       key: 'bake',
       restartable: true,
+      manualExecutionHandler: require('./bakeExecutionHandler.html'),
     });
   })
   .run(function(pipelineConfig, bakeStageTransformer) {

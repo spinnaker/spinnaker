@@ -6,7 +6,7 @@
     <h3 ng-if="vm.command.pipeline && !vm.triggers.length">Confirm Execution</h3>
     <h3 ng-if="!vm.command.pipeline">Select Pipeline</h3>
   </div>
-  <form role="form">
+  <ng-form name="manualExecutionForm">
     <div class="modal-body container-fluid form-horizontal">
       <div class="form-group" ng-if="vm.pipelineOptions">
         <label class="col-md-4 sm-label-right">Pipeline</label>
@@ -65,17 +65,6 @@
         <div ng-include="vm.triggerTemplate"></div>
       </div>
 
-      <div class="form-group" ng-if="vm.showRebakeOption">
-        <label class="col-md-4 sm-label-right">Rebake</label>
-        <div class="checkbox col-md-6">
-          <label>
-            <input type="checkbox" ng-model="vm.command.trigger.rebake"/>
-            Force Rebake
-          </label>
-          <help-field key="execution.forceRebake"></help-field>
-        </div>
-      </div>
-
       <div ng-if="vm.command.pipeline.parameterConfig !== undefined && vm.command.pipeline.parameterConfig.length">
         <p class="manual-execution-parameters-description">This pipeline is parameterized. Please enter values for the parameters below.</p>
         <div class="form-group" ng-repeat="parameter in vm.command.pipeline.parameterConfig">
@@ -101,27 +90,8 @@
         </div>
       </div>
 
-      <div ng-if="vm.hasStageOf('createProperty')">
-
-        <p class="manual-execution-parameters-description">This pipeline contains <b>Persisted Property Stages</b>. Please enter the properties and values for each stage below.</p>
-
-        <div ng-repeat="stage in vm.getStagesOf('createProperty')">
-          <h4>Stage: {{stage.name}}</h4>
-          <p><b>Scope:</b> {{stage.scope | inlinePropertyScope}}</p>
-
-          <label>
-            Enable Rollback <help-field key="pipeline.config.fastProperty.rollback"></help-field>
-            <input
-              type="checkbox"
-              style="margin-top: 10px; margin-left: 10px;"
-              ng-model="stage.rollbackProperties" >
-          </label>
-
-          <persisted-property-create-list
-            stage="stage"
-            property-list="stage.persistedProperties">
-          </persisted-property-create-list>
-        </div>
+      <div ng-repeat="template in vm.stageTemplates">
+        <div ng-include="template"></div>
       </div>
 
       <div class="form-group">
@@ -150,10 +120,10 @@
       <button type="button" class="btn btn-default" ng-click="vm.cancel()">Cancel</button>
       <button type="submit"
               class="btn btn-primary"
-              ng-disabled="!vm.command.pipeline"
+              ng-disabled="!vm.command.pipeline || !manualExecutionForm.$valid"
               ng-click="vm.execute()">
         <span class="glyphicon glyphicon-play"></span> Run
       </button>
     </div>
-  </form>
+  </ng-form>
 </div>

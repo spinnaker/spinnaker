@@ -63,11 +63,11 @@ describe('pipelineConfigProvider: API', function() {
       expect(map(providers, 'nameToCheckInTest').sort()).toEqual(['a', 'b']);
     }));
 
-    it('augments provider stages with parent keys, labels, and descriptions', mock.inject(function() {
-      const baseStage = {key: 'c', useBaseProvider: true, description: 'c description', label: 'the c'},
-          augmentedA = {key: 'd', provides: 'c', description: 'c description', label: 'the c'} as any,
-          augmentedB = {key: 'e', provides: 'c', description: 'c description', label: 'the c'},
-          augmentedC = {key: 'c', provides: 'c', description: 'c description', label: 'the c'};
+    it('augments provider stages with parent keys, labels, manualExecutionHandlers, and descriptions', mock.inject(function() {
+      const baseStage = {key: 'c', useBaseProvider: true, description: 'c description', label: 'the c', manualExecutionHandler: 'a'},
+          augmentedA = {key: 'd', provides: 'c', description: 'c description', label: 'the c', manualExecutionHandler: 'a'} as any,
+          augmentedB = {key: 'e', provides: 'c', description: 'c description', label: 'the c', manualExecutionHandler: 'a'},
+          augmentedC = {key: 'c', provides: 'c', description: 'c description', label: 'the c', manualExecutionHandler: 'a'};
       configurer.registerStage(baseStage as IStageTypeConfig);
       configurer.registerStage({key: 'd', provides: 'c'} as IStageTypeConfig);
       configurer.registerStage({key: 'e', provides: 'c'} as IStageTypeConfig);
@@ -77,14 +77,14 @@ describe('pipelineConfigProvider: API', function() {
       expect(service.getStageConfig({type: 'd'} as any)).toEqual(augmentedA);
     }));
 
-    it('allows provider stages to override of label, description', mock.inject(function() {
-      configurer.registerStage({key: 'a', useBaseProvider: true, description: 'a1', label: 'aa'} as IStageTypeConfig);
-      configurer.registerStage({key: 'b', provides: 'a', description: 'b1', label: 'bb'} as IStageTypeConfig);
+    it('allows provider stages to override of label, description, manualExecutionHandler', mock.inject(function() {
+      configurer.registerStage({key: 'a', useBaseProvider: true, description: 'a1', label: 'aa', manualExecutionHandler: 'a'} as IStageTypeConfig);
+      configurer.registerStage({key: 'b', provides: 'a', description: 'b1', label: 'bb', manualExecutionHandler: 'b'} as IStageTypeConfig);
       configurer.registerStage({key: 'c', provides: 'a'} as IStageTypeConfig);
       expect(service.getStageTypes() as any[]).toEqual([
-        {key: 'a', useBaseProvider: true, description: 'a1', label: 'aa'},
-        {key: 'b', provides: 'a', description: 'b1', label: 'bb'},
-        {key: 'c', provides: 'a', description: 'a1', label: 'aa'}
+        {key: 'a', useBaseProvider: true, description: 'a1', label: 'aa', manualExecutionHandler: 'a'},
+        {key: 'b', provides: 'a', description: 'b1', label: 'bb', manualExecutionHandler: 'b'},
+        {key: 'c', provides: 'a', description: 'a1', label: 'aa', manualExecutionHandler: 'a'}
       ]);
     }));
 

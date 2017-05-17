@@ -29,6 +29,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage'
         validators: [
           { type: 'requiredField', fieldName: 'email' },
         ],
+        manualExecutionHandler: require('./propertyExecutionHandler.html'),
       });
     }
   })

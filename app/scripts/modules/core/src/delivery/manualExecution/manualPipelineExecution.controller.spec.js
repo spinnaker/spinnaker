@@ -59,29 +59,6 @@ describe('Controller: ManualPipelineExecution', function () {
         expect(this.ctrl.currentlyRunningExecutions).toEqual([application.executions.data[1]]);
       });
 
-      it('sets showRebakeOption if any stage is a bake stage', function () {
-        let application = {
-          pipelineConfigs: { data: [
-            {
-              id: 'a',
-              triggers: [],
-              stages: [ {type: 'not-a-bake'}, {type: 'also-not-a-bake'}]
-            },
-            {
-              id: 'b',
-              triggers: [],
-              stages: [ {type: 'not-a-bake'}, {type: 'bake'}]
-            },
-          ]},
-          executions: { data: []}
-        };
-
-        this.initializeController(application, application.pipelineConfigs.data[0]);
-        expect(this.ctrl.showRebakeOption).toBe(false);
-        this.initializeController(application, application.pipelineConfigs.data[1]);
-        expect(this.ctrl.showRebakeOption).toBe(true);
-      });
-
       it('sets parameters if present', function () {
         let application = {
           pipelineConfigs: { data: [

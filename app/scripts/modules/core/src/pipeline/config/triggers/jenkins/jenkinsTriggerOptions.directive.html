@@ -1,4 +1,6 @@
 <div class="form-group">
+  <!-- Prevents form from being submitted before builds have had a chance to load -->
+  <input type="hidden" required ng-model="vm.viewState.selectedBuild" ng-if="vm.viewState.buildsLoading"/>
   <label class="col-md-4 sm-label-right">Build</label>
   <div class="col-md-6" ng-if="vm.viewState.buildsLoading">
     <p class="form-control-static text-center" >

@@ -5,6 +5,7 @@ import { $log } from 'ngimport';
 import { Application } from 'core/application/application.model';
 import { IExecution, IStage, ITriggerTypeConfig, IStageTypeConfig } from 'core/domain';
 import { SETTINGS } from 'core/config/settings';
+import { IStageOrTriggerTypeConfig } from '@spinnaker/core';
 
 export interface ITransformer {
   transform: (application: Application, execution: IExecution) => void;
@@ -26,13 +27,14 @@ export class PipelineConfigProvider implements IServiceProvider {
     this.stageTypes
       .filter((stageType) => { return stageType.provides; })
       .forEach((stageType) => {
-        const parent = this.stageTypes.filter((parentType) => {
+        const parent = this.stageTypes.find((parentType) => {
           return parentType.key === stageType.provides && !parentType.provides;
         });
-        if (parent.length) {
-          stageType.label = stageType.label || parent[0].label;
-          stageType.description = stageType.description || parent[0].description;
-          stageType.key = stageType.key || parent[0].key;
+        if (parent) {
+          stageType.label = stageType.label || parent.label;
+          stageType.description = stageType.description || parent.description;
+          stageType.key = stageType.key || parent.key;
+          stageType.manualExecutionHandler = stageType.manualExecutionHandler || parent.manualExecutionHandler;
         }
       });
   }
@@ -165,26 +167,29 @@ export class PipelineConfigProvider implements IServiceProvider {
     }
   }
 
-  public getManualExecutionHandlerForTriggerType(triggerType: string): string {
-    const triggerConfig = this.getTriggerConfig(triggerType);
-    if (triggerConfig && triggerConfig.manualExecutionHandler) {
-      if (this.$injector.has(triggerConfig.manualExecutionHandler)) {
-        return this.$injector.get<string>(triggerConfig.manualExecutionHandler);
+  private getManualExecutionHandler(config: IStageOrTriggerTypeConfig): string {
+    if (config && config.manualExecutionHandler) {
+      if (this.$injector.has(config.manualExecutionHandler)) {
+        return this.$injector.get<string>(config.manualExecutionHandler);
+      } else {
+        $log.warn(`Could not find execution handler '${config.manualExecutionHandler}' for type '${config.key}'`);
       }
     }
     return null;
   }
 
+  public getManualExecutionHandlerForTriggerType(triggerType: string): string {
+    return this.getManualExecutionHandler(this.getTriggerConfig(triggerType));
+  }
+
   public hasManualExecutionHandlerForTriggerType(triggerType: string): boolean {
-    let hasHandler = false;
-    const triggerConfig = this.getTriggerConfig(triggerType);
-    if (triggerConfig && triggerConfig.manualExecutionHandler) {
-      hasHandler = this.$injector.has(triggerConfig.manualExecutionHandler);
-      if (!hasHandler) {
-        $log.warn(`Could not find execution handler '${triggerConfig.manualExecutionHandler}' for trigger type '${triggerType}'`);
-      }
-    }
-    return hasHandler;
+    return this.getManualExecutionHandler(this.getTriggerConfig(triggerType)) !== null;
+  }
+
+  public getManualExecutionHandlerForStage(stage: IStage): string {
+    // the handler approach for triggers is a bit overblown; for pipeline stages, just use a template
+    // should(?) be easier to convert to React later, as we'll just convert it to a React component class...
+    return this.getStageConfig(stage).manualExecutionHandler;
   }
 
   public $get($injector: auto.IInjectorService): PipelineConfigProvider {

@@ -1,0 +1,19 @@
+<p class="manual-execution-parameters-description">This pipeline contains <b>Persisted Property Stages</b>. Please enter the properties and values for each stage below.</p>
+
+<div ng-repeat="stage in vm.getStagesOf('createProperty')">
+  <h4>Stage: {{stage.name}}</h4>
+  <p><b>Scope:</b> {{stage.scope | inlinePropertyScope}}</p>
+
+  <label>
+    Enable Rollback <help-field key="pipeline.config.fastProperty.rollback"></help-field>
+    <input
+      type="checkbox"
+      style="margin-top: 10px; margin-left: 10px;"
+      ng-model="stage.rollbackProperties" >
+  </label>
+
+  <persisted-property-create-list
+    stage="stage"
+    property-list="stage.persistedProperties">
+  </persisted-property-create-list>
+</div>
