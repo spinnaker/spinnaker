@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.JinjavaConfig;
+import com.hubspot.jinjava.interpret.Context.Library;
 import com.hubspot.jinjava.interpret.FatalTemplateErrorsException;
 import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
@@ -40,6 +41,8 @@ import org.yaml.snakeyaml.parser.ParserException;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class JinjaRenderer implements Renderer {
 
@@ -57,6 +60,7 @@ public class JinjaRenderer implements Renderer {
     this.renderedValueConverter = renderedValueConverter;
 
     JinjavaConfig config = new JinjavaConfig();
+    config.getDisabled().put(Library.TAG, new HashSet<>(Arrays.asList("from", "import", "include")));
     jinja = new Jinjava(config);
     jinja.setResourceLocator(new NoopResourceLocator());
     jinja.getGlobalContext().registerTag(new ModuleTag(this, pipelineTemplateObjectMapper));

@@ -20,9 +20,3 @@ dependencies {
   testCompile spinnaker.dependency("slf4jSimple")
   testCompile 'org.spockframework:spock-unitils:1.1-groovy-2.4-rc-2'
 }
-
-test {
-  testLogging {
-    showStandardStreams = true
-  }
-}
