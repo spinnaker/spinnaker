@@ -185,7 +185,7 @@ services:
   redis:
     # If you are using a remote redis server, you can set the host here.
     # If the remote server is on a different port or url, you can add
-    # a "port" or "baseUrl" field here instead.
+    # a "port" and the host should be changed to the remote url (without redis://)
     host: localhost
 
   cassandra:
