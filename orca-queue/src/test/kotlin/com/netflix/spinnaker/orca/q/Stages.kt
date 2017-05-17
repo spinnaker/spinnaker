@@ -95,6 +95,14 @@ val stageWithSyntheticAfterAndNoTasks = object : StageDefinitionBuilder {
   )
 }
 
+val stageWithNestedSynthetics = object : StageDefinitionBuilder {
+  override fun getType() = "stageWithNestedSynthetics"
+
+  override fun <T : Execution<T>> aroundStages(stage: Stage<T>) = listOf(
+    newStage(stage.execution, stageWithSyntheticBefore.type, "post", mutableMapOf(), stage, STAGE_AFTER)
+  )
+}
+
 val stageWithParallelBranches = object : BranchingStageDefinitionBuilder {
   override fun <T : Execution<T>> parallelContexts(stage: Stage<T>): Collection<Map<String, Any>> =
     listOf(

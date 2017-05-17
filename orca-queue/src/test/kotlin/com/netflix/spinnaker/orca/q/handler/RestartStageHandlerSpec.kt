@@ -51,7 +51,8 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
       repository,
       listOf(
         singleTaskStage,
-        stageWithSyntheticBefore
+        stageWithSyntheticBefore,
+        stageWithNestedSynthetics
       ),
       clock
     )
@@ -116,7 +117,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
         stage {
           refId = "2"
           requisiteStageRefIds = listOf("1")
-          stageWithSyntheticBefore.plan(this)
+          stageWithNestedSynthetics.plan(this)
           status = stageStatus
           startTime = clock.instant().minus(59, MINUTES).toEpochMilli()
           endTime = clock.instant().minus(30, MINUTES).toEpochMilli()
@@ -126,6 +127,8 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
       val message = RestartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("2").id)
 
       beforeGroup {
+        stageWithSyntheticBefore.plan(pipeline.stageByRef("2>1"))
+
         whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
       }
 
@@ -165,7 +168,23 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
         pipeline
           .stages
           .filter { it.parentStageId == message.stageId }
-          .map { it.id }
+          .map(Stage<*>::getId)
+          .forEach {
+            verify(repository).removeStage(pipeline, it)
+          }
+      }
+
+      val nestedSyntheticStageIds = pipeline
+        .stages
+        .filter { it.parentStageId == message.stageId }
+        .map(Stage<*>::getId)
+
+      it("removes the nested synthetic stages") {
+        nestedSyntheticStageIds shouldMatch !isEmpty
+        pipeline
+          .stages
+          .filter { it.parentStageId in nestedSyntheticStageIds }
+          .map(Stage<*>::getId)
           .forEach {
             verify(repository).removeStage(pipeline, it)
           }

@@ -71,13 +71,18 @@ open class RestartStageHandler
     builder().prepareStageForRestart(repository, this, stageDefinitionBuilders)
     repository.storeStage(this)
 
+    removeSynthetics()
+
+    downstreamStages().forEach { it.reset() }
+  }
+
+  private fun Stage<*>.removeSynthetics() {
     getExecution()
       .getStages()
       .filter { it.getParentStageId() == getId() }
       .forEach {
+        it.removeSynthetics()
         repository.removeStage(getExecution(), it.getId())
       }
-
-    downstreamStages().forEach { it.reset() }
   }
 }
