@@ -22,6 +22,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.storage.Storage;
 import com.netflix.spinnaker.halyard.core.provider.v1.google.GoogleCredentials;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Component
+@Slf4j
 public class ProfileRegistry {
   @Autowired
   String spinconfigBucket;
@@ -60,6 +62,7 @@ public class ProfileRegistry {
 
   public InputStream getObjectContents(String objectName) throws IOException {
     ByteArrayOutputStream output = new ByteArrayOutputStream();
+    log.info("Getting object contents of " + objectName);
     googleStorage.objects().get(spinconfigBucket, objectName).executeMediaAndDownloadTo(output);
     return new ByteArrayInputStream(output.toByteArray());
   }

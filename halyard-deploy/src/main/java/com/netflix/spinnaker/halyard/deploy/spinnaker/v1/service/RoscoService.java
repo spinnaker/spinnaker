@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RegistryBackedArchiveProfileBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.RoscoProfileFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,8 +39,13 @@ import java.util.Map;
 @Data
 @Component
 abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
+  private static String roscoPackerPath = "/opt/rosco/config/packer";
+
   @Autowired
   RoscoProfileFactory roscoProfileFactory;
+
+  @Autowired
+  RegistryBackedArchiveProfileBuilder prefixProfileBuilder;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -65,6 +71,7 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     Profile profile = roscoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
+    profiles.addAll(prefixProfileBuilder.build(deploymentConfiguration, roscoPackerPath, getArtifact(), "packer.tar.gz"));
     return profiles;
   }
 
