@@ -23,6 +23,7 @@ import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = false)
@@ -36,5 +37,14 @@ abstract public class BakeryDefaults<T extends BaseImage> extends Node {
   @Override
   public NodeIterator getChildren() {
     return NodeIteratorFactory.makeListIterator(baseImages.stream().map(b -> (Node) b).collect(Collectors.toList()));
+  }
+
+  public void addDefaultImages(List<T> otherBaseImages) {
+    Set<String> existingIds = baseImages.stream().map(i -> i.getBaseImage().getId()).collect(Collectors.toSet());
+    List<T> dedupedOtherBaseImages = otherBaseImages.stream()
+        .filter(i -> !existingIds.contains(i.getBaseImage().getId()))
+        .collect(Collectors.toList());
+
+    baseImages.addAll(dedupedOtherBaseImages);
   }
 }
