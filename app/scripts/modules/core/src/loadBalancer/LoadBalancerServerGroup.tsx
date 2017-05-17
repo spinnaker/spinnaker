@@ -4,7 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 import { clone, last, get } from 'lodash';
 import { PathNode } from 'angular-ui-router';
 
-import { ReactInjector } from 'core/reactShims';
+import { NgReact, ReactInjector } from 'core/reactShims';
 import { ILoadBalancer, IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
@@ -57,7 +57,7 @@ export class LoadBalancerServerGroup extends React.Component<IProps, IState> {
 
   public render(): React.ReactElement<LoadBalancerServerGroup> {
     const { loadBalancer, serverGroup, showInstances } = this.props;
-    const { Instances } = ReactInjector;
+    const { Instances } = NgReact;
     return (
       <div className={`cluster-container ${serverGroup.isDisabled ? 'disabled' : ''}`} ref={this.refCallback}>
         <div className="server-group-title">

@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, IInstance, IServerGroup } from 'core/domain';
-import { ReactInjector } from 'core/reactShims';
+import { NgReact, ReactInjector } from 'core/reactShims';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';
@@ -111,7 +111,7 @@ export class LoadBalancer extends React.Component<IProps, IState> {
 
   public render(): React.ReactElement<LoadBalancer> {
     const { application, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
-    const { EntityUiTags, Instances } = ReactInjector;
+    const { EntityUiTags, Instances } = NgReact;
     const ServerGroups = orderBy(serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map((serverGroup) => (
       <LoadBalancerServerGroup
         key={serverGroup.name}

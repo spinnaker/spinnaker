@@ -1,11 +1,11 @@
-import autoBindMethods from 'class-autobind-decorator';
-import { NetflixReactInjector } from 'netflix/react.injector';
 import * as React from 'react';
+import autoBindMethods from 'class-autobind-decorator';
 
-import { ReactInjector, timestamp } from '@spinnaker/core';
+import { timestamp, NgReact } from '@spinnaker/core';
 
 import { Property } from '../../domain/property.domain';
 import { IPropertyHistoryEntry } from '../../domain/propertyHistory.domain';
+import { NetflixReactInjector } from 'netflix/react.injector';
 
 import './FastPropertyHistory.less';
 
@@ -61,7 +61,7 @@ export class FastPropertyHistory extends React.Component<IProps, IState> {
 
   public render() {
     const rows = [] as JSX.Element[];
-    const { DiffView } = ReactInjector;
+    const { DiffView } = NgReact;
     this.state.entries.forEach((entry, index) => {
       const diffExpanded = this.state.diffsExpanded.includes(index);
       rows.push((

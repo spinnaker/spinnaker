@@ -11,7 +11,7 @@ import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.se
 import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
-import { ReactInjector } from 'core/reactShims';
+import { NgReact, ReactInjector } from 'core/reactShims';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 
 // react components
@@ -262,7 +262,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
   }
 
   public render() {
-    const { AccountTag, ExecutionStatus, PipelineGraph, ExecutionDetails, CopyToClipboard } = ReactInjector;
+    const { AccountTag, ExecutionStatus, PipelineGraph, ExecutionDetails, CopyToClipboard } = NgReact;
     const accountLabels = this.props.execution.deploymentTargets.map((account) => (
       <AccountTag key={account} account={account}/>
     ));

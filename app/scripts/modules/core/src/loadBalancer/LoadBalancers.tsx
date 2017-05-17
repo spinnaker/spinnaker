@@ -10,7 +10,7 @@ import { LoadBalancerPod } from './LoadBalancerPod';
 import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
 import { Tooltip } from 'core/presentation/Tooltip';
 
-import { ReactInjector } from 'core/reactShims';
+import { NgReact, ReactInjector } from 'core/reactShims';
 
 interface IProps {
   app: Application;
@@ -130,7 +130,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
   }
 
   public render(): React.ReactElement<LoadBalancers> {
-    const { Spinner, HelpField } = ReactInjector;
+    const { Spinner, HelpField } = NgReact;
     const groupings = this.state.initialized ? (
       <div>
         { this.state.groups.map((group) => (

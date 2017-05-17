@@ -13,7 +13,7 @@ import { NextRunTag } from 'core/delivery/triggers/NextRunTag';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { TriggersTag } from 'core/delivery/triggers/TriggersTag';
-import { ReactInjector } from 'core/reactShims';
+import { NgReact, ReactInjector } from 'core/reactShims';
 
 import './executionGroup.less';
 
@@ -162,7 +162,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
   }
 
   public render(): React.ReactElement<ExecutionGroup> {
-    const { AccountTag } = ReactInjector;
+    const { AccountTag } = NgReact;
     const group = this.props.group;
     const pipelineConfig = this.state.pipelineConfig;
     const pipelineDisabled = pipelineConfig && pipelineConfig.disabled;

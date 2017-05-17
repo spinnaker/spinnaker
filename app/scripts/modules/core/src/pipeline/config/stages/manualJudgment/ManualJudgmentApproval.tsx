@@ -7,7 +7,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
-import {ReactInjector} from 'core/reactShims';
+import {NgReact, ReactInjector} from 'core/reactShims';
 
 interface IProps {
   execution: IExecution;
@@ -85,7 +85,7 @@ export class ManualJudgmentApproval extends React.Component<IProps, IState> {
     const showOptions = status !== 'SKIPPED' && (!stage.context.judgmentStatus || status === 'RUNNING');
 
     const hasInstructions = !!stage.context.instructions;
-    const { ButtonBusyIndicator } = ReactInjector;
+    const { ButtonBusyIndicator } = NgReact;
 
     return (
       <div>

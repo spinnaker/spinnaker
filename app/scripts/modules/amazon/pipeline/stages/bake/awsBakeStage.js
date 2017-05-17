@@ -4,7 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import {
-  addExtendedAttributesTemplate,
+  PipelineTemplates,
   BakeExecutionLabel,
   BAKERY_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
@@ -116,7 +116,7 @@ module.exports = angular.module('spinnaker.amazon.pipeline.stage.bakeStage', [
            $scope.stage.extendedAttributes = {};
       }
       $uibModal.open({
-        templateUrl: addExtendedAttributesTemplate,
+        templateUrl: PipelineTemplates.addExtendedAttributes,
         controller: 'bakeStageAddExtendedAttributeController',
         controllerAs: 'addExtendedAttribute',
         resolve: {

@@ -1,6 +1,7 @@
 import * as React from 'react';
-import {IVariableMetadata} from './pipelineTemplate.service';
-import {ReactInjector} from 'core/reactShims';
+
+import { NgReact } from 'core/reactShims';
+import { IVariableMetadata } from './pipelineTemplate.service';
 
 interface IProps {
   metadata: IVariableMetadata
@@ -11,7 +12,7 @@ interface IState { }
 export class VariableMetadataHelpField extends React.Component<IProps, IState> {
 
    public render() {
-     const { HelpField } = ReactInjector;
+     const { HelpField } = NgReact;
      // TODO(dpeach): Clean this up - HelpField is undefined during tests. We need ReactInjector to run, but importing ReactInjector breaks tests.
      return HelpField ? <HelpField content={this.getContent()}/> : null;
    }
