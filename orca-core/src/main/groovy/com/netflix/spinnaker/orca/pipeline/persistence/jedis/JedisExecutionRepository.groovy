@@ -227,6 +227,7 @@ class JedisExecutionRepository implements ExecutionRepository {
     withJedis(getJedisPoolForId(key)) { Jedis jedis ->
       Map<String, String> map = [status: status.name()]
       if (status == ExecutionStatus.RUNNING) {
+        map.canceled = "false"
         map.startTime = String.valueOf(currentTimeMillis())
       } else if (status.complete) {
         map.endTime = String.valueOf(currentTimeMillis())
