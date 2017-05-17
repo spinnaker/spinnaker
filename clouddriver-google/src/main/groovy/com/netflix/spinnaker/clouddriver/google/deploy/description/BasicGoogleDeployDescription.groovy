@@ -51,6 +51,7 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
   // autoscalingPolicy.minNumReplicas and autoscalingPolicy.maxNumReplicas.
   Capacity capacity
   Source source = new Source()
+  String userData
 
   @Canonical
   @ToString(includeNames = true)

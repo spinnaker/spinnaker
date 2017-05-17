@@ -48,6 +48,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final List<GoogleInstanceTypeDisk> instanceTypeDisks
   final ConsulConfig consulConfig
   final Compute compute
+  final String userDataFile
 
   static class Builder {
     String name
@@ -65,6 +66,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     GoogleCredentials credentials
     Compute compute
     ConsulConfig consulConfig
+    String userDataFile
 
     /**
      * If true, overwrites any value in regionToZoneMap and locationToInstanceTypesMap with values from the platform.
@@ -146,6 +148,11 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       return this
     }
 
+    Builder userDataFile(String userDataFile) {
+      this.userDataFile = userDataFile
+      return this
+    }
+
     @VisibleForTesting
     Builder credentials(GoogleCredentials credentials) {
       this.credentials = credentials
@@ -192,7 +199,8 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         locationToInstanceTypesMap,
                                         instanceTypeDisks,
                                         consulConfig,
-                                        compute)
+                                        compute,
+                                        userDataFile)
 
     }
   }

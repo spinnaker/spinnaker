@@ -79,6 +79,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .applicationName(clouddriverUserAgentApplicationName)
             .consulConfig(managedAccount.consul)
             .instanceTypeDisks(googleDeployDefaults.instanceTypeDisks)
+            .userDataFile(managedAccount.userDataFile)
             .build()
 
         if (!managedAccount.project) {

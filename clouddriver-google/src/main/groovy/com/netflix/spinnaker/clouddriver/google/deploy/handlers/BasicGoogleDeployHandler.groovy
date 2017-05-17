@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
+import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
@@ -42,6 +44,7 @@ import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleClusterProvi
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleLoadBalancerProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
 import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -69,6 +72,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
   @Autowired
   private GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  private GoogleUserDataProvider googleUserDataProvider
 
   @Autowired
   GoogleLoadBalancerProvider googleLoadBalancerProvider
@@ -135,7 +141,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
     task.updateStatus BASE_PHASE, "Looking up next sequence..."
 
     def serverGroupName = serverGroupNameResolver.resolveNextServerGroupName(description.application, description.stack, description.freeFormDetails, false)
-
     task.updateStatus BASE_PHASE, "Produced server group name: $serverGroupName"
 
     def machineTypeName
@@ -292,6 +297,14 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
         regionBackendServicesToUpdate << backendService
       }
     }
+    String instanceTemplateName = "$serverGroupName-${System.currentTimeMillis()}"
+    Map userDataMap = getUserData(description, serverGroupName, instanceTemplateName, credentials)
+
+    if (instanceMetadata) {
+      instanceMetadata << userDataMap
+    } else {
+      instanceMetadata = userDataMap
+    }
 
     def metadata = GCEUtil.buildMetadataFromMap(instanceMetadata)
 
@@ -315,8 +328,9 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                     scheduling: scheduling,
                                                     serviceAccounts: serviceAccount)
 
-    def instanceTemplate = new InstanceTemplate(name: "$serverGroupName-${System.currentTimeMillis()}",
+    def instanceTemplate = new InstanceTemplate(name: instanceTemplateName,
                                                 properties: instanceProperties)
+
     def instanceTemplateCreateOperation = timeExecute(
         compute.instanceTemplates().insert(project, instanceTemplate),
         "compute.instanceTemplates.insert",
@@ -533,5 +547,17 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
           TAG_SCOPE, SCOPE_GLOBAL)
       null
     }
+  }
+
+  Map getUserData(BasicGoogleDeployDescription description, String serverGroupName,
+                  String instanceTemplateName, GoogleNamedAccountCredentials credentials) {
+    String customUserData = ''
+    if (description.userData) {
+      customUserData = description.userData
+    }
+    Map userData = googleUserDataProvider.getUserData(serverGroupName, instanceTemplateName,
+      description, credentials, customUserData)
+    task.updateStatus BASE_PHASE, "Resolved user data."
+    return userData
   }
 }

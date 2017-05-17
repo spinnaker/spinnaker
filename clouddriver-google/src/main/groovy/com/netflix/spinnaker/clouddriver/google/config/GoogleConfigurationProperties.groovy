@@ -29,6 +29,7 @@ class GoogleConfigurationProperties {
     boolean alphaListed
     List<String> imageProjects
     ConsulConfig consul
+    String userDataFile
   }
 
   List<ManagedAccount> accounts = []
