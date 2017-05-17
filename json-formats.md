@@ -12,23 +12,24 @@ Atlas is used.
 
 ```JSON
 {
-  "configVersion": 1.0,
+  "name": "MySampleCanaryConfig",
   "description": "Example Automated Canary Analysis (ACA) Configuration",
+  "configVersion": 1.0,
   "metrics": [
     {
-      "service": "atlas",
+      "serviceName": "atlas",
       "name": "cpu",
       "query": "name,CpuRawUser,:eq,:sum,name,numProcs,:eq,:sum,:div",
-      "extensions": {
+      "analysisConfigurations": {
         "canary": { }
       },
       "groups": ["system"]
     },
     {
-      "service": "atlas",
+      "serviceName": "atlas",
       "name": "requests",
       "query": "name,apache.http.requests,:eq,:sum",
-      "extensions": {
+      "analysisConfigurations": {
         "canary": { }
       },
       "groups": ["requests"]
@@ -71,8 +72,8 @@ to re-run with different thresholds.
       "name": "cpu",
       "tags": {"tagName": "tagValue"},
       "values": {
-        "baseline": [ 1, 2, 3, 4, 5 ],
-        "canary": [ 1, 2, 3, 4, 5 ]
+        "control": [ 1, 2, 3, 4, 5 ],
+        "experiment": [ 1, 2, 3, 4, 5 ]
       }
     }
   ]
