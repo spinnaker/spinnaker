@@ -128,9 +128,11 @@ class PipelineController {
 
   @ApiOperation(value = "Initiate a pipeline execution")
   @RequestMapping(value = '/start', method = RequestMethod.POST)
-  Map start(@RequestBody Map map) {
+  ResponseEntity start(@RequestBody Map map) {
     String authenticatedUser = AuthenticatedRequest.getSpinnakerUser().orElse("anonymous")
-    pipelineService.startPipeline(map, authenticatedUser)
+    maybePropagateTemplatedPipelineErrors(map, {
+      pipelineService.startPipeline(map, authenticatedUser)
+    })
   }
 
   @ApiOperation(value = "Trigger a pipeline execution")
@@ -169,4 +171,17 @@ class PipelineController {
   @ResponseStatus(HttpStatus.NOT_FOUND)
   @InheritConstructors
   static class PipelineNotFoundException extends RuntimeException {}
+
+  private ResponseEntity maybePropagateTemplatedPipelineErrors(Map requestBody, Closure<Map> call) {
+    try {
+      def body = call()
+      new ResponseEntity(body, HttpStatus.OK)
+    } catch (RetrofitError re) {
+      if (re.response.status == HttpStatus.BAD_REQUEST.value() && requestBody.type == "templatedPipeline") {
+        new ResponseEntity(re.getBody(), HttpStatus.BAD_REQUEST)
+      } else {
+        throw re
+      }
+    }
+  }
 }
