@@ -11,7 +11,7 @@ module(EXCEPTION_HANDLER, [AUTHENTICATION_SERVICE])
                                              $delegate: IExceptionHandlerService,
                                              authenticationService: AuthenticationService) => {
 
-      const currentVersion = require('../../../../../version.json');
+      const currentVersion = require('root/version.json');
       return (exception: Error, cause: string) => {
 
         $delegate(exception, cause);

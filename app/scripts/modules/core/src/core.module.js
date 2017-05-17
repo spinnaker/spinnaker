@@ -40,7 +40,7 @@ import { SUBNET_MODULE } from './subnet/subnet.module';
 import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
 import { WIDGETS_MODULE } from './widgets/widgets.module';
 
-require('../../../fonts/spinnaker/icons.css');
+require('root/app/fonts/spinnaker/icons.css');
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);

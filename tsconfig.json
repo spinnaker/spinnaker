@@ -21,7 +21,9 @@
     "noUnusedParameters": true,
     "outDir": "transpiled",
     "paths": {
-      "@spinnaker/core": ["core"]
+      "@spinnaker/core": ["core/src"],
+      "core/*": ["core/src/*"],
+      "core": ["core/src"]
     },
     "pretty": true,
     "removeComments": true,

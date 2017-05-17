@@ -9,7 +9,7 @@ interface IDeckVersion {
 }
 
 class VersionCheckService {
-  private currentVersion: IDeckVersion = require('../../../../../version.json');
+  private currentVersion: IDeckVersion = require('root/version.json');
   private newVersionSeenCount = 0;
   private scheduler: any;
 

@@ -5,7 +5,7 @@ import {APPENGINE_MODULE} from './modules/appengine/appengine.module';
 
 module.exports = angular.module('netflix.spinnaker', [
   NETFLIX_MODULE,
-  require('./modules/core/core.module.js'),
+  require('./modules/core/src/core.module.js'),
   require('./modules/amazon/aws.module.js'),
   require('./modules/google/gce.module.js'),
   require('./modules/cloudfoundry/cf.module.js'),
