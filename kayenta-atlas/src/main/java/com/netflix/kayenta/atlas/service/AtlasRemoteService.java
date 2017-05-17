@@ -22,6 +22,6 @@ import retrofit.http.Query;
 
 public interface AtlasRemoteService {
 
-  @GET("/api/v1/fetch")
+  @GET("/api/v2/fetch")
   AtlasResults fetch(@Query("q") String q, @Query("format") String format);
 }
