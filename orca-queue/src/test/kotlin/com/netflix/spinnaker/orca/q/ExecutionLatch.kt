@@ -66,6 +66,6 @@ fun <E : Execution<E>> ConfigurableApplicationContext.runToCompletion(execution:
     }
       .getStages()
       .map(Stage<*>::getStatus)
-      .all { it.complete || it == NOT_STARTED }
+      .all { it.isComplete || it == NOT_STARTED }
   }
 }

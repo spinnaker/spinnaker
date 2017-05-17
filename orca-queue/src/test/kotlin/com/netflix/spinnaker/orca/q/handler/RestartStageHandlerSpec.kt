@@ -62,7 +62,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
 
   ExecutionStatus
     .values()
-    .filter { !it.complete }
+    .filter { !it.isComplete }
     .forEach { incompleteStatus ->
       describe("trying to restart a $incompleteStatus stage") {
         val pipeline = pipeline {

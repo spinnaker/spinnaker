@@ -43,7 +43,7 @@ open class CompleteExecutionHandler
 
   override fun handle(message: CompleteExecution) {
     message.withExecution { execution ->
-      if (execution.getStatus().complete) {
+      if (execution.getStatus().isComplete) {
         log.info("Execution ${execution.getId()} already completed with ${execution.getStatus()} status")
       } else {
         execution.determineFinalStatus { status ->

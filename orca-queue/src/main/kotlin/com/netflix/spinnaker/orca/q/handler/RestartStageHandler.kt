@@ -42,7 +42,7 @@ open class RestartStageHandler
 
   override fun handle(message: RestartStage) {
     message.withStage { stage ->
-      if (stage.getStatus().complete) {
+      if (stage.getStatus().isComplete) {
         stage.addRestartDetails(message.user)
         stage.reset()
         repository.updateStatus(stage.getExecution().getId(), RUNNING)
