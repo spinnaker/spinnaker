@@ -23,7 +23,7 @@ import spock.lang.Unroll
 class MetricSetMixerServiceSpec extends Specification {
 
   @Shared
-  MetricSet baselineCpuMetricSet =
+  MetricSet controlCpuMetricSet =
     MetricSet.builder()
       .name('cpu')
       .values([1, 3, 5, 7])
@@ -31,7 +31,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet canaryCpuMetricSet =
+  MetricSet experimentCpuMetricSet =
     MetricSet.builder()
       .name('cpu')
       .values([2, 4, 6, 8])
@@ -39,27 +39,27 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet canaryRequestsMetricSet =
+  MetricSet experimentRequestsMetricSet =
     MetricSet.builder()
       .name('requests')
       .build()
 
   @Shared
-  MetricSet canaryCpuWrongTagsMetricSet =
+  MetricSet experimentCpuWrongTagsMetricSet =
     MetricSet.builder()
       .name('cpu')
       .tag("differentTagName", "differentTagValue")
       .build()
 
   @Shared
-  MetricSet baselineNullNameMetricSet =
+  MetricSet controlNullNameMetricSet =
     MetricSet.builder()
       .values([1, 3, 5, 7])
       .tag("tagName", "tagValue")
       .build()
 
   @Shared
-  MetricSet baselineEmptyNameMetricSet =
+  MetricSet controlEmptyNameMetricSet =
     MetricSet.builder()
       .name('')
       .values([1, 3, 5, 7])
@@ -67,7 +67,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet canaryCpuMissingValuesMetricSet =
+  MetricSet experimentCpuMissingValuesMetricSet =
     MetricSet.builder()
       .name('cpu')
       .values([2, 4])
@@ -75,14 +75,14 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet canaryCpuNullValuesMetricSet =
+  MetricSet experimentCpuNullValuesMetricSet =
     MetricSet.builder()
       .name('cpu')
       .tag("tagName", "tagValue")
       .build()
 
   @Shared
-  MetricSet canaryCpuEmptyValuesMetricSet =
+  MetricSet experimentCpuEmptyValuesMetricSet =
     MetricSet.builder()
       .name('cpu')
       .values([])
@@ -90,7 +90,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet baselineErrorsMetricSet =
+  MetricSet controlErrorsMetricSet =
     MetricSet.builder()
       .name('errors')
       .values([10, 20, 30])
@@ -99,7 +99,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet canaryErrorsMetricSet =
+  MetricSet experimentErrorsMetricSet =
     MetricSet.builder()
       .name('errors')
       .values([60, 70, 80])
@@ -108,7 +108,7 @@ class MetricSetMixerServiceSpec extends Specification {
       .build()
 
   @Shared
-  MetricSet canaryErrorsNoTagsMetricSet =
+  MetricSet experimentErrorsNoTagsMetricSet =
     MetricSet.builder()
       .name('errors')
       .values([70, 80, 90])
@@ -119,13 +119,13 @@ class MetricSetMixerServiceSpec extends Specification {
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
 
     when:
-    MetricSetPair metricSetPair = metricSetMixerService.mixOne(baselineCpuMetricSet, canaryCpuMetricSet)
+    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSet, experimentCpuMetricSet)
 
     then:
     metricSetPair.name == 'cpu'
     metricSetPair.values == [
-      baseline: [1, 3, 5, 7],
-      canary: [2, 4, 6, 8]
+      control: [1, 3, 5, 7],
+      experiment: [2, 4, 6, 8]
     ]
     metricSetPair.tags == [tagName: "tagValue"]
   }
@@ -135,13 +135,13 @@ class MetricSetMixerServiceSpec extends Specification {
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
 
     when:
-    MetricSetPair metricSetPair = metricSetMixerService.mixOne(baselineCpuMetricSet, canaryCpuMissingValuesMetricSet)
+    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSet, experimentCpuMissingValuesMetricSet)
 
     then:
     metricSetPair.name == 'cpu'
     metricSetPair.values == [
-      baseline: [1, 3, 5, 7],
-      canary: [2, 4, Double.NaN, Double.NaN]
+      control: [1, 3, 5, 7],
+      experiment: [2, 4, Double.NaN, Double.NaN]
     ]
     metricSetPair.tags == [tagName: "tagValue"]
   }
@@ -153,37 +153,37 @@ class MetricSetMixerServiceSpec extends Specification {
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
 
     when:
-    MetricSetPair metricSetPair = metricSetMixerService.mixOne(baselineCpuMetricSet, canaryMetricSet)
+    MetricSetPair metricSetPair = metricSetMixerService.mixOne(controlCpuMetricSet, experimentMetricSet)
 
     then:
     metricSetPair.name == 'cpu'
     metricSetPair.values == [
-      baseline: [1, 3, 5, 7],
-      canary: []
+      control: [1, 3, 5, 7],
+      experiment: []
     ]
     metricSetPair.tags == [tagName: "tagValue"]
 
     where:
-    canaryMetricSet << [canaryCpuNullValuesMetricSet, canaryCpuEmptyValuesMetricSet]
+    experimentMetricSet << [experimentCpuNullValuesMetricSet, experimentCpuEmptyValuesMetricSet]
   }
 
   @Unroll
-  void "mixing #baselineMetricSet and #canaryMetricSet should fail"() {
+  void "mixing #controlMetricSet and #experimentMetricSet should fail"() {
     setup:
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
 
     when:
-    metricSetMixerService.mixOne(baselineMetricSet, canaryMetricSet)
+    metricSetMixerService.mixOne(controlMetricSet, experimentMetricSet)
 
     then:
     thrown IllegalArgumentException
 
     where:
-    baselineMetricSet                       | canaryMetricSet
-    baselineCpuMetricSet                    | canaryRequestsMetricSet
-    baselineCpuMetricSet                    | canaryCpuWrongTagsMetricSet
-    baselineNullNameMetricSet               | canaryCpuMetricSet
-    baselineEmptyNameMetricSet              | canaryCpuMetricSet
+    controlMetricSet          | experimentMetricSet
+    controlCpuMetricSet       | experimentRequestsMetricSet
+    controlCpuMetricSet       | experimentCpuWrongTagsMetricSet
+    controlNullNameMetricSet  | experimentCpuMetricSet
+    controlEmptyNameMetricSet | experimentCpuMetricSet
   }
 
   @Unroll
@@ -192,47 +192,47 @@ class MetricSetMixerServiceSpec extends Specification {
     MetricSetMixerService metricSetMixerService = new MetricSetMixerService()
 
     when:
-    List<MetricSetPair> metricSetPairs = metricSetMixerService.mixAll(baselineMetricSetList, canaryMetricSetList)
+    List<MetricSetPair> metricSetPairs = metricSetMixerService.mixAll(controlMetricSetList, experimentMetricSetList)
 
     then:
-    metricSetPairs.size() == Math.max(baselineMetricSetList ? baselineMetricSetList.size() : 0, canaryMetricSetList ? canaryMetricSetList.size() : 0)
+    metricSetPairs.size() == Math.max(controlMetricSetList ? controlMetricSetList.size() : 0, experimentMetricSetList ? experimentMetricSetList.size() : 0)
     metricSetPairs.collect { it.name } == expectedMetricSetNames
     metricSetPairs.collect { it.tags } == expectedTagMaps
     metricSetPairs.collect { it.values } == expectedValues
 
     where:
-    baselineMetricSetList                           | canaryMetricSetList                                    || expectedMetricSetNames | expectedTagMaps                                                         | expectedValues
+    controlMetricSetList                          | experimentMetricSetList                                        || expectedMetricSetNames | expectedTagMaps                                                         | expectedValues
     // 1:1
-    [baselineCpuMetricSet]                          | [canaryCpuEmptyValuesMetricSet]                        || ['cpu']                | [[tagName: 'tagValue']]                                                 | [[baseline: [1, 3, 5, 7], canary: []]]
-    [baselineErrorsMetricSet]                       | [canaryErrorsMetricSet]                                || ['errors']             | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB']]                        | [[baseline: [10, 20, 30], canary: [60, 70, 80]]]
+    [controlCpuMetricSet]                         | [experimentCpuEmptyValuesMetricSet]                            || ['cpu']                | [[tagName: 'tagValue']]                                                 | [[control: [1, 3, 5, 7], experiment: []]]
+    [controlErrorsMetricSet]                      | [experimentErrorsMetricSet]                                    || ['errors']             | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB']]                        | [[control: [10, 20, 30], experiment: [60, 70, 80]]]
 
     // 1:1, mismatched tags
-    [baselineCpuMetricSet]                          | [canaryCpuWrongTagsMetricSet]                          || ['cpu', 'cpu']         | [[differentTagName: 'differentTagValue'], [tagName: 'tagValue']]        | [[baseline: [],           canary: []],           [baseline: [1, 3, 5, 7], canary: []]]
-    [baselineErrorsMetricSet]                       | [canaryErrorsNoTagsMetricSet]                          || ['errors', 'errors']   | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB'], [:]]                   | [[baseline: [10, 20, 30], canary: []],           [baseline: [],           canary: [70, 80, 90]]]
+    [controlCpuMetricSet]                         | [experimentCpuWrongTagsMetricSet]                              || ['cpu', 'cpu']         | [[differentTagName: 'differentTagValue'], [tagName: 'tagValue']]        | [[control: [],           experiment: []],           [control: [1, 3, 5, 7], experiment: []]]
+    [controlErrorsMetricSet]                      | [experimentErrorsNoTagsMetricSet]                              || ['errors', 'errors']   | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB'], [:]]                   | [[control: [10, 20, 30], experiment: []],           [control: [],           experiment: [70, 80, 90]]]
 
     // 2:2
-    [baselineCpuMetricSet, baselineErrorsMetricSet] | [canaryCpuEmptyValuesMetricSet, canaryErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [10, 20, 30], canary: [60, 70, 80]]]
-    [baselineErrorsMetricSet, baselineCpuMetricSet] | [canaryCpuEmptyValuesMetricSet, canaryErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [10, 20, 30], canary: [60, 70, 80]]]
-    [baselineCpuMetricSet, baselineErrorsMetricSet] | [canaryErrorsMetricSet, canaryCpuMetricSet]            || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: [2, 4, 6, 8]], [baseline: [10, 20, 30], canary: [60, 70, 80]]]
+    [controlCpuMetricSet, controlErrorsMetricSet] | [experimentCpuEmptyValuesMetricSet, experimentErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [10, 20, 30], experiment: [60, 70, 80]]]
+    [controlErrorsMetricSet, controlCpuMetricSet] | [experimentCpuEmptyValuesMetricSet, experimentErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [10, 20, 30], experiment: [60, 70, 80]]]
+    [controlCpuMetricSet, controlErrorsMetricSet] | [experimentErrorsMetricSet, experimentCpuMetricSet]            || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: [2, 4, 6, 8]], [control: [10, 20, 30], experiment: [60, 70, 80]]]
 
     // 1:2
-    [baselineCpuMetricSet]                          | [canaryCpuEmptyValuesMetricSet, canaryErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [],           canary: [60, 70, 80]]]
-    [baselineErrorsMetricSet]                       | [canaryCpuEmptyValuesMetricSet, canaryErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [],           canary: []],           [baseline: [10, 20, 30], canary: [60, 70, 80]]]
+    [controlCpuMetricSet]                         | [experimentCpuEmptyValuesMetricSet, experimentErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [],           experiment: [60, 70, 80]]]
+    [controlErrorsMetricSet]                      | [experimentCpuEmptyValuesMetricSet, experimentErrorsMetricSet] || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [],           experiment: []],           [control: [10, 20, 30], experiment: [60, 70, 80]]]
 
     // 2:1
-    [baselineCpuMetricSet, baselineErrorsMetricSet] | [canaryCpuEmptyValuesMetricSet]                        || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [10, 20, 30], canary: []]]
-    [baselineCpuMetricSet, baselineErrorsMetricSet] | [canaryErrorsMetricSet]                                || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [10, 20, 30], canary: [60, 70, 80]]]
+    [controlCpuMetricSet, controlErrorsMetricSet] | [experimentCpuEmptyValuesMetricSet]                            || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [10, 20, 30], experiment: []]]
+    [controlCpuMetricSet, controlErrorsMetricSet] | [experimentErrorsMetricSet]                                    || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [10, 20, 30], experiment: [60, 70, 80]]]
 
     // null:1
-    null                                            | [canaryErrorsMetricSet]                                || ['errors']             | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB']]                        | [[baseline: [],           canary: [60, 70, 80]]]
+    null                                          | [experimentErrorsMetricSet]                                    || ['errors']             | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB']]                        | [[control: [],           experiment: [60, 70, 80]]]
 
     // []:1
-    []                                              | [canaryErrorsMetricSet]                                || ['errors']             | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB']]                        | [[baseline: [],           canary: [60, 70, 80]]]
+    []                                            | [experimentErrorsMetricSet]                                    || ['errors']             | [[tagNameA: 'tagValueA', tagNameB: 'tagValueB']]                        | [[control: [],           experiment: [60, 70, 80]]]
 
     // 2:null
-    [baselineCpuMetricSet, baselineErrorsMetricSet] | null                                                   || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [10, 20, 30], canary: []]]
+    [controlCpuMetricSet, controlErrorsMetricSet] | null                                                           || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [10, 20, 30], experiment: []]]
 
     // 2:[]
-    [baselineCpuMetricSet, baselineErrorsMetricSet] | []                                                     || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[baseline: [1, 3, 5, 7], canary: []],           [baseline: [10, 20, 30], canary: []]]
+    [controlCpuMetricSet, controlErrorsMetricSet] | []                                                             || ['cpu', 'errors']      | [[tagName: 'tagValue'], [tagNameA: 'tagValueA', tagNameB: 'tagValueB']] | [[control: [1, 3, 5, 7], experiment: []],           [control: [10, 20, 30], experiment: []]]
   }
 }

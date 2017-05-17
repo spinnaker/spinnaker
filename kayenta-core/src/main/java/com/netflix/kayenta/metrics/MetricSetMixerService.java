@@ -26,36 +26,36 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MetricSetMixerService {
-  public MetricSetPair mixOne(MetricSet baselineMetricSet, MetricSet canaryMetricSet) {
-    String baselineName = baselineMetricSet.getName();
-    String canaryName = canaryMetricSet.getName();
-    Map<String, String> baselineTags = baselineMetricSet.getTags();
-    Map<String, String> canaryTags = canaryMetricSet.getTags();
-    List<Double> baselineValues = baselineMetricSet.getValues();
-    List<Double> canaryValues = canaryMetricSet.getValues();
+  public MetricSetPair mixOne(MetricSet controlMetricSet, MetricSet experimentMetricSet) {
+    String controlName = controlMetricSet.getName();
+    String experimentName = experimentMetricSet.getName();
+    Map<String, String> controlTags = controlMetricSet.getTags();
+    Map<String, String> experimentTags = experimentMetricSet.getTags();
+    List<Double> controlValues = controlMetricSet.getValues();
+    List<Double> experimentValues = experimentMetricSet.getValues();
 
-    if (StringUtils.isEmpty(baselineName)) {
-      throw new IllegalArgumentException("Baseline metric set name was not set.");
-    } else if (StringUtils.isEmpty(canaryName)) {
-      throw new IllegalArgumentException("Canary metric set name was not set.");
-    } else if (!baselineName.equals(canaryName)) {
-      throw new IllegalArgumentException("Baseline metric set name '" + baselineName +
-        "' does not match canary metric set name '" + canaryName + "'.");
-    } else if (!baselineTags.equals(canaryTags)) {
-      throw new IllegalArgumentException("Baseline metric set tags " + baselineTags +
-        " does not match canary metric set tags " + canaryTags + ".");
+    if (StringUtils.isEmpty(controlName)) {
+      throw new IllegalArgumentException("Control metric set name was not set.");
+    } else if (StringUtils.isEmpty(experimentName)) {
+      throw new IllegalArgumentException("Experiment metric set name was not set.");
+    } else if (!controlName.equals(experimentName)) {
+      throw new IllegalArgumentException("Control metric set name '" + controlName +
+        "' does not match experiment metric set name '" + experimentName + "'.");
+    } else if (!controlTags.equals(experimentTags)) {
+      throw new IllegalArgumentException("Control metric set tags " + controlTags +
+        " do not match experiment metric set tags " + experimentTags + ".");
     }
 
-    if (baselineValues.size() != canaryValues.size()) {
+    if (controlValues.size() != experimentValues.size()) {
       List<Double> smallerList;
 
-      if (baselineValues.size() > canaryValues.size()) {
-        smallerList = canaryValues = new ArrayList<>(canaryValues);
+      if (controlValues.size() > experimentValues.size()) {
+        smallerList = experimentValues = new ArrayList<>(experimentValues);
       } else {
-        smallerList = baselineValues = new ArrayList<>(baselineValues);
+        smallerList = controlValues = new ArrayList<>(controlValues);
       }
 
-      long maxSize = Math.max(baselineValues.size(), canaryValues.size());
+      long maxSize = Math.max(controlValues.size(), experimentValues.size());
 
       // As an optimization, we don't backfill completely empty arrays with NaNs.
       if (smallerList.size() > 0) {
@@ -67,44 +67,44 @@ public class MetricSetMixerService {
 
     MetricSetPair.MetricSetPairBuilder metricSetPairBuilder =
       MetricSetPair.builder()
-        .name(baselineMetricSet.getName())
-        .tags(baselineMetricSet.getTags())
-        .value("baseline", baselineValues)
-        .value("canary", canaryValues);
+        .name(controlMetricSet.getName())
+        .tags(controlMetricSet.getTags())
+        .value("control", controlValues)
+        .value("experiment", experimentValues);
 
     return metricSetPairBuilder.build();
   }
 
-  public List<MetricSetPair> mixAll(List<MetricSet> baselineMetricSetList, List<MetricSet> canaryMetricSetList) {
-    if (baselineMetricSetList == null) {
-      baselineMetricSetList = new ArrayList<>();
+  public List<MetricSetPair> mixAll(List<MetricSet> controlMetricSetList, List<MetricSet> experimentMetricSetList) {
+    if (controlMetricSetList == null) {
+      controlMetricSetList = new ArrayList<>();
     }
 
-    if (canaryMetricSetList == null) {
-      canaryMetricSetList = new ArrayList<>();
+    if (experimentMetricSetList == null) {
+      experimentMetricSetList = new ArrayList<>();
     }
 
-    // Build 'metric set key' -> 'metric set' maps of baseline and canary so we can efficiently identify missing metric sets.
-    Map<String, MetricSet> baselineMetricSetMap = buildMetricSetMap(baselineMetricSetList);
-    Map<String, MetricSet> canaryMetricSetMap = buildMetricSetMap(canaryMetricSetList);
+    // Build 'metric set key' -> 'metric set' maps of control and experiment so we can efficiently identify missing metric sets.
+    Map<String, MetricSet> controlMetricSetMap = buildMetricSetMap(controlMetricSetList);
+    Map<String, MetricSet> experimentMetricSetMap = buildMetricSetMap(experimentMetricSetList);
 
     // Identify metric sets missing from each map.
-    List<MetricSet> missingFromCanary = findMissingMetricSets(baselineMetricSetList, canaryMetricSetMap);
-    List<MetricSet> missingFromBaseline = findMissingMetricSets(canaryMetricSetList, baselineMetricSetMap);
+    List<MetricSet> missingFromExperiment = findMissingMetricSets(controlMetricSetList, experimentMetricSetMap);
+    List<MetricSet> missingFromControl = findMissingMetricSets(experimentMetricSetList, controlMetricSetMap);
 
     // Add placeholder metric sets for each one that is missing.
-    addMissingMetricSets(baselineMetricSetList, missingFromBaseline);
-    addMissingMetricSets(canaryMetricSetList, missingFromCanary);
+    addMissingMetricSets(controlMetricSetList, missingFromControl);
+    addMissingMetricSets(experimentMetricSetList, missingFromExperiment);
 
     // Sort each metric set list so that we can pair them.
-    baselineMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
-    canaryMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
+    controlMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
+    experimentMetricSetList.sort(Comparator.comparing(metricSet -> metricSet.getMetricSetKey()));
 
     // Produce the list of metric set pairs from the pair of metric set lists.
     List<MetricSetPair> ret = new ArrayList<>();
 
-    for (int i = 0; i < baselineMetricSetList.size(); i++) {
-      ret.add(mixOne(baselineMetricSetList.get(i), canaryMetricSetList.get(i)));
+    for (int i = 0; i < controlMetricSetList.size(); i++) {
+      ret.add(mixOne(controlMetricSetList.get(i), experimentMetricSetList.get(i)));
     }
 
     return ret;
