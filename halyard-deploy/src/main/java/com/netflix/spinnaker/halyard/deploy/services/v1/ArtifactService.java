@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.services.v1;
 
 import com.amazonaws.util.IOUtils;
+import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
@@ -50,7 +51,7 @@ public class ArtifactService {
   Yaml yamlParser;
 
   @Autowired
-  StrictObjectMapper strictObjectMapper;
+  RelaxedObjectMapper relaxedObjectMapper;
 
   @Autowired
   DeploymentService deploymentService;
@@ -84,7 +85,7 @@ public class ArtifactService {
     Versions versionsCollection = versionsService.getVersions();
     deleteVersion(versionsCollection, version.getVersion());
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishVersion(Version version) {
@@ -97,7 +98,7 @@ public class ArtifactService {
     deleteVersion(versionsCollection, version.getVersion());
     versionsCollection.getVersions().add(version);
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void publishLatest(String latest) {
@@ -114,7 +115,7 @@ public class ArtifactService {
 
     versionsCollection.setLatest(latest);
 
-    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+    writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
   public void writeBom(String bomPath) {
@@ -129,7 +130,7 @@ public class ArtifactService {
 
     try {
       bomContents = IOUtils.toString(new FileInputStream(bomPath));
-      bom = strictObjectMapper.convertValue(
+      bom = relaxedObjectMapper.convertValue(
           yamlParser.load(bomContents),
           BillOfMaterials.class);
       version = bom.getVersion();
@@ -157,7 +158,7 @@ public class ArtifactService {
     String profileContents;
 
     try {
-      bom = strictObjectMapper.convertValue(
+      bom = relaxedObjectMapper.convertValue(
           yamlParser.load(IOUtils.toString(new FileInputStream(bomPath))),
           BillOfMaterials.class);
     } catch (IOException e) {

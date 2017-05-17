@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
-import com.netflix.spinnaker.halyard.config.config.v1.StrictObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
@@ -41,12 +41,11 @@ public class VersionsService {
   Yaml yamlParser;
 
   @Autowired
-  StrictObjectMapper strictObjectMapper;
-
+  RelaxedObjectMapper relaxedObjectMapper;
 
   public Versions getVersions() {
     try {
-      return strictObjectMapper.convertValue(
+      return relaxedObjectMapper.convertValue(
           yamlParser.load(profileRegistry.getObjectContents("versions.yml")),
           Versions.class
       );
@@ -68,7 +67,7 @@ public class VersionsService {
     try {
       String bomName = ProfileRegistry.bomPath(version);
 
-      BillOfMaterials bom = strictObjectMapper.convertValue(
+      BillOfMaterials bom = relaxedObjectMapper.convertValue(
           yamlParser.load(profileRegistry.getObjectContents(bomName)),
           BillOfMaterials.class
       );
