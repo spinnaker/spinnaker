@@ -5,7 +5,7 @@ import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/execution
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.runJob.titus.executionDetails.controller', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.runJob.executionDetails.controller', [
   require('angular-ui-router').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
 ])

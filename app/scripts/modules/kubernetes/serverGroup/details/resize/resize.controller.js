@@ -6,8 +6,6 @@ import { get, set } from 'lodash';
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.kubernetes.serverGroup.details.resize.controller', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/task/modal/reason.directive.js'),
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
 ])

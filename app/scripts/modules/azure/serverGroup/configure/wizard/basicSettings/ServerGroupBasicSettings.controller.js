@@ -8,7 +8,6 @@ module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSett
   require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   require('./image.regional.filter.js'),
-  require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,
   NAMING_SERVICE,

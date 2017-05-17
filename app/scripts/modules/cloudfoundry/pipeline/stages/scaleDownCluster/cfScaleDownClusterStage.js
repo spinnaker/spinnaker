@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.cf.scaleDownClusterStage', [
+module.exports = angular.module('spinnaker.cf.pipeline.stage.scaleDownClusterStage', [
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {

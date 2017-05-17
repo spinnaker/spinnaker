@@ -2,10 +2,9 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, PipelineTemplates, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.cf.pipeline.stage.enableAsgStage', [
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {
@@ -13,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.cf.enableAsgStage
       provides: 'enableServerGroup',
       cloudProvider: 'cf',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/enableAsg/templates/enableAsgExecutionDetails.template.html'),
+      executionDetailsUrl: PipelineTemplates.enableAsgExecutionDetails,
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

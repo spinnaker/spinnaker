@@ -1,6 +1,5 @@
 import {module} from 'angular';
 
-import {CLOUD_PROVIDER_LOGO} from 'core/cloudProvider/cloudProviderLogo.component';
 
 class CopyStageCardComponent implements ng.IComponentOptions {
   public bindings: any = {
@@ -29,7 +28,4 @@ class CopyStageCardComponent implements ng.IComponentOptions {
 
 export const COPY_STAGE_CARD_COMPONENT = 'spinnaker.core.copyStageCard.component';
 
-module(COPY_STAGE_CARD_COMPONENT, [
-    CLOUD_PROVIDER_LOGO,
-  ])
-  .component('copyStageCard', new CopyStageCardComponent());
+module(COPY_STAGE_CARD_COMPONENT, []).component('copyStageCard', new CopyStageCardComponent());

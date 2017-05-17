@@ -71,7 +71,7 @@ export class WebhookStage {
       this.stage.customHeaders = {};
     }
     this.$uibModal.open({
-      templateUrl: require('core/pipeline/config/stages/webhook/modal/addCustomHeader.html'),
+      templateUrl: require('./modal/addCustomHeader.html'),
       controller: 'WebhookStageAddCustomHeaderCtrl',
       controllerAs: 'addCustomHeader',
     }).result.then((customHeader: ICustomHeader) => {

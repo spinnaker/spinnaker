@@ -5,12 +5,10 @@ const angular = require('angular');
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/task/modal/reason.directive.js'),
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   require('./resizeCapacity.directive.js'),
-  require('../../../common/footer.directive.js'),
+  require('amazon/common/footer.directive.js'),
 ])
   .controller('awsResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter,
                                                    taskMonitorBuilder,

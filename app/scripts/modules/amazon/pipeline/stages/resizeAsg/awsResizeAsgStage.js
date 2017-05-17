@@ -4,8 +4,7 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.resizeAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.resizeAsgStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

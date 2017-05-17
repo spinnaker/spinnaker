@@ -9,7 +9,8 @@ import {
   NETWORK_READ_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER
+  SERVER_GROUP_WRITER,
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.gce.module.js');
@@ -17,7 +18,6 @@ require('../configure/serverGroup.configure.gce.module.js');
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
   require('angular-ui-router').default,
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,
   CONFIRMATION_MODAL_SERVICE,
@@ -430,7 +430,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       $scope.serverGroup = { name: this.serverGroup.name };
       $scope.userData = this.serverGroup.startupScript;
       $uibModal.open({
-        templateUrl: require('core/serverGroup/details/userData.html'),
+        templateUrl: ServerGroupTemplates.userData,
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

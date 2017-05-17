@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import { InstanceTemplates } from '@spinnaker/core';
+
 module.exports = angular
   .module('spinnaker.core.instance.details.console.link', [
     require('angular-ui-bootstrap'),
@@ -21,7 +23,7 @@ module.exports = angular
         this.text = this.text || 'Console Output (Raw)';
         this.showConsoleOutput = function () {
           $uibModal.open({
-            templateUrl: require('./consoleOutput.modal.html'),
+            templateUrl: InstanceTemplates.consoleOutputModal,
             controller: 'ConsoleOutputCtrl as ctrl',
             size: 'lg',
             resolve: {

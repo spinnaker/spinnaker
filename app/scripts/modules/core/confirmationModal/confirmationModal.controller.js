@@ -7,7 +7,6 @@ import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 module.exports = angular
   .module('spinnaker.core.confirmationModal.controller', [
     require('angular-ui-bootstrap'),
-    require('../application/modal/platformHealthOverride.directive.js'),
     TASK_MONITOR_BUILDER,
   ])
   .controller('ConfirmationModalCtrl', function($scope, $uibModalInstance, taskMonitorBuilder, params) {

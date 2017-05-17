@@ -7,8 +7,8 @@ import {SETTINGS} from 'core/config/settings';
 
 const angular = require('angular');
 
-export const AUTHENTICATION = 'spinnaker.authentication';
-angular.module(AUTHENTICATION, [
+export const AUTHENTICATION_MODULE = 'spinnaker.authentication';
+angular.module(AUTHENTICATION_MODULE, [
   AUTHENTICATION_SERVICE,
   REDIRECT_SERVICE,
   AUTHENTICATION_INITIALIZER_SERVICE,

@@ -10,7 +10,7 @@ import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@s
   Without this stage, programmatically-created pipelines with Docker bake stages would not render
   execution details.
  */
-module.exports = angular.module('spinnaker.core.pipeline.stage.docker.bakeStage', [
+module.exports = angular.module('spinnaker.docker.pipeline.stage.bakeStage', [
   PIPELINE_CONFIG_PROVIDER,
   require('./bakeExecutionDetails.controller.js'),
   BAKERY_SERVICE,

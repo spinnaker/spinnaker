@@ -5,8 +5,6 @@ const angular = require('angular');
 import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.resize.controller', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
-  require('core/task/modal/reason.directive.js'),
   TASK_MONITOR_BUILDER,
   require('./resizeCapacity.component.js'),
   require('oracle/common/footer.component.js'),

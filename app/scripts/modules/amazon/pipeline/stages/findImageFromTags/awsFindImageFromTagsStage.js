@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findImageFromTagsStage', [
+module.exports = angular.module('spinnaker.amazon.pipeline.stage.findImageFromTagsStage', [
   BAKERY_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
 ])

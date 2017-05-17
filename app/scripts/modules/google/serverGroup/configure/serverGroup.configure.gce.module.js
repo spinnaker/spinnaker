@@ -9,9 +9,6 @@ import {GCE_CACHE_REFRESH} from 'google/cache/cacheRefresh.component';
 module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component.js'),
   require('../../autoscalingPolicy/components/metricSettings/metricSettings.component.js'),
-  require('core/account/account.module.js'),
-  require('core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
-  require('core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
   GCE_LOAD_BALANCING_POLICY_SELECTOR,
   GCE_AUTOHEALING_POLICY_SELECTOR,
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),

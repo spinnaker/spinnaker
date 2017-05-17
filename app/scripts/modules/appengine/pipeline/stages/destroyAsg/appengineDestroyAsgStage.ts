@@ -1,5 +1,6 @@
-import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
 import { module } from 'angular';
+
+import { ACCOUNT_SERVICE, AccountService, PipelineTemplates } from '@spinnaker/core';
 
 import { IAppengineStageScope } from 'appengine/domain/index';
 import { AppengineStageCtrl } from '../appengineStage.controller';
@@ -28,7 +29,7 @@ module(APPENGINE_DESTROY_ASG_STAGE, [ACCOUNT_SERVICE])
       provides: 'destroyServerGroup',
       cloudProvider: 'appengine',
       templateUrl: require('./destroyAsgStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/destroyAsg/templates/destroyAsgExecutionDetails.template.html'),
+      executionDetailsUrl: PipelineTemplates.destroyAsgExecutionDetails,
       executionStepLabelUrl: require('./destroyAsgStepLabel.html'),
       validators: [
         {

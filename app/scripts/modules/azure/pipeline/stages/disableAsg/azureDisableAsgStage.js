@@ -2,10 +2,9 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { PipelineTemplates, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.azure.disableAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.azure.pipeline.stage.disableAsgStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.disableAsgS
       alias: 'disableAsg',
       cloudProvider: 'azure',
       templateUrl: require('./disableAsgStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/disableAsg/templates/disableAsgExecutionDetails.template.html'),
+      executionDetailsUrl: PipelineTemplates.disableAsgExecutionDetails,
       executionStepLabelUrl: require('./disableAsgStepLabel.html'),
       validators: [
         {

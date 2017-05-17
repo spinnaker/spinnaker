@@ -8,7 +8,7 @@ import { SERVICE_ACCOUNT_SERVICE, SETTINGS } from '@spinnaker/core';
 import { DOCKER_IMAGE_READER } from 'docker/image/docker.image.reader.service';
 import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from 'docker/image/dockerImageAndTagSelector.component';
 
-module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
+module.exports = angular.module('spinnaker.docker.pipeline.trigger', [
     SERVICE_ACCOUNT_SERVICE,
     DOCKER_IMAGE_READER,
     require('./dockerTriggerOptions.directive.js'),

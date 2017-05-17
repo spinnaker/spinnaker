@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.bake.titus.executionDetails.controller', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.bake.executionDetails.controller', [
   require('angular-ui-router').default,
 ])
   .controller('titusBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,

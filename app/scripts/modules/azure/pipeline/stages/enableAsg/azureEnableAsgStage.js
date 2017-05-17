@@ -2,10 +2,9 @@
 
 const angular = require('angular');
 
-import { StageConstants } from '@spinnaker/core';
+import { PipelineTemplates, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.azure.enableAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.azure.pipeline.stage.enableAsgStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -13,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.azure.enableAsgSt
       alias: 'enableAsg',
       cloudProvider: 'azure',
       templateUrl: require('./enableAsgStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/enableAsg/templates/enableAsgExecutionDetails.template.html'),
+      executionDetailsUrl: PipelineTemplates.enableAsgExecutionDetails,
       executionStepLabelUrl: require('./enableAsgStepLabel.html'),
       validators: [
         { type: 'requiredField', fieldName: 'cluster' },

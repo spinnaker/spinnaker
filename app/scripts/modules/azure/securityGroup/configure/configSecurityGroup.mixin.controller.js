@@ -12,7 +12,6 @@ module.exports = angular
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     ACCOUNT_SERVICE,
-    require('core/modal/wizard/modalWizard.service.js'),
   ])
   .controller('azureConfigSecurityGroupMixin', function ($scope,
                                                          $state,

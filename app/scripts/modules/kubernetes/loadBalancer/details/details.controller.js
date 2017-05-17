@@ -3,7 +3,7 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE, ServerGroupTemplates } from '@spinnaker/core';
 
 import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
 
@@ -55,7 +55,7 @@ module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.contr
       $scope.userDataModalTitle = 'Service YAML';
       $scope.userData = $scope.loadBalancer.yaml;
       $uibModal.open({
-        templateUrl: require('core/serverGroup/details/userData.html'),
+        templateUrl: ServerGroupTemplates.userData,
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

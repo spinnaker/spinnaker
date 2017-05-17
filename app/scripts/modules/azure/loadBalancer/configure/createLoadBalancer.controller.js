@@ -22,8 +22,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller'
   TASK_MONITOR_BUILDER,
   INFRASTRUCTURE_CACHE_SERVICE,
   NAMING_SERVICE,
-  require('core/region/regionSelectField.directive.js'),
-  require('core/account/accountSelectField.directive.js'),
   NETWORK_READ_SERVICE,
 ])
   .controller('azureCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,

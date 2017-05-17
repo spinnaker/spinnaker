@@ -7,7 +7,7 @@ import {DOCKER_IMAGE_READER} from 'docker/image/docker.image.reader.service';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.pipeline.config.triggers.docker.options.directive', [
+  .module('spinnaker.docker.pipeline.config.triggers.options.directive', [
     DOCKER_IMAGE_READER,
   ])
   .directive('dockerTriggerOptions', function () {

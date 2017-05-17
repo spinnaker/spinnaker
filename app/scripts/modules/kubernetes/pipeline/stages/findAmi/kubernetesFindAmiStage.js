@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAmiStage', [
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.findAmiStage', [
   PIPELINE_CONFIG_PROVIDER,
   ACCOUNT_SERVICE,
 ])

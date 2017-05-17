@@ -8,14 +8,14 @@ import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service'
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
-import {CORE_PAGETITLE_SERVICE} from 'core/pageTitle/pageTitle.service';
+import {PAGE_TITLE_SERVICE} from 'core/pageTitle/pageTitle.service';
 import {INFRASTRUCTURE_SEARCH_SERVICE} from 'core/search/infrastructure/infrastructureSearch.service';
 
 module.exports = angular.module('spinnaker.search.infrastructure.controller', [
   INFRASTRUCTURE_SEARCH_SERVICE,
   RECENT_HISTORY_SERVICE,
   require('../searchResult/searchResult.directive.js'),
-  CORE_PAGETITLE_SERVICE,
+  PAGE_TITLE_SERVICE,
   require('./project/infrastructureProject.directive.js'),
   require('../searchRank.filter.js'),
   CLUSTER_FILTER_SERVICE,

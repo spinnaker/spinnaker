@@ -134,8 +134,8 @@ export class PageTitleService {
   }
 }
 
-export const CORE_PAGETITLE_SERVICE = 'spinnaker.core.pageTitle.service';
+export const PAGE_TITLE_SERVICE = 'spinnaker.core.pageTitle.service';
 
-module(CORE_PAGETITLE_SERVICE, [require('angular-ui-router').default])
+module(PAGE_TITLE_SERVICE, [require('angular-ui-router').default])
   .service('pageTitleService', PageTitleService)
   .run(['pageTitleService', (pts: PageTitleService) => pts]);

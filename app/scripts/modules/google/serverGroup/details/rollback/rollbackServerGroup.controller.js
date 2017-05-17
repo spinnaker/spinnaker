@@ -6,8 +6,6 @@ import { ACCOUNT_SERVICE, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spi
 
 module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.controller', [
       ACCOUNT_SERVICE,
-      require('core/application/modal/platformHealthOverride.directive.js'),
-      require('core/task/modal/reason.directive.js'),
       SERVER_GROUP_WRITER,
       TASK_MONITOR_BUILDER,
       require('../../../common/footer.directive.js'),

@@ -8,7 +8,8 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
-  RECENT_HISTORY_SERVICE
+  RECENT_HISTORY_SERVICE,
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller', [
@@ -39,7 +40,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       $scope.userDataModalTitle = 'Pod YAML';
       $scope.userData = $scope.instance.yaml;
       $uibModal.open({
-        templateUrl: require('core/serverGroup/details/userData.html'),
+        templateUrl: ServerGroupTemplates.userData,
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

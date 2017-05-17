@@ -7,7 +7,8 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER
+  SERVER_GROUP_WRITER,
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
@@ -19,7 +20,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
   SERVER_GROUP_WRITER,
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
-  require('core/modal/closeable/closeable.modal.controller.js'),
 ])
     .controller('cfServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                       cfServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
@@ -242,7 +242,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.cf.controller', [
       this.showUserData = function showScalingActivities() {
         $scope.userData = window.atob($scope.serverGroup.launchConfig.userData);
         $uibModal.open({
-          templateUrl: require('core/serverGroup/details/userData.html'),
+          templateUrl: ServerGroupTemplates.userData,
           controller: 'CloseableModalCtrl',
           scope: $scope
         });

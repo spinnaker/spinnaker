@@ -3,7 +3,6 @@
 describe('Directives: projectCluster', function () {
 
   require('./projectCluster.directive.html');
-  require('core/account/collapsibleAccountTag.directive.html');
 
   beforeEach(
     window.module(
@@ -11,7 +10,7 @@ describe('Directives: projectCluster', function () {
     )
   );
 
-  var $compile, $scope, $q, urlBuilder;
+  var $compile, $scope, urlBuilder;
 
   // https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$compile
   beforeEach(
@@ -20,15 +19,12 @@ describe('Directives: projectCluster', function () {
   }));
 
   beforeEach(
-    window.inject(function ($rootScope, _$compile_, _$q_, _urlBuilderService_, accountService) {
+    window.inject(function ($rootScope, _$compile_, _urlBuilderService_) {
       $scope = $rootScope.$new();
       $compile = _$compile_;
-      $q = _$q_;
       urlBuilder = _urlBuilderService_;
 
       spyOn(urlBuilder, 'buildFromMetadata').and.returnValue('url');
-      // needed for collapsibleAccountTag
-      spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(true));
     })
   );
 

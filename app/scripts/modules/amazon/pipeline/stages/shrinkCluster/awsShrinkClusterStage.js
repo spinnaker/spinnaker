@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { PipelineTemplates, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkClusterStage', [
+module.exports = angular.module('spinnaker.amazon.pipeline.stage.aws.shrinkClusterStage', [
   PIPELINE_CONFIG_PROVIDER,
 ])
   .config(function(pipelineConfigProvider) {
@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.aws.shrinkCluster
       provides: 'shrinkCluster',
       cloudProvider: 'aws',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/shrinkCluster/templates/shrinkClusterExecutionDetails.template.html'),
+      executionDetailsUrl: PipelineTemplates.shrinkClusterExecutionDetails,
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

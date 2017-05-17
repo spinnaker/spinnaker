@@ -11,13 +11,13 @@ import {
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_WRITER,
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.aws.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router').default,
-  require('core/application/modal/platformHealthOverride.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
@@ -28,7 +28,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER,
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./scheduledAction/scheduledAction.directive.js'),
   require('./resize/resizeServerGroup.controller'),
@@ -366,7 +365,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
       $scope.userData = window.atob(this.serverGroup.launchConfig.userData);
       $scope.serverGroup = { name: this.serverGroup.name };
       $uibModal.open({
-        templateUrl: require('core/serverGroup/details/userData.html'),
+        templateUrl: ServerGroupTemplates.userData,
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

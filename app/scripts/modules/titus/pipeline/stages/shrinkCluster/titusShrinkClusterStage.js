@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+import { PIPELINE_CONFIG_PROVIDER, PipelineTemplates } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.titus.shrinkClusterStage', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.shrinkClusterStage', [
   PIPELINE_CONFIG_PROVIDER,
 ])
   .config(function(pipelineConfigProvider) {
@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.titus.shrinkClust
       provides: 'shrinkCluster',
       cloudProvider: 'titus',
       templateUrl: require('./shrinkClusterStage.html'),
-      executionDetailsUrl: require('core/pipeline/config/stages/shrinkCluster/templates/shrinkClusterExecutionDetails.template.html'),
+      executionDetailsUrl: PipelineTemplates.shrinkClusterExecutionDetails,
       accountExtractor: (stage) => [stage.context.credentials],
       configAccountExtractor: (stage) => [stage.credentials],
       validators: [

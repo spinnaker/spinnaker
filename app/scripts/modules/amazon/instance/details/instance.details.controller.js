@@ -18,11 +18,9 @@ module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   require('../../vpc/vpcTag.directive.js'),
-  require('core/subnet/subnetTag.component.js'),
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-  require('core/instance/details/instanceLinks.component'),
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                   instanceWriter, confirmationModalService, recentHistoryService,

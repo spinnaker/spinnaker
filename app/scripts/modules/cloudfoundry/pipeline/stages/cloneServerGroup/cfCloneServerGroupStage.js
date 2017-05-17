@@ -5,8 +5,7 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.cf.cloneServerGroupStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.cf.pipeline.stage.cloneServerGroupStage', [
   ACCOUNT_SERVICE,
   NAMING_SERVICE,
   require('./cloneServerGroupExecutionDetails.controller.js'),

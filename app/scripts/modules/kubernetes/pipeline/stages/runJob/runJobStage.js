@@ -6,7 +6,7 @@ const angular = require('angular');
 
 import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT} from 'docker/image/dockerImageAndTagSelector.component';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.runJobStage', [
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage', [
   DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
   require('kubernetes/container/commands.component.js'),
   require('kubernetes/container/arguments.component.js'),

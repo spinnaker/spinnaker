@@ -6,7 +6,6 @@ import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } fr
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone', [
   require('angular-ui-router').default,
-  require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,

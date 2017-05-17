@@ -6,7 +6,7 @@ import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
 
 import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage', [
+module.exports = angular.module('spinnaker.cf.pipeline.stage.findAmiStage', [
   LIST_EXTRACTOR_SERVICE,
   ACCOUNT_SERVICE,
 ])

@@ -7,7 +7,8 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_READER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  SERVER_GROUP_WRITER
+  SERVER_GROUP_WRITER,
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
@@ -57,7 +58,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
       $scope.userDataModalTitle = 'Replication Controller YAML';
       $scope.userData = $scope.serverGroup.yaml;
       $uibModal.open({
-        templateUrl: require('core/serverGroup/details/userData.html'),
+        templateUrl: ServerGroupTemplates.userData,
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

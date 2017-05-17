@@ -17,11 +17,9 @@ module.exports = angular.module('spinnaker.instance.detail.openstack.controller'
   require('angular-ui-bootstrap'),
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
-  require('core/subnet/subnetTag.component.js'),
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-  require('core/instance/details/instanceLinks.component'),
 ])
   .controller('openstackInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                instanceWriter, confirmationModalService, recentHistoryService,

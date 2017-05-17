@@ -4,8 +4,7 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.disableAsgStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.disableAsgStage', [
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {

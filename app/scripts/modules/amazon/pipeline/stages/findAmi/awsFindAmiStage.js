@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.findAmiStage', [
+module.exports = angular.module('spinnaker.amazon.pipeline.stage.findAmiStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

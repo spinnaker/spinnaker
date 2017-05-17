@@ -5,8 +5,6 @@ import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 let template = require('./resizeServerGroup.html');
 
 // template dependencies
-require('core/task/monitor/taskMonitor.html');
-require('core/task/modal/reason.directive.html');
 require('../../../common/footer.directive.html');
 
 describe('Controller: gceResizeServerGroupCtrl', function () {

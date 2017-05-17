@@ -5,7 +5,6 @@ const angular = require('angular');
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.cf.serverGroup.details.resize.controller', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
 ])

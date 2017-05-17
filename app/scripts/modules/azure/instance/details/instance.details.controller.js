@@ -8,6 +8,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
   INSTANCE_WRITE_SERVICE,
+  InstanceTemplates,
   RECENT_HISTORY_SERVICE
 } from '@spinnaker/core';
 
@@ -348,7 +349,7 @@ module.exports = angular.module('spinnaker.azure.instance.detail.controller', [
 
     this.showConsoleOutput = function () {
       $uibModal.open({
-        templateUrl: require('core/instance/details/console/consoleOutput.modal.html'),
+        templateUrl: InstanceTemplates.consoleOutputModal,
         controller: 'ConsoleOutputCtrl as ctrl',
         size: 'lg',
         resolve: {

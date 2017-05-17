@@ -8,7 +8,8 @@ import {
   CLOUD_PROVIDER_REGISTRY,
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
-  SECURITY_GROUP_WRITER
+  SECURITY_GROUP_WRITER,
+  ServerGroupTemplates,
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.controller', [
@@ -52,7 +53,7 @@ module.exports = angular.module('spinnaker.securityGroup.kubernetes.details.cont
       $scope.userDataModalTitle = 'Ingress YAML';
       $scope.userData = $scope.securityGroup.yaml;
       $uibModal.open({
-        templateUrl: require('core/serverGroup/details/userData.html'),
+        templateUrl: ServerGroupTemplates.userData,
         controller: 'CloseableModalCtrl',
         scope: $scope
       });

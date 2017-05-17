@@ -13,6 +13,8 @@ module.exports = angular
   .module('spinnaker.core.modal', [
     require('./modalOverlay.directive.js'),
     require('./modalPage.directive.js'),
+    require('./wizard/wizardSubFormValidation.service'),
+    require('./closeable/closeable.modal.controller'),
     MODAL_CLOSE_COMPONENT,
     SUBMIT_BUTTON_COMPONENT,
     V2_MODAL_WIZARD_SERVICE,

@@ -12,14 +12,12 @@ import {
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router').default,
-  require('core/application/modal/platformHealthOverride.directive.js'),
   require('../serverGroupConfiguration.service.js'),
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE,
   OVERRIDE_REGISTRY,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
-  require('core/task/modal/reason.directive.js'),
   ])
   .controller('awsCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorBuilder,

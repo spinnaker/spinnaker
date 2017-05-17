@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.titus.findAmiStage', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.findAmiStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

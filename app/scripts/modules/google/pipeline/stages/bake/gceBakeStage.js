@@ -3,13 +3,18 @@
 const angular = require('angular');
 import _ from 'lodash';
 
-import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER, SETTINGS } from '@spinnaker/core';
+import {
+  BakeExecutionLabel,
+  BAKERY_SERVICE,
+  PIPELINE_CONFIG_PROVIDER,
+  PipelineTemplates,
+  SETTINGS
+} from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
+module.exports = angular.module('spinnaker.gce.pipeline.stage..bakeStage', [
   PIPELINE_CONFIG_PROVIDER,
   require('./bakeExecutionDetails.controller.js'),
   BAKERY_SERVICE,
-  require('core/pipeline/config/stages/bake/modal/addExtendedAttribute.controller.modal.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
@@ -87,7 +92,7 @@ module.exports = angular.module('spinnaker.core.pipeline.stage.gce.bakeStage', [
            $scope.stage.extendedAttributes = {};
       }
       $uibModal.open({
-        templateUrl: require('core/pipeline/config/stages/bake/modal/addExtendedAttribute.html'),
+        templateUrl: PipelineTemplates.addExtendedAttributes,
         controller: 'bakeStageAddExtendedAttributeController',
         controllerAs: 'addExtendedAttribute',
         resolve: {

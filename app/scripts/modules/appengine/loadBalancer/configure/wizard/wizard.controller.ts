@@ -143,6 +143,5 @@ export const APPENGINE_LOAD_BALANCER_WIZARD_CTRL = 'spinnaker.appengine.loadBala
 module(APPENGINE_LOAD_BALANCER_WIZARD_CTRL, [
   TASK_MONITOR_BUILDER,
   LOAD_BALANCER_WRITE_SERVICE,
-  require('core/modal/wizard/wizardSubFormValidation.service.js'),
 ]).controller('appengineLoadBalancerWizardCtrl', AppengineLoadBalancerWizardController);
 

@@ -17,7 +17,6 @@ require('../configure/serverGroup.configure.openstack.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.openstack.controller', [
   require('angular-ui-router').default,
-  require('core/application/modal/platformHealthOverride.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   SECURITY_GROUP_READER,
@@ -26,7 +25,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   ACCOUNT_SERVICE,
   SERVER_GROUP_READER,
   require('../configure/ServerGroupCommandBuilder.js'),
-  require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('../serverGroup.transformer.js'),
 ])
   .controller('openstackServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,

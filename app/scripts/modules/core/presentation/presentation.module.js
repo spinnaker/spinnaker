@@ -2,10 +2,11 @@
 
 const angular = require('angular');
 
-import {ANY_FIELD_FILTER} from './anyFieldFilter/anyField.filter';
-import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
-import {PAGE_NAVIGATOR_COMPONENT} from './navigation/pageNavigator.component';
-import {PAGE_SECTION_COMPONENT} from './navigation/pageSection.component';
+import { AUTO_SCROLL_DIRECTIVE } from 'core/presentation/autoScroll/autoScroll.directive';
+import { ANY_FIELD_FILTER } from './anyFieldFilter/anyField.filter';
+import { PAGE_NAVIGATOR_COMPONENT } from './navigation/pageNavigator.component';
+import { PAGE_SECTION_COMPONENT } from './navigation/pageSection.component';
+import { REPLACE_FILTER } from './replace.filter';
 
 import './details.less';
 import './main.less';
@@ -21,4 +22,6 @@ module.exports = angular.module('spinnaker.core.presentation', [
   require('./isVisible/isVisible.directive.js'),
   require('./robotToHumanFilter/robotToHuman.filter.js'),
   require('./sortToggle/sorttoggle.directive.js'),
+  require('./percent.filter'),
+  REPLACE_FILTER,
 ]);

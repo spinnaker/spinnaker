@@ -1,49 +1,46 @@
 'use strict';
 
-import Spinner from 'spin.js';
 const angular = require('angular');
 
-import {ACCOUNT_TAG_COMPONENT} from './account/accountTag.component';
-import {AUTHENTICATION} from './authentication/authentication.module';
-import {API_SERVICE} from './api/api.service';
-import {CANCEL_MODAL_SERVICE} from './cancelModal/cancelModal.service';
-import {CLOUD_PROVIDER_LOGO} from './cloudProvider/cloudProviderLogo.component';
-import {CORE_DIFF_MODULE} from './diffs';
-import {HELP_FIELD_COMPONENT} from './help/helpField.component';
-import {STATE_CONFIG_PROVIDER} from './navigation/state.provider';
-import {APPLICATIONS_STATE_PROVIDER} from './application/applications.state.provider';
-import {INFRASTRUCTURE_STATES} from './search/infrastructure/infrastructure.states';
-import {VERSION_CHECK_SERVICE} from './config/versionCheck.service';
-import {CORE_WIDGETS_MODULE} from './widgets/widgets.module';
-import {TRAVIS_STAGE_MODULE} from './pipeline/config/stages/travis/travisStage.module';
-import {WEBHOOK_STAGE_MODULE} from './pipeline/config/stages/webhook/webhookStage.module';
-import {UNMATCHED_STAGE_TYPE_STAGE} from './pipeline/config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';
-import {SETTINGS} from 'core/config/settings';
-import {INSIGHT_NGMODULE} from './insight/insight.module';
-import {REPLACE_FILTER} from './filter/replace.filter';
-import {PIPELINE_TEMPLATE_MODULE} from './pipeline/config/templates/pipelineTemplate.module';
-import {HEALTH_COUNTS_COMPONENT} from './healthCounts/healthCounts.component';
-import {CORE_PAGETITLE_SERVICE} from './pageTitle/pageTitle.service';
-import {INTERCEPTOR_MODULE} from './interceptor/interceptor.module';
-import {REACT_MODULE} from './react';
-
-require('../../../fonts/spinnaker/icons.css');
-
-import 'Select2';
+import 'bootstrap/dist/css/bootstrap.css';
 import 'jquery-ui';
 // Must come after jquery-ui - we want the bootstrap tooltip, JavaScript is fun
 import 'bootstrap/dist/js/bootstrap.js';
-import 'bootstrap/dist/css/bootstrap.css';
-import 'select2-bootstrap-css/select2-bootstrap.css';
-import 'Select2/select2.css';
-import 'ui-select/dist/select.css';
-
-import 'source-sans-pro';
 
 import 'font-awesome/css/font-awesome.css';
 import 'react-select/dist/react-select.css';
+import 'Select2';
+import 'select2-bootstrap-css/select2-bootstrap.css';
+import 'Select2/select2.css';
 
+import 'source-sans-pro';
+import Spinner from 'spin.js';
+import 'ui-select/dist/select.css';
+
+import { ANALYTICS_MODULE } from './analytics/analytics.module';
+import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap/applicationBootstrap.module';
+import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
+import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
+import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
+import { CONFIG_MODULE } from './config/config.module';
+import { SETTINGS } from './config/settings';
+
+import { DEPLOYMENT_STRATEGY_MODULE } from './deploymentStrategy/deploymentStrategy.module';
+import { DIFF_MODULE } from './diffs';
+import { HEALTH_COUNTS_MODULE } from './healthCounts/healthCounts.module';
+import { HELP_MODULE } from './help/help.module';
+import { INSIGHT_NGMODULE } from './insight/insight.module';
+import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
+import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
+import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
+import { REACT_MODULE } from './react';
+import { REGION_MODULE } from './region/region.module';
 import { UI_ROUTER_STATE_SHIM } from './routing/uirouter.stateEvents.shim';
+import { SUBNET_MODULE } from './subnet/subnet.module';
+import { WHATS_NEW_MODULE } from './whatsNew/whatsNew.module';
+import { WIDGETS_MODULE } from './widgets/widgets.module';
+
+require('../../../fonts/spinnaker/icons.css');
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
@@ -61,107 +58,59 @@ module.exports = angular
     require('ui-select'),
     require('angular-spinner').angularSpinner.name,
 
-    require('./projects/projects.module.js'),
+    ANALYTICS_MODULE,
+    require('./application/application.module'),
+    APPLICATION_BOOTSTRAP_MODULE,
+    AUTHENTICATION_MODULE,
 
-    require('./application/application.module.js'),
 
-    ACCOUNT_TAG_COMPONENT,
-    require('./analytics/analytics.service'),
-    AUTHENTICATION,
-    require('./bootstrap/applicationBootstrap.directive.js'),
+    require('./cache/caches.module'),
+    CANCEL_MODAL_MODULE,
+    CLOUD_PROVIDER_MODULE,
+    CONFIG_MODULE,
+    require('./cluster/cluster.module'),
 
-    API_SERVICE,
+    DEPLOYMENT_STRATEGY_MODULE,
+    require('./delivery/delivery.module'),
+    DIFF_MODULE,
 
-    require('./cache/caches.module.js'),
-    CANCEL_MODAL_SERVICE,
-    CLOUD_PROVIDER_LOGO,
-    PIPELINE_TEMPLATE_MODULE,
-    CORE_DIFF_MODULE,
-    require('./cloudProvider/cloudProviderLabel.directive.js'),
-    require('./cloudProvider/serviceDelegate.service.js'),
-    require('./cluster/cluster.module.js'),
-    VERSION_CHECK_SERVICE,
+    require('./forms/forms.module'),
 
-    require('./delivery/delivery.module.js'),
-    require('./deploymentStrategy/deploymentStrategy.module.js'),
-    require('./deploymentStrategy/strategies/highlander/highlander.strategy.module.js'),
-    require('./deploymentStrategy/strategies/none/none.strategy.module.js'),
-    require('./deploymentStrategy/strategies/redblack/redblack.strategy.module.js'),
-    require('./deploymentStrategy/strategies/custom/custom.strategy.module.js'),
-    require('./deploymentStrategy/strategies/rollingPush/rollingPush.strategy.module.js'),
-
-    require('./forms/forms.module.js'),
-
-    HEALTH_COUNTS_COMPONENT,
-    HELP_FIELD_COMPONENT,
+    HEALTH_COUNTS_MODULE,
+    HELP_MODULE,
 
     INSIGHT_NGMODULE.name,
-    require('./instance/instance.module.js'),
+    require('./instance/instance.module'),
     INTERCEPTOR_MODULE,
 
-    require('./loadBalancer/loadBalancer.module.js'),
+    require('./loadBalancer/loadBalancer.module'),
 
-    require('./modal/modal.module.js'),
+    require('./modal/modal.module'),
 
-    STATE_CONFIG_PROVIDER,
-    APPLICATIONS_STATE_PROVIDER,
-    INFRASTRUCTURE_STATES,
-    require('./notification/notifications.module.js'),
-    require('./notification/types/email/email.notification.type.module.js'),
-    require('./notification/types/hipchat/hipchat.notification.type.module.js'),
-    require('./notification/types/slack/slack.notification.type.module.js'),
-    require('./notification/types/sms/sms.notification.type.module.js'),
+    require('./notification/notifications.module'),
 
-    CORE_PAGETITLE_SERVICE,
+    PAGE_TITLE_MODULE,
+    PIPELINE_TEMPLATE_MODULE,
+    require('./pipeline/pipelines.module'),
+    require('./presentation/presentation.module'),
+    require('./projects/projects.module'),
 
-    require('./pipeline/pipelines.module.js'),
-    require('./pipeline/config/stages/bake/bakeStage.module.js'),
-    require('./pipeline/config/stages/checkPreconditions/checkPreconditionsStage.module.js'),
-    require('./pipeline/config/stages/cloneServerGroup/cloneServerGroupStage.module.js'),
-    require('./pipeline/config/stages/core/stage.core.module.js'),
-    require('./pipeline/config/stages/deploy/deployStage.module.js'),
-    require('./pipeline/config/stages/destroyAsg/destroyAsgStage.module.js'),
-    require('./pipeline/config/stages/disableAsg/disableAsgStage.module.js'),
-    require('./pipeline/config/stages/disableCluster/disableClusterStage.module.js'),
-    require('./pipeline/config/stages/enableAsg/enableAsgStage.module.js'),
-    require('./pipeline/config/stages/executionWindows/executionWindowsStage.module.js'),
-    require('./pipeline/config/stages/findAmi/findAmiStage.module.js'),
-    require('./pipeline/config/stages/findImageFromTags/findImageFromTagsStage.module.js'),
-    require('./pipeline/config/stages/jenkins/jenkinsStage.module.js'),
-    TRAVIS_STAGE_MODULE,
-    WEBHOOK_STAGE_MODULE,
-    require('./pipeline/config/stages/manualJudgment/manualJudgmentStage.module.js'),
-    require('./pipeline/config/stages/tagImage/tagImageStage.module.js'),
-    require('./pipeline/config/stages/pipeline/pipelineStage.module.js'),
-    require('./pipeline/config/stages/resizeAsg/resizeAsgStage.module.js'),
-    require('./pipeline/config/stages/runJob/runJobStage.module.js'),
-    require('./pipeline/config/stages/scaleDownCluster/scaleDownClusterStage.module.js'),
-    require('./pipeline/config/stages/script/scriptStage.module.js'),
-    require('./pipeline/config/stages/shrinkCluster/shrinkClusterStage.module.js'),
-    require('./pipeline/config/stages/wait/waitStage.module.js'),
-    require('./pipeline/config/stages/waitForParentTasks/waitForParentTasks.js'),
-    require('./pipeline/config/stages/createLoadBalancer/createLoadBalancerStage.module.js'),
-    require('./pipeline/config/stages/applySourceServerGroupCapacity/applySourceServerGroupCapacityStage.module.js'),
-    require('./pipeline/config/preconditions/preconditions.module.js'),
-    require('./pipeline/config/preconditions/types/clusterSize/clusterSize.precondition.type.module.js'),
-    require('./pipeline/config/preconditions/types/expression/expression.precondition.type.module.js'),
-    require('./presentation/presentation.module.js'),
-    REPLACE_FILTER,
     REACT_MODULE,
+    REGION_MODULE,
 
-    require('./search/search.module.js'),
-    require('./securityGroup/securityGroup.module.js'),
-    require('./serverGroup/serverGroup.module.js'),
+    require('./search/search.module'),
+    require('./securityGroup/securityGroup.module'),
+    require('./serverGroup/serverGroup.module'),
+    SUBNET_MODULE,
 
-    require('./task/task.module.js'),
+    require('./task/task.module'),
 
-    UNMATCHED_STAGE_TYPE_STAGE,
+    require('./utils/utils.module'),
 
-    require('./utils/utils.module.js'),
+    WHATS_NEW_MODULE,
+    WIDGETS_MODULE,
 
-    require('./whatsNew/whatsNew.directive.js'),
-    CORE_WIDGETS_MODULE,
-    require('./validation/validation.module.js'),
+    require('./validation/validation.module'),
   ])
   .run(function($rootScope, $log, $state) {
     window.Spinner = Spinner;
@@ -241,7 +190,7 @@ module.exports = angular
     // See https://docs.angularjs.org/guide/migration#migrate1.5to1.6-ng-services-$location
     $locationProvider.hashPrefix('');
   })
-  .config(require('./forms/uiSelect.decorator.js'))
+  .config(require('./forms/uiSelect.decorator'))
   .config(function(uiSelectConfig) {
     uiSelectConfig.theme = 'select2';
     uiSelectConfig.appendToBody = true;

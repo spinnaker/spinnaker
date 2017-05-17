@@ -5,7 +5,6 @@ const angular = require('angular');
 import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.instance.details.scalingPolicy.directive', [
-  require('core/widgets/actionIcons/actionIcons.component.js'),
   CONFIRMATION_MODAL_SERVICE,
   require('angular-ui-bootstrap'),
   require('./../../../autoscalingPolicy/autoscalingPolicy.write.service.js'),

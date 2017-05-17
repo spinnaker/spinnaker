@@ -1,5 +1,5 @@
 'use strict';
-var pageTitleServiceModule = require('./pageTitle.service').CORE_PAGETITLE_SERVICE;
+var pageTitleServiceModule = require('./pageTitle.service').PAGE_TITLE_SERVICE;
 
 describe('Service: pageTitleService', function() {
 

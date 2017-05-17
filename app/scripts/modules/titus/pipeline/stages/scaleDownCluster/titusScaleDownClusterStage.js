@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.titus.scaleDownClusterStage', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.scaleDownClusterStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

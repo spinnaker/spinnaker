@@ -21,7 +21,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   require('./resize/resizeServerGroup.controller'),
-  require('core/modal/closeable/closeable.modal.controller.js'),
   CLUSTER_TARGET_BUILDER
 ])
   .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,

@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { CLUSTER_FILTER_SERVICE, URL_BUILDER_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.aws.executionDetails.controller', [
+module.exports = angular.module('spinnaker.amazon.pipeline.stage.cloneServerGroup.executionDetails.controller', [
   require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
   URL_BUILDER_SERVICE

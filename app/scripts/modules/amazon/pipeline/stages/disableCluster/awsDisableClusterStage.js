@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.aws.disableClusterStage', [
+module.exports = angular.module('spinnaker.amazon.pipeline.stage.disableClusterStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

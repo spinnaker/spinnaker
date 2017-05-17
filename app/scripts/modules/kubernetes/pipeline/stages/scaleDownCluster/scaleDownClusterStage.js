@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.scaleDownClusterStage', [
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.scaleDownClusterStage', [
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {

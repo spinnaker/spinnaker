@@ -22,6 +22,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
   CONFIRMATION_MODAL_SERVICE,
   PIPELINE_BAKE_STAGE_CHOOSE_OS,
   require('./core/stageConfigField/stageConfigField.directive.js'),
+  require('./bake/bakeStage.module')
 ])
   .directive('pipelineConfigStage', function() {
     return {

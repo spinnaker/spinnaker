@@ -11,5 +11,6 @@ module.exports = angular
     require('./details/console/consoleOutputLink.directive.js'),
     require('./loadBalancer/instanceLoadBalancerHealth.directive.js'),
     require('./details/multipleInstances.controller.js'),
+    require('./details/instanceLinks.component'),
     INSTANCE_STATES
   ]);

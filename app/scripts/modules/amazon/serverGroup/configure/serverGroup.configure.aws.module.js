@@ -2,10 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws', [
-  require('core/account/account.module.js'),
-  require('core/serverGroup/configure/common/v2instanceArchetypeSelector.directive.js'),
-  require('core/serverGroup/configure/common/v2InstanceTypeSelector.directive.js'),
+module.exports = angular.module('spinnaker.amazon.serverGroup.configure.module', [
   require('../serverGroup.transformer.js'),
   require('./wizard/templateSelection/deployInitializer.controller.js'),
   require('./wizard/location/ServerGroupBasicSettings.controller.js'),

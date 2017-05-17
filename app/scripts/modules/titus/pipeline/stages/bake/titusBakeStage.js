@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.titus.titusBakeStage', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.titusBakeStage', [
   require('./bakeExecutionDetails.controller.js'),
   PIPELINE_CONFIG_PROVIDER,
 ])

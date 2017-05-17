@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.findAmiStage', [
+module.exports = angular.module('spinnaker.openstack.pipeline.stage.findAmiStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

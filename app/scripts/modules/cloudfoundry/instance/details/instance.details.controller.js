@@ -19,7 +19,6 @@ module.exports = angular.module('spinnaker.instance.detail.cf.controller', [
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-  require('core/instance/details/instanceLinks.component'),
 ])
   .controller('cfInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal,
                                                  instanceWriter, confirmationModalService, recentHistoryService,

@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.destroyAsgStage', [])
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       provides: 'destroyServerGroup',

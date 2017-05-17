@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.disableClusterStage', [
+module.exports = angular.module('spinnaker.openstack.pipeline.stage.disableClusterStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

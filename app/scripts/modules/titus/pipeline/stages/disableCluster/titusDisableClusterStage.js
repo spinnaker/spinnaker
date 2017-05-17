@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.titus.disableClusterStage', [
+module.exports = angular.module('spinnaker.titus.pipeline.stage.disableClusterStage', [
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

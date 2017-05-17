@@ -21,7 +21,6 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-  require('core/instance/details/instanceLinks.component'),
   GCE_HTTP_LOAD_BALANCER_UTILS,
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, instanceWriter, confirmationModalService,

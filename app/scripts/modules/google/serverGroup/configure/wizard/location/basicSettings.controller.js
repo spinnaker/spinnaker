@@ -8,7 +8,6 @@ import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnake
 module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
   require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
-  require('core/serverGroup/configure/common/basicSettingsMixin.controller.js'),
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,
   NAMING_SERVICE,

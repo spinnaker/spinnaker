@@ -6,8 +6,7 @@ import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
 import './resizeStage.less';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.resizeStage', [
-  require('core/application/modal/platformHealthOverride.directive.js'),
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.resizeStage', [
   ACCOUNT_SERVICE,
 ])
   .config(function(pipelineConfigProvider) {

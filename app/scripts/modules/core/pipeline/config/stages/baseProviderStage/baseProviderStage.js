@@ -1,11 +1,10 @@
 'use strict';
 
-import {SETTINGS} from 'core/config/settings';
-
 const angular = require('angular');
 
+import { SETTINGS } from 'core/config/settings';
+
 module.exports = angular.module('spinnaker.core.pipeline.stage.baseProviderStage', [
-  require('core/cloudProvider/providerSelection/providerSelector.directive.js'),
 ])
   .controller('BaseProviderStageCtrl', function($scope, stage, accountService, pipelineConfig) {
 

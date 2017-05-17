@@ -2,15 +2,18 @@
 
 const angular = require('angular');
 
-import {SERVER_GROUP_STATES} from './serverGroup.states';
+import { SERVER_GROUP_STATES } from './serverGroup.states';
 import './ServerGroupSearchResultFormatter';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup', [
-    require('./serverGroup.transformer.js'),
-    require('./configure/common/serverGroup.configure.common.module.js'),
-    require('./pod/runningTasksTag.directive.js'),
-    require('./details/multipleServerGroups.controller.js'),
+    require('./serverGroup.transformer'),
+    require('./configure/common/serverGroupConfiguration.service'),
+    require('./configure/common/v2instanceArchetypeSelector.directive'),
+    require('./configure/common/v2InstanceTypeSelector.directive'),
+    require('./pod/runningTasksTag.directive'),
+    require('./details/multipleServerGroups.controller'),
     require('./serverGroup.dataSource'),
+    require('./configure/common/basicSettingsMixin.controller'),
     SERVER_GROUP_STATES,
   ]);

@@ -9,7 +9,6 @@ module.exports = angular
     require('angular-ui-router').default,
     TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js'),
-    require('core/region/regionSelectField.directive.js'),
     ACCOUNT_SERVICE,
   ])
 

@@ -30,8 +30,6 @@ module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', 
   INFRASTRUCTURE_CACHE_SERVICE,
   NAMING_SERVICE,
   require('./loadBalancerAvailabilityZoneSelector.directive.js'),
-  require('core/region/regionSelectField.directive.js'),
-  require('core/account/accountSelectField.directive.js'),
   SUBNET_SELECT_FIELD_COMPONENT,
 ])
   .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,

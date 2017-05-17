@@ -5,11 +5,10 @@ import _ from 'lodash';
 
 import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.bakeStage', [
+module.exports = angular.module('spinnaker.openstack.pipeline.stage.bakeStage', [
   PIPELINE_CONFIG_PROVIDER,
   require('./bakeExecutionDetails.controller.js'),
   BAKERY_SERVICE,
-  require('core/pipeline/config/stages/bake/modal/addExtendedAttribute.controller.modal.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({

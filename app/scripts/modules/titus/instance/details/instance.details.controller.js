@@ -19,7 +19,6 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
-  require('core/instance/details/instanceLinks.component'),
 ])
   .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal,
                                                     instanceWriter, confirmationModalService, recentHistoryService,

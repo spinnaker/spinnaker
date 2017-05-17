@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.bake.docker.executionDetails.controller', [
+module.exports = angular.module('spinnaker.docker.pipeline.stage.bake.executionDetails.controller', [
   require('angular-ui-router').default,
 ])
   .controller('dockerBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,

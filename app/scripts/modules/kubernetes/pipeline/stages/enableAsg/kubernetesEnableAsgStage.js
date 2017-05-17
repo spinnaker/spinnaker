@@ -4,9 +4,8 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.enableAsgStage', [
+module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.enableAsgStage', [
   PIPELINE_CONFIG_PROVIDER,
-  require('core/application/modal/platformHealthOverride.directive.js'),
 ])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
