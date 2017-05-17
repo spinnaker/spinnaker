@@ -1,8 +1,9 @@
 'use strict';
 
-let angular = require('angular');
-require('./spel.less');
+const angular = require('angular');
 require('jquery-textcomplete');
+
+import './spel.less';
 
 let decorateFn = function ($delegate, jsonListBuilder, spelAutocomplete) {
   let directive = $delegate[0];

@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {APPLICATION_READ_SERVICE} from 'core/application/service/application.read.service';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';

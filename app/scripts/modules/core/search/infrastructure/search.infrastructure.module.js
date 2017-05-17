@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-require('./infrastructure.less');
+import './infrastructure.less';
 
 module.exports = angular.module('spinnaker.search.infrastructure', [
   require('./infrastructure.controller.js')

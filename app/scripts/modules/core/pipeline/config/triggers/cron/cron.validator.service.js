@@ -2,7 +2,7 @@
 
 import {API_SERVICE} from 'core/api/api.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.cron.validation.service', [API_SERVICE])
   .factory('cronValidationService', function(API) {

@@ -1,11 +1,11 @@
-import * as React from 'react';
-import { $location, $http } from 'ngimport';
-import { Button, Modal } from 'react-bootstrap';
 import autoBindMethods from 'class-autobind-decorator';
+import { $http, $location } from 'ngimport';
+import * as React from 'react';
+import { Button, Modal } from 'react-bootstrap';
+
+import { ReactInjector, SubmitButton } from '@spinnaker/core';
 
 import { NetflixSettings } from '../netflix.settings';
-import { SubmitButton } from 'core/modal/buttons/SubmitButton';
-import { ReactInjector } from 'core/react';
 
 const states = {
   EDITING: 0,

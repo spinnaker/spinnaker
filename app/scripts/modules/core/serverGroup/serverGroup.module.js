@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {SERVER_GROUP_STATES} from './serverGroup.states';
 import './ServerGroupSearchResultFormatter';

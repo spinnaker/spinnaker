@@ -1,21 +1,22 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {APPENGINE_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
-import {APPENGINE_CACHE_CONFIGURER} from './cache/cacheConfigurer.service';
-import {APPENGINE_CLONE_SERVER_GROUP_CTRL} from './serverGroup/configure/wizard/cloneServerGroup.controller';
-import {APPENGINE_COMPONENT_URL_DETAILS} from './common/componentUrlDetails.component';
-import {APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM} from './common/conditionalDescriptionListItem.component';
-import {APPENGINE_HELP_CONTENTS_REGISTRY} from './helpContents/appengineHelpContents';
-import {APPENGINE_INSTANCE_DETAILS_CTRL} from './instance/details/details.controller';
-import {APPENGINE_LOAD_BALANCER_CREATE_MESSAGE} from './common/loadBalancerMessage.component';
-import {APPENGINE_LOAD_BALANCER_MODULE} from './loadBalancer/loadBalancer.module';
-import {APPENGINE_PIPELINE_MODULE} from './pipeline/pipeline.module';
-import {APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL} from './serverGroup/configure/wizard/basicSettings.controller';
-import {APPENGINE_SERVER_GROUP_COMMAND_BUILDER} from './serverGroup/configure/serverGroupCommandBuilder.service';
-import {APPENGINE_SERVER_GROUP_DETAILS_CTRL} from './serverGroup/details/details.controller';
-import {APPENGINE_SERVER_GROUP_TRANSFORMER} from './serverGroup/transformer';
-import {APPENGINE_SERVER_GROUP_WRITER} from './serverGroup/writer/serverGroup.write.service';
-import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
+
+import { APPENGINE_CACHE_CONFIGURER } from './cache/cacheConfigurer.service';
+import { APPENGINE_COMPONENT_URL_DETAILS } from './common/componentUrlDetails.component';
+import { APPENGINE_CONDITIONAL_DESCRIPTION_LIST_ITEM } from './common/conditionalDescriptionListItem.component';
+import { APPENGINE_LOAD_BALANCER_CREATE_MESSAGE } from './common/loadBalancerMessage.component';
+import { APPENGINE_HELP_CONTENTS_REGISTRY } from './helpContents/appengineHelpContents';
+import { APPENGINE_INSTANCE_DETAILS_CTRL } from './instance/details/details.controller';
+import { APPENGINE_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
+import { APPENGINE_PIPELINE_MODULE } from './pipeline/pipeline.module';
+import { APPENGINE_SERVER_GROUP_COMMAND_BUILDER } from './serverGroup/configure/serverGroupCommandBuilder.service';
+import { APPENGINE_SERVER_GROUP_BASIC_SETTINGS_CTRL } from './serverGroup/configure/wizard/basicSettings.controller';
+import { APPENGINE_CLONE_SERVER_GROUP_CTRL } from './serverGroup/configure/wizard/cloneServerGroup.controller';
+import { APPENGINE_SERVER_GROUP_DETAILS_CTRL } from './serverGroup/details/details.controller';
+import { APPENGINE_SERVER_GROUP_TRANSFORMER } from './serverGroup/transformer';
+import { APPENGINE_SERVER_GROUP_WRITER } from './serverGroup/writer/serverGroup.write.service';
+import { APPENGINE_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
 
 import './logo/appengine.logo.less';
 

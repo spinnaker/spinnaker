@@ -1,11 +1,12 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {AMAZON_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
-require('./logo/aws.logo.less');
+import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
+
+import './logo/aws.logo.less';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);

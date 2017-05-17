@@ -2,7 +2,7 @@
 
 import {Subject} from 'rxjs';
 
-let angular = require('angular');
+const angular = require('angular');
 import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
 
 module.exports = angular

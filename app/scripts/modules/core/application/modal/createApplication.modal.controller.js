@@ -10,7 +10,7 @@ import {VALIDATE_APPLICATION_NAME} from './validation/validateApplicationName.di
 import {CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT} from 'core/chaosMonkey/chaosMonkeyNewApplicationConfig.component';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.application.create.modal.controller', [

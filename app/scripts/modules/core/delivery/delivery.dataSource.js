@@ -5,7 +5,7 @@ import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineCon
 import {SETTINGS} from 'core/config/settings';
 import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.delivery.dataSource', [

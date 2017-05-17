@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process.controller', [
   TASK_MONITOR_BUILDER,

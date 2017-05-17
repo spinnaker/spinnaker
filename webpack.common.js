@@ -27,7 +27,11 @@ function configure(IS_TEST) {
       modules: [
         NODE_MODULE_PATH,
         path.join(__dirname, 'app', 'scripts', 'modules'),
-      ]
+      ],
+      alias: {
+        'core': path.join(__dirname, 'app', 'scripts', 'modules', 'core'),
+        '@spinnaker/core': path.join(__dirname, 'app', 'scripts', 'modules', 'core')
+      }
     },
     module: {
       rules: [

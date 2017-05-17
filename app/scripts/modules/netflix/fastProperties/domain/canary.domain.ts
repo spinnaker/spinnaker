@@ -1,9 +1,9 @@
+import { IUser } from '@spinnaker/core';
 
-import {PropertyCommand} from './propertyCommand.model';
-import {IUser} from 'core/authentication/authentication.service';
-import {PropertyCommandType} from './propertyCommandType.enum';
-import {ICanaryDeployment} from './canaryDeployment.interface';
-import {AcaTaskStageConfigDetails} from './acaTaskStageConfigDetails.model';
+import { AcaTaskStageConfigDetails } from './acaTaskStageConfigDetails.model';
+import { ICanaryDeployment } from './canaryDeployment.interface';
+import { PropertyCommand } from './propertyCommand.model';
+import { PropertyCommandType } from './propertyCommandType.enum';
 
 class CanaryAnalysisConfig {
   public notificationHours: number[] = [];

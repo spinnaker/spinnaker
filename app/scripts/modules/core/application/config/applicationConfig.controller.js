@@ -3,7 +3,7 @@ import {CHAOS_MONKEY_CONFIG_COMPONENT} from 'core/chaosMonkey/chaosMonkeyConfig.
 import {TRAFFIC_GUARD_CONFIG_COMPONENT} from './trafficGuard/trafficGuardConfig.component';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.controller', [

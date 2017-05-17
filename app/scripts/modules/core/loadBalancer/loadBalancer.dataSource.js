@@ -4,7 +4,7 @@ import {ENTITY_TAGS_READ_SERVICE} from '../entityTag/entityTags.read.service';
 import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.loadBalancer.dataSource', [

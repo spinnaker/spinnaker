@@ -1,12 +1,12 @@
-import {cloneDeep} from 'lodash';
 import {copy, module, toJson} from 'angular';
-import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
+import {cloneDeep} from 'lodash';
 
-import {Application} from '../../application.model';
+import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
+import {Application} from 'core/application/application.model';
 
 import './configSectionFooter.component.less';
 
-export interface IViewState {
+export interface IConfigSectionFooterViewState {
   originalConfig: any;
   originalStringVal: string;
   saving: boolean;
@@ -16,7 +16,7 @@ export interface IViewState {
 
 export class ConfigSectionFooterController implements ng.IComponentController {
 
-  public viewState: IViewState;
+  public viewState: IConfigSectionFooterViewState;
   public application: Application;
   public config: any;
   public configField: string;

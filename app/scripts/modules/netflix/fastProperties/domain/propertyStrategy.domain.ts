@@ -1,9 +1,9 @@
-import {PropertyCommand} from './propertyCommand.model';
-import {IStage} from 'core/domain/IStage';
-import {ManualJudgementStage} from './manualJudgementStage';
-import {IUser} from 'core/authentication/authentication.service';
-import {AcaTaskStage} from './acaTaskStage';
-import {AcaTaskStageConfigDetails} from './acaTaskStageConfigDetails.model';
+import { IStage, IUser } from '@spinnaker/core';
+
+import { AcaTaskStage } from './acaTaskStage';
+import { AcaTaskStageConfigDetails } from './acaTaskStageConfigDetails.model';
+import { ManualJudgementStage } from './manualJudgementStage';
+import { PropertyCommand } from './propertyCommand.model';
 
 export interface PropertyStrategy {
   name: string;

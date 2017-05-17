@@ -1,13 +1,14 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
+import {
+  CONFIRMATION_MODAL_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
   require('angular-ui-router').default,
@@ -17,7 +18,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.contro
   SERVER_GROUP_READER,
   SERVER_GROUP_WRITER,
   require('../paramsMixin.js'),
-  RUNNING_TASKS_DETAILS_COMPONENT,
 ])
   .controller('kubernetesServerGroupDetailsController', function ($scope, $state, app, serverGroup,
                                                                   serverGroupReader, $uibModal, serverGroupWriter,

@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {EDIT_PIPELINE_JSON_MODAL_CONTROLLER} from './json/editPipelineJsonModal.controller';
 

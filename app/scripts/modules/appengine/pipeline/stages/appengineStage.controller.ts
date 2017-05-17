@@ -1,9 +1,9 @@
-import {IPromise} from 'angular';
+import { IPromise } from 'angular';
 
-import {AccountService} from 'core/account/account.service';
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {IAppengineAccount, IAppengineStageScope} from 'appengine/domain/index';
-import {AppengineHealth} from 'appengine/common/appengineHealth';
+import { AccountService, StageConstants } from '@spinnaker/core';
+
+import { AppengineHealth } from 'appengine/common/appengineHealth';
+import { IAppengineAccount, IAppengineStageScope } from 'appengine/domain';
 
 export class AppengineStageCtrl {
   constructor(protected $scope: IAppengineStageScope, protected accountService: AccountService) {

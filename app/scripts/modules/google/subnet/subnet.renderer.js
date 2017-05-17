@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
 
-let angular = require('angular');
+import { NETWORK_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.subnet.renderer', [
   NETWORK_READ_SERVICE,

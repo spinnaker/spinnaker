@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+import { NAMING_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.serverGroupCommandBuilder.service', [
   require('../../image/image.reader.js'),

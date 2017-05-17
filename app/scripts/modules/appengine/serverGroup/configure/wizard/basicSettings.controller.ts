@@ -1,10 +1,11 @@
-import {extend, module, IScope, IControllerService} from 'angular';
-import {StateService} from 'angular-ui-router';
-import {set} from 'lodash';
+import { extend, IControllerService, IScope, module } from 'angular';
+import { StateService } from 'angular-ui-router';
+import { set } from 'lodash';
 
-import {NamingService} from 'core/naming/naming.service';
-import {IAppengineServerGroupCommand} from '../serverGroupCommandBuilder.service';
-import {GitCredentialType, IAppengineAccount} from 'appengine/domain/index';
+import { NamingService } from '@spinnaker/core';
+
+import { GitCredentialType, IAppengineAccount } from 'appengine/domain/index';
+import { IAppengineServerGroupCommand } from '../serverGroupCommandBuilder.service';
 
 interface IAppengineBasicSettingsScope extends IScope {
   command: IAppengineServerGroupCommand;

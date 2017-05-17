@@ -3,7 +3,7 @@
 import {SETTINGS} from 'core/config/settings';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.trigger.triggerDirective', [
   PIPELINE_CONFIG_PROVIDER

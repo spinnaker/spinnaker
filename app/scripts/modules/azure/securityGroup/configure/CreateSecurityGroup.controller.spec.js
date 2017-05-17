@@ -1,6 +1,6 @@
  'use strict';
 
- import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+ import { SECURITY_GROUP_READER } from '@spinnaker/core';
 
  describe('Controller: Azure.CreateSecurityGroup', function () {
 

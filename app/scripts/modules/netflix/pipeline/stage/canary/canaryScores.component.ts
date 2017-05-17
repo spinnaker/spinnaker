@@ -1,7 +1,7 @@
-import {isString} from 'lodash';
-import {module} from 'angular';
+import { module } from 'angular';
+import { isString } from 'lodash';
 
-require('./canary.less');
+import './canary.less';
 
 class CanaryScoresConfigComponentCtrl implements ng.IComponentController {
 

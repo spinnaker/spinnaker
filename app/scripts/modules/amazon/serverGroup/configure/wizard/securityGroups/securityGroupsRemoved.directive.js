@@ -2,7 +2,7 @@
 
 import {has} from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.securityGroups.removed.directive', [

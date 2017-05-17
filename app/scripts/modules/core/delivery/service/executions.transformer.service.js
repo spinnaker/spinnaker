@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {ExecutionBarLabel} from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 import {ExecutionMarkerIcon} from 'core/pipeline/config/stages/core/ExecutionMarkerIcon';

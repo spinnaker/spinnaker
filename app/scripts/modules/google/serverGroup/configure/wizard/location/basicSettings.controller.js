@@ -1,12 +1,9 @@
 'use strict';
 
-import {Observable, Subject} from 'rxjs';
+const angular = require('angular');
+import { Observable, Subject } from 'rxjs';
 
-import {IMAGE_READER} from 'core/image/image.reader';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-
-let angular = require('angular');
+import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.google.serverGroup.configure.wizard.basicSettings.controller', [
   require('angular-ui-router').default,

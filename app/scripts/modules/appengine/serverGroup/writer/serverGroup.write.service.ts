@@ -1,9 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {TASK_EXECUTOR, ITaskCommand, TaskExecutor, IJob} from 'core/task/taskExecutor';
-import {Application} from 'core/application/application.model';
-import {IAppengineServerGroup} from 'appengine/domain/index';
-import { ITask } from 'core/domain';
+import { Application, IJob, ITask, ITaskCommand, TASK_EXECUTOR, TaskExecutor } from '@spinnaker/core';
+
+import { IAppengineServerGroup } from 'appengine/domain/index';
 
 interface IAppengineServerGroupWriteJob extends IJob {
   serverGroupName: string;

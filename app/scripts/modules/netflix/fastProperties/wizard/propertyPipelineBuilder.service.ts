@@ -1,11 +1,11 @@
-import { module, IPromise } from 'angular';
+import { IPromise, module } from 'angular';
 import { flatten, last } from 'lodash';
 
+import { AUTHENTICATION_SERVICE, AuthenticationService, IStage, IUser } from '@spinnaker/core';
+
 import { PropertyCommand } from '../domain/propertyCommand.model';
-import { PropertyPipelineStage } from '../domain/propertyPipelineStage';
-import { IStage } from 'core/domain/IStage';
 import { PropertyPipeline } from '../domain/propertyPipeline.domain';
-import { AUTHENTICATION_SERVICE, AuthenticationService, IUser } from 'core/authentication/authentication.service';
+import { PropertyPipelineStage } from '../domain/propertyPipelineStage';
 import { FAST_PROPERTY_READ_SERVICE, FastPropertyReaderService } from '../fastProperty.read.service';
 
 export class PropertyPipelineBuilderService {

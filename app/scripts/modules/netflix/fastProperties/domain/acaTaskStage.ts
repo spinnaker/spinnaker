@@ -1,9 +1,10 @@
-import {toInteger} from 'lodash';
-import {IStage} from 'core/domain/IStage';
-import {IUser} from 'core/authentication/authentication.service';
-import {PropertyCommand} from './propertyCommand.model';
-import {Canary} from './canary.domain';
-import {AcaTaskStageConfigDetails} from './acaTaskStageConfigDetails.model';
+import { toInteger } from 'lodash';
+
+import { IStage, IUser } from '@spinnaker/core';
+
+import { AcaTaskStageConfigDetails } from './acaTaskStageConfigDetails.model';
+import { Canary } from './canary.domain';
+import { PropertyCommand } from './propertyCommand.model';
 
 export class AcaTaskStage implements IStage {
   public name: string;

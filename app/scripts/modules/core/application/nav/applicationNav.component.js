@@ -1,8 +1,8 @@
+const angular = require('angular');
+
 import {DATA_SOURCE_ALERTS_COMPONENT} from 'core/entityTag/dataSourceAlerts.component';
 
-let angular = require('angular');
-
-require('./applicationNav.component.less');
+import './applicationNav.component.less';
 
 module.exports = angular
   .module('spinnaker.core.application.nav.component', [

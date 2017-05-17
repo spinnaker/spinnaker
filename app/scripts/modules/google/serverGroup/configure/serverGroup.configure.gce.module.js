@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {GCE_LOAD_BALANCING_POLICY_SELECTOR} from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component';
 import {GCE_AUTOHEALING_POLICY_SELECTOR} from './wizard/autoHealingPolicy/autoHealingPolicySelector.component';

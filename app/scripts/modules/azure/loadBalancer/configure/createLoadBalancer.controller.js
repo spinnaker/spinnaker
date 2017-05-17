@@ -1,16 +1,17 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
-
-let angular = require('angular');
+import {
+  ACCOUNT_SERVICE,
+  INFRASTRUCTURE_CACHE_SERVICE,
+  LOAD_BALANCER_WRITE_SERVICE,
+  NAMING_SERVICE,
+  NETWORK_READ_SERVICE,
+  TASK_MONITOR_BUILDER,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.create.controller', [
   require('angular-ui-router').default,

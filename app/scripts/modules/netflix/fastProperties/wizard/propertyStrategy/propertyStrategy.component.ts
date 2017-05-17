@@ -1,11 +1,17 @@
+import { IComponentController, IComponentOptions, IScope, module } from 'angular';
+
+import { ACCOUNT_SERVICE, AccountService, IAccount } from '@spinnaker/core';
+
+import { PropertyCommand } from '../../domain/propertyCommand.model';
+import { PropertyCommandType } from '../../domain/propertyCommandType.enum';
+import { PropertyPipeline } from '../../domain/propertyPipeline.domain';
+import { AcaStrategy, ForcePushStrategy, ManualStrategy } from '../../domain/propertyStrategy.domain';
+import {
+  FAST_PROPERTY_PIPELINE_BUILDER_SERVICE,
+  PropertyPipelineBuilderService
+} from '../propertyPipelineBuilder.service';
+
 import './propertyStrategy.component.less';
-import { module, IComponentController, IComponentOptions, IScope } from 'angular';
-import { FAST_PROPERTY_PIPELINE_BUILDER_SERVICE, PropertyPipelineBuilderService} from '../propertyPipelineBuilder.service';
-import {PropertyCommand} from '../../domain/propertyCommand.model';
-import {PropertyPipeline} from '../../domain/propertyPipeline.domain';
-import {PropertyCommandType} from '../../domain/propertyCommandType.enum';
-import {ForcePushStrategy, ManualStrategy, AcaStrategy} from '../../domain/propertyStrategy.domain';
-import {ACCOUNT_SERVICE, AccountService, IAccount } from 'core/account/account.service';
 
 export class FastPropertyStrategyComponentController implements IComponentController {
   public command: PropertyCommand;

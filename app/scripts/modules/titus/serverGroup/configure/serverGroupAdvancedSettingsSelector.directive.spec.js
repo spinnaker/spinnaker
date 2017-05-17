@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 require('./serverGroupAdvancedSettingsDirective.html');
 
 describe('Directive: Titus SG Advanced Settings Selector', function() {

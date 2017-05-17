@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
+import { CACHE_INITIALIZER_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.securityGroup.create.controller', [
   require('angular-ui-router').default,

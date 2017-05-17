@@ -1,11 +1,10 @@
+import autoBindMethods from 'class-autobind-decorator';
 import * as React from 'react';
 import { Subscription } from 'rxjs/Subscription';
-import autoBindMethods from 'class-autobind-decorator';
 
-import { fastPropertyTime } from 'core/utils/timeFormatters';
+import { fastPropertyTime, ReactInjector, Tooltip } from '@spinnaker/core';
+
 import { Property } from '../domain/property.domain';
-import { ReactInjector } from 'core/react';
-import { Tooltip } from 'core/presentation/Tooltip';
 import { MAX_PROPERTIES_TO_DISPLAY } from './FastPropertiesList';
 
 interface IProps {

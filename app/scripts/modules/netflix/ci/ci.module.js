@@ -1,12 +1,12 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {CI_STATES} from './ci.states';
-import {NETFLIX_CI_TRIGGER_HANDLER_COMPONENT} from './trigger/ciTriggerHandler.component';
-import {NETFLIX_GIT_MANUAL_EXECUTION_HANDLER} from './trigger/manualExecution.handler';
+import { CI_STATES } from './ci.states';
+import { NETFLIX_CI_TRIGGER_HANDLER_COMPONENT } from './trigger/ciTriggerHandler.component';
+import { NETFLIX_GIT_MANUAL_EXECUTION_HANDLER } from './trigger/manualExecution.handler';
 
-require('./ci.less');
+import './ci.less';
 
 module.exports = angular
   .module('spinnaker.netflix.ci', [

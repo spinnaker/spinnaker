@@ -1,5 +1,6 @@
-import {module} from 'angular';
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { module } from 'angular';
+
+import { Api, API_SERVICE } from '@spinnaker/core';
 
 export interface IChapTestCase {
   id: string;

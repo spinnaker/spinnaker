@@ -1,6 +1,6 @@
-import {IHttpPromiseCallbackArg, IHttpService, IPromise, module} from 'angular';
+import { IHttpPromiseCallbackArg, IHttpService, IPromise, module } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from '@spinnaker/core';
 
 interface IReservationReportAccount {
   accountId: string;

@@ -1,16 +1,20 @@
 import { IScope, module } from 'angular';
-import { filterNames } from './view/filter/fastPropertyFilterSearch.component';
 
-import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
 import {
-  APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-} from 'core/application/application.state.provider';
-import { FAST_PROPERTY_ROLLOUTS_COMPONENT } from './view/rollouts/fastPropertyRollouts.component';
-import { APPLICATION_PROPERTIES_COMPONENT } from './view/applicationProperties.component';
+  Application,
+  ApplicationReader,
+  APPLICATION_STATE_PROVIDER,
+  ApplicationStateProvider,
+  INestedState,
+  STATE_CONFIG_PROVIDER,
+  StateConfigProvider
+} from '@spinnaker/core';
+
 import { GLOBAL_PROPERTIES_COMPONENT } from './global/globalFastProperties.component';
 import { GLOBAL_ROLLOUTS_COMPONENT } from './global/globalRollouts.component';
-import { Application } from 'core/application/application.model';
-import { ApplicationReader } from '../../core/application/service/application.read.service';
+import { APPLICATION_PROPERTIES_COMPONENT } from './view/applicationProperties.component';
+import { filterNames } from './view/filter/fastPropertyFilterSearch.component';
+import { FAST_PROPERTY_ROLLOUTS_COMPONENT } from './view/rollouts/fastPropertyRollouts.component';
 
 export const FAST_PROPERTY_STATES = 'spinnaker.netflix.fastProperties.states';
 module(FAST_PROPERTY_STATES, [

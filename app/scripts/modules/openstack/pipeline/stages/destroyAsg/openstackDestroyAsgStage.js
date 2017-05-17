@@ -1,7 +1,8 @@
 'use strict';
 
-let angular = require('angular');
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
+const angular = require('angular');
+
+import { StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.openstack.destroyAsgStage', [])
   .config(function(pipelineConfigProvider) {

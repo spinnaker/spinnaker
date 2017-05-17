@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-require('./multipleInstanceServerGroup.directive.less');
+import './multipleInstanceServerGroup.directive.less';
 
 module.exports = angular
   .module('spinnaker.core.instance.details.multipleInstanceServerGroup.directive', [

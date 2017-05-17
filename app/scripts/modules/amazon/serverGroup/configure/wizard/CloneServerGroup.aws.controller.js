@@ -1,12 +1,14 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {SERVER_GROUP_COMMAND_REGISTRY_PROVIDER} from 'core/serverGroup/configure/common/serverGroupCommandRegistry.provider';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {
+  OVERRIDE_REGISTRY,
+  SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,
+  SERVER_GROUP_WRITER,
+  TASK_MONITOR_BUILDER,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
   require('angular-ui-router').default,

@@ -1,6 +1,12 @@
-import {module, IPromise} from 'angular';
-import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
-import {InfrastructureCacheService, INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import { IPromise, module } from 'angular';
+
+import {
+  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCacheService,
+  ISearchResults,
+  SEARCH_SERVICE,
+  SearchService
+} from '@spinnaker/core';
 
 interface IAddressSearchResults {
   account: string;

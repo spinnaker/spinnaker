@@ -1,15 +1,18 @@
 'use strict';
 
-import {isString, toInteger} from 'lodash';
-let angular = require('angular');
+const angular = require('angular');
+import { isString, toInteger } from 'lodash';
 
-import {CanaryExecutionLabel} from './CanaryExecutionLabel';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {CANARY_SCORES_CONFIG_COMPONENT} from './canaryScores.component';
-import {NetflixSettings} from '../../../netflix.settings';
+import {
+  CLOUD_PROVIDER_REGISTRY,
+  LIST_EXTRACTOR_SERVICE,
+  PIPELINE_CONFIG_PROVIDER,
+  SERVER_GROUP_COMMAND_BUILDER_SERVICE
+} from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
+import { CanaryExecutionLabel } from './CanaryExecutionLabel';
+import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
   LIST_EXTRACTOR_SERVICE,

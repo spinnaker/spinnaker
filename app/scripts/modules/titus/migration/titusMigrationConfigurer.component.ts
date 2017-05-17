@@ -1,8 +1,19 @@
-import {module} from 'angular';
-import {IMigrationStrategy, PipelineStrategy, RollingPushStrategy, IMigrationStrategyType} from './titusMigrationConfig.component';
-import {Application} from 'core/application/application.model';
-import {PIPELINE_CONFIG_SERVICE, PipelineConfigService} from 'core/pipeline/config/services/pipelineConfig.service';
-import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
+import { module } from 'angular';
+
+import {
+  Application,
+  APPLICATION_READ_SERVICE,
+  ApplicationReader,
+  PIPELINE_CONFIG_SERVICE,
+  PipelineConfigService
+} from '@spinnaker/core';
+
+import {
+  IMigrationStrategy,
+  IMigrationStrategyType,
+  PipelineStrategy,
+  RollingPushStrategy
+} from './titusMigrationConfig.component';
 
 interface IPipelineOption {
   name: string;

@@ -1,17 +1,17 @@
 'use strict';
 
+const angular = require('angular');
 import * as _ from 'lodash';
-import {HttpLoadBalancerTemplate, ListenerTemplate} from './templates';
-import {sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {GCEProviderSettings} from '../../../gce.settings';
-import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
-import {GCE_CERTIFICATE_READER} from 'google/certificate/certificate.reader';
-import {GCE_ADDRESS_READER} from 'google/address/address.reader';
-import {GCE_HEALTH_CHECK_READER} from 'google/healthCheck/healthCheck.read.service';
 
-let angular = require('angular');
+import { ACCOUNT_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
+
+import { GCE_ADDRESS_READER } from 'google/address/address.reader';
+import { GCE_CERTIFICATE_READER } from 'google/certificate/certificate.reader';
+import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { GCEProviderSettings } from 'google/gce.settings';
+import { sessionAffinityModelToViewMap } from '../common/sessionAffinityNameMaps';
+import { HttpLoadBalancerTemplate, ListenerTemplate } from './templates';
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.backing.service', [
     require('../../../backendService/backendService.reader.js'),

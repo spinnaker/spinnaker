@@ -1,11 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { ACCOUNT_SERVICE, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.aws.edit.controller', [
   require('angular-ui-router').default,

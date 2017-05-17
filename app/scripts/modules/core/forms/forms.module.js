@@ -3,7 +3,7 @@
 import {BUTTON_BUSY_INDICATOR_COMPONENT} from './buttonBusyIndicator/buttonBusyIndicator.component';
 import {NUMBER_LIST_COMPONENT} from './numberList/numberList.component';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.forms', [
   require('./autofocus/autofocus.directive.js'),

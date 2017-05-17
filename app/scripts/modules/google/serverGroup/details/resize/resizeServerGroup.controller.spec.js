@@ -1,6 +1,6 @@
 'use strict';
 
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
 let template = require('./resizeServerGroup.html');
 

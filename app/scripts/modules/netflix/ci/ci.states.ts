@@ -1,9 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {INestedState} from 'core/navigation/state.provider';
-import {
-  APPLICATION_STATE_PROVIDER, ApplicationStateProvider,
-} from 'core/application/application.state.provider';
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, INestedState } from '@spinnaker/core';
 
 export const CI_STATES = 'spinnaker.netflix.ci.states';
 module(CI_STATES, [

@@ -1,12 +1,9 @@
+import { API_SERVICE, SETTINGS } from '@spinnaker/core';
+import { IHttpBackendService, mock } from 'angular';
 import * as moment from 'moment';
-import {IHttpBackendService, mock} from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
-import {API_SERVICE} from 'core/api/api.service';
-import {
-  CI_BUILD_READ_SERVICE, CiBuildReader, ICiBuild
-} from 'netflix/ci/services/ciBuild.read.service';
-import {CiFilterModel} from 'netflix/ci/ciFilter.model';
+import { CiFilterModel } from 'netflix/ci/ciFilter.model';
+import { CI_BUILD_READ_SERVICE, CiBuildReader, ICiBuild } from 'netflix/ci/services/ciBuild.read.service';
 
 describe('CiBuildReader', () => {
 

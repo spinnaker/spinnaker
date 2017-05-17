@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-const angular = require('angular');
-
-require('./ingressRuleGroupSelector.component.less');
+import './ingressRuleGroupSelector.component.less';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.configure.ingressRuleGroupSelector', [])

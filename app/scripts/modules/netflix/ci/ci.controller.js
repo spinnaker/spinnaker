@@ -1,7 +1,7 @@
 'use strict';
 
 import _ from 'lodash';
-let angular = require('angular');
+const angular = require('angular');
 
 import {CiFilterModel} from './ciFilter.model';
 

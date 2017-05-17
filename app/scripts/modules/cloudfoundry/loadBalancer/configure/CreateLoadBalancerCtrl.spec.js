@@ -1,6 +1,6 @@
 'use strict';
 
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
 describe('Controller: cfCreateLoadBalancerCtrl', function () {
 

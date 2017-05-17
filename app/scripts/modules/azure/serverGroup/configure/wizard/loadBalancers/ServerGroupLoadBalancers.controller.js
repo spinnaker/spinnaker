@@ -1,11 +1,13 @@
 'use strict';
 
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import {
+  INFRASTRUCTURE_CACHE_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  NETWORK_READ_SERVICE,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.loadBalancer.controller', [
   INFRASTRUCTURE_CACHE_SERVICE,

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {KubernetesProviderSettings} from '../kubernetes.settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.kubernetes.loadBalancer.transformer', [])
   .factory('kubernetesLoadBalancerTransformer', function ($q) {

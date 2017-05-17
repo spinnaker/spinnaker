@@ -1,15 +1,17 @@
-import {module, toJson} from 'angular';
-import {cloneDeep, uniq} from 'lodash';
+import { module, toJson } from 'angular';
+import { cloneDeep, uniq } from 'lodash';
 
 import {
-  ACCOUNT_SERVICE, AccountService, IAccountDetails, IRegion,
-  IAggregatedAccounts
+  ACCOUNT_SERVICE,
+  AccountService,
+  IAccountDetails,
+  IAggregatedAccounts,
+  IRegion
 } from 'core/account/account.service';
-import {Application} from 'core/application/application.model';
-import {IViewState} from '../footer/configSectionFooter.component';
-import {CLUSTER_MATCHES_COMPONENT, IClusterMatch} from 'core/widgets/cluster/clusterMatches.component';
-import {TRAFFIC_GUARD_CONFIG_HELP} from './trafficGuardConfig.help';
-import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
+import { Application, IConfigSectionFooterViewState } from 'core/application';
+import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
+import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
+import { TRAFFIC_GUARD_CONFIG_HELP } from './trafficGuardConfig.help';
 
 interface ITrafficGuard {
   account: string;
@@ -27,7 +29,7 @@ export class TrafficGuardConfigController {
   public initializing = true;
   public clusterMatches: IClusterMatch[][] = [];
 
-  public viewState: IViewState = {
+  public viewState: IConfigSectionFooterViewState = {
     originalConfig: null,
     originalStringVal: null,
     saving: false,

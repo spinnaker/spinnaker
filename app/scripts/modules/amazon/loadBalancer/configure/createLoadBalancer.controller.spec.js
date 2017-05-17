@@ -1,7 +1,7 @@
 'use strict';
 
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
-import {AWSProviderSettings} from '../../aws.settings';
+import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+import { AWSProviderSettings } from '../../aws.settings';
 
 describe('Controller: awsCreateLoadBalancerCtrl', function () {
   // load the controller's module

@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 require('./preconditionList.directive.html');
 require('./modal/editPrecondition.html');

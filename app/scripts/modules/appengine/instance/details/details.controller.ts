@@ -1,12 +1,19 @@
-import {module, IPromise, IQService} from 'angular';
-import {flattenDeep, cloneDeep} from 'lodash';
+import { IPromise, IQService, module } from 'angular';
+import { cloneDeep, flattenDeep } from 'lodash';
 
-import {Application} from 'core/application/application.model';
-import {CONFIRMATION_MODAL_SERVICE, ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
-import {INSTANCE_READ_SERVICE, InstanceReader} from 'core/instance/instance.read.service';
-import {INSTANCE_WRITE_SERVICE, InstanceWriter} from 'core/instance/instance.write.service';
-import {IAppengineInstance} from 'appengine/domain/index';
-import {RECENT_HISTORY_SERVICE, RecentHistoryService} from 'core/history/recentHistory.service';
+import {
+  Application,
+  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
+  INSTANCE_READ_SERVICE,
+  INSTANCE_WRITE_SERVICE,
+  InstanceReader,
+  InstanceWriter,
+  RECENT_HISTORY_SERVICE,
+  RecentHistoryService
+} from '@spinnaker/core';
+
+import { IAppengineInstance } from 'appengine/domain';
 
 interface InstanceFromStateParams {
   instanceId: string;

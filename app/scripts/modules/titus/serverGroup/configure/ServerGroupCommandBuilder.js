@@ -1,10 +1,9 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {TitusProviderSettings} from '../../titus.settings';
+import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { TitusProviderSettings } from 'titus/titus.settings';
 
 module.exports = angular.module('spinnaker.titus.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,

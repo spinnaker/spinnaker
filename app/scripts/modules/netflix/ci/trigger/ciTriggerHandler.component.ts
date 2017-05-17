@@ -1,6 +1,8 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
-import {IBranch, ScmReader, SCM_READ_SERVICE, ITag, ICommit} from '../services/scm.read.service';
-import {IGitTrigger} from 'core/domain/ITrigger';
+import { IComponentController, IComponentOptions, module } from 'angular';
+
+import { IGitTrigger } from '@spinnaker/core';
+
+import { IBranch, ICommit, ITag, SCM_READ_SERVICE, ScmReader } from '../services/scm.read.service';
 
 export interface IViewState {
   buildSource: 'branch' | 'commit' | 'tag';

@@ -1,6 +1,11 @@
-import {module, IComponentOptions, IComponentController} from 'angular';
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {CACHE_INITIALIZER_SERVICE, CacheInitializerService} from 'core/cache/cacheInitializer.service';
+import { IComponentController, IComponentOptions, module } from 'angular';
+
+import {
+  CACHE_INITIALIZER_SERVICE,
+  CacheInitializerService,
+  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCacheService
+} from '@spinnaker/core';
 
 class GceCacheRefreshCtrl implements IComponentController {
   public capitalizedKey: string;

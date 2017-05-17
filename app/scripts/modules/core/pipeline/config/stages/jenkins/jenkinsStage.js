@@ -4,7 +4,7 @@ import {IGOR_SERVICE, BuildServiceType} from 'core/ci/igor.service';
 import {JenkinsExecutionLabel} from './JenkinsExecutionLabel';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 
-let angular = require('angular');
+const angular = require('angular');
 
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.jenkinsStage', [

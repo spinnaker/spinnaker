@@ -1,17 +1,25 @@
-import {module} from 'angular';
-import {filter, flatten, map, each} from 'lodash';
-import {IModalService} from 'angular-ui-bootstrap';
+import { module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+import { each, filter, flatten, map } from 'lodash';
 
-import {AuthenticationService} from 'core/authentication/authentication.service';
-import {CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {ICluster, IStage, IServerGroup} from 'core/domain';
-import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
-import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
-import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
-import {EDIT_VIP_MODAL_CONTROLLER} from './editVip.modal.controller';
-import {NetflixSettings} from 'netflix/netflix.settings';
+import {
+  AuthenticationService,
+  CLOUD_PROVIDER_REGISTRY,
+  CloudProviderRegistry,
+  ICluster,
+  IServerGroup,
+  IStage,
+  LIST_EXTRACTOR_SERVICE,
+  NAMING_SERVICE,
+  NamingService,
+  PIPELINE_CONFIG_PROVIDER,
+  SERVER_GROUP_COMMAND_BUILDER_SERVICE,
+  SERVER_GROUP_READER,
+  ServerGroupReader
+} from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
+import { EDIT_VIP_MODAL_CONTROLLER } from './editVip.modal.controller';
 
 interface IVipOverride {
   oldVip: string;

@@ -3,7 +3,7 @@ import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicati
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 import {CLUSTER_SERVICE} from 'core/cluster/cluster.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.dataSource', [

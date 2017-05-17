@@ -1,16 +1,16 @@
 'use strict';
 
-import _ from 'lodash';
-import {Subject} from 'rxjs';
-import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
-
 const angular = require('angular');
+import _ from 'lodash';
+import { Subject } from 'rxjs';
+
+import { CLOUD_METRICS_READ_SERVICE } from '@spinnaker/core';
 
 // TODO: Remove LineChartHack, replace require with commented out one once
 // https://github.com/n3-charts/line-chart/issues/512 is resolved
 // require('style!n3-charts/build/LineChart.css');
-require('./LineChartHack.css');
-require('./metricAlarmChart.component.less');
+import './LineChartHack.css';
+import './metricAlarmChart.component.less';
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.metricAlarmChart.component', [

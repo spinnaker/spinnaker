@@ -1,8 +1,8 @@
 'use strict';
 
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { SUBNET_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.subnet.renderer', [
   SUBNET_READ_SERVICE,

@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.titus.serverGroup.capacity.selector.directive', [])
   .directive('titusServerGroupCapacitySelector', function() {

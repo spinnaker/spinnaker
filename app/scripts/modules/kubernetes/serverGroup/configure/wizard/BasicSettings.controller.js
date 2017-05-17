@@ -1,10 +1,9 @@
 'use strict';
 
-import {Observable, Subject} from 'rxjs';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+const angular = require('angular');
+import { Observable, Subject } from 'rxjs';
 
-let angular = require('angular');
+import { NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basicSettings', [
   require('angular-ui-router').default,

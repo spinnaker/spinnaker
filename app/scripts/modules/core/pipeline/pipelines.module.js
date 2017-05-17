@@ -1,11 +1,11 @@
 'use strict';
 
-import {AUTHENTICATION} from 'core/authentication/authentication.module';
-import {COPY_STAGE_MODAL_CONTROLLER} from './config/copyStage/copyStage.modal.controller';
+const angular = require('angular');
 
-let angular = require('angular');
+import { AUTHENTICATION } from 'core/authentication/authentication.module';
+import { COPY_STAGE_MODAL_CONTROLLER } from './config/copyStage/copyStage.modal.controller';
 
-require('./pipelines.less');
+import './pipelines.less';
 
 module.exports = angular.module('spinnaker.core.pipeline', [
   require('exports-loader?"ui.sortable"!angular-ui-sortable'),

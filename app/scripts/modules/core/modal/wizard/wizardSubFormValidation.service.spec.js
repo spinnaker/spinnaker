@@ -4,7 +4,7 @@ import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
 
 describe('Service: wizardSubFormValidation', function () {
 
-  let angular = require('angular');
+  const angular = require('angular');
   let wizardSubFormValidation, v2modalWizardService, $rootScope, $compile;
 
   beforeEach(

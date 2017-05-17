@@ -1,12 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-
-let angular = require('angular');
+import { ACCOUNT_SERVICE, CACHE_INITIALIZER_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.configuration.service', [
   ACCOUNT_SERVICE,

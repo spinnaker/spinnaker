@@ -1,7 +1,8 @@
 'use strict';
 
-let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+const angular = require('angular');
+
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.disableClusterStage', [
   ACCOUNT_SERVICE,

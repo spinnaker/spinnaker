@@ -7,7 +7,7 @@ import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 import {DISPLAYABLE_TASKS_FILTER} from './displayableTasks.filter';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.task.controller', [
   require('angular-ui-router').default,

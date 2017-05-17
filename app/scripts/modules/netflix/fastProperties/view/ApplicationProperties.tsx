@@ -1,19 +1,17 @@
-import * as React from 'react';
-import { groupBy } from 'lodash';
-import { Subscription } from 'rxjs/Subscription';
 import autoBindMethods from 'class-autobind-decorator';
+import { groupBy } from 'lodash';
+import * as React from 'react';
 import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
 
-import { Property } from '../domain/property.domain';
-import { Application } from 'core/application/application.model';
+import { Application, ApplicationDataSource, FilterTags, IFilterTag, ReactInjector } from '@spinnaker/core';
+
 import { NetflixSettings } from 'netflix/netflix.settings';
-import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
-import { FastPropertyRollouts } from './rollouts/FastPropertyRollouts';
-import { FastPropertiesList } from './FastPropertiesList';
-import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
-import { ReactInjector } from 'core/react';
 import { NetflixReactInjector } from 'netflix/react.injector';
+import { Property } from '../domain/property.domain';
 import { sortProperties } from '../global/GlobalPropertiesList';
+import { FastPropertiesList } from './FastPropertiesList';
+import { FastPropertyRollouts } from './rollouts/FastPropertyRollouts';
 
 interface IProps {
   application: Application;

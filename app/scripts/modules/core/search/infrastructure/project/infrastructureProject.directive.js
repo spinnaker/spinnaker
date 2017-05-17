@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-require('./infrastructureProject.directive.less');
+import './infrastructureProject.directive.less';
 
 module.exports = angular.module('spinnaker.core.search.infrastructure.project.infrastructureProject.directive', [])
   .directive('infrastructureProject', function() {

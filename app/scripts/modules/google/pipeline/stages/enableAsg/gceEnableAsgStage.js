@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER, StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.enableAsgStage', [
   PIPELINE_CONFIG_PROVIDER,

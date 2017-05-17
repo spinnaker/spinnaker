@@ -1,13 +1,13 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {HealthCheckTemplate, BackendServiceTemplate, HostRuleTemplate, ListenerTemplate} from './templates';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-import {GCE_CACHE_REFRESH} from 'google/cache/cacheRefresh.component';
+import { TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
-require('./httpLoadBalancerWizard.component.less');
+import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
+import { BackendServiceTemplate, HealthCheckTemplate, HostRuleTemplate, ListenerTemplate } from './templates';
+
+import './httpLoadBalancerWizard.component.less';
 
 module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.controller', [
   require('angular-ui-bootstrap'),

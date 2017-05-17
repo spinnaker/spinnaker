@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {AWSProviderSettings} from '../aws.settings';
 
-let angular = require('angular');
+import { AWSProviderSettings } from '../aws.settings';
 
 module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
   require('../vpc/vpc.read.service.js'),

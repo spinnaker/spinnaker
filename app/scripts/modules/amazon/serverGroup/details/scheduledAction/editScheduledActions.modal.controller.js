@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActions.editScheduledActions.modal.controller', [
   TASK_MONITOR_BUILDER,

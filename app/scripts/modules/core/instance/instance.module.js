@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {INSTANCE_STATES} from './instance.states';
 import './InstanceSearchResultFormatter';

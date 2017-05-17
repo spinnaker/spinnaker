@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
 
-let angular = require('angular');
+import { ACCOUNT_SERVICE, TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
 

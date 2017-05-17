@@ -1,6 +1,6 @@
-import {toInteger} from 'lodash';
-import {IStage} from 'core/domain/IStage';
-import {IUser} from 'core/authentication/authentication.service';
+import { toInteger } from 'lodash';
+
+import { IStage, IUser } from '@spinnaker/core';
 
 export class ManualJudgementStage implements IStage {
   public name: string;

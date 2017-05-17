@@ -1,15 +1,15 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {PIPELINE_GRAPH_COMPONENT} from './graph/pipeline.graph.component';
-import {REQUIRED_FIELD_VALIDATOR} from './validation/requiredField.validator';
-import {TARGET_IMPEDANCE_VALIDATOR} from './validation/targetImpedance.validator';
-import {STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR} from './validation/stageOrTriggerBeforeType.validator';
-import {STAGE_BEFORE_TYPE_VALIDATOR} from './validation/stageBeforeType.validator';
-import {SERVICE_ACCOUNT_ACCESS_VALIDATOR} from './validation/serviceAccountAccess.validator';
+import { PIPELINE_GRAPH_COMPONENT } from './graph/pipeline.graph.component';
+import { REQUIRED_FIELD_VALIDATOR } from './validation/requiredField.validator';
+import { SERVICE_ACCOUNT_ACCESS_VALIDATOR } from './validation/serviceAccountAccess.validator';
+import { STAGE_BEFORE_TYPE_VALIDATOR } from './validation/stageBeforeType.validator';
+import { STAGE_OR_TRIGGER_BEFORE_TYPE_VALIDATOR } from './validation/stageOrTriggerBeforeType.validator';
+import { TARGET_IMPEDANCE_VALIDATOR } from './validation/targetImpedance.validator';
 
-require('./pipelineConfig.less');
+import './pipelineConfig.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.config', [
   require('./actions/actions.module.js'),

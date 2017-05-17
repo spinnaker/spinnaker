@@ -4,7 +4,7 @@ import {SETTINGS} from 'core/config/settings';
 import {ManualJudgmentExecutionLabel} from './ManualJudgmentExecutionLabel';
 import {ManualJudgmentMarkerIcon} from './ManualJudgmentMarkerIcon';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgmentStage', [])
   .config(function (pipelineConfigProvider) {

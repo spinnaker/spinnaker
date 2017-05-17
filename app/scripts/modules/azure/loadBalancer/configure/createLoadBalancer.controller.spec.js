@@ -1,7 +1,6 @@
 'use strict';
 
-import {API_SERVICE} from 'core/api/api.service';
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
+import { API_SERVICE, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
 describe('Controller: azureCreateLoadBalancerCtrl', function () {
 

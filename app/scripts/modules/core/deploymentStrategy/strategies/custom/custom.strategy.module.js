@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {SETTINGS} from 'core/config/settings';
 import {TIME_FORMATTERS} from 'core/utils/timeFormatters';

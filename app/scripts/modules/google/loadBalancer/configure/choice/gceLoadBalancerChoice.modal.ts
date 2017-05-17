@@ -1,9 +1,12 @@
-import {module} from 'angular';
-import {map, find} from 'lodash';
+import { module } from 'angular';
+import { find, map } from 'lodash';
 
-import {GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
-        IGceLoadBalancerToWizardMap} from './loadBalancerTypeToWizardMap.constant';
-import {Application} from 'core/application/application.model';
+import { Application } from '@spinnaker/core';
+
+import {
+  GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT,
+  IGceLoadBalancerToWizardMap
+} from './loadBalancerTypeToWizardMap.constant';
 
 class GceLoadBalancerChoiceCtrl implements ng.IComponentController {
   public choices: string[];

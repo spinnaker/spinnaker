@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {API_SERVICE} from 'core/api/api.service';

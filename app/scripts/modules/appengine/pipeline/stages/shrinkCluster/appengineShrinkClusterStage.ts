@@ -1,8 +1,9 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
-import {AppengineStageCtrl} from '../appengineStage.controller';
-import {IAppengineStageScope, IAppengineStage} from 'appengine/domain/index';
+import { ACCOUNT_SERVICE, AccountService } from '@spinnaker/core';
+
+import { IAppengineStage, IAppengineStageScope } from 'appengine/domain/index';
+import { AppengineStageCtrl } from '../appengineStage.controller';
 
 interface IAppengineShrinkClusterStage extends IAppengineStage {
   shrinkToSize: number;

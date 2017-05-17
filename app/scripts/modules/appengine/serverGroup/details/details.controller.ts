@@ -1,22 +1,26 @@
-import {module, IScope} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
-import {cloneDeep, reduce, mapValues, get, map} from 'lodash';
+import { IScope, module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+import { cloneDeep, get, map, mapValues, reduce } from 'lodash';
 
-import { IServerGroup } from 'core/domain';
 import {
-  CONFIRMATION_MODAL_SERVICE, ConfirmationModalService,
-  IConfirmationModalParams
-} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER, ServerGroupWriter} from 'core/serverGroup/serverGroupWriter.service';
-import {Application} from 'core/application/application.model';
-import {IAppengineLoadBalancer, IAppengineServerGroup} from 'appengine/domain/index';
-import {SERVER_GROUP_WARNING_MESSAGE_SERVICE, ServerGroupWarningMessageService} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter} from '../writer/serverGroup.write.service';
-import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
-import {ITaskMonitorConfig} from 'core/task/monitor/taskMonitor.builder';
-import {AppengineServerGroupCommandBuilder} from '../configure/serverGroupCommandBuilder.service';
-import {AppengineHealth} from 'appengine/common/appengineHealth';
+  Application,
+  CONFIRMATION_MODAL_SERVICE,
+  ConfirmationModalService,
+  IConfirmationModalParams,
+  IServerGroup,
+  ITaskMonitorConfig,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER,
+  ServerGroupReader,
+  ServerGroupWarningMessageService,
+  ServerGroupWriter
+} from '@spinnaker/core';
+
+import { AppengineHealth } from 'appengine/common/appengineHealth';
+import { IAppengineLoadBalancer, IAppengineServerGroup } from 'appengine/domain/index';
+import { AppengineServerGroupCommandBuilder } from '../configure/serverGroupCommandBuilder.service';
+import { APPENGINE_SERVER_GROUP_WRITER, AppengineServerGroupWriter } from '../writer/serverGroup.write.service';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
@@ -444,7 +448,6 @@ export const APPENGINE_SERVER_GROUP_DETAILS_CTRL = 'spinnaker.appengine.serverGr
 module(APPENGINE_SERVER_GROUP_DETAILS_CTRL, [
     APPENGINE_SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
-    RUNNING_TASKS_DETAILS_COMPONENT,
     SERVER_GROUP_WARNING_MESSAGE_SERVICE,
     SERVER_GROUP_READER,
     SERVER_GROUP_WRITER,

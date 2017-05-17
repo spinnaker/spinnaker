@@ -1,6 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from 'core/help/helpContents.registry';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
 
 export const ORACLE_HELP_CONTENTS_REGISTRY = 'spinnaker.oracle.helpContents.registry';
 module(ORACLE_HELP_CONTENTS_REGISTRY, [HELP_CONTENTS_REGISTRY])

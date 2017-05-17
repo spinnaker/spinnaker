@@ -1,12 +1,16 @@
+import { module, toJson } from 'angular';
 import * as _ from 'lodash';
-import {module, toJson} from 'angular';
 
-import {CLUSTER_MATCHES_COMPONENT} from 'core/widgets/cluster/clusterMatches.component';
-import {CHAOS_MONKEY_HELP} from './chaosMonkey.help';
-import {CHAOS_MONKEY_EXCEPTIONS_COMPONENT} from './chaosMonkeyExceptions.component';
-import {CONFIG_SECTION_FOOTER, IViewState} from '../application/config/footer/configSectionFooter.component';
-import {Application} from 'core/application/application.model';
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
+
+import { CLUSTER_MATCHES_COMPONENT } from 'core/widgets/cluster/clusterMatches.component';
+import {
+  Application,
+  CONFIG_SECTION_FOOTER,
+  IConfigSectionFooterViewState
+} from 'core/application';
+import { CHAOS_MONKEY_HELP } from './chaosMonkey.help';
+import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.component';
 
 import './chaosMonkeyConfig.component.less';
 
@@ -35,7 +39,7 @@ export class ChaosMonkeyConfigController implements ng.IComponentController {
   public config: ChaosMonkeyConfig;
   public chaosEnabled = false;
   public groupingOptions: GroupingOption[] = [];
-  public viewState: IViewState = {
+  public viewState: IConfigSectionFooterViewState = {
     originalConfig: null,
     originalStringVal: null,
     saving: false,

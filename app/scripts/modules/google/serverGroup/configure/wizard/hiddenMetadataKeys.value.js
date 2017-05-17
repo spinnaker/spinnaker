@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.serverGroup.hiddenMetadataKeys.value',[])
   .value('gceServerGroupHiddenMetadataKeys', [

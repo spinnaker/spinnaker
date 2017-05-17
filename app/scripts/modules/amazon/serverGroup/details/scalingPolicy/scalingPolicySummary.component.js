@@ -1,10 +1,10 @@
 'use strict';
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 
-require('./scalingPolicySummary.component.less');
+import './scalingPolicySummary.component.less';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.scalingPolicy.component', [
   require('./popover/scalingPolicyPopover.component.js'),

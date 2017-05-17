@@ -72,7 +72,6 @@ export class CoreReactInject extends ReactInject {
   }
 
   // Services
-  public get modalService() { return this.$injector.get('modalService') as IModalService; }
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
   public get API() { return this.$injector.get('API') as Api; }
@@ -90,6 +89,7 @@ export class CoreReactInject extends ReactInject {
   public get executionService() { return this.$injector.get('executionService') as ExecutionService; }
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
   public get loadBalancerFilterModel() { return this.$injector.get('loadBalancerFilterModel') as LoadBalancerFilterModel; }
+  public get modalService() { return this.$injector.get('$uibModal') as IModalService; }
   public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }
   public get pipelineConfigService() { return this.$injector.get('pipelineConfigService') as PipelineConfigService; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }

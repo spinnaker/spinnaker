@@ -2,7 +2,7 @@
 
 import * as _ from 'lodash';
 import {GCE_ADDRESS_SELECTOR} from 'google/loadBalancer/configure/common/addressSelector.component';
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.listener.component', [GCE_ADDRESS_SELECTOR])
   .component('gceListener', {

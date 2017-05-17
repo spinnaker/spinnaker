@@ -1,16 +1,14 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {CORE_WIDGETS_MODULE} from 'core/widgets';
-import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
-import {NetflixSettings} from '../../../netflix.settings';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { LIST_EXTRACTOR_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.quickPatchAsgStage', [
   PIPELINE_CONFIG_PROVIDER,
   LIST_EXTRACTOR_SERVICE,
-  CORE_WIDGETS_MODULE
 ])
   .config(function(pipelineConfigProvider) {
     if (NetflixSettings.feature.netflixMode) {

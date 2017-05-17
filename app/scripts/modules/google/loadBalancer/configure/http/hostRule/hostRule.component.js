@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 import {PathRuleTemplate} from '../templates';
 
 module.exports = angular.module('spinnaker.deck.gce.httpLoadBalancer.hostRule.component', [

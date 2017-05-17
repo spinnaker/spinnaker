@@ -1,17 +1,13 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
-import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
-
-let angular = require('angular');
+import { CLUSTER_FILTER_SERVICE, URL_BUILDER_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cloneServerGroup.cf.executionDetails.controller', [
   require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
-  EXECUTION_DETAILS_SECTION_SERVICE,
   URL_BUILDER_SERVICE
 ])
   .controller('cfCloneServerGroupExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, urlBuilderService, clusterFilterService) {

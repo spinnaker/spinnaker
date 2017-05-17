@@ -1,8 +1,6 @@
-import {module} from 'angular';
-import {
-  APPLICATION_NAME_VALIDATOR,
-  IApplicationNameValidator, ApplicationNameValidator
-} from 'core/application/modal/validation/applicationName.validator';
+import { module } from 'angular';
+
+import { APPLICATION_NAME_VALIDATOR, ApplicationNameValidator, IApplicationNameValidator } from '@spinnaker/core';
 
 class TitusApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {

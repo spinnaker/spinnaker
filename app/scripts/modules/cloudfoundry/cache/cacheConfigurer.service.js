@@ -1,10 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
+import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.cf.cache.initializer', [
   ACCOUNT_SERVICE,

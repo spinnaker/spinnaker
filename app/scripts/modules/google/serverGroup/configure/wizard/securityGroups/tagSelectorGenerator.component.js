@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.gce.tagSelectorGenerator.component', [
   require('./tagSelector.component.js'),

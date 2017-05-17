@@ -1,11 +1,12 @@
-import {toInteger} from 'lodash';
 import { copy } from 'angular';
-import {IStage} from 'core/domain/IStage';
-import {PropertyCommand} from './propertyCommand.model';
-import {Scope} from './scope.domain';
-import {Property} from './property.domain';
-import {IUser} from 'core/authentication/authentication.service';
-import {PropertyCommandType} from './propertyCommandType.enum';
+import { toInteger } from 'lodash';
+
+import { IStage, IUser } from '@spinnaker/core';
+
+import { Property } from './property.domain';
+import { PropertyCommand } from './propertyCommand.model';
+import { PropertyCommandType } from './propertyCommandType.enum';
+import { Scope } from './scope.domain';
 
 export class PropertyPipelineStage implements IStage {
   public name: string;

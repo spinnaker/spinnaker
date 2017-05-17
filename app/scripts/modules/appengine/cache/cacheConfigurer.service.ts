@@ -1,8 +1,6 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {ILoadBalancer} from 'core/domain/index';
+import { ACCOUNT_SERVICE, AccountService, IAccount, ILoadBalancer, LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 interface ICacheConfigEntry {
   initializers: Function[];

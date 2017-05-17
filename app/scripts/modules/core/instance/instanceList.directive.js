@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 import {CLUSTER_FILTER_MODEL} from '../cluster/filter/clusterFilter.model';
 
 module.exports = angular.module('spinnaker.core.instance.instanceList.directive', [

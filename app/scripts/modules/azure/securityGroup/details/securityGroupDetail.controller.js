@@ -1,12 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-
-let angular = require('angular');
-
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import { CONFIRMATION_MODAL_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.details.controller', [
   require('angular-ui-router').default,

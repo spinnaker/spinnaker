@@ -1,6 +1,4 @@
-import {IPipeline, IParameter} from 'core/domain/IPipeline';
-import {IStage} from 'core/domain/IStage';
-import {ITrigger} from '../../../core/domain/ITrigger';
+import { IParameter, IPipeline, IStage, ITrigger } from '@spinnaker/core';
 
 export class PropertyPipeline implements IPipeline {
   public strategy: boolean;

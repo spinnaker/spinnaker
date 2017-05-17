@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [

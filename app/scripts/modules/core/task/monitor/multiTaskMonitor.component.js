@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('./multiTaskMonitor.component.less');
+import './multiTaskMonitor.component.less';
 
 module.exports = angular
   .module('spinnaker.core.task.monitor.multiTaskMonitor', [

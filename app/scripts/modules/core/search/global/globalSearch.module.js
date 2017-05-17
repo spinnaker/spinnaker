@@ -1,8 +1,8 @@
 'use strict';
 
-require('./globalSearch.less');
+const angular = require('angular');
 
-let angular = require('angular');
+import './globalSearch.less';
 
 module.exports = angular.module('spinnaker.core.search.global', [
   require('./globalSearch.directive.js'),

@@ -1,12 +1,10 @@
 'use strict';
 
-import {Observable, Subject} from 'rxjs';
+const angular = require('angular');
+import { Observable, Subject } from 'rxjs';
 
-import {IMAGE_READER} from 'core/image/image.reader';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
-let angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.openstack.instanceSettings', [
   require('angular-ui-router').default,

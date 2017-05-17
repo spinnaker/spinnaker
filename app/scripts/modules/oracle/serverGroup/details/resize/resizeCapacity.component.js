@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
+import { SERVER_GROUP_WRITER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.oraclebmcs.serverGroup.details.resize.capacity.component', [

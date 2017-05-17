@@ -1,5 +1,4 @@
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
-import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
+import { APPLICATION_DATA_SOURCE_REGISTRY, APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
 
 describe('Controller: NetflixCiCtrl', function () {
 

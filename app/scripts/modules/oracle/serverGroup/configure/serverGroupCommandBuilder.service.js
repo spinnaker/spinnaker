@@ -1,10 +1,11 @@
 'use strict';
 
-let angular = require('angular');
-
+const angular = require('angular');
 import _ from 'lodash';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {OracleBMCSProviderSettings} from '../../oraclebmcs.settings';
+
+import { NAMING_SERVICE } from '@spinnaker/core';
+
+import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroupCommandBuilder.service', [
   NAMING_SERVICE,

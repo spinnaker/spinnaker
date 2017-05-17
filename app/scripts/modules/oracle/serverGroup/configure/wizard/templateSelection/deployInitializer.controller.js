@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
-
-let angular = require('angular');
+import { SERVER_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.deployInitialization.controller', [
   SERVER_GROUP_READER,

@@ -1,10 +1,12 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
+
+import { AccountService, IAccount } from '@spinnaker/core';
+
+import { DockerImageReaderService, IDockerImage } from './docker.image.reader.service';
 import {
-  DockerImageAndTagSelectorController,
-  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT
+  DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT,
+  DockerImageAndTagSelectorController
 } from './dockerImageAndTagSelector.component';
-import {AccountService, IAccount} from 'core/account/account.service';
-import {DockerImageReaderService, IDockerImage} from './docker.image.reader.service';
 
 describe('dockerImageAndTagSelector controller', () => {
   let $ctrl: DockerImageAndTagSelectorController,

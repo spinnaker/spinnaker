@@ -1,13 +1,13 @@
 'use strict';
 
+const angular = require('angular');
+
 import {V2_MODAL_WIZARD_COMPONENT} from './wizard/v2modalWizard.component';
 import {V2_MODAL_WIZARD_SERVICE} from './wizard/v2modalWizard.service';
 import {MODAL_CLOSE_COMPONENT} from './buttons/modalClose.component';
 import {SUBMIT_BUTTON_COMPONENT} from './buttons/submitButton.component';
 
-let angular = require('angular');
-
-require('./modals.less');
+import './modals.less';
 
 module.exports = angular
   .module('spinnaker.core.modal', [

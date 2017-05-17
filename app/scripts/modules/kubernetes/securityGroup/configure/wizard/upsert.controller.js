@@ -1,13 +1,15 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {
+  ACCOUNT_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  SECURITY_GROUP_READER,
+  SECURITY_GROUP_WRITER,
+  TASK_MONITOR_BUILDER,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.controller', [
   require('angular-ui-router').default,

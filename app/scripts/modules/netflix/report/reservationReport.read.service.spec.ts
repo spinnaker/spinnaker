@@ -1,9 +1,11 @@
-import {IHttpBackendService, IPromise, mock} from 'angular';
+import { IHttpBackendService, IPromise, mock } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from '@spinnaker/core';
+
 import {
   IExtractedReservation,
-  IReservation, IReservationReport,
+  IReservation,
+  IReservationReport,
   RESERVATION_REPORT_READER,
   ReservationReportReader
 } from 'netflix/report/reservationReport.read.service';

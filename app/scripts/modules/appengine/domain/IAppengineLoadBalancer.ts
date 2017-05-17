@@ -1,4 +1,4 @@
-import {ILoadBalancer} from 'core/domain/index';
+import { ILoadBalancer } from '@spinnaker/core';
 
 export interface IAppengineLoadBalancer extends ILoadBalancer {
   credentials?: string;

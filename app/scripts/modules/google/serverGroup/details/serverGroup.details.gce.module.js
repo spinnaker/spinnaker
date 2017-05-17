@@ -4,7 +4,7 @@ import {GCE_ADD_AUTOHEALING_POLICY_BUTTON} from './autoHealingPolicy/addAutoHeal
 import {GCE_UPSERT_AUTOHEALING_POLICY_MODAL_CTRL} from './autoHealingPolicy/modal/upsertAutoHealingPolicy.modal.controller';
 import {GCE_AUTOHEALING_POLICY_DETAILS} from './autoHealingPolicy/autoHealingPolicy.component';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce', [
   require('./serverGroupDetails.gce.controller.js'),

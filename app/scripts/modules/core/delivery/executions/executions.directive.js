@@ -1,10 +1,10 @@
 'use strict';
 
+const angular = require('angular');
+
 import {EXECUTION_GROUPS_COMPONENT} from '../executionGroup/executionGroups.component';
 
-let angular = require('angular');
-
-require('./executions.less');
+import './executions.less';
 
 module.exports = angular
   .module('spinnaker.core.delivery.main.executions.directive', [

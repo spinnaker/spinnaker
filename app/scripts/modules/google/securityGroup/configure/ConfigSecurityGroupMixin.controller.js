@@ -1,15 +1,18 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-var angular = require('angular');
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-import {GCE_SECURITY_GROUP_HELP_TEXT_SERVICE} from '../securityGroupHelpText.service';
+import {
+  ACCOUNT_SERVICE,
+  NETWORK_READ_SERVICE,
+  SECURITY_GROUP_READER,
+  SECURITY_GROUP_WRITER,
+  TASK_MONITOR_BUILDER,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
+
+import { GCE_SECURITY_GROUP_HELP_TEXT_SERVICE } from '../securityGroupHelpText.service';
 
 import './securityGroup.configure.less';
 

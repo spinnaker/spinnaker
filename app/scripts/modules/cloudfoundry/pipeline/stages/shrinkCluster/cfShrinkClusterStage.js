@@ -1,7 +1,7 @@
 'use strict';
 
-let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+const angular = require('angular');
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.shrinkClusterStage', [ACCOUNT_SERVICE])
   .config(function(pipelineConfigProvider) {

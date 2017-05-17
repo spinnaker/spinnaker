@@ -1,8 +1,8 @@
 'use strict';
 
-import {APPLICATION_NAME_VALIDATOR} from 'core/application/modal/validation/applicationName.validator';
-
 const angular = require('angular');
+
+import { APPLICATION_NAME_VALIDATOR } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.kubernetes.validation.applicationName', [

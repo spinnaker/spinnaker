@@ -1,13 +1,10 @@
 'use strict';
 
-import {Observable, Subject} from 'rxjs';
+const angular = require('angular');
+import { Observable, Subject } from 'rxjs';
 
-import {IMAGE_READER} from 'core/image/image.reader';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {SUBNET_SELECT_FIELD_COMPONENT} from 'amazon/subnet/subnetSelectField.component';
-
-let angular = require('angular');
+import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
+import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettings', [
   require('angular-ui-router').default,

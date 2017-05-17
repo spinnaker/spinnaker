@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {DESTROY_ASG_EXECUTION_DETAILS_CTRL} from './templates/destroyAsgExecutionDetails.controller';
 

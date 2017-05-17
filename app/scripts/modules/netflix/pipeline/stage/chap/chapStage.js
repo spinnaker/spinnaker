@@ -1,9 +1,10 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {NetflixSettings} from '../../../netflix.settings';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.chap', [
   PIPELINE_CONFIG_PROVIDER,

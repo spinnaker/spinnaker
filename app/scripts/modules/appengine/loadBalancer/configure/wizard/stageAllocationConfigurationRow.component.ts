@@ -1,8 +1,9 @@
-import {module} from 'angular';
-import {uniq} from 'lodash';
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {IAppengineAllocationDescription} from 'appengine/loadBalancer/transformer';
-import {Application} from 'core/application/application.model';
+import { module } from 'angular';
+import { uniq } from 'lodash';
+
+import { Application, StageConstants } from '@spinnaker/core';
+
+import { IAppengineAllocationDescription } from 'appengine/loadBalancer/transformer';
 
 class AppengineStageAllocationLabelCtrl implements ng.IComponentController {
   public inputViewValue: string;

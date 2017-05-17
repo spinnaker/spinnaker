@@ -1,16 +1,15 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {LOAD_BALANCER_SET_TRANSFORMER} from './loadBalancer/loadBalancer.setTransformer';
-import {GCE_INTERNAL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
-import {GCE_SSL_LOAD_BALANCER_CTRL} from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
-import {GCE_LOAD_BALANCER_CHOICE_MODAL} from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
-import {ADD_ENTITY_TAG_LINKS_COMPONENT} from 'core/entityTag/addEntityTagLinks.component';
-import {ENTITY_SOURCE_COMPONENT} from 'core/entityTag/entitySource.component';
+import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
-require('./logo/gce.logo.less');
+import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
+import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
+import { GCE_SSL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
+import { LOAD_BALANCER_SET_TRANSFORMER } from './loadBalancer/loadBalancer.setTransformer';
+
+import './logo/gce.logo.less';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
@@ -24,8 +23,6 @@ module.exports = angular.module('spinnaker.gce', [
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
   GCE_LOAD_BALANCER_CHOICE_MODAL,
   GCE_SSL_LOAD_BALANCER_CTRL,
-  ADD_ENTITY_TAG_LINKS_COMPONENT,
-  ENTITY_SOURCE_COMPONENT,
   require('./serverGroup/details/serverGroup.details.gce.module.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js'),

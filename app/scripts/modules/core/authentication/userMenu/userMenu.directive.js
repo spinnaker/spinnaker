@@ -4,7 +4,7 @@ import {AUTHENTICATION_INITIALIZER_SERVICE} from '../authentication.initializer.
 import {AUTHENTICATION_SERVICE} from '../authentication.service';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.authentication.userMenu.directive', [
   AUTHENTICATION_INITIALIZER_SERVICE,

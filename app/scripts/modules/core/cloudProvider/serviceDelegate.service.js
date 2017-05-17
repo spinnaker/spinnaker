@@ -2,7 +2,7 @@
 
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.delegation', [
   CLOUD_PROVIDER_REGISTRY,

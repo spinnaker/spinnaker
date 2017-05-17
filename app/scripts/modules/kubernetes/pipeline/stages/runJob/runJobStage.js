@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT} from 'docker/image/dockerImageAndTagSelector.component';
 

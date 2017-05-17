@@ -1,10 +1,11 @@
-import { module, IComponentController, IComponentOptions} from 'angular';
+import { IComponentController, IComponentOptions, module } from 'angular';
 
-import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component';
-import { FAST_PROPERTY_READ_SERVICE } from '../../fastProperty.read.service';
+import { V2ModalWizardService } from '@spinnaker/core';
+
 import { PropertyCommand } from '../../domain/propertyCommand.model';
 import { Scope } from '../../domain/scope.domain';
-import { V2ModalWizardService } from 'core/modal/wizard/v2modalWizard.service';
+import { FAST_PROPERTY_READ_SERVICE } from '../../fastProperty.read.service';
+import { FAST_PROPERTY_SCOPE_SEARCH_COMPONENT } from '../../scope/fastPropertyScopeSearch.component';
 
 export class FastPropertyScopeComponentController implements IComponentController {
 

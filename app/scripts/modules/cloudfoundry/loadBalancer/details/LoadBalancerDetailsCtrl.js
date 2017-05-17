@@ -1,11 +1,13 @@
 'use strict';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import {
+  ACCOUNT_SERVICE,
+  CONFIRMATION_MODAL_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  LOAD_BALANCER_WRITE_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', [
   require('angular-ui-router').default,

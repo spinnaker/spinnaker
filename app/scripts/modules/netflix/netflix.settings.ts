@@ -1,4 +1,4 @@
-import { IFeatures, ISpinnakerSettings, SETTINGS } from 'core/config/settings';
+import { IFeatures, ISpinnakerSettings, SETTINGS } from '@spinnaker/core';
 
 interface INetflixFeatures extends IFeatures {
   blesk?: boolean;

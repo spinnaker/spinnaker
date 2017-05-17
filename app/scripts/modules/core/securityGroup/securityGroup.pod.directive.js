@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-require('./securityGroupPod.directive.less');
+import './securityGroupPod.directive.less';
 
 module.exports = angular.module('spinnaker.core.securityGroup.pod.directive', [])
   .directive('securityGroupPod', function() {

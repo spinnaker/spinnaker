@@ -1,4 +1,4 @@
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('cluster.test.data', [])

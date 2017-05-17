@@ -2,7 +2,7 @@
 
 import {TASK_EXECUTOR} from 'core/task/taskExecutor';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.projects.write.service', [

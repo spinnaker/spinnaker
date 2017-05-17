@@ -1,10 +1,13 @@
-import {mock} from 'angular';
+import {
+  Application,
+  APPLICATION_DATA_SOURCE_REGISTRY,
+  APPLICATION_MODEL_BUILDER,
+  ApplicationModelBuilder
+} from '@spinnaker/core';
+import { mock } from 'angular';
 
-import {Application} from 'core/application/application.model';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
-import {NetflixSettings} from '../netflix.settings';
-import {CiBuildReader} from './services/ciBuild.read.service';
+import { NetflixSettings } from '../netflix.settings';
+import { CiBuildReader } from './services/ciBuild.read.service';
 
 describe('CI Data Source', function () {
   beforeEach(function () {

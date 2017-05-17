@@ -1,12 +1,12 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
-import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
-import {WHATS_NEW_READ_SERVICE} from './whatsNew.read.service';
+import { VIEW_STATE_CACHE_SERVICE } from 'core/cache/viewStateCache.service';
+import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
+import { WHATS_NEW_READ_SERVICE } from './whatsNew.read.service';
 
-require('./whatsNew.less');
+import './whatsNew.less';
 
 module.exports = angular
   .module('spinnaker.netflix.whatsNew.directive', [

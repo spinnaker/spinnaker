@@ -1,10 +1,10 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-require('./upsertAutoscalingPolicy.modal.less');
+import './upsertAutoscalingPolicy.modal.less';
 
 module.exports = angular.module('spinnaker.deck.gce.upsertAutoscalingPolicy.modal.controller', [
     require('google/autoscalingPolicy/autoscalingPolicy.write.service'),

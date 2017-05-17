@@ -1,5 +1,6 @@
+import { ISCEService, module } from 'angular';
 import { debounce, filter, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, throttle, uniq } from 'lodash';
-import {ISCEService, module} from 'angular';
+import * as $ from 'jquery';
 
 import { IExecution, IPipeline } from 'core/domain';
 import { IPipelineValidationResults, PIPELINE_CONFIG_VALIDATOR, PipelineConfigValidator } from '../validation/pipelineConfig.validator';
@@ -7,7 +8,7 @@ import { IExecutionViewState, IPipelineLink, IPipelineNode, PIPELINE_GRAPH_SERVI
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { LABEL_COMPONENT } from 'core/presentation/label.component';
 
-require('./pipelineGraph.less');
+import './pipelineGraph.less';
 
 export class PipelineGraphController implements ng.IComponentController {
   public pipeline: IPipeline;
@@ -21,7 +22,6 @@ export class PipelineGraphController implements ng.IComponentController {
   public constructor(private $sce: ISCEService,
                      private $scope: any,
                      private $element: JQuery,
-                     private $: JQueryStatic,
                      private $window: ng.IWindowService,
                      private pipelineGraphService: PipelineGraphService,
                      private pipelineConfigValidator: PipelineConfigValidator) {
@@ -408,11 +408,11 @@ export class PipelineGraphController implements ng.IComponentController {
     }
     this.$scope.$watch('$ctrl.viewState', (_newVal: any, oldVal: any) => { if (oldVal) { this.updateGraph(true); } }, true);
     this.$scope.$watch('$ctrl.execution.graphStatusHash', (_newVal: any, oldVal: any) => { if (oldVal) { this.updateGraph(); } });
-    this.$(this.$window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
+    $(this.$window).bind('resize.pipelineGraph-' + graphId, handleWindowResize);
 
     this.$scope.$on('$destroy', () => {
       validationSubscription.unsubscribe();
-      this.$(this.$window).unbind('resize.pipelineGraph-' + graphId);
+      $(this.$window).unbind('resize.pipelineGraph-' + graphId);
     });
   }
 }

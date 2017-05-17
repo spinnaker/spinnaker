@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.loadBalancer.configure.kubernetes.advancedSettings', [])
   .controller('kubernetesLoadBalancerAdvancedSettingsController', function($scope) {

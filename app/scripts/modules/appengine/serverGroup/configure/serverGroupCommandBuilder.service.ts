@@ -1,12 +1,26 @@
-import {module, IQService, IPromise} from 'angular';
-import {intersection} from 'lodash';
+import { IPromise, IQService, module } from 'angular';
+import { intersection } from 'lodash';
 
-import {Application} from 'core/application/application.model';
-import {AccountService, ACCOUNT_SERVICE} from 'core/account/account.service';
-import {IAppengineAccount, IAppengineGitTrigger, IAppengineJenkinsTrigger, GitCredentialType, IAppengineServerGroup} from 'appengine/domain/index';
-import {IStage, IPipeline, IGitTrigger, IBuildTrigger} from 'core/domain/index';
-import {AppengineDeployDescription} from '../transformer';
-import {AppengineProviderSettings} from '../../appengine.settings';
+import {
+  ACCOUNT_SERVICE,
+  AccountService,
+  Application,
+  IBuildTrigger,
+  IGitTrigger,
+  IPipeline,
+  IStage
+} from '@spinnaker/core';
+
+import {
+  GitCredentialType,
+  IAppengineAccount,
+  IAppengineGitTrigger,
+  IAppengineJenkinsTrigger,
+  IAppengineServerGroup
+} from 'appengine/domain/index';
+
+import { AppengineProviderSettings } from 'appengine/appengine.settings';
+import { AppengineDeployDescription } from '../transformer';
 
 export interface IAppengineServerGroupCommand {
   application?: string;

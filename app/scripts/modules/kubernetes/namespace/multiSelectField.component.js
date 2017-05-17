@@ -1,11 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-let angular = require('angular');
-
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
+import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('kubernetes.namespace.multiSelectField.component', [

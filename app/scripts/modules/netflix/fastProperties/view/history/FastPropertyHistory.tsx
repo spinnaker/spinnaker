@@ -1,11 +1,11 @@
-import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
+import { NetflixReactInjector } from 'netflix/react.injector';
+import * as React from 'react';
 
-import { timestamp } from 'core/utils/timeFormatters';
+import { ReactInjector, timestamp } from '@spinnaker/core';
+
 import { Property } from '../../domain/property.domain';
 import { IPropertyHistoryEntry } from '../../domain/propertyHistory.domain';
-import { NetflixReactInjector } from 'netflix/react.injector';
-import { ReactInjector } from 'core/react';
 
 import './FastPropertyHistory.less';
 

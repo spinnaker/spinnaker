@@ -1,13 +1,11 @@
-import {flatMap, uniqBy, mergeWith, flatten} from 'lodash';
 import { IQService, module } from 'angular';
+import { flatMap, flatten, mergeWith, uniqBy } from 'lodash';
 
-import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
-import { FAST_PROPERTY_READ_SERVICE, FastPropertyReaderService } from '../fastProperty.read.service';
-import { Application } from 'core/application/application.model';
-import {Scope} from '../domain/scope.domain';
-import {IImpactCounts} from '../domain/impactCounts.interface';
-import {ICluster} from 'core/domain/ICluster';
-import { IServerGroup } from 'core/domain';
+import { Application, APPLICATION_READ_SERVICE, ApplicationReader, ICluster, IServerGroup } from '@spinnaker/core';
+
+import { IImpactCounts } from '../domain/impactCounts.interface';
+import { Scope } from '../domain/scope.domain';
+import { FastPropertyReaderService } from '../fastProperty.read.service';
 
 export let CATEGORY: any = {
   APPLICATIONS: 'Applications',
@@ -293,6 +291,5 @@ export const FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE = 'spinnaker.netflix.fa
 
 module(FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, [
   APPLICATION_READ_SERVICE,
-  FAST_PROPERTY_READ_SERVICE
 ])
   .service('fastPropertyScopeSearchCategoryService', FastPropertyScopeCategoryService);

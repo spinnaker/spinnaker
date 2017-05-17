@@ -1,7 +1,7 @@
 'use strict';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.core.applicationModal.groupMembership.component', [])
   .component('groupMembershipConfigurer', {

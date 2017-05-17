@@ -1,12 +1,11 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
 import {SETTINGS} from 'core/config/settings';
 
-const angular = require('angular');
-
-require('./instanceLinks.component.less');
+import './instanceLinks.component.less';
 
 module.exports = angular
   .module('spinnaker.core.instance.details.instanceLinks', [])

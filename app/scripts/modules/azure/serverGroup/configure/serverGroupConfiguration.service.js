@@ -1,13 +1,15 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import {
+  ACCOUNT_SERVICE,
+  CACHE_INITIALIZER_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  NAMING_SERVICE,
+  SECURITY_GROUP_READER
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.service', [
   require('../../image/image.reader.js'),

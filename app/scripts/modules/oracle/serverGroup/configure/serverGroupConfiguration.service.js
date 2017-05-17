@@ -1,14 +1,10 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {OracleBMCSProviderSettings} from '../../oraclebmcs.settings';
-
-let angular = require('angular');
+import { ACCOUNT_SERVICE, NETWORK_READ_SERVICE, SECURITY_GROUP_READER, SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { OracleBMCSProviderSettings } from '../../oraclebmcs.settings';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.configuration.service', [
   ACCOUNT_SERVICE,

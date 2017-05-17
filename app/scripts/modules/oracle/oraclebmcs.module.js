@@ -1,9 +1,10 @@
 'use strict';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {ORACLE_HELP_CONTENTS_REGISTRY} from './helpContents/oracleHelpContents';
+const angular = require('angular');
 
-let angular = require('angular');
+import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+
+import { ORACLE_HELP_CONTENTS_REGISTRY } from './helpContents/oracleHelpContents';
 
 let templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {

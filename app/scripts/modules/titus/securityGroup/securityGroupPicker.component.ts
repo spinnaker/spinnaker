@@ -1,14 +1,18 @@
-import {module} from 'angular';
+import { module } from 'angular';
 import * as _ from 'lodash';
-import {Subject, Subscription} from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
-import {ISecurityGroup, IVpc} from 'core/domain';
 import {
-  ACCOUNT_SERVICE, AccountService, IAggregatedAccounts,
-  IAccountDetails
-} from 'core/account/account.service';
-import {CACHE_INITIALIZER_SERVICE, CacheInitializerService} from 'core/cache/cacheInitializer.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+  ACCOUNT_SERVICE,
+  AccountService,
+  CACHE_INITIALIZER_SERVICE,
+  CacheInitializerService,
+  IAccountDetails,
+  IAggregatedAccounts,
+  ISecurityGroup,
+  IVpc,
+  SECURITY_GROUP_READER
+} from '@spinnaker/core';
 
 class SecurityGroupPickerController implements ng.IComponentController {
   public securityGroups: any;

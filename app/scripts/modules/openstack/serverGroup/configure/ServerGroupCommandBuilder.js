@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {OpenStackProviderSettings} from '../../openstack.settings';
 

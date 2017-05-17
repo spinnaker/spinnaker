@@ -1,12 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {BakeExecutionLabel} from 'core/pipeline/config/stages/bake/BakeExecutionLabel';
-import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+import { BakeExecutionLabel, BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER, SETTINGS } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.aws.bakeStage', [
   PIPELINE_CONFIG_PROVIDER,

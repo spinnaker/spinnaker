@@ -1,12 +1,12 @@
 'use strict';
 
-import _ from 'lodash';
-import {Observable, Subject} from 'rxjs';
-import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
-
 const angular = require('angular');
+import _ from 'lodash';
 
-require('./dimensionsEditor.component.less');
+import { CLOUD_METRICS_READ_SERVICE } from '@spinnaker/core';
+import { Observable, Subject } from 'rxjs';
+
+import './dimensionsEditor.component.less';
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.dimensionEditor', [

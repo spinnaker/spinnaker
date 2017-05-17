@@ -1,10 +1,16 @@
-import {module} from 'angular';
-import {chain, get, has, camelCase, filter, cloneDeep, reduce} from 'lodash';
+import { module } from 'angular';
+import { camelCase, chain, cloneDeep, filter, get, has, reduce } from 'lodash';
 
-import {IInstanceCounts, ILoadBalancer, IServerGroup, IInstance} from 'core/domain/index';
-import {IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy} from 'appengine/domain/index';
-import {ILoadBalancerUpsertDescription} from 'core/loadBalancer/loadBalancer.write.service';
-import {Application} from 'core/application/application.model';
+import {
+  Application,
+  IInstance,
+  IInstanceCounts,
+  ILoadBalancer,
+  ILoadBalancerUpsertDescription,
+  IServerGroup
+} from '@spinnaker/core';
+
+import { IAppengineLoadBalancer, IAppengineTrafficSplit, ShardBy } from 'appengine/domain/index';
 
 export interface IAppengineAllocationDescription {
   serverGroupName?: string;

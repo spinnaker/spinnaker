@@ -1,12 +1,14 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
+import {
+  CLOUD_PROVIDER_REGISTRY,
+  CONFIRMATION_MODAL_SERVICE,
+  SECURITY_GROUP_READER,
+  SECURITY_GROUP_WRITER
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.details.controller', [
   require('angular-ui-router').default,

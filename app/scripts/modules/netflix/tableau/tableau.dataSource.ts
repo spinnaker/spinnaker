@@ -1,11 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {DataSourceConfig} from 'core/application/service/applicationDataSource';
-import {
-  APPLICATION_DATA_SOURCE_REGISTRY,
-  ApplicationDataSourceRegistry
-} from 'core/application/service/applicationDataSource.registry';
-import {NetflixSettings} from '../netflix.settings';
+import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry, DataSourceConfig } from '@spinnaker/core';
+
+import { NetflixSettings } from '../netflix.settings';
 
 export const TABLEAU_DATASOURCE = 'spinnaker.netflix.tableau.dataSource';
 module(TABLEAU_DATASOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])

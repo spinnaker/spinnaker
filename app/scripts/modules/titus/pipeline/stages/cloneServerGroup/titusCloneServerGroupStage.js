@@ -1,12 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-
-let angular = require('angular');
+import { ACCOUNT_SERVICE, NAMING_SERVICE, StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.titus.cloneServerGroupStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),

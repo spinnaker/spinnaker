@@ -5,7 +5,7 @@ import {ALL_CLUSTERS_GROUPINGS_COMPONENT} from './allClustersGroupings.component
 import {ON_DEMAND_CLUSTER_PICKER_COMPONENT} from './onDemand/onDemandClusterPicker.component';
 import './ClusterSearchResultFormatter';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.cluster', [

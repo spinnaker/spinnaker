@@ -1,13 +1,13 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
-import {IEntityTag} from 'core/domain';
+import { IComponentController, IComponentOptions, module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+
+import { Application } from 'core/application/application.model';
+import { IEntityRef, IEntityTag } from 'core/domain';
+import { EntityTagEditorCtrl } from './entityTagEditor.controller';
+import { EntityTagWriter, ENTITY_TAG_WRITER } from './entityTags.write.service';
 import './entityUiTags.component.less';
-import {Application} from 'core/application/application.model';
-import {EntityTagWriter} from './entityTags.write.service';
-import {IModalService} from 'angular-ui-bootstrap';
-import {EntityTagEditorCtrl} from './entityTagEditor.controller';
 
 import './entityUiTags.popover.less';
-import {IEntityRef} from '../domain/IEntityTags';
 
 class EntityUiTagsCtrl implements IComponentController {
 
@@ -199,6 +199,6 @@ export class EntityUiTagsWrapperComponent implements IComponentOptions {
 }
 
 export const ENTITY_UI_TAGS_COMPONENT = 'spinnaker.core.entityTags.uiTags.component';
-module(ENTITY_UI_TAGS_COMPONENT, [])
+module(ENTITY_UI_TAGS_COMPONENT, [ENTITY_TAG_WRITER])
   .component('entityUiTags', new EntityUiTagsComponent())
   .component('entityUiTagsWrapper', new EntityUiTagsWrapperComponent());

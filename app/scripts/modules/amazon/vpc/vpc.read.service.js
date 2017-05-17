@@ -1,8 +1,8 @@
 'use strict';
 
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { NETWORK_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.vpc.read.service', [

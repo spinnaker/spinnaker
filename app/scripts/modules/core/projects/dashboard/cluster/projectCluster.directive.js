@@ -1,16 +1,15 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {COLLAPSIBLE_SECTION_STATE_CACHE} from 'core/cache/collapsibleSectionStateCache';
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
-import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
-import {HEALTH_COUNTS_COMPONENT} from 'core/healthCounts/healthCounts.component';
+import { COLLAPSIBLE_SECTION_STATE_CACHE } from 'core/cache/collapsibleSectionStateCache';
+import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
+import { HEALTH_COUNTS_COMPONENT } from 'core/healthCounts/healthCounts.component';
+import { URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
+import { TIME_FORMATTERS } from 'core/utils/timeFormatters';
 
-let angular = require('angular');
-
-require('./projectCluster.less');
+import './projectCluster.less';
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.clusters.projectCluster.directive', [
   require('core/account/collapsibleAccountTag.directive.js'),

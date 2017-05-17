@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {DISABLE_ASG_EXECUTION_DETAILS_CTRL} from './templates/disableAsgExecutionDetails.controller';
 

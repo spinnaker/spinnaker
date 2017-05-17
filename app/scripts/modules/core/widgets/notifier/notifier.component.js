@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('./notifier.component.less');
+import './notifier.component.less';
 
 module.exports = angular
   .module('spinnaker.core.widgets.notification', [

@@ -1,8 +1,9 @@
-import {isString, trim, uniq} from 'lodash';
-import {module} from 'angular';
-import {ACCOUNT_SERVICE, AccountService, IAccount} from 'core/account/account.service';
-import {IFindImageParams} from 'core/image/image.reader';
-import {DOCKER_IMAGE_READER, DockerImageReaderService, IDockerImage} from './docker.image.reader.service';
+import { module } from 'angular';
+import { isString, trim, uniq } from 'lodash';
+
+import { ACCOUNT_SERVICE, AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
+
+import { DOCKER_IMAGE_READER, DockerImageReaderService, IDockerImage } from './docker.image.reader.service';
 
 interface IViewState {
   imagesLoading: boolean;

@@ -1,5 +1,6 @@
-import {APPLICATION_MODEL_BUILDER} from 'core/application/applicationModel.builder';
-import {OpenStackProviderSettings} from '../../../openstack.settings';
+import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
+
+import { OpenStackProviderSettings } from '../../../openstack.settings';
 
 describe('Controller: openstackCreateSecurityGroupCtrl', function() {
   // load the controller's module

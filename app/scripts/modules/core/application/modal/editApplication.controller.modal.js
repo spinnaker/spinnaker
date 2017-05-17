@@ -5,7 +5,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {APPLICATION_WRITE_SERVICE} from 'core/application/service/application.write.service';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.editApplication.modal.controller', [

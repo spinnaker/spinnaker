@@ -1,14 +1,12 @@
 'use strict';
 
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { CLUSTER_FILTER_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.details.controller', [
   require('angular-ui-router').default,
   CLUSTER_FILTER_SERVICE,
-  EXECUTION_DETAILS_SECTION_SERVICE,
   require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')
 ])
   .controller('acaTaskExecutionDetailsCtrl', function ($scope, $stateParams,

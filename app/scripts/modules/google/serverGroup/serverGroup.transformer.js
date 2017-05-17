@@ -3,7 +3,7 @@
 import {defaults} from 'lodash';
 import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [GCE_HTTP_LOAD_BALANCER_UTILS])
   .factory('gceServerGroupTransformer', function (gceHttpLoadBalancerUtils) {

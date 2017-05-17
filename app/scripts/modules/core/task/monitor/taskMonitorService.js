@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.tasks.monitor.service', [
   require('./taskMonitor.directive.js'),

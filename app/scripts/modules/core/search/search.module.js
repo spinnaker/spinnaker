@@ -2,7 +2,7 @@
 
 import {SEARCH_SERVICE} from './search.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.search', [
   require('./infrastructure/search.infrastructure.module.js'),

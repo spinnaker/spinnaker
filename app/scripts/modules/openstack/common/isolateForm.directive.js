@@ -3,7 +3,7 @@
 
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.isolateForm.directive', [
 ])

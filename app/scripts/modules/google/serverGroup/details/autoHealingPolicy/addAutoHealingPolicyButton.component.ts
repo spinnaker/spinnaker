@@ -1,7 +1,7 @@
-import {module} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
-import {Application} from 'core/application/application.model';
-import { IServerGroup } from 'core/domain';
+import { module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+
+import { Application, IServerGroup } from '@spinnaker/core';
 
 class GceAddAutoHealingPolicyButtonCtrl implements ng.IComponentController {
   public application: Application;

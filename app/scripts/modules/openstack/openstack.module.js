@@ -1,10 +1,10 @@
 'use strict';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
+const angular = require('angular');
 
-let angular = require('angular');
+import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
-require('./logo/openstack.logo.less');
+import './logo/openstack.logo.less';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);

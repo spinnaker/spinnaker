@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { Api, API_SERVICE } from '@spinnaker/core';
 
 export interface IAvailabilityDataTimeSeries {
   is_outage: number[];

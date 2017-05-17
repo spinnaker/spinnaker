@@ -1,4 +1,4 @@
-import {IInstance} from 'core/domain';
+import { IInstance } from '@spinnaker/core';
 
 export interface IAppengineInstance extends IInstance {
   name: string;

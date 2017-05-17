@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('./multipleServerGroup.component.less');
+import './multipleServerGroup.component.less';
 
 module.exports = angular
     .module('spinnaker.core.serverGroup.details.multipleServerGroup.component', [])

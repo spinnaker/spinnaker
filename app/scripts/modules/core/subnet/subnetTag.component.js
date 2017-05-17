@@ -2,7 +2,7 @@
 
 import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.subnet.tag.component', [
   SUBNET_READ_SERVICE,

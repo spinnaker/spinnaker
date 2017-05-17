@@ -1,9 +1,9 @@
 'use strict';
 
-import {Subject} from 'rxjs/Subject';
+const angular = require('angular');
+import { Subject } from 'rxjs/Subject';
 
-let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.configuration.service', [
   ACCOUNT_SERVICE,

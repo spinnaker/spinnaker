@@ -1,8 +1,8 @@
-import {IScope} from 'angular';
+import { IScope } from 'angular';
 
-import {Application} from 'core/application/application.model';
-import {IStageConstant} from 'core/pipeline/config/stages/stageConstants';
-import {IAppengineAccount} from './IAppengineAccount';
+import { Application, IStageConstant } from '@spinnaker/core';
+
+import { IAppengineAccount } from './IAppengineAccount';
 
 export interface IAppengineStage {
   credentials: string;

@@ -1,7 +1,7 @@
 import { IPromise, module } from 'angular';
 import { Application } from 'core/application/application.model';
 import { IEntityRef, IEntityTag, IEntityTags, ITask } from 'core/domain';
-import { TASK_EXECUTOR, TaskExecutor } from '../task/taskExecutor';
+import { TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
 export class EntityTagWriter {
 

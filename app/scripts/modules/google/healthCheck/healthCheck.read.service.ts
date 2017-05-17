@@ -1,5 +1,15 @@
-import {module} from 'angular';
-import {uniqWith} from 'lodash';
+import { module } from 'angular';
+import { uniqWith } from 'lodash';
+
+import {
+  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCacheService,
+  ISearchResults,
+  SEARCH_SERVICE,
+  SearchService
+} from '@spinnaker/core';
+
+import { IGceHealthCheck } from 'google/domain';
 
 interface IHealthCheckSearchResults {
   name: string;
@@ -9,10 +19,6 @@ interface IHealthCheckSearchResults {
   provider: string;
   type: string;
 }
-
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
-import {IGceHealthCheck} from 'google/domain';
 
 export class GceHealthCheckReader {
   constructor (private searchService: SearchService, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }

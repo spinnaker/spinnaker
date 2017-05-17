@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
-import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
+const angular = require('angular');
+
+import { ACCOUNT_SERVICE, StageConstants } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.disableAsgStage', [
   require('core/application/modal/platformHealthOverride.directive.js'),

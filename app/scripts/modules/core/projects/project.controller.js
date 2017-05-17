@@ -1,11 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-
-let angular = require('angular');
-
-require('./project.less');
+import './project.less';
 
 module.exports = angular.module('spinnaker.core.projects.project.controller', [
   require('./configure/configureProject.modal.controller.js'),

@@ -1,15 +1,16 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 import _ from 'lodash';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
-import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
+import {
+  ACCOUNT_SERVICE,
+  CLUSTER_TARGET_BUILDER,
+  CONFIRMATION_MODAL_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
   require('angular-ui-router').default,
@@ -19,7 +20,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.titus.controller'
   SERVER_GROUP_READER,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
-  RUNNING_TASKS_DETAILS_COMPONENT,
   require('./resize/resizeServerGroup.controller'),
   require('core/modal/closeable/closeable.modal.controller.js'),
   CLUSTER_TARGET_BUILDER

@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {CloudFoundryProviderSettings} from '../cf.settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.cf.loadBalancer.transformer', [])
   .factory('cfLoadBalancerTransformer', function ($q) {

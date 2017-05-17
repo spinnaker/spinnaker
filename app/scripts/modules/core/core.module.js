@@ -1,7 +1,7 @@
 'use strict';
 
 import Spinner from 'spin.js';
-let angular = require('angular');
+const angular = require('angular');
 
 import {ACCOUNT_TAG_COMPONENT} from './account/accountTag.component';
 import {AUTHENTICATION} from './authentication/authentication.module';
@@ -14,7 +14,7 @@ import {STATE_CONFIG_PROVIDER} from './navigation/state.provider';
 import {APPLICATIONS_STATE_PROVIDER} from './application/applications.state.provider';
 import {INFRASTRUCTURE_STATES} from './search/infrastructure/infrastructure.states';
 import {VERSION_CHECK_SERVICE} from './config/versionCheck.service';
-import {CORE_WIDGETS_MODULE} from './widgets';
+import {CORE_WIDGETS_MODULE} from './widgets/widgets.module';
 import {TRAVIS_STAGE_MODULE} from './pipeline/config/stages/travis/travisStage.module';
 import {WEBHOOK_STAGE_MODULE} from './pipeline/config/stages/webhook/webhookStage.module';
 import {UNMATCHED_STAGE_TYPE_STAGE} from './pipeline/config/stages/unmatchedStageTypeStage/unmatchedStageTypeStage';

@@ -1,7 +1,7 @@
 'use strict';
 
-let angular = require('angular');
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+const angular = require('angular');
+import { INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.securityGroups.selector.directive', [

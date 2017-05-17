@@ -1,4 +1,4 @@
-import {ICredentials} from 'core/domain/ICredentials';
+import { ICredentials } from '@spinnaker/core';
 
 export interface ITitusCredentials extends ICredentials {
   awsAccount: string;

@@ -1,8 +1,8 @@
 'use strict';
 
-import {API_SERVICE} from 'core/api/api.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { API_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.image.reader', [API_SERVICE])
   .factory('gceImageReader', function ($q, API) {

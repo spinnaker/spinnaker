@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import { ACCOUNT_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.securityGroup.create.controller', [
   require('angular-ui-router').default,

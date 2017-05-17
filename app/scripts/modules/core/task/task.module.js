@@ -1,11 +1,11 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {TASK_STATES} from './task.states';
-import {PLATFORM_HEALTH_OVERRIDE_MESSAGE} from './platformHealthOverrideMessage.component';
+import { PLATFORM_HEALTH_OVERRIDE_MESSAGE } from './platformHealthOverrideMessage.component';
+import { TASK_STATES } from './task.states';
 
-require('./tasks.less');
+import './tasks.less';
 
 module.exports = angular
   .module('spinnaker.core.task', [

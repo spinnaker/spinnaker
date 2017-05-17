@@ -1,9 +1,8 @@
 'use strict';
 
-import {API_SERVICE} from 'core/api/api.service';
-import {RETRY_SERVICE} from 'core/retry/retry.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { API_SERVICE, RETRY_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.kubernetes.image.reader', [API_SERVICE, RETRY_SERVICE])
   .factory('kubernetesImageReader', function ($q, API, retryService) {

@@ -1,12 +1,13 @@
-import {ICompileService, IHttpBackendService, IRootScopeService, mock} from 'angular';
+import { ICompileService, IHttpBackendService, IRootScopeService, mock } from 'angular';
 
-import {SETTINGS} from 'core/config/settings';
-import {TIME_FORMATTERS} from 'core/utils/timeFormatters';
+import { SETTINGS, TIME_FORMATTERS } from '@spinnaker/core';
+
+import { IBranch, ICommit, ITag, ScmReader } from 'netflix/ci/services/scm.read.service';
 import {
-  IViewState, NETFLIX_CI_TRIGGER_HANDLER_COMPONENT,
+  IViewState,
+  NETFLIX_CI_TRIGGER_HANDLER_COMPONENT,
   NetflixCiTriggerHandlerController
 } from './ciTriggerHandler.component';
-import {IBranch, ICommit, ITag, ScmReader} from 'netflix/ci/services/scm.read.service';
 
 describe('CiTriggerHandler', () => {
 

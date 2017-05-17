@@ -1,12 +1,13 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {TITUS_MIGRATION_CONFIG_COMPONENT} from './migration/titusMigrationConfig.component';
-import {TITUS_APPLICATION_NAME_VALIDATOR} from './validation/applicationName.validator';
+import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
-require('./logo/titus.logo.less');
+import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
+import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
+
+import './logo/titus.logo.less';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);

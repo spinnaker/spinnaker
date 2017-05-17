@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.tagImageStage', [
   ACCOUNT_SERVICE,

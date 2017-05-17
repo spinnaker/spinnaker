@@ -1,16 +1,18 @@
 'use strict';
 
-import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
-import {CLUSTER_FILTER_MODEL} from 'core/cluster/filter/clusterFilter.model';
+const angular = require('angular');
+const $ = require('jquery');
 
-let angular = require('angular');
+import { CLUSTER_FILTER_MODEL } from 'core/cluster/filter/clusterFilter.model';
+import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
+
 
 module.exports = angular.module('spinnaker.core.instance.instanceListBody.directive', [
   CLUSTER_FILTER_SERVICE,
   require('../cluster/filter/multiselect.model'),
   CLUSTER_FILTER_MODEL,
 ])
-  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, $, clusterFilterService,
+  .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, clusterFilterService,
                                            ClusterFilterModel, MultiselectModel) {
     return {
       restrict: 'C',

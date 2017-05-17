@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
 

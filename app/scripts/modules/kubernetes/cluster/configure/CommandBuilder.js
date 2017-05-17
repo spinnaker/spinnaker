@@ -1,11 +1,11 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {KubernetesProviderSettings} from '../../kubernetes.settings';
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
-let angular = require('angular');
+import { KubernetesProviderSettings } from '../../kubernetes.settings';
 
 module.exports = angular.module('spinnaker.kubernetes.clusterCommandBuilder.service', [
   ACCOUNT_SERVICE

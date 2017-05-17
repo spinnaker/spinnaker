@@ -1,10 +1,8 @@
 'use strict';
 
-import {IMAGE_READER} from 'core/image/image.reader';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.basicSettings', [
   require('angular-ui-router').default,

@@ -1,4 +1,4 @@
-import { IJsonDiff } from 'core/utils/json/json.utility.service';
+import { IJsonDiff } from '@spinnaker/core';
 
 export interface IPropertyHistoryEntry {
   timestamp: number;

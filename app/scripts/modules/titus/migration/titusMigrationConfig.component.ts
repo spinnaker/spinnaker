@@ -1,12 +1,13 @@
-import {cloneDeep} from 'lodash';
-import {module, toJson} from 'angular';
-import {Application} from 'core/application/application.model';
-import {TITUS_MIGRATION_CONFIGURER_COMPONENT} from './titusMigrationConfigurer.component';
-import {CONFIG_SECTION_FOOTER, IViewState} from 'core/application/config/footer/configSectionFooter.component';
+import { module, toJson } from 'angular';
+import { cloneDeep } from 'lodash';
+
+import { Application, CONFIG_SECTION_FOOTER, IConfigSectionFooterViewState } from '@spinnaker/core';
+
+import { TITUS_MIGRATION_CONFIGURER_COMPONENT } from './titusMigrationConfigurer.component';
 
 import './titusMigrationConfig.component.less';
 
-export interface ITitusMigrationViewState extends IViewState {
+export interface ITitusMigrationViewState extends IConfigSectionFooterViewState {
   accountsLoaded: boolean;
 }
 

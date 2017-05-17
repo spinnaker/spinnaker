@@ -3,7 +3,7 @@
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {SETTINGS} from 'core/config/settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.createLoadBalancerStage', [
   CLOUD_PROVIDER_REGISTRY,

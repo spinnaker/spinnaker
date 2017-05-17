@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.details.resize.controller', [
   require('core/application/modal/platformHealthOverride.directive.js'),

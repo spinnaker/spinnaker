@@ -1,12 +1,12 @@
 import { IServiceProvider, module } from 'angular';
 import { Ng1StateDeclaration } from 'angular-ui-router';
 import { isEqual, isPlainObject } from 'lodash';
+import { ParamDeclaration, UrlRouterProvider, UrlService } from 'angular-ui-router';
 
 import { STATE_HELPER, StateHelper } from './stateHelper.provider';
 import { IFilterConfig } from '../filterModel/IFilterModel';
-import { ParamDeclaration, UrlRouterProvider, UrlService } from 'angular-ui-router';
 
-require('./navigation.less');
+import './navigation.less';
 
 export interface INestedState extends Ng1StateDeclaration {
   children?: INestedState[];

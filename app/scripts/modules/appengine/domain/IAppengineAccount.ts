@@ -1,4 +1,4 @@
-import {IAccountDetails} from 'core/account/account.service';
+import { IAccountDetails } from '@spinnaker/core';
 
 export interface IAppengineAccount extends IAccountDetails {
   region: string;

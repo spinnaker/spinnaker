@@ -1,10 +1,10 @@
-import {module} from 'angular';
-import {chain, cloneDeep, last} from 'lodash';
-import {IModalServiceInstance} from 'angular-ui-bootstrap';
-import {Application} from 'core/application/application.model';
-import {IGceAutoHealingPolicy, IGceServerGroup} from 'google/domain/index';
-import {TaskMonitorBuilder, TaskMonitor} from 'core/task/monitor/taskMonitor.builder';
-import {GCE_HEALTH_CHECK_READER, GceHealthCheckReader} from 'google/healthCheck/healthCheck.read.service';
+import { Application, TaskMonitor, TaskMonitorBuilder } from '@spinnaker/core';
+import { module } from 'angular';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import { chain, cloneDeep, last } from 'lodash';
+
+import { IGceAutoHealingPolicy, IGceServerGroup } from 'google/domain/index';
+import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthCheck/healthCheck.read.service';
 
 import './upsertAutoHealingPolicy.modal.less';
 

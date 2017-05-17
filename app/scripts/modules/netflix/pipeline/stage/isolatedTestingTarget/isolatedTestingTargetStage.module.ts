@@ -1,8 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {ISOLATED_TESTING_TARGET_STAGE} from './isolatedTestingTargetStage';
+import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+
+import { ISOLATED_TESTING_TARGET_STAGE } from './isolatedTestingTargetStage';
 
 export const ISOLATED_TESTING_TARGET_STAGE_MODULE = 'spinnaker.netflix.pipeline.stage.isolatedTestingTarget';
 

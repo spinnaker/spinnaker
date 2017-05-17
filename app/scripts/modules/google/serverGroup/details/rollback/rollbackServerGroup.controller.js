@@ -1,10 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { ACCOUNT_SERVICE, SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.google.serverGroup.details.rollback.controller', [
       ACCOUNT_SERVICE,

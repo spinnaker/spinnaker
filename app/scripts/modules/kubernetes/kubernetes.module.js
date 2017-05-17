@@ -1,13 +1,14 @@
 'use strict';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {KUBERNETES_ANNOTATION_CONFIGURER} from './annotation/annotationConfigurer.component';
-import {KUBERNETES_KEY_VALUE_DETAILS} from './common/keyValueDetails.component';
-import {KUBERNETES_SECURITY_CONTEXT_SELECTOR} from './container/securityContext/securityContextSelector.component';
+const angular = require('angular');
 
-let angular = require('angular');
+import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
-require('./logo/kubernetes.logo.less');
+import { KUBERNETES_ANNOTATION_CONFIGURER } from './annotation/annotationConfigurer.component';
+import { KUBERNETES_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
+import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from './container/securityContext/securityContextSelector.component';
+
+import './logo/kubernetes.logo.less';
 
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);

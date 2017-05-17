@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
-
-let angular = require('angular');
+import { INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
   require('angular-ui-router').default,

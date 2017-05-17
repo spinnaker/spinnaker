@@ -1,5 +1,5 @@
 import {uniq} from 'lodash';
-let angular = require('angular');
+const angular = require('angular');
 
 import {DataSourceConfig} from '../application/service/applicationDataSource';
 import {APPLICATION_DATA_SOURCE_REGISTRY} from '../application/service/applicationDataSource.registry';

@@ -1,9 +1,9 @@
-import {DataSourceConfig} from 'core/application/service/applicationDataSource';
-import {APPLICATION_DATA_SOURCE_REGISTRY} from 'core/application/service/applicationDataSource.registry';
-import {NetflixSettings} from '../netflix.settings';
-import {CI_BUILD_READ_SERVICE} from './services/ciBuild.read.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { APPLICATION_DATA_SOURCE_REGISTRY, DataSourceConfig } from '@spinnaker/core';
+
+import { NetflixSettings } from '../netflix.settings';
+import { CI_BUILD_READ_SERVICE } from './services/ciBuild.read.service';
 
 module.exports = angular
   .module('spinnaker.netflix.ci.dataSource', [

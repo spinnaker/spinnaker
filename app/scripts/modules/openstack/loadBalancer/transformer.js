@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {OpenStackProviderSettings} from '../openstack.settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.transformer', [])
   .factory('openstackLoadBalancerTransformer', function ($q) {

@@ -5,7 +5,7 @@ import _ from 'lodash';
 import {IMAGE_READER} from 'core/image/image.reader';
 import {NAMING_SERVICE} from 'core/naming/naming.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.serverGroup.basicSettings.controller', [

@@ -1,12 +1,12 @@
 'use strict';
 
-import _ from 'lodash';
-import {Subject} from 'rxjs';
-
-import {CLOUD_METRICS_READ_SERVICE} from 'core/serverGroup/metrics/cloudMetrics.read.service';
-import {AWSProviderSettings} from '../../../../../aws.settings';
-
 const angular = require('angular');
+import _ from 'lodash';
+import { Subject } from 'rxjs';
+
+import { CLOUD_METRICS_READ_SERVICE } from '@spinnaker/core';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [

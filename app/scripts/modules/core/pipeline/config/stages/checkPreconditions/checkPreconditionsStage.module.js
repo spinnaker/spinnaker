@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.pipelines.stage.checkPreconditions', [
   require('../stage.module.js'),

@@ -1,10 +1,10 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {EXECUTION_WINDOW_ACTIONS_COMPONENT} from './executionWindowActions.component';
+import { EXECUTION_WINDOW_ACTIONS_COMPONENT } from './executionWindowActions.component';
 
-require('./executionWindows.less');
+import './executionWindows.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows', [
   require('./executionWindowsStage.js'),

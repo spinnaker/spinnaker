@@ -1,15 +1,16 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
-import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
+import {
+  CLUSTER_TARGET_BUILDER,
+  CONFIRMATION_MODAL_SERVICE,
+  NETWORK_READ_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER
+} from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.gce.module.js');
 
@@ -22,7 +23,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   CONFIRMATION_MODAL_SERVICE,
   NETWORK_READ_SERVICE,
   SERVER_GROUP_WRITER,
-  RUNNING_TASKS_DETAILS_COMPONENT,
   CLUSTER_TARGET_BUILDER,
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),

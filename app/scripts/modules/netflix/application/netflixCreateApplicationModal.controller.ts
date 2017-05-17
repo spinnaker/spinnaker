@@ -1,13 +1,19 @@
-import {extend, IControllerService, ILogService, IQService, IScope, module} from 'angular';
-import {StateDeclaration} from 'angular-ui-router';
-import {IModalInstanceService} from 'angular-ui-bootstrap';
+import { extend, IControllerService, ILogService, IQService, IScope, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
+import { StateDeclaration } from 'angular-ui-router';
 
-import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
-import {APPLICATION_READ_SERVICE, ApplicationReader} from 'core/application/service/application.read.service';
-import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
-import {SETTINGS} from 'core/config/settings';
-import {Application} from 'core/application/application.model';
+import {
+  ACCOUNT_SERVICE,
+  AccountService,
+  Application,
+  APPLICATION_READ_SERVICE,
+  APPLICATION_WRITE_SERVICE,
+  ApplicationReader,
+  ApplicationWriter,
+  SETTINGS
+} from '@spinnaker/core';
+
+import { PAGER_DUTY_SELECT_FIELD_COMPONENT } from '../pagerDuty/pagerDutySelectField.component';
 
 class NetflixCreateApplicationModalController {
 

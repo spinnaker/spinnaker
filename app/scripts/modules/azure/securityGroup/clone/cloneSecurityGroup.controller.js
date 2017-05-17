@@ -1,11 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-var angular = require('angular');
-
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { ACCOUNT_SERVICE, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.clone.controller', [

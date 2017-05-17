@@ -1,9 +1,10 @@
-import {module} from 'angular';
+import { module } from 'angular';
+
 import {
   APPLICATION_NAME_VALIDATOR,
   IApplicationNameValidator, ApplicationNameValidator
-} from 'core/application/modal/validation/applicationName.validator';
-import {AWSProviderSettings} from '../aws.settings';
+} from '@spinnaker/core';
+import { AWSProviderSettings } from '../aws.settings';
 
 class AmazonApplicationNameValidator implements IApplicationNameValidator {
   private validateSpecialCharacters(name: string, errors: string[]): void {

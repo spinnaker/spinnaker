@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.instanceType.controller', [])
   .controller('azureInstanceTypeCtrl', function($scope, modalWizardService) {

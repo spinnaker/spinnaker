@@ -4,7 +4,7 @@ import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry
 import {SERVER_GROUP_COMMAND_BUILDER_SERVICE} from 'core/serverGroup/configure/common/serverGroupCommandBuilder.service';
 import {StageConstants} from 'core/pipeline/config/stages/stageConstants';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.deployStage', [
   CLOUD_PROVIDER_REGISTRY,

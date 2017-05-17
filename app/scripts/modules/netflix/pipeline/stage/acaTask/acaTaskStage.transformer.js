@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-let angular = require('angular');
-
-import {ORCHESTRATED_ITEM_TRANSFORMER} from 'core/orchestratedItem/orchestratedItem.transformer';
+import { ORCHESTRATED_ITEM_TRANSFORMER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.transformer', [
   ORCHESTRATED_ITEM_TRANSFORMER,

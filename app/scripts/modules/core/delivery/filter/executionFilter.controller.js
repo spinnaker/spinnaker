@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
 import {EXECUTION_FILTER_SERVICE} from 'core/delivery/filter/executionFilter.service';

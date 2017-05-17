@@ -1,8 +1,7 @@
-import {module} from 'angular';
-import {IModalServiceInstance} from 'angular-ui-bootstrap';
-import IScope = ng.IScope;
+import { module, IScope } from 'angular';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-require('./cancel.less');
+import './cancel.less';
 
 interface ICancelModalScope extends IScope {
   state: any;

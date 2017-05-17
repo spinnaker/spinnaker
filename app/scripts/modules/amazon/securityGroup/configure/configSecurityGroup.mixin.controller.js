@@ -1,15 +1,18 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 import _ from 'lodash';
-import {Subject} from 'rxjs';
+import { Subject } from 'rxjs';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-import {AWSProviderSettings} from '../../aws.settings';
+import { AWSProviderSettings } from 'amazon/aws.settings';
+
+import {
+  ACCOUNT_SERVICE,
+  SECURITY_GROUP_READER,
+  SECURITY_GROUP_WRITER,
+  TASK_MONITOR_BUILDER,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [

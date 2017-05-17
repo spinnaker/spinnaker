@@ -1,8 +1,9 @@
-import * as React from 'react';
 import { get } from 'lodash';
+import * as React from 'react';
 
-import {CanaryScore} from './CanaryScore';
-import {IExecutionStageSummary} from 'core/domain/index';
+import { IExecutionStageSummary } from '@spinnaker/core';
+
+import { CanaryScore } from './CanaryScore';
 
 export class CanaryExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }, any> {
   public render() {

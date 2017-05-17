@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 import {TITUS_SECURITY_GROUP_PICKER} from 'titus/securityGroup/securityGroupPicker.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.cloneServerGroup', [

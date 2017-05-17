@@ -1,5 +1,5 @@
 'use strict';
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.transformer', [])
   .service('executionWindowsTransformer', function() {

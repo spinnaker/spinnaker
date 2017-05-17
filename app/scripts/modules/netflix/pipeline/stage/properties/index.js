@@ -1,11 +1,10 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
 
-require('./propertyStage.less');
+import './propertyStage.less';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.property', [
   require('./create/propertyStage'),

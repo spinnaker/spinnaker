@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {AzureProviderSettings} from '../azure.settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
 ])

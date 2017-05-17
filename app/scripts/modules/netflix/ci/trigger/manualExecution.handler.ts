@@ -1,8 +1,8 @@
-import {IPromise, IQService, module} from 'angular';
+import { IPromise, IQService, module } from 'angular';
 
-import {IGitTrigger} from 'core/domain/ITrigger';
-import {NetflixSettings} from 'netflix/netflix.settings';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+import { IGitTrigger, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
 
 export class NetflixGitManualExecutionHandler {
 

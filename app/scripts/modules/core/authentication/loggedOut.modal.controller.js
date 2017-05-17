@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('./loggedOut.modal.less');
+import './loggedOut.modal.less';
 
 module.exports = angular
   .module('spinnaker.core.authentication.loggedOut.modal.controller', [])

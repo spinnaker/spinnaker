@@ -1,7 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {OVERRIDE_REGISTRY, OverrideRegistry} from 'core/overrideRegistry/override.registry';
-import {NetflixSettings} from '../netflix.settings';
+import { OVERRIDE_REGISTRY, OverrideRegistry } from '@spinnaker/core';
+
+import { NetflixSettings } from '../netflix.settings';
 
 export const TEMPLATE_OVERRIDES = 'spinnaker.netflix.templateOverride.templateOverrides';
 module(TEMPLATE_OVERRIDES, [OVERRIDE_REGISTRY])

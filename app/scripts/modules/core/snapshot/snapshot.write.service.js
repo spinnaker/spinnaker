@@ -5,7 +5,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 import {TASK_EXECUTOR} from 'core/task/taskExecutor';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.snapshot.write.service', [

@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 require('./simpleCapacitySelector.component.html');
 
 describe('Directive: GCE Server Group Capacity Selector', function() {

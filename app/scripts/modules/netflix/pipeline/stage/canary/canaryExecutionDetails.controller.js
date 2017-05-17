@@ -1,12 +1,9 @@
 'use strict';
 
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
-
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.details.controller', [
   require('angular-ui-router').default,
-  EXECUTION_DETAILS_SECTION_SERVICE,
 ])
   .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

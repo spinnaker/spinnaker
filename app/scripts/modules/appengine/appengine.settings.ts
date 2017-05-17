@@ -1,4 +1,4 @@
-import { IProviderSettings, SETTINGS } from 'core/config/settings';
+import { IProviderSettings, SETTINGS } from '@spinnaker/core';
 
 export interface IAppengineProviderSettings extends IProviderSettings {
   defaults: {

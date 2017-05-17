@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {ANY_FIELD_FILTER} from '../presentation/anyFieldFilter/anyField.filter';
 import {ACCOUNT_SERVICE} from 'core/account/account.service';

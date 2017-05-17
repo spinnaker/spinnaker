@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+const angular = require('angular');
+
+import { ACCOUNT_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.kubernetes.findAmiStage', [
   PIPELINE_CONFIG_PROVIDER,

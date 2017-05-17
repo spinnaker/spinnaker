@@ -1,7 +1,8 @@
 import {ITimeoutService, element, module} from 'angular';
+
 import {NetflixSettings} from '../netflix.settings';
 
-require('./blesk.less');
+import './blesk.less';
 
 class BleskService {
 

@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-require('./instanceTypeSelector.directive.less');
+import './instanceTypeSelector.directive.less';
 
 module.exports = angular.module('spinnaker.core.serverGroup.configure.common.instanceTypeSelector', [])
   .directive('instanceTypeSelector', function() {

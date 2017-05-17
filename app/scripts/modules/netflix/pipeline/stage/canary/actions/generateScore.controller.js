@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions.generate.score.controller', [
   require('angular-ui-router').default,

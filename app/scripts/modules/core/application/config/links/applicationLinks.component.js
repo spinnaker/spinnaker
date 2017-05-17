@@ -1,13 +1,12 @@
 'use strict';
 
-import {CONFIG_SECTION_FOOTER} from '../footer/configSectionFooter.component';
-import {SETTINGS} from 'core/config/settings';
-
-require('./applicationLinks.component.less');
-
+const angular = require('angular');
 import _ from 'lodash';
 
-const angular = require('angular');
+import { SETTINGS } from 'core/config/settings';
+import { CONFIG_SECTION_FOOTER } from '../footer/configSectionFooter.component';
+
+import './applicationLinks.component.less';
 
 module.exports = angular
   .module('spinnaker.core.application.config.applicationLinks.component', [

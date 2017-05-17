@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import { SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.configure.openstack.ports', [
   require('../../transformer.js'),

@@ -1,13 +1,15 @@
 'use strict';
 
-import {filter} from 'lodash';
-let angular = require('angular');
+const angular = require('angular');
+import { filter } from 'lodash';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
-import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
-import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
+import {
+  ACCOUNT_SERVICE,
+  CONFIRMATION_MODAL_SERVICE,
+  INSTANCE_READ_SERVICE,
+  INSTANCE_WRITE_SERVICE,
+  RECENT_HISTORY_SERVICE
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.netflix.instance.titus.controller', [
   require('angular-ui-router').default,

@@ -1,33 +1,29 @@
-import { ICompileService, IHttpBackendService, IQService, IRootScopeService, mock } from 'angular';
+import { ICompileService, IHttpBackendService, IRootScopeService, mock } from 'angular';
 
-import { SETTINGS } from 'core/config/settings';
-import { RESERVATION_REPORT_COMPONENT } from './reservationReport.component';
+import { SETTINGS } from '@spinnaker/core';
+
 import { ReservationReportReader } from 'netflix/report/reservationReport.read.service';
-import { AccountService } from 'core/account/account.service';
-import { ACCOUNT_TAG_COMPONENT } from 'core/account/accountTag.component';
+import { RESERVATION_REPORT_COMPONENT } from './reservationReport.component';
 
 describe('Directives: reservation report', function () {
 
   require('./reservationReport.component.html');
-  beforeEach(mock.module(RESERVATION_REPORT_COMPONENT, ACCOUNT_TAG_COMPONENT));
+  beforeEach(mock.module(RESERVATION_REPORT_COMPONENT));
 
   let http: IHttpBackendService;
   let scope: IRootScopeService;
   let compile: ICompileService;
 
   let reader: ReservationReportReader;
-  beforeEach(mock.inject(($q: IQService,
-                          $httpBackend: IHttpBackendService,
+  beforeEach(mock.inject(($httpBackend: IHttpBackendService,
                           $rootScope: IRootScopeService,
                           $compile: ICompileService,
-                          accountService: AccountService,
                           reservationReportReader: ReservationReportReader) => {
 
     http = $httpBackend;
     scope = $rootScope.$new();
     compile = $compile;
     reader = reservationReportReader;
-    spyOn(accountService, 'challengeDestructiveActions').and.returnValue($q.when(false));
 
     http.expectGET([SETTINGS.gateUrl, 'reports', 'reservation', 'v2'].join('/')).respond(200, {
       reservations: [
@@ -84,7 +80,7 @@ describe('Directives: reservation report', function () {
     scope.$digest();
     http.flush();
 
-    expect(report.find('h4')).textMatch('VPC Reservations for m3.medium in prod');
+    expect(report.find('h4')).textMatch('VPC Reservations for m3.medium in');
     expect(report.find('tbody tr').size()).toBe(2);
   });
 
@@ -100,33 +96,33 @@ describe('Directives: reservation report', function () {
     scope.$digest();
     http.flush();
 
-    expect(report.find('h4')).textMatch('Reservations for m3.medium in prod');
+    expect(report.find('h4')).textMatch('Reservations for m3.medium in');
     expect(report.find('tbody tr td:eq(2)')).textMatch('3');
 
     scope.isVpc = true;
     scope.$digest();
-    expect(report.find('h4')).textMatch('VPC Reservations for m3.medium in prod');
+    expect(report.find('h4')).textMatch('VPC Reservations for m3.medium in');
     expect(report.find('tbody tr td:eq(2)')).textMatch('5');
 
     scope.instanceType = 'm3.large';
     scope.$digest();
-    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in prod');
+    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in');
     expect(report.find('tbody tr td:eq(2)')).textMatch('1');
 
     scope.account = 'test';
     scope.$digest();
-    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in test');
+    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in');
     expect(report.find('tbody tr td:eq(2)')).textMatch('2');
 
     scope.region = 'us-west-2';
     scope.$digest();
-    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in test');
+    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in');
     expect(report.find('tbody tr').size()).toBe(0);
 
     scope.region = 'us-east-1';
     scope.zones = ['us-east-1a'];
     scope.$digest();
-    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in test');
+    expect(report.find('h4')).textMatch('VPC Reservations for m3.large in');
     expect(report.find('tbody tr').size()).toBe(1);
     expect(report.find('tbody tr td:eq(2)')).textMatch('2');
   });

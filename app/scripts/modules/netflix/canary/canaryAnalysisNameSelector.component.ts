@@ -1,6 +1,6 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
+import { IComponentController, IComponentOptions, module } from 'angular';
 
-import {Api, API_SERVICE} from 'core/api/api.service';
+import { Api, API_SERVICE } from '@spinnaker/core';
 
 class CanaryAnalysisNameSelectorController implements IComponentController {
 

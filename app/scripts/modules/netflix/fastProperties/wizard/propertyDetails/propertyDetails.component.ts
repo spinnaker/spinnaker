@@ -1,9 +1,16 @@
-import { module, IComponentController, IComponentOptions } from 'angular';
+import { IComponentController, IComponentOptions, module } from 'angular';
+
+import {
+  AUTHENTICATION_SERVICE,
+  AuthenticationService,
+  IUser,
+  V2_MODAL_WIZARD_SERVICE,
+  V2ModalWizardService
+} from '@spinnaker/core';
+
+import { Property } from '../../domain/property.domain';
 
 import { PropertyCommand } from '../../domain/propertyCommand.model';
-import { Property } from '../../domain/property.domain';
-import { AUTHENTICATION_SERVICE, AuthenticationService, IUser } from 'core/authentication/authentication.service';
-import { V2ModalWizardService, V2_MODAL_WIZARD_SERVICE } from 'core/modal/wizard/v2modalWizard.service';
 
 export class FastPropertyDetailsComponentController implements IComponentController {
   public isEditing: boolean;

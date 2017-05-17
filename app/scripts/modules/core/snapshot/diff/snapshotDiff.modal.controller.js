@@ -1,13 +1,13 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {JSON_UTILITY_SERVICE} from 'core/utils/json/json.utility.service';
-import {DIFF_VIEW_COMPONENT} from 'core/pipeline/config/actions/history/diffView.component';
-let angular = require('angular');
+import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { DIFF_VIEW_COMPONENT } from 'core/pipeline/config/actions/history/diffView.component';
+import { JSON_UTILITY_SERVICE } from 'core/utils/json/json.utility.service';
 
-require('./snapshotDiff.modal.less');
+import './snapshotDiff.modal.less';
 
 module.exports = angular.module('spinnaker.deck.core.snapshot.diff.modal.controller', [
     require('../snapshot.read.service.js'),

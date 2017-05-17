@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 /**
  * Propagates standard Angular form validation to v2modalWizardService.

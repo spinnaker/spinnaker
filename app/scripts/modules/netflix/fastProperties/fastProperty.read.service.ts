@@ -1,14 +1,21 @@
-import { module, IPromise, IQService, ITimeoutService } from 'angular';
+import { IPromise, IQService, ITimeoutService, module } from 'angular';
 
-import { API_SERVICE, Api } from 'core/api/api.service';
-import { Scope } from './domain/scope.domain';
-import { IExecution, IPipeline } from 'core/domain';
-import { ExecutionService, EXECUTION_SERVICE } from 'core/delivery/service/execution.service';
-import { PipelineConfigService, PIPELINE_CONFIG_SERVICE } from 'core/pipeline/config/services/pipelineConfig.service';
+import {
+  Api,
+  API_SERVICE,
+  Application,
+  EXECUTION_SERVICE,
+  ExecutionService,
+  IExecution,
+  IPipeline,
+  jsonUtilityService,
+  PIPELINE_CONFIG_SERVICE,
+  PipelineConfigService
+} from '@spinnaker/core';
+
 import { Property } from './domain/property.domain';
 import { IPropertyHistoryEntry } from './domain/propertyHistory.domain';
-import { jsonUtilityService } from 'core/utils/json/json.utility.service';
-import { Application } from 'core/application/application.model';
+import { Scope } from './domain/scope.domain';
 
 export class FastPropertyReaderService {
 

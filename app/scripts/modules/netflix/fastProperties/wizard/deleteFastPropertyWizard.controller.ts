@@ -1,20 +1,25 @@
-import { module, IScope } from 'angular';
-import { StateService, RawParams } from 'angular-ui-router';
+import { IScope, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
+import { RawParams, StateService } from 'angular-ui-router';
+
+import {
+  Application,
+  APPLICATION_READ_SERVICE,
+  IExecution,
+  PIPELINE_CONFIG_SERVICE,
+  PipelineConfigService
+} from '@spinnaker/core';
+
+import { IPlatformProperty } from '../domain/platformProperty.model';
+import { PropertyCommand } from '../domain/propertyCommand.model';
+import { PropertyCommandType } from '../domain/propertyCommandType.enum';
+import { PropertyPipeline } from '../domain/propertyPipeline.domain';
+import { FastPropertyReaderService } from '../fastProperty.read.service';
 
 import { FAST_PROPERTY_DETAILS_COMPONENT } from './propertyDetails/propertyDetails.component';
-import { FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT } from './propertyScope/propertyScopeReadOnly.component';
 import { FAST_PROPERTY_REVIEW_COMPONENT } from './propertyReview/propertyReview.component';
+import { FAST_PROPERTY_SCOPE_READ_ONLY_COMPONENT } from './propertyScope/propertyScopeReadOnly.component';
 import { FAST_PROPERTY_STRATEGY_COMPONENT } from './propertyStrategy/propertyStrategy.component';
-import { PropertyCommandType }from '../domain/propertyCommandType.enum';
-import { PropertyPipeline } from '../domain/propertyPipeline.domain';
-import { APPLICATION_READ_SERVICE } from 'core/application/service/application.read.service';
-import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
-import { PropertyCommand } from '../domain/propertyCommand.model';
-import { IPlatformProperty } from '../domain/platformProperty.model';
-import { Application } from 'core/application/application.model';
-import { FastPropertyReaderService } from '../fastProperty.read.service';
-import { IExecution } from 'core/domain/IExecution';
 
 interface IState {
   submitting: boolean;

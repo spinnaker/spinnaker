@@ -1,8 +1,8 @@
 'use strict';
 
-import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { AUTHENTICATION_SERVICE } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.netflix.pipeline.create.persistedPropertyList.component', [AUTHENTICATION_SERVICE])

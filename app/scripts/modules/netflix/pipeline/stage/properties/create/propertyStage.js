@@ -1,12 +1,13 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {AUTHENTICATION_SERVICE} from 'core/authentication/authentication.service';
-import {FAST_PROPERTY_READ_SERVICE} from 'netflix/fastProperties/fastProperty.read.service';
-import {NetflixSettings} from '../../../../netflix.settings';
-import {PropertyExecutionLabel} from './PropertyExecutionLabel';
+import { AUTHENTICATION_SERVICE } from '@spinnaker/core';
+
+import { FAST_PROPERTY_READ_SERVICE } from 'netflix/fastProperties/fastProperty.read.service';
+import { NetflixSettings } from 'netflix/netflix.settings';
+import { PropertyExecutionLabel } from './PropertyExecutionLabel';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.propertyStage', [
   AUTHENTICATION_SERVICE,

@@ -1,12 +1,13 @@
 import {mock} from 'angular';
 
-import {FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService} from './fastPropertyScopeSearchCategory.service';
+import { FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FastPropertyScopeCategoryService } from './fastPropertyScopeSearchCategory.service';
+import { FAST_PROPERTY_READ_SERVICE } from '../fastProperty.read.service';
 
 describe('FastPropertyScopeSearchCategory Service', function () {
 
   let service: FastPropertyScopeCategoryService;
-
-  beforeEach((mock.module(FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE)));
+  // cberry: For some reason, webpack drops the fastProperty.read.service exports, so I removed it from the service
+  beforeEach((mock.module(FAST_PROPERTY_SCOPE_SEARCH_CATEGORY_SERVICE, FAST_PROPERTY_READ_SERVICE)));
 
   beforeEach(
     mock.inject(

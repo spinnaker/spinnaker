@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
+import { ACCOUNT_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.cf.details.controller', [
   require('angular-ui-router').default,

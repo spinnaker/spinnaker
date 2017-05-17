@@ -1,9 +1,9 @@
-import {compact, findIndex, uniqWith} from 'lodash';
-import { module, ILogService, IComponentOptions, IComponentController } from 'angular';
+import { IComponentController, IComponentOptions, ILogService, module } from 'angular';
+import { StateParams, StateService } from 'angular-ui-router';
+import { compact, findIndex, uniqWith } from 'lodash';
 import { Subject } from 'rxjs/Subject';
-import { StateService, StateParams } from 'angular-ui-router';
 
-import { IFilter, IFilterTag } from 'core/filterModel/FilterTags';
+import { IFilter, IFilterTag } from '@spinnaker/core';
 
 interface IFastProperty {
   scope: IFastPropertyScope;

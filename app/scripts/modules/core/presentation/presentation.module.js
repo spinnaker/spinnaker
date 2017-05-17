@@ -1,15 +1,15 @@
 'use strict';
 
+const angular = require('angular');
+
 import {ANY_FIELD_FILTER} from './anyFieldFilter/anyField.filter';
 import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
 import {PAGE_NAVIGATOR_COMPONENT} from './navigation/pageNavigator.component';
 import {PAGE_SECTION_COMPONENT} from './navigation/pageSection.component';
 
-let angular = require('angular');
-
-require('./details.less');
-require('./main.less');
-require('./navPopover.less');
+import './details.less';
+import './main.less';
+import './navPopover.less';
 
 module.exports = angular.module('spinnaker.core.presentation', [
   ANY_FIELD_FILTER,

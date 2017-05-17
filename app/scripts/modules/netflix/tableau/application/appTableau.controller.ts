@@ -1,8 +1,8 @@
-import {IComponentController, ISCEService, module} from 'angular';
+import { IComponentController, ISCEService, module } from 'angular';
 
-import {AUTHENTICATION_SERVICE, AuthenticationService} from 'core/authentication/authentication.service';
-import {NetflixSettings} from '../../netflix.settings';
-import {Application} from 'core/application/application.model';
+import { Application, AUTHENTICATION_SERVICE, AuthenticationService } from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
 
 import '../tableau.less';
 

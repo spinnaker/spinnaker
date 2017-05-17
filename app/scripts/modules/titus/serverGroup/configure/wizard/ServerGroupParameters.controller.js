@@ -2,7 +2,7 @@
 
 import {ConstraintOptions} from './constraints';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.titus.parameters.controller', [])
   .controller('titusServerGroupParametersCtrl', function($scope, v2modalWizardService) {

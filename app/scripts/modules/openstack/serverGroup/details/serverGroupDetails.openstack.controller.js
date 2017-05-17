@@ -1,17 +1,17 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-let angular = require('angular');
-
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
+import {
+  ACCOUNT_SERVICE,
+  CONFIRMATION_MODAL_SERVICE,
+  OVERRIDE_REGISTRY,
+  SECURITY_GROUP_READER,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER
+} from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.openstack.module.js');
 
@@ -25,7 +25,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.openstack.control
   OVERRIDE_REGISTRY,
   ACCOUNT_SERVICE,
   SERVER_GROUP_READER,
-  RUNNING_TASKS_DETAILS_COMPONENT,
   require('../configure/ServerGroupCommandBuilder.js'),
   require('../../../netflix/migrator/serverGroup/serverGroup.migrator.directive.js'), // TODO: make actions pluggable
   require('../serverGroup.transformer.js'),

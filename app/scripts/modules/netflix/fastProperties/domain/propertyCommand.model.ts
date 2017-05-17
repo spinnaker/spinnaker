@@ -1,14 +1,14 @@
-import {omit} from 'lodash';
-import {equals} from 'angular';
-import {Scope} from './scope.domain';
-import {Property} from './property.domain';
-import {PropertyPipeline} from './propertyPipeline.domain';
-import {PropertyStrategy} from './propertyStrategy.domain';
-import {PropertyCommandType} from './propertyCommandType.enum';
-import {IUser} from 'core/authentication/authentication.service';
-import {IAccount} from 'core/account/account.service';
-import {IPlatformProperty} from './platformProperty.model';
-import {PropertyPipelineStage} from './propertyPipelineStage';
+import { IAccount, IUser } from '@spinnaker/core';
+import { equals } from 'angular';
+import { omit } from 'lodash';
+
+import { IPlatformProperty } from './platformProperty.model';
+import { Property } from './property.domain';
+import { PropertyCommandType } from './propertyCommandType.enum';
+import { PropertyPipeline } from './propertyPipeline.domain';
+import { PropertyPipelineStage } from './propertyPipelineStage';
+import { PropertyStrategy } from './propertyStrategy.domain';
+import { Scope } from './scope.domain';
 
 export class PropertyCommand {
   public property: Property;

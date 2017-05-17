@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
-import {API_SERVICE} from 'core/api/api.service';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+const angular = require('angular');
+
+import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.deck.gce.backendService.reader.service', [
   API_SERVICE,

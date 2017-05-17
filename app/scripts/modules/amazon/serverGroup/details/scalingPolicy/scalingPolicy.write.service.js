@@ -1,8 +1,8 @@
 'use strict';
 
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
+const angular = require('angular');
 
-let angular = require('angular');
+import { TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.write.service', [

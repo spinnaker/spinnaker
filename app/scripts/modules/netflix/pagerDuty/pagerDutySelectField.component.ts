@@ -1,6 +1,8 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
-import {PAGER_DUTY_READ_SERVICE, IPagerDutyService, PagerDutyReader} from './pagerDuty.read.service';
-import {SchedulerFactory} from 'core/scheduler/scheduler.factory';
+import { IComponentController, IComponentOptions, module } from 'angular';
+
+import { SchedulerFactory } from '@spinnaker/core';
+
+import { IPagerDutyService, PAGER_DUTY_READ_SERVICE, PagerDutyReader } from './pagerDuty.read.service';
 
 export class PagerDutySelectFieldController implements IComponentController {
   public component: any;

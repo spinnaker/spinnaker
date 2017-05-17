@@ -1,7 +1,15 @@
-import {module} from 'angular';
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
-import {IImageReader, IImage, IFindImageParams, IFindTagsParams} from 'core/image/image.reader';
+import { module } from 'angular';
+
+import {
+  Api,
+  API_SERVICE,
+  IFindImageParams,
+  IFindTagsParams,
+  IImage,
+  IImageReader,
+  RETRY_SERVICE,
+  RetryService
+} from '@spinnaker/core';
 
 export interface IDockerImage extends IImage {
   account: string;

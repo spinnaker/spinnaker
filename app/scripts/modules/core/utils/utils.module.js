@@ -6,7 +6,7 @@ import { COPY_TO_CLIPBOARD_COMPONENT } from './clipboard/copyToClipboard.compone
 import { TIME_FORMATTERS } from './timeFormatters';
 import { SELECT_ON_DOUBLE_CLICK_DIRECTIVE } from 'core/utils/selectOnDblClick.directive';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.utils', [
   require('./moment.js'),

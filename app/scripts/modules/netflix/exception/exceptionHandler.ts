@@ -1,14 +1,13 @@
-import * as angular from 'angular';
-import {IExceptionHandlerService, module} from 'angular';
+import { IExceptionHandlerService, module } from 'angular';
+import IInjectorService = angular.auto.IInjectorService;
 
-import {SETTINGS} from 'core/config/settings';
-import {AUTHENTICATION_SERVICE, AuthenticationService} from 'core/authentication/authentication.service';
+import { AUTHENTICATION_SERVICE, AuthenticationService, SETTINGS } from '@spinnaker/core';
 
 export const EXCEPTION_HANDLER = 'spinnaker.netflix.exception.handler';
 module(EXCEPTION_HANDLER, [AUTHENTICATION_SERVICE])
   .config(($provide: angular.auto.IProvideService) => {
 
-    $provide.decorator('$exceptionHandler', ($injector: angular.auto.IInjectorService,
+    $provide.decorator('$exceptionHandler', ($injector: IInjectorService,
                                              $delegate: IExceptionHandlerService,
                                              authenticationService: AuthenticationService) => {
 

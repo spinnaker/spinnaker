@@ -1,7 +1,7 @@
-import {module} from 'angular';
-import {has, get} from 'lodash';
-import {Application} from 'core/application/application.model';
-import { IServerGroup } from 'core/domain';
+import { module } from 'angular';
+import { get, has } from 'lodash';
+
+import { Application, IServerGroup } from '@spinnaker/core';
 
 export class GceSecurityGroupHelpTextService {
   private serverGroupsIndexedByTag: Map<string, Set<string>>;

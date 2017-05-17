@@ -1,12 +1,17 @@
-import {extend, IControllerService, IWindowService, module} from 'angular';
-import {StateObject} from 'angular-ui-router';
-import {IModalInstanceService} from 'angular-ui-bootstrap';
+import { extend, IControllerService, IWindowService, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
+import { StateObject } from 'angular-ui-router';
 
-import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
-import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
-import {PAGER_DUTY_SELECT_FIELD_COMPONENT} from '../pagerDuty/pagerDutySelectField.component';
-import {PAGER_DUTY_TAG_COMPONENT} from '../pagerDuty/pagerDutyTag.component';
-import {Application} from 'core/application/application.model';
+import {
+  ACCOUNT_SERVICE,
+  AccountService,
+  Application,
+  APPLICATION_WRITE_SERVICE,
+  ApplicationWriter
+} from '@spinnaker/core';
+
+import { PAGER_DUTY_SELECT_FIELD_COMPONENT } from '../pagerDuty/pagerDutySelectField.component';
+import { PAGER_DUTY_TAG_COMPONENT } from '../pagerDuty/pagerDutyTag.component';
 
 class NetflixEditApplicationModalController {
   constructor($window: IWindowService,

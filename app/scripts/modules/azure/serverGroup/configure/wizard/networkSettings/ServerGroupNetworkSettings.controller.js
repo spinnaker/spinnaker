@@ -1,8 +1,8 @@
 'use strict';
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.networkSettings.controller', [
   V2_MODAL_WIZARD_SERVICE,

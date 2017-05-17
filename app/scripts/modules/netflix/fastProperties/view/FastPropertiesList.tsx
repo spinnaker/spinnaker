@@ -1,9 +1,11 @@
 import * as React from 'react';
 
-import { FastPropertyPods } from './FastPropertyPods';
+import { Application } from '@spinnaker/core';
+
 import { Property } from '../domain/property.domain';
-import { Application } from 'core/application/application.model';
 import { IGroupedProperties } from '../global/GlobalPropertiesList';
+
+import { FastPropertyPods } from './FastPropertyPods';
 
 interface IProps {
   filteredProperties: Property[],

@@ -1,17 +1,19 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
-import {SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-import {TASK_READ_SERVICE} from 'core/task/task.read.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
-import {NetflixSettings} from '../../netflix.settings';
+import {
+  CACHE_INITIALIZER_SERVICE,
+  PIPELINE_CONFIG_SERVICE,
+  SCROLL_TO_SERVICE,
+  SUBNET_READ_SERVICE,
+  TASK_READ_SERVICE
+} from '@spinnaker/core';
 
-require('../migrator.less');
+import { NetflixSettings } from 'netflix/netflix.settings';
+
+import '../migrator.less';
 
 module.exports = angular
   .module('spinnaker.migrator.pipeline.directive', [
@@ -19,7 +21,6 @@ module.exports = angular
     require('amazon/vpc/vpc.read.service.js'),
     SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
-    AUTO_SCROLL_DIRECTIVE,
     PIPELINE_CONFIG_SERVICE,
     SCROLL_TO_SERVICE,
     CACHE_INITIALIZER_SERVICE,

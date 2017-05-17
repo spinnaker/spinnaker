@@ -1,8 +1,7 @@
-import { DataSourceConfig } from 'core/application/service/applicationDataSource';
-import { APPLICATION_DATA_SOURCE_REGISTRY } from 'core/application/service/applicationDataSource.registry';
-import { EXECUTION_SERVICE } from 'core/delivery/service/execution.service';
-import { FAST_PROPERTY_READ_SERVICE } from './fastProperty.read.service';
+import { APPLICATION_DATA_SOURCE_REGISTRY, DataSourceConfig, EXECUTION_SERVICE } from '@spinnaker/core';
+
 import { NetflixSettings } from '../netflix.settings';
+import { FAST_PROPERTY_READ_SERVICE } from './fastProperty.read.service';
 
 module.exports = angular.module('spinnaker.netflix.fastProperty.dataSource', [
     APPLICATION_DATA_SOURCE_REGISTRY,

@@ -2,7 +2,7 @@
 
 import {KUBERNETES_LIFECYCLE_HOOK_DETAILS} from './lifecycleHookDetails.component';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes', [
   require('core/account/account.module.js'),

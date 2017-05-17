@@ -1,12 +1,11 @@
 'use strict';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
-import {KubernetesProviderSettings} from 'kubernetes/kubernetes.settings';
-
-let angular = require('angular');
+const angular = require('angular');
 import _ from 'lodash';
+
+import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
+
+import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.controller', [
   require('angular-ui-router').default,

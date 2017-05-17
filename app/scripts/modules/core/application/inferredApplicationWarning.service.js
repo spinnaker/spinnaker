@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.core.application.inferredApplicationWarning.service', [
     require('../widgets/notifier/notifier.service.js'),

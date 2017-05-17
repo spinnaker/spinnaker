@@ -1,13 +1,9 @@
-import * as React from 'react';
-import { get, groupBy } from 'lodash';
-import { Subject } from 'rxjs/Subject';
 import autoBindMethods from 'class-autobind-decorator';
+import { get, groupBy } from 'lodash';
+import * as React from 'react';
+import { Subject } from 'rxjs/Subject';
 
-import { Application } from 'core/application/application.model';
-import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
-import { IExecution } from 'core/domain';
-import { Execution } from 'core/delivery/executionGroup/execution/Execution';
-import { IFilterTag } from 'core/filterModel/FilterTags';
+import { Application, ApplicationDataSource, Execution, IExecution, IFilterTag } from '@spinnaker/core';
 
 import './FastPropertyRollouts.less';
 

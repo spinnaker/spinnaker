@@ -1,10 +1,9 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CANARY_SCORE_COMPONENT} from '../canary/canaryScore.component';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
+import { CANARY_SCORE_COMPONENT } from '../canary/canaryScore.component';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.genericCanary', [
   require('./acaTaskStage'),

@@ -3,7 +3,7 @@
 import {API_SERVICE} from 'core/api/api.service';
 import {TASK_READ_SERVICE} from 'core/task/task.read.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.task.write.service', [

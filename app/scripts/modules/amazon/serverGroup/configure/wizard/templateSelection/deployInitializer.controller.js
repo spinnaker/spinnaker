@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
+import { SERVER_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
   SERVER_GROUP_READER,

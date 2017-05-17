@@ -7,7 +7,7 @@ import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection
 import { SETTINGS } from 'core/config/settings';
 import { SECURITY_GROUP_FILTER_MODEL } from './filter/securityGroupFilter.model';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
   require('./filter/securityGroup.filter.service.js'),

@@ -1,10 +1,11 @@
 'use strict';
 
+const angular = require('angular');
 import * as _ from 'lodash';
-import {sessionAffinityViewToModelMap, sessionAffinityModelToViewMap} from '../common/sessionAffinityNameMaps';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
 
-let angular = require('angular');
+import { NAMING_SERVICE } from '@spinnaker/core';
+
+import { sessionAffinityModelToViewMap, sessionAffinityViewToModelMap } from '../common/sessionAffinityNameMaps';
 
 module.exports = angular.module('spinnaker.gce.deck.httpLoadBalancer.transformer', [
     NAMING_SERVICE,

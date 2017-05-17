@@ -1,11 +1,11 @@
 'use strict';
 
-import {EXECUTION_FILTER_MODEL} from 'core/delivery/filter/executionFilter.model';
-import {EXECUTION_FILTER_SERVICE} from 'core/delivery/filter/executionFilter.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { EXECUTION_FILTER_MODEL } from 'core/delivery/filter/executionFilter.model';
+import { EXECUTION_FILTER_SERVICE } from 'core/delivery/filter/executionFilter.service';
 
-require('./executionFilter.less');
+import './executionFilter.less';
 
 module.exports = angular
   .module('spinnaker.core.delivery.filter.executionFilters.directive', [

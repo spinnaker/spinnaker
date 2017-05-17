@@ -1,15 +1,14 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
-import {EXECUTION_SERVICE} from 'core/delivery/service/execution.service';
-import {PROJECT_PIPELINE_COMPONENT} from './pipeline/projectPipeline.component';
-import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
+import { EXECUTION_SERVICE } from 'core/delivery/service/execution.service';
+import { RECENT_HISTORY_SERVICE } from 'core/history/recentHistory.service';
+import { SCHEDULER_FACTORY } from 'core/scheduler/scheduler.factory';
+import { PROJECT_PIPELINE_COMPONENT } from './pipeline/projectPipeline.component';
 
-let angular = require('angular');
-
-require('./dashboard.less');
+import './dashboard.less';
 
 module.exports = angular.module('spinnaker.core.projects.dashboard.controller', [
   require('./cluster/projectCluster.directive.js'),

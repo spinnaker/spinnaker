@@ -1,7 +1,7 @@
 'use strict';
 
 import * as _ from 'lodash';
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.loadBalancer.transformer', [
   require('../cloudProvider/serviceDelegate.service.js'),

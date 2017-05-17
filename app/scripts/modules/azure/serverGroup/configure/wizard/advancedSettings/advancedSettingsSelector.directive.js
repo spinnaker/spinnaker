@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.azure.serverGroup.configure.wizard.advancedSettings.selector.directive', [

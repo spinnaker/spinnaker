@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 const $ = require('jquery');
 
 module.exports = angular.module('spinnaker.core.search.global.directive', [

@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 // load all templates into the $templateCache
 let templates = require.context('./', true, /\.html$/);

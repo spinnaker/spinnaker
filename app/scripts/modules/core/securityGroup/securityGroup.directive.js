@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 import { get, last } from 'lodash';
 
 module.exports = angular.module('spinnaker.core.securityGroup.directive', [])

@@ -1,15 +1,17 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
-import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
-import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
-import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import {
+  CLOUD_PROVIDER_REGISTRY,
+  CONFIRMATION_MODAL_SERVICE,
+  INSTANCE_READ_SERVICE,
+  INSTANCE_WRITE_SERVICE,
+  RECENT_HISTORY_SERVICE
+} from '@spinnaker/core';
 
-let angular = require('angular');
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
 
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('angular-ui-router').default,

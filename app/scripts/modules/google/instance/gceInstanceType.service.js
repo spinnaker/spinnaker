@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {ACCOUNT_SERVICE} from 'core/account/account.service.ts';
 
-let angular = require('angular');
+import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_SERVICE])
   .factory('gceInstanceTypeService', function ($http, $q, accountService) {

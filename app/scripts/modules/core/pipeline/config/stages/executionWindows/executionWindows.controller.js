@@ -4,7 +4,7 @@ import {EXECUTION_WINDOWS_DAY_PICKER} from './executionWindowDayPicker.component
 import {EXECUTION_WINDOW_ATLAS_GRAPH} from './atlasGraph.component';
 import {Subject} from 'rxjs/Subject';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.controller', [
   require('core/utils/timePicker.service.js'),

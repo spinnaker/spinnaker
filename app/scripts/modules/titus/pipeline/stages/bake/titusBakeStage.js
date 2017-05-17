@@ -1,8 +1,8 @@
 'use strict';
 
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+const angular = require('angular');
 
-let angular = require('angular');
+import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.titus.titusBakeStage', [
   require('./bakeExecutionDetails.controller.js'),

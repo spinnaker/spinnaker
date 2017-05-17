@@ -1,9 +1,8 @@
 'use strict';
 
-import {BAKERY_SERVICE} from 'core/pipeline/config/stages/bake/bakery.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
+const angular = require('angular');
 
-let angular = require('angular');
+import { BAKERY_SERVICE, PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.gce.findImageFromTagsStage', [
   BAKERY_SERVICE,

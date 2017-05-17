@@ -1,6 +1,12 @@
-import {module, IPromise} from 'angular';
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
+import { IPromise, module } from 'angular';
+
+import {
+  INFRASTRUCTURE_CACHE_SERVICE,
+  InfrastructureCacheService,
+  ISearchResults,
+  SEARCH_SERVICE,
+  SearchService
+} from '@spinnaker/core';
 
 export interface IGceCertificate {
   account: string;

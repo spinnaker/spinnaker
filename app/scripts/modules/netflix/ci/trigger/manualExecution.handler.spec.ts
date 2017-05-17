@@ -1,7 +1,8 @@
-import {IRootScopeService, mock} from 'angular';
+import { IRootScopeService, mock } from 'angular';
 
-import {IGitTrigger} from 'core/domain';
-import {NETFLIX_GIT_MANUAL_EXECUTION_HANDLER, NetflixGitManualExecutionHandler} from './manualExecution.handler';
+import { IGitTrigger } from '@spinnaker/core';
+
+import { NETFLIX_GIT_MANUAL_EXECUTION_HANDLER, NetflixGitManualExecutionHandler } from './manualExecution.handler';
 
 describe('NetflixGitManualExecutionHandler', () => {
 

@@ -1,19 +1,21 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {LOAD_BALANCER_SET_TRANSFORMER} from 'google/loadBalancer/loadBalancer.setTransformer';
-import {GCE_HTTP_LOAD_BALANCER_UTILS} from 'google/loadBalancer/httpLoadBalancerUtils.service';
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {NETWORK_READ_SERVICE} from 'core/network/network.read.service';
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {GCEProviderSettings} from 'google/gce.settings';
-import {GCE_HEALTH_CHECK_READER} from 'google/healthCheck/healthCheck.read.service';
+import {
+  ACCOUNT_SERVICE,
+  CACHE_INITIALIZER_SERVICE,
+  LOAD_BALANCER_READ_SERVICE,
+  NETWORK_READ_SERVICE,
+  SECURITY_GROUP_READER,
+  SUBNET_READ_SERVICE
+} from '@spinnaker/core';
 
-let angular = require('angular');
+import { GCEProviderSettings } from 'google/gce.settings';
+import { GCE_HEALTH_CHECK_READER } from 'google/healthCheck/healthCheck.read.service';
+import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { LOAD_BALANCER_SET_TRANSFORMER } from 'google/loadBalancer/loadBalancer.setTransformer';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.configuration.service', [
   LOAD_BALANCER_SET_TRANSFORMER,

@@ -1,8 +1,8 @@
 'use strict';
 
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+const angular = require('angular');
 
-let angular = require('angular');
+import { NAMING_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.deployment', [
     NAMING_SERVICE,

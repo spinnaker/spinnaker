@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-let angular = require('angular');
 
-import {TASK_EXECUTOR} from 'core/task/taskExecutor';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import { INFRASTRUCTURE_CACHE_SERVICE, TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [

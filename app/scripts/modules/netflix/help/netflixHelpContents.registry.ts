@@ -1,7 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from 'core/help/helpContents.registry';
-import {NetflixSettings} from '../netflix.settings';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from '@spinnaker/core';
+
+import { NetflixSettings } from '../netflix.settings';
 
 interface IHelpItem {
   key: string;

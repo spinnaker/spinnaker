@@ -2,7 +2,7 @@
 
 import { WAYPOINT_SERVICE } from './waypoint.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.utils.waypoints.container.directive', [
   WAYPOINT_SERVICE,

@@ -1,10 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {IMAGE_READER} from 'core/image/image.reader';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
+import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.wizard.basicSettings.controller', [
   require('angular-ui-router').default,

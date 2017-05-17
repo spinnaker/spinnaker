@@ -1,20 +1,21 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {V2_MODAL_WIZARD_SERVICE} from 'core/modal/wizard/v2modalWizard.service';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
-import {NAMING_SERVICE} from 'core/naming/naming.service';
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LOAD_BALANCER_WRITE_SERVICE} from 'core/loadBalancer/loadBalancer.write.service';
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
-import {SECURITY_GROUP_READER} from 'core/securityGroup/securityGroupReader.service';
-import {SUBNET_SELECT_FIELD_COMPONENT} from '../../subnet/subnetSelectField.component';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-import {AWSProviderSettings} from '../../aws.settings';
-
-let angular = require('angular');
+import {
+  ACCOUNT_SERVICE,
+  CACHE_INITIALIZER_SERVICE,
+  INFRASTRUCTURE_CACHE_SERVICE,
+  LOAD_BALANCER_WRITE_SERVICE,
+  NAMING_SERVICE,
+  SECURITY_GROUP_READER,
+  SUBNET_READ_SERVICE,
+  TASK_MONITOR_BUILDER,
+  V2_MODAL_WIZARD_SERVICE
+} from '@spinnaker/core';
+import { AWSProviderSettings } from '../../aws.settings';
+import { SUBNET_SELECT_FIELD_COMPONENT } from '../../subnet/subnetSelectField.component';
 
 module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
   require('angular-ui-router').default,

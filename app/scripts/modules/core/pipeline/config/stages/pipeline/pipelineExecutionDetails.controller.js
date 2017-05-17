@@ -3,7 +3,7 @@
 import _ from 'lodash';
 import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executionDetails.controller', [
   require('angular-ui-router').default,

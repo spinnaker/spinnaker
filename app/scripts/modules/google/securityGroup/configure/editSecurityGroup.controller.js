@@ -1,11 +1,13 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
-import {SECURITY_GROUP_WRITER} from 'core/securityGroup/securityGroupWriter.service';
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import {
+  ACCOUNT_SERVICE,
+  INFRASTRUCTURE_CACHE_SERVICE,
+  SECURITY_GROUP_WRITER,
+  TASK_MONITOR_BUILDER
+} from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
   require('angular-ui-router').default,

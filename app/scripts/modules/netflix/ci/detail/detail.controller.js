@@ -1,9 +1,10 @@
 'use strict';
 
-import {SCHEDULER_FACTORY} from 'core/scheduler/scheduler.factory';
-import {CI_BUILD_READ_SERVICE} from '../services/ciBuild.read.service';
-
 const angular = require('angular');
+
+import { SCHEDULER_FACTORY } from '@spinnaker/core';
+
+import { CI_BUILD_READ_SERVICE } from '../services/ciBuild.read.service';
 
 module.exports = angular
   .module('spinnaker.netflix.ci.detail.controller', [

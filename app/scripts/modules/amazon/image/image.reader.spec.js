@@ -1,6 +1,6 @@
 'use strict';
 
-import {API_SERVICE} from 'core/api/api.service';
+import { API_SERVICE } from '@spinnaker/core';
 
 describe('Service: aws Image Reader', function() {
 

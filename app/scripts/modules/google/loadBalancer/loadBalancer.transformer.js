@@ -4,7 +4,7 @@ import _ from 'lodash';
 
 import {GCEProviderSettings} from '../gce.settings';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
   .factory('gceLoadBalancerTransformer', function ($q) {

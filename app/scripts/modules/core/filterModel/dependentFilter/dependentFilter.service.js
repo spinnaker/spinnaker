@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.deck.core.filterModel.dependentFilter.service', [])
   .factory('dependentFilterService', function () {

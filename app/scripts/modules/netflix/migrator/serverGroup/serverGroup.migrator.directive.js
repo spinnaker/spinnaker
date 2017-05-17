@@ -1,21 +1,20 @@
 'use strict';
 
-require('../migrator.less');
-import {AUTO_SCROLL_DIRECTIVE} from 'core/presentation/autoScroll/autoScroll.directive';
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
-import {NetflixSettings} from '../../netflix.settings';
-
+const angular = require('angular');
 import _ from 'lodash';
 
-let angular = require('angular');
+import { SUBNET_READ_SERVICE } from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
+
+import '../migrator.less';
 
 module.exports = angular
-  .module('spinnaker.migrator.directive', [
+  .module('spinnaker.netflix.migrator.directive', [
     require('angular-ui-bootstrap'),
     require('amazon/vpc/vpc.read.service.js'),
     SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
-    AUTO_SCROLL_DIRECTIVE,
     require('amazon/keyPairs/keyPairs.read.service'),
     require('amazon/vpc/vpc.read.service'),
     require('../migrationWarnings.component'),

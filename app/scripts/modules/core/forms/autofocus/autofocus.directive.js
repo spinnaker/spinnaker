@@ -1,6 +1,6 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 /***
  * Directive to allow optionally setting autofocus behavior of form elements

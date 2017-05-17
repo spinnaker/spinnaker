@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('./stepPolicyAction.component.less');
+import './stepPolicyAction.component.less';
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.upsert.actions.stePolicy', [

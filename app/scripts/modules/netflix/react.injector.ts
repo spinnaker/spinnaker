@@ -1,11 +1,11 @@
-import { ReactInject } from 'core/react';
-import * as angular from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
 import { angular2react } from 'angular2react';
 
+import { ReactInject } from '@spinnaker/core';
+
+import { FastPropertyReaderService } from './fastProperties/fastProperty.read.service';
 import { IFastPropertyProps } from './fastProperties/view/filter/FastPropertyFilterSearch';
 import { fastPropertyFilterSearchComponent } from './fastProperties/view/filter/fastPropertyFilterSearch.component';
-import { FastPropertyReaderService } from './fastProperties/fastProperty.read.service';
 
 export class NetflixReactInject extends ReactInject {
 

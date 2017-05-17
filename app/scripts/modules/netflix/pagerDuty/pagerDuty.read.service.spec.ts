@@ -1,7 +1,8 @@
-import {IHttpBackendService, mock} from 'angular';
+import { IHttpBackendService, mock } from 'angular';
 
-import {Api, API_SERVICE} from 'core/api/api.service';
-import {IPagerDutyService, PagerDutyReader} from 'netflix/pagerDuty/pagerDuty.read.service';
+import { Api, API_SERVICE } from '@spinnaker/core';
+
+import { IPagerDutyService, PagerDutyReader } from 'netflix/pagerDuty/pagerDuty.read.service';
 
 describe('PagerDutyReader', () => {
 

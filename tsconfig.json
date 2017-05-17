@@ -20,6 +20,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "outDir": "transpiled",
+    "paths": {
+      "@spinnaker/core": ["core"]
+    },
     "pretty": true,
     "removeComments": true,
     "rootDir": ".",

@@ -1,12 +1,14 @@
-import {IHttpPromiseCallbackArg, IPromise, module} from 'angular';
+import { IHttpPromiseCallbackArg, IPromise, module } from 'angular';
 
-import {Api, API_SERVICE} from 'core/api/api.service';
-import {CiFilterModel} from '../ciFilter.model';
 import {
+  Api,
+  API_SERVICE,
   ORCHESTRATED_ITEM_TRANSFORMER,
-  OrchestratedItemTransformer
-} from 'core/orchestratedItem/orchestratedItem.transformer';
-import {SETTINGS} from 'core/config/settings';
+  OrchestratedItemTransformer,
+  SETTINGS
+} from '@spinnaker/core';
+
+import { CiFilterModel } from '../ciFilter.model';
 
 interface ICiBuildChangeRef {
   id: string;

@@ -1,11 +1,11 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
 import {RECENT_HISTORY_SERVICE} from 'core/history/recentHistory.service';
 
-require('./newapplication.less');
-require('./application.less');
+import './newapplication.less';
+import './application.less';
 
 module.exports = angular.module('spinnaker.application.controller', [
   require('angular-ui-router').default,

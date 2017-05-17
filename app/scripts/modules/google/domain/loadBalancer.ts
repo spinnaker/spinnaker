@@ -1,5 +1,6 @@
-import {ILoadBalancer} from 'core/domain';
-import {IGceBackendService} from './backendService';
+import { ILoadBalancer } from '@spinnaker/core';
+
+import { IGceBackendService } from './backendService';
 
 export interface IGceLoadBalancer extends ILoadBalancer {
   account: string;

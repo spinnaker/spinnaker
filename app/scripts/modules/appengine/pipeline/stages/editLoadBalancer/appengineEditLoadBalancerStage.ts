@@ -1,11 +1,11 @@
-import {module} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
-import {cloneDeep} from 'lodash';
+import { module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+import { cloneDeep } from 'lodash';
 
-import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
-import {ILoadBalancer} from 'core/domain/index';
-import {APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL} from './loadBalancerChoice.modal.controller';
-import {AppengineProviderSettings} from '../../../appengine.settings';
+import { CloudProviderRegistry, ILoadBalancer } from '@spinnaker/core';
+
+import { AppengineProviderSettings } from 'appengine/appengine.settings';
+import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
 class AppengineEditLoadBalancerStageCtrl {
   constructor(public $scope: any,

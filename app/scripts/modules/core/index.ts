@@ -53,3 +53,5 @@ export * from './subnet';
 export * from './task';
 
 export * from './utils';
+
+export * from './widgets';

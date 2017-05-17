@@ -1,12 +1,12 @@
 
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {DOCKER_IMAGE_READER} from 'docker/image/docker.image.reader.service';
-import {DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT} from 'docker/image/dockerImageAndTagSelector.component';
-import {SERVICE_ACCOUNT_SERVICE} from 'core/serviceAccount/serviceAccount.service.ts';
-import {SETTINGS} from 'core/config/settings';
+import { SERVICE_ACCOUNT_SERVICE, SETTINGS } from '@spinnaker/core';
+
+import { DOCKER_IMAGE_READER } from 'docker/image/docker.image.reader.service';
+import { DOCKER_IMAGE_AND_TAG_SELECTOR_COMPONENT } from 'docker/image/dockerImageAndTagSelector.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.trigger.docker', [
     SERVICE_ACCOUNT_SERVICE,

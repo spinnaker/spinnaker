@@ -1,6 +1,6 @@
-import {IPromise, module} from 'angular';
+import { IPromise, module } from 'angular';
 
-import {Api, API_SERVICE} from 'core/api/api.service';
+import { Api, API_SERVICE } from '@spinnaker/core';
 
 export interface IOrganization {
   id: string;

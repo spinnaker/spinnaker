@@ -1,13 +1,11 @@
 'use strict';
 
-import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/executionDetailsSection.service';
-import {SETTINGS} from 'core/config/settings';
+const angular = require('angular');
 
-let angular = require('angular');
+import { SETTINGS } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.bake.gce.executionDetails.controller', [
   require('angular-ui-router').default,
-  EXECUTION_DETAILS_SECTION_SERVICE,
 ])
   .controller('gceBakeExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService,
                                                        $interpolate) {

@@ -1,8 +1,9 @@
+import autoBindMethods from 'class-autobind-decorator';
 import * as React from 'react';
 import { Dropdown, MenuItem } from 'react-bootstrap';
-import autoBindMethods from 'class-autobind-decorator';
 
-import { CustomToggle, CustomMenu } from 'core/widgets/CustomDropdown';
+import { CustomMenu, CustomToggle } from '@spinnaker/core';
+
 import { ISlackConfig, NetflixSettings } from '../netflix.settings';
 import { FeedbackModal } from './FeedbackModal';
 

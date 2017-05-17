@@ -2,7 +2,7 @@
 
 import {INSTANCE_READ_SERVICE} from 'core/instance/instance.read.service';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.details.console.controller', [
   INSTANCE_READ_SERVICE,

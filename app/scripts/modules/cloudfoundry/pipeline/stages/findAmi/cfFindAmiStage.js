@@ -1,9 +1,10 @@
 'use strict';
 
-let angular = require('angular');
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {LIST_EXTRACTOR_SERVICE} from 'core/application/listExtractor/listExtractor.service';
-import {CloudFoundryProviderSettings} from '../../../cf.settings';
+const angular = require('angular');
+
+import { ACCOUNT_SERVICE, LIST_EXTRACTOR_SERVICE } from '@spinnaker/core';
+
+import { CloudFoundryProviderSettings } from 'cloudfoundry/cf.settings';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.cf.findAmiStage', [
   LIST_EXTRACTOR_SERVICE,

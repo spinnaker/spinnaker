@@ -1,11 +1,11 @@
 'use strict';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {CanaryExecutionLabel} from '../canary/CanaryExecutionLabel';
-import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
-import {NetflixSettings} from '../../../netflix.settings';
+const angular = require('angular');
 
-let angular = require('angular');
+import { ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+
+import { NetflixSettings } from 'netflix/netflix.settings';
+import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
 module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
   CLOUD_PROVIDER_REGISTRY,

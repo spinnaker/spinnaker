@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-require('./componentRefresher.directive.less');
+import './componentRefresher.directive.less';
 
 module.exports = angular
   .module('spinnaker.core.presentation.refresher.directive', [

@@ -2,7 +2,7 @@
 
 import _ from 'lodash';
 
-let angular = require('angular');
+const angular = require('angular');
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.networking.controller', [
   require('./elasticIp.read.service.js'),

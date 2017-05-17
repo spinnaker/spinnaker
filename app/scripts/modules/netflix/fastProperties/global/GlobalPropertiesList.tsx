@@ -1,19 +1,16 @@
-import * as React from 'react';
+import autoBindMethods from 'class-autobind-decorator';
 import { groupBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { Subject, Subscription } from 'rxjs';
-import autoBindMethods from 'class-autobind-decorator';
+import * as React from 'react';
 import { Tooltip } from 'react-bootstrap';
+import { Subject, Subscription } from 'rxjs';
 
-import { Property } from '../domain/property.domain';
-import { Application } from 'core/application/application.model';
+import { Application, FilterTags, IFilterTag, ReactInjector, StickyContainer } from '@spinnaker/core';
+
 import { NetflixSettings } from 'netflix/netflix.settings';
-
-import { FastPropertiesList } from '../view/FastPropertiesList';
-import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
-import { IFilterTag, FilterTags } from 'core/filterModel/FilterTags';
-import { ReactInjector } from 'core/react';
 import { NetflixReactInjector } from 'netflix/react.injector';
+import { Property } from '../domain/property.domain';
+import { FastPropertiesList } from '../view/FastPropertiesList';
 
 export interface IGroupedProperties {
   [key: string]: Property[];

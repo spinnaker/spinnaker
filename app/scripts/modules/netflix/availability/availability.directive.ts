@@ -1,10 +1,15 @@
 import { module } from 'angular';
 
-import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
-import { IAvailabilityData, IAvailabilityWindow, AVAILABILITY_READER_SERVICE, AvailabilityReaderService } from './availability.read.service';
+import { DirectiveFactory, SCHEDULER_FACTORY, SchedulerFactory } from '@spinnaker/core';
+
 import { AVAILABILITY_DONUT_COMPONENT } from './availability.donut.component';
+import {
+  AVAILABILITY_READER_SERVICE,
+  AvailabilityReaderService,
+  IAvailabilityData,
+  IAvailabilityWindow
+} from './availability.read.service';
 import { AVAILABILITY_TREND_COMPONENT } from './availability.trend.component';
-import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
 
 import './availability.less';
 

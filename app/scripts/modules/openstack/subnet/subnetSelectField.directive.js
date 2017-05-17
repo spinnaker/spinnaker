@@ -1,9 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {SUBNET_READ_SERVICE} from 'core/subnet/subnet.read.service';
 
-let angular = require('angular');
+import { SUBNET_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.subnet.subnetSelectField.directive', [
   SUBNET_READ_SERVICE,

@@ -1,8 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-require('./manualJudgmentExecutionDetails.less');
+import './manualJudgmentExecutionDetails.less';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.manualJudgment', [
   require('../stage.module.js'),

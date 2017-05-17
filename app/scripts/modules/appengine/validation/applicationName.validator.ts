@@ -1,8 +1,11 @@
-import {module} from 'angular';
+import { module } from 'angular';
+
 import {
   APPLICATION_NAME_VALIDATOR,
-  IApplicationNameValidator, ApplicationNameValidator, IValidationResult
-} from 'core/application/modal/validation/applicationName.validator';
+  ApplicationNameValidator,
+  IApplicationNameValidator,
+  IValidationResult
+} from '@spinnaker/core';
 
 // See https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions#Version
 class AppengineApplicationNameValidator implements IApplicationNameValidator {

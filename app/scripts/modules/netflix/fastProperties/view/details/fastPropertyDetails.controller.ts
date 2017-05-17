@@ -1,17 +1,16 @@
 import { module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from 'angular-ui-router';
 import { Subscription } from 'rxjs/Subscription';
-import { IModalService } from 'angular-ui-bootstrap';
 
-import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../../wizard/updateFastPropertyWizard.controller';
-import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../../wizard/deleteFastPropertyWizard.controller';
-import { CLONE_FAST_PROPERTY_TO_NEW_SCOPE_WIZARD_CONTROLLER } from '../../wizard/cloneFastPropertyToNewScopeWizard.controller';
-import { FAST_PROPERTY_READ_SERVICE, FastPropertyReaderService } from '../../fastProperty.read.service';
-import { FAST_PROPERTY_HISTORY_COMPONENT } from '../history/fastPropertyHistory.component';
-import { Application } from 'core/application/application.model';
+import { Application, fastPropertyTtl, ReactInjector } from '@spinnaker/core';
+
 import { Property } from '../../domain/property.domain';
-import { ReactInjector } from 'core/react';
-import { fastPropertyTtl } from 'core/utils/timeFormatters';
+import { FAST_PROPERTY_READ_SERVICE, FastPropertyReaderService } from '../../fastProperty.read.service';
+import { CLONE_FAST_PROPERTY_TO_NEW_SCOPE_WIZARD_CONTROLLER } from '../../wizard/cloneFastPropertyToNewScopeWizard.controller';
+import { DELETE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../../wizard/deleteFastPropertyWizard.controller';
+import { UPDATE_FAST_PROPERTY_WIZARD_CONTROLLER } from '../../wizard/updateFastPropertyWizard.controller';
+import { FAST_PROPERTY_HISTORY_COMPONENT } from '../history/fastPropertyHistory.component';
 
 export class FastPropertyDetailsController {
 

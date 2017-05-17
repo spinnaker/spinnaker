@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-import {LOAD_BALANCER_READ_SERVICE} from 'core/loadBalancer/loadBalancer.read.service';
-
-let angular = require('angular');
+import { LOAD_BALANCER_READ_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.loadBalancer.loadBalancerSelectField.directive', [
   LOAD_BALANCER_READ_SERVICE,

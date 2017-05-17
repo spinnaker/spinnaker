@@ -1,10 +1,9 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
-import {API_SERVICE} from 'core/api/api.service';
 
-let angular = require('angular');
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
+import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.instanceType.service', [
   API_SERVICE,

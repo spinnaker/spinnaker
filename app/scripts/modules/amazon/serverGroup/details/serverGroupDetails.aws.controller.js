@@ -1,19 +1,17 @@
 'use strict';
 
-import {chain, filter, find, get, isEmpty} from 'lodash';
-let angular = require('angular');
+const angular = require('angular');
+import { chain, filter, find, get, isEmpty } from 'lodash';
 
-import {ACCOUNT_SERVICE} from 'core/account/account.service';
-import {ADD_ENTITY_TAG_LINKS_COMPONENT} from 'core/entityTag/addEntityTagLinks.component';
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
-import {VIEW_SCALING_ACTIVITIES_LINK} from 'core/serverGroup/details/scalingActivities/viewScalingActivitiesLink.component';
-import {SERVER_GROUP_READER} from 'core/serverGroup/serverGroupReader.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-import {SERVER_GROUP_WARNING_MESSAGE_SERVICE} from 'core/serverGroup/details/serverGroupWarningMessage.service';
-import {RUNNING_TASKS_DETAILS_COMPONENT} from 'core/serverGroup/details/runningTasks.component';
-import {CLUSTER_TARGET_BUILDER} from 'core/entityTag/clusterTargetBuilder.service';
-import {ENTITY_SOURCE_COMPONENT} from 'core/entityTag/entitySource.component';
+import {
+  ACCOUNT_SERVICE,
+  CLUSTER_TARGET_BUILDER,
+  CONFIRMATION_MODAL_SERVICE,
+  OVERRIDE_REGISTRY,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER,
+} from '@spinnaker/core';
 
 require('../configure/serverGroup.configure.aws.module.js');
 
@@ -25,10 +23,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   OVERRIDE_REGISTRY,
   ACCOUNT_SERVICE,
-  VIEW_SCALING_ACTIVITIES_LINK,
-  ADD_ENTITY_TAG_LINKS_COMPONENT,
   CLUSTER_TARGET_BUILDER,
-  ENTITY_SOURCE_COMPONENT,
   require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER,
@@ -41,7 +36,6 @@ module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', 
   require('../serverGroup.transformer.js'),
   require('./scalingPolicy/addScalingPolicyButton.component.js'),
   require('./securityGroup/editSecurityGroups.modal.controller'),
-  RUNNING_TASKS_DETAILS_COMPONENT,
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
                                                      serverGroupReader, awsServerGroupCommandBuilder, $uibModal,

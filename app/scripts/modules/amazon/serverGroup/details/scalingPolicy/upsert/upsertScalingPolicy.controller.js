@@ -2,9 +2,9 @@
 
 const angular = require('angular');
 
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
+import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-require('./upsertScalingPolicy.modal.less');
+import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
   .module('spinnaker.aws.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [

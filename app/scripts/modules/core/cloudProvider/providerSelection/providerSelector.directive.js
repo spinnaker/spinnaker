@@ -1,10 +1,11 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
+
 import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {CLOUD_PROVIDER_REGISTRY} from 'core/cloudProvider/cloudProvider.registry';
 
-require('./providerSelection.modal.less');
+import './providerSelection.modal.less';
 
 module.exports = angular.module('spinnaker.providerSelection.directive', [
   ACCOUNT_SERVICE,

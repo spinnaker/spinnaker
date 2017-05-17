@@ -1,9 +1,8 @@
 'use strict';
 
-let angular = require('angular');
+const angular = require('angular');
 
-import {TASK_MONITOR_BUILDER} from 'core/task/monitor/taskMonitor.builder';
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.elasticIp.controller', [
   require('./elasticIp.write.service.js'),

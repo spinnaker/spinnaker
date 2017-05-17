@@ -1,8 +1,9 @@
-import {module} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
-import {IGceServerGroup} from 'google/domain/index';
-import {Application} from 'core/application/application.model';
-import {ConfirmationModalService} from 'core/confirmationModal/confirmationModal.service';
+import { module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+
+import { Application, ConfirmationModalService } from '@spinnaker/core';
+
+import { IGceServerGroup } from 'google/domain/index';
 
 class GceAutoHealingPolicyDetailsCtrl implements ng.IComponentController {
   public serverGroup: IGceServerGroup;

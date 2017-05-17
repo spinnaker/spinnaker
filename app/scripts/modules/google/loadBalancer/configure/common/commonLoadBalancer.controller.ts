@@ -1,10 +1,10 @@
-import {IScope} from 'angular';
-import {StateService} from 'angular-ui-router';
-import {trimEnd} from 'lodash';
+import { IScope } from 'angular';
+import { StateService } from 'angular-ui-router';
+import { trimEnd } from 'lodash';
 
-import {Application} from 'core/application/application.model';
-import {IGceLoadBalancer} from 'google/domain/loadBalancer';
-import {InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
+import { Application, InfrastructureCacheService } from '@spinnaker/core';
+
+import { IGceLoadBalancer } from 'google/domain/loadBalancer';
 
 interface IPrivateScope extends IScope {
   $$destroyed: boolean;
