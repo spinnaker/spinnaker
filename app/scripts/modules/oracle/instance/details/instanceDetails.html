@@ -1,0 +1,47 @@
+<div class="details-panel">
+  <div class="header" ng-if="state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link"
+         ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <h4 class="text-center">
+      <span us-spinner="{radius:20, width:6, length: 12}"></span>
+    </h4>
+  </div>
+  <div class="header" ng-if="!state.loading">
+    <div class="close-button" ng-if="!state.standalone">
+      <a class="btn btn-link" ui-sref="^">
+        <span class="glyphicon glyphicon-remove"></span>
+      </a>
+    </div>
+    <div class="header-text">
+      <span class="glyphicon glyphicon-hdd {{instance.healthState}}"></span>
+      <h3 select-on-dbl-click>
+        {{instance.name || instance.id || instance.instanceId}}
+      </h3>
+    </div>
+    <div class="content" ng-if="!state.loading">
+      <collapsible-section heading="Instance Information" expanded="true">
+        <dl class="dl-horizontal dl-flex">
+          <dt>Launched</dt>
+          <dd ng-if="instance.launchTime">{{instance.launchTime | timestamp}}</dd>
+          <dd ng-if="!instance.launchTime">(Unknown)</dd>
+
+          <dt ng-if="instance.availabilityZone">In</dt>
+          <dd ng-if="instance.availabilityZone">{{instance.availabilityZone}}</dd>
+
+          <dt ng-if="instance.instanceType">Type</dt>
+          <dd ng-if="instance.instanceType">{{instance.instanceType | customInstanceFilter}}</dd>
+
+          <dt ng-if="instance.serverGroup">Server Group</dt>
+          <dd ng-if="instance.serverGroup">{{instance.serverGroup}}</dd>
+
+          <dt ng-if="instance.network">Network</dt>
+          <dd ng-if="instance.network">{{instance.network}}</dd>
+        </dl>
+      </collapsible-section>
+    </div>
+  </div>
+</div>
