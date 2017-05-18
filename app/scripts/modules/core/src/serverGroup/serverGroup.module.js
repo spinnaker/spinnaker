@@ -4,6 +4,7 @@ const angular = require('angular');
 
 import { SERVER_GROUP_STATES } from './serverGroup.states';
 import './ServerGroupSearchResultFormatter';
+import { VIEW_SCALING_ACTIVITIES_LINK } from './details/scalingActivities/viewScalingActivitiesLink.component';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup', [
@@ -16,4 +17,5 @@ module.exports = angular
     require('./serverGroup.dataSource'),
     require('./configure/common/basicSettingsMixin.controller'),
     SERVER_GROUP_STATES,
+    VIEW_SCALING_ACTIVITIES_LINK
   ]);
