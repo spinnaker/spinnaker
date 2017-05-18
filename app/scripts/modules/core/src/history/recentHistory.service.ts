@@ -1,6 +1,6 @@
 import { module } from 'angular';
 import * as moment from 'moment';
-import { omit, sortBy, find } from 'lodash';
+import { omit, omitBy, isUndefined, sortBy, find } from 'lodash';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { DECK_CACHE_SERVICE, ICache, DeckCacheService } from 'core/cache/deckCache.service';
@@ -124,7 +124,7 @@ export class RecentHistoryService {
 
   private getExisting(items: IRecentHistoryEntry[], params: any, keyParams: string[]): IRecentHistoryEntry {
     if (!keyParams || !keyParams.length) {
-      return find(items, { params: params });
+      return find(items, { params: omitBy(params, isUndefined) });
     }
     return items.find(item => keyParams.every(p => item.params[p] === params[p]));
   }

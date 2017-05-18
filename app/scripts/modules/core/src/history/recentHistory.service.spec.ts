@@ -59,9 +59,9 @@ describe('recent history service', () => {
       expect(ids).toEqual(['new item', 0, 1, 2, 3]);
     });
 
-    it('removes previous entry and adds replacement if params match', () => {
+    it('removes previous entry and adds replacement if params match, ignoring undefined values', () => {
       initializeCache(3);
-      service.addItem('whatever', 'state', {id: 1});
+      service.addItem('whatever', 'state', {id: 1, someUndefinedValue: undefined});
       const ids = service.getItems('whatever').map((item) => { return item.params.id; });
       expect(ids).toEqual([1, 0, 2]);
     });
