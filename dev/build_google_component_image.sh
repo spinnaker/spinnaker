@@ -120,7 +120,7 @@ function create_component_prototype_disk() {
 
   install_script_path=$(basename $INSTALL_SCRIPT)
 
-  echo "`date`: Creating prototype instance '$BUILD_INSTANCE'"
+  echo "`date`: Creating prototype instance '$BUILD_INSTANCE' from $BASE_IMAGE."
   gcloud compute instances create $BUILD_INSTANCE \
       --project $BUILD_PROJECT \
       --account $ACCOUNT \
@@ -130,7 +130,7 @@ function create_component_prototype_disk() {
       --image $BASE_IMAGE  \
       --image-project $IMAGE_PROJECT \
       --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub \
-      --metadata block-project-ssh-keys=TRUE,startup-script="apt-get install -y git; git clone https://github.com/spinnaker/spinnaker.git"
+      --metadata block-project-ssh-keys=TRUE,startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git"
 
   trap cleanup_instances_on_error EXIT
 
@@ -146,7 +146,7 @@ function create_component_prototype_disk() {
       --machine-type n1-standard-1 \
       --image $BASE_IMAGE \
       --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub \
-      --metadata startup-script="apt-get install -y git; git clone https://github.com/spinnaker/spinnaker.git" \
+      --metadata startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git" \
       --image-project $IMAGE_PROJECT >& /dev/null&)
 
   args="--component $component --version $version"
@@ -189,6 +189,55 @@ function create_component_prototype_disk() {
 }
 
 
+function extract_clean_component_disk() {
+  local prototype_disk="$1"
+  local worker_instance="$2"
+  local output_file="$3"
+
+  if [[ $output_file != "" ]]; then
+    if [[ "$output_file" != gs://*.tar.gz ]]; then
+      echo "$output_file is not a gs:// path to a tar.gz file"
+      exit -1
+    fi
+  fi
+
+  echo "`date`: Preparing '$worker_instance'"
+  gcloud compute instances attach-disk ${worker_instance} \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --disk $prototype_disk \
+      --device-name spinnaker
+
+  echo "`date`: Cleaning in '$worker_instance'"
+  gcloud alpha compute ssh ${worker_instance} \
+      --internal-ip \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --ssh-key-file $SSH_KEY_FILE \
+      --command="sudo bash /spinnaker/dev/clean_google_image.sh spinnaker"
+
+  if [[ $output_file != "" ]]; then
+    echo "`date`: Extracting disk as tar file '$output_file.'"
+    gcloud alpha compute ssh ${worker_instance} \
+        --internal-ip \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        --ssh-key-file $SSH_KEY_FILE \
+        --command="sudo bash /spinnaker/dev/extract_disk_to_gcs.sh spinnaker $output_file"
+  fi
+
+  gcloud compute instances detach-disk ${worker_instance} \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --disk $prototype_disk
+  echo "`date`: Finished cleaning disk '$prototype_disk'."
+}
+
+
 function create_component_image() {
   local artifact=$1
   local service=$2
@@ -200,7 +249,7 @@ function create_component_image() {
   BUILD_INSTANCE="build-${TARGET_IMAGE}"
 
   create_component_prototype_disk $service $VERSION
-  extract_clean_prototype_disk "$BUILD_INSTANCE" "$CLEANER_INSTANCE"
+  extract_clean_component_disk "$BUILD_INSTANCE" "$CLEANER_INSTANCE"
   image_from_prototype_disk "$TARGET_IMAGE" "$BUILD_INSTANCE"
 
   trap - EXIT
