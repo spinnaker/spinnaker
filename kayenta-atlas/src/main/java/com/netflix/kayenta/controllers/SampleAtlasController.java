@@ -86,7 +86,7 @@ public class SampleAtlasController {
   }
 
   @RequestMapping(method = RequestMethod.GET, produces = "text/event-stream")
-  public String queryMetrics(@RequestParam final String q,
+  public String queryMetrics(@RequestParam(defaultValue = "") final String q,
                              @RequestParam(defaultValue = "0") final String s,
                              @RequestParam(defaultValue = "6000000") final String e,
                              @RequestParam(defaultValue = "PT1M") final String step) throws IOException {

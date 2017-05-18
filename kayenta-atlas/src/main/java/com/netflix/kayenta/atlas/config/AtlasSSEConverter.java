@@ -56,7 +56,7 @@ public class AtlasSSEConverter implements Converter {
         reader
           .lines()
           .filter(line -> !StringUtils.isEmpty(line))
-          .map(line -> line.split(": "))
+          .map(line -> line.split(": ", 2))
           .collect(Collectors.toList());
 
       tokenizedLines
