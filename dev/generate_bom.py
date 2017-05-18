@@ -327,7 +327,6 @@ class BomGenerator(Annotator):
   def determine_and_tag_versions(self):
     for comp in self.COMPONENTS:
       self.path = os.path.join(self.__base_dir, comp)
-      self.checkout_branch()
       self.parse_git_tree()
       self.__changelog_start_hashes[comp] = self.current_version.hash
       version_bump = self.tag_head()
