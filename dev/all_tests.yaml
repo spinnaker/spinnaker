@@ -51,16 +51,30 @@ tests:
     args:
       alias: [standard_google_provider_params]
 
-  google_server_group_test:
+  google_zonal_server_group_test:
     requires:
       configuration:
         google_account_enabled: true
       services: [clouddriver, front50, gate, orca]
     quota:
       google_cpu: 3
+    path: citest/tests/google_server_group_test.py
     api: gate
     args:
       alias: [standard_google_provider_params]
+
+  google_regional_server_group_test:
+    requires:
+      configuration:
+        google_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    quota:
+      google_cpu: 3
+    path: citest/tests/google_server_group_test.py
+    api: gate
+    args:
+      alias: [standard_google_provider_params]
+      regional: true
 
   google_smoke_test:
     requires:

@@ -359,7 +359,7 @@ class ValidateBomTestController(object):
     self.__failed = []  # Resulted in failure
     self.__skipped = []  # Will not run at all
     self.__test_suite = yaml.safe_load(file(options.test_profiles, 'r'))
-    num_concurrent = len(self.__test_suite)
+    num_concurrent = len(self.__test_suite.get('tests')) or 1
     num_concurrent = int(min(num_concurrent,
                              options.test_concurrency or num_concurrent))
     self.__semaphore = threading.Semaphore(num_concurrent)
@@ -673,8 +673,10 @@ class ValidateBomTestController(object):
 
     testing_root_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'testing'))
-    test_path = spec.get('path') or os.path.join(
-        testing_root_dir, 'citest', 'tests', '{0}.py'.format(test_name))
+    test_rel_path = spec.get('path') or os.path.join(
+        'citest', 'tests', '{0}.py'.format(test_name))
+    test_path = os.path.join(testing_root_dir, test_rel_path)
+
     citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
     if not os.path.exists(citest_log_dir):
       os.makedirs(citest_log_dir)
