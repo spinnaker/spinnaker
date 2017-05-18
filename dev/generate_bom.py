@@ -294,7 +294,7 @@ class BomGenerator(Annotator):
         self.__hal_upload_profile(component, self.__bom_file, full_profile)
       elif os.path.isdir(full_profile):
         tar_path = '{0}.tar.gz'.format(full_profile)
-        result = run_quick('tar -cvf {0} {1}/*'.format(tar_path, full_profile))
+        result = run_quick('tar -cvf {0} -C {1} $(ls {1})'.format(tar_path, full_profile))
         if result.returncode != 0:
           print "Creating a tar archive of '{0}/*' failed with \n{1}\nexiting...".format(full_profile, result.stdout)
           exit(result.returncode)
