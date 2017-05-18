@@ -36,6 +36,7 @@ public class PipelineTemplate implements VersionedSchema {
   private Configuration configuration;
   private List<StageDefinition> stages;
   private List<TemplateModule> modules;
+  private List<PartialDefinition> partials = new ArrayList<>();
 
   public static class Metadata {
     private String name;
@@ -255,6 +256,14 @@ public class PipelineTemplate implements VersionedSchema {
 
   public void setModules(List<TemplateModule> modules) {
     this.modules = modules;
+  }
+
+  public List<PartialDefinition> getPartials() {
+    return partials;
+  }
+
+  public void setPartials(List<PartialDefinition> partials) {
+    this.partials = partials;
   }
 
   public void accept(PipelineTemplateVisitor visitor) {

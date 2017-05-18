@@ -24,4 +24,6 @@ public interface RenderContext {
   void setLocation(String location);
 
   String getLocation();
+
+  RenderContext copy();
 }

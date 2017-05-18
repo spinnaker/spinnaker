@@ -25,6 +25,11 @@ public class DefaultRenderContext implements RenderContext {
   private Map<String, Object> variables = new HashMap<>();
   private String location;
 
+  private DefaultRenderContext(DefaultRenderContext source) {
+    this.variables = new HashMap<>(source.getVariables());
+    this.location = source.getLocation();
+  }
+
   public DefaultRenderContext(String application, PipelineTemplate pipelineTemplate, Map<String, Object> trigger) {
     variables.put("application", application);
     variables.put("pipelineTemplate", pipelineTemplate);
@@ -44,5 +49,10 @@ public class DefaultRenderContext implements RenderContext {
   @Override
   public String getLocation() {
     return location;
+  }
+
+  @Override
+  public RenderContext copy() {
+    return new DefaultRenderContext(this);
   }
 }

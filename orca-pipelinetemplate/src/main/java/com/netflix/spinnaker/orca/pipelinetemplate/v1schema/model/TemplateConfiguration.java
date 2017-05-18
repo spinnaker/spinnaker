@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -32,6 +33,7 @@ public class TemplateConfiguration implements VersionedSchema {
   private PipelineConfiguration configuration = new PipelineConfiguration();
   private List<StageDefinition> stages;
   private List<TemplateModule> modules;
+  private List<PartialDefinition> partials = new ArrayList<>();
 
   private final String runtimeId = UUID.randomUUID().toString();
 
@@ -215,5 +217,13 @@ public class TemplateConfiguration implements VersionedSchema {
 
   public void setModules(List<TemplateModule> modules) {
     this.modules = modules;
+  }
+
+  public List<PartialDefinition> getPartials() {
+    return partials;
+  }
+
+  public void setPartials(List<PartialDefinition> partials) {
+    this.partials = partials;
   }
 }

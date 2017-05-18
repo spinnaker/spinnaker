@@ -17,6 +17,7 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.IllegalTemplateConfigurationException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InjectionRule;
@@ -55,6 +56,7 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
 
   @Override
   public void visitPipelineTemplate(PipelineTemplate pipelineTemplate) {
+    expandStagePartials(pipelineTemplate);
     replaceStages(pipelineTemplate);
     injectStages(pipelineTemplate);
     trimConditionals(pipelineTemplate);
@@ -70,6 +72,55 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
         }
       }
     }
+  }
+
+  private void expandStagePartials(PipelineTemplate pipelineTemplate) {
+    List<StageDefinition> addStages = new ArrayList<>();
+    List<StageDefinition> templateStages = pipelineTemplate.getStages();
+
+    // For each "partial" type stage in the graph, inject its internal stage graph into the main template, then
+    // delete the "partial" type stages. Root-level partial stages will inherit the placeholder's dependsOn values,
+    // and stages that had dependsOn references to the placeholder will be reassigned to partial leaf nodes.
+    templateStages.stream().filter(StageDefinition::isPartialType).forEach(partialPlaceholder -> {
+      PartialDefinition partial = pipelineTemplate.getPartials().stream()
+        .filter(p -> p.getRenderedPartials().containsKey(partialPlaceholder.getId()))
+        .findFirst()
+        .orElseThrow(() -> new IllegalTemplateConfigurationException(String.format("Could not find rendered partial: %s", partialPlaceholder.getId())));
+
+      List<StageDefinition> stages = partial.getRenderedPartials().get(partialPlaceholder.getId());
+
+      // Create a graph so we can find the leaf nodes
+      createGraph(stages);
+
+      // get leaf nodes of the partial
+      Map<String, StageDefinition> graph = stages
+        .stream()
+        .collect(
+          Collectors.toMap(StageDefinition::getId, i -> i)
+        );
+      Set<String> leafNodes = getLeafNodes(graph);
+
+      // assign root nodes to placeholder's dependsOn value
+      stages.stream()
+        .filter(s -> s.getDependsOn().isEmpty())
+        .forEach(s -> s.setDependsOn(partialPlaceholder.getDependsOn()));
+
+      // And assign them as the dependsOn of the placeholder partial stage
+      templateStages.stream()
+        .filter(s -> s.getDependsOn().contains(partialPlaceholder.getId()))
+        .forEach(s -> {
+          s.getDependsOn().remove(partialPlaceholder.getId());
+          s.getDependsOn().addAll(leafNodes);
+        });
+
+      addStages.addAll(stages);
+    });
+
+    // Add partial stages into template stages list
+    templateStages.addAll(addStages);
+
+    // Remove placeholder partial stages
+    templateStages.removeIf(StageDefinition::isPartialType);
   }
 
   private void injectStages(PipelineTemplate pipelineTemplate) {
@@ -311,5 +362,21 @@ public class ConfigStageInjectionTransform implements PipelineTemplateVisitor {
       .orElseThrow(() -> new IllegalTemplateConfigurationException(
         String.format("could not inject '%s' stage: unknown target stage id '%s'", stageId, targetId)
       ));
+  }
+
+  private static Set<String> getLeafNodes(Map<String, StageDefinition> graph) {
+    Map<String, Integer> outOrder = new HashMap<>();
+    Set<StageDefinition> sorted = new LinkedHashSet<>();
+    Map<String, Status> state = new HashMap<>();
+
+    // leaf nodes are stages with outOrder 0
+    graph.keySet().forEach(k -> outOrder.put(k, 0));
+    graph.forEach((k, v) -> dfs(k, sorted, state, graph, outOrder));
+
+    return sorted
+      .stream()
+      .filter(i -> outOrder.get(i.getId()) == 0)
+      .map(StageDefinition::getId)
+      .collect(Collectors.toSet());
   }
 }

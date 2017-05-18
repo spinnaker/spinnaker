@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.NamedHashMap
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Configuration
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable
@@ -152,6 +153,68 @@ class RenderTransformSpec extends Specification {
       ]
     ]
     findStage(template, 'deploy').name == 'Deploy to Env'
+  }
+
+  def 'should render partials'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 'foo',
+          type: 'partial.myPartial',
+          config: [
+            waitTime: 5
+          ]
+        ),
+        new StageDefinition(
+          id: 'bar',
+          type: 'partial.myPartial',
+          config: [
+            waitTime: 10
+          ]
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          id: 'myPartial',
+          variables: [
+            new NamedHashMap().with {
+              put('name', 'waitTime')
+              it
+            }
+          ],
+          stages: [
+            new StageDefinition(
+              id: 'wait',
+              type: 'wait',
+              config: [
+                waitTime: '{{ waitTime }}'
+              ]
+            )
+          ]
+        )
+      ]
+    )
+    TemplateConfiguration configuration = new TemplateConfiguration(
+      id: 'myConfig',
+      schema: '1',
+      pipeline: new PipelineDefinition(
+        application: 'orca',
+        name: 'Wait',
+        variables: [:]
+      ),
+      configuration: new PipelineConfiguration()
+    )
+
+    when:
+    new RenderTransform(configuration, renderer, registry, [:]).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.partials[0].renderedPartials['foo']*.id == ['foo.wait']
+    template.partials[0].renderedPartials['foo']*.config == [[waitTime: 5]]
+    template.partials[0].renderedPartials['bar']*.id == ['bar.wait']
+    template.partials[0].renderedPartials['bar']*.config == [[waitTime: 10]]
   }
 
   StageDefinition findStage(PipelineTemplate template, String id) {

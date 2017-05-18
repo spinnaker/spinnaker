@@ -17,29 +17,31 @@ package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.LinkedHashSet;
 
-public class StageDefinition implements Identifiable, Conditional {
+public class StageDefinition implements Identifiable, Conditional, Cloneable {
 
   private String id;
   private String name;
   private InjectionRule inject;
-  private Set<String> dependsOn;
+  private Set<String> dependsOn = new LinkedHashSet<>();
   private String type;
   private Map<String, Object> config;
-  private List<Map<String, Object>> notifications;
+  private List<Map<String, Object>> notifications = new ArrayList<>();
   private String comments;
-  private List<String> when;
+  private List<String> when = new ArrayList<>();
   private InheritanceControl inheritanceControl;
   private Boolean removed = false;
 
   private Set<String> requisiteStageRefIds = new LinkedHashSet<>();
 
-  public static class InjectionRule {
+  public static class InjectionRule implements Cloneable {
 
     private Boolean first = false;
     private Boolean last = false;
@@ -98,9 +100,14 @@ public class StageDefinition implements Identifiable, Conditional {
       }
       return count > 1;
     }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+      return super.clone();
+    }
   }
 
-  public static class InheritanceControl {
+  public static class InheritanceControl implements Cloneable {
 
     private Collection<Rule> merge;
     private Collection<Rule> replace;
@@ -150,6 +157,11 @@ public class StageDefinition implements Identifiable, Conditional {
     public void setRemove(Collection<Rule> remove) {
       this.remove = remove;
     }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+      return super.clone();
+    }
   }
 
   @Override
@@ -178,7 +190,7 @@ public class StageDefinition implements Identifiable, Conditional {
   }
 
   public Set<String> getDependsOn() {
-    return Optional.ofNullable(dependsOn).orElse(new LinkedHashSet<>());
+    return dependsOn;
   }
 
   public void setDependsOn(Set<String> dependsOn) {
@@ -249,6 +261,28 @@ public class StageDefinition implements Identifiable, Conditional {
 
   public void setRequisiteStageRefIds(Set<String> requisiteStageRefIds) {
     this.requisiteStageRefIds = requisiteStageRefIds;
+  }
+
+  public boolean isPartialType() {
+    return type != null && type.startsWith("partial.");
+  }
+
+  public String getPartialId() {
+    if (type == null) {
+      return null;
+    }
+    String[] bits = type.split("\\.");
+    return bits[bits.length - 1];
+  }
+
+  @Override
+  public Object clone() throws CloneNotSupportedException {
+    StageDefinition stage = (StageDefinition) super.clone();
+    stage.setDependsOn(new LinkedHashSet<>(getDependsOn()));
+    stage.setConfig(new HashMap<>(getConfig()));
+    Collections.copy(stage.getNotifications(), getNotifications());
+    Collections.copy(stage.getWhen(), getWhen());
+    return stage;
   }
 
   @Override

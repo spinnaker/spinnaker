@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.graph.transform
 
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition.InjectionRule
@@ -208,6 +209,53 @@ class ConfigStageInjectionTransformSpec extends Specification {
 
     then:
     template.stages*.id == ['s1', 's2']
+  }
+
+  def 'should expand stage partials'() {
+    given:
+    PipelineTemplate template = new PipelineTemplate(
+      stages: [
+        new StageDefinition(
+          id: 's1',
+          type: 'partial.foo',
+          config: [:],
+        ),
+        new StageDefinition(
+          id: 's2',
+          type: 'wait',
+          dependsOn: ['s1'],
+          config: [:]
+        )
+      ],
+      partials: [
+        new PartialDefinition(
+          renderedPartials: [
+            's1': [
+              new StageDefinition(
+                id: 's1.p1',
+                type: 'wait',
+                config: [:]
+              ),
+              new StageDefinition(
+                id: 's1.p2',
+                type: 'wait',
+                dependsOn: ['s1.p1'],
+                config: [:]
+              )
+            ]
+          ]
+        )
+      ]
+    )
+
+    when:
+    new ConfigStageInjectionTransform(new TemplateConfiguration()).visitPipelineTemplate(template)
+
+    then:
+    noExceptionThrown()
+    template.stages.size() == 3
+    template.stages*.id == ['s1.p1', 's1.p2', 's2']
+    template.stages[2].dependsOn == ['s1.p2'] as Set
   }
 
   static StageDefinition getStageById(String id, List<StageDefinition> allStages) {
