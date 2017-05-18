@@ -39,7 +39,7 @@ import java.util.Map;
 @Data
 @Component
 abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
-  private static String roscoPackerPath = "/opt/rosco/config/packer";
+  private static String roscoConfigPath = "/opt/rosco/config";
 
   @Autowired
   RoscoProfileFactory roscoProfileFactory;
@@ -71,7 +71,7 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
     Profile profile = roscoProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
-    profiles.addAll(prefixProfileBuilder.build(deploymentConfiguration, roscoPackerPath, getArtifact(), "packer.tar.gz"));
+    profiles.addAll(prefixProfileBuilder.build(deploymentConfiguration, roscoConfigPath, getArtifact(), "packer"));
     return profiles;
   }
 

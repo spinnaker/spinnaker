@@ -49,7 +49,7 @@ public class RegistryBackedArchiveProfileBuilder {
 
   public List<Profile> build(DeploymentConfiguration deploymentConfiguration, String baseOutputPath, SpinnakerArtifact artifact, String archiveName) {
     String version = artifactService.getArtifactVersion(deploymentConfiguration.getName(), artifact);
-    String archiveObjectName = ProfileRegistry.profilePath(artifact.getName(), version, archiveName);
+    String archiveObjectName = ProfileRegistry.profilePath(artifact.getName(), version, archiveName + ".tar.gz");
 
     InputStream is;
     try {
@@ -75,8 +75,9 @@ public class RegistryBackedArchiveProfileBuilder {
           continue;
         }
 
-        String name = String.join("/", artifact.getName(), profileEntry.getName());
-        String outputPath = Paths.get(baseOutputPath, name).toString();
+        String entryName = profileEntry.getName();
+        String profileName = String.join("/", artifact.getName(), archiveName, entryName);
+        String outputPath = Paths.get(baseOutputPath, archiveName, entryName).toString();
         String contents = IOUtils.toString(tis);
 
         result.add((new ProfileFactory() {
@@ -109,7 +110,7 @@ public class RegistryBackedArchiveProfileBuilder {
           protected String commentPrefix() {
             return null;
           }
-        }).getProfile(name, outputPath, deploymentConfiguration, null));
+        }).getProfile(profileName, outputPath, deploymentConfiguration, null));
 
         profileEntry = tis.getNextEntry();
       }
