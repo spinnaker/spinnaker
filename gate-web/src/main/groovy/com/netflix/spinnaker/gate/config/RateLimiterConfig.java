@@ -16,9 +16,13 @@
 package com.netflix.spinnaker.gate.config;
 
 import com.netflix.spinnaker.gate.ratelimit.RateLimiter;
+import com.netflix.spinnaker.gate.ratelimit.RateLimitPrincipalProvider;
+import com.netflix.spinnaker.gate.ratelimit.RedisRateLimitPrincipalProvider;
 import com.netflix.spinnaker.gate.ratelimit.RedisRateLimiter;
+import com.netflix.spinnaker.gate.ratelimit.StaticRateLimitPrincipalProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import redis.clients.jedis.JedisPool;
@@ -33,11 +37,18 @@ public class RateLimiterConfig {
   @Bean
   @ConditionalOnExpression("${rateLimit.redis.enabled:false}")
   RateLimiter redisRateLimiter(JedisPool jedisPool) {
-    return new RedisRateLimiter(
-      jedisPool,
-      rateLimiterConfiguration.capacity,
-      rateLimiterConfiguration.rateSeconds,
-      rateLimiterConfiguration.capacityByPrincipal
-    );
+    return new RedisRateLimiter(jedisPool);
+  }
+
+  @Bean
+  @ConditionalOnExpression("${rateLimit.redis.enabled:false}")
+  RateLimitPrincipalProvider redisRateLimiterPrincipalProvider(JedisPool jedisPool) {
+    return new RedisRateLimitPrincipalProvider(jedisPool, rateLimiterConfiguration);
+  }
+
+  @Bean
+  @ConditionalOnMissingBean(RateLimitPrincipalProvider.class)
+  RateLimitPrincipalProvider staticRateLimiterPrincipalProvider() {
+    return new StaticRateLimitPrincipalProvider(rateLimiterConfiguration);
   }
 }

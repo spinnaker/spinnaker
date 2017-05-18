@@ -16,7 +16,6 @@
 package com.netflix.spinnaker.gate.ratelimit
 
 import com.netflix.spinnaker.gate.redis.EmbeddedRedis
-import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
 import spock.lang.Shared
@@ -42,10 +41,13 @@ class RedisRateLimiterSpec extends Specification {
 
   def 'should create new bucket for unknown principal'() {
     given:
-    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool, 10, 10, [:])
+    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool)
+
+    and:
+    RateLimitPrincipal principal = new RateLimitPrincipal('user@example.com', 10, 10, true)
 
     when:
-    Rate rate = subject.incrementAndGetRate('user@example.com')
+    Rate rate = subject.incrementAndGetRate(principal)
 
     then:
     noExceptionThrown()
@@ -57,10 +59,13 @@ class RedisRateLimiterSpec extends Specification {
 
   def 'should fill bucket after expiry'() {
     given:
-    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool, 10, 1, [:])
+    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool)
+
+    and:
+    RateLimitPrincipal principal = new RateLimitPrincipal('user@example.com', 1, 10, true)
 
     when:
-    Rate rate = subject.incrementAndGetRate('user@example.com')
+    Rate rate = subject.incrementAndGetRate(principal)
 
     then:
     noExceptionThrown()
@@ -68,7 +73,7 @@ class RedisRateLimiterSpec extends Specification {
     rate.remaining == 9
 
     when:
-    rate = subject.incrementAndGetRate('user@example.com')
+    rate = subject.incrementAndGetRate(principal)
 
     then:
     rate.capacity == 10
@@ -76,7 +81,7 @@ class RedisRateLimiterSpec extends Specification {
 
     when:
     sleep(1000)
-    rate = subject.incrementAndGetRate('user@example.com')
+    rate = subject.incrementAndGetRate(principal)
 
     then:
     rate.remaining == 9
@@ -84,65 +89,31 @@ class RedisRateLimiterSpec extends Specification {
 
   def 'should throttle after bucket empties'() {
     given:
-    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool, 3, 1, [:])
+    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool)
+
+    and:
+    RateLimitPrincipal principal = new RateLimitPrincipal('user@example.com', 1, 3, true)
 
     when:
-    subject.incrementAndGetRate('user@example.com')
-    Rate rate = subject.incrementAndGetRate('user@example.com')
+    subject.incrementAndGetRate(principal)
+    Rate rate = subject.incrementAndGetRate(principal)
 
     then:
     rate.remaining == 1
     !rate.throttled
 
     when:
-    rate = subject.incrementAndGetRate('user@example.com')
+    rate = subject.incrementAndGetRate(principal)
 
     then:
     rate.remaining == 0
     !rate.throttled
 
     when:
-    rate = subject.incrementAndGetRate('user@example.com')
+    rate = subject.incrementAndGetRate(principal)
 
     then:
     rate.remaining == 0
     rate.throttled
-  }
-
-  def 'should allow static and dynamic capacity overrides'() {
-    given:
-    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool, 3, 1, [
-      'foo': 5
-    ])
-
-    Jedis jedis = embeddedRedis.pool.resource
-    jedis.set("rateLimit:capacity:bar", "8")
-    jedis.set("rateLimit:capacity:invalid", "hello")
-
-    expect:
-    subject.getCapacity(jedis, 'no-override') == 3
-    subject.getCapacity(jedis, 'foo') == 5
-    subject.getCapacity(jedis, 'bar') == 8
-    subject.getCapacity(jedis, 'invalid') == 3
-
-    cleanup:
-    jedis.close()
-  }
-
-  def 'should use same capacity override for all anonymous principals'() {
-    given:
-    RedisRateLimiter subject = new RedisRateLimiter((JedisPool) embeddedRedis.pool, 3, 1, [
-      'anonymous': 5
-    ])
-
-    Jedis jedis = embeddedRedis.pool.resource
-
-    expect:
-    subject.getCapacity(jedis, 'foo') == 3
-    subject.getCapacity(jedis, 'anonymous') == 5
-    subject.getCapacity(jedis, 'anonymous-10.10.10.10') == 5
-
-    cleanup:
-    jedis.close()
   }
 }

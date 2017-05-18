@@ -15,7 +15,33 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
-public interface RateLimiter {
+public class RateLimitPrincipal {
 
-  Rate incrementAndGetRate(RateLimitPrincipal principal);
+  private final String name;
+  private final int rateSeconds;
+  private final int capacity;
+  private final boolean learning;
+
+  public RateLimitPrincipal(String name, int rateSeconds, int capacity, boolean learning) {
+    this.name = name;
+    this.rateSeconds = rateSeconds;
+    this.capacity = capacity;
+    this.learning = learning;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public int getRateSeconds() {
+    return rateSeconds;
+  }
+
+  public int getCapacity() {
+    return capacity;
+  }
+
+  public boolean isLearning() {
+    return learning;
+  }
 }

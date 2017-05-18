@@ -59,7 +59,7 @@ class RateLimitingInterceptorSpec extends Specification {
       it.ignoring = ['bar@example.com']
       return it
     }
-    def subject = new RateLimitingInterceptor(rateLimiter, registry, config)
+    def subject = new RateLimitingInterceptor(rateLimiter, registry, new StaticRateLimitPrincipalProvider(config))
 
     and:
     def request = Mock(HttpServletRequest)

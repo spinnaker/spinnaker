@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
-public interface RateLimiter {
+public interface RateLimitPrincipalProvider {
 
-  Rate incrementAndGetRate(RateLimitPrincipal principal);
+  RateLimitPrincipal getPrincipal(String name);
 }

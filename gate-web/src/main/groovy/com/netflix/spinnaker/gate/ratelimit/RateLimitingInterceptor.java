@@ -17,7 +17,6 @@ package com.netflix.spinnaker.gate.ratelimit;
 
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
-import com.netflix.spinnaker.gate.config.RateLimiterConfiguration;
 import com.netflix.spinnaker.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,35 +36,37 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   private static String UNKNOWN_PRINCIPAL = "unknown";
 
-  RateLimiter rateLimiter;
-  RateLimiterConfiguration rateLimiterConfiguration;
+  private RateLimiter rateLimiter;
+  private RateLimitPrincipalProvider rateLimitPrincipalProvider;
 
   private Counter throttlingCounter;
+  private Counter learningThrottlingCounter;
 
-  public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, RateLimiterConfiguration rateLimiterConfiguration) {
+  public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, RateLimitPrincipalProvider rateLimitPrincipalProvider) {
     this.rateLimiter = rateLimiter;
-    this.rateLimiterConfiguration = rateLimiterConfiguration;
+    this.rateLimitPrincipalProvider = rateLimitPrincipalProvider;
     throttlingCounter = registry.counter("rateLimit.throttling");
+    learningThrottlingCounter = registry.counter("rateLimit.throttlingLearning");
   }
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-    String principal = getPrincipal(request).toString();
-    if (UNKNOWN_PRINCIPAL.equals(principal)) {
+    String principalName = getPrincipal(request).toString();
+    if (UNKNOWN_PRINCIPAL.equals(principalName)) {
       // Occurs when Spring decides to dispatch to /error after we send the initial 429.
       // Pass through so that the JSON error body gets rendered.
       return true;
     }
 
+    RateLimitPrincipal principal = rateLimitPrincipalProvider.getPrincipal(principalName);
+
     Rate rate = rateLimiter.incrementAndGetRate(principal);
 
-    boolean learning = isLearning(principal);
+    rate.assignHttpHeaders(response, principal.isLearning());
 
-    rate.assignHttpHeaders(response, learning);
-
-    if (learning) {
+    if (principal.isLearning()) {
       if (rate.isThrottled()) {
-        throttlingCounter.increment();
+        learningThrottlingCounter.increment();
         log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)", principal, rate.rateSeconds, rate.capacity);
       }
       return true;
@@ -115,9 +116,5 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       return request.getRemoteAddr();
     }
     return ip;
-  }
-
-  private boolean isLearning(String principal) {
-    return !rateLimiterConfiguration.getEnforcing().contains(principal) && (rateLimiterConfiguration.getIgnoring().contains(principal) || rateLimiterConfiguration.isLearning());
   }
 }

@@ -19,9 +19,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Component
 @ConfigurationProperties("rateLimit")
@@ -50,7 +48,12 @@ public class RateLimiterConfiguration {
    * you want to give a specific principal more or less capacity per
    * rateSeconds than the default.
    */
-  Map<String, Integer> capacityByPrincipal = new HashMap<>();
+  List<PrincipalOverride> capacityByPrincipal = new ArrayList<>();
+
+  /**
+   * A principal-specific rate override map.
+   */
+  List<PrincipalOverride> rateSecondsByPrincipal = new ArrayList<>();
 
   /**
    * A list of principals whose capacities are being enforced. This
@@ -67,6 +70,22 @@ public class RateLimiterConfiguration {
    */
   List<String> ignoring = new ArrayList<>();
 
+  public int getCapacity() {
+    return capacity;
+  }
+
+  public int getRateSeconds() {
+    return rateSeconds;
+  }
+
+  public List<PrincipalOverride> getCapacityByPrincipal() {
+    return capacityByPrincipal;
+  }
+
+  public List<PrincipalOverride> getRateSecondsByPrincipal() {
+    return rateSecondsByPrincipal;
+  }
+
   public boolean isLearning() {
     return learning;
   }
@@ -77,5 +96,19 @@ public class RateLimiterConfiguration {
 
   public List<String> getIgnoring() {
     return ignoring;
+  }
+
+  // Spring doesn't enjoy principals that have dots in their name, so it can't be a map.
+  public static class PrincipalOverride {
+    String principal;
+    Integer override;
+
+    public String getPrincipal() {
+      return principal;
+    }
+
+    public Integer getOverride() {
+      return override;
+    }
   }
 }
