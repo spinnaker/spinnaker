@@ -12,7 +12,7 @@ export interface IClusterSearchResult extends ISearchResult {
 
 export class ClusterSearchResultFormatter implements ISearchResultFormatter {
 
-  public get displayName() { return 'Server Groups'; }
+  public get displayName() { return 'Clusters'; }
   public get order() { return 2; }
   public get icon() { return 'th'; }
   public displayFormatter(searchResult: IClusterSearchResult): IPromise<string> {
