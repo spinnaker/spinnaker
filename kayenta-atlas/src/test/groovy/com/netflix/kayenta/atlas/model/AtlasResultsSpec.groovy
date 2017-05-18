@@ -31,7 +31,7 @@ class AtlasResultsSpec extends Specification {
       .start(0)
       .step(60)
       .end(60)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3]).build())
+      .data(TimeseriesData.dummy("array", 3))
       .build()
 
   @Shared
@@ -44,7 +44,7 @@ class AtlasResultsSpec extends Specification {
       .start(0)
       .step(60)
       .end(60)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3]).build())
+      .data(TimeseriesData.dummy("array", 3))
       .build()
 
   @Shared
@@ -57,7 +57,7 @@ class AtlasResultsSpec extends Specification {
       .start(60)
       .step(60)
       .end(120)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3]).build())
+      .data(TimeseriesData.dummy("array", 3))
       .build()
 
   @Shared
@@ -70,7 +70,7 @@ class AtlasResultsSpec extends Specification {
       .start(120)
       .step(60)
       .end(240)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3]).build())
+      .data(TimeseriesData.dummy("array", 3))
       .build()
 
   @Shared
@@ -83,7 +83,7 @@ class AtlasResultsSpec extends Specification {
       .start(300)
       .step(60)
       .end(420)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3]).build())
+      .data(TimeseriesData.dummy("array", 3))
       .build()
 
   @Shared
@@ -96,7 +96,7 @@ class AtlasResultsSpec extends Specification {
       .start(300)
       .step(60)
       .end(420)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3]).build())
+      .data(TimeseriesData.dummy("array", 3))
       .build()
 
   @Shared
@@ -109,7 +109,7 @@ class AtlasResultsSpec extends Specification {
       .start(0)
       .step(60)
       .end(120)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3, 1, 2, 3]).build())
+      .data(TimeseriesData.builder().type("array").values([1.0d, 2.0d, 3.0d, 1.0d, 2.0d, 3.0d]).build())
       .build()
 
   @Shared
@@ -122,7 +122,7 @@ class AtlasResultsSpec extends Specification {
       .start(0)
       .step(60)
       .end(240)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3, Double.NaN, 1, 2, 3]).build())
+      .data(TimeseriesData.builder().type("array").values([1.0d, 2.0d, 3.0d, Double.NaN, 1.0d, 2.0d, 3.0d]).build())
       .build()
 
   @Shared
@@ -135,7 +135,7 @@ class AtlasResultsSpec extends Specification {
       .start(0)
       .step(60)
       .end(420)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3, Double.NaN, Double.NaN, Double.NaN, Double.NaN, 1, 2, 3]).build())
+      .data(TimeseriesData.builder().type("array").values([1.0d, 2.0d, 3.0d, Double.NaN, Double.NaN, Double.NaN, Double.NaN, 1.0d, 2.0d, 3.0d]).build())
       .build()
 
   @Shared
@@ -148,7 +148,7 @@ class AtlasResultsSpec extends Specification {
       .start(0)
       .step(60)
       .end(420)
-      .data(TimeseriesData.builder().type("array").values([1, 2, 3, Double.NaN, Double.NaN, Double.NaN, Double.NaN, 1, 2, 3]).build())
+      .data(TimeseriesData.builder().type("array").values([1.0d, 2.0d, 3.0d, Double.NaN, Double.NaN, Double.NaN, Double.NaN, 1.0d, 2.0d, 3.0d]).build())
       .build()
 
   void "should merge two"() {
