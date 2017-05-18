@@ -96,7 +96,7 @@ class AmazonReservationReport implements ReservationReport {
     @JsonView(Views.V1.class)
     AtomicInteger totalUsed = new AtomicInteger(0)
 
-    AtomicInteger totalAllocated = new AtomicInteger(0)
+    AtomicInteger totalRegionalReserved = new AtomicInteger(0)
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonView(Views.V1.class)
@@ -104,7 +104,7 @@ class AmazonReservationReport implements ReservationReport {
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonView(Views.V3.class)
-    List<Allocation> allocations = []
+    List<Allocation> regionalReservedAllocations = []
 
     @JsonProperty
     @JsonView(Views.V3.class)
@@ -115,14 +115,14 @@ class AmazonReservationReport implements ReservationReport {
     @JsonProperty
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonView(Views.V3.class)
-    Integer totalAllocated() {
-      return totalAllocated.intValue()
+    Integer totalRegionalReserved() {
+      return totalRegionalReserved.intValue()
     }
 
     @JsonProperty
     @JsonView(Views.V1.class)
     int totalSurplus() {
-      return (totalReserved.intValue() + totalAllocated.intValue() - totalUsed.intValue())
+      return (totalReserved.intValue() + totalRegionalReserved.intValue() - totalUsed.intValue())
     }
 
     @JsonProperty

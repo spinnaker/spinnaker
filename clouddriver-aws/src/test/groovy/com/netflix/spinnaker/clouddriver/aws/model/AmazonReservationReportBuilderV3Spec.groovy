@@ -42,10 +42,10 @@ class AmazonReservationReportBuilderV3Spec extends Specification {
 
     // took 4 * xlarge to partially cover shortfall (4 * xlarge == 1 * 4xlarge)
     regional.totalSurplus() == 1
-    regional.totalAllocated() == -4
+    regional.totalRegionalReserved() == -4
 
     shortfall.totalSurplus() == -1
-    shortfall.totalAllocated() == 1
+    shortfall.totalRegionalReserved() == 1
   }
 
   void "should fully cover a shortfall"() {
@@ -61,10 +61,10 @@ class AmazonReservationReportBuilderV3Spec extends Specification {
 
     // took 8 * 4xlarge to fully cover shortfall (8 * xlarge == 2 * 4xlarge)
     regional.totalSurplus() == 2
-    regional.totalAllocated() == -8
+    regional.totalRegionalReserved() == -8
 
     shortfall.totalSurplus() == 0
-    shortfall.totalAllocated() == 2
+    shortfall.totalRegionalReserved() == 2
   }
 
   void "unable to cover any shortfall"() {
@@ -80,10 +80,10 @@ class AmazonReservationReportBuilderV3Spec extends Specification {
 
     // took 8 * 4xlarge to fully cover shortfall (8 * xlarge == 2 * 4xlarge)
     regional.totalSurplus() == 1
-    regional.totalAllocated() == 0
+    regional.totalRegionalReserved() == 0
 
     shortfall.totalSurplus() == -2
-    shortfall.totalAllocated() == 0
+    shortfall.totalRegionalReserved() == 0
   }
 
   @Unroll

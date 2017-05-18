@@ -194,8 +194,8 @@ interface AmazonReservationReportBuilder {
         // we have more instances than necessary to cover the shortfall
         int targetInstanceQuantity = sourceInstancesNeeded / multiplier
 
-        regional.totalAllocated.addAndGet(-1 * sourceInstancesNeeded)
-        shortfall.totalAllocated.addAndGet(targetInstanceQuantity)
+        regional.totalRegionalReserved.addAndGet(-1 * sourceInstancesNeeded)
+        shortfall.totalRegionalReserved.addAndGet(targetInstanceQuantity)
 
         def allocation = new AmazonReservationReport.Allocation(
           source: regional.id(),
@@ -207,16 +207,16 @@ interface AmazonReservationReportBuilder {
           index: allocationIndex.incrementAndGet()
         )
 
-        regional.allocations << allocation
-        shortfall.allocations << allocation
+        regional.regionalReservedAllocations << allocation
+        shortfall.regionalReservedAllocations << allocation
       } else {
         // determine how much shortfall can be covered as surplus not large enough to cover everything
         // (may not be entirety of surplus depending on multiplier)
         int targetInstanceQuantity = Math.floor(regional.totalSurplus() / multiplier)
 
         if (targetInstanceQuantity > 0) {
-          regional.totalAllocated.addAndGet(-1 * (int) (targetInstanceQuantity * multiplier))
-          shortfall.totalAllocated.addAndGet(targetInstanceQuantity)
+          regional.totalRegionalReserved.addAndGet(-1 * (int) (targetInstanceQuantity * multiplier))
+          shortfall.totalRegionalReserved.addAndGet(targetInstanceQuantity)
 
           def allocation = new AmazonReservationReport.Allocation(
             source: regional.id(),
@@ -228,8 +228,8 @@ interface AmazonReservationReportBuilder {
             index: allocationIndex.incrementAndGet()
           )
 
-          regional.allocations << allocation
-          shortfall.allocations << allocation
+          regional.regionalReservedAllocations << allocation
+          shortfall.regionalReservedAllocations << allocation
         }
       }
     }
