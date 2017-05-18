@@ -151,6 +151,14 @@ html {
       .dl-wide;
     }
   }
+  &.filters-collapsed {
+    .nav {
+      .content, .heading {
+        margin-left: -260px;
+        width: 260px;
+      }
+    }
+  }
   &.filters-expanded {
     .detail-content {
       @media(min-width: 768px) and (max-width: 992px) {
@@ -195,7 +203,6 @@ html {
   }
   .nav {
     overflow-x: hidden;
-    transition: width 0.25s linear;
     position: relative;
     width: 39px;
     padding-top: 5px;
@@ -211,11 +218,6 @@ html {
     .unpin {
       padding-right: 5px;
     }
-    .content, .heading {
-      margin-left: -260px;
-      width: 260px;
-      transition: all 0.25s linear;
-    }
     .menu-toggle {
       text-align: right;
       margin: 10px;
@@ -228,7 +230,6 @@ html {
   .detail-content {
     overflow: visible;
     margin: 0;
-    transition: width 0.25s ease-in-out;
     @media (max-width:768px) {
       top: 170px;
       width: 95%;
