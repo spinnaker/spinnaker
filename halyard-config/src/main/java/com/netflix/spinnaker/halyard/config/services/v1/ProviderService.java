@@ -96,7 +96,9 @@ public class ProviderService {
     NodeFilter filter = new NodeFilter()
         .setDeployment(deploymentName)
         .setProvider(providerName)
-        .withAnyAccount();
+        .withAnyAccount()
+        .setBakeryDefaults()
+        .withAnyBaseImage();
 
     return validateService.validateMatchingFilter(filter);
   }

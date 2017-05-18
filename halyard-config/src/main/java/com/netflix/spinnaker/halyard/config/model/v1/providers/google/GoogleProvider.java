@@ -38,6 +38,11 @@ public class GoogleProvider extends HasImageProvider<GoogleAccount, GoogleBakery
 
   @Override
   public GoogleBakeryDefaults emptyBakeryDefaults() {
-    return new GoogleBakeryDefaults();
+    GoogleBakeryDefaults result = new GoogleBakeryDefaults();
+    result.setNetwork("default");
+    result.setZone("us-central1-f");
+    result.setUseInternalIp(false);
+    result.setTemplateFile("gce.json");
+    return result;
   }
 }
