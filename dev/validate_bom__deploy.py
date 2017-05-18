@@ -20,6 +20,7 @@ It is responsible for deploying spinnaker (via Halyard) remotely.
 import distutils
 import logging
 import os
+import re
 import stat
 import tempfile
 import time
@@ -41,7 +42,7 @@ SPINNAKER_SERVICES = [
 ]
 
 
-def ensure_empty_ssh_key(path):
+def ensure_empty_ssh_key(path, user):
   """Ensure there is an ssh key at the given path.
 
   It is assumed that this key has no password associated with it so we
@@ -52,11 +53,11 @@ def ensure_empty_ssh_key(path):
   if os.path.exists(pub_path):
     return
 
-  logging.debug('Creating %s SSH key', path)
+  logging.debug('Creating %s SSH key for user "%s"', path, user)
   check_run_quick(
-      'ssh-keygen -N "" -t rsa -f {path} -C $USER'
-      '; sed "s/^ssh-rsa/$USER:ssh-rsa/" -i {path}'
-      .format(path=path))
+      'ssh-keygen -N "" -t rsa -f {path} -C {user}'
+      '; sed "s/^ssh-rsa/{user}:ssh-rsa/" -i {path}'
+      .format(user=user, path=path))
 
 
 def write_data_to_secure_path(data, path=None, is_script=False):
@@ -362,10 +363,13 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
   free function make_deployer() in this module.
   """
 
-  EMPTY_SSH_KEY = os.path.join(os.environ['HOME'], '.ssh', 'google_empty')
-
   def __init__(self, options, **kwargs):
     super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
+    self.__instance_ip = None
+    self.__hal_user = os.environ.get('LOGNAME')
+    logging.info('hal_user="%s"', self.__hal_user)
+    self.__ssh_key_path = os.path.join(os.environ['HOME'], '.ssh',
+                                        '{0}_empty_key'.format(self.__hal_user))
 
   @classmethod
   def init_platform_argument_parser(cls, parser):
@@ -396,25 +400,41 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
       raise ValueError('--google_deploy_project not specified.')
     if not options.google_deploy_instance:
       raise ValueError('--google_deploy_instance not specified.')
+    if not options.deploy_hal_google_service_account:
+      raise ValueError('--deploy_hal_google_service_account not specified.')
+
+    response = run_quick(
+        'gcloud compute instances describe'
+        ' --account {gcloud_account}'
+        ' --project {project} --zone {zone} {instance}'
+        .format(gcloud_account=options.deploy_hal_google_service_account,
+                project=options.google_deploy_project,
+                zone=options.google_deploy_zone,
+                instance=options.google_deploy_instance),
+        echo=False)
+
+    if response.returncode == 0:
+      raise ValueError('"{instance}" already exists in project={project} zone={zone}'
+                       .format(instance=options.google_deploy_instance,
+                               project=options.google_deploy_project,
+                               zone=options.google_deploy_zone))
 
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Implements interface."""
     options = self.options
     return [
-        'gcloud', 'alpha', 'compute', 'ssh',
-        '--quiet', '--verbosity=none',
-        options.google_deploy_instance,
-        '--ssh-key-file={ssh_key}'.format(ssh_key=self.EMPTY_SSH_KEY),
-        '--project={project}'.format(project=options.google_deploy_project),
-        '--zone={zone}'.format(zone=options.google_deploy_zone),
-        '--', '-L {local_port}:localhost:{remote_port}'.format(
+        'ssh', '-i', self.__ssh_key_path,
+        '-o', 'StrictHostKeyChecking=no',
+        '-o', 'UserKnownHostsFile=/dev/null',
+        self.__instance_ip,
+        '-L', '{local_port}:localhost:{remote_port}'.format(
             local_port=local_port, remote_port=remote_port),
         '-N']
 
   def do_deploy(self, script, files_to_upload):
     """Implements the BaseBomValidateDeployer interface."""
     options = self.options
-    ensure_empty_ssh_key(self.EMPTY_SSH_KEY)
+    ensure_empty_ssh_key(self.__ssh_key_path, self.__hal_user)
 
     script_path = write_script_to_path(script, path=None)
     files_to_upload.add(script_path)
@@ -429,32 +449,46 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
       logging.info('Creating "%s" in project "%s"',
                    options.google_deploy_instance,
                    options.google_deploy_project)
+      with open(self.__ssh_key_path + '.pub', 'r') as f:
+        ssh_key = f.read().strip()
+      if ssh_key.startswith('ssh-rsa'):
+        ssh_key = self.__hal_user + ':' + ssh_key
+        
       check_run_and_monitor(
           'gcloud compute instances create'
+          ' --account {gcloud_account}'
           ' --machine-type n1-standard-4'
           ' --image-family ubuntu-1404-lts'
           ' --image-project ubuntu-os-cloud'
-          ' --metadata block-project-ssh-keys=TRUE'
+          ' --metadata block-project-ssh-keys=TRUE,ssh-keys="{ssh_key}"'
           ' --project {project} --zone {zone}'
           ' --scopes {scopes}'
-          ' --metadata-from-file ssh-keys={ssh_key}'
           ' {instance}'
-          .format(project=options.google_deploy_project,
+          .format(gcloud_account=options.deploy_hal_google_service_account,
+                  project=options.google_deploy_project,
                   zone=options.google_deploy_zone,
                   scopes='compute-rw,storage-full,logging-write,monitoring',
-                  ssh_key=self.EMPTY_SSH_KEY,
+                  ssh_key=ssh_key,
                   instance=options.google_deploy_instance))
-
-      copy_files = (
-          'gcloud compute copy-files '
-          ' --ssh-key-file {ssh_key}'
-          ' --project {project} --zone {zone}'
-          ' {files} {instance}:.'
-          .format(project=options.google_deploy_project,
-                  ssh_key=self.EMPTY_SSH_KEY,
+      response = check_run_quick(
+          'gcloud compute instances describe'
+          ' --account {gcloud_account}'
+          ' --project {project} --zone {zone} {instance}'
+          .format(gcloud_account=options.deploy_hal_google_service_account,
+                  project=options.google_deploy_project,
                   zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance,
-                  files=' '.join(files_to_upload)))
+                  instance=options.google_deploy_instance))
+      self.__instance_ip = re.search(r'networkIP: ([0-9\.]+)',
+                                     response.stdout).group(1)
+      copy_files = (
+          'scp'
+          ' -i {ssh_key}'
+          ' -o StrictHostKeyChecking=no'
+          ' -o UserKnownHostsFile=/dev/null'
+          ' {files} {instance}:~'
+          .format(ssh_key=self.__ssh_key_path,
+                  files= ' '.join(files_to_upload),
+                  instance=self.__instance_ip))
       logging.info('Copying files %s', copy_files)
 
       # pylint: disable=unused-variable
@@ -471,14 +505,14 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
 
     logging.info('Running install script')
     check_run_and_monitor(
-        'gcloud compute ssh'
-        ' --ssh-key-file {ssh_key}'
-        ' --project {project} --zone {zone} {instance}'
-        ' --command "sudo ./{script_name}"'
-        .format(project=options.google_deploy_project,
-                zone=options.google_deploy_zone,
-                instance=options.google_deploy_instance,
-                ssh_key=self.EMPTY_SSH_KEY,
+        'ssh'
+        ' -i {ssh_key}'
+        ' -o StrictHostKeyChecking=no'
+        ' -o UserKnownHostsFile=/dev/null'
+        ' {instance}'
+        ' "sudo ./{script_name}"'
+        .format(instance=options.google_deploy_instance,
+                ssh_key=self.__ssh_key_path,
                 script_name=os.path.basename(script_path)))
 
   def do_undeploy(self):
@@ -486,18 +520,19 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     options = self.options
     if options.deploy_spinnaker_type == 'distributed':
       run_and_monitor(
-          'gcloud compute ssh'
-          ' --ssh-key-file {ssh_key}'
-          ' --project {project} --zone {zone} {instance}'
-          ' --command "sudo hal deploy clean"'
-          .format(project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance,
-                  ssh_key=self.EMPTY_SSH_KEY))
+          'ssh'
+          ' -i {ssh_key}'
+          ' -o StrictHostKeyChecking=no'
+          ' -o UserKnownHostsFile=/dev/null'
+          ' {instance} sudo hal deploy clean'
+          .format(instance=options.google_deploy_instance,
+                  ssh_key=self.__ssh_key_path))
     check_run_and_monitor(
         'gcloud -q compute instances delete'
+        ' --account {gcloud_account}'
         ' --project {project} --zone {zone} {instance}'
-        .format(project=options.google_deploy_project,
+        .format(gcloud_account=options.deploy_hal_google_service_account,
+                project=options.google_deploy_project,
                 zone=options.google_deploy_zone,
                 instance=options.google_deploy_instance))
 
@@ -506,15 +541,14 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     options = self.options
     write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
     check_run_quick(
-        'gcloud compute copy-files '
-        ' --ssh-key-file {ssh_key}'
-        ' --project {project} --zone {zone}'
+        'scp'
+        ' -i {ssh_key}'
+        ' -o StrictHostKeyChecking=no'
+        ' -o UserKnownHostsFile=/dev/null'
         ' {instance}:/var/log/spinnaker/{service}/{service}.log'
         ' {log_dir}'
-        .format(project=options.google_deploy_project,
-                zone=options.google_deploy_zone,
-                instance=options.google_deploy_instance,
-                ssh_key=self.EMPTY_SSH_KEY,
+        .format(instance=options.google_deploy_instance,
+                ssh_key=self.__ssh_key_path,
                 service=service,
                 log_dir=log_dir))
 
@@ -593,6 +627,11 @@ def init_argument_parser(parser):
       '--deploy_hal_platform', required=True, choices=['gce'],
       help='Platform to deploy Halyard onto.'
            ' Halyard will then deploy Spinnaker.')
+
+  parser.add_argument(
+    '--deploy_hal_google_service_account', default=None,
+    help='When deploying to gce, this is the service account to use'
+         ' for configuring halyard.')
 
   parser.add_argument(
       '--deploy_distributed_platform', default='kubernetes',

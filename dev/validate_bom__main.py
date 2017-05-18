@@ -69,6 +69,10 @@ from spinnaker.run import run_quick
 def build_report(options):
   """Report on the test results."""
   citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
+  if not os.path.exists(citest_log_dir):
+    logging.warning('%s does not exist -- no citest logs.', citest_log_dir)
+    return
+
   response = run_quick(
       'cd {log_dir}'
       '; python -m citest.reporting.generate_html_report --index *.journal'
@@ -76,6 +80,7 @@ def build_report(options):
   if response.returncode != 0:
     logging.error('Error building report: %s', response.stdout)
   logging.info('Logging information is in %s', options.log_dir)
+
 
 def get_options():
   """Resolve all the command-line options."""
@@ -112,6 +117,8 @@ def main():
     test_controller = validate_bom__test.ValidateBomTestController(deployer)
     test_controller.run_tests()
   finally:
+    if sys.exc_info()[0] is not None:
+      logging.exception('Caught Exceptio')
     deployer.collect_logs()
     deployer.undeploy()
     build_report(options)
