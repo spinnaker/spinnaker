@@ -1,10 +1,9 @@
 'use strict';
 
-import {Observable, Subject} from 'rxjs';
-
-import {DOCKER_IMAGE_READER} from 'docker/image/docker.image.reader.service';
-
 const angular = require('angular');
+import { Observable, Subject } from 'rxjs';
+
+import { DOCKER_IMAGE_READER } from '@spinnaker/docker';
 
 module.exports = angular
   .module('spinnaker.docker.pipeline.config.triggers.options.directive', [

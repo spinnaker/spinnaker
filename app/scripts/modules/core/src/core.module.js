@@ -42,6 +42,9 @@ import { WIDGETS_MODULE } from './widgets/widgets.module';
 
 require('root/app/fonts/spinnaker/icons.css');
 
+// TODO: Move this value into this module when core.module gets converted to TS
+import { CORE_MODULE } from './index';
+
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -49,7 +52,7 @@ templates.keys().forEach(function(key) {
 });
 
 module.exports = angular
-  .module('spinnaker.core', [
+  .module(CORE_MODULE, [
     require('angular-messages'),
     require('angular-sanitize'),
     require('angular-ui-router').default,

@@ -23,7 +23,10 @@
     "paths": {
       "@spinnaker/core": ["core/src"],
       "core/*": ["core/src/*"],
-      "core": ["core/src"]
+      "core": ["core/src"],
+      "@spinnaker/docker": ["docker/src"],
+      "docker/*": ["docker/src/*"],
+      "docker": ["docker/src"]
     },
     "pretty": true,
     "removeComments": true,

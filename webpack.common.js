@@ -29,9 +29,11 @@ function configure(IS_TEST) {
         path.join(__dirname, 'app', 'scripts', 'modules'),
       ],
       alias: {
-        'core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
         'root': __dirname,
-        '@spinnaker/core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src')
+        'core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
+        '@spinnaker/core': path.join(__dirname, 'app', 'scripts', 'modules', 'core', 'src'),
+        'docker': path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
+        '@spinnaker/docker': path.join(__dirname, 'app', 'scripts', 'modules', 'docker', 'src'),
       }
     },
     module: {
