@@ -11,7 +11,7 @@ interface IViewState {
   imagesRefreshing: boolean;
 }
 
-interface IOnDockerBindingsChanges extends ng.IOnChangesObject {
+export interface IOnDockerBindingsChanges extends ng.IOnChangesObject {
   registry: ng.IChangesObject<string>;
 }
 
