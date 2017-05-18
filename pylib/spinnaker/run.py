@@ -153,7 +153,8 @@ def check_run_and_monitor(command, echo=True, input=None):
   result = run_and_monitor(command, echo=echo, input=input)
   if result.returncode != 0:
     error = 'FAILED {command} with exit code {code}\n{err}'.format(
-        command=command, code=result.returncode, err=result.stderr.strip())
+        command=command, code=result.returncode,
+        err=result.stderr.strip() if not echo else '')
     sys.stderr.write(error + '\n')
     raise RuntimeError(error)
 

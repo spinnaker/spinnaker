@@ -118,7 +118,8 @@ def main():
     test_controller.run_tests()
   finally:
     if sys.exc_info()[0] is not None:
-      logging.exception('Caught Exceptio')
+      logging.error('Caught Exception')
+      logging.exception('Caught Exception')
     deployer.collect_logs()
     deployer.undeploy()
     build_report(options)

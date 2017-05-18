@@ -236,6 +236,11 @@ class BaseValidateBomDeployer(object):
   def add_hal_deploy_script_statements(self, script):
     """Adds the hal deploy statements prior to "apply"."""
     options = self.options
+
+    script.append('hal --color=false config version edit'
+                  ' --version {version}'
+                  .format(version=options.deploy_version))
+
     type_args = ['--type', options.deploy_spinnaker_type]
 
     if options.deploy_spinnaker_type == 'distributed':
@@ -504,16 +509,20 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
       os.remove(script_path)
 
     logging.info('Running install script')
-    check_run_and_monitor(
-        'ssh'
-        ' -i {ssh_key}'
-        ' -o StrictHostKeyChecking=no'
-        ' -o UserKnownHostsFile=/dev/null'
-        ' {instance}'
-        ' "sudo ./{script_name}"'
-        .format(instance=options.google_deploy_instance,
-                ssh_key=self.__ssh_key_path,
-                script_name=os.path.basename(script_path)))
+    try:
+      check_run_and_monitor(
+          'ssh'
+          ' -i {ssh_key}'
+          ' -o StrictHostKeyChecking=no'
+          ' -o UserKnownHostsFile=/dev/null'
+          ' {instance}'
+          ' "sudo ./{script_name}"'
+          .format(instance=options.google_deploy_instance,
+                  ssh_key=self.__ssh_key_path,
+                  script_name=os.path.basename(script_path)))
+    except RuntimeError as err:
+      raise RuntimeError('Halyard deployment failed.')
+
 
   def do_undeploy(self):
     """Implements the BaseBomValidateDeployer interface."""
@@ -638,6 +647,10 @@ def init_argument_parser(parser):
       choices=SUPPORTED_DISTRIBUTED_PLATFORMS,
       help='The paltform to deploy spinnaker to when'
            ' --deploy_spinnaker_type=distributed')
+
+  parser.add_argument(
+      '--deploy_version', default='nightly',
+      help='Spinnaker version to deploy. The default is "nightly".')
 
   parser.add_argument(
       '--deploy_deploy', default=True,
