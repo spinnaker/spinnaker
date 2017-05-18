@@ -8,6 +8,7 @@ import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 import { GCE_SSL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/ssl/gceCreateSslLoadBalancer.controller';
 import { LOAD_BALANCER_SET_TRANSFORMER } from './loadBalancer/loadBalancer.setTransformer';
+import { GCE_HELP } from './help/gce.help';
 
 import './logo/gce.logo.less';
 
@@ -23,6 +24,7 @@ module.exports = angular.module('spinnaker.gce', [
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
   GCE_LOAD_BALANCER_CHOICE_MODAL,
   GCE_SSL_LOAD_BALANCER_CTRL,
+  GCE_HELP,
   require('./serverGroup/details/serverGroup.details.gce.module.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.gce.controller.js'),

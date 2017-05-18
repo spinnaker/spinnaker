@@ -3,6 +3,7 @@
 const angular = require('angular');
 
 import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { OPENSTACK_HELP } from './help/openstack.help';
 
 import './logo/openstack.logo.less';
 
@@ -26,6 +27,7 @@ module.exports = angular.module('spinnaker.openstack', [
   require('./validation/applicationName.validator.js'),
   require('./cache/cacheConfigurer.service.js'),
   CLOUD_PROVIDER_REGISTRY,
+  OPENSTACK_HELP,
   require('./loadBalancer/configure/configure.openstack.module.js'),
   require('./loadBalancer/details/details.openstack.module.js'),
   require('./loadBalancer/transformer.js'),

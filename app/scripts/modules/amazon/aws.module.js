@@ -6,6 +6,8 @@ import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
 import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
 
+import { AMAZON_HELP } from './help/amazon.help';
+
 import './logo/aws.logo.less';
 
 // load all templates into the $templateCache
@@ -16,6 +18,7 @@ templates.keys().forEach(function(key) {
 
 module.exports = angular.module('spinnaker.aws', [
   CLOUD_PROVIDER_REGISTRY,
+  AMAZON_HELP,
   require('./pipeline/stages/bake/awsBakeStage.js'),
   require('./pipeline/stages/cloneServerGroup/awsCloneServerGroupStage.js'),
   require('./pipeline/stages/destroyAsg/awsDestroyAsgStage.js'),

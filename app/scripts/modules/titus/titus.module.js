@@ -6,6 +6,7 @@ import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
 import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
+import { TITUS_HELP } from './help/titus.help';
 
 import './logo/titus.logo.less';
 
@@ -25,6 +26,7 @@ module.exports = angular.module('spinnaker.titus', [
   require('./serverGroup/serverGroup.transformer.js'),
   require('./instance/details/instance.details.controller.js'),
   TITUS_APPLICATION_NAME_VALIDATOR,
+  TITUS_HELP,
   require('./pipeline/stages/findAmi/titusFindAmiStage.js'),
   require('./pipeline/stages/runJob/titusRunJobStage.js'),
   require('./pipeline/stages/enableAsg/titusEnableAsgStage.js'),

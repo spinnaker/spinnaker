@@ -4,6 +4,8 @@ const angular = require('angular');
 
 import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
 
+import { AZURE_HELP } from './help/azure.help';
+
 // load all templates into the $templateCache
 var templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
@@ -16,6 +18,7 @@ module.exports = angular.module('spinnaker.azure', [
   require('./pipeline/stages/disableAsg/azureDisableAsgStage.js'),
   require('./pipeline/stages/bake/azureBakeStage.js'),
   CLOUD_PROVIDER_REGISTRY,
+  AZURE_HELP,
   require('./serverGroup/details/serverGroup.details.module.js'),
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/wizard/CloneServerGroup.azure.controller.js'),
