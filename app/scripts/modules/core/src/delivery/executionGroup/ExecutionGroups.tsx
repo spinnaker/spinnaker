@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs/Subscription';
 import { Application } from 'core/application/application.model';
 import { ExecutionGroup } from './ExecutionGroup';
 import { IExecutionGroup } from 'core/domain';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 import './executionGroups.less';
 

@@ -5,12 +5,12 @@ import { IChangesObject, IComponentController, IComponentOptions, IOnChangesObje
 
 import { IInstance } from 'core/domain';
 
-interface IActiveInstance {
+export interface IActiveInstance {
   instanceId: string;
   provider: string;
 }
 
-interface IOnChanges extends IOnChangesObject {
+export interface IOnChanges extends IOnChangesObject {
   instances: IChangesObject<IInstance[]>;
   highlight: IChangesObject<string>;
 }

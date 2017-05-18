@@ -5,7 +5,7 @@ import { IInstanceCounts } from './IInstanceCounts';
 import { ITask } from './ITask';
 
 // remnant from legacy code
-interface IAsg {
+export interface IAsg {
   minSize: number;
   maxSize: number;
   desiredCapacity: number;

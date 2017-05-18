@@ -1,8 +1,10 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {ApplicationDataSource, DataSourceConfig} from './service/applicationDataSource';
-import {Application} from './application.model';
-import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
+import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
+import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { Application } from './application.model';
+
+import { ApplicationDataSource, DataSourceConfig } from './service/applicationDataSource';
 
 export class ApplicationModelBuilder {
 
@@ -48,7 +50,7 @@ export class ApplicationModelBuilder {
 export const APPLICATION_MODEL_BUILDER = 'spinnaker.core.application.model.builder';
 
 module(APPLICATION_MODEL_BUILDER, [
-  require('../presentation/robotToHumanFilter/robotToHuman.filter'),
   SCHEDULER_FACTORY,
+  ROBOT_TO_HUMAN_FILTER
 ])
   .service('applicationModelBuilder', ApplicationModelBuilder);

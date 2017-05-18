@@ -7,7 +7,7 @@ import { Application } from 'core/application/application.model';
 import { IHealth, ILoadBalancer, IServerGroup } from 'core/domain';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 export interface ILoadBalancersTagProps {
   application: Application;

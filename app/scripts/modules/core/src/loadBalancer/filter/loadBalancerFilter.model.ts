@@ -3,6 +3,7 @@ import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
 
 import { ILoadBalancerGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search' },
@@ -25,7 +26,7 @@ export class LoadBalancerFilterModel {
   private mostRecentParams: any;
   public asFilterModel: ILoadBalancerFilterModel;
 
-  constructor(private $rootScope: IRootScopeService, private filterModelService: any, private urlParser: any) {
+  constructor(private $rootScope: IRootScopeService, private filterModelService: any) {
     'ngInject';
     this.asFilterModel = this.filterModelService.configureFilterModel(this, filterModelConfig);
     this.bindEvents();
@@ -71,9 +72,9 @@ export class LoadBalancerFilterModel {
         [newBase, newQuery] = toUrl.split('?');
 
       if (oldBase === newBase) {
-        this.mostRecentParams = newQuery ? this.urlParser.parseQueryString(newQuery) : {};
+        this.mostRecentParams = newQuery ? UrlParser.parseQueryString(newQuery) : {};
       } else {
-        this.mostRecentParams = oldQuery ? this.urlParser.parseQueryString(oldQuery) : {};
+        this.mostRecentParams = oldQuery ? UrlParser.parseQueryString(oldQuery) : {};
       }
     });
 
@@ -104,5 +105,4 @@ export class LoadBalancerFilterModel {
 export const LOAD_BALANCER_FILTER_MODEL = 'spinnaker.core.loadBalancer.filter.model';
 module(LOAD_BALANCER_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
-  require('core/navigation/urlParser.service'),
 ]).service('loadBalancerFilterModel', LoadBalancerFilterModel);

@@ -9,7 +9,7 @@ import {
 } from './pipelineTemplate.service';
 import {IVariable} from './inputs/variableInput.service';
 import {Application} from 'core/application/application.model';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 export interface IVariableMetadataGroup {
   name: string;

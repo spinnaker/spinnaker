@@ -1,9 +1,8 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
+import { IComponentController, IComponentOptions, module } from 'angular';
 
-import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter/executionFilter.model';
-import {EXECUTION_USER_FILTER} from './executionUser.filter';
-import {IExecution} from 'core/domain/IExecution';
-
+import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
+import { IExecution } from 'core/domain';
+import { EXECUTION_USER_FILTER } from './executionUser.filter';
 
 import './executionStatus.less';
 

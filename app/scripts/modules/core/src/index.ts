@@ -40,7 +40,7 @@ export * from './pageTitle';
 export * from './pipeline';
 export * from './presentation';
 
-export * from './react';
+export * from './reactShims';
 export * from './retry';
 
 export * from './scheduler';

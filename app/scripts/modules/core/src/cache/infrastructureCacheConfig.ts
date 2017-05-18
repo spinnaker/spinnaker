@@ -1,10 +1,10 @@
 import * as moment from 'moment';
 
-interface IMaxAgeConfig {
+export interface IMaxAgeConfig {
   maxAge: number;
 }
 
-interface IVersionConfig {
+export interface IVersionConfig {
   version: number;
 }
 

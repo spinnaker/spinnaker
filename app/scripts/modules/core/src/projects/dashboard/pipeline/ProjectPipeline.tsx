@@ -6,7 +6,7 @@ import { Application } from 'core/application/application.model';
 import { ExecutionBuildNumber } from 'core/delivery/executionBuild/ExecutionBuildNumber';
 import { ExecutionMarker } from 'core/delivery/executionGroup/execution/ExecutionMarker';
 import { IExecution } from 'core/domain';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 import { timestamp } from 'core/utils/timeFormatters';
 
 import './projectPipeline.less';

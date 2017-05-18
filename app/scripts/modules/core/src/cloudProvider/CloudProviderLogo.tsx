@@ -2,36 +2,36 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Tooltip } from 'core/presentation/Tooltip';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 import './cloudProviderLogo.less';
 
-interface IProps {
+export interface ICloudProviderLogoProps {
   provider: string;
   height: string;
   width: string;
   showTooltip?: boolean;
 }
 
-interface IState {
+export interface ICloudProviderLogoState {
   tooltip?: string;
 }
 
 @autoBindMethods
-export class CloudProviderLogo extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export class CloudProviderLogo extends React.Component<ICloudProviderLogoProps, ICloudProviderLogoState> {
+  constructor(props: ICloudProviderLogoProps) {
     super(props);
     this.state = this.getState(props);
   }
 
-  private getState(props: IProps): IState {
+  private getState(props: ICloudProviderLogoProps): ICloudProviderLogoState {
     if (props.showTooltip) {
       return { tooltip: ReactInjector.cloudProviderRegistry.getValue(this.props.provider, 'name') || this.props.provider };
     }
     return {};
   }
 
-  public componentWillReceiveProps(nextProps: IProps): void {
+  public componentWillReceiveProps(nextProps: ICloudProviderLogoProps): void {
     if (nextProps.showTooltip !== this.props.showTooltip) {
       this.setState(this.getState(nextProps));
     }

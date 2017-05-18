@@ -4,7 +4,7 @@ import {CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, ConfigurePipelineTemplateModalCo
 import {IVariable, IVariableError} from './inputs/variableInput.service';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {Application} from 'core/application/application.model';
-import {REACT_MODULE} from 'core/react';
+import {REACT_MODULE} from 'core/reactShims';
 import {PIPELINE_TEMPLATE_MODULE} from './pipelineTemplate.module';
 
 describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {

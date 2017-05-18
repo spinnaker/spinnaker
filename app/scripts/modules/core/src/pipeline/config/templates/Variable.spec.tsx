@@ -5,7 +5,7 @@ import {PIPELINE_TEMPLATE_MODULE} from './pipelineTemplate.module';
 import {Variable} from './Variable';
 import {IVariableError} from './inputs/variableInput.service';
 import {VariableType} from './pipelineTemplate.service';
-import {REACT_MODULE} from 'core/react';
+import {REACT_MODULE} from 'core/reactShims';
 
 describe('Variable component', () => {
   const generateProps = (type: VariableType, value: any) => {

@@ -1,13 +1,14 @@
-import {IComponentController, IComponentOptions, IPromise, ITimeoutService, module} from 'angular';
+import { IComponentController, IComponentOptions, IPromise, ITimeoutService, module } from 'angular';
 
-import {HELP_CONTENTS_REGISTRY, HelpContentsRegistry} from './helpContents.registry';
+import { HELP_CONTENTS } from './help.contents';
+import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from './helpContents.registry';
 
-interface IHelpFieldContents {
+export interface IHelpFieldContents {
   content: string;
   placement: string;
 }
 
-class HelpFieldCtrl implements IComponentController {
+export class HelpFieldCtrl implements IComponentController {
 
   public content: string;
   public expand: boolean;
@@ -139,8 +140,8 @@ export class HelpFieldWrapperComponent implements IComponentOptions {
 
 export const HELP_FIELD_COMPONENT = 'spinnaker.core.help.helpField.component';
 module(HELP_FIELD_COMPONENT, [
+  HELP_CONTENTS,
   HELP_CONTENTS_REGISTRY,
-  require('./helpContents'),
   require('angulartics'),
 ]).component('helpField', new HelpFieldComponent())
   .component('helpFieldWrapper', new HelpFieldWrapperComponent());

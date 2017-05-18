@@ -1,7 +1,7 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 import { Application } from 'core/application/application.model';
 import { ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancer } from './LoadBalancer';

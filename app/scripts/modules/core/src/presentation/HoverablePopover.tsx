@@ -5,14 +5,14 @@ import autoBindMethods from 'class-autobind-decorator';
 import {Placement} from 'core/presentation/Placement';
 import {UUIDGenerator} from '../utils/uuid.service';
 
-interface IProps {
+export interface IProps {
   value?: string;
   template?: JSX.Element;
   placement?: Placement;
   id?: string;
 }
 
-interface IState {
+export interface IState {
   popoverIsOpen: boolean;
   target?: any;
 }

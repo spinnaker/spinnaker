@@ -1,8 +1,9 @@
 import * as React from 'react';
 import { Button } from 'react-bootstrap';
-import { ReactInjector } from 'core/react';
 
-interface ISubmitButtonProps {
+import { ReactInjector } from 'core/reactShims';
+
+export interface ISubmitButtonProps {
   onClick: () => void;
   isDisabled?: boolean;
   isNew?: boolean;

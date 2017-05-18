@@ -3,22 +3,22 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
-import {ReactInjector} from 'core/react';
+import {ReactInjector} from 'core/reactShims';
 import {timePickerTime} from 'core/utils/timeFormatters';
 import {SystemTimezone} from 'core/utils/SystemTimezone';
 import {DAYS_OF_WEEK} from './daysOfWeek';
 
-interface IProps {
+export interface IProps {
   execution: IExecution;
   stage: IExecutionStage;
   application: Application;
 }
 
-interface IState {
+export interface IState {
   dayText: string;
 }
 
-interface IExecutionWindowWhitelistEntry {
+export interface IExecutionWindowWhitelistEntry {
   startHour: number;
   startMin: number;
   endHour: number;

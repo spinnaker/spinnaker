@@ -10,6 +10,7 @@ import {
   ITriggerTypeConfig
 } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { Subscription } from 'rxjs/Subscription';
 
 export interface IStageValidationResults {
   stage: IStage;
@@ -156,7 +157,7 @@ export class PipelineConfigValidator implements ng.IServiceProvider {
    * @param method
    * @returns {Subscription}, which should be unsubscribed when the subscriber is destroyed
    */
-  public subscribe(method: (result: IPipelineValidationResults) => any) {
+  public subscribe(method: (result: IPipelineValidationResults) => any): Subscription {
     return this.validationStream.subscribe(method);
   }
 

@@ -3,7 +3,7 @@ import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { IExecution } from 'core/domain';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 import './ExecutionBuildNumber.less';
 

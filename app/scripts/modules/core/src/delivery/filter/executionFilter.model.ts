@@ -1,12 +1,13 @@
-import {IAngularEvent, IRootScopeService, module} from 'angular';
-import {Ng1StateDeclaration, StateParams} from 'angular-ui-router';
-import {extend} from 'lodash';
+import { IAngularEvent, IRootScopeService, module } from 'angular';
+import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
+import { extend } from 'lodash';
+import { Subject } from 'rxjs';
 
-import {ICache} from 'core/cache/deckCache.service';
-import {IExecutionGroup} from 'core/domain';
-import {VIEW_STATE_CACHE_SERVICE, ViewStateCacheService} from 'core/cache/viewStateCache.service';
-import {Subject} from 'rxjs/Subject';
+import { ICache } from 'core/cache/deckCache.service';
+import { VIEW_STATE_CACHE_SERVICE, ViewStateCacheService } from 'core/cache/viewStateCache.service';
+import { IExecutionGroup } from 'core/domain';
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { UrlParser } from 'core/navigation/urlParser';
 
 export const filterModelConfig: IFilterConfig[] = [
   { model: 'filter', param: 'q', clearValue: '', type: 'string', filterLabel: 'search', },
@@ -14,7 +15,7 @@ export const filterModelConfig: IFilterConfig[] = [
   { model: 'status', type: 'trueKeyObject', },
 ];
 
-interface IExecutionFilterModel extends IFilterModel {
+export interface IExecutionFilterModel extends IFilterModel {
   groups: IExecutionGroup[];
 }
 export class ExecutionFilterModel {
@@ -33,7 +34,6 @@ export class ExecutionFilterModel {
 
   constructor($rootScope: IRootScopeService,
               filterModelService: any,
-              urlParser: any,
               viewStateCache: ViewStateCacheService) {
     'ngInject';
     this.configViewStateCache = viewStateCache.createCache('executionFilters', {
@@ -46,7 +46,7 @@ export class ExecutionFilterModel {
 
     this.asFilterModel = filterModelService.configureFilterModel(this, filterModelConfig);
 
-    let mostRecentParams: string = null;
+    let mostRecentParams: any = null;
     // WHY??? Because, when the stateChangeStart event fires, the $location.search() will return whatever the query
     // params are on the route we are going to, so if the user is using the back button, for example, to go to the
     // Infrastructure page with a search already entered, we'll pick up whatever search was entered there, and if we
@@ -56,9 +56,9 @@ export class ExecutionFilterModel {
             [newBase, newQuery] = toUrl.split('?');
 
       if (oldBase === newBase) {
-        mostRecentParams = newQuery ? urlParser.parseQueryString(newQuery) : {};
+        mostRecentParams = newQuery ? UrlParser.parseQueryString(newQuery) : {};
       } else {
-        mostRecentParams = oldQuery ? urlParser.parseQueryString(oldQuery) : {};
+        mostRecentParams = oldQuery ? UrlParser.parseQueryString(oldQuery) : {};
       }
     });
 
@@ -154,7 +154,6 @@ export class ExecutionFilterModel {
 export const EXECUTION_FILTER_MODEL = 'spinnaker.core.delivery.filter.executionFilter.model';
 module (EXECUTION_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
-  require('core/navigation/urlParser.service'),
   VIEW_STATE_CACHE_SERVICE
-]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, urlParser: any, viewStateCache: ViewStateCacheService) =>
-                                    new ExecutionFilterModel($rootScope, filterModelService, urlParser, viewStateCache));
+]).factory('executionFilterModel', ($rootScope: IRootScopeService, filterModelService: any, viewStateCache: ViewStateCacheService) =>
+                                    new ExecutionFilterModel($rootScope, filterModelService, viewStateCache));

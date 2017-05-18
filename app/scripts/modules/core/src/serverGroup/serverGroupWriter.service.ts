@@ -5,15 +5,15 @@ import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
 import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
-interface ISource {
+export interface ISource {
   asgName: string;
 }
 
-interface IViewState {
+export interface IViewState {
   mode: string;
 }
 
-interface ICapacity {
+export interface ICapacity {
   desired: number;
   max: number;
   min: number;

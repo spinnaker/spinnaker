@@ -1,12 +1,13 @@
 'use strict';
 
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-
 const angular = require('angular');
 
+import { HELP_CONTENTS } from 'core/help/help.contents';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+
 module.exports = angular.module('spinnaker.core.pipeline.stage.overrideTimeout', [
+  HELP_CONTENTS,
   PIPELINE_CONFIG_PROVIDER,
-  require('core/help/helpContents.js')
 ])
   .directive('overrideTimeout', function() {
     return {

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {IVariableMetadata} from './pipelineTemplate.service';
-import {ReactInjector} from 'core/react';
+import {ReactInjector} from 'core/reactShims';
 
 interface IProps {
   metadata: IVariableMetadata

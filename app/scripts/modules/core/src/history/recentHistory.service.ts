@@ -7,14 +7,14 @@ import { DECK_CACHE_SERVICE, ICache, DeckCacheService } from 'core/cache/deckCac
 import { Ng1StateDeclaration } from 'angular-ui-router';
 import IAngularEvent = angular.IAngularEvent;
 
-interface ICacheEntryStateMigrator {
+export interface ICacheEntryStateMigrator {
   // a string literal in the state to be replaced (not a regex)
   state: string;
   // string to replace in the state (also not a regex)
   replacement: string;
 }
 
-interface IRecentHistoryEntry {
+export interface IRecentHistoryEntry {
   params: any;
   state: string;
   accessTime: number;

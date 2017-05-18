@@ -7,7 +7,7 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, IInstance, IServerGroup } from 'core/domain';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';

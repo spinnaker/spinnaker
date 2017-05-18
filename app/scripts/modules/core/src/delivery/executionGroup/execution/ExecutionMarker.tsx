@@ -11,7 +11,7 @@ import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBar
 
 import './executionMarker.less';
 
-interface IExecutionMarkerProps {
+export interface IExecutionMarkerProps {
   stage: IExecutionStageSummary;
   application: Application;
   execution: IExecution;
@@ -21,7 +21,7 @@ interface IExecutionMarkerProps {
   onClick: (stageIndex: number) => void;
 }
 
-interface IExecutionMarkerState {
+export interface IExecutionMarkerState {
   duration: string;
 }
 

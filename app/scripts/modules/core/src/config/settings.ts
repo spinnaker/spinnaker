@@ -5,7 +5,7 @@ export interface IProviderSettings {
   resetToOriginal?: () => void;
 }
 
-interface INotificationSettings {
+export interface INotificationSettings {
   email: {
     enabled: boolean;
   };

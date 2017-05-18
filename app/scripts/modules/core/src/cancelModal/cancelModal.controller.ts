@@ -3,7 +3,7 @@ import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import './cancel.less';
 
-interface ICancelModalScope extends IScope {
+export interface ICancelModalScope extends IScope {
   state: any;
   params: any;
   errorMessage: string;

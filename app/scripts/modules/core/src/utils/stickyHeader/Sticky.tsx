@@ -7,12 +7,12 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import { IStickyContext, StickyContainer } from './StickyContainer';
 
-interface IProps extends React.HTMLAttributes<HTMLElement> {
+export interface IStickyProps extends React.HTMLAttributes<HTMLElement> {
   topOffset?: number;
   stickyIf?: () => boolean;
 }
 
-interface IState {
+export interface IStickyState {
   passthroughProps: React.HTMLProps<HTMLDivElement>;
   width: number;
   top: number;
@@ -21,8 +21,8 @@ interface IState {
 }
 
 @autoBindMethods
-export class Sticky extends React.Component<IProps, IState> {
-  public static defaultProps: Partial<IProps> = {
+export class Sticky extends React.Component<IStickyProps, IStickyState> {
+  public static defaultProps: Partial<IStickyProps> = {
     topOffset: 0
   };
 
@@ -38,7 +38,7 @@ export class Sticky extends React.Component<IProps, IState> {
   private stickySubscription: Subscription;
 
 
-  constructor(props: IProps, context: IStickyContext) {
+  constructor(props: IStickyProps, context: IStickyContext) {
     super(props, context);
 
     this.state = {
@@ -70,7 +70,7 @@ export class Sticky extends React.Component<IProps, IState> {
     return el.offsetHeight + parseInt(style.marginTop, 10) + parseInt(style.marginBottom, 10);
   }
 
-  private passthroughProps(props: IProps): React.HTMLProps<HTMLDivElement> {
+  private passthroughProps(props: IStickyProps): React.HTMLProps<HTMLDivElement> {
     return omit(props, ['topOffset', 'notifyOnly', 'stickyIf', 'className', 'style']);
   }
 
@@ -151,7 +151,7 @@ export class Sticky extends React.Component<IProps, IState> {
     }
   }
 
-  public componentWillReceiveProps(nextProps: IProps): void {
+  public componentWillReceiveProps(nextProps: IStickyProps): void {
     if (nextProps.stickyIf !== this.props.stickyIf) {
       if (nextProps.stickyIf) {
         this.addEventListeners(this.recomputeState);

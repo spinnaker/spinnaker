@@ -1,29 +1,29 @@
 import { module, IScope } from 'angular';
 import { TransitionService, Rejection, RejectType, StateParams } from '@uirouter/core';
 
-interface IMainConfig {
+export interface IMainConfig {
   field: string;
   label: string;
 }
 
-interface ISectionConfig {
+export interface ISectionConfig {
   title: string;
 }
 
-interface IDetailsConfig {
+export interface IDetailsConfig {
   title: string;
   nameParam?: string;
   accountParam?: string;
   regionParam?: string;
 }
 
-interface IStatePageData {
+export interface IStatePageData {
   pageTitleMain?: IMainConfig;
   pageTitleSection?: ISectionConfig;
   pageTitleDetails?: IDetailsConfig;
 }
 
-interface IPageDataParts {
+export interface IPageDataParts {
   main: string;
   section: string;
   details: string;

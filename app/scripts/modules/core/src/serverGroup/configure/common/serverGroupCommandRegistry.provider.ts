@@ -1,7 +1,7 @@
 import {cloneDeep} from 'lodash';
 import {module} from 'angular';
 
-interface IWatchConfig {
+export interface IWatchConfig {
   property: string;
   method: Function;
 }

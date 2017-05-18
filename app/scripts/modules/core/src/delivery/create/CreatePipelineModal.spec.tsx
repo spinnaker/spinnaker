@@ -8,7 +8,7 @@ import {
   PIPELINE_TEMPLATE_SERVICE,
   PipelineTemplateService
 } from 'core/pipeline/config/templates/pipelineTemplate.service';
-import { ReactInjector, REACT_MODULE } from 'core/react';
+import { ReactInjector, REACT_MODULE } from 'core/reactShims';
 import {Application} from 'core/application/application.model';
 import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
 import {IPipeline} from 'core/domain';

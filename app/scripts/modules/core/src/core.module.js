@@ -33,7 +33,7 @@ import { INSIGHT_NGMODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
-import { REACT_MODULE } from './react';
+import { REACT_MODULE } from './reactShims';
 import { REGION_MODULE } from './region/region.module';
 import { UI_ROUTER_STATE_SHIM } from './routing/uirouter.stateEvents.shim';
 import { SUBNET_MODULE } from './subnet/subnet.module';

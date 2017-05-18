@@ -4,7 +4,7 @@ import autoBindMethods from 'class-autobind-decorator';
 import { clone, last, get } from 'lodash';
 import { PathNode } from 'angular-ui-router';
 
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 import { ILoadBalancer, IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';

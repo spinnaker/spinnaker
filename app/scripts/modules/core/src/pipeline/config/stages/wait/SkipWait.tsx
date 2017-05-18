@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
-import {ReactInjector} from 'core/react';
+import {ReactInjector} from 'core/reactShims';
 import {duration} from 'core/utils/timeFormatters';
 import {OrchestratedItemRunningTime} from 'core/delivery/executionGroup/execution/OrchestratedItemRunningTime';
 

@@ -11,7 +11,7 @@ import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.se
 import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 import { duration, timestamp } from 'core/utils/timeFormatters';
 
 // react components
@@ -20,7 +20,7 @@ import { Tooltip } from 'core/presentation/Tooltip';
 
 import './execution.less';
 
-interface IExecutionProps {
+export interface IExecutionProps {
   application: Application;
   execution: IExecution;
   standalone?: boolean;
@@ -28,7 +28,7 @@ interface IExecutionProps {
   dataSourceKey?: string;
 }
 
-interface IExecutionState {
+export interface IExecutionState {
   showingDetails: boolean;
   pipelinesUrl: string;
   viewState: IExecutionViewState;

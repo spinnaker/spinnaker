@@ -11,31 +11,31 @@ export interface IFilterTag extends IFilter {
   clear: () => any;
 }
 
-export interface IProps {
+export interface IFilterTagsProps {
   tags: IFilterTag[];
   tagCleared?: () => any;
   clearFilters: () => any;
 }
 
-export interface IState {
+export interface IFilterTagsState {
   tags: IFilterTag[];
 }
 
 @autoBindMethods
-export class FilterTags extends React.Component<IProps, IState> {
+export class FilterTags extends React.Component<IFilterTagsProps, IFilterTagsState> {
 
-  public static defaultProps: Partial<IProps> = {
+  public static defaultProps: Partial<IFilterTagsProps> = {
     tagCleared: () => {}
   };
 
-  constructor(props: IProps) {
+  constructor(props: IFilterTagsProps) {
     super(props);
     this.state = {
       tags: props.tags
     };
   }
 
-  public componentWillReceiveProps(newProps: IProps) {
+  public componentWillReceiveProps(newProps: IFilterTagsProps) {
     this.setState({ tags: newProps.tags });
   }
 

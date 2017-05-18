@@ -1,10 +1,11 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from './applicationDataSource.registry';
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {ApplicationDataSource, DataSourceConfig} from '../service/applicationDataSource';
-import {Application} from '../application.model';
-import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
+import { Api, API_SERVICE } from 'core/api/api.service';
+import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { Application } from '../application.model';
+import { ApplicationDataSource, DataSourceConfig } from '../service/applicationDataSource';
+import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from './applicationDataSource.registry';
+import { ROBOT_TO_HUMAN_FILTER } from 'core/presentation/robotToHumanFilter/robotToHuman.filter';
 
 export interface IApplicationDataSourceAttribute {
   enabled: string[];
@@ -96,7 +97,7 @@ export const APPLICATION_READ_SERVICE = 'spinnaker.core.application.read.service
 
 module(APPLICATION_READ_SERVICE, [
   SCHEDULER_FACTORY,
-  require('../../presentation/robotToHumanFilter/robotToHuman.filter'),
   API_SERVICE,
   APPLICATION_DATA_SOURCE_REGISTRY,
+  ROBOT_TO_HUMAN_FILTER,
 ]).service('applicationReader', ApplicationReader);

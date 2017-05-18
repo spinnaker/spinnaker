@@ -2,6 +2,7 @@ import { IAngularEvent, IRootScopeService, module } from 'angular';
 import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
 
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
+import { UrlParser } from 'core/navigation/urlParser';
 
 export const SECURITY_GROUP_FILTER_MODEL = 'spinnaker.core.securityGroup.filter.model';
 export const filterModelConfig: IFilterConfig[] = [
@@ -19,7 +20,7 @@ export class SecurityGroupFilterModel {
   private mostRecentParams: any;
   public asFilterModel: IFilterModel;
 
-  constructor(private $rootScope: IRootScopeService, private filterModelService: any, private urlParser: any) {
+  constructor(private $rootScope: IRootScopeService, private filterModelService: any) {
     'ngInject';
     this.asFilterModel = this.filterModelService.configureFilterModel(this, filterModelConfig);
     this.bindEvents();
@@ -65,9 +66,9 @@ export class SecurityGroupFilterModel {
         [newBase, newQuery] = toUrl.split('?');
 
       if (oldBase === newBase) {
-        this.mostRecentParams = newQuery ? this.urlParser.parseQueryString(newQuery) : {};
+        this.mostRecentParams = newQuery ? UrlParser.parseQueryString(newQuery) : {};
       } else {
-        this.mostRecentParams = oldQuery ? this.urlParser.parseQueryString(oldQuery) : {};
+        this.mostRecentParams = oldQuery ? UrlParser.parseQueryString(oldQuery) : {};
       }
     });
 
@@ -97,5 +98,4 @@ export class SecurityGroupFilterModel {
 
 module(SECURITY_GROUP_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
-  require('core/navigation/urlParser.service'),
 ]).service('SecurityGroupFilterModel', SecurityGroupFilterModel);

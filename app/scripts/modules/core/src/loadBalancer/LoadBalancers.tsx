@@ -10,7 +10,7 @@ import { LoadBalancerPod } from './LoadBalancerPod';
 import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
 import { Tooltip } from 'core/presentation/Tooltip';
 
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 interface IProps {
   app: Application;

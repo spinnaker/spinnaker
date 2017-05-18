@@ -5,14 +5,14 @@ import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {SETTINGS} from 'core/config/settings';
 
-interface IBaseImage {
+export interface IBaseImage {
   id: string;
   shortDescription: string;
   detailedDescription: string;
   packageType: string;
 }
 
-interface IBaseOsOptions {
+export interface IBaseOsOptions {
   cloudProvider: string;
   baseImages: IBaseImage[];
 }

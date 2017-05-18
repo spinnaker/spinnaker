@@ -8,7 +8,7 @@ import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from './clusterFilter.model';
 
-interface IParentGrouping {
+export interface IParentGrouping {
   subgroups: IClusterSubgroup[] | IServerGroupSubgroup[];
 }
 
@@ -38,7 +38,7 @@ export interface IServerGroupSubgroup {
   entityTags: IEntityTags;
 }
 
-type Grouping = IClusterGroup | IClusterSubgroup | IServerGroupSubgroup;
+export type Grouping = IClusterGroup | IClusterSubgroup | IServerGroupSubgroup;
 
 export class ClusterFilterService {
 

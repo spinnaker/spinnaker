@@ -3,7 +3,7 @@ import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 
 import { Placement } from 'core/presentation/Placement';
 
-interface ITooltipProps {
+export interface ITooltipProps {
   value?: string;
   template?: JSX.Element;
   placement?: Placement;

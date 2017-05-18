@@ -8,7 +8,7 @@ import {cloneDeep, uniqBy} from 'lodash';
 import {Application} from 'core/application/application.model';
 import {IPipeline} from 'core/domain/IPipeline';
 import {SubmitButton} from 'core/modal/buttons/SubmitButton';
-import {ReactInjector} from 'core/react';
+import {ReactInjector} from 'core/reactShims';
 import {SETTINGS} from 'core/config/settings';
 import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
 import {TemplateDescription} from './TemplateDescription';

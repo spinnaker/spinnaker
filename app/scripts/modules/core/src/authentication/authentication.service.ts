@@ -7,7 +7,7 @@ export interface IUser {
   lastAuthenticated?: number;
 }
 
-interface IAuthenticationService {
+export interface IAuthenticationService {
   getAuthenticatedUser: () => IUser;
   setAuthenticatedUser: (authenticatedUser: IUser) => void;
   onAuthentication: (event: Function) => void;

@@ -3,12 +3,12 @@ import {isPlainObject, isArray, isNumber, isString} from 'lodash';
 
 const DiffMatchPatch = require('expose-loader?diff_match_patch!diff-match-patch');
 
-interface IDiffDetails {
+export interface IDiffDetails {
   type: string;
   text: string;
 }
 
-interface IChangeBlock {
+export interface IChangeBlock {
   start: number;
   height: number;
   top: number;
@@ -16,7 +16,7 @@ interface IChangeBlock {
   lines: number;
 }
 
-interface IDiffSummary {
+export interface IDiffSummary {
   additions: number;
   removals: number;
   unchanged: number;

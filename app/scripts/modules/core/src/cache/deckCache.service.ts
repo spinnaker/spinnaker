@@ -3,13 +3,13 @@ import {module} from 'angular';
 
 import {SETTINGS} from 'core/config/settings';
 
-interface ILocalStorage {
+export interface ILocalStorage {
   getItem: (key: string) => void;
   removeItem: (key: string) => void;
   setItem: (key: string, value: any) => void;
 }
 
-interface ICacheProxy {
+export interface ICacheProxy {
   [key: string]: any;
 }
 
@@ -58,11 +58,11 @@ class SelfClearingLocalStorage implements ILocalStorage {
   }
 }
 
-interface IInfo {
+export interface IInfo {
   created?: number;
 }
 
-interface IStats {
+export interface IStats {
   ageMax: number;
   ageMin: number;
   keys: number;

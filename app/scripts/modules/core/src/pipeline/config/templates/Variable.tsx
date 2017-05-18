@@ -3,7 +3,7 @@ import {IVariableMetadata} from './pipelineTemplate.service';
 import {IVariable, IVariableInputBuilder} from './inputs/variableInput.service';
 import autoBindMethods from 'class-autobind-decorator';
 import {VariableMetadataHelpField} from './VariableMetadataHelpField';
-import { ReactInjector } from 'core/react';
+import { ReactInjector } from 'core/reactShims';
 
 import './Variable.less';
 

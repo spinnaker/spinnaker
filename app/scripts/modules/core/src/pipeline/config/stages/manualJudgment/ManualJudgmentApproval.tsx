@@ -7,7 +7,7 @@ import autoBindMethods from 'class-autobind-decorator';
 
 import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
-import {ReactInjector} from 'core/react';
+import {ReactInjector} from 'core/reactShims';
 
 interface IProps {
   execution: IExecution;

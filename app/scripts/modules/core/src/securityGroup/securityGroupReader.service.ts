@@ -12,7 +12,7 @@ import {SETTINGS} from 'core/config/settings';
 import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
 import { ISecurityGroupSearchResult } from './SecurityGroupSearchResultFormatter';
 
-interface IRegionAccount {
+export interface IRegionAccount {
   account: string;
   accountName: string;
   id: string;
@@ -22,31 +22,31 @@ interface IRegionAccount {
   vpcId: string;
 }
 
-interface IRegions {
+export interface IRegions {
   [key: string]: IRegionAccount[]; // regionName
 }
 
-interface IProviders {
+export interface IProviders {
   [key: string]: IRegions; // providerName
 }
 
-interface IGroupsByRegion {
+export interface IGroupsByRegion {
   [key: string]: IRegionAccount[]; // regionName
 }
 
-interface IGroupsByProvider {
+export interface IGroupsByProvider {
   [key: string]: IGroupsByRegion; // providerName
 }
 
-interface ISecurityGroupsByRegion {
+export interface ISecurityGroupsByRegion {
   [key: string]: IRegionAccount;  // regionName
 }
 
-interface ISecurityGroupsByAccount {
+export interface ISecurityGroupsByAccount {
   [key: string]: ISecurityGroupsByRegion;  // accountName
 }
 
-interface IIndexedSecurityGroups {
+export interface IIndexedSecurityGroups {
   [key: string]: ISecurityGroupsByAccount;
 }
 
@@ -54,41 +54,41 @@ export interface IApplicationSecurityGroup {
   name: string;
 }
 
-interface IReaderSecurityGroup extends ISecurityGroup {
+export interface IReaderSecurityGroup extends ISecurityGroup {
   securityGroups: IGroupsByRegion;
 }
 
-interface ISecurityGroupDetailInboundRule {
+export interface ISecurityGroupDetailInboundRule {
   accountName?: string;
   id?: string;
   inferredName?: boolean;
   name?: string;
 }
 
-interface IPortRange {
+export interface IPortRange {
   startPort: number;
   endPort: number;
 }
 
-interface IRangeRule {
+export interface IRangeRule {
   portRanges: IPortRange[];
   protocol: string;
 }
 
-interface ISecurityGroupRule extends IRangeRule {
+export interface ISecurityGroupRule extends IRangeRule {
   securityGroup: ISecurityGroup;
 }
 
-interface IAddressableRange {
+export interface IAddressableRange {
   ip: string;
   cidr: string;
 }
 
-interface IIPRangeRule extends IRangeRule {
+export interface IIPRangeRule extends IRangeRule {
   range: IAddressableRange;
 }
 
-interface ISecurityGroupProcessorResult {
+export interface ISecurityGroupProcessorResult {
   notFoundCaught: boolean;
   securityGroups: ISecurityGroup[];
 }
