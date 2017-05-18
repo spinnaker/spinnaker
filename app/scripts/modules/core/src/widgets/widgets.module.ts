@@ -9,6 +9,7 @@ module(WIDGETS_MODULE, [
   require('./scopeClusterSelector.directive'),
   require('./notifier/notifier.component.js'),
   require('./spelText/spelText.decorator'),
+  require('./spelText/spelSelect.component'),
   require('./spelText/numberInput.component'),
   require('./actionIcons/actionIcons.component'),
   SPINNER_WRAPPER,
