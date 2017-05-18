@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
+ *
  */
 
 package com.netflix.spinnaker.halyard.cli.command.v1.admin;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.DeprecatedCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
@@ -30,15 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parameters(separators = "=")
-public class PublishLatestCommand extends NestableCommand implements DeprecatedCommand {
+public class PublishLatestSpinnakerCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
-  private String commandName = "latest";
+  private String commandName = "latest-spinnaker";
 
   @Getter(AccessLevel.PUBLIC)
   private String description = "Publish the latest version of Spinnaker to the global versions.yml tracking file.";
-
-  @Getter(AccessLevel.PUBLIC)
-  private String deprecatedWarning = "Please use `hal admin publish latest-spinnaker` instead.";
 
   @Override
   public String getMainParameter() {

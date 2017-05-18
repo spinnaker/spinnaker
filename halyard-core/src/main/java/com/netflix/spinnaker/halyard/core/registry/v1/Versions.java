@@ -38,7 +38,10 @@ public class Versions {
     }
   }
 
+  @Deprecated
   String latest;
+  String latestHalyard;
+  String latestSpinnaker;
   List<Version> versions = new ArrayList<>();
 
   @Override

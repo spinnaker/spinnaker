@@ -101,19 +101,33 @@ public class ArtifactService {
     writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }
 
-  public void publishLatest(String latest) {
+  public void publishLatestSpinnaker(String latestSpinnaker) {
     if (writeableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
     }
 
     Versions versionsCollection = versionsService.getVersions();
-    boolean hasLatest = versionsCollection.getVersions().stream().anyMatch(v -> v.getVersion().equals(latest));
+    boolean hasLatest = versionsCollection.getVersions().stream().anyMatch(v -> v.getVersion().equals(latestSpinnaker));
     if (!hasLatest) {
-      throw new HalException(FATAL, "Version " + latest + " does not exist in the list of published versions");
+      throw new HalException(FATAL, "Version " + latestSpinnaker + " does not exist in the list of published versions");
     }
 
-    versionsCollection.setLatest(latest);
+    versionsCollection.setLatest(latestSpinnaker);
+    versionsCollection.setLatestSpinnaker(latestSpinnaker);
+
+    writeableProfileRegistry.writeVersions(yamlParser.dump(strictObjectMapper.convertValue(versionsCollection, Map.class)));
+  }
+
+  public void publishLatestHalyard(String latestHalyard) {
+    if (writeableProfileRegistry == null) {
+      throw new HalException(new ConfigProblemBuilder(FATAL,
+          "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify BOM contents.").build());
+    }
+
+    Versions versionsCollection = versionsService.getVersions();
+
+    versionsCollection.setLatestHalyard(latestHalyard);
 
     writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }

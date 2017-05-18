@@ -517,9 +517,16 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Void> publishLatest(String latest) {
+  public static Supplier<Void> publishLatestHalyard(String latestHalyard) {
     return () -> {
-      ResponseUnwrapper.get(getService().publishLatest(latest, ""));
+      ResponseUnwrapper.get(getService().publishLatestHalyard(latestHalyard, ""));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> publishLatestSpinnaker(String latestSpinnaker) {
+    return () -> {
+      ResponseUnwrapper.get(getService().publishLatestSpinnaker(latestSpinnaker, ""));
       return null;
     };
   }

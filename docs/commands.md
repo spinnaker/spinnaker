@@ -10,6 +10,8 @@ _Version: 0.21.0-SNAPSHOT_
  * [**hal admin publish**](#hal-admin-publish)
  * [**hal admin publish bom**](#hal-admin-publish-bom)
  * [**hal admin publish latest**](#hal-admin-publish-latest)
+ * [**hal admin publish latest-halyard**](#hal-admin-publish-latest-halyard)
+ * [**hal admin publish latest-spinnaker**](#hal-admin-publish-latest-spinnaker)
  * [**hal admin publish profile**](#hal-admin-publish-profile)
  * [**hal admin publish version**](#hal-admin-publish-version)
  * [**hal backup**](#hal-backup)
@@ -269,7 +271,9 @@ hal admin publish [subcommands]
 ```
 #### Subcommands
  * `bom`: Publish a Bill of Materials (BOM).
- * `latest`: Publish a version of Spinnaker to the global versions.yml tracking file.
+ * `latest` _(Deprecated)_ : Publish the latest version of Spinnaker to the global versions.yml tracking file.
+ * `latest-halyard`: Publish the latest version of Halyard to the global versions.yml tracking file.
+ * `latest-spinnaker`: Publish the latest version of Spinnaker to the global versions.yml tracking file.
  * `profile`: Publish a base halconfig profile for a specific Spinnaker artifact.
  * `version`: Publish a version of Spinnaker to the global versions.yml tracking file.
 
@@ -288,11 +292,31 @@ hal admin publish bom [parameters]
 ---
 ## hal admin publish latest
 
-Publish a version of Spinnaker to the global versions.yml tracking file.
+Publish the latest version of Spinnaker to the global versions.yml tracking file.
 
 #### Usage
 ```
 hal admin publish latest VERSION
+```
+
+---
+## hal admin publish latest-halyard
+
+Publish the latest version of Halyard to the global versions.yml tracking file.
+
+#### Usage
+```
+hal admin publish latest-halyard VERSION
+```
+
+---
+## hal admin publish latest-spinnaker
+
+Publish the latest version of Spinnaker to the global versions.yml tracking file.
+
+#### Usage
+```
+hal admin publish latest-spinnaker VERSION
 ```
 
 ---

@@ -112,6 +112,11 @@ public abstract class NestableCommand {
       if (help) {
         showHelp();
       } else {
+        if (this instanceof DeprecatedCommand) {
+          AnsiUi.warning("This command is deprecated.");
+          AnsiUi.warning(((DeprecatedCommand) this).getDeprecatedWarning());
+        }
+
         if (this instanceof ProtectedCommand) {
           String prompt = ((ProtectedCommand) this).getPrompt();
           Console console = System.console();
@@ -296,8 +301,13 @@ public abstract class NestableCommand {
         paragraph = story.addParagraph().setIndentWidth(indentWidth);
         paragraph.addSnippet(key).addStyle(AnsiStyle.BOLD);
 
-        paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
         NestableCommand subcommand = subcommands.get(key);
+        if (subcommand instanceof DeprecatedCommand) {
+          paragraph.addSnippet(" ");
+          paragraph.addSnippet("(Deprecated)").addStyle(AnsiStyle.UNDERLINE);
+        }
+
+        paragraph = story.addParagraph().setIndentWidth(indentWidth * 2);
         String shortDescription = subcommand.getShortDescription() != null ? subcommand.getShortDescription() : subcommand.getDescription();
         paragraph.addSnippet(shortDescription);
         story.addNewline();
@@ -441,12 +451,17 @@ public abstract class NestableCommand {
 
       for (String key : keys) {
         NestableCommand subcommand = subcommands.get(key);
+        String modifiers = "";
+        if (subcommand instanceof DeprecatedCommand) {
+          modifiers += " _(Deprecated)_ ";
+        }
         String shortDescription = subcommand.getShortDescription() != null ? subcommand.getShortDescription() : subcommand.getDescription();
 
         result.append(" * ")
             .append("`")
             .append(key)
             .append("`")
+            .append(modifiers)
             .append(": ")
             .append(shortDescription)
             .append("\n");

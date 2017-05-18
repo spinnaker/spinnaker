@@ -482,7 +482,12 @@ public interface DaemonService {
       @Body Versions.Version version);
 
   @PUT("/v1/admin/publishLatest")
-  DaemonTask<Halconfig, Void> publishLatest(
-      @Query("latest") String latest,
+  DaemonTask<Halconfig, Void> publishLatestHalyard(
+      @Query("latestHalyard") String latestHalyard,
+      @Body String _ignore);
+
+  @PUT("/v1/admin/publishLatest")
+  DaemonTask<Halconfig, Void> publishLatestSpinnaker(
+      @Query("latestSpinnaker") String latestSpinnaker,
       @Body String _ignore);
 }

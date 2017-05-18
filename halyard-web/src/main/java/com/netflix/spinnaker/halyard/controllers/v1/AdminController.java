@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,11 +35,18 @@ public class AdminController {
 
   @RequestMapping(value = "/publishLatest", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> publishLatest(
-      @RequestParam String latest,
+      @RequestParam(required = false) String latestSpinnaker,
+      @RequestParam(required = false) String latestHalyard,
       @RequestBody String _ignored) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> {
-      artifactService.publishLatest(latest);
+      if (!StringUtils.isEmpty(latestSpinnaker)) {
+        artifactService.publishLatestSpinnaker(latestSpinnaker);
+      }
+
+      if (!StringUtils.isEmpty(latestHalyard)) {
+        artifactService.publishLatestHalyard(latestHalyard);
+      }
       return null;
     });
 
@@ -54,7 +62,7 @@ public class AdminController {
       return null;
     });
 
-    return DaemonTaskHandler.submitTask(builder::build, "Deprecate a version");
+    return DaemonTaskHandler.submitTask(builder::build, "Deprecate version " + version.getVersion());
   }
 
   @RequestMapping(value = "/publishVersion", method = RequestMethod.PUT)
@@ -66,7 +74,7 @@ public class AdminController {
       return null;
     });
 
-    return DaemonTaskHandler.submitTask(builder::build, "Publish a new version");
+    return DaemonTaskHandler.submitTask(builder::build, "Publish a new version " + version.getVersion());
   }
 
   @RequestMapping(value = "/publishBom", method = RequestMethod.PUT)
