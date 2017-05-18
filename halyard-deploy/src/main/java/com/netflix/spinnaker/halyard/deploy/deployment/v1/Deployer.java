@@ -38,6 +38,12 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes);
 
+  void collectLogs(
+      S serviceProvider,
+      D deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings,
+      List<SpinnakerService.Type> serviceTypes);
+
   RemoteAction connectCommand(
       S serviceProvider,
       D deploymentDetails,

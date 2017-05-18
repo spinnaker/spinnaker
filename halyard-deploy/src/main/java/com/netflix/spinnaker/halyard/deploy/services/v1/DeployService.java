@@ -80,6 +80,28 @@ public class DeployService {
   @Autowired
   ConfigParser configParser;
 
+  public void collectLogs(String deploymentName, List<String> serviceNames) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
+    SpinnakerRuntimeSettings runtimeSettings = serviceProvider.buildRuntimeSettings(deploymentConfiguration);
+    Deployer deployer = getDeployer(deploymentConfiguration);
+    DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
+
+    List<SpinnakerService.Type> serviceTypes = serviceNames.stream()
+        .map(SpinnakerService.Type::fromCanonicalName)
+        .collect(Collectors.toList());
+
+    if (serviceTypes.isEmpty()) {
+      serviceTypes = serviceProvider
+          .getServices()
+          .stream()
+          .map(SpinnakerService::getType)
+          .collect(Collectors.toList());
+    }
+
+    deployer.collectLogs(serviceProvider, deploymentDetails, runtimeSettings, serviceTypes);
+  }
+
   public NodeDiff configDiff(String deploymentName) {
     try {
       DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);

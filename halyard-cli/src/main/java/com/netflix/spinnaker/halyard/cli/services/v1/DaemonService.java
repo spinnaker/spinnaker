@@ -91,6 +91,13 @@ public interface DaemonService {
       @Query("serviceNames") List<String> serviceNames,
       @Body String _ignore);
 
+  @PUT("/v1/config/deployments/{deploymentName}/collectLogs/")
+  DaemonTask<Halconfig, Object> collectLogs(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Query("serviceNames") List<String> serviceNames,
+      @Body String _ignore);
+
   @POST("/v1/config/deployments/{deploymentName}/clean/")
   DaemonTask<Halconfig, Object> cleanDeployment(
       @Path("deploymentName") String deploymentName,

@@ -32,8 +32,18 @@ public class HalconfigDirectoryStructure {
   @Autowired
   String halconfigDirectory;
 
+  public Path getLogsPath(String deploymentName) {
+    return ensureRelativeHalDirectory(deploymentName, "service-logs");
+  }
+
   public Path getUserProfilePath(String deploymentName) {
     return ensureRelativeHalDirectory(deploymentName, "profiles");
+  }
+
+  public Path getServiceLogsPath(String deploymentName, String hostname, String serviceName) {
+    Path halconfigPath = Paths.get(getLogsPath(deploymentName).toString(), hostname, serviceName);
+    ensureDirectory(halconfigPath);
+    return halconfigPath;
   }
 
   public Path getUserServiceSettingsPath(String deploymentName) {
@@ -97,7 +107,7 @@ public class HalconfigDirectoryStructure {
     return path;
   }
 
-  private Path ensureDirectory(Path path) {
+  public Path ensureDirectory(Path path) {
     File file = path.toFile();
     if (file.exists()) {
       if (!file.isDirectory()) {

@@ -32,6 +32,7 @@ public class DeployCommand extends NestableCommand {
 
   public DeployCommand() {
     registerSubcommand(new ApplyDeployCommand());
+    registerSubcommand(new CollectLogsDeployCommand());
     registerSubcommand(new ConnectDeployCommand());
     registerSubcommand(new RollbackDeployCommand());
     registerSubcommand(new DiffDeployCommand());

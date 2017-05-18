@@ -26,8 +26,10 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -47,6 +49,11 @@ public class KubernetesRedisService extends RedisService implements KubernetesDi
   @Delegate
   @Autowired
   KubernetesDistributedServiceDelegate distributedServiceDelegate;
+
+  @Delegate(excludes = HasServiceSettings.class)
+  public DistributedLogCollector getLogCollector() {
+    return getLogCollectorFactory().build(this);
+  }
 
   @Override
   public Jedis connectToPrimaryService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {

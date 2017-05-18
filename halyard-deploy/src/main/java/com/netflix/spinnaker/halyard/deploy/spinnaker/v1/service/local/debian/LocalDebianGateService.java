@@ -20,13 +20,15 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.GateService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalLogCollectorFactory;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -36,6 +38,14 @@ public class LocalDebianGateService extends GateService implements LocalDebianSe
 
   @Autowired
   ArtifactService artifactService;
+
+  @Autowired
+  LocalLogCollectorFactory localLogCollectorFactory;
+
+  @Delegate(excludes = HasServiceSettings.class)
+  LogCollector getLocalLogCollector() {
+    return localLogCollectorFactory.build(this);
+  }
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

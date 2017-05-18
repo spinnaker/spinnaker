@@ -18,10 +18,9 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
-import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.FiatService;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -35,6 +34,12 @@ public class KubernetesFiatService extends FiatService implements KubernetesDist
   @Delegate
   @Autowired
   KubernetesDistributedServiceDelegate distributedServiceDelegate;
+
+  @Delegate(excludes = HasServiceSettings.class)
+  public DistributedLogCollector getLogCollector() {
+    return getLogCollectorFactory().build(this);
+  }
+
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

@@ -22,10 +22,14 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.DeckService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalLogCollectorFactory;
 import io.fabric8.utils.Strings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +41,18 @@ public class LocalDebianDeckService extends DeckService implements LocalDebianSe
 
   @Autowired
   ArtifactService artifactService;
+
+  @Autowired
+  LocalLogCollectorFactory localLogCollectorFactory;
+
+
+  @Delegate(excludes = HasServiceSettings.class)
+  LogCollector getLocalLogCollector() {
+    return localLogCollectorFactory.build(this, new String[] {
+      "/var/log/upstart/apache.log",
+      "/var/log/apache/"
+    });
+  }
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

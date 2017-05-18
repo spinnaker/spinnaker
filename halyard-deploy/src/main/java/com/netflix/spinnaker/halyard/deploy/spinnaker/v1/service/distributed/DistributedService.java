@@ -50,7 +50,6 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
       List<ConfigSource> configSources,
       boolean recreate);
 
-
   List<String> getHealthProviders();
   Map<String, List<String>> getAvailabilityZones(ServiceSettings settings);
   Provider.ProviderType getProviderType();

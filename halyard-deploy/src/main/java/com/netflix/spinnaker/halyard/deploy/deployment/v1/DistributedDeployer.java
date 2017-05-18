@@ -27,12 +27,14 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca.ActiveExecutions;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -45,6 +47,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 @Component
+@Slf4j
 public class DistributedDeployer<T extends Account> implements Deployer<DistributedServiceProvider<T>, AccountDeploymentDetails<T>> {
   @Autowired
   OrcaRunner orcaRunner;
@@ -75,6 +78,17 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
             .connectToPrimaryService(deploymentDetails, runtimeSettings);
         DaemonTaskHandler.message("Rolling back " + distributedService.getServiceName() + " via Spinnaker red/black");
         rollbackService(deploymentDetails, orca, distributedService, runtimeSettings);
+      }
+    }
+  }
+
+  @Override
+  public void collectLogs(DistributedServiceProvider<T> serviceProvider, AccountDeploymentDetails<T> deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceTypes)) {
+      if (distributedService instanceof LogCollector) {
+        ((LogCollector) distributedService).collectLogs(deploymentDetails, runtimeSettings);
+      } else {
+        log.warn(distributedService.getServiceName() + " cannot have logs collected");
       }
     }
   }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentDetails> {
   @Override
   public RemoteAction deploy(
@@ -69,6 +71,13 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
     throw new HalException(Problem.Severity.FATAL, "No support for rolling back debian deployments yet.");
+  }
+
+  @Override
+  public void collectLogs(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+    for (LocalService localService : serviceProvider.getLocalServices(serviceTypes)) {
+      localService.collectLogs(deploymentDetails, runtimeSettings);
+    }
   }
 
   @Override

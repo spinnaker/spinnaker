@@ -288,6 +288,13 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> collectLogs(String deploymentName, boolean validate, List<String> serviceNames) {
+    return () -> {
+      ResponseUnwrapper.get(getService().collectLogs(deploymentName, validate, serviceNames, ""));
+      return null;
+    };
+  }
+
   public static Supplier<Void> cleanDeployment(String deploymentName, boolean validate) {
     return () -> {
       ResponseUnwrapper.get(getService().cleanDeployment(deploymentName, validate, ""));

@@ -18,8 +18,10 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaBootstrapService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -36,6 +38,11 @@ public class KubernetesOrcaBootstrapService extends OrcaBootstrapService impleme
   @Delegate
   @Autowired
   KubernetesDistributedServiceDelegate distributedServiceDelegate;
+
+  @Delegate(excludes = HasServiceSettings.class)
+  public DistributedLogCollector getLogCollector() {
+    return getLogCollectorFactory().build(this);
+  }
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

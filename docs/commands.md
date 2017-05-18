@@ -180,6 +180,7 @@ _Version: 0.21.0-SNAPSHOT_
  * [**hal deploy**](#hal-deploy)
  * [**hal deploy apply**](#hal-deploy-apply)
  * [**hal deploy clean**](#hal-deploy-clean)
+ * [**hal deploy collect-logs**](#hal-deploy-collect-logs)
  * [**hal deploy connect**](#hal-deploy-connect)
  * [**hal deploy details**](#hal-deploy-details)
  * [**hal deploy diff**](#hal-deploy-diff)
@@ -2865,6 +2866,7 @@ hal deploy [subcommands]
 #### Subcommands
  * `apply`: Deploy or update the currently configured instance of Spinnaker to a selected environment.
  * `clean`: Remove all Spinnaker artifacts in your target deployment environment.
+ * `collect-logs`: Collect logs from the specified Spinnaker services.
  * `connect`: Connect to your Spinnaker deployment.
  * `details`: Get details about your currently deployed Spinnaker installation.
  * `diff`: This shows what changes you have made since Spinnaker was last deployed.
@@ -2898,6 +2900,19 @@ hal deploy clean [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal deploy collect-logs
+
+This command collects logs from all Spinnaker services, and depending on how it was deployed, it will collect logs from sidecars and startup scripts as well.
+
+#### Usage
+```
+hal deploy collect-logs [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--service-names`: (*Default*: `[]`) When supplied, logs from only the specified services will be collected.
 
 ---
 ## hal deploy connect

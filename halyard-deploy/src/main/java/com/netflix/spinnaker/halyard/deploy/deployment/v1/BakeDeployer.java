@@ -79,6 +79,11 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
   }
 
   @Override
+  public void collectLogs(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
+    throw new HalException(Problem.Severity.FATAL, "This type of deployment does not generate logs that can be collected.");
+  }
+
+  @Override
   public RemoteAction connectCommand(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
     throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be run or connected to.");
   }

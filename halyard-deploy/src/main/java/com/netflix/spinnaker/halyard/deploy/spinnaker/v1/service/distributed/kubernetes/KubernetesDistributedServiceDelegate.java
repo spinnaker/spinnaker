@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,10 @@ import org.springframework.stereotype.Component;
 public class KubernetesDistributedServiceDelegate {
   @Autowired
   ArtifactSources artifactSources;
+
+  @Autowired
+  @Getter
+  KubernetesDistributedLogCollectorFactory logCollectorFactory;
 
   public String getDockerRegistry() {
     return artifactSources.getDockerRegistry();

@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.ku
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.EchoService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
@@ -32,6 +34,11 @@ public class KubernetesEchoService extends EchoService implements KubernetesDist
   @Delegate
   @Autowired
   KubernetesDistributedServiceDelegate distributedServiceDelegate;
+
+  @Delegate(excludes = HasServiceSettings.class)
+  public DistributedLogCollector getLogCollector() {
+    return getLogCollectorFactory().build(this);
+  }
 
   @Override
   public Settings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {

@@ -39,19 +39,21 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails.I
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
+import lombok.experimental.Delegate;
 
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-public interface KubernetesDistributedService<T> extends DistributedService<T, KubernetesAccount> {
+public interface KubernetesDistributedService<T> extends DistributedService<T, KubernetesAccount>, LogCollector<T, AccountDeploymentDetails<KubernetesAccount>> {
   String getDockerRegistry();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();

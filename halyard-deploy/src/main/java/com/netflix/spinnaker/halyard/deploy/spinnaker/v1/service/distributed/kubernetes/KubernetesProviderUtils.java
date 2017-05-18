@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.kubernetes;
 
-import com.amazonaws.util.IOUtils;
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
@@ -34,11 +33,13 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Data;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -232,6 +233,28 @@ class KubernetesProviderUtils {
       jobExecutor.backoffWait(jobExecutor.startJob(request));
     } catch (InterruptedException e) {
       throw new DaemonTaskInterrupted(e);
+    }
+  }
+
+  static void storeInstanceLogs(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String instanceName, String containerName, File outputFile) {
+    List<String> command = kubectlAccountCommand(details);
+    command.add("logs");
+    command.add(instanceName);
+    command.add(containerName);
+
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+
+    JobStatus status;
+    try {
+      status = jobExecutor.backoffWait(jobExecutor.startJob(request));
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+
+    try {
+      IOUtils.write(status.getStdOut().getBytes(), new FileOutputStream(new File(outputFile, containerName)));
+    } catch (IOException e) {
+      throw new HalException(Severity.FATAL, "Unable to store logs: " + e.getMessage(), e);
     }
   }
 

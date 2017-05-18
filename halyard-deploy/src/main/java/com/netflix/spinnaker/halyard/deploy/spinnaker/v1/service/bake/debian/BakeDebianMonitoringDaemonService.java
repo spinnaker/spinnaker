@@ -61,7 +61,7 @@ public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemon
     return String.join("\n", installCommand,
         "sed -i -e 's/#@ //g' " + pipRequirementsFile,
         "pip install -r " + pipRequirementsFile
-        );
+    );
   }
 
   public String getArtifactId(String deploymentName) {

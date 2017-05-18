@@ -193,6 +193,28 @@ public class DeploymentController {
     return DaemonTaskHandler.submitTask(builder::build, "Apply deployment", TimeUnit.MINUTES.toMillis(30));
   }
 
+  @RequestMapping(value = "/{deploymentName:.+}/collectLogs/", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> collectLogs(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestParam(required = false) List<String> serviceNames) {
+    StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
+    builder.setSeverity(severity);
+
+    List<String> finalServiceNames = serviceNames == null ? new ArrayList<>() : serviceNames;
+
+    builder.setBuildResponse(() -> {
+      deployService.collectLogs(deploymentName, finalServiceNames);
+      return null;
+    });
+
+    if (validate) {
+      builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
+    }
+
+    return DaemonTaskHandler.submitTask(builder::build, "Collecting service logs");
+  }
+
   @RequestMapping(value = "/{deploymentName:.+}/configDiff/", method = RequestMethod.GET)
   DaemonTask<Halconfig, NodeDiff> configDiff(@PathVariable String deploymentName,
     @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
