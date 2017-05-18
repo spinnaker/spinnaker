@@ -435,34 +435,6 @@ class SpringIntegrationTest {
       (stages.first().context["key"] as Map<String, Any>)["expr"] shouldEqual true
     }
   }
-
-  @Test fun `global context is available to tasks`() {
-    val pipeline = pipeline {
-      application = "spinnaker"
-      context["global"] = "foo"
-      stage {
-        refId = "1"
-        type = "dummy"
-      }
-    }
-    repository.store(pipeline)
-    repository.storeExecutionContext(pipeline.id, pipeline.context)
-
-    whenever(dummyTask.timeout) doReturn 2000L
-    whenever(dummyTask.execute(any())) doReturn TaskResult(SUCCEEDED, mapOf("output" to "foo"))
-
-    context.runToCompletion(pipeline, runner::start, repository)
-
-    verify(dummyTask).execute(check {
-      it.getContext()["global"] shouldEqual "foo"
-    })
-
-    repository.retrievePipeline(pipeline.id).apply {
-      status shouldEqual SUCCEEDED
-      // execution level context should not be permanently added to the stage context
-      stages.first().context.containsKey("global") shouldEqual false
-    }
-  }
 }
 
 @Configuration

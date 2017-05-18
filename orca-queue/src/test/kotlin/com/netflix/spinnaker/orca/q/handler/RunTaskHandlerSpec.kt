@@ -549,46 +549,6 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         }
       }
     }
-
-    describe("the context passed to the task") {
-      val pipeline = pipeline {
-        context["global"] = "foo"
-        context["override"] = "global"
-        stage {
-          type = "whatever"
-          context["stage"] = "foo"
-          context["override"] = "stage"
-          task {
-            id = "1"
-            implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
-          }
-        }
-      }
-      val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-      val taskResult = TaskResult(SUCCEEDED)
-
-      beforeGroup {
-        whenever(task.execute(any())) doReturn taskResult
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-      }
-
-      afterGroup(::resetMocks)
-
-      action("the handler receives a message") {
-        subject.handle(message)
-      }
-
-      it("merges stage and global contexts") {
-        verify(task).execute(check {
-          it.getContext().let {
-            it["global"] shouldEqual "foo"
-            it["stage"] shouldEqual "foo"
-            it["override"] shouldEqual "stage"
-          }
-        })
-      }
-    }
   }
 
   describe("expressions in the context") {
@@ -678,6 +638,44 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       it("resolves deployed server groups") {
         verify(task).execute(check {
           it.getContext()["command"] shouldEqual "serverGroupDetails.groovy mgmttest us-west-1 spindemo-test-v008"
+        })
+      }
+    }
+
+    given("parameters in the context and in the pipeline") {
+      val pipeline = pipeline {
+        trigger["parameters"] = mapOf(
+          "dummy" to "foo"
+        )
+        stage {
+          refId = "1"
+          type = "jenkins"
+          context["parameters"] = mapOf(
+            "message" to "o hai"
+          )
+          task {
+            id = "1"
+            implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
+          }
+        }
+      }
+      val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "1", DummyTask::class.java)
+
+      beforeGroup {
+        whenever(task.execute(any())) doReturn TaskResult.SUCCEEDED
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      action("the handler receives a message") {
+        subject.handle(message)
+      }
+
+      it("does not overwrite the stage's parameters with the pipeline's") {
+        verify(task).execute(check {
+          it.getContext()["parameters"] shouldEqual mapOf("message" to "o hai")
         })
       }
     }
