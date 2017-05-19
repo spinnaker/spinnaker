@@ -229,7 +229,7 @@ export class FastPropertyScopeCategoryService {
     }, scope.instanceCounts);
   }
 
-  public getStackFromClusterName(clusterName: string ): string {
+  public getStackFromClusterName(clusterName = ''): string {
     const nameStackDetails = clusterName.split('-');
     return nameStackDetails.length > 1 ? nameStackDetails[1] : '';
   }

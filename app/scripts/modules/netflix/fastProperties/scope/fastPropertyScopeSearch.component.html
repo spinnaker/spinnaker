@@ -1,21 +1,19 @@
 <form class="">
   <div class="has-feedback">
-    <div class="input-group">
-      <input type="search"
-             class="form-control flat"
-             placeholder="Search"
-             ng-model="$ctrl.query"
-             ng-focus="$ctrl.displayResults()"
-             ng-keyup="$ctrl.dispatchQueryInput($event)"
-             ng-blur="$ctrl.searchFieldBlurred($event)"
-             ng-paste="$ctrl.dispatchQueryInput($event)"
-             ng-cut="$ctrl.dispatchQueryInput($event)"
-      />
-      <span class="glyphicon glyphicon-search form-control-feedback"
-            style="right: 0"
-            uib-tooltip-html="ctrl.tooltip"
-            tooltip-placement="right"></span>
-    </div>
+    <input type="search"
+           class="form-control flat"
+           placeholder="Search"
+           ng-model="$ctrl.query"
+           ng-focus="$ctrl.displayResults()"
+           ng-keyup="$ctrl.dispatchQueryInput($event)"
+           ng-blur="$ctrl.searchFieldBlurred($event)"
+           ng-paste="$ctrl.dispatchQueryInput($event)"
+           ng-cut="$ctrl.dispatchQueryInput($event)"
+    />
+    <span class="glyphicon glyphicon-search form-control-feedback"
+          style="right: 0"
+          uib-tooltip-html="ctrl.tooltip"
+          tooltip-placement="right"></span>
   </div>
 </form>
 
