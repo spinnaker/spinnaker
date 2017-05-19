@@ -2,13 +2,14 @@ import { module } from 'angular';
 
 import { CORE_MODULE } from '@spinnaker/core';
 import { DOCKER_MODULE } from '@spinnaker/docker';
+import { AMAZON_MODULE } from '@spinnaker/amazon';
 import { APPENGINE_MODULE } from './modules/appengine/appengine.module';
 import { NETFLIX_MODULE } from './modules/netflix/netflix.module';
 
 module('netflix.spinnaker', [
   NETFLIX_MODULE,
   CORE_MODULE,
-  require('./modules/amazon/aws.module.js'),
+  AMAZON_MODULE,
   require('./modules/google/gce.module.js'),
   require('./modules/cloudfoundry/cf.module.js'),
   require('./modules/titus/titus.module.js'),

@@ -27,7 +27,9 @@
       "@spinnaker/docker": ["docker/src"],
       "docker/*": ["docker/src/*"],
       "docker": ["docker/src"],
-      "@spinnaker/amazon": ["amazon"]
+      "@spinnaker/amazon": ["amazon/src"],
+      "amazon/*": ["amazon/src"],
+      "amazon": ["amazon/src"]
     },
     "pretty": true,
     "removeComments": true,

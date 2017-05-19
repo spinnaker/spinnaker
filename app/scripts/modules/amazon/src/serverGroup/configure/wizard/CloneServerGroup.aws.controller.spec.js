@@ -6,8 +6,8 @@
  existence.
  */
 describe('Controller: awsCloneServerGroup', function () {
-  const AccountServiceFixture = require('../../../../../../../test/fixture/AccountServiceFixtures.js');
-  const securityGroupReaderFixture = require('../../../../../../../test/fixture/SecurityGroupServiceFixtures.js');
+  const AccountServiceFixture = require('../AccountServiceFixtures.js');
+  const securityGroupReaderFixture = require('./SecurityGroupServiceFixtures.js');
 
   beforeEach(
     window.module(

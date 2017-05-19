@@ -1,9 +1,9 @@
 'use strict';
 
-import {AWSProviderSettings} from '../../aws.settings';
+import {AWSProviderSettings} from 'amazon/aws.settings';
 
 describe('awsServerGroupCommandBuilder', function() {
-  const AccountServiceFixture = require('../../../../../../test/fixture/AccountServiceFixtures');
+  const AccountServiceFixture = require('./AccountServiceFixtures');
 
   beforeEach(
     window.module(
