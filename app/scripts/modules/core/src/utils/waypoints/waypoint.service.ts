@@ -100,4 +100,4 @@ export class WaypointService {
 
 export const WAYPOINT_SERVICE = 'spinnaker.core.utils.waypoints.service';
 module(WAYPOINT_SERVICE, [])
-  .factory('waypointService', () => new WaypointService());
+  .service('waypointService', WaypointService);
