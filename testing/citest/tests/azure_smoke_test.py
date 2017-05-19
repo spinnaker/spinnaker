@@ -78,6 +78,24 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
   #TODO: Perform the login to Azure withTEST_APP the SPN passed as parameters
 
   def create_app(self):
+    """Creates OperationContract that creates a new Spinnaker Application."""
+    contract = jc.Contract()
+    return st.OperationContract(
+        self.agent.make_create_app_operation(
+            bindings=self.bindings, application=self.bindings['TEST_APP'],
+            account_name=self.bindings['SPINNAKER_AZURE_ACCOUNT']),
+        contract=contract)
+
+  def delete_app(self):
+    """Creates OperationContract that deletes a new Spinnaker Application."""
+    contract = jc.Contract()
+    return st.OperationContract(
+        self.agent.make_delete_app_operation(
+            application=self.bindings['TEST_APP'],
+            account_name=self.bindings['SPINNAKER_AZURE_ACCOUNT']),
+        contract=contract)
+
+  def old_create_app(self):
     """Creates OperationContract that creates a new Spinnaker Application and validate its creation in Azure Storage.
     """
     email = self.bindings.get('TEST_EMAIL', 'testuser@testhost.org')
@@ -113,7 +131,7 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
             path='tasks'),
         contract=builder.build())
 
-  def delete_app(self):
+  def old_delete_app(self):
     """Creates OperationContract that deletes a new Spinnaker Application and validates its deletion in Azure Storage.
     """
 
