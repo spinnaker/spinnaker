@@ -22,6 +22,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.Resolved
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerServiceProvider;
+import redis.clients.jedis.Jedis;
 
 import java.util.List;
 
@@ -56,5 +57,9 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
       SpinnakerRuntimeSettings runtimeSettings
   ) {
     return serviceProvider.clean(deploymentDetails, runtimeSettings);
+  }
+
+  default void flushRedis(Jedis jedis) {
+    jedis.eval("for i, k in ipairs(redis.call('keys', 'com.netflix.spinnaker.clouddriver*')) do redis.call('del', k); end");
   }
 }

@@ -73,12 +73,33 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
         // Do nothing, the bootstrapping services should already be running, and the services that can't be updated
         // having nothing to rollback to
       } else {
-        Orca orca = serviceProvider
-            .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
-            .connectToPrimaryService(deploymentDetails, runtimeSettings);
-        DaemonTaskHandler.message("Rolling back " + distributedService.getServiceName() + " via Spinnaker red/black");
-        rollbackService(deploymentDetails, orca, distributedService, runtimeSettings);
+        DaemonResponse.StaticRequestBuilder<Void> builder = new DaemonResponse.StaticRequestBuilder<>();
+        builder.setBuildResponse(() -> {
+          Orca orca = serviceProvider
+              .getDeployableService(SpinnakerService.Type.ORCA_BOOTSTRAP, Orca.class)
+              .connectToPrimaryService(deploymentDetails, runtimeSettings);
+          DaemonTaskHandler.message("Rolling back " + distributedService.getServiceName() + " via Spinnaker red/black");
+          rollbackService(deploymentDetails, orca, distributedService, runtimeSettings);
+
+          return null;
+        });
+
+        DaemonTaskHandler.submitTask(builder::build, "Rollback " + distributedService.getServiceName());
       }
+    }
+
+    DaemonTaskHandler.message("Waiting on rollbacks to complete");
+    DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
+        .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
+
+    DaemonTaskHandler.message("Flushing redis cache");
+    try {
+      Jedis jedis = (Jedis) serviceProvider
+          .getDeployableService(SpinnakerService.Type.REDIS)
+          .connectToPrimaryService(deploymentDetails, runtimeSettings);
+      flushRedis(jedis);
+    } catch (Exception e) {
+      throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
     }
   }
 
@@ -160,7 +181,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       Jedis jedis = (Jedis) serviceProvider
           .getDeployableService(SpinnakerService.Type.REDIS)
           .connectToPrimaryService(deploymentDetails, runtimeSettings);
-      jedis.eval("for i, k in ipairs(redis.call('keys', 'com.netflix.spinnaker.clouddriver*')) do redis.call('del', k); end");
+      flushRedis(jedis);
     } catch (Exception e) {
       throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
     }

@@ -170,7 +170,7 @@ public class DeploymentController {
       builder.setValidateResponse(() -> deploymentService.validateDeploymentShallow(deploymentName));
     }
 
-    return DaemonTaskHandler.submitTask(builder::build, "Rollback Spinnaker");
+    return DaemonTaskHandler.submitTask(builder::build, "Rollback Spinnaker", TimeUnit.MINUTES.toMillis(30));
   }
 
   @RequestMapping(value = "/{deploymentName:.+}/deploy/", method = RequestMethod.POST)
