@@ -139,7 +139,7 @@ public class JobExecutorLocal extends JobExecutor {
   @Override
   public JobStatus updateJob(String jobId) {
     try {
-      log.info("Polling state for " + jobId + "...");
+      log.debug("Polling state for " + jobId + "...");
       ExecutionHandler handler = jobIdToHandlerMap.get(jobId);
 
       if (handler == null) {
