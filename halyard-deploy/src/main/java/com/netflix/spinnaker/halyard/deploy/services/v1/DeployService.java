@@ -170,8 +170,6 @@ public class DeployService {
   }
 
   public RemoteAction deploy(String deploymentName, List<DeployOption> deployOptions, List<String> serviceNames) {
-    halconfigParser.backupConfig();
-
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     SpinnakerServiceProvider<DeploymentDetails> serviceProvider = serviceProviderFactory.create(deploymentConfiguration);
 
@@ -204,6 +202,8 @@ public class DeployService {
     DeploymentDetails deploymentDetails = getDeploymentDetails(deploymentConfiguration);
 
     RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
+    halconfigParser.backupConfig();
+
     if (!action.getScript().isEmpty()) {
       action.commitScript(halconfigDirectoryStructure.getInstallScriptPath(deploymentName));
     }
