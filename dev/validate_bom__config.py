@@ -169,6 +169,105 @@ class AwsConfigurator(object):
       file_set.add(options.aws_account_credentials)
 
 
+class AzureConfigurator(object):
+  """Controls hal config provider azure."""
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    # pylint: disable=line-too-long
+    parser.add_argument(
+        '--azure_account_credentials', default=None,
+        help='Path to Azure credentials file containing the appKey'
+             ' for the service principal.')
+    parser.add_argument(
+        '--azure_account_name', default='my-azure-account',
+        help='The name of the primary Azure account to configure.')
+    parser.add_argument(
+        '--azure_account_client_id', default=None,
+        help='The Azure clientId for the service principal.')
+    parser.add_argument(
+        '--azure_account_subscription_id', default=None,
+        help='The subscriptionId for the service principal.')
+    parser.add_argument(
+        '--azure_account_tenant_id', default=None,
+        help='The tenantId for the service principal.')
+    parser.add_argument(
+        '--azure_account_object_id', default=None,
+        help='The objectId of the service principal.'
+             ' Needed to bake Windows images.')
+
+    parser.add_argument(
+        '--azure_account_default_key_vault', default=None,
+        help='The name of the KeyValue containing the default user/password'
+             ' to create VMs.')
+    parser.add_argument(
+        '--azure_account_default_resource_group', default=None,
+        help='The default for non-application specific resources.')
+    parser.add_argument(
+        '--azure_account_packer_resource_group', default=None,
+        help='Used by packer when baking images.')
+    parser.add_argument(
+        '--azure_account_packer_storage_account', default=None,
+        help='The storage account ot use if baking images with packer.')
+
+
+  def validate_options(self, options):
+    """Implements interface."""
+    options.azure_account_enabled = (options.azure_account_subscription_id
+                                     is not None)
+    if not options.azure_account_enabled:
+      return
+
+    if ((options.azure_account_packer_resource_group != None)
+        != (options.azure_account_packer_storage_account != None)):
+      raise ValueError(
+          '--azure_account_packer_resource_group'
+          ' and --azure_account_packer_storage_account'
+          ' must either both be set or neither be set.')
+
+    for name in ['client_id', 'credentials', 'subscription_id', 'tenant_id',
+                 'default_key_vault', 'default_resource_group']:
+      key = 'azure_account_' + name
+      if not getattr(options, key):
+        raise ValueError(
+            '--{0} is required with --azure_account_subscription_id.'
+            .format(key))
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.azure_account_credentials:
+      return
+    account_params = [
+        options.azure_account_name,
+        '--client-id', options.azure_account_client_id,
+        '--default-key-vault', options.azure_account_default_key_vault,
+        '--default-resource-group',
+        options.azure_account_default_resource_group,
+        '--subscription-id', options.azure_account_subscription_id,
+        '--tenant-id', options.azure_account_tenant_id
+    ]
+    if options.azure_account_object_id:
+      account_params.extend(['--object-id', options.azure_account_object_id])
+    if options.azure_account_packer_resource_group:
+      account_params.extend(['--packer-resource-group',
+                             options.azure_account_packer_resource_group])
+    if options.azure_account_packer_storage_account:
+      account_params.extend(['--packer-storage-account',
+                             options.azure_account_packer_storage_account])
+
+    script.append('hal --color=false config provider azure enable')
+    script.append(
+        'hal --color=false config provider azure account add {params}'
+        ' --app-key < {creds}'
+        .format(params=' '.join(account_params),
+                creds=os.path.basename(options.azure_account_credentials)))
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    if options.azure_account_credentials:
+      file_set.add(options.azure_account_credentials)
+
+
 class GoogleConfigurator(object):
   """Controls hal config provider google."""
 
@@ -489,6 +588,7 @@ class SecurityConfigurator(object):
 CONFIGURATOR_LIST = [
     StorageConfigurator(),
     AwsConfigurator(),
+    AzureConfigurator(),
     DockerConfigurator(),
     GoogleConfigurator(),
     KubernetesConfigurator(),
