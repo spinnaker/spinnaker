@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.BomVersionCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.versions.LatestVersionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
@@ -30,7 +31,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 @Parameters(separators = "=")
-public class ListVersionCommand extends NestableCommand {
+public class ListVersionCommand extends AbstractConfigCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "list";
 
@@ -47,10 +48,15 @@ public class ListVersionCommand extends NestableCommand {
 
   @Override
   protected void executeThis() {
+    String version = new OperationHandler<String>()
+        .setOperation(Daemon.getVersion(getCurrentDeployment(), false))
+        .setFailureMesssage("Failed to load your version of Spinnaker.")
+        .get();
+
     Versions versions = new OperationHandler<Versions>()
         .setOperation(Daemon.getVersions())
         .setFailureMesssage("Failed to load available Spinnaker versions.")
-        .setSuccessMessage("The following versions are available: ")
+        .setSuccessMessage("You are on version \"" + version + "\", and the following are available:")
         .setFormat(AnsiFormatUtils.Format.STRING)
         .setUserFormatted(true)
         .get();
