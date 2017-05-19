@@ -1,5 +1,7 @@
 'use strict';
 
+import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
+
 describe('Directives: vpcTag', function () {
 
   var $q, vpcReader;
@@ -7,7 +9,7 @@ describe('Directives: vpcTag', function () {
   beforeEach(
     window.module(
       require('./vpcTag.directive.js'),
-      require('./vpc.read.service.js')
+      VPC_READ_SERVICE
     )
   );
 

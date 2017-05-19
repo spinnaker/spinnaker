@@ -11,6 +11,8 @@ import {
   TASK_READ_SERVICE
 } from '@spinnaker/core';
 
+import { KEY_PAIRS_READ_SERVICE, VPC_READ_SERVICE } from '@spinnaker/amazon';
+
 import { NetflixSettings } from 'netflix/netflix.settings';
 
 import '../migrator.less';
@@ -18,15 +20,14 @@ import '../migrator.less';
 module.exports = angular
   .module('spinnaker.migrator.pipeline.directive', [
     require('angular-ui-bootstrap'),
-    require('amazon/vpc/vpc.read.service.js'),
+    VPC_READ_SERVICE,
     SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
     PIPELINE_CONFIG_SERVICE,
     SCROLL_TO_SERVICE,
     CACHE_INITIALIZER_SERVICE,
     TASK_READ_SERVICE,
-    require('amazon/keyPairs/keyPairs.read.service'),
-    require('amazon/vpc/vpc.read.service'),
+    KEY_PAIRS_READ_SERVICE,
     require('../migrationWarnings.component'),
     require('../migratedSecurityGroups.component'),
     require('../migratedLoadBalancers.component'),

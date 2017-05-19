@@ -1,11 +1,12 @@
 'use strict';
 
+const angular = require('angular');
 import _ from 'lodash';
 
-const angular = require('angular');
+import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
-    require('../vpc/vpc.read.service.js'),
+    VPC_READ_SERVICE,
   ])
   .factory('awsServerGroupTransformer', function (vpcReader) {
 

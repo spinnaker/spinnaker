@@ -9,12 +9,14 @@ import {
   SUBNET_READ_SERVICE
 } from '@spinnaker/core';
 
+import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
+
 module.exports = angular.module('spinnaker.aws.cache.initializer', [
   ACCOUNT_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   INSTANCE_TYPE_SERVICE,
   SUBNET_READ_SERVICE,
-  require('../vpc/vpc.read.service.js'),
+  VPC_READ_SERVICE,
 ])
   .factory('awsCacheConfigurer', function ($q,
                                          accountService, instanceTypeService,
@@ -41,8 +43,8 @@ module.exports = angular.module('spinnaker.aws.cache.initializer', [
 
     config.networks = {
       version: 2,
-      initializers: [vpcReader.listVpcs],
-      onReset: [vpcReader.resetCache],
+      initializers: [() => vpcReader.listVpcs() ],
+      onReset: [() => vpcReader.resetCache() ],
     };
 
     return config;

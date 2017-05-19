@@ -4,6 +4,7 @@ const angular = require('angular');
 import _ from 'lodash';
 
 import { SUBNET_READ_SERVICE } from '@spinnaker/core';
+import { KEY_PAIRS_READ_SERVICE, VPC_READ_SERVICE } from '@spinnaker/amazon';
 
 import { NetflixSettings } from 'netflix/netflix.settings';
 
@@ -12,11 +13,10 @@ import '../migrator.less';
 module.exports = angular
   .module('spinnaker.netflix.migrator.directive', [
     require('angular-ui-bootstrap'),
-    require('amazon/vpc/vpc.read.service.js'),
+    VPC_READ_SERVICE,
     SUBNET_READ_SERVICE,
     require('../migrator.service.js'),
-    require('amazon/keyPairs/keyPairs.read.service'),
-    require('amazon/vpc/vpc.read.service'),
+    KEY_PAIRS_READ_SERVICE,
     require('../migrationWarnings.component'),
     require('../migratedSecurityGroups.component'),
     require('../migratedLoadBalancers.component'),

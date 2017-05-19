@@ -4,8 +4,6 @@ const angular = require('angular');
 import _ from 'lodash';
 import { Subject } from 'rxjs';
 
-import { AWSProviderSettings } from 'amazon/aws.settings';
-
 import {
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
@@ -14,6 +12,9 @@ import {
   V2_MODAL_WIZARD_SERVICE
 } from '@spinnaker/core';
 
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { VPC_READ_SERVICE } from 'amazon/vpc/vpc.read.service';
+
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
     require('angular-ui-router').default,
@@ -21,7 +22,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,
     ACCOUNT_SERVICE,
-    require('../../vpc/vpc.read.service'),
+    VPC_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
     require('./ingressRuleGroupSelector.component'),
   ])

@@ -2,9 +2,11 @@
 
 const angular = require('angular');
 
+import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
+
 module.exports = angular
   .module('spinnaker.amazon.search.searchResultFormatter', [
-    require('../vpc/vpc.read.service.js'),
+    VPC_READ_SERVICE,
   ])
   .factory('awsSearchResultFormatter', function(vpcReader) {
     return {

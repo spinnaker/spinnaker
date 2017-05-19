@@ -5,10 +5,12 @@ import _ from 'lodash';
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
+import { VPC_READ_SERVICE } from 'amazon/vpc/vpc.read.service';
+
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.clone.controller', [
     ACCOUNT_SERVICE,
-    require('../../vpc/vpc.read.service.js'),
+    VPC_READ_SERVICE,
     require('../configure/configSecurityGroup.mixin.controller.js')
   ])
   .controller('awsCloneSecurityGroupController', function($scope, $uibModalInstance, $controller, accountService, securityGroup, application) {

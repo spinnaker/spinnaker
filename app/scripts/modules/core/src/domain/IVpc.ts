@@ -4,4 +4,6 @@ export interface IVpc {
   name: string;
   region: string;
   cloudProvider: string;
+  label?: string;
+  deprecated?: boolean;
 }

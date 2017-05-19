@@ -43,7 +43,6 @@ module.exports = angular.module('spinnaker.aws', [
   require('./instance/details/instance.details.controller.js'),
   require('./securityGroup/details/securityGroupDetail.controller.js'),
   require('./securityGroup/configure/CreateSecurityGroupCtrl.js'),
-  require('./keyPairs/keyPairs.read.service.js'),
   require('./securityGroup/configure/EditSecurityGroupCtrl.js'),
   require('./securityGroup/securityGroup.transformer.js'),
   require('./securityGroup/securityGroup.reader.js'),

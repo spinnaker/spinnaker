@@ -2,13 +2,15 @@
 
 import { API_SERVICE } from '@spinnaker/core';
 
+import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
+
 describe('vpcReader', function() {
 
   var service, $http, $scope, API;
 
   beforeEach(
     window.module(
-      require('./vpc.read.service.js'),
+      VPC_READ_SERVICE,
       API_SERVICE
     )
   );

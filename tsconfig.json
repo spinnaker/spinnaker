@@ -26,7 +26,8 @@
       "core": ["core/src"],
       "@spinnaker/docker": ["docker/src"],
       "docker/*": ["docker/src/*"],
-      "docker": ["docker/src"]
+      "docker": ["docker/src"],
+      "@spinnaker/amazon": ["amazon"]
     },
     "pretty": true,
     "removeComments": true,

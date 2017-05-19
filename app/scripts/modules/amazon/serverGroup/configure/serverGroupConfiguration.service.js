@@ -13,6 +13,8 @@ import {
   SUBNET_READ_SERVICE
 } from '@spinnaker/core';
 
+import { KEY_PAIRS_READ_SERVICE } from 'amazon/keyPairs/keyPairs.read.service';
+
 module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
@@ -20,7 +22,7 @@ module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
   SECURITY_GROUP_READER,
   SUBNET_READ_SERVICE,
   require('../../instance/awsInstanceType.service.js'),
-  require('../../keyPairs/keyPairs.read.service.js'),
+  KEY_PAIRS_READ_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   CACHE_INITIALIZER_SERVICE,
   SERVER_GROUP_COMMAND_REGISTRY_PROVIDER,

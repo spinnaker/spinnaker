@@ -14,6 +14,8 @@ import {
   SECURITY_GROUP_READER
 } from '@spinnaker/core';
 
+import { VPC_READ_SERVICE } from '@spinnaker/amazon';
+
 class SecurityGroupPickerController implements ng.IComponentController {
   public securityGroups: any;
   public availableGroups: ISecurityGroup[];
@@ -165,6 +167,6 @@ module(TITUS_SECURITY_GROUP_PICKER, [
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
   CACHE_INITIALIZER_SERVICE,
-  require('amazon/vpc/vpc.read.service'),
+  VPC_READ_SERVICE,
 ])
   .component('titusSecurityGroupPicker', new SecurityGroupPickerComponent());
