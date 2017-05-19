@@ -35,8 +35,8 @@ public class EditVersionCommand extends AbstractConfigCommand {
   @Parameter(
       names = "--version",
       required = true,
-      description = "Must be either a version number \"X.Y.Z\" for a specific release of Spinnaker, \"latest\" "
-          + "for the most recently validated Spinnaker, or \"nightly\" for the most recently built (unvalidated) Spinnaker."
+      description = "Must be either a version number \"X.Y.Z\" for a specific release of Spinnaker, "
+      + "or \"$BRANCH-latest-unvalidated\" for the most recently built (unvalidated) Spinnaker on $BRANCH."
   )
   private String version;
 
@@ -45,8 +45,8 @@ public class EditVersionCommand extends AbstractConfigCommand {
     String currentDeployment = getCurrentDeployment();
     new OperationHandler<Void>()
         .setOperation(Daemon.setVersion(currentDeployment, !noValidate, version))
-        .setFailureMesssage("Spinnaker has been configured to update/install version \"" + version + "\". "
-            + "This will be put into effect during the installation or next update of Spinnaker using Halyard.")
+        .setSuccessMessage("Spinnaker has been configured to update/install version \"" + version + "\". "
+            + "Deploy this version of Spinnaker with `hal deploy apply`.")
         .setFailureMesssage("Failed to update version.")
         .get();
   }
