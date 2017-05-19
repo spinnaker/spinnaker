@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
@@ -34,7 +35,8 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class LocalDebianMonitoringDaemonService extends SpinnakerMonitoringDaemonService implements LocalDebianService<SpinnakerMonitoringDaemonService.SpinnakerMonitoringDaemon> {
-  final String upstartServiceName = "spinnaker-monitoring-daemon";
+  final String upstartServiceName = "spinnaker-monitoring";
+  final String pipRequirementsFile = "/opt/spinnaker-monitoring/requirements.txt";
 
   @Autowired
   ArtifactService artifactService;
@@ -54,6 +56,15 @@ public class LocalDebianMonitoringDaemonService extends SpinnakerMonitoringDaemo
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
         .setEnabled(deploymentConfiguration.getMetricStores().isEnabled());
+  }
+
+  @Override
+  public String installArtifactCommand(DeploymentDetails deploymentDetails) {
+    String installCommand = LocalDebianService.super.installArtifactCommand(deploymentDetails);
+    return String.join("\n", installCommand,
+        "sed -i -e 's/#@ //g' " + pipRequirementsFile,
+        "pip install -r " + pipRequirementsFile
+    );
   }
 
   public String getArtifactId(String deploymentName) {
