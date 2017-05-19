@@ -8,8 +8,8 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesT
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask;
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.EnsureInterestingHealthProviderNamesTask;
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask;
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CaptureParentInterestingHealthProviderNamesTask;
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask;
 import com.netflix.spinnaker.orca.kato.tasks.rollingpush.*;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -34,7 +34,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
   public <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     boolean taggingEnabled = featuresService.isStageAvailable("upsertEntityTags");
     builder
-      .withTask("ensureInterestingHealthProviderNames", EnsureInterestingHealthProviderNamesTask.class)
+      .withTask("captureParentInterestingHealthProviderNames", CaptureParentInterestingHealthProviderNamesTask.class)
       .withTask("determineTerminationCandidates", DetermineTerminationCandidatesTask.class)
       .withLoop(subGraph -> {
           subGraph

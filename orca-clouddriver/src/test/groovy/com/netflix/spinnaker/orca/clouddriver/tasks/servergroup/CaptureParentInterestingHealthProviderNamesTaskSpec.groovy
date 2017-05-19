@@ -23,20 +23,20 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-class EnsureInterestingHealthProviderNamesTaskSpec extends Specification {
-  def interestingHealthProviderNamesSuppliers = Mock(TitusInterestingHealthProviderNamesSupplier)
-
+class CaptureParentInterestingHealthProviderNamesTaskSpec extends Specification {
   @Subject
-  def task = new EnsureInterestingHealthProviderNamesTask([interestingHealthProviderNamesSuppliers])
+  def task = new CaptureParentInterestingHealthProviderNamesTask()
 
   @Unroll
-  def "should ensure interesting health provider names"() {
+  def "should verify interesting health provider names from parent stage"() {
     given:
     def stage = new Stage<>(new Pipeline(), "", [:])
+    def parentStage = new Stage(new Pipeline(), "", context as Map)
 
     and:
-    interestingHealthProviderNamesSuppliers.supports(_,_ as Stage) >> supports
-    interestingHealthProviderNamesSuppliers.process(_,_ as Stage) >> interestingHealthProviderNames
+    stage.execution = new Pipeline(stages: [ parentStage ])
+    stage.parentStageId = parentStage.id
+
 
     when:
     def taskResult = task.execute(stage)
@@ -46,10 +46,10 @@ class EnsureInterestingHealthProviderNamesTaskSpec extends Specification {
     (taskResult.getStageOutputs() as Map) == expectedStageOutputs
 
     where:
-    supports            | interestingHealthProviderNames || expectedStageOutputs
-    false               | ['Titus']                      || [:]
-    true                | ['Titus']                      || [interestingHealthProviderNames: ["Titus"]]
-    true                | null                           || [:]
-    true                | []                             || [interestingHealthProviderNames: []]
+    context                                       || expectedStageOutputs
+    [:]                                           || [:]
+    [interestingHealthProviderNames: ["Titus"]]   || [interestingHealthProviderNames: ["Titus"]]
+    [interestingHealthProviderNames: []]          || [interestingHealthProviderNames: []]
   }
+
 }

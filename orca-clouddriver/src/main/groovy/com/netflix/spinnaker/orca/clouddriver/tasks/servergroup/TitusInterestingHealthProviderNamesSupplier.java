@@ -25,17 +25,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.client.Response;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Slf4j
 @Component
 public class TitusInterestingHealthProviderNamesSupplier implements InterestingHealthProviderNamesSupplier {
   private static final String TITUS = "titus";
   private static final String INTERESTING_HEALTH_PROVIDER_NAMES = "interestingHealthProviderNames";
-  private static final String ROLLING_PUSH = "rollingpush";
-  private static final String SUPPORTED_STAGE = "rollingPush";
+  private static final List<String> SUPPORTED_STAGES = Arrays.asList("cloneservergroup", "enableservergroup");
 
   private final OortService oortService;
   private final ObjectMapper objectMapper;
@@ -56,34 +57,35 @@ public class TitusInterestingHealthProviderNamesSupplier implements InterestingH
       return false;
     }
 
-    String strategy = (String) stage.getContext().get("strategy");
-    return SUPPORTED_STAGE.equals(stage.getType()) && ROLLING_PUSH.equals(strategy);
+    return SUPPORTED_STAGES.contains(stage.getType().toLowerCase());
   }
 
   @Override
   public List<String> process(String cloudProvider, Stage stage) {
     try {
       StageData stageData = (StageData) stage.mapTo(StageData.class);
-      StageData.Source source = sourceResolver.getSource(stage);
-      String serverGroupName =  source.getServerGroupName() != null ? source.getServerGroupName() : source.getAsgName();
+      Optional<StageData.Source> sourceData = Optional.ofNullable(sourceResolver.getSource(stage));
+      if (sourceData.isPresent()) {
+        StageData.Source source = sourceData.get();
+        String serverGroupName =  source.getServerGroupName() != null ? source.getServerGroupName() : source.getAsgName();
 
-      Response response = oortService.getServerGroup(
-        stageData.getApplication(),
-        source.getAccount(),
-        stageData.getCluster(),
-        serverGroupName,
-        source.getRegion(),
-        cloudProvider
-      );
+        Response response = oortService.getServerGroup(
+          stageData.getApplication(),
+          source.getAccount(),
+          stageData.getCluster(),
+          serverGroupName,
+          source.getRegion(),
+          cloudProvider
+        );
 
-      Map serverGroup = objectMapper.readValue(response.getBody().in(), Map.class);
-      Map titusServerGroupLabels = (Map) serverGroup.get("labels");
+        Map serverGroup = objectMapper.readValue(response.getBody().in(), Map.class);
+        Map titusServerGroupLabels = (Map) serverGroup.get("labels");
 
-      if (titusServerGroupLabels != null && titusServerGroupLabels.containsKey(INTERESTING_HEALTH_PROVIDER_NAMES)) {
-        String healthProviderNames = (String) titusServerGroupLabels.get(INTERESTING_HEALTH_PROVIDER_NAMES);
-        return Arrays.asList(healthProviderNames.split(","));
+        if (titusServerGroupLabels != null && titusServerGroupLabels.containsKey(INTERESTING_HEALTH_PROVIDER_NAMES)) {
+          String healthProviderNames = (String) titusServerGroupLabels.get(INTERESTING_HEALTH_PROVIDER_NAMES);
+          return Arrays.asList(healthProviderNames.split(","));
+        }
       }
-
     } catch (Exception e) {
       log.error("Failed to process interesting health provider names for cloud provider {} on stage {} ", cloudProvider, stage, e);
     }
