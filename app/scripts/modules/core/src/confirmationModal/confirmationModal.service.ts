@@ -3,6 +3,7 @@ import {IModalService, IModalSettings} from 'angular-ui-bootstrap';
 
 export interface IConfirmationModalParams {
   account?: string;
+  applicationName?: string;
   askForReason?: boolean;
   body?: string;
   buttonText?: string;
@@ -12,6 +13,7 @@ export interface IConfirmationModalParams {
   multiTaskTitle?: string;
   platformHealthOnlyShowOverride?: boolean;
   platformHealthType?: string;
+  provider?: string;
   reason?: string;
   size?: string;
   submitJustWithReason?: boolean;

@@ -1,5 +1,9 @@
 import { module } from 'angular';
 
+export interface IHelpContents {
+  [key: string]: string;
+}
+
 export const HELP_CONTENTS = 'spinnaker.core.help.contents';
 module(HELP_CONTENTS, [])
   .constant('helpContents', {

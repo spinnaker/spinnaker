@@ -1,28 +1,30 @@
 import * as React from 'react';
 import { angular2react } from 'angular2react';
 import IInjectorService = angular.auto.IInjectorService;
-import { ReactInject } from './react.injector';
-import { ISpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner';
-import { IPipelineGraphProps } from '../pipeline/config/graph/PipelineGraph';
-import { InstancesProps } from '../instance/Instances';
-import { IHelpFieldProps } from '../help/HelpField';
-import { IExecutionStatusProps } from '../delivery/status/ExecutionStatus';
-import { IExecutionDetailsProps } from '../delivery/details/ExecutionDetails';
-import { IEntityUiTagsProps } from '../entityTag/EntityUiTags';
-import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
-import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
-import { IAccountTagProps } from '../account/AccountTag';
-import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
 import { AccountTagComponent } from '../account/accountTag.component';
 import { ButtonBusyIndicatorComponent } from '../forms/buttonBusyIndicator/buttonBusyIndicator.component';
 import { CopyToClipboardComponent } from '../utils/clipboard/copyToClipboard.component';
-import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
+import { DiffViewProps } from '../pipeline/config/actions/history/DiffView';
 import { EntityUiTagsWrapperComponent } from '../entityTag/entityUiTags.component';
 import { ExecutionDetailsComponent } from '../delivery/details/executionDetails.component';
 import { ExecutionStatusComponent } from '../delivery/status/executionStatus.component';
 import { HelpFieldWrapperComponent } from '../help/helpField.component';
+import { IAccountTagProps } from '../account/AccountTag';
+import { IButtonBusyIndicatorProps } from '../forms/buttonBusyIndicator/ButtonBusyIndicator';
+import { ICopyToClipboardProps } from '../utils/clipboard/CopyToClipboard';
+import { IEntityUiTagsProps } from '../entityTag/EntityUiTags';
+import { IExecutionDetailsProps } from '../delivery/details/ExecutionDetails';
+import { IExecutionStatusProps } from '../delivery/status/ExecutionStatus';
+import { IHelpFieldProps } from '../help/HelpField';
+import { IPipelineGraphProps } from '../pipeline/config/graph/PipelineGraph';
+import { ISpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner';
+import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitor';
+import { InstancesProps } from '../instance/Instances';
 import { InstancesWrapperComponent } from '../instance/instances.component';
 import { PipelineGraphComponent } from '../pipeline/config/graph/pipeline.graph.component';
+import { ReactInject } from './react.injector';
+import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
+import { diffViewComponent } from '../pipeline/config/actions/history/diffView.component';
 
 export class NgReactInjector extends ReactInject {
 
@@ -38,6 +40,7 @@ export class NgReactInjector extends ReactInject {
   public Instances: React.ComponentClass<InstancesProps>;
   public PipelineGraph: React.ComponentClass<IPipelineGraphProps>;
   public Spinner: React.ComponentClass<ISpinnerProps>;
+  public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>;
 
   public initialize($injector: IInjectorService) {
     this.$injector = $injector;
@@ -52,6 +55,7 @@ export class NgReactInjector extends ReactInject {
     this.Instances = angular2react('instancesWrapper', new InstancesWrapperComponent(), $injector) as any;
     this.PipelineGraph = angular2react('pipelineGraph', new PipelineGraphComponent(), $injector) as any;
     this.Spinner = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), $injector) as any;
+    this.TaskMonitorWrapper = angular2react('taskMonitorWrapper', new TaskMonitorWrapperComponent(), $injector) as any;
   }
 }
 

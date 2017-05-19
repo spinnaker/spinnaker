@@ -1,10 +1,8 @@
-import {module} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
+import { module } from 'angular';
 
-import {IEntityTag, IEntityRef} from 'core/domain';
-import {ENTITY_TAG_EDITOR_CTRL, EntityTagEditorCtrl, IOwnerOption} from './entityTagEditor.controller';
-import {ENTITY_TAGS_HELP} from './entityTags.help';
-import {Application} from 'core/application/application.model';
+import { Application, IEntityTag } from 'core';
+import { EntityTagEditor, IEntityTagEditorProps, IOwnerOption } from './EntityTagEditor';
+import { ENTITY_TAGS_HELP } from './entityTags.help';
 
 import './entityTagDetails.component.less';
 
@@ -17,32 +15,27 @@ class AddEntityTagLinksCtrl implements ng.IComponentController {
   private onUpdate: () => any;
   private ownerOptions: IOwnerOption[];
 
-  public constructor(private $uibModal: IModalService) { 'ngInject'; }
-
   public addTag(tagType: string): void {
-    this.$uibModal.open({
-      templateUrl: require('./entityTagEditor.modal.html'),
-      controller: EntityTagEditorCtrl,
-      controllerAs: '$ctrl',
-      resolve: {
-        tag: (): IEntityTag => {
-          return {
-            name: null,
-            value: {
-              message: null,
-              type: tagType,
-            },
-          };
-        },
-        isNew: (): boolean => true,
-        owner: (): any => this.component,
-        entityType: (): string => this.entityType,
-        application: (): Application => this.application,
-        entityRef: (): IEntityRef => null,
-        onUpdate: (): any => this.onUpdate,
-        ownerOptions: (): IOwnerOption[] => this.ownerOptions,
-      }
-    });
+    const tag: IEntityTag = {
+      name: null,
+      value: {
+        message: null,
+        type: tagType,
+      },
+    };
+
+    const props: IEntityTagEditorProps = {
+      tag: tag,
+      isNew: true,
+      owner: this.component,
+      entityType: this.entityType,
+      application: this.application,
+      entityRef: null,
+      onUpdate: this.onUpdate,
+      ownerOptions: this.ownerOptions,
+    };
+
+    EntityTagEditor.show(props);
   }
 }
 
@@ -73,7 +66,6 @@ class AddEntityTagLinksComponent implements ng.IComponentOptions {
 
 export const ADD_ENTITY_TAG_LINKS_COMPONENT = 'spinnaker.core.entityTag.details.component';
 module(ADD_ENTITY_TAG_LINKS_COMPONENT, [
-  ENTITY_TAG_EDITOR_CTRL,
   ENTITY_TAGS_HELP
 ])
   .component('addEntityTagLinks', new AddEntityTagLinksComponent());

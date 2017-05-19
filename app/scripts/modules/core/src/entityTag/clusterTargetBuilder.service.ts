@@ -1,8 +1,9 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {NAMING_SERVICE, NamingService} from 'core/naming/naming.service';
 import { IServerGroup } from 'core/domain';
-import {IOwnerOption} from './entityTagEditor.controller';
+import { NAMING_SERVICE, NamingService } from 'core/naming';
+
+import { IOwnerOption } from './EntityTagEditor';
 
 export class ClusterTargetBuilder {
 

@@ -1,12 +1,11 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
-import { IModalService } from 'angular-ui-bootstrap';
+import { ITimeoutService, IComponentController, IComponentOptions, module } from 'angular';
 
-import { Application } from 'core/application/application.model';
-import { IEntityRef, IEntityTag } from 'core/domain';
-import { EntityTagEditorCtrl } from './entityTagEditor.controller';
-import { EntityTagWriter, ENTITY_TAG_WRITER } from './entityTags.write.service';
+import { Application, EntityTagWriter, IEntityTag, IEntityTagEditorProps } from 'core';
+
+import { EntityTagEditor, ENTITY_TAG_WRITER } from 'core/entityTag';
+import { ConfirmationModalService } from 'core/confirmationModal';
+
 import './entityUiTags.component.less';
-
 import './entityUiTags.popover.less';
 
 class EntityUiTagsCtrl implements IComponentController {
@@ -25,8 +24,9 @@ class EntityUiTagsCtrl implements IComponentController {
 
   private component: any;
 
-  public constructor(private $timeout: ng.ITimeoutService, private $uibModal: IModalService,
-                     private confirmationModalService: any, private entityTagWriter: EntityTagWriter) {
+  public constructor(private $timeout: ITimeoutService,
+                     private confirmationModalService: ConfirmationModalService,
+                     private entityTagWriter: EntityTagWriter) {
     'ngInject';
   }
 
@@ -80,29 +80,26 @@ class EntityUiTagsCtrl implements IComponentController {
   }
 
   public editTag(tag: IEntityTag) {
-    this.$uibModal.open({
-      templateUrl: require('./entityTagEditor.modal.html'),
-      controller: EntityTagEditorCtrl,
-      controllerAs: '$ctrl',
-      resolve: {
-        tag: (): IEntityTag => {
-          return {
-            name: tag.name,
-            value: {
-              message: tag.value['message'],
-              type: tag.value['type']
-            }
-          };
-        },
-        isNew: (): boolean => false,
-        owner: (): any => this.component,
-        entityType: (): string => this.entityType,
-        application: (): Application => this.application,
-        onUpdate: (): any => this.onUpdate,
-        ownerOptions: (): any => null,
-        entityRef: (): IEntityRef => this.component.entityTags.entityRef,
+    const _tag = {
+      name: tag.name,
+      value: {
+        message: tag.value['message'],
+        type: tag.value['type'],
       }
-    });
+    };
+
+    const props: IEntityTagEditorProps = {
+      tag: _tag,
+      isNew: false,
+      owner: this.component,
+      entityType: this.entityType,
+      application: this.application,
+      onUpdate: this.onUpdate,
+      ownerOptions: null,
+      entityRef: this.component.entityTags.entityRef,
+    };
+
+    EntityTagEditor.show(props);
   }
 
 
@@ -199,6 +196,6 @@ export class EntityUiTagsWrapperComponent implements IComponentOptions {
 }
 
 export const ENTITY_UI_TAGS_COMPONENT = 'spinnaker.core.entityTags.uiTags.component';
-module(ENTITY_UI_TAGS_COMPONENT, [ENTITY_TAG_WRITER])
+module(ENTITY_UI_TAGS_COMPONENT, [ ENTITY_TAG_WRITER ])
   .component('entityUiTags', new EntityUiTagsComponent())
   .component('entityUiTagsWrapper', new EntityUiTagsWrapperComponent());

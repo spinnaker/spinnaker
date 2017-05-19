@@ -3,13 +3,15 @@ import {Overlay, Popover} from 'react-bootstrap';
 import autoBindMethods from 'class-autobind-decorator';
 
 import {Placement} from 'core/presentation/Placement';
-import {UUIDGenerator} from '../utils/uuid.service';
+import {UUIDGenerator} from 'core/utils';
 
 export interface IProps {
   value?: string;
   template?: JSX.Element;
   placement?: Placement;
   id?: string;
+  onShow?: () => void;
+  onHide?: () => void;
 }
 
 export interface IState {
@@ -40,6 +42,7 @@ export class HoverablePopover extends React.Component<IProps, IState> {
   private showPopover(e: React.MouseEvent<HTMLElement>): void {
     this.clearPopoverCancel();
     this.setState({popoverIsOpen: true, target: e.target});
+    this.props.onShow && this.props.onShow();
   }
 
   private deferHidePopover(): void {
@@ -49,6 +52,7 @@ export class HoverablePopover extends React.Component<IProps, IState> {
   private hidePopover(): void {
     this.clearPopoverCancel();
     this.setState({popoverIsOpen: false});
+    this.props.onHide && this.props.onHide();
   }
 
   private clearPopoverCancel(): void {
