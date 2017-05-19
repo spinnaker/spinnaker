@@ -1,13 +1,13 @@
 import * as React from 'react';
 import {IVariableError} from './inputs/variableInput.service'
 
-interface IProps {
+export interface IVariableErrorProps {
   errors: IVariableError[]
 }
 
-interface IState { }
+export interface IVariableErrorState { }
 
-export class VariableError extends React.Component<IProps, IState> {
+export class VariableError extends React.Component<IVariableErrorProps, IVariableErrorState> {
 
   public render() {
     return (

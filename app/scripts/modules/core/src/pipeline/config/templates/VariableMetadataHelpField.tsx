@@ -3,13 +3,13 @@ import * as React from 'react';
 import { NgReact } from 'core/reactShims';
 import { IVariableMetadata } from './pipelineTemplate.service';
 
-interface IProps {
+export interface IVariableMetadataHelpFieldProps {
   metadata: IVariableMetadata
 }
 
-interface IState { }
+export interface IVariableMetadataHelpFieldState { }
 
-export class VariableMetadataHelpField extends React.Component<IProps, IState> {
+export class VariableMetadataHelpField extends React.Component<IVariableMetadataHelpFieldProps, IVariableMetadataHelpFieldState> {
 
    public render() {
      const { HelpField } = NgReact;

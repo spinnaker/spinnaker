@@ -7,16 +7,16 @@ import { ReactInjector } from 'core/reactShims';
 
 import './Variable.less';
 
-interface IState { }
+export interface IVariableState { }
 
-interface IProps {
+export interface IVariableProps {
   variableMetadata: IVariableMetadata;
   variable: IVariable;
   onChange: (variable: IVariable) => void;
 }
 
 @autoBindMethods
-export class Variable extends React.Component<IProps, IState> {
+export class Variable extends React.Component<IVariableProps, IVariableState> {
 
   private getVariableInput(): JSX.Element {
     const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(this.props.variableMetadata.type);

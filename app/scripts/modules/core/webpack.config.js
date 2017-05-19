@@ -32,7 +32,7 @@ module.exports = {
     angular: 'angular',
     'jquery-ui': 'jquery-ui',
     'jquery-textcomplete': 'jquery-textcomplete',
-    'angular-ui-sortable': 'angular-ui-sortable',
+    'exports-loader?"ui.sortable"!angular-ui-sortable': 'exports-loader?"ui.sortable"!angular-ui-sortable',
     'angular-spinner': 'angular-spinner',
     'select2-bootstrap-css/select2-bootstrap.css': 'select2-bootstrap-css/select2-bootstrap.css',
     'angulartics-google-analytics': 'angulartics-google-analytics',
@@ -86,11 +86,11 @@ module.exports = {
     ],
     alias: {
       '@spinnaker/core': path.join(__dirname, 'src'),
-      'core': path.join(__dirname, 'src')
+      'core': path.join(__dirname, 'src'),
+      'root': basePath,
     }
   },
   watch:  process.env.WATCH === 'true',
-  devtool: 'source-map',
   module: {
     rules: [
       {enforce: 'pre', test: /\.(spec\.)?tsx?$/, use: 'tslint-loader', exclude: exclusionPattern},
@@ -132,8 +132,8 @@ module.exports = {
     new webpack.optimize.UglifyJsPlugin({
       mangle: false,
       beautify: true,
-      comments: false,
-      sourceMap: true,
+      comments: true,
+      sourceMap: false,
     }),
     new HappyPack({
       id: 'lib-html',

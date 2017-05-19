@@ -8,31 +8,31 @@ import { Tooltip } from 'core/presentation/Tooltip';
 
 import './healthCounts.less';
 
-interface IProps {
+export interface IHealthCountsPros {
   container: IInstanceCounts;
   additionalLegendText?: string;
   legendPlacement?: Placement;
-};
+}
 
-interface IState {
+export interface IHealthCountsState {
   percentLabel: string;
   statusClass: string;
   total: number;
-};
+}
 
 @autoBindMethods
-export class HealthCounts extends React.Component<IProps, IState> {
-  public static defaultProps: Partial<IProps> = {
+export class HealthCounts extends React.Component<IHealthCountsPros, IHealthCountsState> {
+  public static defaultProps: Partial<IHealthCountsPros> = {
     legendPlacement: 'top',
     container: {} as IInstanceCounts
   };
 
-  constructor(props: IProps) {
+  constructor(props: IHealthCountsPros) {
     super(props);
     this.state = this.calculatePercent(props.container);
   }
 
-  private calculatePercent(container: IInstanceCounts): IState {
+  private calculatePercent(container: IInstanceCounts): IHealthCountsState {
     container = container || {} as IInstanceCounts;
 
     const up = container.up || 0,
@@ -53,7 +53,7 @@ export class HealthCounts extends React.Component<IProps, IState> {
     return { percentLabel, statusClass, total };
   }
 
-  public componentWillReceiveProps(nextProps: IProps): void {
+  public componentWillReceiveProps(nextProps: IHealthCountsPros): void {
     if (!isEqual(nextProps.container, this.props.container)) {
       this.setState(this.calculatePercent(nextProps.container));
     }

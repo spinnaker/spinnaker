@@ -9,13 +9,14 @@ import 'bootstrap/dist/js/bootstrap.js';
 
 import 'font-awesome/css/font-awesome.css';
 import 'react-select/dist/react-select.css';
-import 'Select2';
-import 'select2-bootstrap-css/select2-bootstrap.css';
-import 'Select2/select2.css';
+import 'ui-select/dist/select.css';
+
+// use require instead of import to ensure insertion order is preserved
+require('Select2/select2.css');
+require('select2-bootstrap-css/select2-bootstrap.css');
 
 import 'source-sans-pro';
 import Spinner from 'spin.js';
-import 'ui-select/dist/select.css';
 
 import { ANALYTICS_MODULE } from './analytics/analytics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap/applicationBootstrap.module';
