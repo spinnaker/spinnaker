@@ -671,6 +671,8 @@ class ValidateBomTestController(object):
     """
     options = self.options
     microservice_api = spec.get('api')
+    test_rel_path = spec.pop('path', None) or os.path.join(
+        'citest', 'tests', '{0}.py'.format(test_name))
     args = spec.pop('args', {})
 
     if not self.validate_test_requirements(test_name, spec):
@@ -678,8 +680,6 @@ class ValidateBomTestController(object):
 
     testing_root_dir = os.path.abspath(
         os.path.join(os.path.dirname(__file__), '..', 'testing'))
-    test_rel_path = spec.get('path') or os.path.join(
-        'citest', 'tests', '{0}.py'.format(test_name))
     test_path = os.path.join(testing_root_dir, test_rel_path)
 
     citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
