@@ -14,7 +14,10 @@ templates.keys().forEach(function(key) {
 module.exports = angular.module('spinnaker.oraclebmcs', [
   CLOUD_PROVIDER_REGISTRY,
   ORACLE_HELP_CONTENTS_REGISTRY,
+  //Cache
   require('./cache/cacheConfigurer.service.js'),
+  // Pipeline
+  require('./pipeline/stages/destroyAsg/destroyAsgStage.js'),
   // Server Groups
   require('./serverGroup/serverGroup.transformer.js'),
   require('./serverGroup/configure/serverGroup.configure.module.js'),
