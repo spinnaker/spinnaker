@@ -148,9 +148,16 @@ class BaseValidateBomDeployer(object):
     script = []
     self.add_install_hal_script_statements(script)
     self.add_platform_deploy_script_statements(script)
+
+    # Add the version first to avoid warnings or facilitate checks
+    # with the configuration commands
+    script.append('hal -q --log=info config version edit'
+                  ' --version {version}'
+                  .format(version=self.options.deploy_version))
+
     script.extend(config_script)
     self.add_hal_deploy_script_statements(script)
-    script.append('hal --color=false deploy apply')
+    script.append('hal -q --log=info deploy apply')
     self.add_post_deploy_statements(script)
 
     if not self.options.deploy_deploy:
@@ -181,6 +188,7 @@ class BaseValidateBomDeployer(object):
     if not os.path.exists(log_dir):
       os.makedirs(log_dir)
 
+    logging.info('Collecting server log files into "%s"', log_dir)
     all_services = list(SPINNAKER_SERVICES)
     all_services.extend(HALYARD_SERVICES)
     for service in all_services:
@@ -190,11 +198,16 @@ class BaseValidateBomDeployer(object):
                     else self.__spinnaker_deployer)
         deployer.do_fetch_service_log_file(service, log_dir)
       except Exception as ex:
-        message = ('Error fetching log for service "{service}": {ex}'
-                   '\n{trace}'
-                   .format(service=service, ex=ex,
-                           trace=traceback.format_exc()))
-        logging.error(message)
+        message = 'Error fetching log for service "{service}": {ex}'.format(
+            service=service, ex=ex)
+        if ex.message.find('No such file') >= 0:
+          message += '\n    Perhaps the service never started.'
+          # dont log since the error was already captured.
+        else:
+          logging.error(message)
+          message += '\n{trace}'.format(
+              trace=traceback.format_exc())
+
         write_data_to_secure_path(
             message, os.path.join(log_dir, service + '.log'))
 
@@ -237,10 +250,6 @@ class BaseValidateBomDeployer(object):
     """Adds the hal deploy statements prior to "apply"."""
     options = self.options
 
-    script.append('hal --color=false config version edit'
-                  ' --version {version}'
-                  .format(version=options.deploy_version))
-
     type_args = ['--type', options.deploy_spinnaker_type]
 
     if options.deploy_spinnaker_type == 'distributed':
@@ -257,7 +266,7 @@ class BaseValidateBomDeployer(object):
         type_args.extend(['--account-name',
                           options.injected_deploy_spinnaker_account])
 
-    script.append('hal --color=false config deploy edit {args}'
+    script.append('hal -q --log=info config deploy edit {args}'
                   .format(args=' '.join(type_args)))
 
   def add_post_deploy_statements(self, script):
@@ -310,17 +319,17 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
         .format(namespace=k8s_namespace, service=service))
     pod = response.stdout.strip()
     if not pod:
-      message = 'There is no pod for "${service}" in ${namespace}'.format(
-          service=service)
+      message = 'There is no pod for "{service}" in {namespace}'.format(
+          service=service, namespace=k8s_namespace)
       logging.error(message)
-      raise ValueError(mesage)
+      raise ValueError(message)
 
     if response.returncode != 0:
-      message = 'Could not find pod for "${service}".: {error}'.format(
+      message = 'Could not find pod for "{service}".: {error}'.format(
           service=service,
-        error=response.stdout.strip())
+          error=response.stdout.strip())
       logging.error(message)
-      raise ValueError(mesage)
+      raise ValueError(message)
     else:
       print '{0} -> "{1}"'.format(service, response.stdout)
 
@@ -353,6 +362,12 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
     # kubectl delete namespace spinnaker
 
   def do_fetch_service_log_file(self, service, log_dir):
+    """Retrieve log file for the given service's pod.
+
+    Args:
+      service: [string] The service's log to get
+      log_dir: [string] The directory name to write the logs into.
+    """
     k8s_namespace = self.options.deploy_k8s_namespace
     service_pod = self.__get_pod_name(k8s_namespace, service)
     path = os.path.join(log_dir, service + '.log')
@@ -368,13 +383,30 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
   free function make_deployer() in this module.
   """
 
+  @property
+  def instance_ip(self):
+    """The underlying internal IP address for the deployed instance."""
+    if not self.__instance_ip:
+      options = self.options
+      response = check_run_quick(
+          'gcloud compute instances describe'
+          ' --account {gcloud_account}'
+          ' --project {project} --zone {zone} {instance}'
+          .format(gcloud_account=options.deploy_hal_google_service_account,
+                  project=options.google_deploy_project,
+                  zone=options.google_deploy_zone,
+                  instance=options.google_deploy_instance))
+      self.__instance_ip = re.search(r'networkIP: ([0-9\.]+)',
+                                     response.stdout).group(1)
+    return self.__instance_ip
+
   def __init__(self, options, **kwargs):
     super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
     self.__instance_ip = None
     self.__hal_user = os.environ.get('LOGNAME')
     logging.info('hal_user="%s"', self.__hal_user)
     self.__ssh_key_path = os.path.join(os.environ['HOME'], '.ssh',
-                                        '{0}_empty_key'.format(self.__hal_user))
+                                       '{0}_empty_key'.format(self.__hal_user))
 
   @classmethod
   def init_platform_argument_parser(cls, parser):
@@ -408,21 +440,23 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     if not options.deploy_hal_google_service_account:
       raise ValueError('--deploy_hal_google_service_account not specified.')
 
-    response = run_quick(
-        'gcloud compute instances describe'
-        ' --account {gcloud_account}'
-        ' --project {project} --zone {zone} {instance}'
-        .format(gcloud_account=options.deploy_hal_google_service_account,
-                project=options.google_deploy_project,
-                zone=options.google_deploy_zone,
-                instance=options.google_deploy_instance),
-        echo=False)
+    if options.deploy_deploy:
+      response = run_quick(
+          'gcloud compute instances describe'
+          ' --account {gcloud_account}'
+          ' --project {project} --zone {zone} {instance}'
+          .format(gcloud_account=options.deploy_hal_google_service_account,
+                  project=options.google_deploy_project,
+                  zone=options.google_deploy_zone,
+                  instance=options.google_deploy_instance),
+          echo=False)
 
-    if response.returncode == 0:
-      raise ValueError('"{instance}" already exists in project={project} zone={zone}'
-                       .format(instance=options.google_deploy_instance,
-                               project=options.google_deploy_project,
-                               zone=options.google_deploy_zone))
+      if response.returncode == 0:
+        raise ValueError(
+            '"{instance}" already exists in project={project} zone={zone}'
+            .format(instance=options.google_deploy_instance,
+                    project=options.google_deploy_project,
+                    zone=options.google_deploy_zone))
 
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Implements interface."""
@@ -431,7 +465,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
         'ssh', '-i', self.__ssh_key_path,
         '-o', 'StrictHostKeyChecking=no',
         '-o', 'UserKnownHostsFile=/dev/null',
-        self.__instance_ip,
+        self.instance_ip,
         '-L', '{local_port}:localhost:{remote_port}'.format(
             local_port=local_port, remote_port=remote_port),
         '-N']
@@ -458,7 +492,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
         ssh_key = f.read().strip()
       if ssh_key.startswith('ssh-rsa'):
         ssh_key = self.__hal_user + ':' + ssh_key
-        
+
       check_run_and_monitor(
           'gcloud compute instances create'
           ' --account {gcloud_account}'
@@ -475,16 +509,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
                   scopes='compute-rw,storage-full,logging-write,monitoring',
                   ssh_key=ssh_key,
                   instance=options.google_deploy_instance))
-      response = check_run_quick(
-          'gcloud compute instances describe'
-          ' --account {gcloud_account}'
-          ' --project {project} --zone {zone} {instance}'
-          .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance))
-      self.__instance_ip = re.search(r'networkIP: ([0-9\.]+)',
-                                     response.stdout).group(1)
+
       copy_files = (
           'scp'
           ' -i {ssh_key}'
@@ -492,8 +517,8 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' -o UserKnownHostsFile=/dev/null'
           ' {files} {instance}:~'
           .format(ssh_key=self.__ssh_key_path,
-                  files= ' '.join(files_to_upload),
-                  instance=self.__instance_ip))
+                  files=' '.join(files_to_upload),
+                  instance=self.instance_ip))
       logging.info('Copying files %s', copy_files)
 
       # pylint: disable=unused-variable
@@ -638,9 +663,9 @@ def init_argument_parser(parser):
            ' Halyard will then deploy Spinnaker.')
 
   parser.add_argument(
-    '--deploy_hal_google_service_account', default=None,
-    help='When deploying to gce, this is the service account to use'
-         ' for configuring halyard.')
+      '--deploy_hal_google_service_account', default=None,
+      help='When deploying to gce, this is the service account to use'
+           ' for configuring halyard.')
 
   parser.add_argument(
       '--deploy_distributed_platform', default='kubernetes',
@@ -649,8 +674,8 @@ def init_argument_parser(parser):
            ' --deploy_spinnaker_type=distributed')
 
   parser.add_argument(
-      '--deploy_version', default='nightly',
-      help='Spinnaker version to deploy. The default is "nightly".')
+      '--deploy_version', default='master-latest-unvalidated',
+      help='Spinnaker version to deploy. The default is "master-latest-unverified".')
 
   parser.add_argument(
       '--deploy_deploy', default=True,
