@@ -73,6 +73,10 @@ class IngressRuleSelectorController implements IComponentController {
     this.rule.vpcId = undefined;
   };
 
+  public $onInit(): void {
+    this.setAvailableSecurityGroups();
+  }
+
   public $onDestroy() {
     this.coordinatesChanged.unsubscribe();
     this.allSecurityGroupsUpdated.unsubscribe();
