@@ -48,9 +48,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GenerateService {
   @Autowired
-  private String spinnakerStagingPath;
-
-  @Autowired
   private DeploymentService deploymentService;
 
   @Autowired
@@ -84,7 +81,7 @@ public class GenerateService {
   public ResolvedConfiguration generateConfig(String deploymentName, List<SpinnakerService.Type> services) {
     DaemonTaskHandler.newStage("Generating all Spinnaker profile files and endpoints");
     log.info("Generating config from \"" + halconfigPath + "\" with deploymentName \"" + deploymentName + "\"");
-    File spinnakerStaging = new File(spinnakerStagingPath);
+    File spinnakerStaging = halconfigDirectoryStructure.getStagingPath(deploymentName).toFile();
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
 
     DaemonTaskHandler.message("Building service endpoints");
@@ -123,7 +120,7 @@ public class GenerateService {
 
       String pluralModifier = profiles.size() == 1 ? "" : "s";
       String profileMessage = "Generated " + profiles.size() + " profile" + pluralModifier;
-      Map<String, Profile> outputProfiles = processProfiles(profiles);
+      Map<String, Profile> outputProfiles = processProfiles(spinnakerStaging, profiles);
 
       List<Profile> customProfiles = userProfileNames.stream()
           .map(s -> (Optional<Profile>) service.customProfile(deploymentConfiguration, runtimeSettings, Paths.get(userProfilePath.toString(), s), s))
@@ -134,7 +131,7 @@ public class GenerateService {
       pluralModifier = customProfiles.size() == 1 ? "" : "s";
       profileMessage += " and discovered " + customProfiles.size() + " custom profile" + pluralModifier + " for " + service.getCanonicalName();
       DaemonTaskHandler.message(profileMessage);
-      outputProfiles.putAll(processProfiles(customProfiles));
+      outputProfiles.putAll(processProfiles(spinnakerStaging, customProfiles));
 
       serviceProfiles.put(service.getType(), outputProfiles);
     }
@@ -144,9 +141,9 @@ public class GenerateService {
         .setRuntimeSettings(runtimeSettings);
   }
 
-  private Map<String, Profile> processProfiles(List<Profile> profiles) {
+  private Map<String, Profile> processProfiles(File spinnakerStaging, List<Profile> profiles) {
     for (Profile profile : profiles) {
-      profile.writeStagedFile(spinnakerStagingPath);
+      profile.writeStagedFile(spinnakerStaging.toString());
     }
 
     Map<String, Profile> profileMap = new HashMap<>();

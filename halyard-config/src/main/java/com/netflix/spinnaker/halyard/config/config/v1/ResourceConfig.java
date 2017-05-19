@@ -62,11 +62,6 @@ public class ResourceConfig {
   }
 
   @Bean
-  String spinnakerStagingPath(@Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
-    return normalizePath(path);
-  }
-
-  @Bean
   String spinnakerStagingDependencyPath(@Value("${spinnaker.config.staging.directory:~/.halyard}") String path) {
     return Paths.get(normalizePath(path), "dependency").toString();
   }

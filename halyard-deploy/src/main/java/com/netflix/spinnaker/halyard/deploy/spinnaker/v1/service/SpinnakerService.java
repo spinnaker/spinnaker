@@ -48,9 +48,6 @@ import java.util.Optional;
 @Slf4j
 abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
   @Autowired
-  String spinnakerStagingPath;
-
-  @Autowired
   ObjectMapper objectMapper;
 
   @Autowired
@@ -74,6 +71,10 @@ abstract public class SpinnakerService<T> implements HasServiceSettings<T> {
 
   public String getCanonicalName() {
     return getType().getCanonicalName();
+  }
+
+  public String getSpinnakerStagingPath(String deploymentName) {
+    return halconfigDirectoryStructure.getStagingPath(deploymentName).toString();
   }
 
   public ServiceSettings getDefaultServiceSettings(DeploymentConfiguration deploymentConfiguration) {

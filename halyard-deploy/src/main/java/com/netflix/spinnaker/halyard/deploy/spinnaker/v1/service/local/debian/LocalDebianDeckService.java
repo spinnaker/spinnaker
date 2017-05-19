@@ -69,8 +69,8 @@ public class LocalDebianDeckService extends DeckService implements LocalDebianSe
   }
 
   @Override
-  public String stageProfilesCommand(GenerateService.ResolvedConfiguration resolvedConfiguration) {
-    String stage = LocalDebianService.super.stageProfilesCommand(resolvedConfiguration);
+  public String stageProfilesCommand(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
+    String stage = LocalDebianService.super.stageProfilesCommand(details, resolvedConfiguration);
     return Strings.join("\n", stage, "a2ensite spinnaker");
 
   }

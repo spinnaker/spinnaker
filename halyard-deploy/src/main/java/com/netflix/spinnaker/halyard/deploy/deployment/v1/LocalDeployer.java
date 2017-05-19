@@ -49,7 +49,7 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
     Map<String, String> installCommands = enabledServices.stream().reduce(new HashMap<>(), (commands, installable) -> {
       String command = String.join("\n",
           installable.installArtifactCommand(deploymentDetails),
-          installable.stageProfilesCommand(resolvedConfiguration));
+          installable.stageProfilesCommand(deploymentDetails, resolvedConfiguration));
       commands.put(installable.getService().getCanonicalName(), command);
       return commands;
     }, (m1, m2) -> {

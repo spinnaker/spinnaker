@@ -18,6 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigDirectoryStructure;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
@@ -26,7 +27,6 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSetting
 import org.springframework.beans.factory.annotation.Autowired;
 import org.yaml.snakeyaml.Yaml;
 
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +35,7 @@ abstract public class ProfileFactory {
   private ArtifactService artifactService;
 
   @Autowired
-  private String spinnakerStagingPath;
+  private HalconfigDirectoryStructure halconfigDirectoryStructure;
 
   @Autowired
   private Yaml yamlParser;
@@ -82,7 +82,7 @@ abstract public class ProfileFactory {
    * @return the list of files required by the node to function.
    */
   protected List<String> backupRequiredFiles(Node node, String deploymentName) {
-    return node.backupLocalFiles(Paths.get(spinnakerStagingPath, "dependencies", deploymentName).toString());
+    return node.backupLocalFiles(halconfigDirectoryStructure.getStagingDependenciesPath(deploymentName).toString());
   }
 
   protected String yamlToString(Object o) {

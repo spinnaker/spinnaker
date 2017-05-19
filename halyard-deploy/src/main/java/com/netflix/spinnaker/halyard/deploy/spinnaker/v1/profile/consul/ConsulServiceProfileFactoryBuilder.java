@@ -44,9 +44,6 @@ public class ConsulServiceProfileFactoryBuilder {
   protected ArtifactService artifactService;
 
   @Autowired
-  protected String spinnakerStagingPath;
-
-  @Autowired
   protected ObjectMapper objectMapper;
 
   public ProfileFactory build(SpinnakerService.Type type, ServiceSettings settings) {

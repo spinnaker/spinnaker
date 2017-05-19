@@ -29,16 +29,16 @@ import java.util.List;
 import java.util.Map;
 
 public interface LocalService<T> extends HasServiceSettings<T>, LogCollector<T, DeploymentDetails> {
-  String getSpinnakerStagingPath();
+  String getSpinnakerStagingPath(String deploymentName);
   String installArtifactCommand(DeploymentDetails deploymentDetails);
 
-  default String stageProfilesCommand(GenerateService.ResolvedConfiguration resolvedConfiguration) {
+  default String stageProfilesCommand(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
 
     List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {
       Profile profile = entry.getValue();
-      String source = profile.getStagedFile(getSpinnakerStagingPath());
+      String source = profile.getStagedFile(getSpinnakerStagingPath(details.getDeploymentName()));
       String dest = profile.getOutputFile();
       allCommands.add(String.format("cp -p %s %s", source, dest));
       allCommands.add(String.format("chown spinnaker:spinnaker %s", dest));

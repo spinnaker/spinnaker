@@ -142,7 +142,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     }
 
     List<ConfigSource> configSources = new ArrayList<>();
-    String stagingPath = getSpinnakerStagingPath();
+    String stagingPath = getSpinnakerStagingPath(deploymentName);
     GoogleVaultServerService vaultService = getVaultServerService();
     VaultServerService.Vault vault = vaultService.connectToPrimaryService(details, runtimeSettings);
 

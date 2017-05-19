@@ -46,6 +46,15 @@ public class HalconfigDirectoryStructure {
     return halconfigPath;
   }
 
+  public Path getStagingPath(String deploymentName) {
+    return ensureRelativeHalDirectory(deploymentName, "staging");
+  }
+
+  public Path getStagingDependenciesPath(String deploymentName) {
+    Path staging = getStagingPath(deploymentName);
+    return ensureRelativeHalDirectory(staging.toString(), "dependencies");
+  }
+
   public Path getUserServiceSettingsPath(String deploymentName) {
     return ensureRelativeHalDirectory(deploymentName, "service-settings");
   }

@@ -39,9 +39,6 @@ public class MetricRegistryProfileFactoryBuilder {
   protected ArtifactService artifactService;
 
   @Autowired
-  protected String spinnakerStagingPath;
-
-  @Autowired
   protected Yaml yamlParser;
 
   @Autowired

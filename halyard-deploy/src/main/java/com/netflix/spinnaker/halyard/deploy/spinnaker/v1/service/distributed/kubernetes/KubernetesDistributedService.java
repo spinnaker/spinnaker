@@ -221,7 +221,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
       Set<String> files = profiles
           .stream()
-          .map(p -> p.getStagedFile(getSpinnakerStagingPath()))
+          .map(p -> p.getStagedFile(getSpinnakerStagingPath(details.getDeploymentName())))
           .collect(Collectors.toSet());
 
       String secretName = KubernetesProviderUtils.componentSecret(name + ind, version);

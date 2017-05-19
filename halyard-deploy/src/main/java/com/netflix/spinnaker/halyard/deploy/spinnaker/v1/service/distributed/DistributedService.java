@@ -36,7 +36,7 @@ import java.util.*;
  * @param <A> is the type of an account in this cloud provider.
  */
 public interface DistributedService<T, A extends Account> extends HasServiceSettings<T> {
-  String getSpinnakerStagingPath();
+  String getSpinnakerStagingPath(String deploymentName);
 
   Map<String, Object> getLoadBalancerDescription(AccountDeploymentDetails<A> details,
       SpinnakerRuntimeSettings runtimeSettings);

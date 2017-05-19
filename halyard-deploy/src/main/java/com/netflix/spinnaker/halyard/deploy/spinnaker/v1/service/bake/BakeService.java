@@ -28,18 +28,18 @@ import java.util.List;
 import java.util.Map;
 
 public interface BakeService<T> extends HasServiceSettings<T> {
-  String getSpinnakerStagingPath();
+  String getSpinnakerStagingPath(String deploymentName);
   String installArtifactCommand(DeploymentDetails deploymentDetails);
   StartupPriority getPriority();
   String getStartupCommand();
 
-  default String stageStartupScripts(GenerateService.ResolvedConfiguration resolvedConfiguration) {
+  default String stageStartupScripts(DeploymentDetails details, GenerateService.ResolvedConfiguration resolvedConfiguration) {
     Map<String, Profile> profiles = resolvedConfiguration.getProfilesForService(getService().getType());
 
     List<String> allCommands = new ArrayList<>();
     for (Map.Entry<String, Profile> entry : profiles.entrySet()) {
       Profile profile = entry.getValue();
-      String source = profile.getStagedFile(getSpinnakerStagingPath());
+      String source = profile.getStagedFile(getSpinnakerStagingPath(details.getDeploymentName()));
       String dest = profile.getOutputFile();
       allCommands.add(String.format("mkdir -p $(dirname %s)", dest));
       allCommands.add(String.format("cp -p %s %s", source, dest));
