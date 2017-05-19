@@ -27,8 +27,6 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.Date;
-
 @Parameters(separators = "=")
 public class DeprecateVersionCommand extends NestableCommand {
   @Getter(AccessLevel.PUBLIC)
@@ -44,12 +42,18 @@ public class DeprecateVersionCommand extends NestableCommand {
   )
   private String version;
 
+  @Parameter(
+      names = "--illegal-reason",
+      description = "If supplied, the version will not only be deprecated, but will no longer be installable by Halyard for the supplied reason"
+  )
+  private String illegalReason;
+
   @Override
   protected void executeThis() {
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to deprecate your version.")
         .setSuccessMessage("Successfully deprecated your version.")
-        .setOperation(Daemon.deprecateVersion(new Versions.Version().setVersion(version)))
+        .setOperation(Daemon.deprecateVersion(new Versions.Version().setVersion(version), illegalReason))
         .get();
   }
 }

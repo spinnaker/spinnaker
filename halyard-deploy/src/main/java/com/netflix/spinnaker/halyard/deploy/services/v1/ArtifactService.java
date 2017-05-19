@@ -28,6 +28,7 @@ import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions.Version;
 import com.netflix.spinnaker.halyard.core.registry.v1.WriteableProfileRegistry;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
@@ -36,6 +37,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -75,7 +78,7 @@ public class ArtifactService {
         .collect(Collectors.toList()));
   }
 
-  public void deprecateVersion(Version version) {
+  public void deprecateVersion(Version version, String illegalReason) {
     if (writeableProfileRegistry == null) {
       throw new HalException(new ConfigProblemBuilder(FATAL,
           "You need to set the \"spinnaker.config.input.writerEnabled\" property to \"true\" to modify your halconfig bucket contents.").build());
@@ -83,6 +86,16 @@ public class ArtifactService {
 
     Versions versionsCollection = versionsService.getVersions();
     deleteVersion(versionsCollection, version.getVersion());
+
+    if (!StringUtils.isEmpty(illegalReason)) {
+      List<Versions.IllegalVersion> illegalVersions = versionsCollection.getIllegalVersions();
+      if (illegalVersions == null) {
+        illegalVersions = new ArrayList<>();
+      }
+
+      illegalVersions.add(new Versions.IllegalVersion().setVersion(version.getVersion()).setReason(illegalReason));
+      versionsCollection.setIllegalVersions(illegalVersions);
+    }
 
     writeableProfileRegistry.writeVersions(yamlParser.dump(relaxedObjectMapper.convertValue(versionsCollection, Map.class)));
   }

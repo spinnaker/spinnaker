@@ -1,4 +1,4 @@
-_Version: 0.24.0-SNAPSHOT_
+_Version: 0.21.0-SNAPSHOT_
 
 # Table of Contents
 
@@ -274,6 +274,7 @@ Deprecate a version of Spinnaker, removing it from the global versions.yml track
 hal admin deprecate version [parameters]
 ```
 #### Parameters
+ * `--illegal-reason`: If supplied, the version will not only be deprecated, but will no longer be installable by Halyard for the supplied reason
  * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be deprecated.
 
 ---

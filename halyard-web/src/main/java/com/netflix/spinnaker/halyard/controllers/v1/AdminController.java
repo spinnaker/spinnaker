@@ -55,10 +55,11 @@ public class AdminController {
 
   @RequestMapping(value = "/deprecateVersion", method = RequestMethod.PUT)
   DaemonTask<Halconfig, Void> deprecateVersion(
+      @RequestParam(required = false) String illegalReason,
       @RequestBody Versions.Version version) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> {
-      artifactService.deprecateVersion(version);
+      artifactService.deprecateVersion(version, illegalReason);
       return null;
     });
 

@@ -39,6 +39,17 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
   @Override
   public void validate(ConfigProblemSetBuilder p, DeploymentConfiguration n) {
     String version = n.getVersion();
+    Versions versions = versionsService.getVersions();
+
+    Optional<Versions.IllegalVersion> illegalVersion = versions.getIllegalVersions()
+        .stream()
+        .filter(v -> v.getVersion().equals(version))
+        .findAny();
+
+    if (illegalVersion.isPresent()) {
+      p.addProblem(Problem.Severity.ERROR, "Version \"" + version + "\" may no longer be deployed with Halyard: " + illegalVersion.get().getReason());
+      return;
+    }
 
     try {
       versionsService.getBillOfMaterials(version);
@@ -50,9 +61,9 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
       return;
     }
 
-    Versions versions = versionsService.getVersions();
-
-    boolean isReleased = versions.getVersions().stream().anyMatch(v -> Objects.equals(v.getVersion(), version));
+    boolean isReleased = versions.getVersions()
+        .stream()
+        .anyMatch(v -> Objects.equals(v.getVersion(), version));
 
     if (!isReleased) {
       // Checks if version is of the form X.Y.Z

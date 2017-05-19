@@ -38,11 +38,19 @@ public class Versions {
     }
   }
 
+  @Data
+  // A version explicitly not supported by Halyard
+  public static class IllegalVersion {
+    String version;
+    String reason; // Why is this version illegal
+  }
+
   @Deprecated
   String latest;
   String latestHalyard;
   String latestSpinnaker;
   List<Version> versions = new ArrayList<>();
+  List<IllegalVersion> illegalVersions = new ArrayList<>();
 
   @Override
   public String toString() {

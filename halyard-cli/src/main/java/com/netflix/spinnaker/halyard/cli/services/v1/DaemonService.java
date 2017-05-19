@@ -511,7 +511,8 @@ public interface DaemonService {
 
   @PUT("/v1/admin/deprecateVersion")
   DaemonTask<Halconfig, Void> deprecateVersion(
-      @Body Versions.Version version);
+      @Body Versions.Version version,
+      @Query("illegalReason") String illegalReason);
 
   @PUT("/v1/admin/publishVersion")
   DaemonTask<Halconfig, Void> publishVersion(

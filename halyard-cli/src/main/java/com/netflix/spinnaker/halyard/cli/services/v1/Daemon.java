@@ -591,9 +591,9 @@ public class Daemon {
     };
   }
 
-  public static Supplier<Void> deprecateVersion(Versions.Version version) {
+  public static Supplier<Void> deprecateVersion(Versions.Version version, String illegalReason) {
     return () -> {
-      ResponseUnwrapper.get(getService().deprecateVersion(version));
+      ResponseUnwrapper.get(getService().deprecateVersion(version, illegalReason));
       return null;
     };
   }
