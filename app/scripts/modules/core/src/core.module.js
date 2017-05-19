@@ -27,6 +27,7 @@ import { SETTINGS } from './config/settings';
 
 import { DEPLOYMENT_STRATEGY_MODULE } from './deploymentStrategy/deploymentStrategy.module';
 import { DIFF_MODULE } from './diffs';
+import { ENTITY_TAGS_MODULE } from './entityTag/entityTags.module';
 import { HEALTH_COUNTS_MODULE } from './healthCounts/healthCounts.module';
 import { HELP_MODULE } from './help/help.module';
 import { INSIGHT_NGMODULE } from './insight/insight.module';
@@ -76,6 +77,8 @@ module.exports = angular
     DEPLOYMENT_STRATEGY_MODULE,
     require('./delivery/delivery.module'),
     DIFF_MODULE,
+
+    ENTITY_TAGS_MODULE,
 
     require('./forms/forms.module'),
 
