@@ -227,7 +227,8 @@ class AmazonReservationReport implements ReservationReport {
       }
 
       if (!r) {
-        r = normalizeInstanceType(a.instanceType) <=> normalizeInstanceType(b.instanceType)
+        // overall sort is descending but instance type should be ascending
+        r = normalizeInstanceType(b.instanceType) <=> normalizeInstanceType(a.instanceType)
       }
 
       if (!r) {

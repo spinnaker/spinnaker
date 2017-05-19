@@ -80,7 +80,7 @@ class AmazonReservationReportSpec extends Specification {
     report.reservations[0].region() == "us-west-2"
   }
 
-  def "should sort reservations by normalized instance type ranking"() {
+  def "should sort reservations by normalized instance type ranking (ascending)"() {
     given:
     def reservations = ["c4.small", "c4.4xlarge", "c4.large", "c4.16xlarge", "c4.8xlarge"].collect {
       new OverallReservationDetail(
@@ -93,7 +93,7 @@ class AmazonReservationReportSpec extends Specification {
 
     then:
     sortedReservations*.instanceType == [
-      "c4.16xlarge", "c4.8xlarge", "c4.4xlarge", "c4.large", "c4.small"
+      "c4.small", "c4.large", "c4.4xlarge", "c4.8xlarge", "c4.16xlarge"
     ]
   }
 
@@ -125,7 +125,7 @@ class AmazonReservationReportSpec extends Specification {
     "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | LINUX | "us-west-2" | "us-west-2a"      | "c4.4xlarge"  | LINUX   || 1    // us-west-2 > us-west-1
     "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | LINUX | "us-east-1" | "us-east-1c"      | "c4.4xlarge"  | LINUX   || -1   // us-west-1 > us-east-1
     "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | LINUX | "us-west-1" | "us-west-1d"      | "c4.4xlarge"  | LINUX   || 1    // us-west-1d > us-west-1c
-    "us-west-1" | "us-west-1c"      | "c4.16xlarge" | LINUX | "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | LINUX   || -1   // c4.16xlarge > c4.4xlarge
+    "us-west-1" | "us-west-1c"      | "c4.16xlarge" | LINUX | "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | LINUX   || 1    // c4.16xlarge < c4.4xlarge (instance type sort is ascending)
     "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | LINUX | "us-west-1" | "us-west-1c"      | "c4.4xlarge"  | WINDOWS || 1    // windows > linux
   }
 }
