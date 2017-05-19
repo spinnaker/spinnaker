@@ -6,8 +6,8 @@ dependencies {
   compile spinnaker.dependency('clouddriverAzure')
   compile spinnaker.dependency('clouddriverOpenstack')
   compile spinnaker.dependency('front50Gcs')
-  compile spinnaker.dependency('front50S3')
-
+  compile 'com.netflix.spinnaker.front50:front50-s3:1.95.0'
+//  compile spinnaker.dependency('front50S3')
 
   compile project(':halyard-core')
 }

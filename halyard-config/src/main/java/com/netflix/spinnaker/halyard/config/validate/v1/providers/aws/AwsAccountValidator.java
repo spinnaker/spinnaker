@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2017 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,36 @@
 
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.aws;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.services.ec2.AmazonEC2;
+import com.amazonaws.services.ec2.AmazonEC2ClientBuilder;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AwsAccountValidator extends Validator<AwsAccount> {
   @Override
   public void validate(ConfigProblemSetBuilder p, AwsAccount n) {
-    // TODO(https://github.com/spinnaker/halyard/issues/116)
-    p.addProblem(Severity.WARNING, "No validators exist for this provider.");
+    DaemonTaskHandler.message(String.format("Validating %s with %s", n.getNodeName(), getClass().getSimpleName()));
+
+    AWSCredentialsProvider credentialsProvider = DefaultAWSCredentialsProviderChain.getInstance();
+
+    n.getRegions().forEach(awsRegion -> {
+      AmazonEC2 ec2Client = AmazonEC2ClientBuilder.standard()
+        .withCredentials(credentialsProvider)
+        .withRegion(awsRegion.getName())
+        .build();
+      try {
+        ec2Client.describeRegions();
+      } catch (Exception e) {
+        p.addProblem(Severity.ERROR, "Failed to validate AWS account in region \"" + awsRegion.getName() +
+          "\". Error message: " + e.getMessage());
+      }
+    });
   }
 }

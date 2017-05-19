@@ -1,4 +1,4 @@
-_Version: 0.21.0-SNAPSHOT_
+_Version: 0.24.0-SNAPSHOT_
 
 # Table of Contents
 
@@ -2823,8 +2823,9 @@ Edit configuration for the "s3" persistent store.
 hal config storage s3 edit [parameters]
 ```
 #### Parameters
- * `--bucket`: The name of a storage bucket that your specified account has access to.
+ * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--region`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region.
  * `--root-folder`: (*Default*: `spinnaker`) The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
 
 ---
