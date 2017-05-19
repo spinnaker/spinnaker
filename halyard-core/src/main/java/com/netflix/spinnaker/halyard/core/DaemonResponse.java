@@ -106,17 +106,16 @@ public class DaemonResponse<T> {
       }
 
       K responseBody;
-      ProblemSet problemSet;
+      ProblemSet problemSet = new ProblemSet();
       try {
         if (validateResponse != null) {
           problemSet = validateResponse.get();
-        } else {
-          problemSet = new ProblemSet();
         }
         problemSet.throwifSeverityExceeds(severity);
         responseBody = buildResponse.get();
       } catch (HalException e) {
         // This is OK, propagate the exception to the HalconfigExceptionHandler
+        e.getProblems().addAll(problemSet);
         throw e;
       } catch (Exception e) {
         log.error("Unknown exception encountered: ", e);
