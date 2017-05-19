@@ -423,11 +423,16 @@ class ValidateBomTestController(object):
     Returns:
       The ForwardedPort entry for this service.
     """
-    with self.__lock:
-      forwarding = self.__forwarded_ports.get(service_name)
-      if forwarding is None:
-        forwarding = self.__forward_port_to_service(service_name)
-      self.__forwarded_ports[service_name] = forwarding
+    try:
+      with self.__lock:
+        forwarding = self.__forwarded_ports.get(service_name)
+        if forwarding is None:
+          forwarding = self.__forward_port_to_service(service_name)
+        self.__forwarded_ports[service_name] = forwarding
+    except Exception as ex:
+      logging.exception('Exception while attempting to forward ports to "%s"',
+                        service_name)
+      raise
 
     end_time = time.time() + timeout
     logging.info('Waiting on "%s..."', service_name)
