@@ -58,7 +58,7 @@ open class RunTaskHandler
   override fun handle(message: RunTask) {
     message.withTask { stage, taskModel, task ->
       val execution = stage.getExecution()
-      if (execution.isCanceled() || execution.getStatus().isComplete) {
+      if (execution.isCanceled() || execution.getStatus().complete) {
         queue.push(CompleteTask(message, CANCELED))
       } else if (execution.getStatus() == PAUSED) {
         queue.push(PauseTask(message))

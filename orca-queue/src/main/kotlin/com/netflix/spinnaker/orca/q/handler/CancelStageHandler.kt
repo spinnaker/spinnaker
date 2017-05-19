@@ -40,7 +40,7 @@ open class CancelStageHandler
 
   override fun handle(message: CancelStage) {
     message.withStage { stage ->
-      if (stage.getStatus().isHalt) {
+      if (stage.getStatus().halt) {
         stage.builder().let { builder ->
           if (builder is CancellableStage) {
             // for the time being we execute this off-thread as some cancel

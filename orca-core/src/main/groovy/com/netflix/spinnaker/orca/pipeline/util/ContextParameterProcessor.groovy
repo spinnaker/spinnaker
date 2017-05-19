@@ -16,11 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
-import com.fasterxml.jackson.core.type.TypeReference
-import groovy.transform.CompileStatic
-import org.springframework.context.expression.MapAccessor
-
-import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.text.SimpleDateFormat
 import java.util.concurrent.atomic.AtomicReference
@@ -55,14 +50,6 @@ class ContextParameterProcessor {
 
   private final ContextFunctionConfiguration contextFunctionConfiguration
 
-  private final ObjectMapper typeRipper = new ObjectMapper()
-  private static final TypeReference<Map<String, Object>> JSON_OBJECT = new TypeReference<Map<String, Object>>() {}
-
-  private Map<String, Object> removeTypes(Map object) {
-    String json = typeRipper.writeValueAsString(object)
-    return typeRipper.readValue(json, JSON_OBJECT)
-  }
-
   ContextParameterProcessor() {
     this(new ContextFunctionConfiguration(new UserConfiguredUrlRestrictions.Builder().build()))
   }
@@ -83,14 +70,12 @@ class ContextParameterProcessor {
 
   Map<String, Object> buildExecutionContext(Stage stage, boolean includeStageContext) {
     def augmentedContext = [:] + (includeStageContext ? stage.context : [:])
-    boolean shouldRemoveTypes = includeStageContext
     if (stage.execution instanceof Pipeline) {
-      shouldRemoveTypes = true
       augmentedContext.put('trigger', ((Pipeline) stage.execution).trigger)
       augmentedContext.put('execution', stage.execution)
     }
 
-    return shouldRemoveTypes ? removeTypes(augmentedContext) : augmentedContext
+    return augmentedContext
   }
 
   boolean containsExpression(String value) {
@@ -149,7 +134,7 @@ class ContextParameterProcessor {
       StandardEvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.setTypeLocator(new WhitelistTypeLocator())
       evaluationContext.setMethodResolvers([new FilteredMethodResolver()])
-      evaluationContext.setPropertyAccessors([new FilteredPropertyAccessor(), allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor])
+      evaluationContext.addPropertyAccessor(allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor)
 
       evaluationContext.registerFunction('alphanumerical', ContextUtilities.getDeclaredMethod("alphanumerical", String))
       evaluationContext.registerFunction('toJson', ContextUtilities.getDeclaredMethod("toJson", Object))
@@ -192,8 +177,8 @@ class ContextParameterProcessor {
     }
   }
 
-  static class TypeWhitelist {
-    static final Set<Class<?>> allowedTypes = Collections.unmodifiableSet([
+  static class WhitelistTypeLocator implements TypeLocator {
+    private final Set<Class<?>> allowedTypes = Collections.unmodifiableSet([
         String,
         Date,
         Integer,
@@ -204,44 +189,14 @@ class ContextParameterProcessor {
         Math,
         Random,
         UUID,
-        Boolean,
+        Boolean
     ] as Set)
-
-    static final Set<Class<?>> allowedReturnTypes = Collections.unmodifiableSet([
-        Collection,
-        Map,
-        SortedMap,
-        List,
-        Set,
-        SortedSet,
-        ArrayList,
-        LinkedList,
-        HashSet,
-        LinkedHashSet,
-        HashMap,
-        LinkedHashMap,
-        TreeMap,
-        TreeSet
-    ] as Set)
-
-    static boolean isAllowedForInstantiation(Class<?> type) {
-      return allowedTypes.contains(type)
-    }
-
-    static boolean isAllowedForReturn(Class<?> type) {
-      final Class<?> returnType = type.isArray() ? type.componentType : type
-      return returnType.isPrimitive() || allowedTypes.contains(returnType) || allowedReturnTypes.contains(returnType)
-    }
-
-  }
-
-  static class WhitelistTypeLocator implements TypeLocator {
 
     final TypeLocator delegate = new StandardTypeLocator()
     @Override
     Class<?> findType(String typeName) throws EvaluationException {
       def type = delegate.findType(typeName)
-      if (TypeWhitelist.isAllowedForInstantiation(type)) {
+      if (allowedTypes.contains(type)) {
         return type
       }
 
@@ -277,31 +232,8 @@ class ContextParameterProcessor {
 
       def m = new ArrayList<Method>(Arrays.asList(methods))
       m.removeAll(rejectedMethods)
-      m = m.findAll { TypeWhitelist.isAllowedForReturn(it.returnType) }
 
       return m.toArray(new Method[m.size()])
-    }
-  }
-
-  @CompileStatic
-  static class FilteredPropertyAccessor extends ReflectivePropertyAccessor {
-    @Override
-    protected Method findGetterForProperty(String propertyName, Class<?> clazz, boolean mustBeStatic) {
-      Method getter = super.findGetterForProperty(propertyName, clazz, mustBeStatic)
-      if (getter && TypeWhitelist.isAllowedForReturn(getter.returnType)) {
-        return getter
-      }
-
-      return null
-    }
-
-    @Override
-    protected Field findField(String name, Class<?> clazz, boolean mustBeStatic) {
-      Field field = super.findField(name, clazz, mustBeStatic)
-      if (field && TypeWhitelist.isAllowedForReturn(field.getType())) {
-        return field
-      }
-      return null
     }
   }
 }
@@ -382,7 +314,7 @@ abstract class ContextUtilities {
 
 }
 
-class MapPropertyAccessor extends MapAccessor {
+class MapPropertyAccessor extends ReflectivePropertyAccessor {
   private final boolean allowUnknownKeys
 
   public MapPropertyAccessor(boolean allowUnknownKeys) {
@@ -391,26 +323,30 @@ class MapPropertyAccessor extends MapAccessor {
   }
 
   @Override
+  Class<?>[] getSpecificTargetClasses() {
+    [Map]
+  }
+
+  @Override
   boolean canRead(final EvaluationContext context, final Object target, final String name)
     throws AccessException {
-    if (allowUnknownKeys) {
-      return true
+    if (target instanceof Map) {
+      return allowUnknownKeys || target.containsKey(name)
     }
-    boolean canRead = super.canRead(context, target, name)
-    return canRead
+    return false
   }
 
   @Override
   public TypedValue read(final EvaluationContext context, final Object target, final String name)
     throws AccessException {
-    try {
-      TypedValue result = super.read(context, target, name)
-      return result
-    } catch (AccessException ae) {
-      if (allowUnknownKeys) {
+    if (target instanceof Map) {
+      if (target.containsKey(name)) {
+        return new TypedValue(target.get(name))
+      } else if (allowUnknownKeys) {
         return TypedValue.NULL
       }
-      throw ae
+      throw new AccessException("No property in map with key $name")
     }
+    throw new AccessException("Cannot read target of class " + target.getClass().getName())
   }
 }
