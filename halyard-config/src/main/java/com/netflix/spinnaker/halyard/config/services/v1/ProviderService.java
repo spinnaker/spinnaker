@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
+import com.netflix.spinnaker.halyard.config.model.v1.node.HasClustersProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
@@ -110,5 +111,16 @@ public class ProviderService {
         .withAnyAccount();
 
     return validateService.validateMatchingFilter(filter);
+  }
+
+  public HasClustersProvider getHasClustersProvider(String deploymentName, String providerName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);
+    Provider provider = getProvider(deploymentName, providerName);
+    if (provider instanceof HasClustersProvider) {
+      return (HasClustersProvider) provider;
+    } else {
+      throw new IllegalConfigException(new ConfigProblemBuilder(Severity.FATAL,
+          "Provider \"" + providerName + "\" does not support configuring clusters via Halyard.").build());
+    }
   }
 }

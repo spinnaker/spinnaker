@@ -18,17 +18,16 @@ package com.netflix.spinnaker.halyard.cli.ui.v1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.List;
 import java.util.Map;
-
-import static com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils.Format.NONE;
 
 public class AnsiFormatUtils {
   private static Yaml yamlParser = null;
@@ -112,6 +111,20 @@ public class AnsiFormatUtils {
 
     paragraph = resultBuilder.addParagraph();
     paragraph.addSnippet(account.toString());
+
+    return resultBuilder.toString();
+  }
+
+  public static String format(Cluster cluster) {
+    AnsiStoryBuilder resultBuilder = new AnsiStoryBuilder();
+    AnsiParagraphBuilder paragraph = resultBuilder.addParagraph();
+
+    paragraph.addSnippet(cluster.getNodeName().toUpperCase()).addStyle(AnsiStyle.BOLD);
+
+    resultBuilder.addNewline();
+
+    paragraph = resultBuilder.addParagraph();
+    paragraph.addSnippet(cluster.toString());
 
     return resultBuilder.toString();
   }

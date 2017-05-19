@@ -49,7 +49,9 @@ public class AccountController {
   ObjectMapper objectMapper;
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
-  DaemonTask<Halconfig, List<Account>> accounts(@PathVariable String deploymentName, @PathVariable String providerName,
+  DaemonTask<Halconfig, List<Account>> accounts(
+      @PathVariable String deploymentName,
+      @PathVariable String providerName,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
       @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity) {
     StaticRequestBuilder<List<Account>> builder = new StaticRequestBuilder<>();

@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
@@ -95,6 +96,11 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
     AppengineProvider appengineProvider = deploymentConfiguration.getProviders().getAppengine();
     bindings.put("appengine.default.account", appengineProvider.getPrimaryAccount());
     bindings.put("appengine.enabled", Boolean.toString(appengineProvider.getPrimaryAccount() != null));
+
+    // Configure DC/OS
+    final DCOSProvider dcosProvider = deploymentConfiguration.getProviders().getDcos();
+    bindings.put("dcos.default.account", dcosProvider.getPrimaryAccount());
+    //TODO(willgorman) need to set the proxy url somehow
 
     // Configure Openstack
     OpenstackProvider openstackProvider = deploymentConfiguration.getProviders().getOpenstack();

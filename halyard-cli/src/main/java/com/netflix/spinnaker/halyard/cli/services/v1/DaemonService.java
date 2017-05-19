@@ -199,6 +199,35 @@ public interface DaemonService {
       @Path("accountName") String accountName,
       @Body DaemonOptions<Void> options);
 
+  @POST("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/")
+  DaemonTask<Halconfig, Void> addCluster(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body Cluster cluster);
+
+  @GET("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
+  DaemonTask<Halconfig, Object> getCluster(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("clusterName") String clusterName,
+      @Query("validate") boolean validate);
+
+  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
+  DaemonTask<Halconfig, Void> setCluster(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("clusterName") String clusterName,
+      @Query("validate") boolean validate,
+      @Body Cluster cluster);
+
+  @DELETE("/v1/config/deployments/{deploymentName}/providers/{providerName}/clusters/cluster/{clusterName}/")
+  DaemonTask<Halconfig, Void> deleteCluster(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Path("clusterName") String clusterName,
+      @Query("validate") boolean validate);
+
   @GET("/v1/config/deployments/{deploymentName}/security/")
   DaemonTask<Halconfig, Security> getSecurity(
       @Path("deploymentName") String deploymentName,

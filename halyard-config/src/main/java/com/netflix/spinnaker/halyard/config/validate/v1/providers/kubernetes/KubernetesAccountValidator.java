@@ -20,12 +20,14 @@ import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigPar
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry.DockerRegistryReferenceValidation;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
@@ -45,6 +47,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry.DockerRegistryReferenceValidation.validateDockerRegistries;
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.*;
 
 @Component
@@ -62,7 +65,9 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     }
     deploymentConfiguration = (DeploymentConfiguration) parent;
 
-    validateDockerRegistries(psBuilder, account, deploymentConfiguration);
+    final List<String> dockerRegistryNames = account.getDockerRegistries().stream().map(DockerRegistryReference::getAccountName)
+        .collect(Collectors.toList());
+    validateDockerRegistries(psBuilder, deploymentConfiguration, dockerRegistryNames, Provider.ProviderType.KUBERNETES);
     validateKubeconfig(psBuilder, account);
   }
 
@@ -130,54 +135,6 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
               + "gcloud config set container/use_client_certificate true\n\ngcloud container clusters get-credentials $CLUSTERNAME");
         } else {
           pb.setRemediation("Unable to authenticate with your Kubernetes cluster. Try using kubectl to verify your credentials.");
-        }
-      }
-    }
-  }
-
-  private void validateDockerRegistries(ConfigProblemSetBuilder psBuilder, KubernetesAccount account, DeploymentConfiguration deployment) {
-    List<DockerRegistryReference> dockerRegistries = account.getDockerRegistries();
-    List<String> namespaces = account.getNamespaces();
-
-    // TODO(lwander) document how to use hal to add registries and link to that here.
-    if (dockerRegistries == null || dockerRegistries.isEmpty()) {
-      psBuilder.addProblem(ERROR, "You have not specified any docker registries to deploy to.", "dockerRegistries")
-          .setRemediation("Add a docker registry that can be found in this deployment's dockerRegistries provider.");
-    }
-
-    DockerRegistryProvider dockerRegistryProvider = deployment.getProviders().getDockerRegistry();
-    if (dockerRegistryProvider == null || dockerRegistryProvider.getAccounts() == null || dockerRegistryProvider.getAccounts().isEmpty()) {
-      psBuilder.addProblem(ERROR, "The docker registry provider has not yet been configured for this deployment.", "dockerRegistries")
-          .setRemediation("Kubernetes needs a Docker Registry as an image source to run.");
-    } else if (!dockerRegistryProvider.isEnabled()) {
-      psBuilder.addProblem(ERROR, "The docker registry provider needs to be enabled.");
-    } else {
-      List<String> availableRegistries = dockerRegistryProvider
-          .getAccounts()
-          .stream()
-          .map(Account::getName).collect(Collectors.toList());
-
-      Set<String> names = new HashSet<>();
-
-      for (DockerRegistryReference registryReference : dockerRegistries) {
-        String registryName = registryReference.getAccountName();
-        if (names.contains(registryName)) {
-          psBuilder.addProblem(FATAL, "Docker registry " + registryName + " has been added twice.");
-        }
-        names.add(registryName);
-
-        if (!availableRegistries.contains(registryReference.getAccountName())) {
-          psBuilder.addProblem(ERROR, "The chosen registry \"" + registryReference.getAccountName() + "\" has not been configured in your halconfig.", "dockerRegistries")
-              .setRemediation("Either add \"" + registryReference.getAccountName() + "\" as a new Docker Registry account, or pick a different one.");
-        }
-
-        if (!registryReference.getNamespaces().isEmpty() && !namespaces.isEmpty()) {
-          for (String namespace : registryReference.getNamespaces()) {
-            if (!namespaces.contains(namespace)) {
-              psBuilder.addProblem(ERROR, "The deployable namespace \"" + namespace + "\" for registry \"" + registryReference.getAccountName() + "\" is not accessibly by this kubernetes account.", "namespaces")
-                  .setRemediation("Either remove this namespace from this docker registry, add the namespace to the account's list of namespaces, or drop the list of namespaces.");
-            }
-          }
         }
       }
     }

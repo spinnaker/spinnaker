@@ -9,5 +9,6 @@ dependencies {
   compile 'com.netflix.spinnaker.front50:front50-s3:1.95.0'
 //  compile spinnaker.dependency('front50S3')
 
+//  TODO: add clouddriverDCOS once that's merged
   compile project(':halyard-core')
 }

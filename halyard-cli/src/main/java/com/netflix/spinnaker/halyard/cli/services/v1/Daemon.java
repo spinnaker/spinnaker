@@ -16,11 +16,39 @@
 
 package com.netflix.spinnaker.halyard.cli.services.v1;
 
+import lombok.extern.slf4j.Slf4j;
+import retrofit.RestAdapter;
+import retrofit.client.OkClient;
+import retrofit.converter.JacksonConverter;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
-import com.netflix.spinnaker.halyard.config.model.v1.node.*;
-import com.netflix.spinnaker.halyard.config.model.v1.security.*;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BakeryDefaults;
+import com.netflix.spinnaker.halyard.config.model.v1.node.BaseImage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Ci;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cis;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Master;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.MetricStores;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeDiff;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Providers;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
+import com.netflix.spinnaker.halyard.config.model.v1.security.ApiSecurity;
+import com.netflix.spinnaker.halyard.config.model.v1.security.AuthnMethod;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
+import com.netflix.spinnaker.halyard.config.model.v1.security.RoleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.security.Security;
+import com.netflix.spinnaker.halyard.config.model.v1.security.SpringSsl;
+import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.core.DaemonOptions;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.StringBodyRequest;
@@ -30,10 +58,6 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.ShallowTaskList;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeployOption;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
-import lombok.extern.slf4j.Slf4j;
-import retrofit.RestAdapter;
-import retrofit.client.OkClient;
-import retrofit.converter.JacksonConverter;
 
 import java.util.List;
 import java.util.Map;
@@ -210,6 +234,35 @@ public class Daemon {
       return ResponseUnwrapper.get(getService().getExistingAccountOptions(deploymentName, providerName, accountName, accountOptions));
     };
   }
+
+  public static Supplier<Cluster> getCluster(String deploymentName, String providerName, String clusterName, boolean validate) {
+    return () -> {
+      Object rawCluster = ResponseUnwrapper.get(getService().getCluster(deploymentName, providerName, clusterName, validate));
+      return getObjectMapper().convertValue(rawCluster, Providers.translateClusterType(providerName));
+    };
+  }
+
+  public static Supplier<Void> addCluster(String deploymentName, String providerName, boolean validate, Cluster cluster) {
+    return () -> {
+      ResponseUnwrapper.get(getService().addCluster(deploymentName, providerName, validate, cluster));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> setCluster(String deploymentName, String providerName, String clusterName, boolean validate, Cluster cluster) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setCluster(deploymentName, providerName, clusterName, validate, cluster));
+      return null;
+    };
+  }
+
+  public static Supplier<Void> deleteCluster(String deploymentName, String providerName, String clusterName, boolean validate) {
+    return () -> {
+      ResponseUnwrapper.get(getService().deleteCluster(deploymentName, providerName, clusterName, validate));
+      return null;
+    };
+  }
+
 
   public static Supplier<Provider> getProvider(String deploymentName, String providerName, boolean validate) {
     return () -> {

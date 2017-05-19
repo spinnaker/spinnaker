@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.node;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
@@ -38,6 +39,7 @@ public class Providers extends Node implements Cloneable {
   AppengineProvider appengine = new AppengineProvider();
   AwsProvider aws = new AwsProvider();
   AzureProvider azure = new AzureProvider();
+  DCOSProvider dcos = new DCOSProvider();
   DockerRegistryProvider dockerRegistry = new DockerRegistryProvider();
   GoogleProvider google = new GoogleProvider();
   KubernetesProvider kubernetes = new KubernetesProvider();
@@ -104,4 +106,16 @@ public class Providers extends Node implements Cloneable {
       throw new IllegalArgumentException("No baseImage for class \"" + baseImageClassName + "\" found", e);
     }
   }
+
+  public static Class<? extends Cluster> translateClusterType(String providerName) {
+    Class<? extends Provider> providerClass = translateProviderType(providerName);
+
+    String clusterClassName = providerClass.getName().replaceAll("Provider", "Cluster");
+    try {
+      return (Class<? extends Cluster>) Class.forName(clusterClassName);
+    } catch (ClassNotFoundException e) {
+      throw new IllegalArgumentException("No cluster for class \"" + clusterClassName + "\" found", e);
+    }
+  }
+
 }

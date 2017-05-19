@@ -82,6 +82,21 @@ _Version: 0.24.0-SNAPSHOT_
  * [**hal config provider azure bakery edit**](#hal-config-provider-azure-bakery-edit)
  * [**hal config provider azure disable**](#hal-config-provider-azure-disable)
  * [**hal config provider azure enable**](#hal-config-provider-azure-enable)
+ * [**hal config provider dcos**](#hal-config-provider-dcos)
+ * [**hal config provider dcos account**](#hal-config-provider-dcos-account)
+ * [**hal config provider dcos account add**](#hal-config-provider-dcos-account-add)
+ * [**hal config provider dcos account delete**](#hal-config-provider-dcos-account-delete)
+ * [**hal config provider dcos account edit**](#hal-config-provider-dcos-account-edit)
+ * [**hal config provider dcos account get**](#hal-config-provider-dcos-account-get)
+ * [**hal config provider dcos account list**](#hal-config-provider-dcos-account-list)
+ * [**hal config provider dcos cluster**](#hal-config-provider-dcos-cluster)
+ * [**hal config provider dcos cluster add**](#hal-config-provider-dcos-cluster-add)
+ * [**hal config provider dcos cluster delete**](#hal-config-provider-dcos-cluster-delete)
+ * [**hal config provider dcos cluster edit**](#hal-config-provider-dcos-cluster-edit)
+ * [**hal config provider dcos cluster get**](#hal-config-provider-dcos-cluster-get)
+ * [**hal config provider dcos cluster list**](#hal-config-provider-dcos-cluster-list)
+ * [**hal config provider dcos disable**](#hal-config-provider-dcos-disable)
+ * [**hal config provider dcos enable**](#hal-config-provider-dcos-enable)
  * [**hal config provider docker-registry**](#hal-config-provider-docker-registry)
  * [**hal config provider docker-registry account**](#hal-config-provider-docker-registry-account)
  * [**hal config provider docker-registry account add**](#hal-config-provider-docker-registry-account-add)
@@ -814,6 +829,7 @@ hal config provider [subcommands]
  * `appengine`: Manage and view Spinnaker configuration for the appengine provider
  * `aws`: Manage and view Spinnaker configuration for the aws provider
  * `azure`: Manage and view Spinnaker configuration for the azure provider
+ * `dcos`: Manage and view Spinnaker configuration for the dcos provider
  * `docker-registry`: Manage and view Spinnaker configuration for the dockerRegistry provider
  * `google`: Manage and view Spinnaker configuration for the google provider
  * `kubernetes`: Manage and view Spinnaker configuration for the kubernetes provider
@@ -1382,6 +1398,241 @@ Set the azure provider as enabled
 #### Usage
 ```
 hal config provider azure enable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos
+
+Manage and view Spinnaker configuration for the dcos provider
+
+#### Usage
+```
+hal config provider dcos [parameters] [subcommands]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `account`: Manage and view Spinnaker configuration for the dcos provider's account
+ * `cluster`: Manage and view Spinnaker configuration for the dcos provider's cluster
+ * `disable`: Set the dcos provider as disabled
+ * `enable`: Set the dcos provider as enabled
+
+---
+## hal config provider dcos account
+
+Manage and view Spinnaker configuration for the dcos provider's account
+
+#### Usage
+```
+hal config provider dcos account ACCOUNT [parameters] [subcommands]
+```
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `add`: Add an account to the dcos provider.
+ * `delete`: Delete a specific dcos account by name.
+ * `edit`: Edit an account in the dcos provider.
+ * `get`: Get the specified account details for the dcos provider.
+ * `list`: List the account names for the dcos provider.
+
+---
+## hal config provider dcos account add
+
+Add an account to the dcos provider.
+
+#### Usage
+```
+hal config provider dcos account add ACCOUNT [parameters]
+```
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--cluster`: (*Required*) Reference to the name of the cluster from the set of clusters defined for this provider
+ * `--docker-registries`: (*Default*: `[]`) (*Required*) Provide the list of docker registries to use with this DC/OS account
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--password`: Password for a user account
+ * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--service-key`: Secret key for service account authentication
+ * `--uid`: (*Required*) User or service account identifier
+
+---
+## hal config provider dcos account delete
+
+Delete a specific dcos account by name.
+
+#### Usage
+```
+hal config provider dcos account delete ACCOUNT [parameters]
+```
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos account edit
+
+Edit an account in the dcos provider.
+
+#### Usage
+```
+hal config provider dcos account edit ACCOUNT [parameters]
+```
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--add-docker-registry`: Add this docker registry to the list of docker registries to use as a source of images.
+ * `--add-required-group-membership`: Add this group to the list of required group memberships.
+ * `--docker-registries`: (*Default*: `[]`) Provide the list of docker registries to use with this DC/OS account
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--remove-credential`: (*Default*: `[]`) Provide the cluster name and uid of credentials to remove: --remove-credential my-cluster my-user
+ * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
+ * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
+ * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
+ * `--update-service-credential`: (*Default*: `[]`) A DC/OS cluster service account credential in 3 parts: cluster-name uid serviceKey
+ * `--update-user-credential`: (*Default*: `[]`) A DC/OS cluster user credential in 3 parts: cluster-name uid password
+
+---
+## hal config provider dcos account get
+
+Get the specified account details for the dcos provider.
+
+#### Usage
+```
+hal config provider dcos account get ACCOUNT [parameters]
+```
+#### Parameters
+`ACCOUNT`: The name of the account to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos account list
+
+List the account names for the dcos provider.
+
+#### Usage
+```
+hal config provider dcos account list [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos cluster
+
+Manage and view Spinnaker configuration for the dcos provider's cluster
+
+#### Usage
+```
+hal config provider dcos cluster CLUSTER [parameters] [subcommands]
+```
+#### Parameters
+`CLUSTER`: The name of the cluster to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+#### Subcommands
+ * `add`: Manage and view Spinnaker configuration for the dcos provider's cluster
+ * `delete`: Delete a specific dcos cluster by name.
+ * `edit`: Manage and view Spinnaker configuration for the dcos provider's cluster
+ * `get`: Get the specified cluster details for the dcos provider.
+ * `list`: List the cluster names for the dcos provider.
+
+---
+## hal config provider dcos cluster add
+
+Manage and view Spinnaker configuration for the dcos provider's cluster
+
+#### Usage
+```
+hal config provider dcos cluster add CLUSTER [parameters]
+```
+#### Parameters
+`CLUSTER`: The name of the cluster to operate on.
+ * `--ca-cert-data`: Root certificate to trust for connections to the cluster
+ * `--dcos-url`: (*Required*) URL of the endpoint for the DC/OS cluster's admin router.
+ * `--lb-account-secret`: Name of the secret to use for allowing marathon-lb to authenticate with the cluster.  Only necessary for clusters with strict or permissive security.
+ * `--lb-image`: Marathon-lb image to use when creating a load balancer with Spinnaker
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--skip-tls-verify`: Set this flag to disable verification of certificates from the cluster (insecure)
+
+---
+## hal config provider dcos cluster delete
+
+Delete a specific dcos cluster by name.
+
+#### Usage
+```
+hal config provider dcos cluster delete CLUSTER [parameters]
+```
+#### Parameters
+`CLUSTER`: The name of the cluster to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos cluster edit
+
+Manage and view Spinnaker configuration for the dcos provider's cluster
+
+#### Usage
+```
+hal config provider dcos cluster edit CLUSTER [parameters]
+```
+#### Parameters
+`CLUSTER`: The name of the cluster to operate on.
+ * `--ca-cert-data`: Root certificate to trust for connections to the cluster
+ * `--dcos-url`: URL of the endpoint for the DC/OS cluster's admin router.
+ * `--lb-account-secret`: Name of the secret to use for allowing marathon-lb to authenticate with the cluster.  Only necessary for clusters with strict or permissive security.
+ * `--lb-image`: Marathon-lb image to use when creating a load balancer with Spinnaker
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--remove-ca-cert-data`: (*Default*: `false`) Remove the CA certificate for this cluster
+ * `--remove-lb`: (*Default*: `false`) Remove the load balancer attributes for this cluster
+ * `--skip-tls-verify`: Set this flag to disable verification of certificates from the cluster (insecure)
+
+---
+## hal config provider dcos cluster get
+
+Get the specified cluster details for the dcos provider.
+
+#### Usage
+```
+hal config provider dcos cluster get CLUSTER [parameters]
+```
+#### Parameters
+`CLUSTER`: The name of the cluster to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos cluster list
+
+List the cluster names for the dcos provider.
+
+#### Usage
+```
+hal config provider dcos cluster list CLUSTER [parameters]
+```
+#### Parameters
+`CLUSTER`: The name of the cluster to operate on.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos disable
+
+Set the dcos provider as disabled
+
+#### Usage
+```
+hal config provider dcos disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider dcos enable
+
+Set the dcos provider as enabled
+
+#### Usage
+```
+hal config provider dcos enable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.

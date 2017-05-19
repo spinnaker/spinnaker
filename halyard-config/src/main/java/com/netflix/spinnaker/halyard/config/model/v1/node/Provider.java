@@ -61,6 +61,7 @@ public abstract class Provider<A extends Account> extends Node implements Clonea
     APPENGINE("appengine"),
     AWS("aws"),
     AZURE("azure"),
+    DCOS("dcos"),
     DOCKERREGISTRY("dockerRegistry"),
     GOOGLE("google", "gce"),
     KUBERNETES("kubernetes"),
