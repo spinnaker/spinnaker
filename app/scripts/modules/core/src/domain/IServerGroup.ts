@@ -37,6 +37,7 @@ export interface IServerGroup {
   securityGroups?: string[];
   stack?: string;
   stringVal?: string;
+  subnetType?: string;
   tags?: any;
   type: string;
   vpcName?: string;

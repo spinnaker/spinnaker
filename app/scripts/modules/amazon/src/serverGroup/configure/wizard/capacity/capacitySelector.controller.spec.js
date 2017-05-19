@@ -1,14 +1,16 @@
 'use strict';
 
+import { CAPACITY_SELECTOR } from './capacitySelector.component';
+
 describe('Controller: ServerGroupCapacitySelector', function () {
 
   beforeEach(
     window.module(
-      require('./capacitySelector.directive.js')
+      CAPACITY_SELECTOR
     )
   );
 
-  beforeEach(window.inject(function ($controller) {
+  beforeEach(window.inject(function ($componentController) {
 
     this.command = {
       capacity: {
@@ -21,7 +23,7 @@ describe('Controller: ServerGroupCapacitySelector', function () {
       }
     };
 
-    this.ctrl = $controller('awsServerGroupCapacitySelectorCtrl', {});
+    this.ctrl = $componentController('awsServerGroupCapacitySelector', {});
     this.ctrl.command = this.command;
   }));
 

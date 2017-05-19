@@ -1,23 +1,23 @@
-<div ng-if="!vm.command.viewState.useSimpleCapacity">
+<div ng-if="!$ctrl.command.viewState.useSimpleCapacity">
   <div class="form-group">
     <div class="col-md-12">
       <p>Sets up auto-scaling for this server group.</p>
-      <p>To disable auto-scaling, use the <a href ng-click="vm.setSimpleCapacity(true)">Simple Mode</a>.</p>
+      <p>To disable auto-scaling, use the <a href ng-click="$ctrl.setSimpleCapacity(true)">Simple Mode</a>.</p>
     </div>
   </div>
 
-  <div class="form-group" ng-if="!vm.command.viewState.readOnlyFields.useSourceCapacity">
+  <div class="form-group" ng-if="!$ctrl.command.viewState.readOnlyFields.useSourceCapacity">
     <div class="col-md-3 sm-label-right">Capacity</div>
     <div class="col-md-9 radio">
       <label>
-        <input type="radio" ng-model="vm.command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
+        <input type="radio" ng-model="$ctrl.command.useSourceCapacity" ng-value="true" id="useSourceCapacityTrue"/>
         Copy the capacity from the current server group
         <help-field key="serverGroupCapacity.useSourceCapacityTrue"></help-field>
       </label>
     </div>
     <div class="col-md-9 col-md-offset-3 radio">
       <label>
-        <input type="radio" ng-model="vm.command.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
+        <input type="radio" ng-model="$ctrl.command.useSourceCapacity" ng-value="false" id="useSourceCapacityFalse"/>
         Let me specify the capacity
         <help-field key="serverGroupCapacity.useSourceCapacityFalse"></help-field>
       </label>
@@ -30,41 +30,41 @@
   </div>
   <div class="form-group">
     <div class="col-md-2 col-md-offset-3"><input type="number"
-                                                 ng-disabled="vm.command.useSourceCapacity"
+                                                 ng-disabled="$ctrl.command.useSourceCapacity"
                                                  class="form-control input-sm"
-                                                 ng-model="vm.command.capacity.min"
+                                                 ng-model="$ctrl.command.capacity.min"
                                                  min="0"
-                                                 max="{{vm.command.capacity.max}}"
+                                                 max="{{$ctrl.command.capacity.max}}"
                                                  required/></div>
     <div class="col-md-2"><input type="number"
-                                 ng-disabled="vm.command.useSourceCapacity"
+                                 ng-disabled="$ctrl.command.useSourceCapacity"
                                  class="form-control input-sm"
-                                 ng-model="vm.command.capacity.max"
-                                 min="{{vm.command.capacity.min}}"
+                                 ng-model="$ctrl.command.capacity.max"
+                                 min="{{$ctrl.command.capacity.min}}"
                                  required/></div>
     <div class="col-md-2"><input type="number"
-                                 ng-disabled="vm.command.useSourceCapacity"
+                                 ng-disabled="$ctrl.command.useSourceCapacity"
                                  class="form-control input-sm"
-                                 ng-model="vm.command.capacity.desired"
-                                 min="{{vm.command.capacity.min}}"
-                                 max="{{vm.command.capacity.max}}"
+                                 ng-model="$ctrl.command.capacity.desired"
+                                 min="{{$ctrl.command.capacity.min}}"
+                                 max="{{$ctrl.command.capacity.max}}"
                                  required/></div>
   </div>
 </div>
 
-<div ng-if="vm.command.viewState.useSimpleCapacity">
+<div ng-if="$ctrl.command.viewState.useSimpleCapacity">
   <div class="form-group">
     <div class="col-md-12">
       <p>Sets min, max, and desired instance counts to the same value.</p>
 
-      <p> To allow true auto-scaling, use the <a href ng-click="vm.setSimpleCapacity(false)">Advanced Mode</a>.</p>
+      <p> To allow true auto-scaling, use the <a href ng-click="$ctrl.setSimpleCapacity(false)">Advanced Mode</a>.</p>
     </div>
   </div>
   <div class="form-group">
     <div class="col-md-3 sm-label-right">Number of Instances</div>
-    <div class="col-md-2"><input type="number" ng-change="vm.setMinMax(vm.command.capacity.desired)"
+    <div class="col-md-2"><input type="number" ng-change="$ctrl.setMinMax($ctrl.command.capacity.desired)"
                                  class="form-control input-sm"
-                                 ng-model="vm.command.capacity.desired"
+                                 ng-model="$ctrl.command.capacity.desired"
                                  min="0"
                                  required/></div>
   </div>

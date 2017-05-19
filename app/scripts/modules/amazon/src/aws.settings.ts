@@ -1,6 +1,6 @@
 import { IProviderSettings, SETTINGS } from '@spinnaker/core';
 
-interface IClassicLaunchWhitelist {
+export interface IClassicLaunchWhitelist {
   region: string;
   credentials: string;
 }

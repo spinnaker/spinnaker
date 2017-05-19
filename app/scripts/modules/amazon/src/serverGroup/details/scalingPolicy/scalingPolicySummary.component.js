@@ -4,12 +4,14 @@ const angular = require('angular');
 
 import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 
+import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component';
+
 import './scalingPolicySummary.component.less';
 
 module.exports = angular.module('spinnaker.aws.serverGroup.details.scalingPolicy.component', [
-  require('./popover/scalingPolicyPopover.component.js'),
   require('./scalingPolicy.write.service.js'),
   require('./upsert/upsertScalingPolicy.controller.js'),
+  SCALING_POLICY_POPOVER,
   CONFIRMATION_MODAL_SERVICE,
 ])
   .component('scalingPolicySummary', {

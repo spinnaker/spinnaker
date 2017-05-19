@@ -1,13 +1,22 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
 
 import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
-
+import { VPC_MODULE } from './vpc/vpc.module';
+import { SUBNET_RENDERER } from './subnet/subnet.renderer';
+import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
+import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
+import { COMMON_MODULE } from './common/common.module';
 import { AMAZON_HELP } from './help/amazon.help';
 
 import './logo/aws.logo.less';
-import { CloudProviderRegistry } from 'core/cloudProvider';
+
+// load all templates into the $templateCache
+const templates = require.context('./', true, /\.html$/);
+templates.keys().forEach(function(key) {
+  templates(key);
+});
 
 export const AMAZON_MODULE = 'spinnaker.amazon';
 module(AMAZON_MODULE, [
@@ -27,22 +36,18 @@ module(AMAZON_MODULE, [
   require('./pipeline/stages/scaleDownCluster/awsScaleDownClusterStage'),
   require('./pipeline/stages/shrinkCluster/awsShrinkClusterStage'),
   require('./pipeline/stages/tagImage/awsTagImageStage'),
-  require('./serverGroup/details/serverGroup.details.module'),
+  SERVER_GROUP_DETAILS_MODULE,
+  COMMON_MODULE,
   require('./serverGroup/serverGroup.transformer'),
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller'),
-  require('./serverGroup/configure/serverGroup.configure.aws.module'),
   require('./instance/awsInstanceType.service'),
   require('./loadBalancer/loadBalancer.transformer'),
   require('./loadBalancer/details/loadBalancerDetail.controller'),
   require('./loadBalancer/configure/createLoadBalancer.controller'),
   require('./instance/details/instance.details.controller'),
-  require('./securityGroup/details/securityGroupDetail.controller'),
-  require('./securityGroup/configure/CreateSecurityGroupCtrl'),
-  require('./securityGroup/configure/EditSecurityGroupCtrl'),
-  require('./securityGroup/securityGroup.transformer'),
-  require('./securityGroup/securityGroup.reader'),
-  require('./subnet/subnet.renderer'),
-  require('./vpc/vpc.module'),
+  AWS_SECURITY_GROUP_MODULE,
+  SUBNET_RENDERER,
+  VPC_MODULE,
   require('./image/image.reader'),
   require('./cache/cacheConfigurer.service'),
   require('./search/searchResultFormatter'),

@@ -3,7 +3,7 @@ import { Button } from 'react-bootstrap';
 
 import { NgReact } from 'core/reactShims';
 
-interface ISubmitButtonProps {
+export interface ISubmitButtonProps {
   onClick: () => void;
   isDisabled?: boolean;
   isNew?: boolean;

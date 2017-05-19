@@ -3,6 +3,9 @@
 const angular = require('angular');
 import { chain, filter, find, get, isEmpty } from 'lodash';
 
+import { AWS_SCHEDULED_ACTION_COMPONENT } from './scheduledAction/scheduledAction.component';
+import { SERVER_GROUP_CONFIGURE_MODULE } from '../configure/serverGroup.configure.aws.module';
+
 import {
   ACCOUNT_SERVICE,
   CLUSTER_TARGET_BUILDER,
@@ -14,22 +17,20 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-require('../configure/serverGroup.configure.aws.module.js');
-
 module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
   require('angular-ui-router').default,
+  SERVER_GROUP_CONFIGURE_MODULE,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   OVERRIDE_REGISTRY,
   ACCOUNT_SERVICE,
   CLUSTER_TARGET_BUILDER,
-  require('../../vpc/vpcTag.directive.js'),
   require('./scalingProcesses/autoScalingProcess.service.js'),
   SERVER_GROUP_READER,
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('./scalingPolicy/scalingPolicySummary.component.js'),
-  require('./scheduledAction/scheduledAction.directive.js'),
+  AWS_SCHEDULED_ACTION_COMPONENT,
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('../serverGroup.transformer.js'),

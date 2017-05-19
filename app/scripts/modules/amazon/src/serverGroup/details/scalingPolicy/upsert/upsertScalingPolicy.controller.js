@@ -4,6 +4,8 @@ const angular = require('angular');
 
 import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
+import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
+
 import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
@@ -11,7 +13,7 @@ module.exports = angular
     require('../scalingPolicy.write.service.js'),
     require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
     require('./simple/simplePolicyAction.component.js'),
-    require('./step/stepPolicyAction.component.js'),
+    STEP_POLICY_ACTION,
     require('./alarm/alarmConfigurer.component.js'),
     TASK_MONITOR_BUILDER,
   ])

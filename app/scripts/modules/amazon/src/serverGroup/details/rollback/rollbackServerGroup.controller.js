@@ -7,7 +7,6 @@ import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.rollback.controller', [
       SERVER_GROUP_WRITER,
       TASK_MONITOR_BUILDER,
-      require('amazon/common/footer.directive.js'),
     ])
     .controller('awsRollbackServerGroupCtrl', function ($scope, $uibModalInstance, serverGroupWriter,
                                                         taskMonitorBuilder,

@@ -4,11 +4,12 @@ const angular = require('angular');
 
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
+import { AWS_RESIZE_CAPACITY_COMPONENT } from './resizeCapacity.component';
+
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.resize.controller', [
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,
-  require('./resizeCapacity.directive.js'),
-  require('amazon/common/footer.directive.js'),
+  AWS_RESIZE_CAPACITY_COMPONENT,
 ])
   .controller('awsResizeServerGroupCtrl', function($scope, $uibModalInstance, serverGroupWriter,
                                                    taskMonitorBuilder,

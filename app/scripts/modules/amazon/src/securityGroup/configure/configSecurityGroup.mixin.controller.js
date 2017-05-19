@@ -24,7 +24,6 @@ module.exports = angular
     ACCOUNT_SERVICE,
     VPC_READ_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
-    require('./ingressRuleGroupSelector.component'),
   ])
   .controller('awsConfigSecurityGroupMixin', function ($scope,
                                                        $state,
@@ -333,4 +332,3 @@ module.exports = angular
     var vpcPattern = /^[a-zA-Z0-9\s._\-:\/()#,@[\]+=&;{}!$*]+$/;
 
   });
-
