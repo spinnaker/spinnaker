@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from 'angular-ui-router';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { Application, fastPropertyTtl, ReactInjector } from '@spinnaker/core';
 

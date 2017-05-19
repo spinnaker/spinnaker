@@ -1,8 +1,7 @@
 import autoBindMethods from 'class-autobind-decorator';
 import { groupBy } from 'lodash';
 import * as React from 'react';
-import { Subject } from 'rxjs/Subject';
-import { Subscription } from 'rxjs/Subscription';
+import { Subject, Subscription } from 'rxjs';
 
 import { Application, ApplicationDataSource, FilterTags, IFilterTag, ReactInjector } from '@spinnaker/core';
 

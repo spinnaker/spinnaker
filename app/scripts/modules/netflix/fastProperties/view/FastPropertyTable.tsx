@@ -1,6 +1,6 @@
 import autoBindMethods from 'class-autobind-decorator';
 import * as React from 'react';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { fastPropertyTime, ReactInjector, Tooltip } from '@spinnaker/core';
 

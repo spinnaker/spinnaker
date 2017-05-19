@@ -19,7 +19,6 @@ module.exports = angular.module('spinnaker.netflix.instance.aws.controller', [
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
-  require('amazon/instance/details/instance.details.controller.js'),
 ])
   .controller('netflixAwsInstanceDetailsCtrl', function ($scope, $state, $uibModal,
                                                          instanceWriter, confirmationModalService, recentHistoryService,

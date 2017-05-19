@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import {Subject} from 'rxjs/Subject';
+import {Subject} from 'rxjs';
 
 module.exports = angular.module('spinnaker.titus.pipeline.stage.runJobStage', [
   require('./runJobExecutionDetails.controller.js')

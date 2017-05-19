@@ -47,7 +47,6 @@ module(NETFLIX_MODULE, [
   TEMPLATE_OVERRIDES,
 
   require('./instance/aws/netflixAwsInstanceDetails.controller.js'),
-  require('./instance/titus/netflixTitusInstanceDetails.controller.js'),
   require('./pipeline/stage/canary/canaryStage.module.js'),
   require('./pipeline/stage/acaTask/acaTaskStage.module'),
   require('./pipeline/stage/properties'),
@@ -79,16 +78,6 @@ module(NETFLIX_MODULE, [
         'aws',
         'serverGroup.detailsTemplateUrl',
         require('./serverGroup/awsServerGroupDetails.html')
-      );
-      cloudProviderRegistry.overrideValue(
-        'titus',
-        'instance.detailsTemplateUrl',
-        require('./instance/titus/instanceDetails.html')
-      );
-      cloudProviderRegistry.overrideValue(
-        'titus',
-        'instance.detailsController',
-        'netflixTitusInstanceDetailsCtrl'
       );
       applicationDataSourceRegistry.setDataSourceOrder([
         'ci', 'executions', 'serverGroups', 'loadBalancers', 'securityGroups', 'properties', 'analytics', 'tasks', 'config'

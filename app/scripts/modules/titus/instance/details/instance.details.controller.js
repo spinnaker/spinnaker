@@ -1,9 +1,10 @@
 'use strict';
 
 const angular = require('angular');
-import _ from 'lodash';
+import { defaults, filter } from 'lodash';
 
 import {
+  ACCOUNT_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
@@ -14,13 +15,14 @@ import {
 module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
   require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
+  ACCOUNT_SERVICE,
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   RECENT_HISTORY_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
 ])
-  .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal,
+  .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, accountService,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
                                                     cloudProviderRegistry, instanceReader, instance, app, overrides) {
 
@@ -53,7 +55,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
             return latestHealth.type === metric.type;
           });
           if (detailsMatch.length) {
-            _.defaults(metric, detailsMatch[0]);
+            defaults(metric, detailsMatch[0]);
           }
         });
       }
@@ -83,16 +85,14 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         return instanceReader.getInstanceDetails(account, region, instance.instanceId).then(function(details) {
           $scope.state.loading = false;
           extractHealthMetrics(instanceSummary, details);
-          $scope.instance = _.defaults(details, instanceSummary);
+          $scope.instance = defaults(details, instanceSummary);
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
           $scope.instance.loadBalancers = loadBalancers;
           $scope.baseIpAddress = $scope.instance.placement.containerIp || $scope.instance.placement.host;
           $scope.instance.externalIpAddress = $scope.instance.placement.host;
-          if (overrides.instanceDetailsLoaded) {
-            overrides.instanceDetailsLoaded();
-          }
+          getBastionAddressForAccount($scope.instance.account, $scope.instance.region);
         },
           autoClose
         );
@@ -219,6 +219,25 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
         return health.type === healthProviderType && health.state === state;
       })
       );
+    };
+
+    let getBastionAddressForAccount = (account, region) => {
+      return accountService.getAccountDetails(account).then((details) => {
+        this.bastionHost = details.bastionHost || 'unknown';
+        this.apiEndpoint = filter(details.regions, {name: region})[0].endpoint;
+        this.titusUiEndpoint = this.apiEndpoint.replace('titusapi', 'titus-ui').replace('http', 'https').replace('7101', '7001');
+        if (region !== 'us-east-1') {
+          this.bastionStack = '-stack ' + this.apiEndpoint.split('.' + region)[0].replace('http://titusapi.', '');
+        } else {
+          this.bastionStack = '';
+        }
+
+        $scope.sshLink = `ssh -t ${this.bastionHost} 'titus-ssh ${this.bastionStack} -region ${$scope.instance.region} -id ${$scope.instance.id}'`;
+      });
+    };
+
+    this.hasPorts = () => {
+      return Object.keys($scope.instance.resources.ports).length > 0;
     };
 
     let initialize = app.isStandalone ?

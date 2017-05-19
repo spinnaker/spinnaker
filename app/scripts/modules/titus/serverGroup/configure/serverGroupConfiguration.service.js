@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 

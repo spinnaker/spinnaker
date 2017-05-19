@@ -1,7 +1,7 @@
 import autoBindMethods from 'class-autobind-decorator';
 import { get, groupBy } from 'lodash';
 import * as React from 'react';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 import { Application, ApplicationDataSource, Execution, IExecution, IFilterTag } from '@spinnaker/core';
 

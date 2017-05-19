@@ -1,7 +1,7 @@
 import { IComponentController, IComponentOptions, ILogService, module } from 'angular';
 import { StateParams, StateService } from 'angular-ui-router';
 import { compact, findIndex, uniqWith } from 'lodash';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 import { IFilter, IFilterTag } from '@spinnaker/core';
 
