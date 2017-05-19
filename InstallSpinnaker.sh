@@ -15,6 +15,7 @@ AWS_ENABLED=false     # set by --cloud_providers
 AZURE_ENABLED=false   # set by --cloud_providers
 GOOGLE_ENABLED=false  # set by --cloud_providers
 
+INSTALL_REDIS=        # default depends on platform
 INSTALL_CASSANDRA=    # default depends on platform
 
 
@@ -132,6 +133,10 @@ usage: $0 [--cloud_provider <aws|google|azure|none>]
     --install_cassandra         Force install of cassandra.
 
     --noinstall_cassandra       Do not install cassandra.
+
+    --install_redis             Force install of redis.
+
+    --noinstall_redis           Do not install redis.
 EOF
 }
 
@@ -242,6 +247,12 @@ function process_args() {
         ;;
       --noinstall_cassandra)
         INSTALL_CASSANDRA=false
+        ;;
+      --install_redis)
+        INSTALL_REDIS=true
+        ;;
+      --noinstall_redis)
+        INSTALL_REDIS=false
         ;;
       --quiet|-q)
         QUIET=true
@@ -692,7 +703,9 @@ install_java
 install_apache2
 install_platform_dependencies
 install_dependencies
-install_redis_server
+if [[ "$INSTALL_REDIS" != "false" ]]; then
+  install_redis_server
+fi
 if [[ "$INSTALL_CASSANDRA" != "false" ]]; then
   install_cassandra
 fi
