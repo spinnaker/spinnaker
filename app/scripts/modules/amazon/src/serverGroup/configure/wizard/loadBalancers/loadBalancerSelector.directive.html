@@ -52,7 +52,7 @@
   <div class="form-group small" style="margin-top: 20px">
     <div class="col-md-9 col-md-offset-3">
       <p>
-        <span ng-if="vm.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+        <span ng-if="vm.refreshing"><span class="fa fa-refresh fa-spin"></span></span>
         Load balancers
         <span ng-if="!vm.refreshing">last refreshed {{ vm.refreshTime | timestamp }}</span>
         <span ng-if="vm.refreshing"> refreshing...</span>

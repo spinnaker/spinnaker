@@ -1,3 +1,3 @@
 <p ng-if="vm.state.refreshing">Cluster data is <strong>refreshing</strong>.</p>
-<p ng-if="!vm.state.refreshing">(click <span class="small glyphicon glyphicon-refresh"></span> to refresh)</p>
+<p ng-if="!vm.state.refreshing">(click <span class="fa fa-refresh"></span> to refresh)</p>
 <p>Last refresh:<br> {{vm.state.lastRefresh | timestamp }} <br> ({{vm.state.lastRefresh | relativeTime }})</p>

@@ -1,6 +1,6 @@
 <div ng-if="!$ctrl.renderCompact">
   <p>
-    <span ng-if="$ctrl.refreshing"><span class="small glyphicon glyphicon-refresh glyphicon-spinning" ></span></span>
+    <span ng-if="$ctrl.refreshing"><span class="fa fa-refresh fa-spin" ></span></span>
     {{::$ctrl.capitalizedKey}}
     <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.getRefreshTime() | timestamp }}</span>
     <span ng-if="$ctrl.refreshing"> refreshing...</span>
@@ -11,7 +11,7 @@
 </div>
 <div ng-if="$ctrl.renderCompact">
   <a href uib-tooltip-template="$ctrl.tooltipTemplate">
-    <span class="small glyphicon glyphicon-refresh" ng-click="$ctrl.refresh()"
-          ng-class="{'glyphicon-spinning': $ctrl.refreshing}"></span>
+    <span class="fa fa-refresh" ng-click="$ctrl.refresh()"
+          ng-class="{'fa-spin': $ctrl.refreshing}"></span>
   </a>
 </div>

@@ -433,7 +433,7 @@ export class ApplicationDataSource {
       return this.$q.when(null);
     }
     if (this.loading && !forceRefresh) {
-      this.$log.warn(`${this.key} still loading, skipping refresh`);
+      this.$log.info(`${this.key} still loading, skipping refresh`);
       return this.$q.when(null);
     }
     this.loading = true;

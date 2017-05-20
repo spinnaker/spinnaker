@@ -158,7 +158,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
 
     refreshMenuItem.action = (status) => {
       let originalDisplayName = refreshMenuItem.displayName;
-      refreshMenuItem.displayName = '<span class="small glyphicon glyphicon-spinning glyphicon-refresh"></span> Refreshing...';
+      refreshMenuItem.displayName = '<span class="fa fa-refresh fa-spin"></span> Refreshing...';
       cacheInitializer.refreshCaches().then(() => {
         refreshMenuItem.displayName = originalDisplayName;
         status.isOpen = false;

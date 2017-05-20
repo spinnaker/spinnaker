@@ -18,8 +18,8 @@
          ng-click="$ctrl.refreshMasters()"
          tooltip-placement="right"
          uib-tooltip="{{$ctrl.viewState.mastersRefreshing ? 'Masters refreshing.' : 'Refresh masters list' }}">
-        <span ng-class="{'glyphicon-spinning':$ctrl.viewState.mastersRefreshing}"
-              class="glyphicon glyphicon-refresh"></span>
+        <span ng-class="{'fa-spin':$ctrl.viewState.mastersRefreshing}"
+              class="fa fa-refresh"></span>
       </a>
     </div>
   </div>
@@ -49,8 +49,8 @@
          ng-click="$ctrl.refreshJobs()"
          tooltip-placement="right"
          uib-tooltip="{{$ctrl.viewState.jobsRefreshing ? 'Jobs refreshing.' : 'Refresh job list' }}">
-        <span ng-class="{'glyphicon-spinning':$ctrl.viewState.jobsRefreshing}"
-              class="glyphicon glyphicon-refresh"></span>
+        <span ng-class="{'fa-spin':$ctrl.viewState.jobsRefreshing}"
+              class="fa fa-refresh"></span>
       </a>
     </div>
   </div>

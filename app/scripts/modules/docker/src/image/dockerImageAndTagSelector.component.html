@@ -18,8 +18,8 @@
        ng-click="$ctrl.refreshImages()"
        tooltip-placement="right"
        uib-tooltip="{{$ctrl.viewState.imagesRefreshing ? 'Images refreshing.' : 'Refresh images list' }}">
-              <span ng-class="{'glyphicon-spinning':$ctrl.viewState.imagesRefreshing}"
-                    class="glyphicon glyphicon-refresh"></span>
+              <span ng-class="{'fa-spin':$ctrl.viewState.imagesRefreshing}"
+                    class="fa fa-refresh"></span>
     </a>
   </div>
 </div>

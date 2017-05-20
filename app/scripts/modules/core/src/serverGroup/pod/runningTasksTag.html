@@ -1,6 +1,6 @@
 <span ng-if="tasks.length || runningExecutions().length">
   <span ng-mouseenter="popover.show = true" ng-mouseleave="popover.show = false">
-    <span class="icon"><span class="glyphicon icon-spinner glyphicon-spinning"></span></span>
+    <span class="icon"><span class="glyphicon icon-spinner fa-spin-slow"></span></span>
   </span>
   <div class="menu-running-tasks" ng-if="popover.show">
     <div class="container-fluid" ng-repeat="task in tasks | orderBy:'-startTime'">

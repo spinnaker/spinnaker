@@ -109,7 +109,7 @@
   <div class="col-md-12" style="margin-top: 20px">
     <div class="col-md-12">
         <p>
-            <span ng-if="state.refreshingSecurityGroups"><span class="small glyphicon glyphicon-refresh glyphicon-spinning"></span></span>
+            <span ng-if="state.refreshingSecurityGroups"><span class="fa fa-refresh fa-spin"></span></span>
             Security groups
             <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ rulesController.getSecurityGroupRefreshTime() | timestamp }}</span>
             <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
