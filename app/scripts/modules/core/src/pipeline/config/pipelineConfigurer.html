@@ -136,13 +136,13 @@
                 analytics-event="Save pipeline clicked"
                 ng-click="pipelineConfigurerCtrl.savePipeline()">
           <span ng-if="!viewState.saving">
-            <span class="glyphicon glyphicon-ok-circle"></span> Save Changes
+            <span class="fa fa-check-circle-o"></span> Save Changes
           </span>
           <span ng-if="viewState.saving" class="pulsing">
             <span class="glyphicon glyphicon-asterisk glyphicon-spinning"></span> Saving&hellip;
           </span>
         </button>
-        <span ng-if="!pipeline.locked && !viewState.isDirty" class="btn btn-link disabled"><span class="glyphicon glyphicon-ok-circle"></span> In sync with server</span>
+        <span ng-if="!pipeline.locked && !viewState.isDirty" class="btn btn-link disabled"><span class="fa fa-check-circle-o"></span> In sync with server</span>
         <span ng-if="pipeline.locked" class="btn btn-link disabled"
               uib-tooltip="{{ pipeline.locked.description || 'This pipeline is locked and does not allow modification'}}">
           <span class="glyphicon glyphicon-lock"></span> Pipeline is locked

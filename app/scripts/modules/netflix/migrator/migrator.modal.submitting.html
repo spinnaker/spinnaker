@@ -8,7 +8,7 @@
       <div class="col-md-10 col-md-offset-1">
         <ul class="task task-progress task-progress-status" ng-if="!vm.task.migrationComplete()">
           <li ng-repeat="entry in vm.task.getEventLog() track by $index">
-            <span class="glyphicon glyphicon-ok-circle"></span> {{entry}}
+            <span class="fa fa-check-circle-o"></span> {{entry}}
           </li>
         </ul>
         <ul class="task task-progress" ng-if="vm.task.migrationComplete() && vm.state !== 'dryRun'">

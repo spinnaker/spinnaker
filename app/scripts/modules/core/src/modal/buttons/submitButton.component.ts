@@ -10,7 +10,7 @@ export class SubmitButtonComponent implements IComponentOptions {
   };
   public template = `
     <button class="btn btn-primary" ng-disabled="$ctrl.isDisabled" ng-click="$ctrl.onClick()">
-      <span ng-if="!$ctrl.submitting" class="glyphicon glyphicon-ok-circle"></span>
+      <span ng-if="!$ctrl.submitting" class="fa fa-check-circle-o"></span>
       <button-busy-indicator ng-if="$ctrl.submitting"></button-busy-indicator>
       {{$ctrl.label || ($ctrl.isNew ? 'Create' : 'Update')}}
     </button>`;

@@ -10,7 +10,7 @@
                   ng-class="{active: command.provider === provider}"
                   ng-click="command.provider = provider">
               <span is-visible="command.provider === provider"
-                    class="glyphicon glyphicon-ok-circle selected-indicator"></span>
+                    class="fa fa-check-circle-o selected-indicator"></span>
             <div class="panel-heading">
               <h4 ng-style="{'background-image': 'url('+getImage(provider)+')'}"><span class="sr-only" ng-bind="provider"></span></h4>
             </div>

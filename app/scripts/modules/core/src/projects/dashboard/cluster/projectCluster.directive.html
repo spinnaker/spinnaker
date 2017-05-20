@@ -52,9 +52,9 @@
           <ul class="list-unstyled" ng-if="application.build.images">
             <li ng-repeat="image in application.build.images">{{ image }}</li>
           </ul>
-          <span ng-if="application.hasInconsistentBuilds"
-                class="glyphicon glyphicon-warning-sign text-warning"
-                uib-tooltip="Some server groups are deployed with an older build."></span>
+          <i ng-if="application.hasInconsistentBuilds"
+             class="fa fa-exclamation-triangle text-warning"
+             uib-tooltip="Some server groups are deployed with an older build."></i>
         </td>
         <td>
           <span ng-if="!application.lastPush">
@@ -72,8 +72,8 @@
                              legend-placement="'right'"></health-counts>
             </a>
             <span ng-if="application.regions[region].inconsistentBuilds.length">
-              <span class="glyphicon glyphicon-warning-sign text-warning"
-                    uib-tooltip-template="vm.inconsistentBuildsTemplate">
+              <i class="fa fa-exclamation-triangle"
+                 uib-tooltip-template="vm.inconsistentBuildsTemplate"></i>
               </span>
             </span>
           </span>

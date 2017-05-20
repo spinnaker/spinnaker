@@ -2,8 +2,8 @@
       ng-class="{
       'glyphicon-time': item.hasNotStarted,
       'glyphicon-play': item.isRunning,
-      'glyphicon-ok': item.isCompleted,
-      'glyphicon-warning-sign': item.isFailed || item.status === 'TERMINATED',
+      'fa fa-check': item.isCompleted,
+      'fa fa-exclamation-triangle': item.isFailed || item.status === 'TERMINATED',
       'glyphicon-stop': item.isCanceled,
       'glyphicon-pause': item.isSuspended || item.isPaused,
       }"></span>

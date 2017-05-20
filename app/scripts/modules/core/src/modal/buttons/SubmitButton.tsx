@@ -21,7 +21,7 @@ export class SubmitButton extends React.Component<ISubmitButtonProps, any> {
         onClick={this.props.onClick}
       >
         { !this.props.submitting && (
-          <span className="glyphicon glyphicon-ok-circle"/>
+          <span className="fa fa-check-circle-o"/>
         ) || (
           <ButtonBusyIndicator/>
         )}&nbsp;

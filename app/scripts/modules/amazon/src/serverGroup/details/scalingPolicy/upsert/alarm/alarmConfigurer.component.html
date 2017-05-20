@@ -1,7 +1,7 @@
 <div class="row" ng-if="$ctrl.modalViewState.multipleAlarms">
   <div class="col-md-12">
     <div class="alert alert-warning">
-      <p><span class="glyphicon glyphicon-warning-sign"></span>
+      <p><i class="fa fa-exclamation-triangle"></i>
         This scaling policy is configured with multiple alarms. You are only editing the first alarm.</p>
       <p>To edit or remove the additional alarms, you will need to use the AWS console.</p>
     </div>
@@ -10,7 +10,7 @@
 <div class="row" ng-if="$ctrl.alarm.alarmActionArns.length > 1">
   <div class="col-md-12">
     <div class="alert alert-warning">
-      <p><span class="glyphicon glyphicon-warning-sign"></span>
+      <p><i class="fa fa-exclamation-triangle"></i>
         This alarm is used in multiple scaling policies. Any changes here will affect those other scaling policies.</p>
     </div>
   </div>

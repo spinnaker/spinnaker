@@ -2,7 +2,7 @@
   <form name="listenerForm">
     <div class="form-group">
       <div class="alert alert-warning" ng-if="listenerForm.protocolSelect.$dirty || listenerForm.portRangeInput.$dirty">
-        <p><span class="glyphicon glyphicon-warning-sign"></span>
+        <p><i class="fa fa-exclamation-triangle"></i>
           Changing your load balancer's protocol or port range will cause the forwarding rule to be destroyed and
           recreated. This will most likely cause the IP address of this load balancer to change. If you want to preserve
           the IP for this load balancer, you need to reserve it and manipulate the forwarding rule in Google Cloud

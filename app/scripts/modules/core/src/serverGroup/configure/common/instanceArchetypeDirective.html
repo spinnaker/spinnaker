@@ -6,7 +6,7 @@
           ng-class="{active: command.viewState.instanceProfile === instanceProfile.type}"
           ng-click="instanceArchetypeCtrl.selectInstanceType(instanceProfile.type)">
         <span is-visible="command.viewState.instanceProfile === instanceProfile.type"
-              class="glyphicon glyphicon-ok-circle selected-indicator"></span>
+              class="fa fa-check-circle-o selected-indicator"></span>
     <div class="panel-heading">
       <h4><span class="glyphicon glyphicon-{{instanceProfile.icon}}"></span><br/> {{instanceProfile.label}}</h4>
     </div>

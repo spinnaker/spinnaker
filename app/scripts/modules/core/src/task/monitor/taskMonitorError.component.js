@@ -10,7 +10,7 @@ module.exports = angular
       },
       template: `<div class="col-md-12 overlay-modal-error" ng-if="$ctrl.monitor.error">
         <alert type="danger">
-          <h4><span class="glyphicon glyphicon-warning-sign"></span> Error:</h4>
+          <h4><i class="fa fa-exclamation-triangle"></i> Error:</h4>
 
           <p>{{$ctrl.monitor.errorMessage}}</p>
         </alert>

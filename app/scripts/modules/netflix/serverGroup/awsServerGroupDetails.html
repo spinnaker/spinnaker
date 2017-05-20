@@ -190,16 +190,16 @@
     </collapsible-section>
     <collapsible-section cache-key="Scaling Processes">
       <section-heading>
-        <span ng-if="ctrl.scalingPoliciesDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+        <span ng-if="ctrl.scalingPoliciesDisabled" class="fa fa-exclamation-circle warning-text"
               uib-tooltip="Some scaling processes are disabled that may prevent scaling policies from working"></span>
-        <span ng-if="ctrl.scheduledActionsDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+        <span ng-if="ctrl.scheduledActionsDisabled" class="fa fa-exclamation-circle warning-text"
               uib-tooltip="Some scaling processes are disabled that may prevent scheduled actions from working"></span>
         Scaling Processes
       </section-heading>
       <section-body>
         <ul class="scaling-processes">
           <li ng-repeat="process in ctrl.autoScalingProcesses">
-            <span is-visible="process.enabled" class="glyphicon glyphicon-ok small"></span>
+            <span is-visible="process.enabled" class="fa fa-check small"></span>
             <span ng-class="{'text-disabled': !process.enabled}">{{process.name}}</span>
             <help-field content="{{process.description}}" placement="bottom"></help-field>
             <div ng-if="process.suspensionDate" class="text-disabled small" style="margin-left: 35px">
@@ -212,7 +212,7 @@
     </collapsible-section>
     <collapsible-section cache-key="Scaling Policies">
       <section-heading>
-        <span ng-if="ctrl.scalingPoliciesDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+        <span ng-if="ctrl.scalingPoliciesDisabled" class="fa fa-exclamation-circle warning-text"
               uib-tooltip="Some scaling processes are disabled that may prevent scaling policies from working"></span>
         Scaling Policies
       </section-heading>
@@ -230,7 +230,7 @@
     </collapsible-section>
     <collapsible-section cache-key="Scheduled Actions">
       <section-heading>
-        <span ng-if="ctrl.scheduledActionsDisabled" class="glyphicon glyphicon-exclamation-sign warning-text"
+        <span ng-if="ctrl.scheduledActionsDisabled" class="fa fa-exclamation-circle warning-text"
               uib-tooltip="Some scaling processes are disabled that may prevent scheduled actions from working"></span>
         Scheduled Actions
       </section-heading>

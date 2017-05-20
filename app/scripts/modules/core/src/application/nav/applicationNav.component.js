@@ -30,7 +30,7 @@ module.exports = angular
                 ng-if="dataSource.badge && $ctrl.application[dataSource.badge].data.length">
             {{$ctrl.application[dataSource.badge].data.length}}
           </span>
-          <span class="small glyphicon glyphicon-exclamation-sign"
+          <span class="small fa fa-exclamation-circle"
                 ng-if="dataSource.badge && $ctrl.application[dataSource.badge].loadFailure"
                 uib-tooltip="There was an error loading data for {{dataSource.title}}. We'll try again shortly."></span>
         </a>
