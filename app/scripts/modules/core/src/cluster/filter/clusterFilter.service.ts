@@ -2,7 +2,7 @@ import { ILogService, module } from 'angular';
 import { each, forOwn, groupBy, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { StateParams } from 'angular-ui-router';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ICluster, IEntityTags, IInstance, IServerGroup } from 'core/domain';

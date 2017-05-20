@@ -8,9 +8,10 @@ import { UNMATCHED_STAGE_TYPE_STAGE } from './config/stages/unmatchedStageTypeSt
 import { WEBHOOK_STAGE_MODULE } from './config/stages/webhook/webhookStage.module';
 
 import './pipelines.less';
+import 'angular-ui-sortable';
 
 module.exports = angular.module('spinnaker.core.pipeline', [
-  require('exports-loader?"ui.sortable"!angular-ui-sortable'),
+  'ui.sortable',
   require('./config/pipelineConfig.module'),
   COPY_STAGE_MODAL_CONTROLLER,
   TRAVIS_STAGE_MODULE,

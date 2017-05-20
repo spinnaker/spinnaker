@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import autoBindMethods from 'class-autobind-decorator';
 
 export interface IStickyContext {

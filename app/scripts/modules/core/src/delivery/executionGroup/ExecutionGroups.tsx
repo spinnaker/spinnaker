@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ExecutionGroup } from './ExecutionGroup';

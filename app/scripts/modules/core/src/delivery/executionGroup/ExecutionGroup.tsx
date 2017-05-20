@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { $timeout } from 'ngimport';
 import { IPromise } from 'angular';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { find, flatten, uniq } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 

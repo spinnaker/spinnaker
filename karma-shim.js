@@ -10,7 +10,7 @@ require('angular-mocks');
 // polyfills
 require('core-js/client/shim');
 
-require('rxjs/Rx');
+require('rxjs');
 
 require('./settings.js');
 

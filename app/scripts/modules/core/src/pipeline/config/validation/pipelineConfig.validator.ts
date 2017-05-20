@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { Subject } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
 import {
   IPipeline,
@@ -10,7 +10,6 @@ import {
   ITriggerTypeConfig
 } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { Subscription } from 'rxjs/Subscription';
 
 export interface IStageValidationResults {
   stage: IStage;

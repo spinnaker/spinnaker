@@ -2,7 +2,7 @@ import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import { clone } from 'lodash';
 import { $location } from 'ngimport';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Application } from 'core/application/application.model';

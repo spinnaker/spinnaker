@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as PropTypes from 'prop-types';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 import { $log } from 'ngimport';
 import { omit, throttle } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';

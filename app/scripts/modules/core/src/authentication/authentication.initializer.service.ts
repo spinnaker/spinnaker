@@ -1,12 +1,12 @@
-import {Observable} from 'rxjs/Observable';
-import {Subscription} from 'rxjs/Subscription';
-import {module} from 'angular';
-import {IModalService, IModalStackService} from 'angular-ui-bootstrap';
+import { module } from 'angular';
+import { IModalService, IModalStackService } from 'angular-ui-bootstrap';
+import { Observable, Subscription } from 'rxjs';
 
-import {IDeckRootScope} from 'core/domain';
-import {REDIRECT_SERVICE, RedirectService} from './redirect.service';
-import {AUTHENTICATION_SERVICE, AuthenticationService} from './authentication.service';
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
+import { IDeckRootScope } from 'core/domain';
+
+import { AUTHENTICATION_SERVICE, AuthenticationService } from './authentication.service';
+import { REDIRECT_SERVICE, RedirectService } from './redirect.service';
 
 interface IAuthResponse {
   username: string;

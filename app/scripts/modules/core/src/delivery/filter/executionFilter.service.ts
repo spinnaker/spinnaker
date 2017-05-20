@@ -1,13 +1,12 @@
-
 import { ILogService, module } from 'angular';
 import { chain, compact, find, flattenDeep, forOwn, get, groupBy, includes, uniq } from 'lodash';
 import { Debounce } from 'lodash-decorators';
+import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
 import { IExecution, IExecutionGroup, IPipeline } from 'core/domain';
 import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
-import { Subject } from 'rxjs/Subject';
 
 export class ExecutionFilterService {
 

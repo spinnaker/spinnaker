@@ -1,10 +1,10 @@
-import {compact, uniq, map} from 'lodash';
-import {IScope, module} from 'angular';
+import { IScope, module } from 'angular';
+import { compact, uniq, map } from 'lodash';
+import { Subscription } from 'rxjs';
 
-import {Application} from 'core/application/application.model';
+import { Application } from 'core/application/application.model';
+import { IFilterTag } from 'core/filterModel/FilterTags';
 import { SECURITY_GROUP_FILTER_MODEL, SecurityGroupFilterModel } from './securityGroupFilter.model';
-import { IFilterTag } from '../../filterModel/FilterTags';
-import { Subscription } from 'rxjs/Subscription';
 
 export const SECURITY_GROUP_FILTER = 'securityGroup.filter.controller';
 

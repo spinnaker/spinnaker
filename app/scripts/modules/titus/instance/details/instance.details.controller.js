@@ -24,7 +24,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
 ])
   .controller('titusInstanceDetailsCtrl', function ($scope, $q, $state, $uibModal, accountService,
                                                     instanceWriter, confirmationModalService, recentHistoryService,
-                                                    cloudProviderRegistry, instanceReader, instance, app, overrides) {
+                                                    cloudProviderRegistry, instanceReader, instance, app) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('titus', 'instance.detailsTemplateUrl');

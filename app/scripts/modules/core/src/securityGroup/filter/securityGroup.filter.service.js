@@ -1,8 +1,8 @@
 'use strict';
 
-import _ from 'lodash';
 const angular = require('angular');
-import { Subject } from 'rxjs/Subject';
+import _ from 'lodash';
+import { Subject } from 'rxjs';
 
 import { SECURITY_GROUP_FILTER_MODEL } from './securityGroupFilter.model';
 

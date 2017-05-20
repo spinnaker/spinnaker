@@ -1,7 +1,7 @@
+import { ILogService, module } from 'angular';
 import { chain, find, forOwn, groupBy, includes, map, some, sortBy, without } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { ILogService, module } from 'angular';
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Application } from 'core/application/application.model';

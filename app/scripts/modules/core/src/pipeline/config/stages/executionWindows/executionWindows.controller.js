@@ -1,10 +1,10 @@
 'use strict';
 
-import {EXECUTION_WINDOWS_DAY_PICKER} from './executionWindowDayPicker.component';
-import {EXECUTION_WINDOW_ATLAS_GRAPH} from './atlasGraph.component';
-import {Subject} from 'rxjs/Subject';
-
 const angular = require('angular');
+import { Subject } from 'rxjs';
+
+import { EXECUTION_WINDOW_ATLAS_GRAPH } from './atlasGraph.component';
+import { EXECUTION_WINDOWS_DAY_PICKER } from './executionWindowDayPicker.component';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.executionWindows.controller', [
   require('core/utils/timePicker.service.js'),

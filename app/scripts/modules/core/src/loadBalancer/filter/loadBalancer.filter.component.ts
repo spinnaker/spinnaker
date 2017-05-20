@@ -1,10 +1,10 @@
 import { compact, uniq, map } from 'lodash';
 import { IScope, module } from 'angular';
+import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { LOAD_BALANCER_FILTER_MODEL, LoadBalancerFilterModel } from './loadBalancerFilter.model';
 import { LOAD_BALANCER_FILTER_SERVICE } from './loadBalancer.filter.service';
-import { Subscription } from 'rxjs/Subscription';
 import { IFilterTag } from '../../filterModel/FilterTags';
 
 export const LOAD_BALANCER_FILTER = 'spinnaker.core.loadBalancer.filter.controller';

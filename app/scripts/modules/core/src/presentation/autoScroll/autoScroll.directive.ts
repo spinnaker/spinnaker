@@ -1,8 +1,9 @@
-import {module} from 'angular';
-import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
-import {Subject} from 'rxjs';
+import { module } from 'angular';
+import { Subject } from 'rxjs';
 
-interface AutoScrollAttrs {
+import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
+
+export interface AutoScrollAttrs {
   autoScrollEnabled: string;
   autoScroll: string;
 }
