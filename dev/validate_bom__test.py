@@ -689,9 +689,13 @@ class ValidateBomTestController(object):
     command = [
         'python', test_path,
         '--log_dir', citest_log_dir,
+        '--log_filebase', test_name,
         '--native_host', 'localhost',
         '--native_port', str(self.__forwarded_ports[microservice_api].port)
     ]
+    if options.test_stack:
+      command.extend(['--test_stack', options.test_stack])
+
     self.add_extra_arguments(test_name, args, command)
     return command
 
@@ -781,6 +785,12 @@ def init_argument_parser(parser):
       '--test_exclude', default=None,
       help='Regular expression of otherwise runnable tests to skip.')
 
+  parser.add_argument(
+      '--test_stack', default=None,
+      help='The --test_stack to pass through to tests indicating which'
+           ' Spinnaker application "stack" to use. This is typically'
+           ' to help trace the source of resources created within the'
+           ' tests.')
 
 def validate_options(options):
   """Validate testing related command-line parameters."""
