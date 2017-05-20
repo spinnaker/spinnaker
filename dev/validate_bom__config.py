@@ -62,7 +62,7 @@ class StorageConfigurator(object):
     parser.add_argument(
         '--gcs_storage_project', default=None,
         help=('URI for specific Google Storage bucket project to use.'
-              ' If empty, use the --google_deploy_project.'))
+              ' If empty, use the --deploy_google_project.'))
     parser.add_argument(
         '--gcs_storage_credentials', default=None,
         help='Path to google credentials file to configure spinnaker storage.'
@@ -87,7 +87,7 @@ class StorageConfigurator(object):
 
   def add_config(self, options, script):
     """Implements interface."""
-    project = options.gcs_storage_project or options.google_deploy_project
+    project = options.gcs_storage_project or options.deploy_google_project
     if options.spinnaker_storage == 'gcs':
       hal = (
           'hal --color=false config storage gcs edit'

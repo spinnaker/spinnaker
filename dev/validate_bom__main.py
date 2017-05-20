@@ -26,16 +26,16 @@ Sample usage:
 ./validate_bom.sh \
   --deploy_hal_platform=gce \
   --deploy_spinnaker_type=localdebian \
-  --google_deploy_project=$PROJECT \
-  --google_deploy_instance=$INSTANCE \
+  --deploy_google_project=$PROJECT \
+  --deploy_google_instance=$INSTANCE \
   --spinnaker_storage=gcs \
   --gcs_storage_bucket=$BUCKET \
   --google_account_credentials=$GOOGLE_CREDENTIAL_PATH \
   --google_account_project=$PROJECT
 
 //dev/validate_bom.sh \
-  --google_deploy_project=$PROJECT \
-  --google_deploy_instance=$INSTANCE \
+  --deploy_google_project=$PROJECT \
+  --deploy_google_instance=$INSTANCE \
   --spinnaker_storage=gcs \
   --gcs_storage_bucket=$BUCKET \
   --gcs_storage_credentials=$GOOGLE_CREDENTIAL_PATH  \
