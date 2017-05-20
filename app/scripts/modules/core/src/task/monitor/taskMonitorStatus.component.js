@@ -16,7 +16,7 @@ module.exports = angular
           </li>
         </ul>
         <ul class="task task-progress task-progress-running" ng-if="$ctrl.monitor.task.isActive">
-          <li><span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span></li>
+          <li><span class="fa fa-cog fa-spin"></span></li>
         </ul>
         <ul class="task task-progress task-progress-refresh" ng-if="$ctrl.monitor.task.isCompleted">
           <li>

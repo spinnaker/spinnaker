@@ -71,8 +71,12 @@ export class DataSourceEditorController implements ng.IComponentController {
     })
       .then(() => {
         this.application.attributes.dataSources = newDataSources;
-        this.explicitlyEnabled.forEach(key => this.application.getDataSource(key).disabled = false);
-        this.explicitlyDisabled.forEach(key => this.application.getDataSource(key).disabled = true);
+        this.explicitlyEnabled
+          .filter(k => this.application.getDataSource(k))
+          .forEach(key => this.application.getDataSource(key).disabled = false);
+        this.explicitlyDisabled
+          .filter(k => this.application.getDataSource(k))
+          .forEach(key => this.application.getDataSource(key).disabled = true);
         this.application.refresh(true);
         this.saving = false;
         this.isDirty = false;

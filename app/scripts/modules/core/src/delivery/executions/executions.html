@@ -28,8 +28,8 @@
            ng-click="vm.triggerPipeline()"
            ng-disabled="vm.viewState.triggeringExecution">
             <span ng-if="vm.viewState.triggeringExecution" class="pulsing">
-              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-md-inline visible-sm-inline" uib-tooltip="Starting Execution"></span>
-              <span class="glyphicon glyphicon-asterisk glyphicon-spinning visible-lg-inline"></span>
+              <span class="fa fa-cog fa-spin visible-md-inline visible-sm-inline" uib-tooltip="Starting Execution"></span>
+              <span class="fa fa-cog fa-spin visible-lg-inline"></span>
               <span class="visible-xl-inline">Starting Execution</span>&hellip;
             </span>
           <span ng-if="!vm.viewState.triggeringExecution">

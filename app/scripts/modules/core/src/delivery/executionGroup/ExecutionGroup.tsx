@@ -205,7 +205,7 @@ export class ExecutionGroup extends React.Component<IProps, IState> {
                       <h4 style={{visibility: pipelineDisabled ? 'hidden' : 'visible'}}>
                         <a className="btn btn-xs btn-link" onClick={this.handleTriggerClicked}>
                           { this.state.triggeringExecution ?
-                            <span><span className="glyphicon glyphicon-asterisk glyphicon-spinning"/> Starting Manual Execution&hellip;</span> :
+                            <span><span className="fa fa-cog fa-spin"/> Starting Manual Execution&hellip;</span> :
                             <span><span className="glyphicon glyphicon-play"/> Start Manual Execution</span>
                           }
                         </a>

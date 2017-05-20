@@ -29,7 +29,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.openstack.insta
       ensureCommandBackingDataFilteredExists();
       $scope.command.backingData.filtered.images = [
         {
-          message: '<span class="glyphicon glyphicon-spinning glyphicon-asterisk"></span> Finding results matching "' + q + '"...'
+          message: '<span class="fa fa-cog fa-spin"></span> Finding results matching "' + q + '"...'
         }
       ];
       return Observable.fromPromise(
