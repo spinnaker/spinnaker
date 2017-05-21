@@ -393,9 +393,9 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' --account {gcloud_account}'
           ' --project {project} --zone {zone} {instance}'
           .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance))
+                  project=options.deploy_google_project,
+                  zone=options.deploy_google_zone,
+                  instance=options.deploy_google_instance))
       self.__instance_ip = re.search(r'networkIP: ([0-9\.]+)',
                                      response.stdout).group(1)
     return self.__instance_ip
@@ -415,15 +415,15 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
     This is a helper function for the free function init_argument_parser().
     """
     parser.add_argument(
-        '--google_deploy_project',
+        '--deploy_google_project',
         default=None,
         help='Google project to deploy to if --deploy_hal_platform is "gce".')
     parser.add_argument(
-        '--google_deploy_zone',
+        '--deploy_google_zone',
         default='us-central1-f',
         help='Google zone to deploy to if --deploy_hal_platform is "gce".')
     parser.add_argument(
-        '--google_deploy_instance',
+        '--deploy_google_instance',
         default=None,
         help='Google instance to deploy to if --deploy_hal_platform is "gce".')
 
@@ -433,10 +433,10 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
 
     This is a helper function for make_deployer().
     """
-    if not options.google_deploy_project:
-      raise ValueError('--google_deploy_project not specified.')
-    if not options.google_deploy_instance:
-      raise ValueError('--google_deploy_instance not specified.')
+    if not options.deploy_google_project:
+      raise ValueError('--deploy_google_project not specified.')
+    if not options.deploy_google_instance:
+      raise ValueError('--deploy_google_instance not specified.')
     if not options.deploy_hal_google_service_account:
       raise ValueError('--deploy_hal_google_service_account not specified.')
 
@@ -446,17 +446,17 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' --account {gcloud_account}'
           ' --project {project} --zone {zone} {instance}'
           .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance),
+                  project=options.deploy_google_project,
+                  zone=options.deploy_google_zone,
+                  instance=options.deploy_google_instance),
           echo=False)
 
       if response.returncode == 0:
         raise ValueError(
             '"{instance}" already exists in project={project} zone={zone}'
-            .format(instance=options.google_deploy_instance,
-                    project=options.google_deploy_project,
-                    zone=options.google_deploy_zone))
+            .format(instance=options.deploy_google_instance,
+                    project=options.deploy_google_project,
+                    zone=options.deploy_google_zone))
 
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Implements interface."""
@@ -486,8 +486,8 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
 
     try:
       logging.info('Creating "%s" in project "%s"',
-                   options.google_deploy_instance,
-                   options.google_deploy_project)
+                   options.deploy_google_instance,
+                   options.deploy_google_project)
       with open(self.__ssh_key_path + '.pub', 'r') as f:
         ssh_key = f.read().strip()
       if ssh_key.startswith('ssh-rsa'):
@@ -504,12 +504,11 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' --scopes {scopes}'
           ' {instance}'
           .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
+                  project=options.deploy_google_project,
+                  zone=options.deploy_google_zone,
                   scopes='compute-rw,storage-full,logging-write,monitoring',
                   ssh_key=ssh_key,
-                  instance=options.google_deploy_instance))
-
+                  instance=options.deploy_google_instance))
       copy_files = (
           'scp'
           ' -i {ssh_key}'
@@ -542,7 +541,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' -o UserKnownHostsFile=/dev/null'
           ' {instance}'
           ' "sudo ./{script_name}"'
-          .format(instance=options.google_deploy_instance,
+          .format(instance=options.deploy_google_instance,
                   ssh_key=self.__ssh_key_path,
                   script_name=os.path.basename(script_path)))
     except RuntimeError as err:
@@ -559,16 +558,16 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
           ' {instance} sudo hal deploy clean'
-          .format(instance=options.google_deploy_instance,
+          .format(instance=options.deploy_google_instance,
                   ssh_key=self.__ssh_key_path))
     check_run_and_monitor(
         'gcloud -q compute instances delete'
         ' --account {gcloud_account}'
         ' --project {project} --zone {zone} {instance}'
         .format(gcloud_account=options.deploy_hal_google_service_account,
-                project=options.google_deploy_project,
-                zone=options.google_deploy_zone,
-                instance=options.google_deploy_instance))
+                project=options.deploy_google_project,
+                zone=options.deploy_google_zone,
+                instance=options.deploy_google_instance))
 
   def do_fetch_service_log_file(self, service, log_dir):
     """Implements the BaseBomValidateDeployer interface."""
@@ -581,7 +580,7 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
         ' -o UserKnownHostsFile=/dev/null'
         ' {instance}:/var/log/spinnaker/{service}/{service}.log'
         ' {log_dir}'
-        .format(instance=options.google_deploy_instance,
+        .format(instance=options.deploy_google_instance,
                 ssh_key=self.__ssh_key_path,
                 service=service,
                 log_dir=log_dir))
