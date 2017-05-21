@@ -56,140 +56,18 @@
   }
 }
 
-modal-wizard {
-  .modal-header {
-    padding: 25px;
-
-    h2, h3 {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-
-    .steps-indicator {
-      @indicator-size: 18px;
-      @indicator-radius: @indicator-size/2;
-      position: relative;
-      height: 74px;
-      overflow-x: hidden;
-      padding-top: @indicator-size;
-
-      &:before {
-        top: @indicator-size + 10;
-      }
-
-      li {
-        margin-top: 10px;
-        font-size: 80%;
-        padding: @indicator-size - 5 3px 0;
-        transition: all 0.25s ease-in-out;
-
-        a:before {
-          top: @indicator-radius * -1;
-          width: @indicator-size;
-          height: @indicator-size;
-          background-color: transparent;
-          font-size: 175%;
-          font-family: 'Glyphicons Halflings';
-          left: ~'calc(50% - @{indicator-radius})';
-        }
-
-        &.done {
-          a:before {
-            background-color: #339933;
-          }
-          &.dirty {
-            a:before {
-              .pulsing();
-              color: @state-danger-text;
-              background-color: transparent;
-              content: "\e088";
-              top: -7px;
-            }
-          }
-        }
-        &.current {
-          a {
-            color: @text-color;
-          }
-          a:before {
-            background-color: @spinnaker-blue;
-            content: '';
-          }
-        }
-        &.default {
-          a:before {
-            background-color: #808080;
-          }
-        }
-      }
-    }
-  }
-  .wizard-subheading {
-    padding: 15px 0 0 15px;
-    h4 {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-  }
-  .steps {
-    width: 1200px;
-    overflow-x: hidden;
-    .modal-page {
-      position: relative;
-      width: 600px;
-      float: left;
-    }
-    .clearfix();
-  }
-}
-
 .modal-body {
   h3, h4 {
     margin-top: 0;
   }
   .section-heading {
-    color: @lightest_grey;
-    background-color: @dark_blue_background;
+    color: @text-color;
+    background-color: @pod_header_blue;
     padding: 10px;
     margin-bottom: 0;
-    font-weight: 300;
   }
   .section-body {
     padding: 10px 0 20px 0;
-  }
-}
-
-.back {
-  .modal-page {
-    animation: 0.35s ease-in-out 0 pageRight;
-    animation-iteration-count: 1;
-  }
-}
-
-.forward {
-  .modal-page {
-    animation: 0.35s ease-in-out 0 pageLeft;
-    animation-iteration-count: 1;
-  }
-}
-
-@keyframes pageLeft {
-  0% {
-    left: 0;
-    opacity: 1;
-  }
-  100% {
-    left: -600px;
-    opacity: 0;
-  }
-}
-
-@keyframes pageRight {
-  0% {
-    left: -600px;
-  }
-  100% {
-    left: 0;
   }
 }
 
