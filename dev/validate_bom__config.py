@@ -45,6 +45,47 @@ import os
 from validate_bom__deploy import write_data_to_secure_path
 
 
+class AzsStorageConfiguratorHelper(object):
+  """Helper class for StorageConfigurator to handle AZS."""
+
+  @classmethod
+  def init_argument_parser(cls, parser):
+    """Implements interface."""
+    parser.add_argument(
+        '--storage_azs_account_name', default=None,
+        help='The name for the Azure Storage Account to use.'
+             ' This is only used if --spinnaker_storage=azs.')
+    parser.add_argument(
+        '--storage_azs_credentials', default=None,
+        help='Path to Azure Storage Account credentials to configure'
+             'spinnaker storage. This is only used if --spinnaker_storage=azs.')
+
+  @classmethod
+  def validate_options(cls, options):
+    """Implements interface."""
+    if not options.storage_azs_credentials:
+      raise ValueError('Specified --spinnaker_storage="azs"'
+                       ' but not --storage_azs_credentials')
+
+  @classmethod
+  def add_files_to_upload(cls, options, file_set):
+    """Implements interface."""
+    file_set.add(options.storage_azs_credentials)
+
+  @classmethod
+  def add_config(cls, options, script):
+    """Implements interface."""
+    script.append(
+        'AZS_PASSWORD=$(cat {file})'
+        .format(file=os.path.basename(options.storage_azs_credentials)))
+    hal = (
+        'hal --color=false config storage azs edit'
+        ' --storage-account-name {name}'
+        ' --storage-account-key "$AZS_PASSWORD"'
+        .format(name=options.storage_azs_account_name))
+    script.append(hal)
+
+
 class GcsStorageConfiguratorHelper(object):
   """Helper class for StorageConfigurator to handle GCS."""
 
@@ -102,6 +143,7 @@ class StorageConfigurator(object):
   """Controls hal config storage for Spinnaker Storage ."""
 
   HELPERS = {
+      'azs': AzsStorageConfiguratorHelper,
       'gcs': GcsStorageConfiguratorHelper
   }
 

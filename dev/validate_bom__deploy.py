@@ -500,6 +500,99 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                 log_dir=log_dir))
 
 
+class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Microsoft Azure
+
+  This class is not intended to be constructed directly. Instead see the
+  free function make_deployer() in this module.
+  """
+
+  @classmethod
+  def init_platform_argument_parser(cls, parser):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for the free function init_argument_parser().
+    """
+    parser.add_argument(
+        '--deploy_azure_location',
+        default='eastus',
+        help='Azure region to deploy to if --deploy_hal_platform is "azure".')
+    parser.add_argument(
+        '--deploy_azure_resource_group',
+        default=None,
+        help='Azure resource group to deploy to'
+             ' if --deploy_hal_platform is "azure".')
+    parser.add_argument(
+        '--deploy_azure_name',
+        default=None,
+        help='Azure VM name to deploy to if --deploy_hal_platform is "azure".')
+
+  @classmethod
+  def validate_options_helper(cls, options):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for make_deployer().
+    """
+    if not options.deploy_azure_resource_group:
+      raise ValueError('--deploy_azure_resource_group not specified.')
+    if not options.deploy_azure_name:
+      raise ValueError('--deploy_azure_name not specified.')
+
+    if options.deploy_deploy:
+      response = run_quick(
+          'az vm show --resource-group {rg} --vm-name {name}'
+          .format(rg=options.deploy_azure_resource_group,
+                  name=options.deploy_azure_name),
+          echo=False)
+
+      if response.returncode == 0:
+        raise ValueError(
+            '"{name}" already exists in resource-group={rg}'
+            .format(name=options.deploy_azure_name,
+                    rg=options.deploy_azure_resource_group))
+
+  def do_create_vm(self, options):
+    """Implements GenericVmValidateBomDeployer interface."""
+    logging.info('Creating "%s" in resource-group "%s"',
+                 options.deploy_azure_name,
+                 options.deploy_azure_resource_group)
+
+    response = check_run_and_monitor(
+        'az vm create'
+        ' --name {name}'
+        ' --resource-group {rg}'
+        ' --location {location}'
+        ' --image Canonical:UbuntuServer:14.04.5-LTS:latest'
+        ' --use-unmanaged-disk'
+        ' --storage-sku Standard_LRS'
+        ' --size Standard_D12_v2_Promo'
+        ' --ssh-key-value {ssh_key_path}.pub'
+        .format(name=options.deploy_azure_name,
+                rg=options.deploy_azure_resource_group,
+                location=options.deploy_azure_location,
+                ssh_key_path=self.ssh_key_path))
+    self.instance_ip = json.JSONDecoder().decode(
+        response.stdout)['publicIpAddress']
+
+  def do_undeploy(self):
+    """Implements the BaseBomValidateDeployer interface."""
+    options = self.options
+    if options.deploy_spinnaker_type == 'distributed':
+      run_and_monitor(
+          'ssh'
+          ' -i {ssh_key}'
+          ' -o StrictHostKeyChecking=no'
+          ' -o UserKnownHostsFile=/dev/null'
+          ' {ip} sudo hal deploy clean'
+          .format(ip=self.instance_ip, ssh_key=self.ssh_key_path))
+    check_run_and_monitor(
+        'az vm delete -y'
+        ' --name {name}'
+        ' --resource-group {rg}'
+        .format(name=options.deploy_azure_name,
+                rg=options.deploy_azure_resource_group))
+
+
 class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
   """Concrete deployer used to deploy Hal onto Google Cloud Platform.
 
@@ -639,6 +732,8 @@ def make_deployer(options):
   """
   if options.deploy_hal_platform == 'gce':
     hal_klass = GoogleValidateBomDeployer
+  elif options.deploy_hal_platform == 'azure':
+    hal_klass = AzureValidateBomDeployer
   else:
     raise ValueError(
         'Invalid --deploy_hal_platform=%s', options.deploy_hal_platform)
@@ -702,7 +797,7 @@ def init_argument_parser(parser):
       help='The type of spinnaker deployment to create.')
 
   parser.add_argument(
-      '--deploy_hal_platform', required=True, choices=['gce'],
+      '--deploy_hal_platform', required=True, choices=['gce', 'azure'],
       help='Platform to deploy Halyard onto.'
            ' Halyard will then deploy Spinnaker.')
 
@@ -733,5 +828,6 @@ def init_argument_parser(parser):
       help='Actually perform the undeployment.'
            ' This is for facilitating debugging with this script.')
 
+  AzureValidateBomDeployer.init_platform_argument_parser(parser)
   GoogleValidateBomDeployer.init_platform_argument_parser(parser)
   KubernetesValidateBomDeployer.init_platform_argument_parser(parser)
