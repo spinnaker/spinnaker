@@ -45,67 +45,99 @@ import os
 from validate_bom__deploy import write_data_to_secure_path
 
 
-class StorageConfigurator(object):
-  """Controls hal config storage for Spinnaekr Storage ."""
+class GcsStorageConfiguratorHelper(object):
+  """Helper class for StorageConfigurator to handle GCS."""
 
-  def init_argument_parser(self, parser):
+  @classmethod
+  def init_argument_parser(cls, parser):
     """Implements interface."""
     parser.add_argument(
-        '--spinnaker_storage', required=True, choices=['gcs'],
-        help='The storage type to configure.')
-
-    parser.add_argument(
-        '--gcs_storage_bucket', default=None,
+        '--storage_gcs_bucket', default=None,
         help=('URI for specific Google Storage bucket to use.'
               ' This is suggested if using gcs storage, though can be left'
               ' empty to let Halyard create one.'))
     parser.add_argument(
-        '--gcs_storage_project', default=None,
+        '--storage_gcs_project', default=None,
         help=('URI for specific Google Storage bucket project to use.'
-              ' If empty, use the --google_deploy_project.'))
+              ' If empty, use the --deploy_google_project.'))
     parser.add_argument(
-        '--gcs_storage_credentials', default=None,
+        '--storage_gcs_credentials', default=None,
         help='Path to google credentials file to configure spinnaker storage.'
              ' This is only used if --spinnaker_storage=gcs.'
              ' If left empty then use application default credentials.')
 
+  @classmethod
+  def validate_options(cls, options):
+    """Implements interface."""
+    if not options.storage_gcs_bucket:
+      raise ValueError('Specified --spinnaker_storage="gcs"'
+                       ' but not --storage_gcs_bucket')
+
+  @classmethod
+  def add_files_to_upload(cls, options, file_set):
+    """Implements interface."""
+    if options.storage_gcs_credentials:
+      file_set.add(options.storage_gcs_credentials)
+
+  @classmethod
+  def add_config(cls, options, script):
+    """Implements interface."""
+    project = options.storage_gcs_project or options.deploy_google_project
+    hal = (
+        'hal --color=false config storage gcs edit'
+        ' --project {project}'
+        ' --bucket {bucket}'
+        ' --bucket-location {location}'
+        .format(project=project,
+                bucket=options.storage_gcs_bucket,
+                location='us'))
+    if options.storage_gcs_credentials:
+      hal += (' --json-path ./{filename}'
+              .format(filename=os.path.basename(
+                  options.storage_gcs_credentials)))
+    script.append(hal)
+
+
+class StorageConfigurator(object):
+  """Controls hal config storage for Spinnaker Storage ."""
+
+  HELPERS = {
+      'gcs': GcsStorageConfiguratorHelper
+  }
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    parser.add_argument(
+        '--spinnaker_storage', required=True, choices=self.HELPERS.keys(),
+        help='The storage type to configure.')
+    for helper in self.HELPERS.values():
+      helper.init_argument_parser(parser)
 
   def validate_options(self, options):
     """Implements interface."""
-    if options.spinnaker_storage not in ['gcs']:
+    helper = self.HELPERS.get(options.spinnaker_storage, None)
+    if helper is None:
       raise ValueError('Unknown --spinnaker_storage="{0}"'
                        .format(options.spinnaker_storage))
-    if options.spinnaker_storage == 'gcs':
-      if not options.gcs_storage_bucket:
-        raise ValueError('Specified --spinnaker_storage="gcs"'
-                         ' but not --gcs_storage_bucket')
+    helper.validate_options(options)
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
-    if options.gcs_storage_credentials:
-      file_set.add(options.gcs_storage_credentials)
+    helper = self.HELPERS.get(options.spinnaker_storage, None)
+    if helper is None:
+      raise ValueError('Unknown --spinnaker_storage="{0}"'
+                       .format(options.spinnaker_storage))
+    helper.add_files_to_upload(options, file_set)
 
   def add_config(self, options, script):
     """Implements interface."""
-    project = options.gcs_storage_project or options.google_deploy_project
-    if options.spinnaker_storage == 'gcs':
-      hal = (
-          'hal --color=false config storage gcs edit'
-          ' --project {project}'
-          ' --bucket {bucket}'
-          ' --bucket-location {location}'
-          .format(project=project,
-                  bucket=options.gcs_storage_bucket,
-                  location='us'))
-      if options.gcs_storage_credentials:
-        hal += (' --json-path ./{filename}'
-                .format(filename=os.path.basename(
-                    options.gcs_storage_credentials)))
-      script.append(hal)
-      script.append('hal --color=false config storage edit --type gcs')
-      return
-
-    raise NotImplementedError(options.spinnaker_storage)
+    helper = self.HELPERS.get(options.spinnaker_storage, None)
+    if helper is None:
+      raise ValueError('Unknown --spinnaker_storage="{0}"'
+                       .format(options.spinnaker_storage))
+    helper.add_config(options, script)
+    script.append('hal --color=false config storage edit --type {type}'
+                  .format(type=options.spinnaker_storage))
 
 
 class AwsConfigurator(object):

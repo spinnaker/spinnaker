@@ -42,8 +42,8 @@ tests:
     api: front50
     args:
       alias: [standard_google_provider_params]
-      gcs_bucket: $gcs_storage_bucket
-      gcs_json_path: $gcs_storage_credentials
+      gcs_bucket: $storage_gcs_bucket
+      gcs_json_path: $storage_gcs_credentials
       gcs_base_path: spinnaker
 
   google_kato_test:
