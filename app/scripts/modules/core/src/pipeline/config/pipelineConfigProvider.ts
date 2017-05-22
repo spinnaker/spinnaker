@@ -152,7 +152,7 @@ export class PipelineConfigProvider implements IServiceProvider {
       case 1:
         return matches[0];
       default:
-        const provider = stage.cloudProvider || 'aws';
+        const provider = stage.cloudProvider || stage.cloudProviderType || 'aws';
         const matchesForStageCloudProvider = matches.filter(stageType => {
           return stageType.cloudProvider === provider;
         });
