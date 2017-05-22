@@ -46,7 +46,6 @@ dependencies {
 
 // Replace below with this line when fiat becomes stable.
 //  spinnaker.group "fiat"
-  compile "com.netflix.spinnaker.fiat:fiat-api:0.24.0"
   spinnaker.dependency("bootActuator")
   spinnaker.dependency("bootWeb")
   spinnaker.dependency("bootDataRest")

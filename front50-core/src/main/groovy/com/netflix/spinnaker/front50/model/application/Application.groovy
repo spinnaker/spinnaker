@@ -20,6 +20,9 @@ package com.netflix.spinnaker.front50.model.application
 import com.fasterxml.jackson.annotation.JsonAnyGetter
 import com.fasterxml.jackson.annotation.JsonAnySetter
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonSetter
+import com.netflix.spinnaker.fiat.model.Authorization
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.exception.ApplicationAlreadyExistsException
 import com.netflix.spinnaker.front50.exception.NotFoundException
@@ -361,12 +364,27 @@ class Application implements Timestamped {
     String name
     Long lastModified
     String lastModifiedBy
-    List<String> requiredGroupMembership = new ArrayList<>();
+    Permissions permissions = Permissions.EMPTY
 
     @Override
-    @JsonIgnore()
+    @JsonIgnore
     String getId() {
       return name.toLowerCase()
+    }
+
+    @JsonSetter
+    void setRequiredGroupMembership(List<String> requiredGroupMembership) {
+      log.warn("Required group membership settings detected in application ${name}. " +
+        "Please update to `permissions` format.")
+
+      if (!permissions.isRestricted()) { // Do not overwrite permissions if it contains values
+        Permissions.Builder b = new Permissions.Builder()
+        requiredGroupMembership.each {
+          b.add(Authorization.READ, it.trim().toLowerCase())
+          b.add(Authorization.WRITE, it.trim().toLowerCase())
+        }
+        permissions = b.build()
+      }
     }
   }
 }

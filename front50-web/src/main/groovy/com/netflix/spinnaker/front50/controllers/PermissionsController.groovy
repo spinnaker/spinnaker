@@ -53,14 +53,11 @@ public class PermissionsController {
   @ApiOperation(value = "", notes = "Get all application permissions. Internal use only.")
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
   Set<Application.Permission> getAllApplicationPermissions() {
-    Map<String, Application.Permission> actualPermissions = applicationPermissionDAO.all().collectEntries { Application.Permission perm ->
-      if (perm.requiredGroupMembership) {
-        // Deck added trailing whitespace for a while, so this is now needed.
-        def copy = perm.requiredGroupMembership
-        perm.requiredGroupMembership = copy.collect { it.trim() }
+    Map<String, Application.Permission> actualPermissions = applicationPermissionDAO
+      .all()
+      .collectEntries { Application.Permission perm ->
+        return [(perm.name.toLowerCase()): perm]
       }
-      return [(perm.name.toLowerCase()): perm]
-    }
 
     applicationDAO.all().each {
       if (!actualPermissions.containsKey(it.name.toLowerCase())) {

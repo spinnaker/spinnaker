@@ -18,4 +18,7 @@ dependencies {
   spinnaker.group "bootWeb"
   compile spinnaker.dependency('kork')
   compile spinnaker.dependency('korkHystrix')
+  // Replace below with this line when fiat becomes stable.
+  //  spinnaker.group "fiat"
+  compile "com.netflix.spinnaker.fiat:fiat-api:0.26.0"
 }

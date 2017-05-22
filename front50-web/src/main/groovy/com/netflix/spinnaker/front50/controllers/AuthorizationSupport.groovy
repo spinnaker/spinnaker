@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.context.SecurityContextHolder
@@ -25,6 +26,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component
 
 @Component
+@Slf4j
 class AuthorizationSupport {
 
   @Autowired
@@ -39,8 +41,15 @@ class AuthorizationSupport {
     Authentication auth = SecurityContextHolder.context.authentication
 
     return runAsUsers.findAll { runAsUser ->
-      !userCanAccessServiceAccount(auth, runAsUser) ||
-          !serviceAccountCanAccessApplication(runAsUser, pipeline.application as String)
+      if (!userCanAccessServiceAccount(auth, runAsUser)) {
+        log.info("User ${auth?.principal} does not have access to service account $runAsUser")
+        return true
+      }
+      if (!serviceAccountCanAccessApplication(runAsUser, pipeline.application as String)) {
+        log.info("Service account ${runAsUser} does not have access to application ${pipeline.application}")
+        return true
+      }
+      return false
     }.isEmpty()
   }
 
