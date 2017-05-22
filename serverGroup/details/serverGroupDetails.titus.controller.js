@@ -1,0 +1,239 @@
+'use strict';
+
+const angular = require('angular');
+import _ from 'lodash';
+
+import {
+  ACCOUNT_SERVICE,
+  CLUSTER_TARGET_BUILDER,
+  CONFIRMATION_MODAL_SERVICE,
+  SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER
+} from '@spinnaker/core';
+
+module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
+  require('angular-ui-router').default,
+  ACCOUNT_SERVICE,
+  require('../configure/ServerGroupCommandBuilder.js'),
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_READER,
+  CONFIRMATION_MODAL_SERVICE,
+  SERVER_GROUP_WRITER,
+  require('./resize/resizeServerGroup.controller'),
+  CLUSTER_TARGET_BUILDER
+])
+  .controller('titusServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
+                                                       titusServerGroupCommandBuilder, serverGroupReader, $uibModal,
+                                                       confirmationModalService, serverGroupWriter, clusterTargetBuilder,
+                                                       serverGroupWarningMessageService, accountService) {
+
+    let application = app;
+    this.application = app;
+
+    $scope.state = {
+      loading: true
+    };
+
+    function extractServerGroupSummary () {
+      var summary = _.find(application.serverGroups.data, function (toCheck) {
+        return toCheck.name === serverGroup.name && toCheck.account === serverGroup.accountId && toCheck.region === serverGroup.region;
+      });
+      return summary;
+    }
+
+    function retrieveServerGroup() {
+      var summary = extractServerGroupSummary();
+      return serverGroupReader.getServerGroup(application.name, serverGroup.accountId, serverGroup.region, serverGroup.name).then(function(details) {
+        cancelLoader();
+
+        // it's possible the summary was not found because the clusters are still loading
+        details.account = serverGroup.accountId;
+
+        accountService.getAccountDetails(details.account).then((accountDetails) => {
+          details.apiEndpoint = _.filter(accountDetails.regions, {name: details.region})[0].endpoint;
+        });
+
+        angular.extend(details, summary);
+
+        $scope.serverGroup = details;
+        var labels = $scope.serverGroup.labels;
+        delete labels['name'];
+        delete labels['source'];
+        delete labels['spinnakerAccount'];
+        delete labels['NETFLIX_APP_METADATA'];
+        delete labels['NETFLIX_APP_METADATA_SIG'];
+        $scope.labels = labels;
+
+        if (!_.isEmpty($scope.serverGroup)) {
+          if (details.securityGroups) {
+            $scope.securityGroups = _.chain(details.securityGroups).map(function(id) {
+              return _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'id': id }) ||
+                _.find(application.securityGroups.data, { 'accountName': serverGroup.accountId, 'region': 'global', 'name': id });
+            }).compact().value();
+          }
+          configureEntityTagTargets();
+        } else {
+          autoClose();
+        }
+      },
+        autoClose
+      );
+    }
+
+    function autoClose() {
+      if ($scope.$$destroyed) {
+        return;
+      }
+      $state.params.allowModalToStayOpen = true;
+      $state.go('^', null, {location: 'replace'});
+    }
+
+    function cancelLoader() {
+      $scope.state.loading = false;
+    }
+
+    retrieveServerGroup().then(() => {
+      // If the user navigates away from the view before the initial retrieveServerGroup call completes,
+      // do not bother subscribing to the refresh
+      if (!$scope.$$destroyed) {
+        app.serverGroups.onRefresh($scope, retrieveServerGroup);
+      }
+    });
+
+    let configureEntityTagTargets = () => {
+      this.entityTagTargets = clusterTargetBuilder.buildClusterTargets($scope.serverGroup);
+    };
+
+    this.destroyServerGroup = function destroyServerGroup() {
+      var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Destroying ' + serverGroup.name,
+      };
+
+      var submitMethod = function () {
+        return serverGroupWriter.destroyServerGroup(serverGroup, application, {
+          cloudProvider: 'titus',
+          serverGroupName: serverGroup.name,
+          region: serverGroup.region,
+        });
+      };
+
+      var stateParams = {
+        name: serverGroup.name,
+        accountId: serverGroup.account,
+        region: serverGroup.region
+      };
+
+      var confirmationModalParams = {
+        header: 'Really destroy ' + serverGroup.name + '?',
+        buttonText: 'Destroy ' + serverGroup.name,
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Titus',
+        submitMethod: submitMethod,
+        onTaskComplete: function () {
+          if ($state.includes('**.serverGroup', stateParams)) {
+            $state.go('^');
+          }
+        },
+      };
+
+      serverGroupWarningMessageService.addDestroyWarningMessage(app, serverGroup, confirmationModalParams);
+
+      confirmationModalService.confirm(confirmationModalParams);
+    };
+
+    this.disableServerGroup = function disableServerGroup() {
+      var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Disabling ' + serverGroup.name
+      };
+
+      var submitMethod = function () {
+        return serverGroupWriter.disableServerGroup(serverGroup, application, {
+          cloudProvider: 'titus',
+          serverGroupName: serverGroup.name,
+          region: serverGroup.region,
+          zone: serverGroup.zones[0],
+        });
+      };
+
+      var confirmationModalParams = {
+        header: 'Really disable ' + serverGroup.name + '?',
+        buttonText: 'Disable ' + serverGroup.name,
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Titus',
+        submitMethod: submitMethod
+      };
+
+      serverGroupWarningMessageService.addDisableWarningMessage(app, serverGroup, confirmationModalParams);
+
+      confirmationModalService.confirm(confirmationModalParams);
+    };
+
+    this.enableServerGroup = function enableServerGroup() {
+      var serverGroup = $scope.serverGroup;
+
+      var taskMonitor = {
+        application: application,
+        title: 'Enabling ' + serverGroup.name,
+      };
+
+      var submitMethod = function () {
+        return serverGroupWriter.enableServerGroup(serverGroup, application, {
+          cloudProvider: 'titus',
+          serverGroupName: serverGroup.name,
+          region: serverGroup.region,
+          zone: serverGroup.zones[0],
+        });
+      };
+
+      var confirmationModalParams = {
+        header: 'Really enable ' + serverGroup.name + '?',
+        buttonText: 'Enable ' + serverGroup.name,
+        account: serverGroup.account,
+        taskMonitorConfig: taskMonitor,
+        platformHealthOnlyShowOverride: app.attributes.platformHealthOnlyShowOverride,
+        platformHealthType: 'Titus',
+        submitMethod: submitMethod
+      };
+
+      confirmationModalService.confirm(confirmationModalParams);
+
+    };
+
+    this.resizeServerGroup = function resizeServerGroup() {
+      $uibModal.open({
+        templateUrl: require('./resize/resizeServerGroup.html'),
+        controller: 'titusResizeServerGroupCtrl as ctrl',
+        resolve: {
+          serverGroup: function() { return $scope.serverGroup; },
+          application: function() { return application; }
+        }
+      });
+    };
+
+    this.cloneServerGroup = function cloneServerGroup() {
+      var serverGroup = $scope.serverGroup;
+      $uibModal.open({
+        templateUrl: require('../configure/wizard/serverGroupWizard.html'),
+        controller: 'titusCloneServerGroupCtrl as ctrl',
+        size: 'lg',
+        resolve: {
+          title: function() { return 'Clone ' + serverGroup.name; },
+          application: function() { return application; },
+          serverGroup: function() { return serverGroup; },
+          serverGroupCommand: function() { return titusServerGroupCommandBuilder.buildServerGroupCommandFromExisting(application, serverGroup); },
+        }
+      });
+    };
+  }
+);
