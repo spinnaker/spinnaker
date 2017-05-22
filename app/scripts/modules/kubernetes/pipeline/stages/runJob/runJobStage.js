@@ -88,7 +88,7 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
       }
 
       return this.pipeline.triggers.filter((trigger) => {
-        return trigger.type === 'docker' && trigger.enabled === true;
+        return trigger.type === 'docker';
       }).map((trigger) => {
         return buildImageDescriptor(trigger);
       });
