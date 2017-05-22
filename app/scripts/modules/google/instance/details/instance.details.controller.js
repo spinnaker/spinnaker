@@ -216,7 +216,16 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canRegisterWithLoadBalancer = function() {
       var instance = $scope.instance;
-      if (!instance.loadBalancers || !instance.loadBalancers.length) {
+      var instanceLoadBalancerDoesNotSupportRegister = _.chain(app.loadBalancers.data)
+        .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
+        .map('name')
+        .intersection(instance.loadBalancers || [])
+        .value()
+        .length;
+
+      if (!instance.loadBalancers ||
+          !instance.loadBalancers.length ||
+          instanceLoadBalancerDoesNotSupportRegister) {
         return false;
       }
       var outOfService = instance.health.some(function(health) {
@@ -230,9 +239,8 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
-      // TODO(dpeach): remove when it's possible to degister from an http load balancer.
-      var loadBalancerDoesNotSupportDeregister = _.chain(app.loadBalancers.data)
-        .filter((lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb) || lb.loadBalancerType === 'INTERNAL')
+      var instanceLoadBalancerDoesNotSupportDeregister = _.chain(app.loadBalancers.data)
+        .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
         .map('name')
         .intersection(instance.loadBalancers || [])
         .value()
@@ -240,7 +248,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
       if (!instance.loadBalancers ||
           !instance.loadBalancers.length ||
-          loadBalancerDoesNotSupportDeregister) {
+          instanceLoadBalancerDoesNotSupportDeregister) {
         return false;
       }
       var hasLoadBalancerHealth = instance.health.some(function(health) {
@@ -255,6 +263,13 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
         return health.type === 'Discovery';
       });
       return discoveryHealth.length ? discoveryHealth[0].state === 'OutOfService' : false;
+    };
+
+    this.showInstanceActionsDivider = function() {
+      return this.canRegisterWithDiscovery() ||
+        this.hasHealthState('Discovery', 'Up') ||
+        this.canRegisterWithLoadBalancer() ||
+        this.canDeregisterFromLoadBalancer();
     };
 
     this.terminateInstance = function terminateInstance() {
