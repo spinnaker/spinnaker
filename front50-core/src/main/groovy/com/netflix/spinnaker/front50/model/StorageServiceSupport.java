@@ -22,19 +22,22 @@ import com.netflix.spectator.api.Timer;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.support.ClosureHelper;
 import com.netflix.spinnaker.hystrix.SimpleHystrixCommand;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Scheduler;
 
 import javax.annotation.PostConstruct;
-import java.lang.Long;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Collectors;
 
@@ -258,10 +261,16 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     Long refreshTime = System.currentTimeMillis();
     Map<String, Long> keyUpdateTime = service.listObjectKeys(objectType);
 
-    Map<String, T> resultMap = existingItems
-        .stream()
-        .filter(a -> keyUpdateTime.containsKey(buildObjectKey(a)))
-        .collect(Collectors.toMap(Timestamped::getId, Function.identity()));
+    // Expanded from a stream collector to avoid DuplicateKeyExceptions
+    Map<String, T> resultMap = new HashMap<>();
+    for (T item : existingItems) {
+      if (keyUpdateTime.containsKey(buildObjectKey(item))) {
+        if (resultMap.containsKey(item.getId())) {
+          log.error(String.format("Duplicate item id found, last-write wins: (id: %s)", item.getId()));
+        }
+        resultMap.put(item.getId(), item);
+      }
+    }
 
     List<Map.Entry<String, Long>> modifiedKeys = keyUpdateTime
         .entrySet()
