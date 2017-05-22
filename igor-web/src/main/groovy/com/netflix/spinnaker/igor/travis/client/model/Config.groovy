@@ -29,13 +29,25 @@ class Config {
 
     @SerializedName("global_env")
     List<Object> globalEnv
+    // This is a list of objects because the api returns a list of strings and maps.
 
-    List<String> env = ["SPINNAKER_TRIGGERED=true"]
+    @SerializedName("merge_mode")
+    String mergeMode = "deep_merge"
+
+    Object env
+    // This is an object because we inject it like env: matrix: "values", but we get env: "values" back from the api.
 
     Config(Map<String, String> environmentMap) {
-        globalEnv = environmentMap.collect { key, value ->
-            (Object) "${key}=${value}".toString()
+        if(!environmentMap || environmentMap.size() == 0) {
+            // if there is no environment map settings, just skip it.
+            return
         }
+        String matrixEnvironment = environmentMap.collect { key, value ->
+          "${key}=${value}".toString()
+        }.join(" ")
+        Map tmpEnv = new HashMap<String, String>()
+        tmpEnv.put("matrix", matrixEnvironment)
+        env = tmpEnv
     }
 
     public List<GenericParameterDefinition> getParameterDefinitionList() {
@@ -44,9 +56,5 @@ class Config {
             def parts = tmpGlobalEnv.tokenize('=')
             new GenericParameterDefinition(parts[0], parts.drop(1).join('='))
         } : []) as List<GenericParameterDefinition>
-    }
-
-    public List<Object> getSecrets() {
-        globalEnv? globalEnv.findAll{!(it instanceof String)}.collect{it} : []
     }
 }

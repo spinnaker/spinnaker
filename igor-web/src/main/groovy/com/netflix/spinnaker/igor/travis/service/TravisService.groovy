@@ -102,10 +102,8 @@ class TravisService implements BuildService {
         Repo repo = getRepo(repoSlug)
         String branch = branchFromRepoSlug(inputRepoSlug)
         RepoRequest repoRequest = new RepoRequest(branch.empty? "master" : branch)
-        Build build = getBuilds(repo).first()
 
         repoRequest.config = new Config(queryParameters)
-        repoRequest.config.globalEnv = repoRequest.config.globalEnv.plus(build.config.secrets)
 
         TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
         if (triggerResponse.remainingRequests) {
@@ -278,18 +276,6 @@ class TravisService implements BuildService {
 
     String getUrl(String repoSlug) {
         return "${baseUrl}/${repoSlug}"
-    }
-
-    int triggerBuild (String inputRepoSlug) {
-        String repoSlug = cleanRepoSlug(inputRepoSlug)
-        Repo repo = getRepo(repoSlug)
-        String branch = branchFromRepoSlug(inputRepoSlug)
-        RepoRequest repoRequest = new RepoRequest(branch.empty? "master" : branch)
-        TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
-        if (triggerResponse.remainingRequests) {
-            log.info "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
-        }
-        return travisCache.setQueuedJob(groupKey, repoSlug, repo.lastBuildNumber+1)
     }
 
     Map<String, Integer> queuedBuild(int queueId) {

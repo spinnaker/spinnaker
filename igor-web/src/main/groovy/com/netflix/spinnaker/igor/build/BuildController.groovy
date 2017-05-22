@@ -184,10 +184,7 @@ class BuildController {
 
             queuedLocation.split('/')[-1]
         } else if (buildMasters.filteredMap(BuildServiceProvider.TRAVIS).containsKey(master)) {
-            if (requestParams) {
-                return buildMasters.map[master].triggerBuildWithParameters(job, requestParams)
-            }
-            return buildMasters.map[master].triggerBuild(job)
+            return buildMasters.map[master].triggerBuildWithParameters(job, requestParams)
         } else {
             throw new MasterNotFoundException("Master '${master}' not found")
         }

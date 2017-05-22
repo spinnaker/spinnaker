@@ -49,18 +49,6 @@ class ConfigSpec extends Specification {
         genericParameterDefinitionList.size() == 0
     }
 
-    def "Populate env list from input map"() {
-        given:
-        def inputMap = [FOO:"bar", BAR:"foo"]
-
-        when:
-        Config config = new Config(inputMap)
-
-        then:
-        config.parameterDefinitionList.size() == 2
-        config.parameterDefinitionList.get(1).name == "BAR"
-    }
-
     def "getGenericParameterDefinitionList handles = in value"() {
         given:
         Config config = new Config([:])
@@ -75,20 +63,18 @@ class ConfigSpec extends Specification {
     }
 
     @Unroll
-    def "getSecrets returns secrets"(){
-        given:
-        Config config = new Config([:])
-        config.globalEnv = globalEnv
+    def "should handle different permutations of queryParameters"() {
+        when:
+        Config config = new Config(queryParameters)
 
-        expect:
-        config.getSecrets() == secrets
+        then:
+        config.env == expectedEnv
 
         where:
-        globalEnv                          || secrets
-        [ 'FOO=bar' ]                      || []
-        [ 'FOO=bar', ["secure":"xyz"] ]    || [ [secure:"xyz"] ]
-        [ [secure:"xyz"], [secure:"abc"] ] || [ [secure:"xyz"], [secure:"abc"] ]
-
+        queryParameters        || expectedEnv
+        [FOO:"bar"]            || [matrix: "FOO=bar"]
+        [FOO:"bar", BAR:"foo"] || [matrix: "FOO=bar BAR=foo"]
+        null                   || null
     }
 
 }
