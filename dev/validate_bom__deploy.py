@@ -18,9 +18,9 @@ It is responsible for deploying spinnaker (via Halyard) remotely.
 """
 
 import distutils
+import json
 import logging
 import os
-import re
 import stat
 import tempfile
 import time
@@ -376,8 +376,8 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
         'kubectl -n {namespace} logs {pod} >> {path}'
         .format(namespace=k8s_namespace, pod=service_pod, path=path))
 
-class GoogleValidateBomDeployer(BaseValidateBomDeployer):
-  """Concrete deployer used to deploy Hal onto Google Cloud Platform.
+class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Generic VM
 
   This class is not intended to be constructed directly. Instead see the
   free function make_deployer() in this module.
@@ -385,82 +385,34 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
 
   @property
   def instance_ip(self):
-    """The underlying internal IP address for the deployed instance."""
-    if not self.__instance_ip:
-      options = self.options
-      response = check_run_quick(
-          'gcloud compute instances describe'
-          ' --account {gcloud_account}'
-          ' --project {project} --zone {zone} {instance}'
-          .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance))
-      self.__instance_ip = re.search(r'networkIP: ([0-9\.]+)',
-                                     response.stdout).group(1)
+    """The underlying IP address for the deployed instance."""
     return self.__instance_ip
 
+  @instance_ip.setter
+  def instance_ip(self, value):
+    """Sets the underlying IP address for the deployed instance."""
+    self.__instance_ip = value
+
+  @property
+  def ssh_key_path(self):
+    """Returns the path to the ssh key for the deployment VM."""
+    return self.__ssh_key_path
+
+  @property
+  def hal_user(self):
+    """Returns the Halyard User within the deployment VM."""
+    return self.__hal_user
+
   def __init__(self, options, **kwargs):
-    super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
+    super(GenericVmValidateBomDeployer, self).__init__(options, **kwargs)
     self.__instance_ip = None
     self.__hal_user = os.environ.get('LOGNAME')
     logging.info('hal_user="%s"', self.__hal_user)
     self.__ssh_key_path = os.path.join(os.environ['HOME'], '.ssh',
                                        '{0}_empty_key'.format(self.__hal_user))
 
-  @classmethod
-  def init_platform_argument_parser(cls, parser):
-    """Adds custom configuration parameters to argument parser.
-
-    This is a helper function for the free function init_argument_parser().
-    """
-    parser.add_argument(
-        '--google_deploy_project',
-        default=None,
-        help='Google project to deploy to if --deploy_hal_platform is "gce".')
-    parser.add_argument(
-        '--google_deploy_zone',
-        default='us-central1-f',
-        help='Google zone to deploy to if --deploy_hal_platform is "gce".')
-    parser.add_argument(
-        '--google_deploy_instance',
-        default=None,
-        help='Google instance to deploy to if --deploy_hal_platform is "gce".')
-
-  @classmethod
-  def validate_options_helper(cls, options):
-    """Adds custom configuration parameters to argument parser.
-
-    This is a helper function for make_deployer().
-    """
-    if not options.google_deploy_project:
-      raise ValueError('--google_deploy_project not specified.')
-    if not options.google_deploy_instance:
-      raise ValueError('--google_deploy_instance not specified.')
-    if not options.deploy_hal_google_service_account:
-      raise ValueError('--deploy_hal_google_service_account not specified.')
-
-    if options.deploy_deploy:
-      response = run_quick(
-          'gcloud compute instances describe'
-          ' --account {gcloud_account}'
-          ' --project {project} --zone {zone} {instance}'
-          .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  instance=options.google_deploy_instance),
-          echo=False)
-
-      if response.returncode == 0:
-        raise ValueError(
-            '"{instance}" already exists in project={project} zone={zone}'
-            .format(instance=options.google_deploy_instance,
-                    project=options.google_deploy_project,
-                    zone=options.google_deploy_zone))
-
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Implements interface."""
-    options = self.options
     return [
         'ssh', '-i', self.__ssh_key_path,
         '-o', 'StrictHostKeyChecking=no',
@@ -469,6 +421,10 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
         '-L', '{local_port}:localhost:{remote_port}'.format(
             local_port=local_port, remote_port=remote_port),
         '-N']
+
+  def do_create_vm(self, options):
+    """Hook for concrete deployer to craete the VM."""
+    raise NotImplementedError(self.__class__.__name__)
 
   def do_deploy(self, script, files_to_upload):
     """Implements the BaseBomValidateDeployer interface."""
@@ -485,40 +441,17 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           is_script=True)
 
     try:
-      logging.info('Creating "%s" in project "%s"',
-                   options.google_deploy_instance,
-                   options.google_deploy_project)
-      with open(self.__ssh_key_path + '.pub', 'r') as f:
-        ssh_key = f.read().strip()
-      if ssh_key.startswith('ssh-rsa'):
-        ssh_key = self.__hal_user + ':' + ssh_key
-
-      check_run_and_monitor(
-          'gcloud compute instances create'
-          ' --account {gcloud_account}'
-          ' --machine-type n1-standard-4'
-          ' --image-family ubuntu-1404-lts'
-          ' --image-project ubuntu-os-cloud'
-          ' --metadata block-project-ssh-keys=TRUE,ssh-keys="{ssh_key}"'
-          ' --project {project} --zone {zone}'
-          ' --scopes {scopes}'
-          ' {instance}'
-          .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.google_deploy_project,
-                  zone=options.google_deploy_zone,
-                  scopes='compute-rw,storage-full,logging-write,monitoring',
-                  ssh_key=ssh_key,
-                  instance=options.google_deploy_instance))
+      self.do_create_vm(options)
 
       copy_files = (
           'scp'
-          ' -i {ssh_key}'
+          ' -i {ssh_key_path}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {files} {instance}:~'
-          .format(ssh_key=self.__ssh_key_path,
+          ' {files} {ip}:~'
+          .format(ssh_key_path=self.__ssh_key_path,
                   files=' '.join(files_to_upload),
-                  instance=self.instance_ip))
+                  ip=self.instance_ip))
       logging.info('Copying files %s', copy_files)
 
       # pylint: disable=unused-variable
@@ -530,6 +463,9 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
 
       if result.returncode != 0:
         check_run_quick(copy_files)
+    except Exception as ex:
+      logging.error('Caught %s', ex)
+      raise
     finally:
       os.remove(script_path)
 
@@ -540,14 +476,103 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {instance}'
+          ' {ip}'
           ' "sudo ./{script_name}"'
-          .format(instance=options.google_deploy_instance,
+          .format(ip=self.instance_ip,
                   ssh_key=self.__ssh_key_path,
                   script_name=os.path.basename(script_path)))
-    except RuntimeError as err:
+    except RuntimeError:
       raise RuntimeError('Halyard deployment failed.')
 
+  def do_fetch_service_log_file(self, service, log_dir):
+    """Implements the BaseBomValidateDeployer interface."""
+    write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
+    check_run_quick(
+        'scp'
+        ' -i {ssh_key}'
+        ' -o StrictHostKeyChecking=no'
+        ' -o UserKnownHostsFile=/dev/null'
+        ' {ip}:/var/log/spinnaker/{service}/{service}.log'
+        ' {log_dir}'
+        .format(ip=self.instance_ip,
+                ssh_key=self.ssh_key_path,
+                service=service,
+                log_dir=log_dir))
+
+
+class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Microsoft Azure
+
+  This class is not intended to be constructed directly. Instead see the
+  free function make_deployer() in this module.
+  """
+
+  @classmethod
+  def init_platform_argument_parser(cls, parser):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for the free function init_argument_parser().
+    """
+    parser.add_argument(
+        '--deploy_azure_location',
+        default='eastus',
+        help='Azure region to deploy to if --deploy_hal_platform is "azure".')
+    parser.add_argument(
+        '--deploy_azure_resource_group',
+        default=None,
+        help='Azure resource group to deploy to'
+             ' if --deploy_hal_platform is "azure".')
+    parser.add_argument(
+        '--deploy_azure_name',
+        default=None,
+        help='Azure VM name to deploy to if --deploy_hal_platform is "azure".')
+
+  @classmethod
+  def validate_options_helper(cls, options):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for make_deployer().
+    """
+    if not options.deploy_azure_resource_group:
+      raise ValueError('--deploy_azure_resource_group not specified.')
+    if not options.deploy_azure_name:
+      raise ValueError('--deploy_azure_name not specified.')
+
+    if options.deploy_deploy:
+      response = run_quick(
+          'az vm show --resource-group {rg} --vm-name {name}'
+          .format(rg=options.deploy_azure_resource_group,
+                  name=options.deploy_azure_name),
+          echo=False)
+
+      if response.returncode == 0:
+        raise ValueError(
+            '"{name}" already exists in resource-group={rg}'
+            .format(name=options.deploy_azure_name,
+                    rg=options.deploy_azure_resource_group))
+
+  def do_create_vm(self, options):
+    """Implements GenericVmValidateBomDeployer interface."""
+    logging.info('Creating "%s" in resource-group "%s"',
+                 options.deploy_azure_name,
+                 options.deploy_azure_resource_group)
+
+    response = check_run_and_monitor(
+        'az vm create'
+        ' --name {name}'
+        ' --resource-group {rg}'
+        ' --location {location}'
+        ' --image Canonical:UbuntuServer:14.04.5-LTS:latest'
+        ' --use-unmanaged-disk'
+        ' --storage-sku Standard_LRS'
+        ' --size Standard_D12_v2_Promo'
+        ' --ssh-key-value {ssh_key_path}.pub'
+        .format(name=options.deploy_azure_name,
+                rg=options.deploy_azure_resource_group,
+                location=options.deploy_azure_location,
+                ssh_key_path=self.ssh_key_path))
+    self.instance_ip = json.JSONDecoder().decode(
+        response.stdout)['publicIpAddress']
 
   def do_undeploy(self):
     """Implements the BaseBomValidateDeployer interface."""
@@ -558,33 +583,145 @@ class GoogleValidateBomDeployer(BaseValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {instance} sudo hal deploy clean'
-          .format(instance=options.google_deploy_instance,
-                  ssh_key=self.__ssh_key_path))
+          ' {ip} sudo hal deploy clean'
+          .format(ip=self.instance_ip, ssh_key=self.ssh_key_path))
+    check_run_and_monitor(
+        'az vm delete -y'
+        ' --name {name}'
+        ' --resource-group {rg}'
+        .format(name=options.deploy_azure_name,
+                rg=options.deploy_azure_resource_group))
+
+
+class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Google Cloud Platform.
+
+  This class is not intended to be constructed directly. Instead see the
+  free function make_deployer() in this module.
+  """
+
+  @property
+  def instance_ip(self):
+    """The underlying internal IP address for the deployed instance."""
+    if not self.__instance_ip:
+      options = self.options
+      response = check_run_quick(
+          'gcloud compute instances describe'
+          ' --format json'
+          ' --account {gcloud_account}'
+          ' --project {project} --zone {zone} {instance}'
+          .format(gcloud_account=options.deploy_hal_google_service_account,
+                  project=options.deploy_google_project,
+                  zone=options.deploy_google_zone,
+                  instance=options.deploy_google_instance))
+      # This is the internal network address
+      self.__instance_ip = json.JSONDecoder().decode(
+          response.stdout)['networkInterfaces'][0]['networkIP']
+      # External is [0]['accessConfigs'][0]['natIP']
+      # where the accessConfig[0] "name" is "external-nat".
+    return self.__instance_ip
+
+  def __init__(self, options, **kwargs):
+    super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
+    self.__instance_ip = None
+
+  @classmethod
+  def init_platform_argument_parser(cls, parser):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for the free function init_argument_parser().
+    """
+    parser.add_argument(
+        '--deploy_google_project',
+        default=None,
+        help='Google project to deploy to if --deploy_hal_platform is "gce".')
+    parser.add_argument(
+        '--deploy_google_zone',
+        default='us-central1-f',
+        help='Google zone to deploy to if --deploy_hal_platform is "gce".')
+    parser.add_argument(
+        '--deploy_google_instance',
+        default=None,
+        help='Google instance to deploy to if --deploy_hal_platform is "gce".')
+
+  @classmethod
+  def validate_options_helper(cls, options):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for make_deployer().
+    """
+    if not options.deploy_google_project:
+      raise ValueError('--deploy_google_project not specified.')
+    if not options.deploy_google_instance:
+      raise ValueError('--deploy_google_instance not specified.')
+    if not options.deploy_hal_google_service_account:
+      raise ValueError('--deploy_hal_google_service_account not specified.')
+
+    if options.deploy_deploy:
+      response = run_quick(
+          'gcloud compute instances describe'
+          ' --account {gcloud_account}'
+          ' --project {project} --zone {zone} {instance}'
+          .format(gcloud_account=options.deploy_hal_google_service_account,
+                  project=options.deploy_google_project,
+                  zone=options.deploy_google_zone,
+                  instance=options.deploy_google_instance),
+          echo=False)
+
+      if response.returncode == 0:
+        raise ValueError(
+            '"{instance}" already exists in project={project} zone={zone}'
+            .format(instance=options.deploy_google_instance,
+                    project=options.deploy_google_project,
+                    zone=options.deploy_google_zone))
+
+  def do_create_vm(self, options):
+    """Implements the BaseBomValidateDeployer interface."""
+    logging.info('Creating "%s" in project "%s"',
+                 options.deploy_google_instance,
+                 options.deploy_google_project)
+    with open(self.ssh_key_path + '.pub', 'r') as f:
+      ssh_key = f.read().strip()
+    if ssh_key.startswith('ssh-rsa'):
+      ssh_key = self.hal_user + ':' + ssh_key
+
+    check_run_and_monitor(
+        'gcloud compute instances create'
+        ' --account {gcloud_account}'
+        ' --machine-type n1-standard-4'
+        ' --image-family ubuntu-1404-lts'
+        ' --image-project ubuntu-os-cloud'
+        ' --metadata block-project-ssh-keys=TRUE,ssh-keys="{ssh_key}"'
+        ' --project {project} --zone {zone}'
+        ' --scopes {scopes}'
+        ' {instance}'
+        .format(gcloud_account=options.deploy_hal_google_service_account,
+                project=options.deploy_google_project,
+                zone=options.deploy_google_zone,
+                scopes='compute-rw,storage-full,logging-write,monitoring',
+                ssh_key=ssh_key,
+                instance=options.deploy_google_instance))
+
+  def do_undeploy(self):
+    """Implements the BaseBomValidateDeployer interface."""
+    options = self.options
+    if options.deploy_spinnaker_type == 'distributed':
+      run_and_monitor(
+          'ssh'
+          ' -i {ssh_key}'
+          ' -o StrictHostKeyChecking=no'
+          ' -o UserKnownHostsFile=/dev/null'
+          ' {ip} sudo hal deploy clean'
+          .format(ip=self.instance_ip, ssh_key=self.ssh_key_path))
+
     check_run_and_monitor(
         'gcloud -q compute instances delete'
         ' --account {gcloud_account}'
         ' --project {project} --zone {zone} {instance}'
         .format(gcloud_account=options.deploy_hal_google_service_account,
-                project=options.google_deploy_project,
-                zone=options.google_deploy_zone,
-                instance=options.google_deploy_instance))
-
-  def do_fetch_service_log_file(self, service, log_dir):
-    """Implements the BaseBomValidateDeployer interface."""
-    options = self.options
-    write_data_to_secure_path('', os.path.join(log_dir, service + '.log'))
-    check_run_quick(
-        'scp'
-        ' -i {ssh_key}'
-        ' -o StrictHostKeyChecking=no'
-        ' -o UserKnownHostsFile=/dev/null'
-        ' {instance}:/var/log/spinnaker/{service}/{service}.log'
-        ' {log_dir}'
-        .format(instance=options.google_deploy_instance,
-                ssh_key=self.__ssh_key_path,
-                service=service,
-                log_dir=log_dir))
+                project=options.deploy_google_project,
+                zone=options.deploy_google_zone,
+                instance=options.deploy_google_instance))
 
 
 def make_deployer(options):
@@ -595,6 +732,8 @@ def make_deployer(options):
   """
   if options.deploy_hal_platform == 'gce':
     hal_klass = GoogleValidateBomDeployer
+  elif options.deploy_hal_platform == 'azure':
+    hal_klass = AzureValidateBomDeployer
   else:
     raise ValueError(
         'Invalid --deploy_hal_platform=%s', options.deploy_hal_platform)
@@ -658,7 +797,7 @@ def init_argument_parser(parser):
       help='The type of spinnaker deployment to create.')
 
   parser.add_argument(
-      '--deploy_hal_platform', required=True, choices=['gce'],
+      '--deploy_hal_platform', required=True, choices=['gce', 'azure'],
       help='Platform to deploy Halyard onto.'
            ' Halyard will then deploy Spinnaker.')
 
@@ -689,5 +828,6 @@ def init_argument_parser(parser):
       help='Actually perform the undeployment.'
            ' This is for facilitating debugging with this script.')
 
+  AzureValidateBomDeployer.init_platform_argument_parser(parser)
   GoogleValidateBomDeployer.init_platform_argument_parser(parser)
   KubernetesValidateBomDeployer.init_platform_argument_parser(parser)
