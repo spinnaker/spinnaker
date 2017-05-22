@@ -31,6 +31,10 @@ module.exports = angular.module('spinnaker.oraclebmcs', [
   require('./image/image.reader.js'),
   // Instances
   require('./instance/details/instance.details.controller.js'),
+  // Security Groups
+  require('./securityGroup/securityGroup.reader.js'),
+  require('./securityGroup/securityGroup.transformer.js'),
+  require('./securityGroup/configure/createSecurityGroup.controller.js'),
 ])
   .config(function (cloudProviderRegistryProvider) {
     cloudProviderRegistryProvider.registerProvider('oraclebmcs', {
@@ -57,6 +61,10 @@ module.exports = angular.module('spinnaker.oraclebmcs', [
         detailsTemplateUrl: require('./instance/details/instanceDetails.html')
       },
       securityGroup: {
+        reader: 'oraclebmcsSecurityGroupReader',
+        transformer: 'oraclebmcsSecurityGroupTransformer',
+        createSecurityGroupTemplateUrl: require('./securityGroup/configure/createSecurityGroup.html'),
+        createSecurityGroupController: 'oraclebmcsCreateSecurityGroupCtrl'
       }
     });
   });

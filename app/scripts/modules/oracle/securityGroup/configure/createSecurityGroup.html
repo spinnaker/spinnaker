@@ -1,0 +1,16 @@
+<ng-form role="form" name="form" novalidate>
+  <v2-modal-wizard heading="Create New Oracle BMC Security Group" dismiss="$dismiss()">
+    <div class="container-fluid form-horizontal">
+      <div class="modal-body">
+        <div class="col-md-12 well">
+          <h5>Create Security Group</h5>
+          <p>We don't currently support the ability to create security groups through the Spinnaker UI for Oracle Bare Metal.</p>
+          <p>You can use the Oracle Bare Metal console to create and manage your Security Groups.</p>
+        </div>
+      </div>
+    </div>
+  </v2-modal-wizard>
+  <div class="modal-footer">
+    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+  </div>
+</ng-form>
