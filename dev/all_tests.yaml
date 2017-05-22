@@ -29,11 +29,11 @@ tests:
       alias: [standard_google_provider_params]
       test_google: true
       jenkins_token: TRIGGER_TOKEN
-      jenkins_job: TestTriggerProject
+      jenkins_job: NoOpTrigger
       jenkins_url: $jenkins_master_address
       jenkins_master: $jenkins_master_name
       jenkins_master_user: $jenkins_master_user
-    
+
   google_front50_test:
     requires:
       configuration:
