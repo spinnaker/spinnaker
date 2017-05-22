@@ -40,6 +40,9 @@ module(DELIVERY_STATES, [
       },
       step: {
         value: '0',
+      },
+      refId: {
+        value: null,
       }
     },
     data: {
