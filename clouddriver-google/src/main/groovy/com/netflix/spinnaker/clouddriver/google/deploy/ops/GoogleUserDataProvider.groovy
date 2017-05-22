@@ -47,7 +47,7 @@ public class GoogleUserDataProvider {
     Map userDataMap = stringToUserDataMap(commonUserData)
 
     if (customUserData) {
-      def customUserDataMap = stringToUserDataMap(customUserData)
+      def customUserDataMap = ["customUserData": customUserData] << stringToUserDataMap(customUserData)
       userDataMap << customUserDataMap
     }
     return userDataMap

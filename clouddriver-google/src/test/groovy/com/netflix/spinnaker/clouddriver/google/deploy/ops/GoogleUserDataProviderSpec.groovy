@@ -52,10 +52,10 @@ class GoogleUserDataProviderSpec extends Specification {
     null                      | ''                       || [:]
     null                      | 'user_data=common'       || ['user_data':'common']
     ''                        | 'user_data=common'       || ['user_data':'common']
-    'user_data=common'        | null                     || ['user_data':'common']
-    'user_data=common'        | ''                       || ['user_data':'common']
-    'user_data=common'        | 'user_data=common'       || ['user_data':'common']
-    '%%account%%'             | '%%region%%'             || ['%%account%%':'%%account%%', 'region':'region']
+    'user_data=common'        | null                     || ['customUserData' : customUserData, 'user_data':'common']
+    'user_data=common'        | ''                       || ['customUserData' : customUserData, 'user_data':'common']
+    'user_data=common'        | 'user_data=common'       || ['customUserData' : customUserData, 'user_data':'common']
+    '%%account%%'             | '%%region%%'             || ['customUserData': customUserData, '%%account%%':'%%account%%', 'region':'region']
   }
 
   @Unroll
@@ -73,7 +73,7 @@ class GoogleUserDataProviderSpec extends Specification {
     def userData = provider.getUserData(serverGroupName, instanceTemplateName, description, credentials, 'custom user data')
 
     then:
-    userData == ['custom user data':'custom user data']
+    userData == ['customUserData': 'custom user data', 'custom user data':'custom user data']
     noExceptionThrown()
 
     where:

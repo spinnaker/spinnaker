@@ -56,6 +56,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final Map<String, String> INSTANCE_METADATA =
           ["startup-script": "apt-get update && apt-get install -y apache2 && hostname > /var/www/index.html",
            "testKey": "testValue"]
+  private static final Map<String, String> CUSTOM_USERDATA = ["TEST": "test1"]
   private static final String HTTP_SERVER_TAG = "http-server"
   private static final String HTTPS_SERVER_TAG = "https-server"
   private static final List<String> TAGS = ["orig-tag-1", "orig-tag-2", HTTP_SERVER_TAG, HTTPS_SERVER_TAG]
@@ -117,7 +118,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                      true,
                                                      ACCESS_CONFIG_NAME,
                                                      ACCESS_CONFIG_TYPE)
-    instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA)
+    instanceMetadata = GCEUtil.buildMetadataFromMap(INSTANCE_METADATA << CUSTOM_USERDATA)
     tags = GCEUtil.buildTagsFromList(TAGS)
     scheduling = new Scheduling(preemptible: false,
                                 automaticRestart: true,
@@ -160,6 +161,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          region: REGION,
                                                          zone: ZONE,
                                                          instanceMetadata: ["differentKey": "differentValue"],
+                                                         userData: ["other1": "other2"],
                                                          tags: ["new-tag-1", "new-tag-2"],
                                                          labels: ["new-label-key-1": "new-label-value-1"],
                                                          preemptible: true,
@@ -202,7 +204,6 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
-
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
 
     where:
@@ -228,7 +229,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.regional = false
       newDescription.region = REGION
       newDescription.zone = ZONE
-      newDescription.instanceMetadata = INSTANCE_METADATA
+      newDescription.instanceMetadata = INSTANCE_METADATA << CUSTOM_USERDATA
       newDescription.tags = TAGS
       newDescription.labels = LABELS
       newDescription.preemptible = false
@@ -258,7 +259,118 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
 
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
+      1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
+  }
 
+  void "operation builds description based on ancestor server group; overrides instanceMetadata and userData"() {
+    setup:
+      def newInstanceMetadata = ["differentKey": "differentValue"]
+      def newCustomUserdata = ["diff val": "different data"]
+      def description = new BasicGoogleDeployDescription(source: [region: REGION,
+                                                                  serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         region: REGION,
+                                                         accountName: ACCOUNT_NAME,
+                                                         credentials: credentials,
+                                                         instanceMetadata: newInstanceMetadata,
+                                                         userData: newCustomUserdata)
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      def newDescription = description.clone()
+      newDescription.application = APPLICATION_NAME
+      newDescription.stack = STACK_NAME
+      newDescription.targetSize = 2
+      newDescription.image = IMAGE
+      newDescription.instanceType = INSTANCE_TYPE
+      newDescription.disks = [DISK_PD_STANDARD]
+      newDescription.regional = false
+      newDescription.region = REGION
+      newDescription.zone = ZONE
+      newDescription.instanceMetadata = newInstanceMetadata
+      newDescription.userData = newCustomUserdata
+      newDescription.tags = TAGS
+      newDescription.labels = LABELS
+      newDescription.preemptible = false
+      newDescription.automaticRestart = true
+      newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE
+      newDescription.serviceAccountEmail = SERVICE_ACCOUNT_EMAIL
+      newDescription.authScopes = DECORATED_AUTH_SCOPES
+      newDescription.network = DEFAULT_NETWORK_NAME
+      newDescription.subnet = SUBNET_NAME
+      newDescription.associatePublicIpAddress = true
+      newDescription.canIpForward = false
+      newDescription.loadBalancers = LOAD_BALANCERS
+      newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                     minNumReplicas: 2,
+                                                                     maxNumReplicas: 5)
+      newDescription.autoHealingPolicy = new GoogleAutoHealingPolicy(healthCheck: 'some-health-check',
+                                                                     initialDelaySec: 600)
+
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
+      1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
+  }
+
+  void "operation builds description based on ancestor server group; overrides userData"() {
+    setup:
+      def newCustomUserdata = ["diff val": "different data"]
+      def description = new BasicGoogleDeployDescription(source: [region: REGION,
+                                                                  serverGroupName: ANCESTOR_SERVER_GROUP_NAME],
+                                                         region: REGION,
+                                                         accountName: ACCOUNT_NAME,
+                                                         credentials: credentials,
+                                                         userData: newCustomUserdata)
+      def googleClusterProviderMock = Mock(GoogleClusterProvider)
+      def basicGoogleDeployHandlerMock = Mock(BasicGoogleDeployHandler)
+      def newDescription = description.clone()
+      newDescription.application = APPLICATION_NAME
+      newDescription.stack = STACK_NAME
+      newDescription.targetSize = 2
+      newDescription.image = IMAGE
+      newDescription.instanceType = INSTANCE_TYPE
+      newDescription.disks = [DISK_PD_STANDARD]
+      newDescription.regional = false
+      newDescription.region = REGION
+      newDescription.zone = ZONE
+      newDescription.instanceMetadata = INSTANCE_METADATA
+      newDescription.userData = newCustomUserdata
+      newDescription.tags = TAGS
+      newDescription.labels = LABELS
+      newDescription.preemptible = false
+      newDescription.automaticRestart = true
+      newDescription.onHostMaintenance = BaseGoogleInstanceDescription.OnHostMaintenance.MIGRATE
+      newDescription.serviceAccountEmail = SERVICE_ACCOUNT_EMAIL
+      newDescription.authScopes = DECORATED_AUTH_SCOPES
+      newDescription.network = DEFAULT_NETWORK_NAME
+      newDescription.subnet = SUBNET_NAME
+      newDescription.associatePublicIpAddress = true
+      newDescription.canIpForward = false
+      newDescription.loadBalancers = LOAD_BALANCERS
+      newDescription.autoscalingPolicy = new GoogleAutoscalingPolicy(coolDownPeriodSec: 45,
+                                                                     minNumReplicas: 2,
+                                                                     maxNumReplicas: 5)
+      newDescription.autoHealingPolicy = new GoogleAutoHealingPolicy(healthCheck: 'some-health-check',
+                                                                     initialDelaySec: 600)
+
+      def deploymentResult = new DeploymentResult(serverGroupNames: ["$REGION:$NEW_SERVER_GROUP_NAME"])
+      @Subject def operation = new CopyLastGoogleServerGroupAtomicOperation(description)
+      operation.registry = registry
+      operation.googleClusterProvider = googleClusterProviderMock
+      operation.basicGoogleDeployHandler = basicGoogleDeployHandlerMock
+
+    when:
+      operation.operate([])
+
+    then:
+      1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, ANCESTOR_SERVER_GROUP_NAME) >> serverGroup
       1 * basicGoogleDeployHandlerMock.handle(newDescription, _) >> deploymentResult
   }
 }

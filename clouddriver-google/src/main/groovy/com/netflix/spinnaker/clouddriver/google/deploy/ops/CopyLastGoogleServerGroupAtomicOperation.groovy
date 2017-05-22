@@ -53,6 +53,9 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
   GoogleClusterProvider googleClusterProvider
 
   @Autowired
+  private GoogleUserDataProvider googleUserDataProvider
+
+  @Autowired
   SafeRetry safeRetry
 
   CopyLastGoogleServerGroupAtomicOperation(BasicGoogleDeployDescription description) {
@@ -150,12 +153,24 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
       }
 
       def instanceMetadata = ancestorInstanceProperties.metadata
-
       if (instanceMetadata) {
-        newDescription.instanceMetadata =
-            description.instanceMetadata != null
-            ? description.instanceMetadata
-            : GCEUtil.buildMapFromMetadata(instanceMetadata)
+        if (description.instanceMetadata) {
+          // Keep previous custom user data, unless new user data is also specified directly on the cloneServerGroup call.
+          if (description.userData) {
+            newDescription.instanceMetadata = description.instanceMetadata
+            newDescription.userData = description.userData
+          } else {
+            // If the user doesn't specify new custom user data, we want to copy the old value.
+            def item = instanceMetadata.getItems()?.find { it.key == 'customUserData' }
+            if (item) {
+              def ancestorCustomUserData = item.value
+              def customUserDataMap = ["customUserData": item.value] << googleUserDataProvider.stringToUserDataMap(ancestorCustomUserData)
+              newDescription.instanceMetadata = description.instanceMetadata << customUserDataMap
+            }
+          }
+        } else {
+          newDescription.instanceMetadata = GCEUtil.buildMapFromMetadata(instanceMetadata)
+        }
       }
 
       def tags = ancestorInstanceProperties.tags
