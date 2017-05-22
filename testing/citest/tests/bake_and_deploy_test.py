@@ -141,7 +141,7 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
            ' The Spinnaker server may have permissions, but the citest machine'
            ' may not. Otherwise, this defaults to Spinnaker\'s binding.')
     parser.add_argument(
-      '--jenkins_job', default='TestTriggerProject',
+      '--jenkins_job', default='NoOpTrigger',
       help='The name of the jenkins job to trigger off.'
            ' You will need to add this to your --jenkins_master.')
     parser.add_argument(
