@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import io.fabric8.kubernetes.client.Config
 
 public class KubernetesNamedAccountCredentials implements AccountCredentials<KubernetesCredentials> {
@@ -39,6 +40,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
   final int cacheThreads
   KubernetesCredentials credentials
   final List<String> requiredGroupMembership
+  final Permissions permissions
   final List<LinkedDockerRegistryConfiguration> dockerRegistries
   final Registry spectatorRegistry
   private final AccountCredentialsRepository accountCredentialsRepository
@@ -58,6 +60,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
                                            int cacheThreads,
                                            List<LinkedDockerRegistryConfiguration> dockerRegistries,
                                            List<String> requiredGroupMembership,
+                                           Permissions permissions,
                                            KubernetesCredentials credentials) {
     this.name = name
     this.environment = environment
@@ -72,6 +75,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     this.omitNamespaces = omitNamespaces
     this.cacheThreads = cacheThreads
     this.requiredGroupMembership = requiredGroupMembership
+    this.permissions = permissions
     this.dockerRegistries = dockerRegistries
     this.accountCredentialsRepository = accountCredentialsRepository
     this.spectatorRegistry = spectatorRegistry
@@ -100,6 +104,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
     int cacheThreads
     KubernetesCredentials credentials
     List<String> requiredGroupMembership
+    Permissions permissions
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     Registry spectatorRegistry
     AccountCredentialsRepository accountCredentialsRepository
@@ -151,6 +156,14 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
 
     Builder requiredGroupMembership(List<String> requiredGroupMembership) {
       this.requiredGroupMembership = requiredGroupMembership
+      return this
+    }
+
+    Builder permissions(Permissions permissions) {
+      if (permissions.isRestricted()) {
+        this.requiredGroupMembership = []
+        this.permissions = permissions
+      }
       return this
     }
 
@@ -241,6 +254,7 @@ public class KubernetesNamedAccountCredentials implements AccountCredentials<Kub
           cacheThreads,
           dockerRegistries,
           requiredGroupMembership,
+          permissions,
           credentials
       )
     }

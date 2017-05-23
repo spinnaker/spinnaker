@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.config
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.ToString
 
 @ToString(includeNames = true)
@@ -32,9 +33,10 @@ class KubernetesConfigurationProperties {
     Boolean serviceAccount
     List<String> namespaces
     List<String> omitNamespaces
-    int cacheThreads
+    Integer cacheThreads
     List<LinkedDockerRegistryConfiguration> dockerRegistries
     List<String> requiredGroupMembership
+    Permissions.Builder permissions = new Permissions.Builder()
   }
 
   List<ManagedAccount> accounts = []

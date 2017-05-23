@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Scope
 @Slf4j
 @Configuration
 class KubernetesCredentialsInitializer implements CredentialsInitializerSynchronizable {
-  private static final DEFAULT_CACHE_THREADS = 1
+  private static final Integer DEFAULT_CACHE_THREADS = 1
 
   @Autowired Registry spectatorRegistry
 
@@ -89,6 +89,7 @@ class KubernetesCredentialsInitializer implements CredentialsInitializerSynchron
           .cacheThreads(managedAccount.cacheThreads ?: DEFAULT_CACHE_THREADS)
           .dockerRegistries(managedAccount.dockerRegistries)
           .requiredGroupMembership(managedAccount.requiredGroupMembership)
+          .permissions(managedAccount.permissions.build())
           .spectatorRegistry(spectatorRegistry)
           .build()
 
