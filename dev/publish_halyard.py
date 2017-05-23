@@ -89,6 +89,13 @@ class HalyardPublisher(object):
            .format(self.__halyard_repo_uri, commit_to_build))
     check_run_quick('git -C halyard checkout {0}'.format(commit_to_build))
 
+  def __update_versions_tracking_file(self):
+    """Updates the global versions.yml tracking file to point at the new
+    version of Halyard.
+    """
+    check_run_quick('hal admin publish latest-halyard {}'
+                    .format(self.__stable_version))
+
   def __tag_halyard_repo(self):
     """Tags the Halyard repo with a tag derived from --stable_version.
     """
@@ -199,6 +206,7 @@ class HalyardPublisher(object):
     self.__push_halyard_tag_and_branch()
     self.__generate_halyard_docs()
     self.__publish_halyard_docs()
+    self.__update_versions_tracking_file()
 
   @classmethod
   def init_argument_parser(cls, parser):
