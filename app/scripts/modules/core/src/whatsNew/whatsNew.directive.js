@@ -9,7 +9,7 @@ import { WHATS_NEW_READ_SERVICE } from './whatsNew.read.service';
 import './whatsNew.less';
 
 module.exports = angular
-  .module('spinnaker.netflix.whatsNew.directive', [
+  .module('spinnaker.core.whatsNew.directive', [
     require('angular-marked'),
     VIEW_STATE_CACHE_SERVICE,
     WHATS_NEW_READ_SERVICE,

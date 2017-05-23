@@ -4,7 +4,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.netflix.manualExecution.inlineProperty.filter', [])
+  .module('spinnaker.core.manualExecution.inlineProperty.filter', [])
   .filter('inlinePropertyScope', function() {
     return function(json) {
       const keyTransforms = {
