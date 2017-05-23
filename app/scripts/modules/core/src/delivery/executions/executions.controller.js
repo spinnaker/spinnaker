@@ -24,17 +24,16 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
                                          InsightFilterStateModel) {
 
     this.$onInit = () => {
+      const { application } = this;
       const groupsUpdatedSubscription = executionFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
-      if (executionFilterModel.mostRecentApplication !== $scope.application.name) {
+      if (executionFilterModel.mostRecentApplication !== application.name) {
         executionFilterModel.groups = [];
-        executionFilterModel.mostRecentApplication = $scope.application.name;
+        executionFilterModel.mostRecentApplication = application.name;
       }
 
       let scrollIntoView = (delay = 200) => scrollToService.scrollTo('#execution-' + $stateParams.executionId, '.all-execution-groups', 225, delay);
 
-      let application = $scope.application;
-      this.application = application;
-      if ($scope.application.notFound) {
+      if (application.notFound) {
         return;
       }
 
@@ -70,7 +69,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
         }
       });
 
-      this.application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
+      application.executions.onRefresh($scope, normalizeExecutionNames, dataInitializationFailure);
 
       $scope.$on('$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) => {
         // if we're navigating to a different execution on the same page, scroll the new execution into view

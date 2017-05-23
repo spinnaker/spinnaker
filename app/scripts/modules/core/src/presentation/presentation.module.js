@@ -25,4 +25,5 @@ module.exports = angular.module('spinnaker.core.presentation', [
   require('./sortToggle/sorttoggle.directive.js'),
   require('./percent.filter'),
   REPLACE_FILTER,
+  require('./refresher/componentRefresher.directive'),
 ]);

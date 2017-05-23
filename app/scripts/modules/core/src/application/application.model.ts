@@ -79,6 +79,8 @@ export class Application {
 
   private refreshFailureStream: Subject<any> = new Subject();
 
+  private dataLoader: Subscription;
+
   constructor(private applicationName: string, private scheduler: any, private $q: IQService, private $log: ILogService) {}
 
   /**
@@ -154,12 +156,13 @@ export class Application {
    * and halts refresh when switching applications or navigating to a non-application view
    * @param $scope
    */
-  public enableAutoRefresh($scope: IScope): void {
-    const dataLoader = this.scheduler.subscribe(() => this.refresh());
-    $scope.$on('$destroy', () => {
-      dataLoader.unsubscribe();
-      this.scheduler.unsubscribe();
-    });
+  public enableAutoRefresh(): void {
+    this.dataLoader = this.scheduler.subscribe(() => this.refresh());
+  }
+
+  public disableAutoRefresh(): void {
+    this.dataLoader.unsubscribe();
+    this.scheduler.unsubscribe();
   }
 
   private applicationLoadError(err: Error): void {

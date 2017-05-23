@@ -72,7 +72,7 @@ module(DELIVERY_STATES, [
     url: `?${stateConfigProvider.paramsToQuery(filterModelConfig)}`,
     views: {
       'pipelines': {
-        template: '<executions application="application"></executions>',
+        template: '<executions application="$resolve.app"></executions>',
       },
     },
     params: stateConfigProvider.buildDynamicParams(filterModelConfig),

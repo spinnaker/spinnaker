@@ -6,12 +6,13 @@ import './ApplicationSearchResultFormatter';
 import { SECONDARY_APPLICATION_NAV_COMPONENT } from './nav/secondaryNav.component';
 import { APPLICATION_STATE_PROVIDER } from './application.state.provider';
 import { APPLICATIONS_STATE_PROVIDER } from './applications.state.provider';
+import { APPLICATION_COMPONENT } from './application.component';
 
 module.exports = angular
   .module('spinnaker.application', [
     APPLICATION_STATE_PROVIDER,
     APPLICATIONS_STATE_PROVIDER,
-    require('./application.controller.js'),
+    APPLICATION_COMPONENT,
     require('./applications.controller.js'),
     require('./config/applicationConfig.controller.js'),
     require('./modal/createApplication.modal.controller.js'),

@@ -17,7 +17,6 @@ module.exports = angular.module('spinnaker.core.projects.dashboard.controller', 
   EXECUTION_SERVICE,
   SCHEDULER_FACTORY,
   RECENT_HISTORY_SERVICE,
-  require('../../presentation/refresher/componentRefresher.directive.js'),
   require('./regionFilter/regionFilter.component.js'),
   require('./regionFilter/regionFilter.service.js'),
 ])

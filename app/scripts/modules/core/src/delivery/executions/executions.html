@@ -1,38 +1,38 @@
-<div class="insight" ng-if="!vm.application.notFound"
-     ng-class="vm.InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
+<div class="insight" ng-if="!$ctrl.application.notFound"
+     ng-class="$ctrl.InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
   <div class="nav">
     <h3 class="filters-placeholder">
       <a href
          class="btn btn-xs btn-default pin"
-         ng-click="vm.InsightFilterStateModel.pinFilters(true)" uib-tooltip="Show filters">
+         ng-click="$ctrl.InsightFilterStateModel.pinFilters(true)" uib-tooltip="Show filters">
         <i class="fa fa-forward"></i>
       </a>
     </h3>
     <a href
        class="btn btn-xs btn-default pull-right unpin"
-       ng-click="vm.InsightFilterStateModel.pinFilters(!vm.InsightFilterStateModel.filtersPinned)"
-       ng-show="vm.InsightFilterStateModel.filtersExpanded"
+       ng-click="$ctrl.InsightFilterStateModel.pinFilters(!$ctrl.InsightFilterStateModel.filtersPinned)"
+       ng-show="$ctrl.InsightFilterStateModel.filtersExpanded"
         >
       <i class="fa fa-backward" uib-tooltip="Hide filters"></i>
     </a>
-    <execution-filters ng-if="!vm.viewState.loading" application="vm.application"></execution-filters>
+    <execution-filters ng-if="!$ctrl.viewState.loading" application="$ctrl.application"></execution-filters>
   </div>
-  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': vm.InsightFilterStateModel.filtersExpanded, 'show-durations': vm.filter.showStageDuration}">
-    <div class="execution-groups-header" ng-if="!vm.viewState.loading">
+  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': $ctrl.InsightFilterStateModel.filtersExpanded, 'show-durations': $ctrl.filter.showStageDuration}">
+    <div class="execution-groups-header" ng-if="!$ctrl.viewState.loading">
       <h3>Pipelines</h3>
       <div class="form-group pull-right">
         <a href class="btn btn-sm btn-primary"
            analytics-on="click"
            analytics-category="Pipelines"
            analytics-event="Trigger Pipeline (top level)"
-           ng-click="vm.triggerPipeline()"
-           ng-disabled="vm.viewState.triggeringExecution">
-            <span ng-if="vm.viewState.triggeringExecution" class="pulsing">
+           ng-click="$ctrl.triggerPipeline()"
+           ng-disabled="$ctrl.viewState.triggeringExecution">
+            <span ng-if="$ctrl.viewState.triggeringExecution" class="pulsing">
               <span class="fa fa-cog fa-spin visible-md-inline visible-sm-inline" uib-tooltip="Starting Execution"></span>
               <span class="fa fa-cog fa-spin visible-lg-inline"></span>
               <span class="visible-xl-inline">Starting Execution</span>&hellip;
             </span>
-          <span ng-if="!vm.viewState.triggeringExecution">
+          <span ng-if="!$ctrl.viewState.triggeringExecution">
               <span class="glyphicon glyphicon-play visible-lg-inline"></span>
               <span class="glyphicon glyphicon-play visible-md-inline visible-sm-inline" uib-tooltip="Start Manual Execution"></span>
               <span class="visible-xl-inline">Start Manual Execution</span>
@@ -40,22 +40,22 @@
         </a>
       </div>
       <div class="pull-right">
-        <create-new application="application"></create-new>
+        <create-new application="$ctrl.application"></create-new>
       </div>
       <form class="form-inline execution-filters">
-        <div class="form-group" ng-if="vm.filter.groupBy" style="margin-right: 20px">
+        <div class="form-group" ng-if="$ctrl.filter.groupBy" style="margin-right: 20px">
           <a class="btn btn-xs btn-default" href
              analytics-on="click"
              analytics-category="Pipelines"
              analytics-event="Expand All"
-             ng-click="vm.toggleExpansion(true)" uib-tooltip="expand all">
+             ng-click="$ctrl.toggleExpansion(true)" uib-tooltip="expand all">
             <span class="glyphicon glyphicon-plus"></span>
           </a>
           <a class="btn btn-xs btn-default" href
              analytics-on="click"
              analytics-category="Pipelines"
              analytics-event="Collapse All"
-             ng-click="vm.toggleExpansion(false)" uib-tooltip="collapse all">
+             ng-click="$ctrl.toggleExpansion(false)" uib-tooltip="collapse all">
             <span class="glyphicon glyphicon-minus"></span>
           </a>
         </div>
@@ -65,8 +65,8 @@
                   analytics-on="change"
                   analytics-category="Pipelines"
                   analytics-event="Group By"
-                  analytics-label="{{vm.filter.groupBy}}"
-                  ng-model="vm.filter.groupBy" ng-change="vm.updateExecutionGroups()">
+                  analytics-label="{{$ctrl.filter.groupBy}}"
+                  ng-model="$ctrl.filter.groupBy" ng-change="$ctrl.updateExecutionGroups()">
             <option value="none">None</option>
             <option value="name">Pipeline</option>
             <option value="timeBoundary">Time Boundary</option>
@@ -78,9 +78,9 @@
                   analytics-on="change"
                   analytics-category="Pipelines"
                   analytics-event="Change Count"
-                  analytics-label="{{vm.filter.count}}"
-                  ng-model="vm.filter.count"
-                  ng-change="vm.updateExecutionGroups(true)"
+                  analytics-label="{{$ctrl.filter.count}}"
+                  ng-model="$ctrl.filter.count"
+                  ng-change="$ctrl.updateExecutionGroups(true)"
                   ng-options="count for count in filterCountOptions">
           </select>
           executions per pipeline
@@ -88,30 +88,30 @@
         <div class="form-group checkbox">
           <label>
             <input type="checkbox"
-                   ng-model="vm.filter.showStageDuration"
+                   ng-model="$ctrl.filter.showStageDuration"
                    analytics-on="change"
                    analytics-category="Pipelines"
                    analytics-event="Toggle Durations"
-                   analytics-label="{{vm.filter.showStageDuration}}">
+                   analytics-label="{{$ctrl.filter.showStageDuration}}">
             stage durations
           </label>
         </div>
       </form>
-      <filter-tags tags="vm.tags" tag-cleared="vm.forceUpdateExecutionGroups" clear-filters="vm.clearFilters"></filter-tags>
+      <filter-tags tags="$ctrl.tags" tag-cleared="$ctrl.forceUpdateExecutionGroups" clear-filters="$ctrl.clearFilters"></filter-tags>
     </div>
-    <div class="text-center" ng-if="vm.viewState.loading">
+    <div class="text-center" ng-if="$ctrl.viewState.loading">
       <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
     </div>
-    <div class="text-center transition-overlay" ng-if="vm.application.executions.reloadingForFilters" style="margin-left: -25px">
+    <div class="text-center transition-overlay" ng-if="$ctrl.application.executions.reloadingForFilters" style="margin-left: -25px">
     </div>
-    <div class="text-center" ng-if="!vm.viewState.loading && !vm.application.executions.data.length && !vm.application.pipelineConfigs.data.length">
+    <div class="text-center" ng-if="!$ctrl.viewState.loading && !$ctrl.application.executions.data.length && !$ctrl.application.pipelineConfigs.data.length">
       <h4>No pipelines configured for this application.</h4>
     </div>
-    <div class="text-center" ng-if="vm.application.executions.loadFailure">
+    <div class="text-center" ng-if="$ctrl.application.executions.loadFailure">
       <h4>There was an error loading executions. We'll try again shortly.</h4>
     </div>
     <execution-groups
-        application="vm.application"
-        ng-if="!vm.viewState.loading && (vm.application.executions.data.length || vm.application.pipelineConfigs.data.length)"></execution-groups>
+        application="$ctrl.application"
+        ng-if="!$ctrl.viewState.loading && ($ctrl.application.executions.data.length || $ctrl.application.pipelineConfigs.data.length)"></execution-groups>
   </div>
 </div>

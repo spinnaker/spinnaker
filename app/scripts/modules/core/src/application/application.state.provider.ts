@@ -99,9 +99,7 @@ export class ApplicationStateProvider implements IServiceProvider {
     };
     applicationConfig.views = {};
     applicationConfig.views[mainView] = {
-      templateUrl: require('../application/application.html'),
-      controller: 'ApplicationCtrl',
-      controllerAs: 'ctrl'
+      template: `<application app="$resolve.app"></application>`,
     };
     parentState.children.push(applicationConfig);
     this.stateConfigProvider.setStates();
