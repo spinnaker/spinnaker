@@ -39,7 +39,7 @@
     <div class="form-group small" style="margin-top: 20px">
       <div class="col-md-9 col-md-offset-3">
         <p>
-          <span ng-if=!state.refreshingSecurityGroups"><span class="fa fa-refresh fa-spin"></span></span>
+          <span ng-if="!state.refreshingSecurityGroups"><span class="fa fa-refresh fa-spin"></span></span>
           Security groups
           <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.securityGroupRefreshTime | timestamp }}</span>
           <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
