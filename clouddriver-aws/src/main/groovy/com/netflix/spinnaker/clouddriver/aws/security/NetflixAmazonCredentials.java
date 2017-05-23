@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.aws.security;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 
 import java.util.List;
 
@@ -42,6 +43,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("regions") List<AWSRegion> regions,
                                     @JsonProperty("defaultSecurityGroups") List<String> defaultSecurityGroups,
                                     @JsonProperty("requiredGroupMembership") List<String> requiredGroupMembership,
+                                    @JsonProperty("permissions") Permissions permissions,
                                     @JsonProperty("lifecycleHooks") List<LifecycleHook> lifecycleHooks,
                                     @JsonProperty("allowPrivateThirdPartyImages") boolean allowPrivateThirdPartyImages,
                                     @JsonProperty("edda") String edda,
@@ -52,7 +54,26 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                                     @JsonProperty("front50Enabled") Boolean front50Enabled,
                                     @JsonProperty("bastionHost") String bastionHost,
                                     @JsonProperty("bastionEnabled") Boolean bastionEnabled) {
-        this(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, allowPrivateThirdPartyImages, null, edda, eddaEnabled, discovery, discoveryEnabled, front50, front50Enabled, bastionHost, bastionEnabled);
+        this(name,
+             environment,
+             accountType,
+             accountId,
+             defaultKeyPair,
+             regions,
+             defaultSecurityGroups,
+             requiredGroupMembership,
+             permissions,
+             lifecycleHooks,
+             allowPrivateThirdPartyImages,
+             null,
+             edda,
+             eddaEnabled,
+             discovery,
+             discoveryEnabled,
+             front50,
+             front50Enabled,
+             bastionHost,
+             bastionEnabled);
     }
 
     private static boolean flagValue(String serviceUrl, Boolean flag) {
@@ -60,7 +81,26 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
     }
 
     public NetflixAmazonCredentials(NetflixAmazonCredentials copy, AWSCredentialsProvider credentialsProvider) {
-        this(copy.getName(), copy.getEnvironment(), copy.getAccountType(), copy.getAccountId(), copy.getDefaultKeyPair(), copy.getRegions(), copy.getDefaultSecurityGroups(), copy.getRequiredGroupMembership(), copy.getLifecycleHooks(), copy.getAllowPrivateThirdPartyImages(), credentialsProvider, copy.getEdda(), copy.getEddaEnabled(), copy.getDiscovery(), copy.getDiscoveryEnabled(), copy.getFront50(), copy.getFront50Enabled(), copy.getBastionHost(), copy.getBastionEnabled());
+        this(copy.getName(),
+             copy.getEnvironment(),
+             copy.getAccountType(),
+             copy.getAccountId(),
+             copy.getDefaultKeyPair(),
+             copy.getRegions(),
+             copy.getDefaultSecurityGroups(),
+             copy.getRequiredGroupMembership(),
+             copy.getPermissions(),
+             copy.getLifecycleHooks(),
+             copy.getAllowPrivateThirdPartyImages(),
+             credentialsProvider,
+             copy.getEdda(),
+             copy.getEddaEnabled(),
+             copy.getDiscovery(),
+             copy.getDiscoveryEnabled(),
+             copy.getFront50(),
+             copy.getFront50Enabled(),
+             copy.getBastionHost(),
+             copy.getBastionEnabled());
     }
 
     NetflixAmazonCredentials(String name,
@@ -71,6 +111,7 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                              List<AWSRegion> regions,
                              List<String> defaultSecurityGroups,
                              List<String> requiredGroupMembership,
+                             Permissions permissions,
                              List<LifecycleHook> lifecycleHooks,
                              boolean allowPrivateThirdPartyImages,
                              AWSCredentialsProvider credentialsProvider,
@@ -82,7 +123,18 @@ public class NetflixAmazonCredentials extends AmazonCredentials {
                              Boolean front50Enabled,
                              String bastionHost,
                              Boolean bastionEnabled) {
-        super(name, environment, accountType, accountId, defaultKeyPair, regions, defaultSecurityGroups, requiredGroupMembership, lifecycleHooks, allowPrivateThirdPartyImages, credentialsProvider);
+        super(name,
+              environment,
+              accountType,
+              accountId,
+              defaultKeyPair,
+              regions,
+              defaultSecurityGroups,
+              requiredGroupMembership,
+              permissions,
+              lifecycleHooks,
+              allowPrivateThirdPartyImages,
+              credentialsProvider);
         this.edda = edda;
         this.eddaEnabled = flagValue(edda, eddaEnabled);
         this.discovery = discovery;

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.security.config;
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
+
 import java.util.List;
 
 /**
@@ -138,6 +140,7 @@ public class CredentialsConfig {
         private List<Region> regions;
         private List<String> defaultSecurityGroups;
         private List<String> requiredGroupMembership;
+        private Permissions.Builder permissions;
         private String edda;
         private Boolean eddaEnabled;
         private String discovery;
@@ -213,6 +216,14 @@ public class CredentialsConfig {
 
         public void setRequiredGroupMembership(List<String> requiredGroupMembership) {
             this.requiredGroupMembership = requiredGroupMembership;
+        }
+
+        public Permissions.Builder getPermissions() {
+            return permissions;
+        }
+
+        public void setPermissions(Permissions.Builder permissions) {
+            this.permissions = permissions;
         }
 
         public String getEdda() {

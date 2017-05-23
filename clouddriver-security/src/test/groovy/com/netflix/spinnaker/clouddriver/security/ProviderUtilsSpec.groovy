@@ -185,6 +185,7 @@ class ProviderUtilsSpec extends Specification {
                                  null,
                                  null,
                                  null,
+                                 null,
                                  false,
                                  null,
                                  null,
