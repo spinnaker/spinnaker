@@ -657,7 +657,7 @@ class GoogleKatoIntegrationTest(st.AgentTestCase):
     # with the defaults here.
     self.run_test_case(self.scenario.delete_load_balancer(), max_retries=5)
 
-  def test_available_images(self):
+  def Xtest_available_images(self):
     self.run_test_case(self.scenario.list_available_images())
 
 
