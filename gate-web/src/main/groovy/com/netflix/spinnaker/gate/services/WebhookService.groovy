@@ -17,18 +17,18 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.EchoService
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
 
-@CompileStatic
 @Component
-class EventService {
-  private static final String GROUP = "events"
+class WebhookService {
 
   @Autowired(required = false)
   EchoService echoService
+
+  @Autowired
+  OrcaService orcaService
 
   void webhooks(String type, String source, Map event) {
     echoService.webhooks(type, source, event)
@@ -36,5 +36,9 @@ class EventService {
 
   void webhooks(String type, String source, Map event, String gitHubSignature, String bitBucketEventType) {
     echoService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
+  }
+
+  List preconfiguredWebhooks() {
+    return orcaService.preconfiguredWebhooks()
   }
 }

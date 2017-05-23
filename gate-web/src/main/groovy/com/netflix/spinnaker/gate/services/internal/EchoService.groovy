@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import com.netflix.spinnaker.gate.controllers.EventController
 import retrofit.http.*
 import retrofit.client.Response
 

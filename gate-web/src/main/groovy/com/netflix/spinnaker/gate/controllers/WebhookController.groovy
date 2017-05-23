@@ -16,19 +16,24 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.EventService
-import groovy.transform.CompileStatic
+import com.netflix.spinnaker.gate.services.WebhookService
+import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RestController
 
-@CompileStatic
 @RestController
-class EventController {
+@RequestMapping("/webhooks")
+class WebhookController {
 
   @Autowired
-  EventService eventService
+  WebhookService webhookService
 
-  @RequestMapping(value = "/webhooks/{type}/{source}", method = RequestMethod.POST)
+  @RequestMapping(value = "/{type}/{source}", method = RequestMethod.POST)
   void webhooks(@PathVariable("type") String type,
                 @PathVariable("source") String source,
                 @RequestBody Map event,
@@ -36,9 +41,15 @@ class EventController {
                 @RequestHeader(value = "X-Event-Key", required = false) String bitBucketEventType)
   {
     if (gitHubSignature || bitBucketEventType) {
-      eventService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
+      webhookService.webhooks(type, source, event, gitHubSignature, bitBucketEventType)
     } else {
-      eventService.webhooks(type, source, event)
+      webhookService.webhooks(type, source, event)
     }
+  }
+
+  @ApiOperation(value = "Retrieve a list of preconfigured webhooks in Orca")
+  @RequestMapping(value = "/preconfigured", method = RequestMethod.GET)
+  List preconfiguredWebhooks() {
+    return webhookService.preconfiguredWebhooks()
   }
 }
