@@ -3,9 +3,14 @@
 
 aliases:
   standard_google_provider_params:
-    managed_gce_project: $google_account_project
+    google_primary_managed_project_id: $google_account_project
     spinnaker_google_account: $google_account_name
     gce_credentials_path: $google_account_credentials
+
+  standard_appengine_provider_params:
+    spinnaker_appengine_account: $appengine_account_name
+    appengine_credentials_path: $appengine_account_credentials
+    appengine_primary_managed_project_id: $appengine_account_project
 
   standard_aws_provider_params:
     spinnaker_aws_account: $aws_account_name
@@ -151,7 +156,18 @@ tests:
     args:
       alias: [standard_azure_provider_params]
 
-# Add appengine_smoke_test
-#    need to add config support first
+  appengine_smoke_test:
+    requires:
+      configuration:
+        appengine_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    api: gate
+    args:
+      alias: [standard_appengine_provider_params]
+      source_repo_url: https://github.com/GoogleCloudPlatform/python-docs-samples.git
+      app_directory_root: appengine/standard/hello_world
+      branch: master
+
+  
 # Add openstack_smoke_test
 #    need to add config support first
