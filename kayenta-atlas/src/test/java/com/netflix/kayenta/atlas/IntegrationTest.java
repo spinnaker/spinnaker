@@ -7,6 +7,7 @@ import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.TimeseriesData;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.metrics.AtlasMetricSetQuery;
 import lombok.*;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -72,12 +73,13 @@ public class IntegrationTest {
         long end = scope.getEnd() / step * step;
         long count = (end - start) / step;
 
+        AtlasMetricSetQuery atlasMetricSetQuery = (AtlasMetricSetQuery)metric.getQuery();
         AtlasResults results = AtlasResults.builder()
                 .id("dummyId")
                 .start(start)
                 .end(end)
                 .label("dummyLabel")
-                .query(metric.getQuery() + "," + scope.cq())
+                .query(atlasMetricSetQuery.getQ() + "," + scope.cq())
                 .step(step)
                 .type("timeseries")
                 .data(TimeseriesData.dummy("array", count))

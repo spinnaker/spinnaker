@@ -59,7 +59,7 @@ public class AtlasFetchController {
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public String queryMetrics(@RequestParam(required = false) final String metricsAccountName,
                              @RequestParam(required = false) final String storageAccountName,
-                             @RequestParam(required = false) String q,
+                             @ApiParam(defaultValue = "name,CpuRawUser,:eq,:sum") @RequestParam String q,
                              @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                              @ApiParam(defaultValue = "cluster") @RequestParam String type,
                              @RequestParam String scope,

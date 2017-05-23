@@ -23,8 +23,8 @@ import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
 import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.metrics.AtlasMetricSetQuery;
 import com.netflix.kayenta.metrics.MetricSet;
-import com.netflix.kayenta.metrics.MetricSetQuery;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.Builder;
@@ -71,8 +71,8 @@ public class AtlasMetricsService implements MetricsService {
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AtlasRemoteService atlasRemoteService = credentials.getAtlasRemoteService();
     // TODO(mgraff): Is this how we decorate the base query?
-    MetricSetQuery metricSetQuery = canaryMetricConfig.getQuery();
-    String decoratedQuery = metricSetQuery + "," + atlasCanaryScope.cq();
+    AtlasMetricSetQuery atlasMetricSetQuery = (AtlasMetricSetQuery)canaryMetricConfig.getQuery();
+    String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
     List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
                                                                    atlasCanaryScope.getStart() + "",
                                                                    atlasCanaryScope.getEnd() + "",
