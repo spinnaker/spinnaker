@@ -11,11 +11,12 @@
         <ui-select ng-model="options.selectedStageType"
                    style="width: 250px"
                    class="form-control input-sm"
+                   autofocus
                    on-select="stageConfigCtrl.selectStageType($item.key)">
           <ui-select-match>
             <strong>{{$select.selected.label}}</strong>
           </ui-select-match>
-          <ui-select-choices repeat="option.key as option in options.stageTypes | anyFieldFilter: {label: $select.search, description: $select.search}">
+          <ui-select-choices repeat="option.key as option in options.stageTypes | filter: $select.search">
             <div class="stage-choice">
               <strong>{{option.label}}</strong>
               <span class="available-providers" ng-if="showProviders">
