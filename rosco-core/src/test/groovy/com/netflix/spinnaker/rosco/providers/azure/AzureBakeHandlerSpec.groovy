@@ -273,7 +273,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
         azureConfigurationProperties: azureConfigurationProperties)
 
     when:
-      azureBakeHandler.producePackerCommand(REGION, bakeRequest)
+      azureBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -322,7 +322,7 @@ class AzureBakeHandlerSpec extends Specification implements TestDefaults{
       azureConfigurationProperties: azureConfigurationProperties)
 
     when:
-    azureBakeHandler.producePackerCommand(REGION, bakeRequest)
+    azureBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
     1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName

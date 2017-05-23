@@ -1,6 +1,9 @@
 package com.netflix.spinnaker.rosco.providers.util
 
+import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.api.BakeRequest.CloudProviderType
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 
 trait TestDefaults {
 
@@ -9,14 +12,29 @@ trait TestDefaults {
   static final String DEBIAN_REPOSITORY = "http://some-debian-repository"
   static final String YUM_REPOSITORY = "http://some-yum-repository"
   static final String CHOCOLATEY_REPOSITORY = "http://some-chocolatey-repository"
-  static final BakeRequest.PackageType DEB_PACKAGE_TYPE = BakeRequest.PackageType.DEB
-  static final BakeRequest.PackageType RPM_PACKAGE_TYPE = BakeRequest.PackageType.RPM
-  static final BakeRequest.PackageType NUPKG_PACKAGE_TYPE = BakeRequest.PackageType.NUPKG
+  static final CloudProviderType DOCKER_CLOUD_PROVIDER = BakeRequest.CloudProviderType.docker
+
   static final String SOME_MILLISECONDS = "1470391070464"
   static final String SOME_UUID = "55c25239-4de5-4f7a-b664-6070a1389680"
   static final String SOME_BUILD_INFO_URL = "http://some-build-server:8080/repogroup/repo/builds/320282"
+  static final String SOME_BUILD_NR = "42"
   static final String SOME_COMMIT_HASH = "170cdbd"
   static final String SOME_DOCKER_TAG = "latest"
+  static final String SOME_APP_VERSION_STR = "nflx-djangobase-enhanced-0.1-h12.170cdbd"
+  static final String SOME_BAKE_RECIPE_NAME = "djangobase"
+  static final String SOME_JOB_ID = "123"
+  static final String SOME_AMI_ID = "ami-3cf4a854"
+  static final String SOME_IMAGE_NAME = "ubuntu/trusty"
+  static final String SOME_CLOUD_PROVIDER = "aws"
+
+  static final Bake SOME_BAKE_DETAILS = new Bake(id: SOME_JOB_ID, ami: SOME_AMI_ID, image_name: SOME_IMAGE_NAME)
+  static final BakeRequest SOME_BAKE_REQUEST = new BakeRequest(build_info_url: SOME_BUILD_INFO_URL, build_number: SOME_BUILD_NR)
+  static final BakeRecipe SOME_BAKE_RECIPE = new BakeRecipe(name: SOME_BAKE_RECIPE_NAME, version: SOME_APP_VERSION_STR, command: [])
+
+  static final BakeRequest.PackageType DEB_PACKAGE_TYPE = BakeRequest.PackageType.DEB
+  static final BakeRequest.PackageType RPM_PACKAGE_TYPE = BakeRequest.PackageType.RPM
+  static final BakeRequest.PackageType NUPKG_PACKAGE_TYPE = BakeRequest.PackageType.NUPKG
+
 
   def parseDebOsPackageNames(String packages) {
     PackageNameConverter.buildOsPackageNames(DEB_PACKAGE_TYPE, packages.tokenize(" "))

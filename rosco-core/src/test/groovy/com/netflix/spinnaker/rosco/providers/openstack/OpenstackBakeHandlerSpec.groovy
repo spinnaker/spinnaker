@@ -256,7 +256,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -313,7 +313,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
             debianRepository: DEBIAN_REPOSITORY)
 
     when:
-    openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+    openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
     1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -363,7 +363,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -414,7 +414,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -466,7 +466,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -516,7 +516,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -567,7 +567,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -592,7 +592,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION, bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()
@@ -615,7 +615,7 @@ class OpenstackBakeHandlerSpec extends Specification implements TestDefaults {
         debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      openstackBakeHandler.producePackerCommand(REGION + '999', bakeRequest)
+      openstackBakeHandler.produceBakeRecipe(REGION + '999', bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()

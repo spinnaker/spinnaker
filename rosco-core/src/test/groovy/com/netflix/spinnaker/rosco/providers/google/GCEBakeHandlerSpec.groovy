@@ -222,7 +222,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -262,7 +262,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          yumRepository: YUM_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -303,7 +303,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -344,7 +344,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -387,7 +387,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -433,7 +433,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -476,7 +476,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -516,7 +516,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -565,7 +565,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, [osPackage]) >> targetImageName
@@ -607,7 +607,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -647,7 +647,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -688,7 +688,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -728,7 +728,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -753,7 +753,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()
@@ -777,7 +777,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()
@@ -803,7 +803,7 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      gceBakeHandler.producePackerCommand(REGION, bakeRequest)
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName

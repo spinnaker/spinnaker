@@ -176,7 +176,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                                                   debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+      dockerBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -219,7 +219,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                                                   debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+      dockerBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -262,7 +262,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                                                   yumRepository: YUM_REPOSITORY)
 
     when:
-      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+      dockerBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -309,7 +309,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                                                   debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+      dockerBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, [osPackage]) >> targetImageName
@@ -359,7 +359,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
         packerCommandFactory: packerCommandFactoryMock,
         debianRepository: DEBIAN_REPOSITORY)
     when:
-      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+      dockerBakeHandler.produceBakeRecipe(REGION, bakeRequest)
     then:
       1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> targetImageTag
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetQualifiedImageName
@@ -403,7 +403,7 @@ class DockerBakeHandlerSpec extends Specification implements TestDefaults {
                                                                   debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      dockerBakeHandler.producePackerCommand(REGION, bakeRequest)
+      dockerBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()

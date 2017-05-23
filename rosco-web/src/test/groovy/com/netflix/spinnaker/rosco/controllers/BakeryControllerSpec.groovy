@@ -21,6 +21,7 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.persistence.RedisBackedBakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
@@ -56,6 +57,7 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
       def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
@@ -71,11 +73,11 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRecipe, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
       returnedBakeStatus == runningBakeStatus
       registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
       registry.counters().toArray().length == 1
@@ -93,6 +95,8 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
+
 
       def failedBakeStatus = new BakeStatus(id: JOB_ID,
                                             resource_id: JOB_ID,
@@ -112,7 +116,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> failedBakeStatus
@@ -132,6 +136,7 @@ class BakeryControllerSpec extends Specification {
                                         package_name: PACKAGE_NAME,
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
       def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
       @Subject
@@ -148,7 +153,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       4 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> runningBakeStatus
@@ -169,6 +174,7 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
 
       def runningBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
@@ -187,13 +193,13 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> runningBakeStatus
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRecipe, bakeRequest, runningBakeStatus, PACKER_COMMAND) >> runningBakeStatus
       returnedBakeStatus == new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
       registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
       registry.counters().toArray().length == 1
@@ -210,7 +216,7 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
-
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
 
       @Subject
       def bakeryController = new BakeryController(cloudProviderBakeHandlerRegistry: cloudProviderBakeHandlerRegistryMock,
@@ -226,7 +232,7 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
       (10.._) * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> null
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> false
@@ -337,6 +343,8 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
+
 
       def failedBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
                                             resource_id: EXISTING_JOB_ID,
@@ -357,11 +365,11 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> failedBakeStatus
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRecipe, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
       registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
       registry.counters().toArray().length == 1
@@ -379,7 +387,7 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
-
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
       def canceledBakeStatus = new BakeStatus(id: EXISTING_JOB_ID,
                                               resource_id: EXISTING_JOB_ID,
                                               state: BakeStatus.State.CANCELED)
@@ -398,11 +406,11 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.retrieveBakeStatusByKey(BAKE_KEY) >> canceledBakeStatus
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRecipe, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
       registry.counter(registry.createId("bakesRequested", [flavor: "plain"])).count() == 1
       registry.counters().toArray().length == 1
@@ -420,6 +428,7 @@ class BakeryControllerSpec extends Specification {
                                         base_os: "ubuntu",
                                         cloud_provider_type: BakeRequest.CloudProviderType.gce,
                                         request_id: SOME_UUID)
+      def bakeRecipe = new BakeRecipe(name: "myBake", version: "appVersionStr-1.0", command: [PACKER_COMMAND])
 
       def newBakeStatus = new BakeStatus(id: JOB_ID, resource_id: JOB_ID, state: BakeStatus.State.RUNNING)
 
@@ -436,11 +445,11 @@ class BakeryControllerSpec extends Specification {
       1 * cloudProviderBakeHandlerRegistryMock.lookup(BakeRequest.CloudProviderType.gce) >> cloudProviderBakeHandlerMock
       1 * cloudProviderBakeHandlerMock.produceBakeKey(REGION, bakeRequest) >> BAKE_KEY
       1 * bakeStoreMock.deleteBakeByKeyPreserveDetails(BAKE_KEY) >> BAKE_ID
-      1 * cloudProviderBakeHandlerMock.producePackerCommand(REGION, bakeRequest) >> [PACKER_COMMAND]
+      1 * cloudProviderBakeHandlerMock.produceBakeRecipe(REGION, bakeRequest) >> bakeRecipe
       1 * bakeStoreMock.acquireBakeLock(BAKE_KEY) >> true
       1 * jobExecutorMock.startJob(new JobRequest(tokenizedCommand: [PACKER_COMMAND], jobId: SOME_UUID)) >> JOB_ID
       1 * jobExecutorMock.updateJob(JOB_ID) >> newBakeStatus
-      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
+      1 * bakeStoreMock.storeNewBakeStatus(BAKE_KEY, REGION, bakeRecipe, bakeRequest, newBakeStatus, PACKER_COMMAND) >> newBakeStatus
       returnedBakeStatus == newBakeStatus
       registry.counter(registry.createId("bakesRequested", [flavor: "rebake"])).count() == 1
       registry.counters().toArray().length == 1

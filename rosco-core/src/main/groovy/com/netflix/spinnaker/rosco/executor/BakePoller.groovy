@@ -17,9 +17,11 @@
 package com.netflix.spinnaker.rosco.executor
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.rosco.api.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.jobs.JobExecutor
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
@@ -197,6 +199,7 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
     }
   }
 
+
   void completeBake(String bakeId, String logsContent) {
     if (logsContent) {
       def cloudProvider = bakeStore.retrieveCloudProviderById(bakeId)
@@ -210,6 +213,14 @@ class BakePoller implements ApplicationListener<ContextRefreshedEvent> {
 
           if (region) {
             Bake bakeDetails = cloudProviderBakeHandler.scrapeCompletedBakeResults(region, bakeId, logsContent)
+
+            if (bakeDetails) {
+              BakeRequest bakeRequest = bakeStore.retrieveBakeRequestById(bakeId)
+              BakeRecipe bakeRecipe = bakeStore.retrieveBakeRecipeById(bakeId)
+              bakeDetails.artifact = cloudProviderBakeHandler.produceArtifactDecorationFrom(
+                bakeRequest, bakeRecipe, bakeDetails, cloudProvider
+              )
+            }
 
             bakeStore.updateBakeDetails(bakeDetails)
 

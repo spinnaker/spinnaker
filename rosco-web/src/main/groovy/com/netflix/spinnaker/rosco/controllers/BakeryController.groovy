@@ -20,6 +20,7 @@ import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.persistence.BakeStore
 import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import com.netflix.spinnaker.rosco.providers.registry.CloudProviderBakeHandlerRegistry
@@ -100,7 +101,7 @@ class BakeryController {
     [error: "bake.options.not.found", status: HttpStatus.NOT_FOUND, messages: ["Bake options not found. " + e.message]]
   }
 
-  private BakeStatus runBake(String bakeKey, String region, BakeRequest bakeRequest, JobRequest jobRequest) {
+  private BakeStatus runBake(String bakeKey, String region, BakeRecipe bakeRecipe, BakeRequest bakeRequest, JobRequest jobRequest) {
     String jobId = jobExecutor.startJob(jobRequest)
 
     // Give the job jobExecutor some time to kick off the job.
@@ -136,6 +137,7 @@ class BakeryController {
     // Ok, it didn't fail right away; the bake is underway.
     BakeStatus returnedBakeStatus = bakeStore.storeNewBakeStatus(bakeKey,
                                                                  region,
+                                                                 bakeRecipe,
                                                                  bakeRequest,
                                                                  newBakeStatus,
                                                                  jobRequest.tokenizedCommand.join(" "))
@@ -182,11 +184,13 @@ class BakeryController {
         }
       }
 
-      def packerCommand = cloudProviderBakeHandler.producePackerCommand(region, bakeRequest)
-      def jobRequest = new JobRequest(tokenizedCommand: packerCommand, maskedPackerParameters: cloudProviderBakeHandler.maskedPackerParameters, jobId: bakeRequest.request_id)
+      def bakeRecipe = cloudProviderBakeHandler.produceBakeRecipe(region, bakeRequest)
+      def jobRequest = new JobRequest(tokenizedCommand: bakeRecipe.command,
+                                      maskedPackerParameters: cloudProviderBakeHandler.maskedPackerParameters,
+                                      jobId: bakeRequest.request_id)
 
       if (bakeStore.acquireBakeLock(bakeKey)) {
-        return runBake(bakeKey, region, bakeRequest, jobRequest)
+        return runBake(bakeKey, region, bakeRecipe, bakeRequest, jobRequest)
       } else {
         def startTime = System.currentTimeMillis()
 
@@ -203,7 +207,7 @@ class BakeryController {
 
         // Maybe the TTL expired but the bake status wasn't set for some other reason? Let's try again before giving up.
         if (bakeStore.acquireBakeLock(bakeKey)) {
-          return runBake(bakeKey, region, bakeRequest, jobRequest)
+          return runBake(bakeKey, region, bakeRecipe, bakeRequest, jobRequest)
         }
 
         throw new IllegalArgumentException("Unable to acquire lock and unable to determine id of lock holder for bake " +

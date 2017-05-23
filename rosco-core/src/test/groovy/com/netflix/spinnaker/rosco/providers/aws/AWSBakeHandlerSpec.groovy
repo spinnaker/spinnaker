@@ -321,7 +321,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -361,7 +361,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          yumRepository: YUM_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -426,7 +426,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
         yumRepository: YUM_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -467,7 +467,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -507,7 +507,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -548,7 +548,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -591,7 +591,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -631,7 +631,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -680,7 +680,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -722,7 +722,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -763,7 +763,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
       chocolateyRepository: CHOCOLATEY_REPOSITORY)
 
     when:
-    awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+    awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
     1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -789,7 +789,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()
@@ -813,7 +813,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          debianRepository: DEBIAN_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       IllegalArgumentException e = thrown()
@@ -987,7 +987,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          yumRepository: YUM_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
@@ -1041,7 +1041,7 @@ class AWSBakeHandlerSpec extends Specification implements TestDefaults {
                                                          yumRepository: YUM_REPOSITORY)
 
     when:
-      awsBakeHandler.producePackerCommand(REGION, bakeRequest)
+      awsBakeHandler.produceBakeRecipe(REGION, bakeRequest)
 
     then:
       1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName

@@ -1,11 +1,11 @@
 /*
- * Copyright 2015 Netflix, Inc.
+ * Copyright 2017 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,20 +19,13 @@ package com.netflix.spinnaker.rosco.api
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
-import io.swagger.annotations.ApiModelProperty
 
-/**
- * The details of a completed bake.
- *
- * @see BakeryController#lookupBake
- */
-@CompileStatic
-@EqualsAndHashCode(includes = "id")
+@EqualsAndHashCode
 @ToString(includeNames = true)
-class Bake {
-  @ApiModelProperty(value="The id of the bake job.")
-  String id
-  String ami
-  String image_name
-  Artifact artifact
+class Artifact {
+  String name
+  String type
+  String version
+  String reference
+  Map<String, String> metadata
 }

@@ -20,6 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeRequest
 import com.netflix.spinnaker.rosco.api.BakeStatus
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
+import com.netflix.spinnaker.rosco.providers.CloudProviderBakeHandler
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import redis.clients.jedis.JedisPool
@@ -84,11 +86,12 @@ class RedisBackedBakeStore implements BakeStore {
           redis.call('HMSET', KEYS[2],
                      'bakeKey', KEYS[3],
                      'region', ARGV[2],
-                     'bakeRequest', ARGV[3],
-                     'bakeStatus', ARGV[4],
-                     'bakeLogs', ARGV[5],
-                     'command', ARGV[6],
-                     'roscoInstanceId', ARGV[7],
+                     'bakeRecipe', ARGV[3],
+                     'bakeRequest', ARGV[4],
+                     'bakeStatus', ARGV[5],
+                     'bakeLogs', ARGV[6],
+                     'command', ARGV[7],
+                     'roscoInstanceId', ARGV[8],
                      'createdTimestamp', ARGV[1],
                      'updatedTimestamp', ARGV[1])
 
@@ -96,11 +99,12 @@ class RedisBackedBakeStore implements BakeStore {
           redis.call('HMSET', KEYS[3],
                      'id', KEYS[2],
                      'region', ARGV[2],
-                     'bakeRequest', ARGV[3],
-                     'bakeStatus', ARGV[4],
-                     'bakeLogs', ARGV[5],
-                     'command', ARGV[6],
-                     'roscoInstanceId', ARGV[7],
+                     'bakeRecipe', ARGV[3],
+                     'bakeRequest', ARGV[4],
+                     'bakeStatus', ARGV[5],
+                     'bakeLogs', ARGV[6],
+                     'command', ARGV[7],
+                     'roscoInstanceId', ARGV[8],
                      'createdTimestamp', ARGV[1],
                      'updatedTimestamp', ARGV[1])
 
@@ -300,14 +304,15 @@ class RedisBackedBakeStore implements BakeStore {
   }
 
   @Override
-  public BakeStatus storeNewBakeStatus(String bakeKey, String region, BakeRequest bakeRequest, BakeStatus bakeStatus, String command) {
+  public BakeStatus storeNewBakeStatus(String bakeKey, String region, BakeRecipe bakeRecipe, BakeRequest bakeRequest, BakeStatus bakeStatus, String command) {
     def lockKey = "lock:$bakeKey"
+    def bakeRecipeJson = mapper.writeValueAsString(bakeRecipe)
     def bakeRequestJson = mapper.writeValueAsString(bakeRequest)
     def bakeStatusJson = mapper.writeValueAsString(bakeStatus)
     def bakeLogsJson = mapper.writeValueAsString(bakeStatus.logsContent ? [logsContent: bakeStatus.logsContent] : [:])
     def createdTimestampMilliseconds = timeInMilliseconds
     def keyList = ["allBakes", bakeStatus.id, bakeKey, thisInstanceIncompleteBakesKey, lockKey.toString()]
-    def argList = [createdTimestampMilliseconds + "", region, bakeRequestJson, bakeStatusJson, bakeLogsJson, command, roscoInstanceId]
+    def argList = [createdTimestampMilliseconds as String, region, bakeRecipeJson, bakeRequestJson, bakeStatusJson, bakeLogsJson, command, roscoInstanceId]
     def result = evalSHA("storeNewBakeStatusSHA", keyList, argList)
 
     // Check if the script returned a bake status set by the winner of a race.
@@ -401,6 +406,25 @@ class RedisBackedBakeStore implements BakeStore {
       }
 
       return bakeStatus
+    }
+  }
+
+  @Override
+  public BakeRequest retrieveBakeRequestById(String bakeId) {
+    def jedis = jedisPool.getResource()
+
+    jedis.withCloseable {
+      def bakeRequestJson = jedis.hget(bakeId, "bakeRequest")
+      return bakeRequestJson ? mapper.readValue(bakeRequestJson, BakeRequest) : null
+    }
+  }
+
+  @Override
+  public BakeRecipe retrieveBakeRecipeById(String bakeId) {
+    def jedis = jedisPool.getResource()
+    jedis.withCloseable {
+      def bakeRecipeJson = jedis.hget(bakeId, "bakeRecipe")
+      return bakeRecipeJson ? mapper.readValue(bakeRecipeJson, BakeRecipe) : null
     }
   }
 

@@ -16,10 +16,12 @@
 
 package com.netflix.spinnaker.rosco.providers
 
+import com.netflix.spinnaker.rosco.api.Artifact
 import com.netflix.spinnaker.rosco.api.Bake
 import com.netflix.spinnaker.rosco.api.BakeOptions
 import com.netflix.spinnaker.rosco.api.BakeOptions.BaseImage
 import com.netflix.spinnaker.rosco.api.BakeRequest
+import com.netflix.spinnaker.rosco.jobs.BakeRecipe
 import com.netflix.spinnaker.rosco.providers.util.ImageNameFactory
 import com.netflix.spinnaker.rosco.providers.util.PackageNameConverter
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
@@ -105,6 +107,25 @@ abstract class CloudProviderBakeHandler {
   abstract Bake scrapeCompletedBakeResults(String region, String bakeId, String logsContent)
 
   /**
+   * Returns a decorated artifact for a given bake. Right now this is a generic approach
+   * but it could be useful to override this method for specific providers.
+   */
+  def Artifact produceArtifactDecorationFrom(BakeRequest bakeRequest, BakeRecipe bakeRecipe, Bake bakeDetails, String cloudProvider) {
+    Artifact bakedArtifact = new Artifact(
+      name: bakeRecipe?.name,
+      version: bakeRecipe?.version,
+      type: cloudProvider,
+      reference: bakeDetails.ami ?: bakeDetails.image_name,
+      metadata: [
+        build_info_url: bakeRequest?.build_info_url,
+        build_number: bakeRequest?.build_number
+      ]
+    )
+
+    return bakedArtifact
+  }
+
+  /**
    * Finds the appropriate virtualization settings in this provider's configuration based on the region and
    * bake request parameters. Throws an IllegalArgumentException if the virtualization settings cannot be
    * found.
@@ -133,9 +154,11 @@ abstract class CloudProviderBakeHandler {
   abstract String getTemplateFileName(BakeOptions.BaseImage baseImage)
 
   /**
-   * Build provider-specific command for packer.
+   * Right now this builds a recipe for packer.
+   * In the future this method should be abstract, and have
+   * provider-specific implementations.
    */
-  List<String> producePackerCommand(String region, BakeRequest bakeRequest) {
+  BakeRecipe produceBakeRecipe(String region, BakeRequest bakeRequest) {
     def virtualizationSettings = findVirtualizationSettings(region, bakeRequest)
 
     BakeOptions.Selected selectedOptions = new BakeOptions.Selected(baseImage: findBaseImage(bakeRequest))
@@ -188,11 +211,12 @@ abstract class CloudProviderBakeHandler {
     def finaltemplateFilePath = "$configDir/$finalTemplateFileName"
     def finalVarFileName = bakeRequest.var_file_name ? "$configDir/$bakeRequest.var_file_name" : null
     def baseCommand = getBaseCommand(finalTemplateFileName)
+    def packerCommand = packerCommandFactory.buildPackerCommand(baseCommand,
+                                                                parameterMap,
+                                                                finalVarFileName,
+                                                                finaltemplateFilePath)
 
-    return packerCommandFactory.buildPackerCommand(baseCommand,
-                                                   parameterMap,
-                                                   finalVarFileName,
-                                                   finaltemplateFilePath)
+    return new BakeRecipe(name: imageName, version: appVersionStr, command: packerCommand)
   }
 
   protected Map unrollParameters(Map.Entry entry) {
