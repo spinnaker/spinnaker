@@ -23,6 +23,8 @@ import spock.lang.Specification
 
 class KubernetesInstanceSpec extends Specification {
   private final static String REPLICATION_CONTROLLER = "arcim"
+  private static final List<OwnerReference> ownerReferences = [
+    new OwnerReference(name: REPLICATION_CONTROLLER)]
 
   ContainerState containerStateAsRunningMock
   ContainerState containerStateAsTerminatedMock
@@ -78,10 +80,10 @@ class KubernetesInstanceSpec extends Specification {
 
     podMock.getStatus() >> podStatusMock
     podMock.getMetadata() >> metadataMock
-
     // There is nothing interesting to test here, it is already handled by the
     // convertContainerState(..) tests.
     podStatusMock.getContainerStatuses() >> []
+
   }
 
   void "Should report state as Down"() {
@@ -155,9 +157,10 @@ class KubernetesInstanceSpec extends Specification {
 
   void "Should report pod controller"() {
     setup:
-      metadataMock.getLabels() >> ["foo": "bar", (KubernetesUtil.SERVER_GROUP_LABEL): REPLICATION_CONTROLLER]
+      metadataMock.getOwnerReferences()  >> ownerReferences
 
     when:
+
       def instance = new KubernetesInstance(podMock, [])
 
     then:

@@ -34,6 +34,7 @@ class KubernetesInstance implements Instance, Serializable {
   String zone
   List<Map<String, String>> health
   String controllerName
+  String controllerKind
   Pod pod
   List<String> loadBalancers
   List<KubernetesEvent> events
@@ -74,8 +75,10 @@ class KubernetesInstance implements Instance, Serializable {
 
     this.health << (Map<String, String>) mapper.convertValue(new KubernetesHealth(pod), new TypeReference<Map<String, String>>() {})
 
-    this.controllerName = pod.metadata?.labels?.get(KubernetesUtil.SERVER_GROUP_LABEL) ?:
-        pod.metadata?.labels?.get(KubernetesUtil.JOB_LABEL) ?: null
+    if (pod.metadata?.ownerReferences) {
+      this.controllerName = pod.metadata?.ownerReferences.get(0)?.getName()
+      this.controllerKind = pod.metadata?.ownerReferences.get(0)?.getKind()
+    }
   }
 
   @Override
