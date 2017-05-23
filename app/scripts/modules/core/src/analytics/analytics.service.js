@@ -5,7 +5,7 @@ import {SETTINGS} from 'core/config/settings';
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.core.analytics', [
+  .module('spinnaker.core.analytics.service', [
     require('angulartics'),
     require('angulartics-google-analytics'),
   ])

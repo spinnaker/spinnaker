@@ -21,6 +21,7 @@ module.exports = {
     umdNamedDefine: true,
   },
   externals: {
+    'root/version.json': 'root/version.json',
     '@uirouter/angularjs': '@uirouter/angularjs',
     '@uirouter/core': '@uirouter/core',
     'angular': 'angular',
