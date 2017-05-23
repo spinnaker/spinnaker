@@ -16,11 +16,15 @@
 
 package com.netflix.kayenta.atlas.metrics;
 
+import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.AtlasResultsHelper;
 import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
 import com.netflix.kayenta.atlas.service.AtlasRemoteService;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.metrics.MetricSet;
+import com.netflix.kayenta.metrics.MetricSetQuery;
 import com.netflix.kayenta.metrics.MetricsService;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.Builder;
@@ -54,19 +58,25 @@ public class AtlasMetricsService implements MetricsService {
   }
 
   @Override
-  // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
-  // Using metricSetName to pass the sse filename for now.
-  // TODO(duftler): Make this api generic.
   public List<MetricSet> queryMetrics(String accountName,
-                                      String metricSetName,
-                                      String instanceNamePrefix,
-                                      String intervalStartTime,
-                                      String intervalEndTime) throws IOException {
+                                      CanaryMetricConfig canaryMetricConfig,
+                                      CanaryScope canaryScope) throws IOException {
+    if (!(canaryScope instanceof AtlasCanaryScope)) {
+      throw new IllegalArgumentException("Canary scope not instance of AtlasCanaryScope: " + canaryScope);
+    }
+
+    AtlasCanaryScope atlasCanaryScope = (AtlasCanaryScope)canaryScope;
     AtlasNamedAccountCredentials credentials = (AtlasNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     AtlasRemoteService atlasRemoteService = credentials.getAtlasRemoteService();
-    List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(metricSetName);
+    // TODO(mgraff): Is this how we decorate the base query?
+    MetricSetQuery metricSetQuery = canaryMetricConfig.getQuery();
+    String decoratedQuery = metricSetQuery + "," + atlasCanaryScope.cq();
+    List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
+                                                                   atlasCanaryScope.getStart() + "",
+                                                                   atlasCanaryScope.getEnd() + "",
+                                                                   atlasCanaryScope.getStep());
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();
 
@@ -78,10 +88,9 @@ public class AtlasMetricsService implements MetricsService {
         timeSeriesList = new ArrayList<>();
       }
 
-      // TODO: Get the metric set name from the request/canary-config.
       MetricSet.MetricSetBuilder metricSetBuilder =
         MetricSet.builder()
-          .name("cpu")
+          .name(canaryMetricConfig.getName())
           .startTimeMillis(atlasResults.getStart())
           .startTimeIso(responseStartTimeInstant.toString())
           .stepMillis(atlasResults.getStep())

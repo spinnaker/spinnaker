@@ -12,14 +12,17 @@ Atlas is used.
 
 ```JSON
 {
-  "name": "MySampleCanaryConfig",
-  "description": "Example Automated Canary Analysis (ACA) Configuration",
+  "name": "MySampleAtlasCanaryConfig",
+  "description": "Example Automated Canary Analysis (ACA) Configuration using Atlas",
   "configVersion": 1.0,
   "metrics": [
     {
       "serviceName": "atlas",
       "name": "cpu",
-      "query": "name,CpuRawUser,:eq,:sum,name,numProcs,:eq,:sum,:div",
+      "query": {
+        "type": "atlas",
+        "q": "name,CpuRawUser,:eq,:sum,name,numProcs,:eq,:sum,:div"
+      },
       "analysisConfigurations": {
         "canary": { }
       },
@@ -28,7 +31,10 @@ Atlas is used.
     {
       "serviceName": "atlas",
       "name": "requests",
-      "query": "name,apache.http.requests,:eq,:sum",
+      "query": {
+        "type": "atlas",
+        "q": "name,apache.http.requests,:eq,:sum"
+      },
       "analysisConfigurations": {
         "canary": { }
       },
@@ -50,6 +56,42 @@ Atlas is used.
   "classifier": {
     "groupWeights": {
       "requests": 50.0,
+      "system": 50.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}
+```
+```JSON
+{
+  "name": "MySampleStackdriverCanaryConfig",
+  "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
+  "configVersion": 1.0,
+  "metrics": [
+    {
+      "serviceName": "stackdriver",
+      "name": "cpu",
+      "query": {
+        "type": "stackdriver",
+        "metricType": "compute.googleapis.com/instance/cpu/utilization"
+      },
+      "analysisConfigurations": {
+        "canary": { }
+      },
+      "groups": ["system"]
+    }
+  ],
+  "services": {
+    "stackdriver": {
+      "type": "stackdriver",
+      "name": "stackdriver"
+    }
+  },
+  "classifier": {
+    "groupWeights": {
       "system": 50.0
     },
     "scoreThresholds": {

@@ -14,39 +14,31 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.atlas.canary;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import com.netflix.kayenta.canary.CanaryScope;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 
-@Builder
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryServiceConfig {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class AtlasCanaryScope extends CanaryScope {
 
   @NotNull
-  @Getter
-  @Setter
-  private String name;
-
-  @NotNull
-  @Getter
   private String type;
 
-  @NotNull
-  @Getter
-  private String region;
-
-  @NotNull
-  @Getter
-  private String environment;
+  public String cq() {
+    switch (type) {
+      case "application":
+        return ":list,(,nf.app," + scope + ",:eq,:cq,),:each";
+      case "cluster":
+        return ":list,(,nf.cluster," + scope + ",:eq,:cq,),:each";
+      default:
+        throw new IllegalArgumentException("Scope type is unknown: " + scope);
+    }
+  }
 }

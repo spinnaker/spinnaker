@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,7 +67,7 @@ public class SampleAtlasController {
   }
 
   private AtlasResults generateDummyContent(String q, String s, String e, String step) {
-    long stepLong = java.time.Duration.parse(step).toMillis();
+    long stepLong = Duration.parse(step).toMillis();
     long sLong = Long.parseLong(s);
     long eLong = Long.parseLong(e);
     sLong = (sLong / stepLong) * stepLong;

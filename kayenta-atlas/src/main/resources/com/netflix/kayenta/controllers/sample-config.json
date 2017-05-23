@@ -5,7 +5,10 @@
     {
       "service": "atlas",
       "name": "cpu",
-      "query": "name,CpuRawUser,:eq,:sum",
+      "query": {
+        "type": "atlas",
+        "q": "name,CpuRawUser,:eq,:sum"
+      },
       "extensions": {
         "canary": { }
       },
@@ -14,7 +17,10 @@
     {
       "service": "atlas",
       "name": "requests",
-      "query": "name,apache.http.requests,:eq,(,requestCode,),:by,:sum",
+      "query": {
+        "type": "atlas",
+        "q": "name,apache.http.requests,:eq,(,requestCode,),:by,:sum"
+      },
       "extensions": {
         "canary": { }
       },
@@ -24,8 +30,9 @@
   "services": {
     "atlas": {
       "type": "atlas",
+      "name": "atlas",
       "region": "us-east-1",
-      "env": "prod",
+      "environment": "prod",
       "backend": {
         "deployment": "main",
         "dataset": "regional"

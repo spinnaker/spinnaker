@@ -21,10 +21,14 @@ import com.google.api.services.monitoring.v3.model.ListTimeSeriesResponse;
 import com.google.api.services.monitoring.v3.model.Metric;
 import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
+import com.netflix.kayenta.metrics.StackdriverMetricSetQuery;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;
@@ -35,7 +39,6 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -59,37 +62,42 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
-  // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
   public List<MetricSet> queryMetrics(String accountName,
-                                      String metricSetName,
-                                      String instanceNamePrefix,
-                                      String intervalStartTime,
-                                      String intervalEndTime) throws IOException {
+                                      CanaryMetricConfig canaryMetricConfig,
+                                      CanaryScope canaryScope) throws IOException {
+    if (!(canaryScope instanceof StackdriverCanaryScope)) {
+      throw new IllegalArgumentException("Canary scope not instance of StackdriverCanaryScope: " + canaryScope);
+    }
+
+    StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     Monitoring monitoring = credentials.getMonitoring();
-    // Some sample query parameters (mainly leaving all of these here so that I remember the api).
-    int alignmentPeriodSec = 3600;
-    ListTimeSeriesResponse response = monitoring
+    StackdriverMetricSetQuery stackdriverMetricSetQuery = (StackdriverMetricSetQuery)canaryMetricConfig.getQuery();
+    int alignmentPeriodSec = Integer.parseInt(canaryScope.getStep());
+    Monitoring.Projects.TimeSeries.List list = monitoring
       .projects()
       .timeSeries()
       .list("projects/" + credentials.getProject())
       .setAggregationAlignmentPeriod(alignmentPeriodSec + "s")
       .setAggregationCrossSeriesReducer("REDUCE_MEAN")
-// Leaving this here for the time-being so I don't have to hunt for the label name later.
-//      .setAggregationGroupByFields(Arrays.asList("metric.label.instance_name"))
       .setAggregationPerSeriesAligner("ALIGN_MEAN")
-      .setFilter("metric.type=\"compute.googleapis.com/instance/cpu/utilization\" AND metric.label.instance_name=starts_with(\"" + instanceNamePrefix + "\")")
-      .setIntervalStartTime(intervalStartTime)
-      .setIntervalEndTime(intervalEndTime)
-      .execute();
+      // TODO(duftler): Support 'filter' directly on StackdriverMetricSetQuery?
+      .setFilter("metric.type=\"" + stackdriverMetricSetQuery.getMetricType() + "\" AND " +
+                 "metric.label.instance_name=starts_with(\"" + canaryScope.getScope() + "\")")
+      .setIntervalStartTime(stackdriverCanaryScope.getIntervalStartTimeIso())
+      .setIntervalEndTime(stackdriverCanaryScope.getIntervalEndTimeIso());
 
-    Instant requestStartTimeInstant = Instant.parse(intervalStartTime);
-    long requestStartTimeMillis = requestStartTimeInstant.toEpochMilli();
-    Instant requestEndTimeInstant = Instant.parse(intervalEndTime);
-    long requestEndTimeMillis = requestEndTimeInstant.toEpochMilli();
-    long elapsedSeconds = (requestEndTimeMillis - requestStartTimeMillis) / 1000;
+    List<String> groupByFields = stackdriverMetricSetQuery.getGroupByFields();
+
+    if (groupByFields != null) {
+      list.setAggregationGroupByFields(groupByFields);
+    }
+
+    ListTimeSeriesResponse response = list.execute();
+
+    long elapsedSeconds = (stackdriverCanaryScope.getStart() - stackdriverCanaryScope.getEnd()) / 1000;
     long numIntervals = elapsedSeconds / alignmentPeriodSec;
     long remainder = elapsedSeconds % alignmentPeriodSec;
 
@@ -118,7 +126,9 @@ public class StackdriverMetricsService implements MetricsService {
       Collections.reverse(points);
 
       Instant responseStartTimeInstant =
-        points.size() > 0 ? Instant.parse(points.get(0).getInterval().getStartTime()) : requestStartTimeInstant;
+        points.size() > 0
+        ? Instant.parse(points.get(0).getInterval().getStartTime())
+        : Instant.parse(stackdriverCanaryScope.getIntervalStartTimeIso());
       long responseStartTimeMillis = responseStartTimeInstant.toEpochMilli();
 
       // TODO(duftler): What if there are no data points?
@@ -131,7 +141,7 @@ public class StackdriverMetricsService implements MetricsService {
       // TODO: Get the metric set name from the request/canary-config.
       MetricSet.MetricSetBuilder metricSetBuilder =
         MetricSet.builder()
-          .name(metricSetName)
+          .name(canaryMetricConfig.getName())
           .startTimeMillis(responseStartTimeMillis)
           .startTimeIso(responseStartTimeInstant.toString())
           .stepMillis(alignmentPeriodSec * 1000)

@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.atlas.service;
+package com.netflix.kayenta.metrics;
 
-import com.netflix.kayenta.atlas.model.AtlasResults;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.util.List;
-
-public interface AtlasRemoteService {
-
-  // TODO(mgraff): I know this isn't quite right. Just adding all of these in as a starting point.
-  @GET("/api/v2/fetch")
-  List<AtlasResults> fetch(@Query("q") String q,
-                           @Query("s") String start,
-                           @Query("e") String end,
-                           @Query("step") String step);
-}
+@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "type")
+@JsonSubTypes({@JsonSubTypes.Type(value = AtlasMetricSetQuery.class, name = "atlas"),
+               @JsonSubTypes.Type(value = StackdriverMetricSetQuery.class, name = "stackdriver")})
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public interface MetricSetQuery {}

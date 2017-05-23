@@ -2,21 +2,16 @@ package com.netflix.kayenta.atlas;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
+import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.TimeseriesData;
-import com.netflix.kayenta.atlas.security.AtlasNamedAccountCredentials;
-import com.netflix.kayenta.atlas.service.AtlasRemoteService;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.metrics.MetricSet;
-import com.netflix.kayenta.security.AccountCredentialsRepository;
 import lombok.*;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.test.context.ContextConfiguration;
@@ -25,6 +20,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,8 +66,8 @@ public class IntegrationTest {
         return objectMapper.readValue(contents, CanaryConfig.class);
     }
 
-    private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, CanaryScope scope) {
-        long step = scope.getStep();
+    private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, AtlasCanaryScope scope) {
+        long step = Duration.parse(scope.getStep()).toMillis();
         long start = scope.getStart() / step * step;
         long end = scope.getEnd() / step * step;
         long count = (end - start) / step;
@@ -98,20 +94,18 @@ public class IntegrationTest {
         CanaryConfig config = getConfig("com/netflix/kayenta/controllers/sample-config.json");
 
         //   2.  Define scope for baseline and canary clusters
-        CanaryScope experiment = CanaryScope.builder()
-                .type("application")
-                .scope("app_leo")
-                .start(0L)
-                .end(600000L)
-                .step(60000L)
-                .build();
-        CanaryScope control = CanaryScope.builder()
-                .type("application")
-                .scope("app_lep")
-                .start(0L)
-                .end(600000L)
-                .step(60000L)
-                .build();
+        AtlasCanaryScope experiment = new AtlasCanaryScope();
+        experiment.setType("application");
+        experiment.setScope("app_leo");
+        experiment.setStart(0L);
+        experiment.setEnd(600000L);
+        experiment.setStep("PT1M");
+        AtlasCanaryScope control = new AtlasCanaryScope();
+        control.setType("application");
+        control.setScope("app_lep");
+        control.setStart(0L);
+        control.setEnd(600000L);
+        control.setStep("PT1M");
 
         //   3.  for each metric in the config:
         //      a. issue an Atlas query for this metric, scoped to the canary

@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.atlas.service;
+package com.netflix.kayenta.stackdriver.canary;
 
-import com.netflix.kayenta.atlas.model.AtlasResults;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import com.netflix.kayenta.canary.CanaryScope;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
-public interface AtlasRemoteService {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class StackdriverCanaryScope extends CanaryScope {
 
-  // TODO(mgraff): I know this isn't quite right. Just adding all of these in as a starting point.
-  @GET("/api/v2/fetch")
-  List<AtlasResults> fetch(@Query("q") String q,
-                           @Query("s") String start,
-                           @Query("e") String end,
-                           @Query("step") String step);
+  @NotNull
+  private String intervalStartTimeIso;
+
+  @NotNull
+  private String intervalEndTimeIso;
 }

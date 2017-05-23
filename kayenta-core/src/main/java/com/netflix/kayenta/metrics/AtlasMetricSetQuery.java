@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.atlas.service;
+package com.netflix.kayenta.metrics;
 
-import com.netflix.kayenta.atlas.model.AtlasResults;
-import retrofit.http.GET;
-import retrofit.http.Query;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
-public interface AtlasRemoteService {
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+// TODO(duftler): Figure out how to move this into the kayenta-atlas module. Doing so as-is would introduce a circular dependency.
+public class AtlasMetricSetQuery implements MetricSetQuery {
 
-  // TODO(mgraff): I know this isn't quite right. Just adding all of these in as a starting point.
-  @GET("/api/v2/fetch")
-  List<AtlasResults> fetch(@Query("q") String q,
-                           @Query("s") String start,
-                           @Query("e") String end,
-                           @Query("step") String step);
+  @NotNull
+  @Getter
+  private String q;
 }

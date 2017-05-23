@@ -15,43 +15,22 @@
  */
 package com.netflix.kayenta.canary;
 
-import lombok.*;
+import lombok.Data;
 
 import javax.validation.constraints.NotNull;
 
-@Builder
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
+@Data
 public class CanaryScope {
-    @NotNull
-    @Getter
-    private String type;
 
     @NotNull
-    @Getter
-    private String scope;
+    protected String scope;
 
     @NotNull
-    @Getter
-    private Long start;
+    protected Long start;
 
     @NotNull
-    @Getter
-    private Long end;
+    protected Long end;
 
     @NotNull
-    @Getter
-    private Long step;
-
-    public String cq() {
-        switch (type) {
-            case "application":
-                return ":list,(,nf.app," + scope + ",:eq,:cq,),:each";
-            case "cluster":
-                return ":list,(,nf.cluster," + scope + ",:eq,:cq,),:each";
-            default:
-                throw new IllegalArgumentException("Scope is unknown: " + scope);
-        }
-    }
+    protected String step;
 }

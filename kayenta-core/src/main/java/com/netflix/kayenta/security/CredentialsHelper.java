@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.controllers;
+package com.netflix.kayenta.security;
 
-import com.netflix.kayenta.security.AccountCredentials;
-import com.netflix.kayenta.security.AccountCredentialsRepository;
 import org.springframework.util.StringUtils;
 
 public class CredentialsHelper {
 
-  static String resolveAccountByNameOrType(String accountName, AccountCredentials.Type accountType, AccountCredentialsRepository accountCredentialsRepository) {
+  public static String resolveAccountByNameOrType(String accountName,
+                                                  AccountCredentials.Type accountType,
+                                                  AccountCredentialsRepository accountCredentialsRepository) {
     AccountCredentials credentials;
 
     if (StringUtils.hasLength(accountName)) {

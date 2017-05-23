@@ -16,6 +16,9 @@
 
 package com.netflix.kayenta.metrics;
 
+import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.CanaryScope;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -24,8 +27,6 @@ public interface MetricsService {
 
   // These are still placeholder arguments. Each metrics service will have its own set of required/optional arguments. The return type is a placeholder as well.
   List<MetricSet> queryMetrics(String accountName,
-                               String metricSetName,
-                               String instanceNamePrefix,
-                               String intervalStartTime,
-                               String intervalEndTime) throws IOException;
+                               CanaryMetricConfig canaryMetricConfig,
+                               CanaryScope canaryScope) throws IOException;
 }

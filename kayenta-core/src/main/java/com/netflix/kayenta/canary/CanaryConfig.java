@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.canary;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,7 +33,29 @@ import java.util.Map;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+// TODO(duftler): Define canary config 'classifiers' model class.
 public class CanaryConfig {
+
+  @NotNull
+  @Getter
+  @Setter
+  private Long createdTimestamp;
+
+  @NotNull
+  @Getter
+  @Setter
+  private Long updatedTimestamp;
+
+  @NotNull
+  @Getter
+  @Setter
+  private String createdTimestampIso;
+
+  @NotNull
+  @Getter
+  @Setter
+  private String updatedTimestampIso;
 
   @NotNull
   @Getter
@@ -46,17 +69,6 @@ public class CanaryConfig {
   @NotNull
   @Getter
   private String configVersion;
-
-  // TODO(duftler): Add support for timestamps. Would like to keep CanaryConfig immutable though.
-//  @NotNull
-//  @Getter
-//  @Setter
-//  private long createdTimestamp;
-//
-//  @NotNull
-//  @Getter
-//  @Setter
-//  private long updatedTimestamp;
 
   @NotNull
   @Singular

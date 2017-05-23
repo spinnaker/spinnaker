@@ -19,6 +19,7 @@ package com.netflix.kayenta.controllers;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.security.CredentialsHelper;
 import com.netflix.kayenta.storage.ObjectType;
 import com.netflix.kayenta.storage.StorageService;
 import com.netflix.kayenta.storage.StorageServiceRepository;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -83,9 +85,24 @@ public class CanaryConfigController {
                                                                               accountCredentialsRepository);
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
 
+    if (canaryConfig.getCreatedTimestamp() == null) {
+      canaryConfig.setCreatedTimestamp(System.currentTimeMillis());
+    }
+
+    if (canaryConfig.getUpdatedTimestamp() == null) {
+      canaryConfig.setUpdatedTimestamp(canaryConfig.getCreatedTimestamp());
+    }
+
+    canaryConfig.setCreatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getCreatedTimestamp()).toString());
+    canaryConfig.setUpdatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
+
     if (StringUtils.isEmpty(canaryConfig.getName())) {
       canaryConfig.setName(UUID.randomUUID() + "");
     }
+
+    canaryConfig.getServices().forEach((serviceName, canaryServiceConfig) -> {
+      canaryServiceConfig.setName(serviceName);
+    });
 
     if (storageService.isPresent()) {
       String canaryConfigId = canaryConfig.getName().toLowerCase();
