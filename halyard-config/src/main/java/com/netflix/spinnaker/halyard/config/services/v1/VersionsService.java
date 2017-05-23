@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.memoize.v1.ExpiringConcurrentMap;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.registry.v1.ProfileRegistry;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
@@ -29,6 +30,7 @@ import org.yaml.snakeyaml.Yaml;
 import retrofit.RetrofitError;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity.FATAL;
 
@@ -42,6 +44,12 @@ public class VersionsService {
 
   @Autowired
   RelaxedObjectMapper relaxedObjectMapper;
+
+  static private ExpiringConcurrentMap<String, String> concurrentMap = ExpiringConcurrentMap.fromMinutes(10);
+
+  static private String latestHalyardKey = "__latest-halyard__";
+
+  static private String latestSpinnakerKey = "__latest-spinnaker__";
 
   public Versions getVersions() {
     try {
@@ -82,7 +90,29 @@ public class VersionsService {
     }
   }
 
-  public String getLatest() {
-    return getVersions().getLatestSpinnaker();
+  public String getLatestHalyardVersion() {
+    String result = concurrentMap.get(latestHalyardKey);
+    if (result == null) {
+      result = getVersions().getLatestHalyard();
+      concurrentMap.put(latestHalyardKey, result);
+    }
+
+    return result;
+  }
+
+  public String getRunningHalyardVersion() {
+    return Optional.ofNullable(VersionsService.class
+        .getPackage()
+        .getImplementationVersion()).orElse("Unknown");
+  }
+
+  public String getLatestSpinnakerVersion() {
+    String result = concurrentMap.get(latestSpinnakerKey);
+    if (result == null) {
+      result = getVersions().getLatestSpinnaker();
+      concurrentMap.put(latestSpinnakerKey, result);
+    }
+
+    return result;
   }
 }

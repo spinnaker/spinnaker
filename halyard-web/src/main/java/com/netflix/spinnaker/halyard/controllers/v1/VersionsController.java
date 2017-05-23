@@ -42,7 +42,7 @@ public class VersionsController {
   @RequestMapping(value = "/latest/", method = RequestMethod.GET)
   DaemonTask<Halconfig, String> latest() {
     DaemonResponse.StaticRequestBuilder<String> builder = new DaemonResponse.StaticRequestBuilder<>();
-    builder.setBuildResponse(() -> versionsService.getLatest());
+    builder.setBuildResponse(() -> versionsService.getLatestSpinnakerVersion());
     return DaemonTaskHandler.submitTask(builder::build, "Get latest released version");
   }
 

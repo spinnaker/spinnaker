@@ -68,10 +68,10 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
     if (!isReleased) {
       // Checks if version is of the form X.Y.Z
       if (version.matches("\\d+\\.\\d+\\.\\d+")) {
-        String majorMinor = toMajorMinor(version);
+        String majorMinor = Versions.toMajorMinor(version);
         Optional<Versions.Version> patchVersion = versions.getVersions()
             .stream()
-            .map(v -> new ImmutablePair<>(v, toMajorMinor(v.getVersion())))
+            .map(v -> new ImmutablePair<>(v, Versions.toMajorMinor(v.getVersion())))
             .filter(v -> v.getRight() != null)
             .filter(v -> v.getRight().equals(majorMinor))
             .map(ImmutablePair::getLeft)
@@ -88,14 +88,5 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
         p.addProblem(Problem.Severity.WARNING, "Version \"" + version + "\" is not a released (validated) version of Spinnaker.", "version");
       }
     }
-  }
-
-  public static String toMajorMinor(String fullVersion) {
-    int lastDot = fullVersion.lastIndexOf(".");
-    if (lastDot < 0) {
-      return null;
-    }
-
-    return fullVersion.substring(0, lastDot);
   }
 }

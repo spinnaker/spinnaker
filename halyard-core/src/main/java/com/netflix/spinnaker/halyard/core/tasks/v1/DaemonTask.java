@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -31,6 +32,7 @@ public class DaemonTask<C, T> {
   final String uuid;
   boolean timedOut;
   final long timeout;
+  final String version;
   State state = State.NOT_STARTED;
   DaemonResponse<T> response;
   Exception fatalError;
@@ -45,6 +47,9 @@ public class DaemonTask<C, T> {
     this.name = name;
     this.uuid = UUID.randomUUID().toString();
     this.timeout = timeout;
+    this.version = Optional.ofNullable(DaemonTask.class
+        .getPackage()
+        .getImplementationVersion()).orElse("Unknown");
   }
 
   void newStage(String name) {

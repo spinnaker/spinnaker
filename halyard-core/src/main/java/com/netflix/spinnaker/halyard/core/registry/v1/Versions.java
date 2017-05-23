@@ -20,8 +20,10 @@ package com.netflix.spinnaker.halyard.core.registry.v1;
 import lombok.Data;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class Versions {
@@ -64,5 +66,48 @@ public class Versions {
     }
 
     return result.toString();
+  }
+
+  public static String toMajorMinor(String fullVersion) {
+    int lastDot = fullVersion.lastIndexOf(".");
+    if (lastDot < 0) {
+      return null;
+    }
+
+    return fullVersion.substring(0, lastDot);
+  }
+
+  public static String toMajorMinorPatch(String fullVersion) {
+    int lastDash = fullVersion.indexOf("-");
+    if (lastDash < 0) {
+      return fullVersion;
+    }
+
+    return fullVersion.substring(0, lastDash);
+  }
+
+  public static boolean lessThan(String v1, String v2) {
+    v1 = toMajorMinorPatch(v1);
+    v2 = toMajorMinorPatch(v2);
+
+    List<Integer> split1 = Arrays.stream(v1.split("\\.")).map(Integer::valueOf).collect(Collectors.toList());
+    List<Integer> split2 = Arrays.stream(v2.split("\\.")).map(Integer::valueOf).collect(Collectors.toList());
+
+    if (split1.size() != split2.size() || split1.size() != 3) {
+      throw new IllegalArgumentException("Both versions must satisfy the X.Y.Z naming convention");
+    }
+
+    for (int i = 0; i < split1.size(); i++) {
+      if (split1.get(i) == split2.get(i)) {
+        continue;
+      } else if (split1.get(i) < split2.get(i)) {
+        return true;
+      } else if (split1.get(i) > split2.get(i)) {
+        return false;
+      }
+    }
+
+    // all 3 points are equal
+    return false;
   }
 }
