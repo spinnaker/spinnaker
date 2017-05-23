@@ -21,8 +21,7 @@ import com.natpryce.hamkrest.equalTo
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.appinfo.InstanceInfo.InstanceStatus.*
 import com.netflix.discovery.StatusChangeEvent
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Id
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
@@ -447,10 +446,7 @@ class SpringIntegrationTest {
   RestrictExecutionDuringTimeWindow::class
 )
 open class TestConfig {
-  @Bean open fun registry(): Registry = mock {
-    on { createId(any<String>()) }.doReturn(mock<Id>())
-    on { counter(any<Id>()) }.doReturn(mock<Counter>())
-  }
+  @Bean open fun registry(): Registry = NoopRegistry()
 
   @Bean open fun dummyTask(): DummyTask = mock {
     on { timeout } doReturn Duration.ofMinutes(2).toMillis()

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
@@ -37,14 +38,16 @@ open class RedisQueueConfiguration {
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
     currentInstanceId: String,
-    deadMessageHandler: DeadMessageHandler
+    deadMessageHandler: DeadMessageHandler,
+    registry: Registry
   ): Queue =
     RedisQueue(
-      redisQueueProperties.queueName,
-      redisPool,
-      clock,
-      currentInstanceId,
-      deadMessageHandler = deadMessageHandler::handle
+      queueName = redisQueueProperties.queueName,
+      pool = redisPool,
+      clock = clock,
+      currentInstanceId = currentInstanceId,
+      deadMessageHandler = deadMessageHandler::handle,
+      registry = registry
     )
 
 }

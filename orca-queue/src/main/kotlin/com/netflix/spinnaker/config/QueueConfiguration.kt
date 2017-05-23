@@ -41,8 +41,8 @@ open class QueueConfiguration {
   open fun systemClock(): Clock = Clock.systemDefaultZone()
 
   @Bean(name = arrayOf("queueImpl")) @ConditionalOnMissingBean(Queue::class)
-  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler): Queue =
-    InMemoryQueue(clock, deadMessageHandler = deadMessageHandler::handle)
+  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, registry: Registry): Queue =
+    InMemoryQueue(clock, deadMessageHandler = deadMessageHandler::handle, registry = registry)
 
   @Bean @ConditionalOnMissingBean(ExecutionLogRepository::class)
   open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()

@@ -18,20 +18,24 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.ScheduledAction
+import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.Transaction
 import redis.clients.util.Pool
+import toInstant
 import java.io.Closeable
 import java.io.IOException
 import java.time.Clock
 import java.time.Duration
 import java.time.Duration.ZERO
+import java.time.Instant
 import java.time.temporal.TemporalAmount
 import java.util.UUID.randomUUID
 import javax.annotation.PreDestroy
@@ -43,8 +47,9 @@ class RedisQueue(
   private val currentInstanceId: String,
   private val lockTtlSeconds: Int = Duration.ofDays(1).seconds.toInt(),
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
-  override val deadMessageHandler: (Queue, Message) -> Unit
-) : Queue, Closeable {
+  override val deadMessageHandler: (Queue, Message) -> Unit,
+  override val registry: Registry
+) : MonitoredQueue, Closeable {
 
   private val mapper = ObjectMapper().apply {
     registerModule(KotlinModule())
@@ -56,6 +61,8 @@ class RedisQueue(
   private val messagesKey = queueName + ".messages"
   private val attemptsKey = queueName + ".attempts"
   private val locksKey = queueName + ".locks"
+  private val lastQueuePollKey = queueName + ".poll.timestamp"
+  private val lastRedeliveryPollKey = queueName + ".redelivery.timestamp"
 
   private val redeliveryWatcher = ScheduledAction(this::redeliver)
 
@@ -68,9 +75,11 @@ class RedisQueue(
             readMessage(id) { payload ->
               callback.invoke(payload) {
                 ack(id)
+                ackCounter.increment()
               }
             }
           }
+        setCurrentTimestamp(lastQueuePollKey)
       }
     }
   }
@@ -83,7 +92,20 @@ class RedisQueue(
         zadd(queueKey, score(delay), id)
       }
     }
+    pushCounter.increment()
   }
+
+  override val queueDepth: Int
+    get() = pool.resource.use { it.zcard(queueKey).toInt() }
+
+  override val unackedDepth: Int
+    get() = pool.resource.use { it.zcard(unackedKey).toInt() }
+
+  override val lastQueuePoll: Instant?
+    get() = pool.resource.use { it.getInstant(lastQueuePollKey) }
+
+  override val lastRedeliveryPoll: Instant?
+    get() = pool.resource.use { it.getInstant(lastRedeliveryPollKey) }
 
   @PreDestroy override fun close() {
     log.info("stopping redelivery watcher for $this")
@@ -117,11 +139,16 @@ class RedisQueue(
                   handleDeadMessage(message)
                   ack(id)
                 }
+                deadMessageCounter.increment()
               } else {
                 log.warn("Re-delivering message $id after $attempts attempts")
                 move(unackedKey, queueKey, ZERO, setOf(id))
+                redeliverCounter.increment()
               }
             }
+          }
+          .also {
+            setCurrentTimestamp(lastRedeliveryPollKey)
           }
       }
     }
@@ -190,8 +217,17 @@ class RedisQueue(
     }
   }
 
+  private fun JedisCommands.setCurrentTimestamp(key: String) =
+    set(key, clock.millis().toString())
+
   private fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
     hget(key, field)?.toInt() ?: default
+
+  private fun JedisCommands.getInt(key: String, default: Int = 0) =
+    get(key)?.toInt() ?: default
+
+  private fun JedisCommands.getInstant(key: String) =
+    get(key)?.toLong()?.toInstant()
 
   /**
    * @return current time (plus optional [delay]) converted to a score for a
@@ -203,10 +239,9 @@ class RedisQueue(
   inline fun <reified R> ObjectMapper.readValue(content: String): R =
     readValue(content, R::class.java)
 
-  private fun Jedis.multi(block: Transaction.() -> Unit) {
+  private fun Jedis.multi(block: Transaction.() -> Unit) =
     multi().use { tx ->
       tx.block()
       tx.exec()
     }
-  }
 }

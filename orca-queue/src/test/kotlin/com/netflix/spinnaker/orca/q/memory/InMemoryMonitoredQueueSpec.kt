@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.time
+package com.netflix.spinnaker.orca.q.memory
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.q.DeadMessageCallback
+import com.netflix.spinnaker.orca.q.metrics.MonitoredQueueSpec
 import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.time.temporal.TemporalAmount
 
-class MutableClock(
-  private var instant: Instant = Instant.now(),
-  private val zone: ZoneId = ZoneId.systemDefault()
-) : Clock() {
+object InMemoryMonitoredQueueSpec : MonitoredQueueSpec<InMemoryQueue>(
+  ::createQueue,
+  InMemoryQueue::redeliver
+)
 
-  override fun withZone(zone: ZoneId) = MutableClock(instant, zone)
-
-  override fun getZone() = zone
-
-  override fun instant() = instant
-
-  fun incrementBy(amount: TemporalAmount) {
-    instant = instant.plus(amount)
-  }
-
-  fun instant(newInstant: Instant): Unit {
-    instant = newInstant
-  }
-}
+private fun createQueue(
+  clock: Clock,
+  deadLetterCallback: DeadMessageCallback,
+  registry: Registry
+) = InMemoryQueue(
+  clock = clock,
+  deadMessageHandler = deadLetterCallback,
+  registry = registry
+)

@@ -55,10 +55,10 @@ interface Queue {
   val ackTimeout: TemporalAmount
 
   /**
-   * A handler for messages that have failed to ackowledge delivery more than
+   * A handler for messages that have failed to acknowledge delivery more than
    * [Queue.ackTimeout] times.
    */
-  val deadMessageHandler: (Queue, Message) -> Unit
+  val deadMessageHandler: DeadMessageCallback
 
   companion object {
     /**
@@ -75,3 +75,5 @@ interface Queue {
  * function used to acknowledge successful processing of the message.
  */
 typealias QueueCallback = (Message, () -> Unit) -> Unit
+
+typealias DeadMessageCallback = (Queue, Message) -> Unit

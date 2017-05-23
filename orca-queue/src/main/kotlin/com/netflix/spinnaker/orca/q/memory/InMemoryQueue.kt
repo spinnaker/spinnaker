@@ -16,9 +16,12 @@
 
 package com.netflix.spinnaker.orca.q.memory
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.ScheduledAction
+import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.threeten.extra.Temporals.chronoUnit
@@ -33,13 +36,15 @@ import java.util.concurrent.DelayQueue
 import java.util.concurrent.Delayed
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PreDestroy
 
 class InMemoryQueue(
   private val clock: Clock,
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
-  override val deadMessageHandler: (Queue, Message) -> Unit
-) : Queue, Closeable {
+  override val deadMessageHandler: DeadMessageCallback,
+  override val registry: Registry
+) : MonitoredQueue, Closeable {
 
   private val log: Logger = getLogger(javaClass)
 
@@ -48,20 +53,38 @@ class InMemoryQueue(
   private val redeliveryWatcher = ScheduledAction(this::redeliver)
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
+    _lastQueuePoll.lazySet(clock.instant())
     queue.poll()?.let { envelope ->
       unacked.put(envelope.copy(scheduledTime = clock.instant().plus(ackTimeout)))
       callback.invoke(envelope.payload) {
         ack(envelope.id)
+        ackCounter.increment()
       }
     }
   }
 
-  override fun push(message: Message, delay: TemporalAmount) =
+  override fun push(message: Message, delay: TemporalAmount) {
     queue.put(Envelope(message, clock.instant().plus(delay), clock))
+    pushCounter.increment()
+  }
 
   private fun ack(messageId: UUID) {
     unacked.removeIf { it.id == messageId }
   }
+
+  override val queueDepth: Int
+    get() = queue.size
+
+  override val unackedDepth: Int
+    get() = unacked.size
+
+  private val _lastQueuePoll = AtomicReference<Instant?>()
+  override val lastQueuePoll: Instant?
+    get() = _lastQueuePoll.get()
+
+  private val _lastRedeliveryPoll = AtomicReference<Instant?>()
+  override val lastRedeliveryPoll: Instant?
+    get() = _lastRedeliveryPoll.get()
 
   @PreDestroy override fun close() {
     log.info("stopping redelivery watcher for $this")
@@ -69,12 +92,16 @@ class InMemoryQueue(
   }
 
   internal fun redeliver() {
+    val now = clock.instant()
+    _lastRedeliveryPoll.lazySet(now)
     unacked.pollAll {
       if (it.count >= Queue.maxRedeliveries) {
         deadMessageHandler.invoke(this, it.payload)
+        deadMessageCounter.increment()
       } else {
         log.warn("redelivering unacked message ${it.payload}")
-        queue.put(it.copy(scheduledTime = clock.instant(), count = it.count + 1))
+        queue.put(it.copy(scheduledTime = now, count = it.count + 1))
+        redeliverCounter.increment()
       }
     }
   }
