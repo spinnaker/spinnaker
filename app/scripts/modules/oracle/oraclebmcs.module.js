@@ -17,6 +17,7 @@ module.exports = angular.module('spinnaker.oraclebmcs', [
   //Cache
   require('./cache/cacheConfigurer.service.js'),
   // Pipeline
+  require('./pipeline/stages/bake/bakeStage.js'),
   require('./pipeline/stages/destroyAsg/destroyAsgStage.js'),
   require('./pipeline/stages/resizeAsg/resizeAsgStage.js'),
   require('./pipeline/stages/scaleDownCluster/scaleDownClusterStage.js'),
