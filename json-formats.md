@@ -38,8 +38,9 @@ Atlas is used.
   "services": {
     "atlas": {
       "type": "atlas",
+      "name": "atlas",
       "region": "us-east-1",
-      "env": "prod",
+      "environment": "prod",
       "backend": {
         "deployment": "main",
         "dataset": "regional"
