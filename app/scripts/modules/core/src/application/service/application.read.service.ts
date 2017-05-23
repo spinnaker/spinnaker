@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IFilterService, ILogService, IPromise, IQService, module } from 'angular';
 
 import { Api, API_SERVICE } from 'core/api/api.service';
 import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
@@ -23,19 +23,19 @@ export interface IApplicationSummary {
 
 export class ApplicationReader {
 
-  public constructor(private $q: ng.IQService, private $log: ng.ILogService, private $filter: ng.IFilterService,
+  public constructor(private $q: IQService, private $log: ILogService, private $filter: IFilterService,
                      private API: Api, private schedulerFactory: SchedulerFactory,
                      private applicationDataSourceRegistry: ApplicationDataSourceRegistry) {
     'ngInject';
   }
 
-  public listApplications(): ng.IPromise<IApplicationSummary[]> {
+  public listApplications(): IPromise<IApplicationSummary[]> {
     return this.API.all('applications').useCache().getList();
   }
 
-  public getApplication(name: string): ng.IPromise<Application> {
+  public getApplication(name: string): IPromise<Application> {
     return this.API.one('applications', name).get().then((fromServer: Application) => {
-      const application: Application = new Application(name, this.schedulerFactory.createScheduler(), this.$q, this.$log);
+      const application: Application = new Application(fromServer.name, this.schedulerFactory.createScheduler(), this.$q, this.$log);
       application.attributes = fromServer.attributes;
       this.splitAttributes(application.attributes, ['accounts', 'cloudProviders']);
       this.addDataSources(application);
