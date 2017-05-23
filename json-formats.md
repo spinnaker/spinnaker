@@ -5,10 +5,9 @@
 This config defines the metrics and analysis thresholds set for a canary run.
 Typically, thresholds can be overridden at execution time as well.
 
-It is normal to have all metrics come from the same source.  In this example,
-Atlas is used.
+It is normal to have all metrics for a given canary run come from the same source.  In these examples,
+Atlas and Stackdriver are used.
 
-** TODO: Add examples for other drivers **
 
 ```JSON
 {
