@@ -37,9 +37,7 @@ import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.dsl.context
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
@@ -75,7 +73,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
   fun resetMocks() = reset(queue, repository, publisher)
 
   describe("starting a stage") {
-    context("with a single initial task") {
+    given("there is a single initial task") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -90,7 +88,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -127,7 +125,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    context("with no tasks") {
+    given("the stage has no tasks") {
       and("no after stages") {
         val pipeline = pipeline {
           application = "foo"
@@ -144,7 +142,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
         afterGroup(::resetMocks)
 
-        action("the handler receives a message") {
+        on("receiving a message") {
           subject.handle(message)
         }
 
@@ -185,7 +183,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
         afterGroup(::resetMocks)
 
-        action("the handler receives a message") {
+        on("receiving a message") {
           subject.handle(message)
         }
 
@@ -211,7 +209,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    context("with several linear tasks") {
+    given("the stage has several linear tasks") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -224,7 +222,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
       }
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -268,7 +266,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    context("with synthetic stages") {
+    given("the stage has synthetic stages") {
       context("before the main stage") {
         val pipeline = pipeline {
           application = "foo"
@@ -282,7 +280,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
         }
 
-        action("the handler receives a message") {
+        on("receiving a message") {
           subject.handle(message)
         }
 
@@ -320,7 +318,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
         afterGroup(::resetMocks)
 
-        action("the handler receives a message") {
+        on("receiving a message") {
           subject.handle(message)
         }
 
@@ -343,17 +341,15 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    context("with other upstream stages that are incomplete") {
+    given("the stage has other upstream stages") {
       val pipeline = pipeline {
         application = "foo"
         stage {
           refId = "1"
-          status = SUCCEEDED
           type = singleTaskStage.type
         }
         stage {
           refId = "2"
-          status = RUNNING
           type = singleTaskStage.type
         }
         stage {
@@ -364,30 +360,83 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
       val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("3").id)
 
-      beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      and("at least one is incomplete") {
+        beforeGroup {
+          pipeline.stageByRef("1").status = SUCCEEDED
+          pipeline.stageByRef("2").status = RUNNING
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("doesn't build its tasks") {
+          pipeline.stageByRef("3").tasks shouldMatch isEmpty
+        }
+
+        it("waits for the other upstream stage to complete") {
+          verify(queue, never()).push(isA<StartTask>())
+        }
+
+        it("does not publish an event") {
+          verifyZeroInteractions(publisher)
+        }
+
+        it("re-queues the message with a delay") {
+          verify(queue).push(message, StartStageHandler.retryDelay)
+        }
       }
 
-      afterGroup(::resetMocks)
+      and("they are all complete") {
+        beforeGroup {
+          pipeline.stageByRef("1").status = SUCCEEDED
+          pipeline.stageByRef("2").status = SUCCEEDED
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
 
-      action("the handler receives a message") {
-        subject.handle(message)
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("starts its first task") {
+          verify(queue).push(isA<StartTask>())
+        }
+
+        it("publishes an event") {
+          verify(publisher).publishEvent(isA<StageStarted>())
+        }
       }
 
-      it("doesn't build its tasks") {
-        pipeline.stageByRef("3").tasks shouldMatch isEmpty
-      }
+      and("completion of another has already started this stage") {
+        beforeGroup {
+          pipeline.stageByRef("1").status = SUCCEEDED
+          pipeline.stageByRef("2").status = SUCCEEDED
+          pipeline.stageByRef("3").status = RUNNING
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
 
-      it("waits for the other upstream stage to complete") {
-        verify(queue, never()).push(isA<StartTask>())
-      }
+        afterGroup(::resetMocks)
 
-      it("does not publish an event") {
-        verifyZeroInteractions(publisher)
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("does not queue any messages") {
+          verifyZeroInteractions(queue)
+        }
+
+        it("does not publish any events") {
+          verifyZeroInteractions(publisher)
+        }
       }
     }
 
-    context("with an execution window") {
+    given("the stage has an execution window") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -403,7 +452,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -423,7 +472,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    context("with a stage type alias") {
+    given("the stage has a stage type alias") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -439,7 +488,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -484,7 +533,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -537,7 +586,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -572,7 +621,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -601,7 +650,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
   }
 
   describe("running an optional stage") {
-    context("if the stage should be run") {
+    given("the stage should be run") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -621,7 +670,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -630,7 +679,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    context("if the stage should be skipped") {
+    given("the stage should be skipped") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -650,7 +699,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -674,14 +723,14 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
     val message = StartStage(Pipeline::class.java, "1", "foo", "1")
 
-    describe("no such execution") {
+    given("no such execution") {
       beforeGroup {
         whenever(repository.retrievePipeline(message.executionId)) doThrow ExecutionNotFoundException("No Pipeline found for ${message.executionId}")
       }
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
@@ -690,7 +739,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       }
     }
 
-    describe("no such stage") {
+    given("no such stage") {
       val pipeline = pipeline {
         id = message.executionId
         application = "foo"
@@ -702,7 +751,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving a message") {
         subject.handle(message)
       }
 
