@@ -243,6 +243,117 @@ class AwsConfigurator(object):
       file_set.add(options.aws_account_credentials)
 
 
+class AppengineConfigurator(object):
+  """Controls hal config provider for appengine"""
+
+  def init_argument_parser(self, parser):
+    """Implements interface."""
+    # pylint: disable=line-too-long
+    parser.add_argument(
+        '--appengine_account_project', default=None,
+        help='The Google Cloud Platform project this Spinnaker account will manage.')
+
+    parser.add_argument(
+        '--appengine_account_name', default='my-appengine-account',
+        help='The name of the primary Appengine account to configure.')
+    parser.add_argument(
+        '--appengine_account_credentials', default=None,
+        help='Path to file containing the JSON Oauth credentials for the AppEngine account.')
+
+    parser.add_argument(
+        '--appengine_account_git_username', default=None,
+        help='The name of the remote git user.')
+    parser.add_argument(
+        '--appengine_account_git_https_credentials', default=None,
+        help='Path to file containing the password for the remote git repository.')
+    parser.add_argument(
+        '--appengine_account_git_oauth_credentials', default=None,
+        help='Path to file containing the password for the remote git repository.')
+
+    parser.add_argument(
+        '--appengine_account_ssh_private_key_path', default=None)
+    parser.add_argument(
+        '--appengine_account_ssh_private_key_passphrase', default=None)
+
+    parser.add_argument(
+        '--appengine_account_local_repository_directory', default=None)
+
+  def validate_options(self, options):
+    """Implements interface."""
+
+    options.appengine_account_enabled = (options.appengine_account_project
+                                         is not None)
+    if not options.appengine_account_enabled:
+      return
+
+  def add_config(self, options, script):
+    """Implements interface."""
+    if not options.appengine_account_project:
+      return
+
+    script.append('hal --color=false config provider appengine enable')
+    account_params = [
+        options.appengine_account_name,
+        '--project', options.appengine_account_project
+    ]
+    if options.appengine_account_credentials:
+      account_params.extend(
+          ['--json-path',
+           os.path.basename(options.appengine_account_credentials)])
+    if options.appengine_account_local_repository_directory:
+      account_params.extend(
+          ['--local-repository-directory',
+           options.appengine_account_local_repository_directory])
+    script.append(
+        'hal --color=false config provider appengine account add {params}'
+        .format(params=' '.join(account_params)))
+
+    hal_edit = ('hal --color=false'
+                ' config provider appengine account edit {name}'
+                .format(name=options.appengine_account_name))
+
+    # Maybe config github
+    if options.appengine_account_git_username:
+      git_params = ['--git-https-username',
+                    options.appengine_account_git_username]
+      if options.appengine_account_git_oauth_credentials:
+        git_params.append(
+            '--github-oauth-access-token < {file}'
+            .format(
+                file=os.path.basename(
+                    options.appengine_account_git_oauth_credentials)))
+      elif options.appengine_account_git_https_credentials:
+        git_params.append(
+            '--git-https-password < {path}'
+            .format(
+                path=os.path.basename(
+                    options.appengine_account_git_https_credentials)))
+      script.append(
+          '{hal} {params}'.format(hal=hal_edit, params=' '.join(git_params)))
+
+    # Maybe config ssh
+    if options.appengine_account_ssh_private_key_path:
+      ssh_params = ['--ssh-private-key-file-path',
+                    options.appengine_account_local_repository_directory]
+      if options.appengine_account_ssh_private_key_passphrase:
+        ssh_params.append('--ssh-private-key-passphrase < {path}'.format(
+            path=os.path.basename(
+                options.appengine_account_ssh_private_key_passphrase)))
+      script.append(
+          '{hal} {params}'.format(hal=hal_edit, params=' '.join(ssh_params)))
+
+  def add_files_to_upload(self, options, file_set):
+    """Implements interface."""
+    if options.appengine_account_credentials:
+      file_set.add(options.appengine_account_credentials)
+    if options.appengine_account_git_https_credentials:
+      file_set.add(options.appengine_account_git_https_credentials)
+    if options.appengine_account_git_oauth_credentials:
+      file_set.add(options.appengine_account_git_oauth_credentials)
+    if options.appengine_account_ssh_private_key_passphrase:
+      file_set.add(options.appengine_account_ssh_private_key_passphrase)
+
+
 class AzureConfigurator(object):
   """Controls hal config provider azure."""
 
@@ -662,6 +773,7 @@ class SecurityConfigurator(object):
 CONFIGURATOR_LIST = [
     StorageConfigurator(),
     AwsConfigurator(),
+    AppengineConfigurator(),
     AzureConfigurator(),
     DockerConfigurator(),
     GoogleConfigurator(),
