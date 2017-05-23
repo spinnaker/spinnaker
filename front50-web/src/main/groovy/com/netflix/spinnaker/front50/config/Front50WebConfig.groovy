@@ -20,12 +20,12 @@ import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
+import com.netflix.spinnaker.front50.exception.BadRequestException
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO
-
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
 import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
@@ -44,6 +44,8 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
+
+import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan
@@ -85,6 +87,7 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
   }
 
   @Bean
+  @ConditionalOnBean(PipelineTemplateDAO)
   ItemDAOHealthIndicator pipelineTemplateDAOHealthIndicator(PipelineTemplateDAO pipelineTemplateDAO) {
     return new ItemDAOHealthIndicator(itemDAO: pipelineTemplateDAO)
   }
@@ -126,6 +129,16 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
           status           : HttpStatus.TOO_MANY_REQUESTS.value(),
           timestamp        : System.currentTimeMillis()
       ]
+    }
+  }
+
+  @ControllerAdvice
+  static class BadRequestExceptionHandler {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    @ExceptionHandler(BadRequestException)
+    void handleBadRequest(BadRequestException exception, HttpServletResponse response) {
+      response.sendError(HttpStatus.BAD_REQUEST.value(), exception.message)
     }
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
+import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
@@ -37,47 +38,54 @@ import java.util.Map;
 @RequestMapping("pipelineTemplates")
 public class PipelineTemplateController {
 
-  @Autowired
-  PipelineTemplateDAO pipelineTemplateDAO;
+  @Autowired(required = false)
+  PipelineTemplateDAO pipelineTemplateDAO = null;
 
   // TODO rz - Add fiat authz
 
   @RequestMapping(value = "", method = RequestMethod.GET)
   List<PipelineTemplate> list(@RequestParam(required = false, value = "scopes", defaultValue = "global") List<String> scopes) {
-    return (List<PipelineTemplate>) pipelineTemplateDAO.getPipelineTemplatesByScope(scopes);
+    return (List<PipelineTemplate>) getPipelineTemplateDAO().getPipelineTemplatesByScope(scopes);
   }
 
   @RequestMapping(value = "", method = RequestMethod.POST)
   void save(@RequestBody PipelineTemplate pipelineTemplate) {
     checkForDuplicatePipelineTemplate(pipelineTemplate.getId());
-    pipelineTemplateDAO.create(pipelineTemplate.getId(), pipelineTemplate);
+    getPipelineTemplateDAO().create(pipelineTemplate.getId(), pipelineTemplate);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.GET)
   PipelineTemplate get(@PathVariable String id) {
-    return pipelineTemplateDAO.findById(id);
+    return getPipelineTemplateDAO().findById(id);
   }
 
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   PipelineTemplate update(@PathVariable String id, @RequestBody PipelineTemplate pipelineTemplate) {
-    PipelineTemplate existingPipelineTemplate = pipelineTemplateDAO.findById(id);
+    PipelineTemplate existingPipelineTemplate = getPipelineTemplateDAO().findById(id);
     if (!pipelineTemplate.getId().equals(existingPipelineTemplate.getId())) {
       throw new InvalidPipelineTemplateRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
     }
 
     pipelineTemplate.setLastModified(System.currentTimeMillis());
-    pipelineTemplateDAO.update(id, pipelineTemplate);
+    getPipelineTemplateDAO().update(id, pipelineTemplate);
 
     return pipelineTemplate;
   }
 
   private void checkForDuplicatePipelineTemplate(String id) {
     try {
-      pipelineTemplateDAO.findById(id);
+      getPipelineTemplateDAO().findById(id);
     } catch (NotFoundException e) {
       return;
     }
     throw new DuplicatePipelineTemplateIdException("A pipeline template with the id " + id + " already exists");
+  }
+
+  private PipelineTemplateDAO getPipelineTemplateDAO() {
+    if (pipelineTemplateDAO == null) {
+      throw new BadRequestException("Pipeline Templates are not supported with your current storage backend");
+    }
+    return pipelineTemplateDAO;
   }
 
   @ExceptionHandler(InvalidPipelineTemplateRequestException.class)
