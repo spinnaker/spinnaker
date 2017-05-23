@@ -16,6 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
+import com.netflix.spinnaker.orca.pipeline.model.Orchestration
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+import org.springframework.context.expression.MapAccessor
+
+import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.text.SimpleDateFormat
 import java.util.concurrent.atomic.AtomicReference
@@ -134,7 +141,7 @@ class ContextParameterProcessor {
       StandardEvaluationContext evaluationContext = new StandardEvaluationContext(context)
       evaluationContext.setTypeLocator(new WhitelistTypeLocator())
       evaluationContext.setMethodResolvers([new FilteredMethodResolver()])
-      evaluationContext.addPropertyAccessor(allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor)
+      evaluationContext.setPropertyAccessors([new FilteredPropertyAccessor(), allowUnknownKeys ? allowUnknownKeysAccessor : requireKeysAccessor])
 
       evaluationContext.registerFunction('alphanumerical', ContextUtilities.getDeclaredMethod("alphanumerical", String))
       evaluationContext.registerFunction('toJson', ContextUtilities.getDeclaredMethod("toJson", Object))
@@ -177,8 +184,8 @@ class ContextParameterProcessor {
     }
   }
 
-  static class WhitelistTypeLocator implements TypeLocator {
-    private final Set<Class<?>> allowedTypes = Collections.unmodifiableSet([
+  static class TypeWhitelist {
+    static final Set<Class<?>> allowedTypes = Collections.unmodifiableSet([
         String,
         Date,
         Integer,
@@ -189,14 +196,50 @@ class ContextParameterProcessor {
         Math,
         Random,
         UUID,
-        Boolean
+        Boolean,
     ] as Set)
+
+    static final Set<Class<?>> allowedReturnTypes = Collections.unmodifiableSet([
+        Collection,
+        Map,
+        SortedMap,
+        List,
+        Set,
+        SortedSet,
+        ArrayList,
+        LinkedList,
+        HashSet,
+        LinkedHashSet,
+        HashMap,
+        LinkedHashMap,
+        TreeMap,
+        TreeSet,
+        // spinnaker model types
+        Execution,
+        Pipeline,
+        Orchestration,
+        Stage,
+        ExecutionStatus
+    ] as Set)
+
+    static boolean isAllowedForInstantiation(Class<?> type) {
+      return allowedTypes.contains(type)
+    }
+
+    static boolean isAllowedForReturn(Class<?> type) {
+      final Class<?> returnType = type.isArray() ? type.componentType : type
+      return returnType.isPrimitive() || allowedTypes.contains(returnType) || allowedReturnTypes.contains(returnType)
+    }
+
+  }
+
+  static class WhitelistTypeLocator implements TypeLocator {
 
     final TypeLocator delegate = new StandardTypeLocator()
     @Override
     Class<?> findType(String typeName) throws EvaluationException {
       def type = delegate.findType(typeName)
-      if (allowedTypes.contains(type)) {
+      if (TypeWhitelist.isAllowedForInstantiation(type)) {
         return type
       }
 
@@ -232,8 +275,41 @@ class ContextParameterProcessor {
 
       def m = new ArrayList<Method>(Arrays.asList(methods))
       m.removeAll(rejectedMethods)
+      m = m.findAll { TypeWhitelist.isAllowedForReturn(it.returnType) }
 
       return m.toArray(new Method[m.size()])
+    }
+  }
+
+  @CompileStatic
+  @Slf4j
+  static class FilteredPropertyAccessor extends ReflectivePropertyAccessor {
+    @Override
+    protected Method findGetterForProperty(String propertyName, Class<?> clazz, boolean mustBeStatic) {
+      Method getter = super.findGetterForProperty(propertyName, clazz, mustBeStatic)
+      if (getter && TypeWhitelist.isAllowedForReturn(getter.returnType)) {
+        return getter
+      }
+
+      if (getter) {
+        log.info("found getter for requested $propertyName but rejected due to return type $getter.returnType")
+      }
+
+      return null
+    }
+
+    @Override
+    protected Field findField(String name, Class<?> clazz, boolean mustBeStatic) {
+      Field field = super.findField(name, clazz, mustBeStatic)
+      if (field && TypeWhitelist.isAllowedForReturn(field.type)) {
+        return field
+      }
+
+      if (field) {
+        log.info("found field for requested $name but rejected due to type $field.type")
+      }
+
+      return null
     }
   }
 }
@@ -314,7 +390,7 @@ abstract class ContextUtilities {
 
 }
 
-class MapPropertyAccessor extends ReflectivePropertyAccessor {
+class MapPropertyAccessor extends MapAccessor {
   private final boolean allowUnknownKeys
 
   public MapPropertyAccessor(boolean allowUnknownKeys) {
@@ -323,30 +399,26 @@ class MapPropertyAccessor extends ReflectivePropertyAccessor {
   }
 
   @Override
-  Class<?>[] getSpecificTargetClasses() {
-    [Map]
-  }
-
-  @Override
   boolean canRead(final EvaluationContext context, final Object target, final String name)
     throws AccessException {
-    if (target instanceof Map) {
-      return allowUnknownKeys || target.containsKey(name)
+    if (allowUnknownKeys) {
+      return true
     }
-    return false
+    boolean canRead = super.canRead(context, target, name)
+    return canRead
   }
 
   @Override
   public TypedValue read(final EvaluationContext context, final Object target, final String name)
     throws AccessException {
-    if (target instanceof Map) {
-      if (target.containsKey(name)) {
-        return new TypedValue(target.get(name))
-      } else if (allowUnknownKeys) {
+    try {
+      TypedValue result = super.read(context, target, name)
+      return result
+    } catch (AccessException ae) {
+      if (allowUnknownKeys) {
         return TypedValue.NULL
       }
-      throw new AccessException("No property in map with key $name")
+      throw ae
     }
-    throw new AccessException("Cannot read target of class " + target.getClass().getName())
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -137,6 +138,25 @@ class ContextParameterProcessorSpec extends Specification {
     '${ new java.lang.Integer(1).wait(100000) }'                        | 'wait'
     '${ new java.lang.Integer(1).getClass().getSimpleName() }'          | 'getClass'
   }
+
+  def "should deny access to groovy metaclass methods via #desc"() {
+    given:
+    def source = [test: testCase]
+
+    when:
+    def result = contextParameterProcessor.process(source, [status: ExecutionStatus.PAUSED, nested: [status: ExecutionStatus.RUNNING]], true)
+
+    then:
+    result.test == source.test
+
+    where:
+    testCase  | desc
+    '${status.getMetaClass()}'        | 'method'
+    '${status.metaClass}'             | 'propertyAccessor'
+    '${nested.status.metaClass}'      | 'nested accessor'
+    '${nested.status.getMetaClass()}' | 'nested method'
+  }
+
 
   @Unroll
   def "when allowUnknownKeys is #allowUnknownKeys it #desc"() {
@@ -432,7 +452,27 @@ class ContextParameterProcessorSpec extends Specification {
 
     then:
     result.json == '[{"v1":"k1"},{"v2":"k2"}]'
+  }
 
+  def 'can operate on List from json'() {
+    given:
+    def source = [
+        'expression': '${#toJson(parameters["regions"].split(",")).contains("us-west-2")}',
+    ]
+    def context = [parameters: [regions: regions]]
+
+    when:
+    def result = contextParameterProcessor.process(source, context, true)
+
+    then:
+    result.expression == expected
+
+    where:
+    regions               | expected
+    'us-west-2'           | true
+    'us-east-1'           | false
+    'us-east-1,us-west-2' | true
+    'us-east-1,eu-west-1' | false
   }
 
   @Unroll
@@ -526,6 +566,23 @@ class ContextParameterProcessorSpec extends Specification {
         ]
       ]
     ]
+  }
+
+  def "can find a stage in an execution"() {
+    given:
+    def pipe = Pipeline.builder()
+        .withStage("wait", "Wait1", [waitTime: 1, refId: "1", requisiteStageRefIds:[]])
+        .withStage("wait", "Wait2", [waitTime: 1, refId: "2", requisiteStageRefIds: ["1"], comments: '${#stage("Wait1")["status"].toString()}'])
+        .build()
+
+    def stage = pipe.stages.find { it.name == "Wait2" }
+    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+
+    when:
+    def result = contextParameterProcessor.process(stage.context, ctx, true)
+
+    then:
+    result.comments == "NOT_STARTED"
   }
 
   def "can find a judgment result"() {

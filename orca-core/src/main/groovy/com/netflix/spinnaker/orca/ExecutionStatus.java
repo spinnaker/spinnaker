@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca
+package com.netflix.spinnaker.orca;
 
-import groovy.transform.CompileStatic
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
-@CompileStatic
-enum ExecutionStatus {
+public enum ExecutionStatus {
   /**
    * The task has yet to start.
    */
@@ -79,31 +80,40 @@ enum ExecutionStatus {
   /**
    * The task was skipped and the pipeline will proceed to the next task.
    */
-    SKIPPED(true, false)
+    SKIPPED(true, false);
 
   /**
    * Indicates that the task/stage/pipeline has finished its work (successfully or not).
    */
-  final boolean complete
+  public final boolean isComplete() {
+    return complete;
+  }
 
   /**
    * Indicates an abnormal completion so nothing downstream should run afterward.
    */
-  final boolean halt
+  public final boolean isHalt() {
+    return halt;
+  }
 
-  private static final Collection<ExecutionStatus> SUCCESSFUL = [SUCCEEDED, STOPPED, SKIPPED]
-  private static final Collection<ExecutionStatus> FAILURE = [TERMINAL, STOPPED, FAILED_CONTINUE]
+  private static final Collection<ExecutionStatus> SUCCESSFUL = Collections.unmodifiableList(Arrays.asList(SUCCEEDED, STOPPED, SKIPPED));
+  private static final Collection<ExecutionStatus> FAILURE = Collections.unmodifiableList(Arrays.asList(TERMINAL, STOPPED, FAILED_CONTINUE));
+
+  private final boolean complete;
+  private final boolean halt;
 
   ExecutionStatus(boolean complete, boolean halt) {
-    this.complete = complete
-    this.halt = halt
+    this.complete = complete;
+    this.halt = halt;
   }
 
-  boolean isSuccessful() {
-    return SUCCESSFUL.contains(this)
+
+  public boolean isSuccessful() {
+    return SUCCESSFUL.contains(this);
   }
 
-  boolean isFailure() {
-    return FAILURE.contains(this)
+  public boolean isFailure() {
+    return FAILURE.contains(this);
   }
+
 }

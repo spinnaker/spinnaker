@@ -25,14 +25,15 @@ import spock.lang.Unroll
 
 class OptionalStageSupportSpec extends Specification {
 
-  @Shared ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
+  @Shared
+  ContextParameterProcessor contextParameterProcessor = new ContextParameterProcessor()
 
   @Unroll
-  def "should support expression-based optionality"() {
+  def "should support expression-based optionality #desc"() {
     given:
     def pipeline = new Pipeline()
     pipeline.trigger.parameters = [
-      "p1": "v1"
+        "p1": "v1"
     ]
     pipeline.stages << new Stage<>(pipeline, "", "Test1", [:])
     pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
@@ -42,24 +43,24 @@ class OptionalStageSupportSpec extends Specification {
 
     and:
     def stage = new Stage<>(pipeline, "", [
-      stageEnabled: optionalConfig
+        stageEnabled: optionalConfig
     ])
 
     expect:
     OptionalStageSupport.isOptional(stage, contextParameterProcessor) == expectedOptionality
 
     where:
-    optionalConfig                                                                                                   || expectedOptionality
-    [:]                                                                                                              || false
-    [type: "expression"]                                                                                             || false
-    [type: "expression", expression: ""]                                                                             || false
-    [type: "expression", expression: null]                                                                           || false
-    [type: "expression", expression: "parameters.p1 == 'v1'"]                                                        || false
-    [type: "expression", expression: "parameters.p1 == 'v2'"]                                                        || true
-    [type: "expression", expression: "execution.stages.?[name == 'Test2'][0]['status'].name() == 'FAILED_CONTINUE'"] || true
-    [type: "expression", expression: "execution.stages.?[name == 'Test1'][0]['status'].name() == 'FAILED_CONTINUE'"] || false
-    [type: "expression", expression: "true"]                                                                         || false
-    [type: "expression", expression: "false"]                                                                        || true
+    desc                        | optionalConfig                                                                                                       || expectedOptionality
+    "empty config"              | [:]                                                                                                                  || false
+    "no expression"             | [type: "expression"]                                                                                                 || false
+    "empty expression"          | [type: "expression", expression: ""]                                                                                 || false
+    "null expression"           | [type: "expression", expression: null]                                                                               || false
+    "evals to true expression"  | [type: "expression", expression: "parameters.p1 == 'v1'"]                                                            || false
+    "evals to false expression" | [type: "expression", expression: "parameters.p1 == 'v2'"]                                                            || true
+    "nested"                    | [type: "expression", expression: "execution.stages.?[name == 'Test2'][0]['status'].toString() == 'FAILED_CONTINUE'"] || true
+    "nested2"                   | [type: "expression", expression: "execution.stages.?[name == 'Test1'][0]['status'].toString() == 'FAILED_CONTINUE'"] || false
+    "explicitly true"           | [type: "expression", expression: "true"]                                                                             || false
+    "explicitly false"          | [type: "expression", expression: "false"]                                                                            || true
   }
 
   @Unroll
@@ -67,10 +68,10 @@ class OptionalStageSupportSpec extends Specification {
     given:
     def pipeline = new Pipeline()
     pipeline.trigger.parameters = [
-      "p1": "v1"
+        "p1": "v1"
     ]
     pipeline.stages << new Stage<>(pipeline, "", "Test1", [
-      stageEnabled: optionalConfig
+        stageEnabled: optionalConfig
     ])
     pipeline.stages[0].status = ExecutionStatus.FAILED_CONTINUE
 
