@@ -16,9 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.security;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import groovy.util.logging.Slf4j;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  *
  */
+@Slf4j
 public class MapBackedAccountCredentialsRepository implements AccountCredentialsRepository {
     private final Map<String, AccountCredentials> map = new ConcurrentHashMap<>();
 
@@ -50,6 +49,11 @@ public class MapBackedAccountCredentialsRepository implements AccountCredentials
      */
     @Override
     public AccountCredentials save(String key, AccountCredentials credentials) {
+        if (!credentials?.getRequiredGroupMembership()?.isEmpty()) {
+            log.warn("Deprecated `requiredGroupMembership` found for account ${credentials?.name}." +
+                         " Please update to `permissions` format.")
+        }
+
         return map.put(credentials.getName(), credentials);
     }
 

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.appengine.AppengineCloudProvider
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentialType
 import com.netflix.spinnaker.clouddriver.appengine.gitClient.AppengineGitCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
 
 @TupleConstructor
@@ -34,6 +35,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
   final String region
   final List<String> regions
   final List<String> requiredGroupMembership
+  final Permissions permissions
 
   @JsonIgnore
   final String jsonPath
@@ -56,6 +58,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
     String project
     String region
     List<String> requiredGroupMembership
+    Permissions permissions = Permissions.EMPTY
     AppengineCredentials credentials
 
     String jsonKey
@@ -106,6 +109,14 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
 
     Builder requiredGroupMembership(List<String> requiredGroupMembership) {
       this.requiredGroupMembership = requiredGroupMembership
+      return this
+    }
+
+    Builder permissions(Permissions permissions) {
+      if (permissions.isRestricted()) {
+        this.requiredGroupMembership = []
+        this.permissions = permissions
+      }
       return this
     }
 
@@ -214,6 +225,7 @@ class AppengineNamedAccountCredentials implements AccountCredentials<AppengineCr
                                                   region,
                                                   [region],
                                                   requiredGroupMembership,
+                                                  permissions,
                                                   jsonPath,
                                                   credentials,
                                                   applicationName,

@@ -16,13 +16,16 @@
 
 package com.netflix.spinnaker.clouddriver.googlecommon.config
 
+import com.netflix.spinnaker.fiat.model.resources.Permissions
+
 class GoogleCommonManagedAccount {
   String name
   String environment
   String accountType
   String project
   String jsonPath
-  List<String> requiredGroupMembership
+  @Deprecated List<String> requiredGroupMembership
+  Permissions.Builder permissions = new Permissions.Builder()
 
   public InputStream getInputStream() {
     if (jsonPath) {

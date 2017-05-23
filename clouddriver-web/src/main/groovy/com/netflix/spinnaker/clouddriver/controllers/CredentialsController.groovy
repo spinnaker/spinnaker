@@ -76,7 +76,13 @@ class CredentialsController {
     }
     Map cred = objectMapper.convertValue(accountCredentials, Map)
     if (!includeDetail) {
-      cred.keySet().retainAll(['name', 'environment', 'accountType', 'cloudProvider', 'requiredGroupMembership', 'accountId'])
+      cred.keySet().retainAll(['name',
+                               'environment',
+                               'accountType',
+                               'cloudProvider',
+                               'requiredGroupMembership',
+                               'permissions',
+                               'accountId'])
     }
 
     cred.type = accountCredentials.cloudProvider

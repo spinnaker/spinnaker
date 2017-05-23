@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.security;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.netflix.spinnaker.fiat.model.resources.Permissions;
 
 import java.util.List;
 
@@ -89,5 +90,10 @@ public interface AccountCredentials<T> {
      *
      * @return the group names that govern access to this account, empty indicates a public account accessible by all.
      */
+    @Deprecated
     List<String> getRequiredGroupMembership();
+
+    // TODO(ttomsu): Enable this when all provider credentials implement this interface. I'm leaving
+    // it uncommented in order to produce small, reviewable PRs.
+    // Permissions getPermissions();
 }

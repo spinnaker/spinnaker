@@ -76,6 +76,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .jsonKey(jsonKey)
             .imageProjects(managedAccount.imageProjects)
             .requiredGroupMembership(managedAccount.requiredGroupMembership)
+            .permissions(managedAccount.permissions.build())
             .applicationName(clouddriverUserAgentApplicationName)
             .consulConfig(managedAccount.consul)
             .instanceTypeDisks(googleDeployDefaults.instanceTypeDisks)

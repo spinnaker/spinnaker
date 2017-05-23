@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleInstanceTypeDisk
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
+import com.netflix.spinnaker.fiat.model.resources.Permissions
 import groovy.transform.TupleConstructor
 
 @TupleConstructor
@@ -37,6 +38,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final String accountType
   final String cloudProvider = GoogleCloudProvider.ID // duh.
   final List<String> requiredGroupMembership
+  final Permissions permissions
   final GoogleCredentials credentials
 
   final String project
@@ -55,6 +57,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     String environment
     String accountType
     List<String> requiredGroupMembership = []
+    Permissions permissions = Permissions.EMPTY
     String project
     String applicationName
     List<String> imageProjects = []
@@ -90,6 +93,14 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
 
     Builder requiredGroupMembership(List<String> requiredGroupMembership) {
       this.requiredGroupMembership = requiredGroupMembership
+      return this
+    }
+
+    Builder permissions(Permissions permissions) {
+      if (permissions.isRestricted()) {
+        this.requiredGroupMembership = []
+        this.permissions = permissions
+      }
       return this
     }
 
@@ -190,6 +201,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         accountType,
                                         GoogleCloudProvider.ID,
                                         requiredGroupMembership,
+                                        permissions,
                                         credentials,
                                         project,
                                         applicationName,
