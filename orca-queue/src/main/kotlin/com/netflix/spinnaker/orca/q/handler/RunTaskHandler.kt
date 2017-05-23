@@ -28,14 +28,14 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
+import com.netflix.spinnaker.orca.time.toDuration
+import com.netflix.spinnaker.orca.time.toInstant
 import com.netflix.spinnaker.security.AuthenticatedRequest.propagate
 import com.netflix.spinnaker.security.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import toDuration
-import toInstant
 import java.time.Clock
 import java.time.Duration
 import java.time.Duration.ZERO

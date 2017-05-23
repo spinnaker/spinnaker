@@ -19,9 +19,10 @@ package com.netflix.spinnaker.orca.q.metrics
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.time.toInstant
+import java.lang.management.ManagementFactory.getRuntimeMXBean
 import java.time.Duration
 import java.time.Instant
-import java.time.Instant.EPOCH
 import java.time.Instant.now
 import javax.annotation.PostConstruct
 
@@ -83,7 +84,17 @@ interface MonitoredQueue : Queue {
   @PostConstruct fun registerGauges() {
     registry.gauge("queue.depth", this, { it.queueDepth.toDouble() })
     registry.gauge("queue.unacked.depth", this, { it.unackedDepth.toDouble() })
-    registry.gauge("queue.last.poll.age", this, { Duration.between(it.lastQueuePoll ?: EPOCH, now()).toMillis().toDouble() })
-    registry.gauge("queue.last.retry.check.age", this, { Duration.between(it.lastRetryPoll ?: EPOCH, now()).toMillis().toDouble() })
+    registry.gauge("queue.last.poll.age", this, {
+      Duration.between(
+        it.lastQueuePoll ?: getRuntimeMXBean().startTime.toInstant(),
+        now()
+      ).toMillis().toDouble()
+    })
+    registry.gauge("queue.last.retry.check.age", this, {
+      Duration.between(
+        it.lastRetryPoll ?: getRuntimeMXBean().startTime.toInstant(),
+        now()
+      ).toMillis().toDouble()
+    })
   }
 }

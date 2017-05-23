@@ -1,3 +1,5 @@
+package com.netflix.spinnaker.orca.time
+
 import java.time.Duration
 import java.time.Instant
 
@@ -17,6 +19,6 @@ import java.time.Instant
  * limitations under the License.
  */
 
-fun Long?.toInstant() = if (this == null) null else Instant.ofEpochMilli(this)
+fun Long?.toInstant(): Instant? = if (this == null) null else Instant.ofEpochMilli(this)
 
-fun Long.toDuration() = Duration.ofMillis(this)
+fun Long.toDuration(): Duration = Duration.ofMillis(this)
