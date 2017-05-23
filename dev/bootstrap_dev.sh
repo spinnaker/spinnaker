@@ -219,6 +219,19 @@ if ! aws --version >& /dev/null && prompt_YN "Y" "Install AWS Platform SDK?"; th
     sudo apt-get install -y awscli
 fi
 
+# Setup Azure SDK
+# If azure-cli isn't installed, give a second chance here for consistency
+if ! azure-cli --version >& /dev/null && prompt_YN "N" "Install Azure Platform SDK?"; then
+    # https://docs.microsoft.com/en-us/cli/azure/install-azure-cli#apt-get
+    echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ wheezy main" | \
+         sudo tee /etc/apt/sources.list.d/azure-cli.list
+    sudo apt-key adv --keyserver packages.microsoft.com --recv-keys 417A0893
+    sudo apt-get install apt-transport-https
+    sudo apt-get update
+    sudo apt-get install -y azure-cli
+    az login
+fi
+
 # Setup source code
 if [[ "$CONFIRMED_GITHUB_REPOSITORY_OWNER" != "none" ]]; then
   mkdir -p build
