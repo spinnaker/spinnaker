@@ -26,12 +26,9 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.Resolved
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca.ActiveExecutions;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -118,13 +116,10 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   public RemoteAction connectCommand(DistributedServiceProvider<T> serviceProvider, AccountDeploymentDetails<T> deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
     RemoteAction result = new RemoteAction();
 
-    String deckConnection = serviceProvider
-        .getDeployableService(SpinnakerService.Type.DECK)
-        .connectCommand(deploymentDetails, runtimeSettings);
-    String gateConnection = serviceProvider
-        .getDeployableService(SpinnakerService.Type.GATE)
-        .connectCommand(deploymentDetails, runtimeSettings);
-    result.setScript("#!/bin/bash\n" + deckConnection + "&\n" + gateConnection);
+    String connectCommands = String.join(" &\n", serviceTypes.stream()
+        .map(t -> serviceProvider.getDeployableService(t).connectCommand(deploymentDetails, runtimeSettings))
+        .collect(Collectors.toList()));
+    result.setScript("#!/bin/bash\n" + connectCommands);
     result.setScriptDescription("The generated script will open connections to the API & UI servers using ssh tunnels");
     result.setAutoRun(false);
     return result;
@@ -235,6 +230,13 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     Map<String, Object> pipeline = distributedService.buildRollbackPipeline(details, runtimeSettings);
     Supplier<String> idSupplier = () -> orca.orchestrate(pipeline).get("ref");
     orcaRunner.monitorPipeline(idSupplier, orca);
+  }
+
+  private <T extends Account> void reapRoscoServerGroups(AccountDeploymentDetails<T> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      DistributedService<RoscoService.Rosco, T> roscoServices
+  ) {
+    
   }
 
   private <T extends Account> void reapOrcaServerGroups(AccountDeploymentDetails<T> details,
