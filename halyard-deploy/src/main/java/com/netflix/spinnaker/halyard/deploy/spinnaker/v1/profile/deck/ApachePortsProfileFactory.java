@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.deck;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,12 @@ public class ApachePortsProfileFactory extends TemplateBackedProfileFactory {
   @Override
   protected String getTemplate() {
     return PORTS_TEMPLATE;
+  }
+
+  @Override
+  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    super.setProfile(profile, deploymentConfiguration, endpoints);
+    profile.setUser(ApacheSettings.APACHE_USER);
   }
 
   @Override

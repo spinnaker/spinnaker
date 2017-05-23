@@ -60,6 +60,7 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     StringResource configTemplate = new StringResource(profile.getBaseContents());
     UiSecurity uiSecurity = deploymentConfiguration.getSecurity().getUiSecurity();
+    profile.setUser(ApacheSettings.APACHE_USER);
 
     Features features = deploymentConfiguration.getFeatures();
     Map<String, String> bindings = new HashMap<>();

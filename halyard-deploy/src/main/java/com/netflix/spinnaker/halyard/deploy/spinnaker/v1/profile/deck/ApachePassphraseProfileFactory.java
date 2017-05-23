@@ -21,6 +21,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguratio
 import com.netflix.spinnaker.halyard.config.model.v1.security.ApacheSsl;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +41,12 @@ public class ApachePassphraseProfileFactory extends TemplateBackedProfileFactory
   @Override
   protected boolean showEditWarning() {
     return false;
+  }
+
+  @Override
+  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    super.setProfile(profile, deploymentConfiguration, endpoints);
+    profile.setUser(ApacheSettings.APACHE_USER);
   }
 
   @Override

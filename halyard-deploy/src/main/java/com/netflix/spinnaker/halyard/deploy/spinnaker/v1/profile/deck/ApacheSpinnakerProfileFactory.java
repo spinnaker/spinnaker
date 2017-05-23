@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.TemplateBackedProfileFactory;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +59,12 @@ public class ApacheSpinnakerProfileFactory extends TemplateBackedProfileFactory 
   @Override
   protected List<String> requiredFiles(DeploymentConfiguration deploymentConfiguration) {
    return backupRequiredFiles(deploymentConfiguration.getSecurity().getUiSecurity(), deploymentConfiguration.getName());
+  }
+
+  @Override
+  protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    super.setProfile(profile, deploymentConfiguration, endpoints);
+    profile.setUser(ApacheSettings.APACHE_USER);
   }
 
   @Override

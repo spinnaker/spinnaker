@@ -48,6 +48,7 @@ public class Profile {
   // Where does Spinnaker expect to find this profile
   final private String outputFile;
   boolean executable = false;
+  private String user = "spinnaker";
 
   public String getStagedFile(String stagingPath) {
     return Paths.get(stagingPath, name).toString();
