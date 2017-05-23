@@ -31,8 +31,8 @@ interface Queue {
    * [callback] is not invoked.
    *
    * Messages *must* be acknowledged by calling the function passed to
-   * [callback] or they will be re-delivered after [ackTimeout]. Acknowledging
-   * via a nested callback allows the message to be processed asynchronously.
+   * [callback] or they will be retried after [ackTimeout]. Acknowledging via a
+   * nested callback allows the message to be processed asynchronously.
    *
    * @param callback invoked with the next message from the queue if there is
    * one and an _acknowledge_ function to call once processing is complete.
@@ -50,7 +50,16 @@ interface Queue {
   fun push(message: Message, delay: TemporalAmount): Unit
 
   /**
-   * The expired time after which un-acknowledged messages will be re-delivered.
+   * Check for any un-acknowledged messages that are overdue and move them back
+   * onto the queue.
+   *
+   * This method is not intended to be called by clients directly but typically
+   * scheduled in some way.
+   */
+  fun retry(): Unit {}
+
+  /**
+   * The expired time after which un-acknowledged messages will be retried.
    */
   val ackTimeout: TemporalAmount
 
@@ -62,10 +71,10 @@ interface Queue {
 
   companion object {
     /**
-     * The maximum number of times an un-acknowledged message will be re-delivered
+     * The maximum number of times an un-acknowledged message will be retried
      * before failing permanently.
      */
-    val maxRedeliveries: Int = 5
+    val maxRetries: Int = 5
   }
 }
 

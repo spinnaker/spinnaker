@@ -23,7 +23,7 @@ import java.time.Clock
 
 object InMemoryMonitoredQueueSpec : MonitoredQueueSpec<InMemoryQueue>(
   ::createQueue,
-  InMemoryQueue::redeliver
+  InMemoryQueue::retry
 )
 
 private fun createQueue(

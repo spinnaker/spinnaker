@@ -158,7 +158,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
   }
 
   describe("checking redelivery") {
-    given("no messages need to be re-delivered") {
+    given("no messages need to be retried") {
       beforeGroup(::startQueue)
       afterGroup(::stopQueue)
       afterGroup(::resetMocks)
@@ -180,7 +180,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       }
 
       it("reports the time of the last redelivery check") {
-        queue!!.lastRedeliveryPoll shouldEqual clock.instant()
+        queue!!.lastRetryPoll shouldEqual clock.instant()
       }
     }
 
@@ -211,7 +211,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       }
 
       it("reports the time of the last redelivery check") {
-        queue!!.lastRedeliveryPoll shouldEqual clock.instant()
+        queue!!.lastRetryPoll shouldEqual clock.instant()
       }
     }
 
@@ -224,8 +224,8 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
         queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
       }
 
-      on("failing to acknowledge the message ${Queue.maxRedeliveries} times") {
-        (1..Queue.maxRedeliveries).forEach {
+      on("failing to acknowledge the message ${Queue.maxRetries} times") {
+        (1..Queue.maxRetries).forEach {
           queue!!.poll { _, _ -> }
           clock.incrementBy(queue!!.ackTimeout)
           triggerRedeliveryCheck.invoke(queue!!)
@@ -240,7 +240,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       }
 
       it("counts the redelivery attempts") {
-        verify(retryCounter, times(Queue.maxRedeliveries - 1)).increment()
+        verify(retryCounter, times(Queue.maxRetries - 1)).increment()
       }
 
       it("increments the dead letter count") {

@@ -21,10 +21,7 @@ import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueSpec
 import java.time.Clock
 
-object InMemoryQueueSpec : QueueSpec<InMemoryQueue>(
-  ::createQueue,
-  InMemoryQueue::redeliver
-)
+object InMemoryQueueSpec : QueueSpec<InMemoryQueue>(::createQueue)
 
 private fun createQueue(clock: Clock, deadLetterCallback: DeadMessageCallback, registry: Registry) =
   InMemoryQueue(

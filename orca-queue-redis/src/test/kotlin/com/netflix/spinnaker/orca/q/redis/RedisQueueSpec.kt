@@ -22,11 +22,7 @@ import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueSpec
 import java.time.Clock
 
-object RedisQueueSpec : QueueSpec<RedisQueue>(
-  ::createQueue,
-  RedisQueue::redeliver,
-  ::shutdownCallback
-)
+object RedisQueueSpec : QueueSpec<RedisQueue>(::createQueue, ::shutdownCallback)
 
 private var redis: EmbeddedRedis? = null
 

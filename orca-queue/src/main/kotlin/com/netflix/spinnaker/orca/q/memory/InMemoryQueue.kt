@@ -20,12 +20,11 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.ScheduledAction
 import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
+import org.springframework.scheduling.annotation.Scheduled
 import org.threeten.extra.Temporals.chronoUnit
-import java.io.Closeable
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
@@ -37,20 +36,18 @@ import java.util.concurrent.Delayed
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
 import java.util.concurrent.atomic.AtomicReference
-import javax.annotation.PreDestroy
 
 class InMemoryQueue(
   private val clock: Clock,
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandler: DeadMessageCallback,
   override val registry: Registry
-) : MonitoredQueue, Closeable {
+) : MonitoredQueue {
 
   private val log: Logger = getLogger(javaClass)
 
   private val queue = DelayQueue<Envelope>()
   private val unacked = DelayQueue<Envelope>()
-  private val redeliveryWatcher = ScheduledAction(this::redeliver)
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     _lastQueuePoll.lazySet(clock.instant())
@@ -68,6 +65,22 @@ class InMemoryQueue(
     pushCounter.increment()
   }
 
+  @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
+  override fun retry() {
+    val now = clock.instant()
+    _lastRedeliveryPoll.lazySet(now)
+    unacked.pollAll {
+      if (it.count >= Queue.maxRetries) {
+        deadMessageHandler.invoke(this, it.payload)
+        deadMessageCounter.increment()
+      } else {
+        log.warn("redelivering unacked message ${it.payload}")
+        queue.put(it.copy(scheduledTime = now, count = it.count + 1))
+        retryCounter.increment()
+      }
+    }
+  }
+
   private fun ack(messageId: UUID) {
     unacked.removeIf { it.id == messageId }
   }
@@ -83,28 +96,8 @@ class InMemoryQueue(
     get() = _lastQueuePoll.get()
 
   private val _lastRedeliveryPoll = AtomicReference<Instant?>()
-  override val lastRedeliveryPoll: Instant?
+  override val lastRetryPoll: Instant?
     get() = _lastRedeliveryPoll.get()
-
-  @PreDestroy override fun close() {
-    log.info("stopping redelivery watcher for $this")
-    redeliveryWatcher.close()
-  }
-
-  internal fun redeliver() {
-    val now = clock.instant()
-    _lastRedeliveryPoll.lazySet(now)
-    unacked.pollAll {
-      if (it.count >= Queue.maxRedeliveries) {
-        deadMessageHandler.invoke(this, it.payload)
-        deadMessageCounter.increment()
-      } else {
-        log.warn("redelivering unacked message ${it.payload}")
-        queue.put(it.copy(scheduledTime = now, count = it.count + 1))
-        redeliverCounter.increment()
-      }
-    }
-  }
 
   private fun <T : Delayed> DelayQueue<T>.pollAll(block: (T) -> Unit) {
     var done = false

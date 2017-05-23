@@ -21,16 +21,15 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.ScheduledAction
 import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.Transaction
 import redis.clients.util.Pool
 import toInstant
-import java.io.Closeable
 import java.io.IOException
 import java.time.Clock
 import java.time.Duration
@@ -38,7 +37,6 @@ import java.time.Duration.ZERO
 import java.time.Instant
 import java.time.temporal.TemporalAmount
 import java.util.UUID.randomUUID
-import javax.annotation.PreDestroy
 
 class RedisQueue(
   queueName: String,
@@ -49,7 +47,7 @@ class RedisQueue(
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandler: (Queue, Message) -> Unit,
   override val registry: Registry
-) : MonitoredQueue, Closeable {
+) : MonitoredQueue {
 
   private val mapper = ObjectMapper().apply {
     registerModule(KotlinModule())
@@ -63,8 +61,6 @@ class RedisQueue(
   private val locksKey = queueName + ".locks"
   private val lastQueuePollKey = queueName + ".poll.timestamp"
   private val lastRedeliveryPollKey = queueName + ".redelivery.timestamp"
-
-  private val redeliveryWatcher = ScheduledAction(this::redeliver)
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
@@ -95,34 +91,8 @@ class RedisQueue(
     pushCounter.increment()
   }
 
-  override val queueDepth: Int
-    get() = pool.resource.use { it.zcard(queueKey).toInt() }
-
-  override val unackedDepth: Int
-    get() = pool.resource.use { it.zcard(unackedKey).toInt() }
-
-  override val lastQueuePoll: Instant?
-    get() = pool.resource.use { it.getInstant(lastQueuePollKey) }
-
-  override val lastRedeliveryPoll: Instant?
-    get() = pool.resource.use { it.getInstant(lastRedeliveryPollKey) }
-
-  @PreDestroy override fun close() {
-    log.info("stopping redelivery watcher for $this")
-    redeliveryWatcher.close()
-  }
-
-  private fun ack(id: String) {
-    pool.resource.use { redis ->
-      redis.multi {
-        zrem(unackedKey, id)
-        hdel(messagesKey, id)
-        hdel(attemptsKey, id)
-      }
-    }
-  }
-
-  internal fun redeliver() {
+  @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
+  override fun retry() {
     pool.resource.use { redis ->
       redis.apply {
         zrangeByScore(unackedKey, 0.0, score())
@@ -133,23 +103,45 @@ class RedisQueue(
 
             ids.forEach { id ->
               val attempts = hgetInt(attemptsKey, id)
-              if (attempts >= Queue.maxRedeliveries) {
+              if (attempts >= Queue.maxRetries) {
                 readMessage(id) { message ->
-                  log.warn("Message $id with payload $message exceeded max re-deliveries")
+                  log.warn("Message $id with payload $message exceeded max retries")
                   handleDeadMessage(message)
                   ack(id)
                 }
                 deadMessageCounter.increment()
               } else {
-                log.warn("Re-delivering message $id after $attempts attempts")
+                log.warn("Retrying message $id after $attempts attempts")
                 move(unackedKey, queueKey, ZERO, setOf(id))
-                redeliverCounter.increment()
+                retryCounter.increment()
               }
             }
           }
           .also {
             setCurrentTimestamp(lastRedeliveryPollKey)
           }
+      }
+    }
+  }
+
+  override val queueDepth: Int
+    get() = pool.resource.use { it.zcard(queueKey).toInt() }
+
+  override val unackedDepth: Int
+    get() = pool.resource.use { it.zcard(unackedKey).toInt() }
+
+  override val lastQueuePoll: Instant?
+    get() = pool.resource.use { it.getInstant(lastQueuePollKey) }
+
+  override val lastRetryPoll: Instant?
+    get() = pool.resource.use { it.getInstant(lastRedeliveryPollKey) }
+
+  private fun ack(id: String) {
+    pool.resource.use { redis ->
+      redis.multi {
+        zrem(unackedKey, id)
+        hdel(messagesKey, id)
+        hdel(attemptsKey, id)
       }
     }
   }

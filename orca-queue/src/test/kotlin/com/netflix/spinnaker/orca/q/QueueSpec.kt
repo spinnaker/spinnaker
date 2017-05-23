@@ -19,7 +19,7 @@ package com.netflix.spinnaker.orca.q
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
-import com.netflix.spinnaker.orca.q.Queue.Companion.maxRedeliveries
+import com.netflix.spinnaker.orca.q.Queue.Companion.maxRetries
 import com.netflix.spinnaker.orca.time.MutableClock
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
@@ -32,7 +32,6 @@ import java.time.Duration
 
 abstract class QueueSpec<out Q : Queue>(
   createQueue: (Clock, DeadMessageCallback, Registry) -> Q,
-  triggerRedeliveryCheck: Q.() -> Unit,
   shutdownCallback: (() -> Unit)? = null
 ) : Spek({
 
@@ -183,12 +182,12 @@ abstract class QueueSpec<out Q : Queue>(
             ack.invoke()
           }
           clock.incrementBy(ackTimeout)
-          triggerRedeliveryCheck()
+          retry()
           poll(callback)
         }
       }
 
-      it("does not re-deliver the message") {
+      it("does not retry the message") {
         verifyZeroInteractions(callback)
       }
     }
@@ -208,12 +207,12 @@ abstract class QueueSpec<out Q : Queue>(
         queue!!.apply {
           poll { _, _ -> }
           clock.incrementBy(ackTimeout)
-          triggerRedeliveryCheck()
+          retry()
           poll(callback)
         }
       }
 
-      it("re-delivers the message") {
+      it("retries the message") {
         verify(callback).invoke(eq(message), any())
       }
     }
@@ -234,18 +233,18 @@ abstract class QueueSpec<out Q : Queue>(
           repeat(2) {
             poll { _, _ -> }
             clock.incrementBy(ackTimeout)
-            triggerRedeliveryCheck()
+            retry()
           }
           poll(callback)
         }
       }
 
-      it("re-delivers the message") {
+      it("retries the message") {
         verify(callback).invoke(eq(message), any())
       }
     }
 
-    context("a message is not acknowledged more than $maxRedeliveries times") {
+    context("a message is not acknowledged more than $maxRetries times") {
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
@@ -258,16 +257,16 @@ abstract class QueueSpec<out Q : Queue>(
 
       action("the queue is polled and the message is not acknowledged") {
         queue!!.apply {
-          repeat(maxRedeliveries) {
+          repeat(maxRetries) {
             poll { _, _ -> }
             clock.incrementBy(ackTimeout)
-            triggerRedeliveryCheck()
+            retry()
           }
           poll(callback)
         }
       }
 
-      it("stops re-delivering the message") {
+      it("stops retrying the message") {
         verifyZeroInteractions(callback)
       }
 
@@ -276,9 +275,9 @@ abstract class QueueSpec<out Q : Queue>(
       }
 
       context("once the message has been dead-lettered") {
-        action("the next time re-delivery checks happen") {
+        action("the next time retry checks happen") {
           queue!!.apply {
-            triggerRedeliveryCheck()
+            retry()
             poll(callback)
           }
         }

@@ -49,26 +49,32 @@ interface MonitoredQueue : Queue {
   val lastQueuePoll: Instant?
 
   /**
-   * The time the last re-delivery check was executed.
+   * The time the last [retry] method was executed.
    */
-  val lastRedeliveryPoll: Instant?
+  val lastRetryPoll: Instant?
 
+  /**
+   * Count of messages pushed to the queue.
+   */
   val pushCounter: Counter
     get() = registry.counter("queue.pushed.messages")
 
+  /**
+   * Count of messages successfully processed and acknowledged.
+   */
   val ackCounter: Counter
     get() = registry.counter("queue.acknowledged.messages")
 
   /**
-   * Count of messages that have been re-delivered. This does not mean unique
-   * messages, so re-delivering the same message again will still increment this
+   * Count of messages that have been retried. This does not mean unique
+   * messages, so retrying the same message again will still increment this
    * count.
    */
-  val redeliverCounter: Counter
+  val retryCounter: Counter
     get() = registry.counter("queue.retried.messages")
 
   /**
-   * Count of messages that have exceeded [Queue.maxRedeliveries] re-delivery
+   * Count of messages that have exceeded [Queue.maxRetries] retry
    * attempts and have been sent to the dead message handler.
    */
   val deadMessageCounter: Counter
@@ -76,8 +82,8 @@ interface MonitoredQueue : Queue {
 
   @PostConstruct fun registerGauges() {
     registry.gauge("queue.depth", this, { it.queueDepth.toDouble() })
-    registry.gauge("unacked.depth", this, { it.unackedDepth.toDouble() })
-    registry.gauge("last.poll.age", this, { Duration.between(it.lastQueuePoll ?: EPOCH, now()).toMillis().toDouble() })
-    registry.gauge("last.redelivery.check.age", this, { Duration.between(it.lastRedeliveryPoll ?: EPOCH, now()).toMillis().toDouble() })
+    registry.gauge("queue.unacked.depth", this, { it.unackedDepth.toDouble() })
+    registry.gauge("queue.last.poll.age", this, { Duration.between(it.lastQueuePoll ?: EPOCH, now()).toMillis().toDouble() })
+    registry.gauge("queue.last.retry.check.age", this, { Duration.between(it.lastRetryPoll ?: EPOCH, now()).toMillis().toDouble() })
   }
 }

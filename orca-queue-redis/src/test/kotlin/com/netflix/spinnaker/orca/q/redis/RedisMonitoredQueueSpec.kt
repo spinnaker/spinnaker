@@ -24,7 +24,7 @@ import java.time.Clock
 
 object RedisMonitoredQueueSpec : MonitoredQueueSpec<RedisQueue>(
   ::createQueue,
-  RedisQueue::redeliver,
+  RedisQueue::retry,
   ::shutdownCallback
 )
 
