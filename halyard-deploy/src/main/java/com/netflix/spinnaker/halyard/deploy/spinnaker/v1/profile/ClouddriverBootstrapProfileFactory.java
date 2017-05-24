@@ -78,6 +78,7 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
 
     List<String> files = backupRequiredFiles(providers, deploymentConfiguration.getName());
     profile.appendContents(yamlToString(providers))
+        .appendContents("services.fiat.enabled: false")
         .appendContents(profile.getBaseContents())
         .setRequiredFiles(files);
   }

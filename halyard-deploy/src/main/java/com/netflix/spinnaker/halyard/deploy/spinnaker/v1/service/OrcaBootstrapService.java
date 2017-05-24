@@ -20,9 +20,11 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.OrcaBootstrapProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Paths;
@@ -40,13 +42,16 @@ abstract public class OrcaBootstrapService extends OrcaService {
     return Type.ORCA_BOOTSTRAP;
   }
 
+  @Autowired
+  OrcaBootstrapProfileFactory orcaBootstrapProfileFactory;
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
 
     String filename = "orca-bootstrap.yml";
     String path = Paths.get(OUTPUT_PATH, filename).toString();
-    Profile profile = orcaProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
+    Profile profile = orcaBootstrapProfileFactory.getProfile(filename, path, deploymentConfiguration, endpoints);
 
     profiles.add(profile);
     return profiles;
