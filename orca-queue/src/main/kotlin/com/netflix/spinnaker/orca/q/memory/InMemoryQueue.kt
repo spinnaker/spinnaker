@@ -35,14 +35,13 @@ import java.util.concurrent.DelayQueue
 import java.util.concurrent.Delayed
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
-import java.util.concurrent.atomic.AtomicReference
 
 class InMemoryQueue(
   private val clock: Clock,
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandler: DeadMessageCallback,
-  override val registry: Registry
-) : MonitoredQueue {
+  registry: Registry
+) : MonitoredQueue(registry) {
 
   private val log: Logger = getLogger(javaClass)
 
@@ -50,7 +49,7 @@ class InMemoryQueue(
   private val unacked = DelayQueue<Envelope>()
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
-    _lastQueuePoll.lazySet(clock.instant())
+    lastQueuePoll.lazySet(clock.instant())
     queue.poll()?.let { envelope ->
       unacked.put(envelope.copy(scheduledTime = clock.instant().plus(ackTimeout)))
       callback.invoke(envelope.payload) {
@@ -68,7 +67,7 @@ class InMemoryQueue(
   @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
   override fun retry() {
     val now = clock.instant()
-    _lastRedeliveryPoll.lazySet(now)
+    lastRetryPoll.lazySet(now)
     unacked.pollAll {
       if (it.count >= Queue.maxRetries) {
         deadMessageHandler.invoke(this, it.payload)
@@ -90,14 +89,6 @@ class InMemoryQueue(
 
   override val unackedDepth: Int
     get() = unacked.size
-
-  private val _lastQueuePoll = AtomicReference<Instant?>()
-  override val lastQueuePoll: Instant?
-    get() = _lastQueuePoll.get()
-
-  private val _lastRedeliveryPoll = AtomicReference<Instant?>()
-  override val lastRetryPoll: Instant?
-    get() = _lastRedeliveryPoll.get()
 
   private fun <T : Delayed> DelayQueue<T>.pollAll(block: (T) -> Unit) {
     var done = false

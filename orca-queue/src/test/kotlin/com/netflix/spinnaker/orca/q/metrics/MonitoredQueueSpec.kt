@@ -79,7 +79,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 0
-        lastQueuePoll shouldEqual null
+        lastQueuePoll.get() shouldEqual null
       }
     }
   }
@@ -102,7 +102,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.apply {
         queueDepth shouldEqual 1
         unackedDepth shouldEqual 0
-        lastQueuePoll shouldEqual null
+        lastQueuePoll.get() shouldEqual null
       }
     }
   }
@@ -124,7 +124,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 1
-        lastQueuePoll shouldEqual clock.instant()
+        lastQueuePoll.get() shouldEqual clock.instant()
       }
     }
   }
@@ -152,7 +152,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 0
-        lastQueuePoll shouldEqual clock.instant()
+        lastQueuePoll.get() shouldEqual clock.instant()
       }
     }
   }
@@ -180,7 +180,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       }
 
       it("reports the time of the last redelivery check") {
-        queue!!.lastRetryPoll shouldEqual clock.instant()
+        queue!!.lastRetryPoll.get() shouldEqual clock.instant()
       }
     }
 
@@ -211,7 +211,7 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       }
 
       it("reports the time of the last redelivery check") {
-        queue!!.lastRetryPoll shouldEqual clock.instant()
+        queue!!.lastRetryPoll.get() shouldEqual clock.instant()
       }
     }
 

@@ -24,46 +24,45 @@ import java.lang.management.ManagementFactory.getRuntimeMXBean
 import java.time.Duration
 import java.time.Instant
 import java.time.Instant.now
+import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PostConstruct
 
 /**
  * Optional interface [Queue] implementations may support in order to provide
  * hooks for analytics.
  */
-interface MonitoredQueue : Queue {
-
-  val registry: Registry
+abstract class MonitoredQueue(private val registry: Registry) : Queue {
 
   /**
    * Number of messages currently queued for delivery including any not yet due.
    */
-  val queueDepth: Int
+  abstract val queueDepth: Int
 
   /**
    * Number of messages currently being processed but not yet acknowledged.
    */
-  val unackedDepth: Int
+  abstract val unackedDepth: Int
 
   /**
    * The last time the queue was polled.
    */
-  val lastQueuePoll: Instant?
+  val lastQueuePoll = AtomicReference<Instant?>()
 
   /**
    * The time the last [retry] method was executed.
    */
-  val lastRetryPoll: Instant?
+  val lastRetryPoll = AtomicReference<Instant?>()
 
   /**
    * Count of messages pushed to the queue.
    */
-  val pushCounter: Counter
+  protected val pushCounter: Counter
     get() = registry.counter("queue.pushed.messages")
 
   /**
    * Count of messages successfully processed and acknowledged.
    */
-  val ackCounter: Counter
+  protected val ackCounter: Counter
     get() = registry.counter("queue.acknowledged.messages")
 
   /**
@@ -71,14 +70,14 @@ interface MonitoredQueue : Queue {
    * messages, so retrying the same message again will still increment this
    * count.
    */
-  val retryCounter: Counter
+  protected val retryCounter: Counter
     get() = registry.counter("queue.retried.messages")
 
   /**
    * Count of messages that have exceeded [Queue.maxRetries] retry
    * attempts and have been sent to the dead message handler.
    */
-  val deadMessageCounter: Counter
+  protected val deadMessageCounter: Counter
     get() = registry.counter("queue.dead.messages")
 
   @PostConstruct fun registerGauges() {
@@ -86,13 +85,13 @@ interface MonitoredQueue : Queue {
     registry.gauge("queue.unacked.depth", this, { it.unackedDepth.toDouble() })
     registry.gauge("queue.last.poll.age", this, {
       Duration.between(
-        it.lastQueuePoll ?: getRuntimeMXBean().startTime.toInstant(),
+        it.lastQueuePoll.get() ?: getRuntimeMXBean().startTime.toInstant(),
         now()
       ).toMillis().toDouble()
     })
     registry.gauge("queue.last.retry.check.age", this, {
       Duration.between(
-        it.lastRetryPoll ?: getRuntimeMXBean().startTime.toInstant(),
+        it.lastRetryPoll.get() ?: getRuntimeMXBean().startTime.toInstant(),
         now()
       ).toMillis().toDouble()
     })

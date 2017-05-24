@@ -22,7 +22,6 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
-import com.netflix.spinnaker.orca.time.toInstant
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
@@ -34,7 +33,6 @@ import java.io.IOException
 import java.time.Clock
 import java.time.Duration
 import java.time.Duration.ZERO
-import java.time.Instant
 import java.time.temporal.TemporalAmount
 import java.util.UUID.randomUUID
 
@@ -46,8 +44,8 @@ class RedisQueue(
   private val lockTtlSeconds: Int = Duration.ofDays(1).seconds.toInt(),
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandler: (Queue, Message) -> Unit,
-  override val registry: Registry
-) : MonitoredQueue {
+  registry: Registry
+) : MonitoredQueue(registry) {
 
   private val mapper = ObjectMapper().apply {
     registerModule(KotlinModule())
@@ -59,8 +57,6 @@ class RedisQueue(
   private val messagesKey = queueName + ".messages"
   private val attemptsKey = queueName + ".attempts"
   private val locksKey = queueName + ".locks"
-  private val lastQueuePollKey = queueName + ".poll.timestamp"
-  private val lastRedeliveryPollKey = queueName + ".redelivery.timestamp"
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
@@ -75,7 +71,7 @@ class RedisQueue(
               }
             }
           }
-        setCurrentTimestamp(lastQueuePollKey)
+        lastQueuePoll.lazySet(clock.instant())
       }
     }
   }
@@ -118,7 +114,7 @@ class RedisQueue(
             }
           }
           .also {
-            setCurrentTimestamp(lastRedeliveryPollKey)
+            lastRetryPoll.lazySet(clock.instant())
           }
       }
     }
@@ -129,12 +125,6 @@ class RedisQueue(
 
   override val unackedDepth: Int
     get() = pool.resource.use { it.zcard(unackedKey).toInt() }
-
-  override val lastQueuePoll: Instant?
-    get() = pool.resource.use { it.getInstant(lastQueuePollKey) }
-
-  override val lastRetryPoll: Instant?
-    get() = pool.resource.use { it.getInstant(lastRedeliveryPollKey) }
 
   private fun ack(id: String) {
     pool.resource.use { redis ->
@@ -209,17 +199,8 @@ class RedisQueue(
     }
   }
 
-  private fun JedisCommands.setCurrentTimestamp(key: String) =
-    set(key, clock.millis().toString())
-
   private fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
     hget(key, field)?.toInt() ?: default
-
-  private fun JedisCommands.getInt(key: String, default: Int = 0) =
-    get(key)?.toInt() ?: default
-
-  private fun JedisCommands.getInstant(key: String) =
-    get(key)?.toLong()?.toInstant()
 
   /**
    * @return current time (plus optional [delay]) converted to a score for a
@@ -228,7 +209,7 @@ class RedisQueue(
   private fun score(delay: TemporalAmount = ZERO) =
     clock.instant().plus(delay).toEpochMilli().toDouble()
 
-  inline fun <reified R> ObjectMapper.readValue(content: String): R =
+  private inline fun <reified R> ObjectMapper.readValue(content: String): R =
     readValue(content, R::class.java)
 
   private fun Jedis.multi(block: Transaction.() -> Unit) =
