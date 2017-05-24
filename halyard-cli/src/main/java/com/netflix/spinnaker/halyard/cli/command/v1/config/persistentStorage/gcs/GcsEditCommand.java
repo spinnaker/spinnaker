@@ -57,7 +57,7 @@ public class GcsEditCommand extends AbstractPersistentStoreEditCommand<GcsPersis
       names = "--root-folder",
       description = "The root folder in the chosen bucket to place all of Spinnaker's persistent data in."
   )
-  private String rootFolder = "spinnaker";
+  private String rootFolder;
 
   @Parameter(
       names = "--bucket-location",

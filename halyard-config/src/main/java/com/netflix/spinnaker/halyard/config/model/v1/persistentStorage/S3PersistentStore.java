@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class S3PersistentStore extends PersistentStore {
   private String bucket;
-  private String rootFolder;
+  private String rootFolder = "front50";
   private String region;
 
   @Override

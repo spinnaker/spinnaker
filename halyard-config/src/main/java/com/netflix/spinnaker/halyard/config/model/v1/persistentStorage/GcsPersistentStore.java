@@ -29,7 +29,7 @@ public class GcsPersistentStore extends PersistentStore {
   @LocalFile private String jsonPath;
   private String project;
   private String bucket;
-  private String rootFolder;
+  private String rootFolder = "front50";
   private String bucketLocation;
 
   @Override
