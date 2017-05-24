@@ -1,0 +1,10 @@
+apply from: "$rootDir/gradle/kotlin.gradle"
+
+dependencies {
+  // TODO(duftler): Move these to spinnaker-dependencies.
+  testCompile 'com.netflix.spinnaker.orca:orca-queue:2.6.3'
+  testCompile 'com.netflix.spinnaker.orca:orca-test:2.6.3'
+  testCompile fileTree(dir: 'libs', include: ['*.jar'])
+
+  testCompile "com.natpryce:hamkrest:1.4.0.0"
+}

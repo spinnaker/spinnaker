@@ -20,6 +20,7 @@ dependencies {
   compile project(':kayenta-core')
   compile project(':kayenta-gcs')
   compile project(':kayenta-google')
+  compile project(':kayenta-orca')
   compile project(':kayenta-stackdriver')
 
   compile spinnaker.dependency('bootActuator')
