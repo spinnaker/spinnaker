@@ -24,6 +24,7 @@ import com.netflix.spinnaker.rosco.providers.registry.DefaultCloudProviderBakeHa
 import com.netflix.spinnaker.rosco.providers.util.LocalJobFriendlyPackerCommandFactory
 import com.netflix.spinnaker.rosco.providers.util.PackerCommandFactory
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -33,11 +34,21 @@ import redis.clients.jedis.JedisPool
 
 @Configuration
 @CompileStatic
+@Slf4j
 class RoscoConfiguration {
 
   @Bean
   String roscoInstanceId() {
-    UUID.randomUUID().toString()
+    String hostname
+    try {
+      hostname = InetAddress.getLocalHost().getHostName()
+      log.info("Rosco hostname is " + hostname);
+    } catch (Exception e) {
+      hostname = "UNKNOWN"
+      log.warn "Failed to determine rosco hostname", e
+    }
+
+    return "${UUID.randomUUID().toString()}@${hostname}"
   }
 
   @Bean
