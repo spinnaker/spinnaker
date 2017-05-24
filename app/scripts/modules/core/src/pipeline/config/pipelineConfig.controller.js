@@ -7,18 +7,17 @@ const angular = require('angular');
 module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
   require('angular-ui-router').default,
 ])
-  .controller('PipelineConfigCtrl', function($scope, $stateParams) {
+  .controller('PipelineConfigCtrl', function($scope, $stateParams, app) {
 
-    let application = $scope.application;
-
+    this.application = app;
     this.state = {
       pipelinesLoaded: false,
     };
 
     this.initialize = () => {
-      this.pipelineConfig = _.find(application.pipelineConfigs.data, { id: $stateParams.pipelineId });
+      this.pipelineConfig = _.find(app.pipelineConfigs.data, { id: $stateParams.pipelineId });
       if (!this.pipelineConfig) {
-          this.pipelineConfig = _.find(application.strategyConfigs.data, { id: $stateParams.pipelineId });
+          this.pipelineConfig = _.find(app.strategyConfigs.data, { id: $stateParams.pipelineId });
           if(!this.pipelineConfig) {
             this.state.notFound = true;
           }
@@ -26,8 +25,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
       this.state.pipelinesLoaded = true;
     };
 
-    if (!application.notFound) {
-      application.pipelineConfigs.activate();
-      application.pipelineConfigs.ready().then(this.initialize);
+    if (!app.notFound) {
+      app.pipelineConfigs.activate();
+      app.pipelineConfigs.ready().then(this.initialize);
     }
   });

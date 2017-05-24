@@ -6,11 +6,11 @@
   </div>
   <div class="row">
     <div class="col-md-10 col-md-offset-1">
-      <pipeline-configurer pipeline="vm.pipelineConfig" application="application"></pipeline-configurer>
+      <pipeline-configurer pipeline="vm.pipelineConfig" application="vm.application"></pipeline-configurer>
     </div>
   </div>
 </div>
-<div class="row" ng-if="!application.notFound && !vm.state.pipelinesLoaded" style="min-height: 300px">
+<div class="row" ng-if="!vm.application.notFound && !vm.state.pipelinesLoaded" style="min-height: 300px">
   <h4 class="text-center">
     <span us-spinner="{radius:20, width:6, length: 12}"></span>
   </h4>

@@ -10,14 +10,13 @@ module.exports = angular.module('spinnaker.singleExecutionDetails.controller', [
     EXECUTION_SERVICE,
     SCHEDULER_FACTORY,
   ])
-  .controller('SingleExecutionDetailsCtrl', function ($scope, $state, executionService, schedulerFactory) {
+  .controller('SingleExecutionDetailsCtrl', function ($scope, $state, executionService, schedulerFactory, app) {
 
     let executionScheduler = schedulerFactory.createScheduler(5000);
 
     let getExecution = () => {
-      let application = $scope.application;
-      this.application = application;
-      if ($scope.application.notFound) {
+      this.application = app;
+      if (this.application.notFound) {
         return;
       }
       executionService.getExecution($state.params.executionId).then((execution) => {

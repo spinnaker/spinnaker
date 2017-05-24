@@ -22,36 +22,38 @@ describe('Controller: PipelineConfigCtrl', function () {
   );
 
   it('should initialize immediately if pipeline configs are already present', function () {
-    scope.application = applicationModelBuilder.createApplication({key: 'pipelineConfigs', lazy: true});
-    scope.application.pipelineConfigs.data = [ { id: 'a' } ];
-    scope.application.pipelineConfigs.loaded = true;
+    const application = applicationModelBuilder.createApplication({key: 'pipelineConfigs', lazy: true});
+    application.pipelineConfigs.data = [ { id: 'a' } ];
+    application.pipelineConfigs.loaded = true;
 
     let vm = controller('PipelineConfigCtrl', {
       $scope: scope,
       $stateParams: {
         pipelineId: 'a'
-      }
+      },
+      app: application
     });
     scope.$digest();
     expect(vm.state.pipelinesLoaded).toBe(true);
   });
 
   it('should wait until pipeline configs are loaded before initializing', function () {
-    scope.application = applicationModelBuilder.createApplication({key: 'pipelineConfigs', lazy: true});
-    spyOn(scope.application.pipelineConfigs, 'activate').and.callFake(angular.noop);
+    const application = applicationModelBuilder.createApplication({key: 'pipelineConfigs', lazy: true});
+    spyOn(application.pipelineConfigs, 'activate').and.callFake(angular.noop);
     let vm = controller('PipelineConfigCtrl', {
       $scope: scope,
       $stateParams: {
         pipelineId: 'a'
-      }
+      },
+      app: application
     });
 
-    scope.application.pipelineConfigs.data.push({id: 'a'});
-    scope.application.pipelineConfigs.dataUpdated();
+    application.pipelineConfigs.data.push({id: 'a'});
+    application.pipelineConfigs.dataUpdated();
     scope.$digest();
 
     expect(vm.state.pipelinesLoaded).toBe(true);
-    expect(scope.application.pipelineConfigs.activate.calls.count()).toBe(1);
+    expect(application.pipelineConfigs.activate.calls.count()).toBe(1);
   });
 });
 
