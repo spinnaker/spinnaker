@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
@@ -57,11 +58,13 @@ public class KubernetesDistributedLogCollectorFactory {
         SpinnakerRuntimeSettings runtimeSettings,
         File instanceOutputDir,
         String instanceId) {
+      ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
       DaemonTaskHandler.newStage("Reading " + getService().getCanonicalName() + " logs");
       DaemonTaskHandler.message("Reading container " + getServiceName() + "'s logs");
       KubernetesProviderUtils.storeInstanceLogs(
           DaemonTaskHandler.getJobExecutor(),
           details,
+          settings.getLocation(),
           instanceId,
           getServiceName(),
           instanceOutputDir
@@ -76,6 +79,7 @@ public class KubernetesDistributedLogCollectorFactory {
         KubernetesProviderUtils.storeInstanceLogs(
             DaemonTaskHandler.getJobExecutor(),
             details,
+            settings.getLocation(),
             instanceId,
             sidecarName,
             instanceOutputDir

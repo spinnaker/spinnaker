@@ -236,8 +236,10 @@ class KubernetesProviderUtils {
     }
   }
 
-  static void storeInstanceLogs(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String instanceName, String containerName, File outputFile) {
+  static void storeInstanceLogs(JobExecutor jobExecutor, AccountDeploymentDetails<KubernetesAccount> details, String namespace, String instanceName, String containerName, File outputFile) {
     List<String> command = kubectlAccountCommand(details);
+    command.add("--namespace");
+    command.add(namespace);
     command.add("logs");
     command.add(instanceName);
     command.add(containerName);
