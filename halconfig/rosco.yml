@@ -8,4 +8,4 @@ redis:
   connection: ${services.redis.baseUrl:redis://localhost:6379}
 
 rosco:
-  configDir: ${services.rosco.configDir:/opt/rosco/config/packer}
+  configDir: /opt/rosco/config/packer
