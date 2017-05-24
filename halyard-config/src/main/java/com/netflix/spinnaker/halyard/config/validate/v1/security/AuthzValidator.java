@@ -18,6 +18,7 @@ package com.netflix.spinnaker.halyard.config.validate.v1.security;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.security.Authz;
+import com.netflix.spinnaker.halyard.config.model.v1.security.GroupMembership;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +45,8 @@ public class AuthzValidator extends Validator<Authz> {
       case GOOGLE:
         googleValidator.validate(p, z.getGroupMembership().getGoogle());
         break;
+      case EXTERNAL: // fallthrough
       default:
-        // Used when SAML authentication is enabled. No additional config is needed.
         break;
     }
   }
