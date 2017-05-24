@@ -46,6 +46,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   KubernetesDeployment deployment
   Long terminationGracePeriodSeconds
   Integer sequence
+  KubernetesPodSpecDescription podSpec
 
   @JsonIgnore
   Set<String> imagePullSecrets
@@ -374,4 +375,28 @@ class KubernetesSeLinuxOptions {
   String role
   String type
   String level
+}
+
+@AutoClone
+@Canonical
+//Base on model https://kubernetes.io/docs/resources-reference/v1.5/#podspec-v1
+//which will map to Kubernetes 1.5 API version
+class KubernetesPodSpecDescription {
+  Long activeDeadlineSeconds
+  List<KubernetesContainerDescription> containers
+  String dnsPolicy
+  Boolean hostIPC
+  Boolean hostNetwork
+  Boolean hostPID
+  String hostname
+  @JsonIgnore
+  Set<String> imagePullSecrets
+  String nodeName
+  Map nodeSelector
+  String restartPolicy
+  KubernetesSecurityContext securityContext
+  String serviceAccountName
+  String subdomain
+  Long terminationGracePeriodSeconds
+  List<KubernetesVolumeSource> volumeSources
 }
