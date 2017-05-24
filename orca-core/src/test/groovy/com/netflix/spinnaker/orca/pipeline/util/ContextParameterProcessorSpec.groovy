@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.pipeline.util
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
@@ -583,6 +584,24 @@ class ContextParameterProcessorSpec extends Specification {
 
     then:
     result.comments == "NOT_STARTED"
+  }
+
+  def "can read authenticated user in an execution"() {
+    given:
+    def pipe = Pipeline.builder()
+        .withStage("wait", "Wait1", [comments: '${execution["authentication"]["user"].split("@")[0]}', waitTime: 1, refId: "1", requisiteStageRefIds:[]])
+        .build()
+
+    pipe.setAuthentication(new Execution.AuthenticationDetails('joeyjoejoejuniorshabadoo@host.net'))
+
+    def stage = pipe.stages.find { it.name == "Wait1" }
+    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+
+    when:
+    def result = contextParameterProcessor.process(stage.context, ctx, true)
+
+    then:
+    result.comments == "joeyjoejoejuniorshabadoo"
   }
 
   def "can find a judgment result"() {

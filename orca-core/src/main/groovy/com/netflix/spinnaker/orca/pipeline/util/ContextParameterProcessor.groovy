@@ -219,7 +219,9 @@ class ContextParameterProcessor {
         Pipeline,
         Orchestration,
         Stage,
-        ExecutionStatus
+        ExecutionStatus,
+        Execution.AuthenticationDetails,
+        Execution.PausedDetails
     ] as Set)
 
     static boolean isAllowedForInstantiation(Class<?> type) {
