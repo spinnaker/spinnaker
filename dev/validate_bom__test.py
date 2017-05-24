@@ -630,7 +630,7 @@ class ValidateBomTestController(object):
       args: [dict] Specification of additioanl arguments to pass.
          Each key is the name of the argument, the value is the value to pass.
          If the value is preceeded with a '$' then it refers to the value of
-         an option.
+         an option. If the value is None then just add the key without an arg.
       commandline: [list] The list of command line arguments to append to.
     """
     option_dict = vars(self.options)
@@ -647,6 +647,8 @@ class ValidateBomTestController(object):
           self.add_extra_arguments(
               test_name, aliases_dict[alias_name], commandline)
         continue
+      elif value is None:
+        pass
       elif value.startswith('$'):
         option_name = value[1:]
         if option_name not in option_dict:
@@ -654,7 +656,10 @@ class ValidateBomTestController(object):
               'Unknown option "{name}" referenced in args for "{test}"'
               .format(name=option_name, test=test_name))
         value = option_dict[option_name] or '""'
-      commandline.extend(['--' + key, value])
+      if value is None:
+        commandline.append('--' + key)
+      else:
+        commandline.extend(['--' + key, value])
 
   def make_test_command_or_none(self, test_name, spec):
     """Returns the command to run the test, or None to skip.
