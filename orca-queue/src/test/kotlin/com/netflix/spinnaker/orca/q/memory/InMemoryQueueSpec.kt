@@ -16,16 +16,16 @@
 
 package com.netflix.spinnaker.orca.q.memory
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueSpec
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
 object InMemoryQueueSpec : QueueSpec<InMemoryQueue>(::createQueue)
 
-private fun createQueue(clock: Clock, deadLetterCallback: DeadMessageCallback, registry: Registry) =
+private fun createQueue(clock: Clock, deadLetterCallback: DeadMessageCallback) =
   InMemoryQueue(
     clock = clock,
     deadMessageHandler = deadLetterCallback,
-    registry = registry
+    publisher = ApplicationEventPublisher { } // no-op for purposes of this test
   )

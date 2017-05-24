@@ -18,12 +18,14 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
+import com.netflix.spinnaker.orca.q.events.QueueEvent.*
+import com.netflix.spinnaker.orca.q.metrics.MonitorableQueue
+import com.netflix.spinnaker.orca.q.metrics.fire
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisCommands
@@ -44,8 +46,8 @@ class RedisQueue(
   private val lockTtlSeconds: Int = Duration.ofDays(1).seconds.toInt(),
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandler: (Queue, Message) -> Unit,
-  registry: Registry
-) : MonitoredQueue(registry) {
+  override val publisher: ApplicationEventPublisher
+) : MonitorableQueue {
 
   private val mapper = ObjectMapper().apply {
     registerModule(KotlinModule())
@@ -67,11 +69,11 @@ class RedisQueue(
             readMessage(id) { payload ->
               callback.invoke(payload) {
                 ack(id)
-                ackCounter.increment()
+                fire<MessageAcknowledged>()
               }
             }
           }
-        lastQueuePoll.lazySet(clock.instant())
+        fire<QueuePolled>()
       }
     }
   }
@@ -84,7 +86,7 @@ class RedisQueue(
         zadd(queueKey, score(delay), id)
       }
     }
-    pushCounter.increment()
+    fire<MessagePushed>()
   }
 
   @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
@@ -105,16 +107,16 @@ class RedisQueue(
                   handleDeadMessage(message)
                   ack(id)
                 }
-                deadMessageCounter.increment()
+                fire<MessageDead>()
               } else {
                 log.warn("Retrying message $id after $attempts attempts")
                 move(unackedKey, queueKey, ZERO, setOf(id))
-                retryCounter.increment()
+                fire<MessageRetried>()
               }
             }
           }
           .also {
-            lastRetryPoll.lazySet(clock.instant())
+            fire<RetryPolled>()
           }
       }
     }

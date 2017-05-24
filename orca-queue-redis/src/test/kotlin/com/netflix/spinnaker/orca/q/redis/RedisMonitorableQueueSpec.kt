@@ -14,24 +14,40 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.q.memory
+package com.netflix.spinnaker.orca.q.redis
 
-import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
-import com.netflix.spinnaker.orca.q.metrics.MonitoredQueueSpec
+import com.netflix.spinnaker.orca.q.metrics.MonitorableQueueSpec
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
-object InMemoryMonitoredQueueSpec : MonitoredQueueSpec<InMemoryQueue>(
+object RedisMonitorableQueueSpec : MonitorableQueueSpec<RedisQueue>(
   ::createQueue,
-  InMemoryQueue::retry
+  RedisQueue::retry,
+  ::shutdownCallback
 )
+
+private var redis: EmbeddedRedis? = null
 
 private fun createQueue(
   clock: Clock,
   deadLetterCallback: DeadMessageCallback,
-  registry: Registry
-) = InMemoryQueue(
-  clock = clock,
-  deadMessageHandler = deadLetterCallback,
-  registry = registry
-)
+  publisher: ApplicationEventPublisher
+): RedisQueue {
+  redis = EmbeddedRedis.embed()
+  return RedisQueue(
+    queueName = "test",
+    pool = redis!!.pool,
+    clock = clock,
+    currentInstanceId = "i-1234",
+    deadMessageHandler = deadLetterCallback,
+    publisher = publisher
+  )
+}
+
+private fun shutdownCallback() {
+  println("shutting down the redis")
+  redis?.destroy()
+}
+

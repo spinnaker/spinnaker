@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
@@ -39,7 +39,7 @@ open class RedisQueueConfiguration {
     clock: Clock,
     currentInstanceId: String,
     deadMessageHandler: DeadMessageHandler,
-    registry: Registry
+    publisher: ApplicationEventPublisher
   ): Queue =
     RedisQueue(
       queueName = redisQueueProperties.queueName,
@@ -47,7 +47,7 @@ open class RedisQueueConfiguration {
       clock = clock,
       currentInstanceId = currentInstanceId,
       deadMessageHandler = deadMessageHandler::handle,
-      registry = registry
+      publisher = publisher
     )
 
 }

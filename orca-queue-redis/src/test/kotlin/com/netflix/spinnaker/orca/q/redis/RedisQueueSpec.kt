@@ -16,10 +16,10 @@
 
 package com.netflix.spinnaker.orca.q.redis
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueSpec
+import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
 object RedisQueueSpec : QueueSpec<RedisQueue>(::createQueue, ::shutdownCallback)
@@ -28,8 +28,7 @@ private var redis: EmbeddedRedis? = null
 
 private fun createQueue(
   clock: Clock,
-  deadLetterCallback: DeadMessageCallback,
-  registry: Registry
+  deadLetterCallback: DeadMessageCallback
 ): RedisQueue {
   redis = EmbeddedRedis.embed()
   return RedisQueue(
@@ -38,7 +37,7 @@ private fun createQueue(
     clock = clock,
     currentInstanceId = "i-1234",
     deadMessageHandler = deadLetterCallback,
-    registry = registry
+    publisher = ApplicationEventPublisher { }
   )
 }
 

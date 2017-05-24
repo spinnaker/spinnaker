@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -43,8 +44,12 @@ open class QueueConfiguration {
   open fun systemClock(): Clock = Clock.systemDefaultZone()
 
   @Bean(name = arrayOf("queueImpl")) @ConditionalOnMissingBean(Queue::class)
-  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, registry: Registry): Queue =
-    InMemoryQueue(clock, deadMessageHandler = deadMessageHandler::handle, registry = registry)
+  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher): Queue =
+    InMemoryQueue(
+      clock = clock,
+      deadMessageHandler = deadMessageHandler::handle,
+      publisher = publisher
+    )
 
   @Bean @ConditionalOnMissingBean(ExecutionLogRepository::class)
   open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()

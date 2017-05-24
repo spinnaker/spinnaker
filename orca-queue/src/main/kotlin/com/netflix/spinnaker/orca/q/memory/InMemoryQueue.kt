@@ -16,13 +16,15 @@
 
 package com.netflix.spinnaker.orca.q.memory
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.metrics.MonitoredQueue
+import com.netflix.spinnaker.orca.q.events.QueueEvent.*
+import com.netflix.spinnaker.orca.q.metrics.MonitorableQueue
+import com.netflix.spinnaker.orca.q.metrics.fire
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.threeten.extra.Temporals.chronoUnit
 import java.time.Clock
@@ -40,8 +42,8 @@ class InMemoryQueue(
   private val clock: Clock,
   override val ackTimeout: TemporalAmount = Duration.ofMinutes(1),
   override val deadMessageHandler: DeadMessageCallback,
-  registry: Registry
-) : MonitoredQueue(registry) {
+  override val publisher: ApplicationEventPublisher
+) : MonitorableQueue {
 
   private val log: Logger = getLogger(javaClass)
 
@@ -49,33 +51,34 @@ class InMemoryQueue(
   private val unacked = DelayQueue<Envelope>()
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
-    lastQueuePoll.lazySet(clock.instant())
+    fire<QueuePolled>()
+
     queue.poll()?.let { envelope ->
       unacked.put(envelope.copy(scheduledTime = clock.instant().plus(ackTimeout)))
       callback.invoke(envelope.payload) {
         ack(envelope.id)
-        ackCounter.increment()
+        fire<MessageAcknowledged>()
       }
     }
   }
 
   override fun push(message: Message, delay: TemporalAmount) {
     queue.put(Envelope(message, clock.instant().plus(delay), clock))
-    pushCounter.increment()
+    fire<MessagePushed>()
   }
 
   @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
   override fun retry() {
     val now = clock.instant()
-    lastRetryPoll.lazySet(now)
+    fire<RetryPolled>()
     unacked.pollAll {
       if (it.count >= Queue.maxRetries) {
         deadMessageHandler.invoke(this, it.payload)
-        deadMessageCounter.increment()
+        fire<MessageDead>()
       } else {
         log.warn("redelivering unacked message ${it.payload}")
         queue.put(it.copy(scheduledTime = now, count = it.count + 1))
-        retryCounter.increment()
+        fire<MessageRetried>()
       }
     }
   }

@@ -20,4 +20,8 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 
-fun fixedClock(): Clock = Clock.fixed(Instant.now(), ZoneId.systemDefault())
+fun fixedClock(
+  instant: Instant = Instant.now(),
+  zone: ZoneId = ZoneId.systemDefault()
+): Clock =
+  Clock.fixed(instant, zone)

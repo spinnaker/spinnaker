@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.orca.q.metrics
 
-import com.netflix.spectator.api.Counter
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.StartExecution
+import com.netflix.spinnaker.orca.q.events.QueueEvent.*
 import com.netflix.spinnaker.orca.time.MutableClock
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
@@ -30,11 +29,12 @@ import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.dsl.on
+import org.springframework.context.ApplicationEventPublisher
 import java.io.Closeable
 import java.time.Clock
 
-abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
-  createQueue: (Clock, DeadMessageCallback, Registry) -> Q,
+abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
+  createQueue: (Clock, DeadMessageCallback, ApplicationEventPublisher) -> Q,
   triggerRedeliveryCheck: Q.() -> Unit,
   shutdownCallback: (() -> Unit)? = null
 ) : Spek({
@@ -42,24 +42,13 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
   var queue: Q? = null
   val clock = MutableClock()
   val deadMessageHandler: DeadMessageCallback = mock()
-
-  val pushCounter: Counter = mock()
-  val ackCounter: Counter = mock()
-  val retryCounter: Counter = mock()
-  val deadMessageCounter: Counter = mock()
-
-  val registry: Registry = mock {
-    on { counter("queue.pushed.messages") } doReturn pushCounter
-    on { counter("queue.acknowledged.messages") } doReturn ackCounter
-    on { counter("queue.retried.messages") } doReturn retryCounter
-    on { counter("queue.dead.messages") } doReturn deadMessageCounter
-  }
+  val publisher: ApplicationEventPublisher = mock()
 
   fun startQueue() {
-    queue = createQueue(clock, deadMessageHandler, registry)
+    queue = createQueue(clock, deadMessageHandler, publisher)
   }
 
-  fun resetMocks() = reset(deadMessageHandler, pushCounter, ackCounter, retryCounter)
+  fun resetMocks() = reset(deadMessageHandler, publisher)
 
   fun stopQueue() {
     queue?.let { q ->
@@ -79,7 +68,6 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 0
-        lastQueuePoll.get() shouldEqual null
       }
     }
   }
@@ -93,16 +81,14 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"))
     }
 
-    it("increments a counter") {
-      verify(pushCounter).increment()
-      verifyNoMoreInteractions(pushCounter, ackCounter, retryCounter)
+    it("fires an event to report the push") {
+      verify(publisher).publishEvent(isA<MessagePushed>())
     }
 
-    it("reports the queue depth") {
+    it("reports the updated queue depth") {
       queue!!.apply {
         queueDepth shouldEqual 1
         unackedDepth shouldEqual 0
-        lastQueuePoll.get() shouldEqual null
       }
     }
   }
@@ -120,11 +106,14 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       queue!!.poll { _, _ -> }
     }
 
+    it("fires an event to report the poll") {
+      verify(publisher).publishEvent(isA<QueuePolled>())
+    }
+
     it("reports unacknowledged message depth") {
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 1
-        lastQueuePoll.get() shouldEqual clock.instant()
       }
     }
   }
@@ -144,15 +133,14 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
       }
     }
 
-    it("increments a counter") {
-      verify(ackCounter).increment()
+    it("fires an event to report the poll") {
+      verify(publisher).publishEvent(isA<MessageAcknowledged>())
     }
 
     it("reports an empty queue") {
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 0
-        lastQueuePoll.get() shouldEqual clock.instant()
       }
     }
   }
@@ -175,12 +163,8 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
         triggerRedeliveryCheck.invoke(queue!!)
       }
 
-      it("does not increment the redelivery count") {
-        verifyZeroInteractions(retryCounter)
-      }
-
-      it("reports the time of the last redelivery check") {
-        queue!!.lastRetryPoll.get() shouldEqual clock.instant()
+      it("fires an event") {
+        verify(publisher).publishEvent(isA<RetryPolled>())
       }
     }
 
@@ -199,19 +183,15 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
         triggerRedeliveryCheck.invoke(queue!!)
       }
 
+      it("fires an event indicating the message is being retried") {
+        verify(publisher).publishEvent(isA<MessageRetried>())
+      }
+
       it("reports the depth with the message re-queued") {
         queue!!.apply {
           queueDepth shouldEqual 1
           unackedDepth shouldEqual 0
         }
-      }
-
-      it("increments the redelivery count") {
-        verify(retryCounter).increment()
-      }
-
-      it("reports the time of the last redelivery check") {
-        queue!!.lastRetryPoll.get() shouldEqual clock.instant()
       }
     }
 
@@ -232,19 +212,19 @@ abstract class MonitoredQueueSpec<out Q : MonitoredQueue>(
         }
       }
 
+      it("fires events indicating the message was retried") {
+        verify(publisher, times(Queue.maxRetries - 1)).publishEvent(isA<MessageRetried>())
+      }
+
+      it("fires an event indicating the message is being dead lettered") {
+        verify(publisher).publishEvent(isA<MessageDead>())
+      }
+
       it("reports the depth without the message re-queued") {
         queue!!.apply {
           queueDepth shouldEqual 0
           unackedDepth shouldEqual 0
         }
-      }
-
-      it("counts the redelivery attempts") {
-        verify(retryCounter, times(Queue.maxRetries - 1)).increment()
-      }
-
-      it("increments the dead letter count") {
-        verify(deadMessageCounter).increment()
       }
     }
   }
