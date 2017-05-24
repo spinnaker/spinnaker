@@ -49,7 +49,6 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
     if (StringUtils.isEmpty(zone) && StringUtils.isEmpty(network) && CollectionUtils.isEmpty(baseImages)) {
       return;
     } else if (CollectionUtils.isEmpty(credentialsList)) {
-      p.addProblem(Problem.Severity.WARNING, "No google accounts are configured.");
       return;
     }
 
