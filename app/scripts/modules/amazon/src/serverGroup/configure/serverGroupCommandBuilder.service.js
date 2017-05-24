@@ -193,7 +193,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           freeFormDetails: serverGroupName.freeFormDetails,
           credentials: serverGroup.account,
           cooldown: serverGroup.asg.defaultCooldown,
-          enabledMetrics: serverGroup.asg.enabledMetrics,
+          enabledMetrics: _.get(serverGroup, 'asg.enabledMetrics', []).map(m => m.metric),
           healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
           healthCheckType: serverGroup.asg.healthCheckType,
           terminationPolicies: serverGroup.asg.terminationPolicies,
