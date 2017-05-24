@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.q.events
+package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spinnaker.orca.time.toInstant
 import org.springframework.context.ApplicationEvent
 
-sealed class QueueEvent(source: Any) : ApplicationEvent(source) {
+sealed class QueueEvent(source: MonitorableQueue) : ApplicationEvent(source) {
 
-  class QueuePolled(source: Any) : QueueEvent(source)
-  class RetryPolled(source: Any) : QueueEvent(source)
-  class MessagePushed(source: Any) : QueueEvent(source)
-  class MessageAcknowledged(source: Any) : QueueEvent(source)
-  class MessageRetried(source: Any) : QueueEvent(source)
-  class MessageDead(source: Any) : QueueEvent(source)
+  class QueuePolled(source: MonitorableQueue) : QueueEvent(source)
+  class RetryPolled(source: MonitorableQueue) : QueueEvent(source)
+  class MessagePushed(source: MonitorableQueue) : QueueEvent(source)
+  class MessageAcknowledged(source: MonitorableQueue) : QueueEvent(source)
+  class MessageRetried(source: MonitorableQueue) : QueueEvent(source)
+  class MessageDead(source: MonitorableQueue) : QueueEvent(source)
 
   val instant
     get() = timestamp.toInstant()

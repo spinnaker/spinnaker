@@ -19,8 +19,8 @@ package com.netflix.spinnaker.orca.q.memory
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.events.QueueEvent.*
 import com.netflix.spinnaker.orca.q.metrics.MonitorableQueue
+import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import com.netflix.spinnaker.orca.q.metrics.fire
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger

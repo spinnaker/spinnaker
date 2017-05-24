@@ -44,7 +44,7 @@ open class QueueConfiguration {
   open fun systemClock(): Clock = Clock.systemDefaultZone()
 
   @Bean(name = arrayOf("queueImpl")) @ConditionalOnMissingBean(Queue::class)
-  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher): Queue =
+  open fun inMemoryQueue(clock: Clock, deadMessageHandler: DeadMessageHandler, publisher: ApplicationEventPublisher) =
     InMemoryQueue(
       clock = clock,
       deadMessageHandler = deadMessageHandler::handle,

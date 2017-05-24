@@ -17,8 +17,7 @@
 package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.events.QueueEvent
-import com.netflix.spinnaker.orca.q.events.QueueEvent.*
+import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import org.springframework.context.ApplicationEventPublisher
 
 /**

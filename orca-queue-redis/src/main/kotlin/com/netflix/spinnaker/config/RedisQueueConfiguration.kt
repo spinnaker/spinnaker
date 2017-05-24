@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
 import org.springframework.beans.factory.annotation.Qualifier
@@ -40,7 +39,7 @@ open class RedisQueueConfiguration {
     currentInstanceId: String,
     deadMessageHandler: DeadMessageHandler,
     publisher: ApplicationEventPublisher
-  ): Queue =
+  ) =
     RedisQueue(
       queueName = redisQueueProperties.queueName,
       pool = redisPool,

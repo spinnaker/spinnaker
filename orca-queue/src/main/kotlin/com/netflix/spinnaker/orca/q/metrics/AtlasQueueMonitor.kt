@@ -19,8 +19,7 @@ package com.netflix.spinnaker.orca.q.metrics
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.events.QueueEvent
-import com.netflix.spinnaker.orca.q.events.QueueEvent.*
+import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -68,6 +67,8 @@ open class AtlasQueueMonitor
   }
 
   @PostConstruct fun registerGauges() {
+    log.info("Monitorable queue implementation $queue found. Exporting metrics to Atlas.")
+
     registry.gauge("queue.depth", this, {
       it.lastQueueDepth.toDouble()
     })

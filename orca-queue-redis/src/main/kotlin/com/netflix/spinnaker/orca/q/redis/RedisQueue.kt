@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.events.QueueEvent.*
 import com.netflix.spinnaker.orca.q.metrics.MonitorableQueue
+import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import com.netflix.spinnaker.orca.q.metrics.fire
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -39,7 +39,7 @@ import java.time.temporal.TemporalAmount
 import java.util.UUID.randomUUID
 
 class RedisQueue(
-  queueName: String,
+  private val queueName: String,
   private val pool: Pool<Jedis>,
   private val clock: Clock,
   private val currentInstanceId: String,
@@ -127,6 +127,8 @@ class RedisQueue(
 
   override val unackedDepth: Int
     get() = pool.resource.use { it.zcard(unackedKey).toInt() }
+
+  override fun toString() = "RedisQueue[$queueName]"
 
   private fun ack(id: String) {
     pool.resource.use { redis ->
