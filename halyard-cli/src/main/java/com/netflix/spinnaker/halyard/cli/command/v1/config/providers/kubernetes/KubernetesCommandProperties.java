@@ -24,6 +24,9 @@ public class KubernetesCommandProperties {
   static final String NAMESPACES_DESCRIPTION = "A list of namespaces this Spinnaker account can deploy to and will cache.\n"
       + "When no namespaces are configured, this defaults to 'all namespaces'.";
 
+  static final String OMIT_NAMESPACES_DESCRIPTION = "A list of namespaces this Spinnaker account cannot deploy to or cache.\n"
+      + "This can only be set when no --namespaces are provided.";
+
   static final String DOCKER_REGISTRIES_DESCRIPTION = "A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. "
       + "These docker registry accounts must be registered in your halconfig before you can add them here.";
 

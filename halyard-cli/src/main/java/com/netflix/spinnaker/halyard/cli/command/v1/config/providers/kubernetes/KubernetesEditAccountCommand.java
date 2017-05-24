@@ -23,6 +23,7 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConve
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -79,6 +80,25 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
   private String removeNamespace;
 
   @Parameter(
+      names = "--omit-namespaces",
+      variableArity = true,
+      description = KubernetesCommandProperties.OMIT_NAMESPACES_DESCRIPTION
+  )
+  private List<String> omitNamespaces = new ArrayList<>();
+
+  @Parameter(
+      names = "--add-omit-namespace",
+      description = "Add this namespace to the list of namespaces to omit."
+  )
+  private String addOmitNamespace;
+
+  @Parameter(
+      names = "--remove-omit-namespace",
+      description = "Remove this namespace to the list of namespaces to omit."
+  )
+  private String removeOmitNamespace;
+
+  @Parameter(
       names = "--docker-registries",
       variableArity = true,
       description = KubernetesCommandProperties.DOCKER_REGISTRIES_DESCRIPTION
@@ -115,6 +135,13 @@ public class KubernetesEditAccountCommand extends AbstractEditAccountCommand<Kub
           updateStringList(account.getNamespaces(), namespaces, addNamespace, removeNamespace));
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --namespace or --[add/remove]-namespace");
+    }
+
+    try {
+      account.setOmitNamespaces(
+          updateStringList(account.getOmitNamespaces(), omitNamespaces, addOmitNamespace, removeOmitNamespace));
+    } catch (IllegalArgumentException e) {
+      throw new IllegalArgumentException("Set either --omit-namespace or --[add/remove]-omit-namespace");
     }
 
     try {

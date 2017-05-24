@@ -17,17 +17,14 @@
 package com.netflix.spinnaker.halyard.config.validate.v1.providers.kubernetes;
 
 import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesConfigParser;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
-import com.netflix.spinnaker.halyard.config.validate.v1.providers.dockerRegistry.DockerRegistryReferenceValidation;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
@@ -43,7 +40,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -78,10 +77,19 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
     String cluster = account.getCluster();
     String user = account.getUser() ;
     List<String> namespaces = account.getNamespaces();
+    List<String> omitNamespaces = account.getOmitNamespaces();
 
     // This indicates if a first pass at the config looks OK. If we don't see any serious problems, we'll do one last check
     // against the requested kubernetes cluster to ensure that we can run spinnaker.
     boolean smoketest = true;
+
+    boolean namespacesProvided = namespaces != null && !namespaces.isEmpty();
+    boolean omitNamespacesProvided = omitNamespaces != null && !omitNamespaces.isEmpty();
+
+    if (namespacesProvided && omitNamespacesProvided) {
+      psBuilder.addProblem(ERROR, "At most one of \"namespaces\" and \"omitNamespaces\" can be supplied.");
+      smoketest = false;
+    }
 
     // TODO(lwander) find a good resource / list of resources for generating kubeconfig files to link to here.
     try {

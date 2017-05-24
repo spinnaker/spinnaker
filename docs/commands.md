@@ -2113,6 +2113,8 @@ When no context is configured for an account the 'current-context' in your kubec
  * `--namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account can deploy to and will cache.
 When no namespaces are configured, this defaults to 'all namespaces'.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--omit-namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account cannot deploy to or cache.
+This can only be set when no --namespaces are provided.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
 ---
@@ -2141,6 +2143,7 @@ hal config provider kubernetes account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--add-docker-registry`: Add this docker registry to the list of docker registries to use as a source of images.
  * `--add-namespace`: Add this namespace to the list of namespaces to manage.
+ * `--add-omit-namespace`: Add this namespace to the list of namespaces to omit.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--all-namespaces`: (*Default*: `false`) Set the list of namespaces to cache and deploy to every namespace available to your supplied credentials.
  * `--clear-context`: (*Default*: `false`) Removes the currently configured context, defaulting to 'current-context' in your kubeconfig.See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
@@ -2151,8 +2154,11 @@ When no context is configured for an account the 'current-context' in your kubec
  * `--namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account can deploy to and will cache.
 When no namespaces are configured, this defaults to 'all namespaces'.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--omit-namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account cannot deploy to or cache.
+This can only be set when no --namespaces are provided.
  * `--remove-docker-registry`: Remove this docker registry from the list of docker registries to use as a source of images.
  * `--remove-namespace`: Remove this namespace to the list of namespaces to manage.
+ * `--remove-omit-namespace`: Remove this namespace to the list of namespaces to omit.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
@@ -3015,7 +3021,7 @@ hal config storage gcs edit [parameters]
  * `--json-path`: A path to a JSON service account with permission to read and write to the bucket to be used as a backing store.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project you are using to host the GCS bucket as a backing store.
- * `--root-folder`: (*Default*: `spinnaker`) The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
+ * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
 
 ---
 ## hal config storage oraclebmcs
@@ -3078,7 +3084,7 @@ hal config storage s3 edit [parameters]
  * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region.
- * `--root-folder`: (*Default*: `spinnaker`) The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
+ * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
 
 ---
 ## hal config version
@@ -3105,7 +3111,7 @@ hal config version edit [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--version`: (*Required*) Must be either a version number "X.Y.Z" for a specific release of Spinnaker, "latest" for the most recently validated Spinnaker, or "nightly" for the most recently built (unvalidated) Spinnaker.
+ * `--version`: (*Required*) Must be either a version number "X.Y.Z" for a specific release of Spinnaker, or "$BRANCH-latest-unvalidated" for the most recently built (unvalidated) Spinnaker on $BRANCH.
 
 ---
 ## hal deploy
@@ -3297,8 +3303,10 @@ All Spinnaker releases that have been fully validated are listed here. You can p
 
 #### Usage
 ```
-hal version list
+hal version list [parameters]
 ```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
 
 ---
 

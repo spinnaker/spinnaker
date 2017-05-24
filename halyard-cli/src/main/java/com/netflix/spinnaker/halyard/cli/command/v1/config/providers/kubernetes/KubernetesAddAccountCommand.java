@@ -53,6 +53,13 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
   public List<String> namespaces = new ArrayList<>();
 
   @Parameter(
+      names = "--omit-namespaces",
+      variableArity = true,
+      description = KubernetesCommandProperties.OMIT_NAMESPACES_DESCRIPTION
+  )
+  public List<String> omitNamespaces = new ArrayList<>();
+
+  @Parameter(
       names = "--docker-registries",
       required = true,
       variableArity = true,
@@ -66,6 +73,7 @@ public class KubernetesAddAccountCommand extends AbstractAddAccountCommand {
     account.setContext(context);
     account.setKubeconfigFile(kubeconfigFile);
     account.setNamespaces(namespaces);
+    account.setOmitNamespaces(omitNamespaces);
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
     return account;
   }

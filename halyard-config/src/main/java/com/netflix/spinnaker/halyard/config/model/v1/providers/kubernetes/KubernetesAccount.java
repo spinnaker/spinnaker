@@ -43,6 +43,7 @@ public class KubernetesAccount extends Account implements Cloneable {
   String cluster;
   String user;
   List<String> namespaces = new ArrayList<>();
+  List<String> omitNamespaces = new ArrayList<>();
   List<DockerRegistryReference> dockerRegistries = new ArrayList<>();
   @LocalFile String kubeconfigFile;
 
