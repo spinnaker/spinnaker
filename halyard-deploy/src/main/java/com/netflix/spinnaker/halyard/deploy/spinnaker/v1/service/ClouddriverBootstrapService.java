@@ -28,6 +28,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -46,6 +48,11 @@ abstract public class ClouddriverBootstrapService extends ClouddriverService {
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
+
+    // Due to a "feature" in how spring merges profiles, list entries (including requiredGroupMembership) are
+    // merged rather than overwritten. Including the base profile will prevent fiat-enabled setups from deploying
+    // anything since the deploying account will be restricted from performing any operations
+    profiles = profiles.stream().filter(p -> !p.getName().equals("clouddriver.yml")).collect(Collectors.toList());
 
     String filename = "clouddriver-bootstrap.yml";
     String path = Paths.get(OUTPUT_PATH, filename).toString();
