@@ -86,8 +86,96 @@ class AzsStorageConfiguratorHelper(object):
     script.append(hal)
 
 
+class S3StorageConfiguratorHelper(object):
+  """Helper class for StorageConfigurator to handle S3."""
+
+  REGIONS = ['us-east-2', 'us-east-1', 'us-west-1', 'us-west-2',
+             'ca-central-1',
+             'ap-south-1', 'ap-northeast-2', 'ap-southeast-1',
+             'ap-southeast-2', 'ap-northeast-1',
+             'eu-central-1', 'eu-west-1', 'eu-west-2', 'sa-east-1']
+
+  @classmethod
+  def init_argument_parser(cls, parser):
+    """Implements interface."""
+    parser.add_argument(
+        '--storage_s3_bucket', default=None,
+        help='The name for the AWS S3 bucket to use.'
+             ' This is only used if --spinnaker_storage=s3.')
+    parser.add_argument(
+        '--storage_s3_region', choices=cls.REGIONS,
+        help='The name for the AWS region to create the bucket in.'
+             ' This is only used if the bucket does not already exist.')
+
+    parser.add_argument(
+        '--storage_s3_credentials', default=None,
+        help='HACK. The credentials file for AWS is only needed if using s3'
+             ' but without an AWS account configured. Otherwise S3 will use'
+             ' the same credentials as the account.'
+             ' Ultimately there needs to be a way to distinguish in Halyard.')
+
+  @classmethod
+  def validate_options(cls, options):
+    """Implements interface."""
+    if not options.storage_s3_region:
+      raise ValueError('--storage_s3_region is required.')
+
+  @classmethod
+  def add_files_to_upload(cls, options, file_set):
+    """Implements interface."""
+    if options.storage_s3_credentials:
+      if options.aws_account_credentials:
+        raise ValueError('Cannot have both --storage_s3_credentials'
+                         ' and --aws_account_credentials')
+      file_set.add(options.storage_s3_credentials)
+
+  @classmethod
+  def add_config(cls, options, script):
+    """Implements interface."""
+    if options.storage_s3_credentials:
+      cls.hack_credentials_for_hal(options, script)
+      AwsConfigurator.ingest_credentials(options.storage_s3_credentials, script)
+      script.append('sudo service halyard restart')
+      script.append('while ! hal --ready; do sleep 1; done')
+
+    command = ['hal config storage s3 edit']
+
+    if options.storage_s3_bucket:
+      command.extend(['--bucket', options.storage_s3_bucket])
+    if options.storage_s3_region:
+      command.extend(['--region', options.storage_s3_region])
+
+    script.append(' '.join(command))
+
+  @classmethod
+  def hack_credentials_for_hal(cls, options, script):
+    cred_basename = os.path.basename(options.storage_s3_credentials)
+    for aws_user in [options.deploy_hal_user, 'root']:
+      # Halyard seems to need these credentials in both places
+      # in order to configure s3.
+      # (in addition to ~spinnaker later in order for front50 to start)
+      script.append('sudo mkdir -p ~{user}/.aws'.format(user=aws_user))
+      script.append('sudo chown {user}:{user} {file} ~{user}/.aws'
+                    .format(user=aws_user, file=cred_basename))
+      script.append('sudo chmod 600 {file}'.format(file=cred_basename))
+      script.append('sudo cp {file} ~{user}/.aws/credentials'
+                    .format(file=cred_basename, user=aws_user))
+      script.append('sudo chown {user}:{user} ~{user}/.aws/credentials'
+                    .format(user=aws_user))
+
+
 class GcsStorageConfiguratorHelper(object):
   """Helper class for StorageConfigurator to handle GCS."""
+
+  LOCATIONS = [
+      # multi-regional bucket
+      'us', 'eu', 'ap',
+
+      # regional bucket
+      'us-central1', 'us-east1', 'us-west1', 'us-east4',
+      'europe-west1',
+      'asia-east1', 'asia-northeast1', 'asia-southeast1'
+  ]
 
   @classmethod
   def init_argument_parser(cls, parser):
@@ -97,6 +185,9 @@ class GcsStorageConfiguratorHelper(object):
         help=('URI for specific Google Storage bucket to use.'
               ' This is suggested if using gcs storage, though can be left'
               ' empty to let Halyard create one.'))
+    parser.add_argument(
+        '--storage_gcs_location', choices=cls.LOCATIONS,
+        help=('Location for the bucket if it needs to be created.'))
     parser.add_argument(
         '--storage_gcs_project', default=None,
         help=('URI for specific Google Storage bucket project to use.'
@@ -131,7 +222,7 @@ class GcsStorageConfiguratorHelper(object):
         ' --bucket-location {location}'
         .format(project=project,
                 bucket=options.storage_gcs_bucket,
-                location='us'))
+                location=options.storage_gcs_location))
     if options.storage_gcs_credentials:
       hal += (' --json-path ./{filename}'
               .format(filename=os.path.basename(
@@ -144,7 +235,8 @@ class StorageConfigurator(object):
 
   HELPERS = {
       'azs': AzsStorageConfiguratorHelper,
-      'gcs': GcsStorageConfiguratorHelper
+      'gcs': GcsStorageConfiguratorHelper,
+      's3': S3StorageConfiguratorHelper
   }
 
   def init_argument_parser(self, parser):
@@ -213,29 +305,40 @@ class AwsConfigurator(object):
       options.aws_account_keypair = '{0}-keypair'.format(
           options.aws_account_name)
 
+  @staticmethod
+  def ingest_credentials(path, script):
+    """Put aws credentials into the user .aws/credentials location."""
+
+    cred_basename = os.path.basename(path)
+    # credentials needs to be available first
+    # hal is running as root, not spinnaker
+    # it wants the .aws/credentials file, so make it available first.
+    aws_user = 'spinnaker'
+    script.append('sudo mkdir -p ~{user}/.aws'.format(user=aws_user))
+    script.append('sudo chown {user}:{user} {file} ~{user}/.aws'
+                  .format(user=aws_user, file=cred_basename))
+    script.append('sudo chmod 600 {file}'.format(file=cred_basename))
+    script.append('sudo mv {file} ~{user}/.aws/credentials'
+                  .format(file=cred_basename, user=aws_user))
+
   def add_config(self, options, script):
     """Implements interface."""
     if not options.aws_account_credentials:
       return
 
+    self.ingest_credentials(options.aws_account_credentials, script)
+
     account_params = [options.aws_account_name]
     if options.aws_account_id:
       account_params.extend(['--account-id', options.aws_account_id])
     if options.aws_account_keypair:
-      account_params.extend(['--default-keypair', options.aws_account_keypair])
+      account_params.extend(['--default-key-pair', options.aws_account_keypair])
     if options.aws_account_regions:
-      account_params.extend(['--account-regions', options.aws_account_regions])
+      account_params.extend(['--regions', options.aws_account_regions])
 
-    cred_basename = os.path.basename(options.aws_account_credentials)
     script.append('hal --color=false config provider aws enable')
     script.append('hal --color=false config provider aws account add {params}'
                   .format(params=' '.join(account_params)))
-    script.append('sudo mkdir -p ~spinnaker/.aws')
-    script.append('sudo chown spinnaker:spinnaker {file} ~spinnaker/.aws'
-                  .format(file=cred_basename))
-    script.append('sudo chmod 600 {file}'.format(file=cred_basename))
-    script.append('sudo mv {file} ~spinnaker/.aws/credentials'
-                  .format(file=cred_basename))
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
