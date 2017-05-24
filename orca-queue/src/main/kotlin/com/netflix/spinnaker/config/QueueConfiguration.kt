@@ -30,12 +30,14 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.ApplicationEventMulticaster
 import org.springframework.context.event.SimpleApplicationEventMulticaster
+import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import java.time.Clock
 import java.util.concurrent.Executor
 
 @Configuration
 @ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log"))
+@EnableScheduling
 open class QueueConfiguration {
   @Bean @ConditionalOnMissingBean(Clock::class)
   open fun systemClock(): Clock = Clock.systemDefaultZone()

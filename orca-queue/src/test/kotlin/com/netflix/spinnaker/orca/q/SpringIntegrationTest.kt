@@ -44,8 +44,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.springframework.beans.factory.DisposableBean
-import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration
@@ -55,11 +53,9 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
-import java.lang.Thread.sleep
 import java.time.Duration
 import java.time.Instant.now
 import java.time.ZoneId
-import java.util.concurrent.atomic.AtomicBoolean
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @ContextConfiguration(classes = arrayOf(TestConfig::class))
@@ -459,25 +455,6 @@ open class TestConfig {
 
     override fun getType() = "dummy"
   }
-
-  @Bean open fun stupidPretendScheduler(queueProcessor: QueueProcessor): Any =
-    object : InitializingBean, DisposableBean {
-      private val running = AtomicBoolean(false)
-
-      override fun afterPropertiesSet() {
-        running.set(true)
-        Thread(Runnable {
-          while (running.get()) {
-            queueProcessor.pollOnce()
-            sleep(10)
-          }
-        }).start()
-      }
-
-      override fun destroy() {
-        running.set(false)
-      }
-    }
 
   @Bean open fun currentInstanceId() = "localhost"
 
