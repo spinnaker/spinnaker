@@ -32,7 +32,7 @@ tests:
     api: gate
     args:
       alias: [standard_google_provider_params]
-      test_google: true
+      test_google:
       jenkins_token: TRIGGER_TOKEN
       jenkins_job: NoOpTrigger
       jenkins_url: $jenkins_master_address
@@ -83,7 +83,7 @@ tests:
     api: gate
     args:
       alias: [standard_google_provider_params]
-      regional: true
+      regional:
 
   google_smoke_test:
     requires:
