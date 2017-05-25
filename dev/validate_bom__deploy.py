@@ -49,8 +49,7 @@ def ensure_empty_ssh_key(path, user):
   can use it for ssh/scp.
   """
 
-  pub_path = path + '.pub'
-  if os.path.exists(pub_path):
+  if os.path.exists(path):
     return
 
   logging.debug('Creating %s SSH key for user "%s"', path, user)
@@ -386,6 +385,8 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   @property
   def instance_ip(self):
     """The underlying IP address for the deployed instance."""
+    if not self.__instance_ip:
+      self.__instance_ip = self.do_determine_instance_ip()
     return self.__instance_ip
 
   @instance_ip.setter
@@ -398,6 +399,11 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
     """Returns the path to the ssh key for the deployment VM."""
     return self.__ssh_key_path
 
+  @ssh_key_path.setter
+  def ssh_key_path(self, path):
+    """Sets the path to the ssh key to use."""
+    self.__ssh_key_path = path
+
   @property
   def hal_user(self):
     """Returns the Halyard User within the deployment VM."""
@@ -406,7 +412,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   def __init__(self, options, **kwargs):
     super(GenericVmValidateBomDeployer, self).__init__(options, **kwargs)
     self.__instance_ip = None
-    self.__hal_user = os.environ.get('LOGNAME')
+    self.__hal_user = options.deploy_hal_user
     logging.info('hal_user="%s"', self.__hal_user)
     self.__ssh_key_path = os.path.join(os.environ['HOME'], '.ssh',
                                        '{0}_empty_key'.format(self.__hal_user))
@@ -417,10 +423,14 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
         'ssh', '-i', self.__ssh_key_path,
         '-o', 'StrictHostKeyChecking=no',
         '-o', 'UserKnownHostsFile=/dev/null',
-        self.instance_ip,
+        '{user}@{ip}'.format(user=self.hal_user, ip=self.instance_ip),
         '-L', '{local_port}:localhost:{remote_port}'.format(
             local_port=local_port, remote_port=remote_port),
         '-N']
+
+  def do_determine_instance_ip(self):
+    """Hook for determining the ip address of the hal instance."""
+    raise NotImplementedError(self.__class__.__name__)
 
   def do_create_vm(self, options):
     """Hook for concrete deployer to craete the VM."""
@@ -429,9 +439,17 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   def do_deploy(self, script, files_to_upload):
     """Implements the BaseBomValidateDeployer interface."""
     options = self.options
-    ensure_empty_ssh_key(self.__ssh_key_path, self.__hal_user)
+    ensure_empty_ssh_key(self.__ssh_key_path, self.hal_user)
 
-    script_path = write_script_to_path(script, path=None)
+    script_parts = []
+    for path in files_to_upload:
+      filename = os.path.basename(path)
+      script_parts.append('sudo chmod 600 {file}'.format(file=filename))
+      script_parts.append('sudo chown {user}:{user} {file}'
+                          .format(user=self.hal_user, file=filename))
+
+    script_parts.extend(script)
+    script_path = write_script_to_path(script_parts, path=None)
     files_to_upload.add(script_path)
     if options.jenkins_master_name:
       write_data_to_secure_path(
@@ -448,9 +466,11 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
           ' -i {ssh_key_path}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {files} {ip}:~'
+          ' {files}'
+          ' {user}@{ip}:~'
           .format(ssh_key_path=self.__ssh_key_path,
                   files=' '.join(files_to_upload),
+                  user=self.hal_user,
                   ip=self.instance_ip))
       logging.info('Copying files %s', copy_files)
 
@@ -476,9 +496,10 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {ip}'
+          ' {user}@{ip}'
           ' "sudo ./{script_name}"'
-          .format(ip=self.instance_ip,
+          .format(user=self.hal_user,
+                  ip=self.instance_ip,
                   ssh_key=self.__ssh_key_path,
                   script_name=os.path.basename(script_path)))
     except RuntimeError:
@@ -492,9 +513,10 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
         ' -i {ssh_key}'
         ' -o StrictHostKeyChecking=no'
         ' -o UserKnownHostsFile=/dev/null'
-        ' {ip}:/var/log/spinnaker/{service}/{service}.log'
+        ' {user}@{ip}:/var/log/spinnaker/{service}/{service}.log'
         ' {log_dir}'
-        .format(ip=self.instance_ip,
+        .format(user=self.hal_user,
+                ip=self.instance_ip,
                 ssh_key=self.ssh_key_path,
                 service=service,
                 log_dir=log_dir))
@@ -583,8 +605,10 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {ip} sudo hal deploy clean'
-          .format(ip=self.instance_ip, ssh_key=self.ssh_key_path))
+          ' {user}@{ip} sudo hal deploy clean'
+          .format(user=self.hal_user,
+                  ip=self.instance_ip,
+                  ssh_key=self.ssh_key_path))
     check_run_and_monitor(
         'az vm delete -y'
         ' --name {name}'
@@ -600,30 +624,24 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
   free function make_deployer() in this module.
   """
 
-  @property
-  def instance_ip(self):
-    """The underlying internal IP address for the deployed instance."""
-    if not self.__instance_ip:
-      options = self.options
-      response = check_run_quick(
-          'gcloud compute instances describe'
-          ' --format json'
-          ' --account {gcloud_account}'
-          ' --project {project} --zone {zone} {instance}'
-          .format(gcloud_account=options.deploy_hal_google_service_account,
-                  project=options.deploy_google_project,
-                  zone=options.deploy_google_zone,
-                  instance=options.deploy_google_instance))
-      # This is the internal network address
-      self.__instance_ip = json.JSONDecoder().decode(
-          response.stdout)['networkInterfaces'][0]['networkIP']
-      # External is [0]['accessConfigs'][0]['natIP']
-      # where the accessConfig[0] "name" is "external-nat".
-    return self.__instance_ip
+  def do_determine_instance_ip(self):
+    """Implements GenericVmValidateBomDeployer interface."""
+    options = self.options
+    response = check_run_quick(
+        'gcloud compute instances describe'
+        ' --format json'
+        ' --account {gcloud_account}'
+        ' --project {project} --zone {zone} {instance}'
+        .format(gcloud_account=options.deploy_hal_google_service_account,
+                project=options.deploy_google_project,
+                zone=options.deploy_google_zone,
+                instance=options.deploy_google_instance))
+    # This is the internal network address
+    return json.JSONDecoder().decode(
+        response.stdout)['networkInterfaces'][0]['networkIP']
 
   def __init__(self, options, **kwargs):
     super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
-    self.__instance_ip = None
 
   @classmethod
   def init_platform_argument_parser(cls, parser):
@@ -643,6 +661,10 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         '--deploy_google_instance',
         default=None,
         help='Google instance to deploy to if --deploy_hal_platform is "gce".')
+    parser.add_argument(
+        '--deploy_hal_google_service_account', default=None,
+        help='When deploying to gce, this is the service account to use'
+             ' for configuring halyard.')
 
   @classmethod
   def validate_options_helper(cls, options):
@@ -711,8 +733,10 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {ip} sudo hal deploy clean'
-          .format(ip=self.instance_ip, ssh_key=self.ssh_key_path))
+          ' {user}@{ip} sudo hal deploy clean'
+          .format(user=self.hal_user,
+                  ip=self.instance_ip,
+                  ssh_key=self.ssh_key_path))
 
     check_run_and_monitor(
         'gcloud -q compute instances delete'
@@ -802,9 +826,9 @@ def init_argument_parser(parser):
            ' Halyard will then deploy Spinnaker.')
 
   parser.add_argument(
-      '--deploy_hal_google_service_account', default=None,
-      help='When deploying to gce, this is the service account to use'
-           ' for configuring halyard.')
+      '--deploy_hal_user', default=os.environ.get('LOGNAME'),
+      help='User name on deployed hal_platform for deploying hal.'
+           ' This is used to scp and ssh from this machine.')
 
   parser.add_argument(
       '--deploy_distributed_platform', default='kubernetes',
