@@ -2716,13 +2716,13 @@ SAML authenticates users by passing cryptographically signed XML documents betwe
 hal config security authn saml edit [parameters]
 ```
 #### Parameters
- * `--issuerId`: The identity of the Spinnaker application registered with the SAML provider.
+ * `--issuer-id`: The identity of the Spinnaker application registered with the SAML provider.
  * `--keystore`: Path to the keystore that contains this server's private key. This key is used to cryptographically sign SAML AuthNRequest objects.
- * `--keystoreAlias`: The name of the alias under which this server's private key is stored in the --keystore file.
- * `--keystorePassword`: The password used to access the file specified in --keystore
+ * `--keystore-alias`: The name of the alias under which this server's private key is stored in the --keystore file.
+ * `--keystore-password`: The password used to access the file specified in --keystore
  * `--metadata`: The address to your identity provider's metadata XML file. This can be a URL or the path of a local file.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--serviceAddressUrl`: The address of the Gate server that will be accesible by the SAML identity provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/. If deployed behind a load balancer, this would be the laod balancer's address.
+ * `--service-address-url`: The address of the Gate server that will be accesible by the SAML identity provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/. If deployed behind a load balancer, this would be the laod balancer's address.
 
 ---
 ## hal config security authn saml enable

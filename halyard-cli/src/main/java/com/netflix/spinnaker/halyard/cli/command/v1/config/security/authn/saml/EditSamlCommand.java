@@ -53,7 +53,7 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
   private String metadata;
 
   @Parameter(
-      names = "--issuerId",
+      names = "--issuer-id",
       description = "The identity of the Spinnaker application registered with the SAML provider."
   )
   private String issuerId;
@@ -66,20 +66,20 @@ public class EditSamlCommand extends AbstractEditAuthnMethodCommand<Saml> {
   private String keystore;
 
   @Parameter(
-      names = "--keystorePassword",
+      names = "--keystore-password",
       description = "The password used to access the file specified in --keystore"
   )
   private String keystorePassword;
 
   @Parameter(
-      names = "--keystoreAlias",
+      names = "--keystore-alias",
       description = "The name of the alias under which this server's private key is stored in the" +
           " --keystore file."
   )
   private String keystoreAliasName;
 
   @Parameter(
-      names = "--serviceAddressUrl",
+      names = "--service-address-url",
       description = "The address of the Gate server that will be accesible by the SAML identity " +
           "provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/" +
           ". If deployed behind a load balancer, this would be the laod balancer's address."
