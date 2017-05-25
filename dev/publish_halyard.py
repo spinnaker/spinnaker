@@ -31,6 +31,7 @@
 # If you are running this script on Jenkins, you can configure Jenkins to handle SSH credentials.
 
 import argparse
+import datetime
 import os
 import sys
 import yaml
@@ -189,7 +190,11 @@ class HalyardPublisher(object):
           '  nav: reference',
           '---',
           '',
-          ''
+          'Published: {}'.format(datetime
+              .datetime
+              .now()
+              .strftime('%Y-%m-%d %H:%M:%S')),
+          '',
         ])
         target.write(header + source.read())
 
