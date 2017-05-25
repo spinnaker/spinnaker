@@ -35,7 +35,7 @@ describe('entityTags reader', () => {
   afterEach(SETTINGS.resetToOriginal);
 
   it('returns an empty list instead of failing if tags cannot be loaded', () => {
-    $http.whenGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
+    $http.whenGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups&maxResults=2`).respond(400, 'bad request');
     let result: any = null;
     service.getAllEntityTags('serverGroups', ['a', 'b']).then(r => result = r);
     $http.flush();
@@ -44,23 +44,23 @@ describe('entityTags reader', () => {
     expect(result).toEqual([]);
   });
 
-  it('collates entries into groups when there are too many', () => {
-    $http.expectGET(`http://gate/tags?entityId=a,b&entityType=servergroups`).respond(200, []);
-    $http.expectGET(`http://gate/tags?entityId=c,d&entityType=servergroups`).respond(200, []);
+  it('collates entries into groups when there are too many, including maxResults', () => {
+    $http.expectGET(`http://gate/tags?entityId=a,b&entityType=servergroups&maxResults=2`).respond(200, []);
+    $http.expectGET(`http://gate/tags?entityId=c,d&entityType=servergroups&maxResults=4`).respond(200, []);
 
     let result: any = null;
-    service.getAllEntityTags('serverGroups', ['a', 'b', 'c', 'd']).then(r => result = r);
+    service.getAllEntityTags('serverGroups', ['a', 'b', 'c', 'd', 'd', 'd']).then(r => result = r);
     $http.flush();
     $timeout.flush();
     expect(result).toEqual([]);
   });
 
   it('retries server group fetch once on exceptions', () => {
-    $http.expectGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(400, 'bad request');
+    $http.expectGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups&maxResults=2`).respond(400, 'bad request');
     let result: any = null;
     service.getAllEntityTags('serverGroups', ['a', 'b']).then(r => result = r);
     $http.flush();
-    $http.expectGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups`).respond(200, []);
+    $http.expectGET(`${SETTINGS.gateUrl}/tags?entityId=a,b&entityType=servergroups&maxResults=2`).respond(200, []);
     $timeout.flush();
     $http.flush();
     expect(result).toEqual([]);

@@ -1,10 +1,15 @@
 import {module, IQService, IPromise, IDeferred} from 'angular';
-import {get, uniq} from 'lodash';
+import {countBy, get, uniq} from 'lodash';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
 import {IEntityTags, IEntityTag, ICreationMetadataTag} from '../domain/IEntityTags';
 import {RETRY_SERVICE, RetryService} from 'core/retry/retry.service';
 import {SETTINGS} from 'core/config/settings';
+
+interface ICollatedIdGroup {
+  entityId: string;
+  maxResults: number;
+}
 
 export class EntityTagsReader {
 
@@ -18,13 +23,14 @@ export class EntityTagsReader {
     if (!entityIds || !entityIds.length) {
       return this.$q.when([]);
     }
-    const idGroups: string[] = this.collateEntityIds(entityType, uniq(entityIds));
+    const idGroups: ICollatedIdGroup[] = this.collateEntityIds(entityType, entityIds);
     const succeeded = (val: IEntityTags[]) => val !== null;
     const sources = idGroups.map(idGroup => this.retryService.buildRetrySequence<IEntityTags[]>(
       () => this.API.one('tags')
         .withParams({
           entityType: entityType.toLowerCase(),
-          entityId: idGroup
+          entityId: idGroup.entityId,
+          maxResults: idGroup.maxResults,
         }).getList(),
       succeeded, 1, 0)
     );
@@ -67,19 +73,22 @@ export class EntityTagsReader {
     }
   }
 
-  private collateEntityIds(entityType: string, entityIds: string[]): string[] {
+  private collateEntityIds(entityType: string, nonUniqueEntityIds: string[]): ICollatedIdGroup[] {
+    const entityIds = uniq(nonUniqueEntityIds);
+    const entityIdCounts = countBy(nonUniqueEntityIds);
     const baseUrlLength = `${SETTINGS.gateUrl}/tags?entityType=${entityType}&entityIds=`.length;
     const maxIdGroupLength = get(SETTINGS, 'entityTags.maxUrlLength', 4000) - baseUrlLength;
-    const idGroups: string[] = [];
+    const idGroups: ICollatedIdGroup[] = [];
     const joinedEntityIds = entityIds.join(',');
+    const maxGroupSize = 100;
 
     if (joinedEntityIds.length > maxIdGroupLength) {
       let index = 0,
         currentLength = 0;
       const currentGroup: string[] = [];
       while (index < entityIds.length) {
-        if (currentLength + entityIds[index].length + 1 > maxIdGroupLength) {
-          idGroups.push(currentGroup.join(','));
+        if (currentLength + entityIds[index].length + 1 > maxIdGroupLength || currentGroup.length === maxGroupSize) {
+          idGroups.push(this.makeIdGroup(currentGroup, entityIdCounts));
           currentGroup.length = 0;
           currentLength = 0;
         }
@@ -88,13 +97,20 @@ export class EntityTagsReader {
         index++;
       }
       if (currentGroup.length) {
-        idGroups.push(currentGroup.join(','));
+        idGroups.push(this.makeIdGroup(currentGroup, entityIdCounts));
       }
     } else {
-      idGroups.push(joinedEntityIds);
+      idGroups.push(this.makeIdGroup(entityIds, entityIdCounts));
     }
 
     return idGroups;
+  }
+
+  private makeIdGroup(entityIds: string[], entityIdCounts: {[entityId: string]: number}): ICollatedIdGroup {
+    return {
+      entityId: entityIds.join(','),
+      maxResults: entityIds.reduce((acc, curr) => acc + entityIdCounts[curr], 0)
+    };
   }
 }
 
