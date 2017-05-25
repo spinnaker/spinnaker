@@ -80,6 +80,11 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     if (description.hostNetwork) {
         podBuilder = podBuilder.withHostNetwork(description.hostNetwork)
     }
+
+    if (description.nodeSelector){
+     podBuilder = podBuilder.withNodeSelector(description.nodeSelector)
+    }
+
     description.container.name = description.container.name ?: "job"
     def container = KubernetesApiConverter.toContainer(description.container)
 

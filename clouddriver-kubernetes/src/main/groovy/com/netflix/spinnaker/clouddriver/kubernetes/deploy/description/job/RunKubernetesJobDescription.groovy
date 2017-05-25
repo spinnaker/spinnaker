@@ -31,6 +31,7 @@ class RunKubernetesJobDescription extends KubernetesAtomicOperationDescription {
   String freeFormDetails
   String namespace
   Boolean hostNetwork=false
+  Map<String, String> nodeSelector
   KubernetesContainerDescription container
   List<KubernetesVolumeSource> volumeSources
 }
