@@ -57,4 +57,5 @@ public class KubernetesOrcaService extends OrcaService implements KubernetesDist
 
   final DeployPriority deployPriority = new DeployPriority(1);
   final boolean requiredToBootstrap = false;
+  final boolean stateful = true;
 }

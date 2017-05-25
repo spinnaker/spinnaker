@@ -57,4 +57,5 @@ public class KubernetesRoscoService extends RoscoService implements KubernetesDi
 
   final DeployPriority deployPriority = new DeployPriority(0);
   final boolean requiredToBootstrap = false;
+  final boolean stateful = true;
 }

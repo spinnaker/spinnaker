@@ -24,11 +24,14 @@ import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca.ActiveExecutions;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RoscoService.Rosco;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +40,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -182,6 +182,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     }
 
     reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
+    reapRoscoServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ROSCO));
 
     return new RemoteAction();
   }
@@ -212,7 +213,7 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     List<String> configs = distributedService.stageProfiles(details, resolvedConfiguration);
     Integer maxRemaining = MAX_REMAINING_SERVER_GROUPS;
     boolean scaleDown = true;
-    if (distributedService.getService().getArtifact() == SpinnakerArtifact.ORCA) {
+    if (distributedService.isStateful()) {
       maxRemaining = null;
       scaleDown = false;
     }
@@ -234,9 +235,53 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
 
   private <T extends Account> void reapRoscoServerGroups(AccountDeploymentDetails<T> details,
       SpinnakerRuntimeSettings runtimeSettings,
-      DistributedService<RoscoService.Rosco, T> roscoServices
+      DistributedService<Rosco, T> roscoService
   ) {
-    
+    Rosco rosco =  roscoService.connectToPrimaryService(details, runtimeSettings);
+    Rosco.AllStatus allStatus = rosco.getAllStatus();
+    ServiceSettings roscoSettings = runtimeSettings.getServiceSettings(roscoService.getService());
+    RunningServiceDetails roscoDetails = roscoService.getRunningServiceDetails(details, runtimeSettings);
+
+    Set<String> activeInstances = new HashSet<>();
+
+    allStatus.getInstances().forEach((s, e) -> {
+      if (e.getStatus().equals(Rosco.Status.RUNNING)) {
+        String[] split = s.split("@");
+        if (split.length != 2) {
+          log.warn("Unsupported rosco status format");
+          return;
+        }
+
+        String instanceId = split[1];
+        activeInstances.add(instanceId);
+      }
+    });
+
+    Map<Integer, Integer> executionsByServerGroupVersion = new HashMap<>();
+
+    roscoDetails.getInstances().forEach((s, is) -> {
+      int count = is.stream().reduce(0,
+          (c, i) -> c + (activeInstances.contains(i) ? 1 : 0),
+          (a, b) -> a + b);
+      executionsByServerGroupVersion.put(s, count);
+    });
+
+    // Omit the last deployed roscos from being deleted, since they are kept around for rollbacks.
+    List<Integer> allRoscos = new ArrayList<>(executionsByServerGroupVersion.keySet());
+    allRoscos.sort(Integer::compareTo);
+
+    int roscoCount = allRoscos.size();
+    if (roscoCount <= MAX_REMAINING_SERVER_GROUPS) {
+      return;
+    }
+
+    allRoscos = allRoscos.subList(0, roscoCount - MAX_REMAINING_SERVER_GROUPS);
+    for (Integer roscoVersion : allRoscos) {
+      if (executionsByServerGroupVersion.get(roscoVersion) == 0) {
+        DaemonTaskHandler.message("Reaping old rosco server group sequence " + roscoVersion);
+        roscoService.deleteVersion(details, roscoSettings, roscoVersion);
+      }
+    }
   }
 
   private <T extends Account> void reapOrcaServerGroups(AccountDeploymentDetails<T> details,

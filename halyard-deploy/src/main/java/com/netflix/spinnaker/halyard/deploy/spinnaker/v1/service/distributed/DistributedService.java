@@ -63,6 +63,10 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   DeployPriority getDeployPriority();
   SpinnakerService<T> getService();
 
+  default boolean isStateful() {
+    return false;
+  }
+
   default T connectToPrimaryService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings) {
     return connectToService(details, runtimeSettings, getService());
   }

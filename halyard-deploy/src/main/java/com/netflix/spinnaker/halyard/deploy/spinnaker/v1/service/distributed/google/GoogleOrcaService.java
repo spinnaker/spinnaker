@@ -36,6 +36,7 @@ import java.util.List;
 public class GoogleOrcaService extends OrcaService implements GoogleDistributedService<OrcaService.Orca> {
   final DeployPriority deployPriority = new DeployPriority(4);
   final boolean requiredToBootstrap = false;
+  final boolean stateful = true;
 
   @Delegate
   @Autowired

@@ -81,6 +81,26 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
 
     @GET("/health")
     SpringHealth health();
+
+    @GET("/status/all")
+    AllStatus getAllStatus();
+
+    @Data
+    class AllStatus {
+      String instance;
+      Map<String, InstanceStatus> instances;
+    }
+
+    @Data
+    class InstanceStatus {
+      Status status;
+      List<Map> bakes;
+    }
+
+    enum Status {
+      RUNNING,
+      IDLE
+    }
   }
 
   @EqualsAndHashCode(callSuper = true)
