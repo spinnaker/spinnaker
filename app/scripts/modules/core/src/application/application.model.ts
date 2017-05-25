@@ -154,14 +154,13 @@ export class Application {
   /**
    * This is really only used by the ApplicationController - it manages the refresh cycle for the overall application
    * and halts refresh when switching applications or navigating to a non-application view
-   * @param $scope
    */
   public enableAutoRefresh(): void {
     this.dataLoader = this.scheduler.subscribe(() => this.refresh());
   }
 
   public disableAutoRefresh(): void {
-    this.dataLoader.unsubscribe();
+    this.dataLoader && this.dataLoader.unsubscribe();
     this.scheduler.unsubscribe();
   }
 

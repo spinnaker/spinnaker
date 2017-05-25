@@ -35,7 +35,9 @@ export class ApplicationController implements IComponentController {
   }
 
   public $onDestroy() {
-    this.app.disableAutoRefresh();
+    if (!this.app.notFound) {
+      this.app.disableAutoRefresh();
+    }
   }
 }
 
