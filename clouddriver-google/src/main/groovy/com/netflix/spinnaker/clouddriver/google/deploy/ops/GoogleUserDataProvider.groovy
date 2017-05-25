@@ -119,7 +119,7 @@ public class GoogleUserDataProvider {
    */
   private Map<String, String> stringToUserDataMap(String rawUserData){
     if (rawUserData) {
-      def userDataMap = rawUserData.split(',').collectEntries {
+      def userDataMap = rawUserData.split('\n|,').collectEntries {
         def pair = it.split('=')
         [(pair.first()):pair.last()]
       }

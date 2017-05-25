@@ -108,7 +108,7 @@ class GoogleUserDataProviderSpec extends Specification {
     '%%accounttype%%'     || ['test':'test']
     '%%env%%'             || ['env':'env']
     '%%region%%'          || ['region':'region']
-    '%%env%%\n%%region%%' || ['env\nregion':'env\nregion']
+    '%%env%%\n%%region%%' || ['env':'env', 'region':'region']
     '%%app%%'             || ['app':'app']
     '%%stack%%'           || [:]
     '%%detail%%'          || ['detail':'detail']
