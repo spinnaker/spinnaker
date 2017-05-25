@@ -24,9 +24,12 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpStatusCodeException
 
+@Slf4j
 @Component
 class MonitorWebhookTask implements Task {
 
@@ -50,7 +53,18 @@ class MonitorWebhookTask implements Task {
     String terminalStatuses = stage.context.terminalStatuses
     def customHeaders = stage.context.customHeaders
 
-    def response = webhookService.getStatus(statusEndpoint, customHeaders)
+    def response
+    try {
+      response = webhookService.getStatus(statusEndpoint, customHeaders)
+    } catch (HttpStatusCodeException  e) {
+      def statusCode = e.getStatusCode()
+      if (statusCode.is5xxServerError() || statusCode.value() == 429) {
+        log.warn("error getting webhook status from ${statusEndpoint}, will retry", e)
+        return new TaskResult(ExecutionStatus.RUNNING)
+      }
+      throw e
+    }
+
     def result
     try {
       result = JsonPath.read(response.body, statusJsonPath)

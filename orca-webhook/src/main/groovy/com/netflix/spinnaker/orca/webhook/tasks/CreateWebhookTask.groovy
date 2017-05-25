@@ -24,20 +24,22 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
+import groovy.util.logging.Slf4j
 import org.apache.http.HttpHeaders
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpMethod
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
+import org.springframework.web.client.HttpStatusCodeException
 
+@Slf4j
 @Component
 class CreateWebhookTask implements RetryableTask {
 
-  long backoffPeriod = 30000
+  long backoffPeriod = 10000
   long timeout = 300000
 
   @Autowired
-  WebhookService webhookService;
+  WebhookService webhookService
 
   @Override
   TaskResult execute(Stage stage) {
@@ -47,7 +49,17 @@ class CreateWebhookTask implements RetryableTask {
     def customHeaders = stage.context.customHeaders
     boolean waitForCompletion = (stage.context.waitForCompletion as String)?.toBoolean()
 
-    def response = webhookService.exchange(method, url, payload, customHeaders)
+    def response
+    try {
+       response = webhookService.exchange(method, url, payload, customHeaders)
+    } catch (HttpStatusCodeException e) {
+      def statusCode = e.getStatusCode()
+      if (statusCode.is5xxServerError() || statusCode.value() == 429) {
+        log.warn("error submitting webhook to ${url}, will retry", e)
+        return new TaskResult(ExecutionStatus.RUNNING)
+      }
+      throw e
+    }
 
     def statusCode = response.statusCode
     def outputs = [:]
