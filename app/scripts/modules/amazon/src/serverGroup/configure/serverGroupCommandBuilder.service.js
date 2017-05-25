@@ -146,7 +146,7 @@ module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service
           { asgName: serverGroup.name, region: serverGroup.region }
         ],
         cooldown: serverGroup.asg.defaultCooldown,
-        enabledMetrics: angular.copy(serverGroup.asg.enabledMetrics),
+        enabledMetrics: _.get(serverGroup, 'asg.enabledMetrics', []).map(m => m.metric),
         healthCheckGracePeriod: serverGroup.asg.healthCheckGracePeriod,
         healthCheckType: serverGroup.asg.healthCheckType,
         terminationPolicies: angular.copy(serverGroup.asg.terminationPolicies),
