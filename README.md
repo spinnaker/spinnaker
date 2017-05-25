@@ -6,7 +6,10 @@ A tool for configuring, installing, and updating Spinnaker.
 
 ## Installation
 
-> WARNING: This tool is not yet stable.
+> __NOTICE:__ This tool is in Beta - some behavior may still change. Please
+> report any bugs/problems/questions on [the issue
+> tracker](https://github.com/spinnaker/halyard) or in
+> [slack](http://join.spinnaker.io).
 
 ```
 $ curl -O https://raw.githubusercontent.com/spinnaker/halyard/master/install/stable/InstallHalyard.sh
