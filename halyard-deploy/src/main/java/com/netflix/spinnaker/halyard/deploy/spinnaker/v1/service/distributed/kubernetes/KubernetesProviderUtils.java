@@ -146,7 +146,8 @@ class KubernetesProviderUtils {
       try {
         File f = new File(s);
         String name = f.getName();
-        String data = new String(Base64.getEncoder().encode(IOUtils.toString(new FileInputStream(f)).getBytes()));
+        String data = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(f))));
+
         secretContents.putIfAbsent(name, data);
       } catch (IOException e) {
         throw new HalException(Severity.ERROR, "Unable to read contents of \"" + s + "\": " + e);
