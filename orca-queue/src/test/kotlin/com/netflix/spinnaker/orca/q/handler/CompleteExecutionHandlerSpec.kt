@@ -27,15 +27,17 @@ import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Duration
 
 object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
+  val retryDelay = Duration.ofSeconds(5)
 
   subject(GROUP) {
-    CompleteExecutionHandler(queue, repository, publisher)
+    CompleteExecutionHandler(queue, repository, publisher, retryDelayMs = retryDelay.toMillis())
   }
 
   fun resetMocks() = reset(queue, repository, publisher)
@@ -111,8 +113,8 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
       verifyZeroInteractions(publisher)
     }
 
-    it("does not queue any other commands") {
-      verifyZeroInteractions(queue)
+    it("re-queues the message for later evaluation") {
+      verify(queue).push(message, retryDelay)
     }
   }
 

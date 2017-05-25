@@ -43,7 +43,7 @@ open class QueueProcessor
   private val pollOpsRateId = registry.createId("orca.nu.worker.pollOpsRate")
   private val pollErrorRateId = registry.createId("orca.nu.worker.pollErrorRate")
 
-  @Scheduled(fixedDelayString = "\${queue.poll.frequency:10}")
+  @Scheduled(fixedDelayString = "\${queue.poll.frequency.ms:10}")
   fun pollOnce() =
     ifEnabled {
       registry.counter(pollOpsRateId).increment()

@@ -28,25 +28,29 @@ import com.netflix.spinnaker.orca.q.MessageHandler
 import com.netflix.spinnaker.orca.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
+import java.time.Duration
 
 @Component
 open class CompleteExecutionHandler
 @Autowired constructor(
   override val queue: Queue,
   override val repository: ExecutionRepository,
-  private val publisher: ApplicationEventPublisher
+  private val publisher: ApplicationEventPublisher,
+  @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
 ) : MessageHandler<CompleteExecution> {
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val retryDelay = Duration.ofMillis(retryDelayMs)
 
   override fun handle(message: CompleteExecution) {
     message.withExecution { execution ->
       if (execution.getStatus().isComplete) {
         log.info("Execution ${execution.getId()} already completed with ${execution.getStatus()} status")
       } else {
-        execution.determineFinalStatus { status ->
+        message.determineFinalStatus(execution) { status ->
           repository.updateStatus(message.executionId, status)
           publisher.publishEvent(
             ExecutionComplete(this, message.executionType, message.executionId, status)
@@ -61,8 +65,11 @@ open class CompleteExecutionHandler
     }
   }
 
-  private fun Execution<*>.determineFinalStatus(block: (ExecutionStatus) -> Unit) {
-    topLevelStages.let { stages ->
+  private fun CompleteExecution.determineFinalStatus(
+    execution: Execution<*>,
+    block: (ExecutionStatus) -> Unit
+  ) {
+    execution.topLevelStages.let { stages ->
       if (stages.map { it.getStatus() }.all { it in setOf(SUCCEEDED, SKIPPED, FAILED_CONTINUE) }) {
         block.invoke(SUCCEEDED)
       } else if (stages.any { it.getStatus() == TERMINAL }) {
@@ -70,9 +77,10 @@ open class CompleteExecutionHandler
       } else if (stages.any { it.getStatus() == CANCELED }) {
         block.invoke(CANCELED)
       } else if (stages.any { it.getStatus() == STOPPED }) {
-        block.invoke(if (shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
+        block.invoke(if (execution.shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
       } else {
-        log.warn("${javaClass.simpleName} ${getId()} does not appear to be complete")
+        log.warn("Re-queuing $this as the execution is not yet complete")
+        queue.push(this, retryDelay)
       }
     }
   }

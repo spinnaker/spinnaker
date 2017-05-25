@@ -27,6 +27,7 @@ import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
@@ -46,12 +47,42 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
 
   setOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED).forEach { stageStatus ->
     describe("when a stage completes with $stageStatus status") {
+      and("it is already complete") {
+        val pipeline = pipeline {
+          application = "foo"
+          stage {
+            refId = "1"
+            type = singleTaskStage.type
+            status = stageStatus
+            endTime = clock.instant().minusSeconds(2).toEpochMilli()
+          }
+        }
+        val message = CompleteStage(pipeline.stageByRef("1"), stageStatus)
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving $message") {
+          subject.handle(message)
+        }
+
+        it("ignores the message") {
+          verify(repository, never()).storeStage(any())
+          verifyZeroInteractions(queue)
+          verifyZeroInteractions(publisher)
+        }
+      }
+
       and("it is the last stage") {
         val pipeline = pipeline {
           application = "foo"
           stage {
             refId = "1"
             type = singleTaskStage.type
+            status = RUNNING
           }
         }
         val message = CompleteStage(pipeline.stageByRef("1"), stageStatus)
@@ -99,6 +130,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
           stage {
             refId = "1"
             type = singleTaskStage.type
+            status = RUNNING
           }
           stage {
             refId = "2"
@@ -145,6 +177,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
           stage {
             refId = "1"
             type = singleTaskStage.type
+            status = RUNNING
           }
           stage {
             refId = "2"
@@ -214,13 +247,14 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
     }
   }
 
-  setOf(TERMINAL, CANCELED).forEach { status ->
-    describe("when a stage fails with $status status") {
+  setOf(TERMINAL, CANCELED).forEach { stageStatus ->
+    describe("when a stage fails with $stageStatus status") {
       val pipeline = pipeline {
         application = "foo"
         stage {
           refId = "1"
           type = singleTaskStage.type
+          status = RUNNING
         }
         stage {
           refId = "2"
@@ -228,7 +262,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
           type = singleTaskStage.type
         }
       }
-      val message = CompleteStage(pipeline.stageByRef("1"), status)
+      val message = CompleteStage(pipeline.stageByRef("1"), stageStatus)
 
       beforeGroup {
         whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
@@ -242,7 +276,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
 
       it("updates the stage state") {
         verify(repository).storeStage(check {
-          it.getStatus() shouldEqual status
+          it.getStatus() shouldEqual stageStatus
           it.getEndTime() shouldEqual clock.millis()
         })
       }
@@ -268,7 +302,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
           it.executionType shouldEqual pipeline.javaClass
           it.executionId shouldEqual pipeline.id
           it.stageId shouldEqual message.stageId
-          it.status shouldEqual status
+          it.status shouldEqual stageStatus
         })
       }
     }
@@ -277,120 +311,55 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
   describe("synthetic stages") {
     context("when a synthetic stage completes successfully") {
       context("before a main stage") {
-        context("that has tasks") {
-          val pipeline = pipeline {
-            application = "foo"
-            stage {
-              refId = "1"
-              type = stageWithSyntheticBefore.type
-              stageWithSyntheticBefore.buildSyntheticStages(this)
-              stageWithSyntheticBefore.buildTasks(this)
-            }
-          }
-
-          context("there are more before stages") {
-            val message = CompleteStage(pipeline.stageByRef("1<1"), SUCCEEDED)
-
-            beforeGroup {
-              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
-            }
-
-            afterGroup(::resetMocks)
-
-            action("the handler receives a message") {
-              subject.handle(message)
-            }
-
-            it("runs the next synthetic stage") {
-              verify(queue).push(StartStage(pipeline.stageByRef("1<2")))
-            }
-          }
-
-          context("it is the last before stage") {
-            val message = CompleteStage(pipeline.stageByRef("1<2"), SUCCEEDED)
-
-            beforeGroup {
-              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
-            }
-
-            afterGroup(::resetMocks)
-
-            action("the handler receives a message") {
-              subject.handle(message)
-            }
-
-            it("runs the parent stage's first task") {
-              verify(queue).push(StartTask(pipeline.stageByRef("1"), "1"))
-            }
+        val pipeline = pipeline {
+          application = "foo"
+          stage {
+            refId = "1"
+            type = stageWithSyntheticAfter.type
+            stageWithSyntheticBefore.buildSyntheticStages(this)
+            stageWithSyntheticBefore.buildTasks(this)
           }
         }
 
-        context("that has no tasks") {
-          val pipeline = pipeline {
-            application = "foo"
-            stage {
-              refId = "1"
-              type = stageWithSyntheticBeforeAndNoTasks.type
-              stageWithSyntheticBeforeAndNoTasks.buildSyntheticStages(this)
-              stageWithSyntheticBeforeAndNoTasks.buildTasks(this)
-            }
+        context("there are more after stages") {
+          val message = CompleteStage(pipeline.stageByRef("1<1"), SUCCEEDED)
+
+          beforeGroup {
+            pipeline.stageById(message.stageId).status = RUNNING
+            whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
           }
 
-          context("it is the last before stage") {
-            val message = CompleteStage(pipeline.stageByRef("1<1"), SUCCEEDED)
-            beforeGroup {
-              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
-            }
+          afterGroup(::resetMocks)
 
-            afterGroup(::resetMocks)
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
 
-            action("the handler receives a message") {
-              subject.handle(message)
-            }
-
-            it("completes the stage") {
-              verify(queue).push(CompleteStage(
-                message.executionType,
-                message.executionId,
-                "foo",
-                pipeline.stageByRef("1").id,
-                SUCCEEDED
-              ))
-            }
+          it("runs the next synthetic stage") {
+            verify(queue).push(StartStage(
+              pipeline.stageByRef("1<2")
+            ))
           }
         }
 
-        context("that has no tasks but does have after stages") {
-          val pipeline = pipeline {
-            application = "foo"
-            stage {
-              refId = "1"
-              type = stageWithSyntheticBeforeAndAfterAndNoTasks.type
-              stageWithSyntheticBeforeAndAfterAndNoTasks.buildSyntheticStages(this)
-              stageWithSyntheticBeforeAndAfterAndNoTasks.buildTasks(this)
-            }
+        context("it is the last after stage") {
+          val message = CompleteStage(pipeline.stageByRef("1<2"), SUCCEEDED)
+
+          beforeGroup {
+            pipeline.stageById(message.stageId).status = RUNNING
+            whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
           }
 
-          context("it is the last before stage") {
-            val message = CompleteStage(pipeline.stageByRef("1<1"), SUCCEEDED)
-            beforeGroup {
-              whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
-            }
+          afterGroup(::resetMocks)
 
-            afterGroup(::resetMocks)
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
 
-            action("the handler receives a message") {
-              subject.handle(message)
-            }
-
-            it("starts the first after stage") {
-              verify(queue).push(StartStage(
-                message.executionType,
-                message.executionId,
-                "foo",
-                pipeline.stageByRef("1>1").id
-              ))
-            }
+          it("signals the parent stage to run") {
+            verify(queue).push(ContinueParentStage(
+              pipeline.stageByRef("1")
+            ))
           }
         }
       }
@@ -408,7 +377,9 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
 
         context("there are more after stages") {
           val message = CompleteStage(pipeline.stageByRef("1>1"), SUCCEEDED)
+
           beforeGroup {
+            pipeline.stageById(message.stageId).status = RUNNING
             whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
           }
 
@@ -430,7 +401,9 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
 
         context("it is the last after stage") {
           val message = CompleteStage(pipeline.stageByRef("1>2"), SUCCEEDED)
+
           beforeGroup {
+            pipeline.stageById(message.stageId).status = RUNNING
             whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
           }
 
@@ -466,6 +439,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
         val message = CompleteStage(pipeline.stageByRef("1<1"), status)
 
         beforeGroup {
+          pipeline.stageById(message.stageId).status = RUNNING
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
         }
 
@@ -501,6 +475,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1=1"), SUCCEEDED)
 
       beforeGroup {
+        pipeline.stageById(message.stageId).status = RUNNING
         whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
       }
 
@@ -510,8 +485,8 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
         subject.handle(message)
       }
 
-      it("waits for other branches to finish") {
-        verify(queue, never()).push(any())
+      it("signals the parent stage to try to run") {
+        verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
       }
     }
 
@@ -529,6 +504,7 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
       val message = CompleteStage(pipeline.stageByRef("1=1"), SUCCEEDED)
 
       beforeGroup {
+        pipeline.stageById(message.stageId).status = RUNNING
         pipeline.stageByRef("1=2").status = SUCCEEDED
         pipeline.stageByRef("1=3").status = SUCCEEDED
 
@@ -541,8 +517,8 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
         subject.handle(message)
       }
 
-      it("runs any post-branch tasks") {
-        verify(queue).push(isA<StartTask>())
+      it("signals the parent stage to try to run") {
+        verify(queue).push(ContinueParentStage(pipeline.stageByRef("1")))
       }
     }
   }

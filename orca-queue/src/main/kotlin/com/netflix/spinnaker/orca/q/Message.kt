@@ -63,6 +63,9 @@ data class StartTask(
 
   constructor(source: Stage<*>, taskId: String) :
     this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId(), taskId)
+
+  constructor(source: Stage<*>, task: com.netflix.spinnaker.orca.pipeline.model.Task) :
+    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId(), task.id)
 }
 
 data class CompleteTask(
@@ -126,6 +129,16 @@ data class StartStage(
   constructor(source: StageLevel) :
     this(source, source.stageId)
 
+  constructor(source: Stage<*>) :
+    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId())
+}
+
+data class ContinueParentStage(
+  override val executionType: Class<out Execution<*>>,
+  override val executionId: String,
+  override val application: String,
+  override val stageId: String
+) : Message(), StageLevel {
   constructor(source: Stage<*>) :
     this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId())
 }

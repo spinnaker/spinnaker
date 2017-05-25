@@ -39,22 +39,24 @@ open class CompleteStageHandler
 
   override fun handle(message: CompleteStage) {
     message.withStage { stage ->
-      stage.setStatus(message.status)
-      stage.setEndTime(clock.millis())
-      repository.storeStage(stage)
+      if (stage.getStatus() in setOf(RUNNING, NOT_STARTED)) {
+        stage.setStatus(message.status)
+        stage.setEndTime(clock.millis())
+        repository.storeStage(stage)
 
-      if (message.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {
-        stage.startNext()
-      } else {
-        queue.push(CancelStage(message))
-        if (stage.getSyntheticStageOwner() == null) {
-          queue.push(CompleteExecution(message))
+        if (message.status in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED)) {
+          stage.startNext()
         } else {
-          queue.push(message.copy(stageId = stage.getParentStageId()))
+          queue.push(CancelStage(message))
+          if (stage.getSyntheticStageOwner() == null) {
+            queue.push(CompleteExecution(message))
+          } else {
+            queue.push(message.copy(stageId = stage.getParentStageId()))
+          }
         }
-      }
 
-      publisher.publishEvent(StageComplete(this, stage))
+        publisher.publishEvent(StageComplete(this, stage))
+      }
     }
   }
 
@@ -68,20 +70,7 @@ open class CompleteStageHandler
           queue.push(StartStage(it))
         }
       } else if (getSyntheticStageOwner() == STAGE_BEFORE) {
-        // TODO: I'm not convinced this is a good approach, we should probably signal completion of the branch and have downstream handler no-op if other branches are incomplete
-        parent().let { parent ->
-          if (parent.allBeforeStagesComplete()) {
-            if (parent.getTasks().isNotEmpty()) {
-              queue.push(StartTask(parent, parent.getTasks().first().id))
-            } else if (parent.firstAfterStages().isNotEmpty()) {
-              parent.firstAfterStages().forEach {
-                queue.push(StartStage(it))
-              }
-            } else {
-              queue.push(CompleteStage(parent, SUCCEEDED))
-            }
-          }
-        }
+        queue.push(ContinueParentStage(parent()))
       } else if (getSyntheticStageOwner() == STAGE_AFTER) {
         parent().let { parent ->
           queue.push(CompleteStage(parent, SUCCEEDED))

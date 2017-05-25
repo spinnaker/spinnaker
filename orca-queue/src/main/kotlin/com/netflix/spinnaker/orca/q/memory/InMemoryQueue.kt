@@ -67,7 +67,7 @@ class InMemoryQueue(
     fire<MessagePushed>()
   }
 
-  @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
+  @Scheduled(fixedDelayString = "\${queue.retry.frequency.ms:10000}")
   override fun retry() {
     val now = clock.instant()
     fire<RetryPolled>()

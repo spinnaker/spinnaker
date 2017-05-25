@@ -41,6 +41,7 @@ import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import java.time.Duration
 
 object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
 
@@ -48,6 +49,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
   val clock = fixedClock()
+  val retryDelay = Duration.ofSeconds(5)
 
   subject(GROUP) {
     StartStageHandler(
@@ -66,7 +68,8 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
       ),
       publisher,
       clock,
-      ContextParameterProcessor()
+      ContextParameterProcessor(),
+      retryDelayMs = retryDelay.toMillis()
     )
   }
 
@@ -386,7 +389,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         }
 
         it("re-queues the message with a delay") {
-          verify(queue).push(message, StartStageHandler.retryDelay)
+          verify(queue).push(message, retryDelay)
         }
       }
 

@@ -89,7 +89,7 @@ class RedisQueue(
     fire<MessagePushed>()
   }
 
-  @Scheduled(fixedDelayString = "\${queue.retry.frequency:10000}")
+  @Scheduled(fixedDelayString = "\${queue.retry.frequency.ms:10000}")
   override fun retry() {
     pool.resource.use { redis ->
       redis.apply {

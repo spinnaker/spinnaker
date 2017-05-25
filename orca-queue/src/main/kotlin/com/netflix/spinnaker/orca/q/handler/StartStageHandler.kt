@@ -27,23 +27,26 @@ import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.q.StartStage
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
-import java.time.temporal.ChronoUnit.SECONDS
 
 @Component
-open class StartStageHandler @Autowired constructor(
+open class StartStageHandler
+@Autowired constructor(
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
   private val publisher: ApplicationEventPublisher,
   private val clock: Clock,
-  private val contextParameterProcessor: ContextParameterProcessor
+  private val contextParameterProcessor: ContextParameterProcessor,
+  @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
 ) : MessageHandler<StartStage>, StageBuilderAware {
 
   private val log = LoggerFactory.getLogger(javaClass)
+  private val retryDelay = Duration.ofMillis(retryDelayMs)
 
   override fun handle(message: StartStage) {
     message.withStage { stage ->
@@ -64,7 +67,7 @@ open class StartStageHandler @Autowired constructor(
           publisher.publishEvent(StageStarted(this, stage))
         }
       } else {
-        log.info("Re-queuing $message as upstream stages are not yet complete")
+        log.warn("Re-queuing $message as upstream stages are not yet complete")
         queue.push(message, retryDelay)
       }
     }
@@ -106,8 +109,4 @@ open class StartStageHandler @Autowired constructor(
 
   private fun Stage<*>.shouldSkip() =
     OptionalStageSupport.isOptional(this, contextParameterProcessor)
-
-  companion object {
-    val retryDelay = Duration.of(10, SECONDS)
-  }
 }
