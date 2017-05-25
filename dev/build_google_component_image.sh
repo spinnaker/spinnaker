@@ -173,13 +173,15 @@ function create_component_prototype_disk() {
       --command="sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade && sudo apt-get autoremove -y"
   fi
 
-  echo "`date`: Deleting '$BUILD_INSTANCE' but keeping disk"
+  echo "`date`: Setting auto-delete behavior '$BUILD_INSTANCE' disk to false"
   gcloud compute instances set-disk-auto-delete $BUILD_INSTANCE \
     --project $BUILD_PROJECT \
     --account $ACCOUNT \
     --zone $ZONE \
     --no-auto-delete \
     --disk $BUILD_INSTANCE
+
+  sleep 20
 
   # This will be on success too
   trap delete_prototype_disk EXIT
