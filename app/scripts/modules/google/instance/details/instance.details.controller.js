@@ -133,10 +133,12 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           $scope.instance.account = account;
           $scope.instance.region = region;
           $scope.instance.vpcId = vpcId;
-          $scope.instance.loadBalancers = gceHttpLoadBalancerUtils.normalizeLoadBalancerNamesForAccount(
-            loadBalancers,
-            account,
-            app.getDataSource('loadBalancers').data);
+          if (app.getDataSource('loadBalancers')) {
+            $scope.instance.loadBalancers = gceHttpLoadBalancerUtils.normalizeLoadBalancerNamesForAccount(
+              loadBalancers,
+              account,
+              app.getDataSource('loadBalancers').data);
+          }
 
           $scope.instance.internalDnsName = $scope.instance.instanceId;
           $scope.instance.internalIpAddress = $scope.instance.networkInterfaces[0].networkIP;
@@ -216,7 +218,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canRegisterWithLoadBalancer = function() {
       var instance = $scope.instance;
-      var instanceLoadBalancerDoesNotSupportRegister = _.chain(app.loadBalancers.data)
+      var instanceLoadBalancerDoesNotSupportRegister = !app.loadBalancers || _.chain(app.loadBalancers.data)
         .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
         .map('name')
         .intersection(instance.loadBalancers || [])
@@ -239,7 +241,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 
     this.canDeregisterFromLoadBalancer = function() {
       var instance = $scope.instance;
-      var instanceLoadBalancerDoesNotSupportDeregister = _.chain(app.loadBalancers.data)
+      var instanceLoadBalancerDoesNotSupportDeregister = !app.loadBalancers || _.chain(app.loadBalancers.data)
         .filter(lb => lb.loadBalancerType !== 'NETWORK' && lb.account === instance.account)
         .map('name')
         .intersection(instance.loadBalancers || [])
