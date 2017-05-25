@@ -181,8 +181,6 @@ function create_component_prototype_disk() {
     --no-auto-delete \
     --disk $BUILD_INSTANCE
 
-  sleep 20
-
   # This will be on success too
   trap delete_prototype_disk EXIT
 
@@ -201,6 +199,17 @@ function extract_clean_component_disk() {
       echo "$output_file is not a gs:// path to a tar.gz file"
       exit -1
     fi
+  fi
+
+  gcloud compute instances get ${worker_instance} \
+      --project $PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE > /dev/null
+
+  if [ $? -ne 0 ]; then
+    >&2 echo "`date`: ERROR - ${worker_instance} was not created." 
+    >&2 echo "Check if you have enough quota (CPU/IP) to create all instances."
+    exit 1
   fi
 
   echo "`date`: Preparing '$worker_instance'"
