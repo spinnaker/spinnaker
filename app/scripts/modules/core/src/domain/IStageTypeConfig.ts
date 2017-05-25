@@ -12,6 +12,7 @@ export interface IStageTypeConfig extends IStageOrTriggerTypeConfig {
   cloudProvider?: string;
   cloudProviders?: string[];
   alias?: string;
+  addAliasToConfig?: boolean;
   useBaseProvider?: boolean;
   executionLabelComponent?: React.Component<{ stage: IExecutionStageSummary }, any>;
   accountExtractor?: (stage: IStage) => string;

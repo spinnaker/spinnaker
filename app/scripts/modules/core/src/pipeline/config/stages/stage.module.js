@@ -96,7 +96,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.stage', [
 
     this.selectStageType = stage => {
       $scope.stage.type = stage.key;
-      $scope.stage.alias = stage.alias;
+      if (stage.addAliasToConfig) {
+        $scope.stage.alias = stage.alias;
+      }
       this.selectStage();
     };
 

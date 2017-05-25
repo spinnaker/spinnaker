@@ -135,6 +135,7 @@ module(WEBHOOK_STAGE, [
       description: preconfiguredWebhook.description,
       key: preconfiguredWebhook.type,
       alias: 'preconfiguredWebhook',
+      addAliasToConfig: true,
       restartable: true,
       controller: 'WebhookStageCtrl',
       controllerAs: '$ctrl',
