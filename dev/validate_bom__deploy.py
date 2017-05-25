@@ -522,6 +522,218 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                 log_dir=log_dir))
 
 
+class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
+  """Concrete deployer used to deploy Hal onto Amazon EC2
+
+  This class is not intended to be constructed directly. Instead see the
+  free function make_deployer() in this module.
+  """
+
+  @classmethod
+  def init_platform_argument_parser(cls, parser):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for the free function init_argument_parser().
+    """
+    parser.add_argument(
+        '--deploy_aws_name', default=None,
+        help='Value for name to tag instance with.')
+    parser.add_argument(
+        '--deploy_aws_pem_path', default=None,
+        help='Path to the EC2 PEM file.')
+    parser.add_argument(
+        '--deploy_aws_security_group', default=None,
+        help='Name of EC2 security group.')
+
+    # Make this instead default to a search for the current image.
+    # https://cloud-images.ubuntu.com/locator/ec2/
+    parser.add_argument(
+        '--deploy_aws_ami', default='ami-0b542c1d',  # 14.04 east-1 hvm:ebs
+        help='Image ID to run.')
+
+  @classmethod
+  def validate_options_helper(cls, options):
+    """Adds custom configuration parameters to argument parser.
+
+    This is a helper function for make_deployer().
+    """
+    if not options.deploy_aws_name:
+      return
+    if not options.deploy_aws_pem_path:
+      raise ValueError('--deploy_aws_pem_path not specified.')
+    if not os.path.exists(options.deploy_aws_pem_path):
+      raise ValueError('File "{path}" does not exist.'
+                       .format(path=options.deploy_aws_pem_path))
+    if not options.deploy_aws_security_group:
+      raise ValueError('--deploy_aws_security_group not specified.')
+
+    if options.deploy_deploy:
+      response = run_and_monitor(
+          'aws ec2 describe-instances'
+          ' --filters "Name=tag:Name,Values={name}'
+          ',Name=instance-state-name,Values=running"'
+          .format(name=options.deploy_aws_name),
+          echo=False)
+      if response.returncode != 0:
+        raise ValueError('Could not probe AWS: {0}'.format(response))
+      exists = json.JSONDecoder().decode(response.stdout).get('Reservations')
+      if exists:
+        raise ValueError(
+            'Running "{name}" already exists: {info}'
+            .format(name=options.deploy_aws_name, info=exists[0]))
+
+  def __init__(self, options, **kwargs):
+    super(AwsValidateBomDeployer, self).__init__(options, **kwargs)
+    self.__instance_id = None
+    self.ssh_key_path = options.deploy_aws_pem_path
+
+  def do_determine_instance_ip(self):
+    """Implements GenericVmValidateBomDeployer interface."""
+    options = self.options
+    response = run_and_monitor(
+        'aws ec2 describe-instances'
+        ' --output json'
+        ' --filters "Name=tag:Name,Values={name}'
+        ',Name=instance-state-name,Values=running"'
+        .format(name=options.deploy_aws_name),
+        echo=False)
+    if response.returncode != 0:
+      raise ValueError('Could not determine public IP: {0}'.format(response))
+    found = json.JSONDecoder().decode(response.stdout).get('Reservations')
+    if not found:
+      raise RuntimeError(
+          '"{0}" is not running'.format(options.deploy_aws_name))
+
+    return found[0]['Instances'][0]['PublicIpAddress']
+
+  def do_create_vm(self, options):
+    """Implements GenericVmValidateBomDeployer interface."""
+    pem_basename = os.path.basename(options.deploy_aws_pem_path)
+    key_pair_name = os.path.splitext(pem_basename)[0]
+    logging.info('Creating "%s" with key-pair "%s"',
+                 options.deploy_aws_name, key_pair_name)
+
+    response = check_run_and_monitor(
+        'aws ec2 run-instances'
+        ' --output json'
+        ' --count 1'
+        ' --image-id {ami}'
+        ' --instance-type {type}'
+        ' --key-name {key_pair_name}'
+        ' --security-group-ids {sg}'
+        .format(ami=options.deploy_aws_ami,
+                type='t2.xlarge',  # 4 core x 16G
+                key_pair_name=key_pair_name,
+                sg=options.deploy_aws_security_group),
+        echo=False)
+    doc = json.JSONDecoder().decode(response.stdout)
+    self.__instance_id = doc["Instances"][0]["InstanceId"]
+    logging.info('Created instance id=%s to tag as "%s"',
+                 self.__instance_id, options.deploy_aws_name)
+    check_run_quick(
+        'aws ec2 create-tags'
+        ' --resources {instance_id}'
+        ' --tags "Key=Name,Value={name}"'
+        .format(instance_id=self.__instance_id,
+                name=options.deploy_aws_name),
+        echo=False)
+
+    # It's slow to start up and sometimes there is a race condition
+    # in which describe-instances doesnt know about our id even though
+    # create-tags did.
+    time.sleep(5)
+    end_time = time.time() + 10*60
+    while time.time() < end_time:
+      if self.__is_ready():
+        return
+      time.sleep(5)
+
+    raise RuntimeError('Giving up waiting for deployment.')
+
+  def __is_ready(self):
+    description = check_run_quick(
+        'aws ec2 describe-instances'
+        ' --output json'
+        ' --instance-ids {id}'
+        ' --query "Reservations[*].Instances[*]"'
+        .format(id=self.__instance_id),
+        echo=False)
+    if description.returncode != 0:
+      raise ValueError('Could not determine public IP: {0}'
+                       .format(description))
+
+    # result is an array of reservations of ararys of instances.
+    # but we only expect one, so fish out the first instance info
+    info = json.JSONDecoder().decode(description.stdout)[0][0]
+    state = info.get('State', {}).get('Name')
+    if state in ['pending', 'initializing']:
+      logging.info('Waiting for %s to finish initializing (state=%s)',
+                   self.__instance_id, state)
+      return False
+
+    if state in ['shutting-down', 'terminated']:
+      raise ValueError('VM failed: {0}'.format(info))
+
+    logging.info('%s is in state %s', self.__instance_id, state)
+    self.instance_ip = info.get('PublicIpAddress')
+    # attempt to ssh into it so we know we're accepting connections when
+    # we return. It takes time to start
+    logging.info('Checking if it is ready for ssh...')
+    check = run_quick(
+        'ssh'
+        ' -i {ssh_key}'
+        ' -o StrictHostKeyChecking=no'
+        ' -o UserKnownHostsFile=/dev/null'
+        ' {user}@{ip}'
+        ' "exit 0"'
+        .format(user=self.hal_user,
+                ip=self.instance_ip,
+                ssh_key=self.ssh_key_path),
+        echo=False)
+    if check.returncode == 0:
+      logging.info('READY')
+      return True
+
+    # Sometimes ssh accepts but authentication still fails
+    # for a while. If this is the case, then try again
+    # though the whole loop to distinguish VM going away.
+    logging.info('%s\nNot yet ready...', check.stdout.strip())
+    return False
+
+  def do_undeploy(self):
+    """Implements the BaseBomValidateDeployer interface."""
+    options = self.options
+    logging.info('Terminating "%s"', options.deploy_aws_name)
+
+    if self.__instance_id:
+      all_ids = [self.__instance_id]
+    else:
+      lookup_response = run_and_monitor(
+          'aws ec2 describe-instances'
+          ' --filters "Name=tag:Name,Values={name}'
+          ',Name=instance-state-name,Values=running"'
+          .format(name=options.deploy_aws_name),
+          echo=False)
+      if lookup_response.returncode != 0:
+        raise ValueError('Could not lookup instance id: {0}', lookup_response)
+      exists = json.JSONDecoder().decode(
+          lookup_response.stdout).get('Reservations')
+      if not exists:
+        logging.warning('"%s" is not running', options.deploy_aws_name)
+        return
+      all_ids = [instance['InstanceId'] for instance in exists['Instances']]
+
+    for instance_id in all_ids:
+      logging.info('Terminating "%s" instanceId=%s',
+                   options.deploy_aws_name, instance_id)
+      response = run_quick(
+          'aws ec2 terminate-instances --instance-ids {id}'
+          .format(id=instance_id))
+      if response.returncode != 0:
+        logging.warning('Failed to delete "%s" instanceId=%s',
+                        options.deploy_aws_name, instance_id)
+
+
 class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
   """Concrete deployer used to deploy Hal onto Microsoft Azure
 
@@ -756,6 +968,8 @@ def make_deployer(options):
   """
   if options.deploy_hal_platform == 'gce':
     hal_klass = GoogleValidateBomDeployer
+  elif options.deploy_hal_platform == 'ec2':
+    hal_klass = AwsValidateBomDeployer
   elif options.deploy_hal_platform == 'azure':
     hal_klass = AzureValidateBomDeployer
   else:
@@ -821,7 +1035,7 @@ def init_argument_parser(parser):
       help='The type of spinnaker deployment to create.')
 
   parser.add_argument(
-      '--deploy_hal_platform', required=True, choices=['gce', 'azure'],
+      '--deploy_hal_platform', required=True, choices=['gce', 'ec2', 'azure'],
       help='Platform to deploy Halyard onto.'
            ' Halyard will then deploy Spinnaker.')
 
@@ -852,6 +1066,7 @@ def init_argument_parser(parser):
       help='Actually perform the undeployment.'
            ' This is for facilitating debugging with this script.')
 
+  AwsValidateBomDeployer.init_platform_argument_parser(parser)
   AzureValidateBomDeployer.init_platform_argument_parser(parser)
   GoogleValidateBomDeployer.init_platform_argument_parser(parser)
   KubernetesValidateBomDeployer.init_platform_argument_parser(parser)
