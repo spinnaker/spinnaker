@@ -422,6 +422,7 @@ class AzureConfigurator(object):
     """Implements interface."""
     if not options.azure_account_credentials:
       return
+
     account_params = [
         options.azure_account_name,
         '--client-id', options.azure_account_client_id,
@@ -595,9 +596,8 @@ class DockerConfigurator(object):
                       '--address', options.docker_account_address]
     if options.docker_account_credentials:
       cred_basename = os.path.basename(options.docker_account_credentials)
-      script.append('sudo chmod 600 {file}'.format(file=cred_basename))
       account_params.extend(
-          ['--password-file', options.docker_account_credentials])
+          ['--password-file', cred_basename])
     if options.docker_account_registry_username:
       account_params.extend(
           ['--username', options.docker_account_registry_username])
@@ -670,7 +670,7 @@ class JenkinsConfigurator(object):
     address = options.jenkins_master_address or None
     user = options.jenkins_master_user or None
     if options.jenkins_master_credentials:
-      password_file = options.jenkins_master_credentials
+      password_file = os.path.basename(options.jenkins_master_credentials)
     elif os.environ.get('JENKINS_MASTER_PASSWORD', None):
       password_file = 'jenkins_{name}_password'.format(
           name=options.jenkins_master_name)
