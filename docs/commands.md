@@ -1,4 +1,4 @@
-_Version: 0.25.0-SNAPSHOT_
+_Version: 0.26.0-SNAPSHOT_
 
 # Table of Contents
 
@@ -2662,9 +2662,9 @@ hal config security authn oauth2 edit [parameters]
  * `--client-id`: The OAuth client ID you have configured with your OAuth provider.
  * `--client-secret`: The OAuth client secret you have configured with your OAuth provider.
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--preEstablishedRedirectUri`: The externally accessible URL for Gate. For use with load balancers that do any kind of address manipulation for Gate traffic, such as an SSL terminating load balancer.
+ * `--pre-established-redirect-uri`: The externally accessible URL for Gate. For use with load balancers that do any kind of address manipulation for Gate traffic, such as an SSL terminating load balancer.
  * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
- * `--userInfoRequirements`: (*Default*: `(empty)`) The map of requirements the userInfo request must have. This is used to restrict user login to specific domains or having a specific attribute. Use equal signs between key and value, and additional key/value pairs need to repeat the flag. Example: '--userInfoRequirements foo=bar --userInfoRequirements baz=qux'.
+ * `--user-info-requirements`: (*Default*: `(empty)`) The map of requirements the userInfo request must have. This is used to restrict user login to specific domains or having a specific attribute. Use equal signs between key and value, and additional key/value pairs need to repeat the flag. Example: '--user-info-requirements foo=bar --userInfoRequirements baz=qux'.
 
 ---
 ## hal config security authn oauth2 enable
