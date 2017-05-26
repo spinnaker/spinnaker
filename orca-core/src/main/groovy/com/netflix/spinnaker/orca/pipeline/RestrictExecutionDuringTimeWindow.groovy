@@ -141,6 +141,10 @@ class RestrictExecutionDuringTimeWindow implements StageDefinitionBuilder {
 
     private Date calculateScheduledTime(Date scheduledTime, List<TimeWindow> whitelistWindows, List<Integer> whitelistDays, boolean dayIncremented) throws IncorrectTimeWindowsException {
 
+      if ((!whitelistWindows || whitelistWindows.empty) && whitelistDays && !whitelistDays.empty) {
+        whitelistWindows = [ new TimeWindow(new HourMinute(0, 0), new HourMinute(23, 59))]
+      }
+
       boolean inWindow = false
       Collections.sort(whitelistWindows)
       List<TimeWindow> normalized = normalizeTimeWindows(whitelistWindows)

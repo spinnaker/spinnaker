@@ -151,6 +151,25 @@ class RestrictExecutionDuringTimeWindowSpec extends Specification {
     date("02/13 16:01:00") | date("02/14 10:00:00") | stage([window("10:00", "11:00"), window("13:00", "14:00"), window("15:00", "16:00")]) //*
   }
 
+  @Unroll
+  void 'should be valid all day if no time window selected but some days are selected'() {
+    when:
+    SuspendExecutionDuringTimeWindowTask suspendExecutionDuringTimeWindowTask = new SuspendExecutionDuringTimeWindowTask()
+    suspendExecutionDuringTimeWindowTask.timeZoneId = "America/Los_Angeles"
+    Date result = suspendExecutionDuringTimeWindowTask.calculateScheduledTime(scheduledTime, timeWindows, days)
+
+    then:
+    result.equals(expectedTime)
+
+    where:
+    scheduledTime           | timeWindows                                        | days            || expectedTime
+
+    date("02/25 01:00:00")  | [] | [1,2,3,4,5,6,7] || date("02/25 01:00:00")
+    date("02/25 00:00:00")  | [] | [1,2,3,4,5,6,7] || date("02/25 00:00:00")
+    date("02/25 23:59:00")  | [] | [1,2,3,4,5,6,7] || date("02/25 23:59:00")
+    date("02/25 01:00:00")  | [] | [1]             || date("03/02 00:00:00")
+  }
+
   private hourMinute(String hourMinuteStr) {
     int hour = hourMinuteStr.tokenize(":").get(0) as Integer
     int min = hourMinuteStr.tokenize(":").get(1) as Integer
