@@ -176,16 +176,39 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     function populateCustomMetadata(metadataItems, command) {
       // Hide metadata items in the wizard.
       if (metadataItems) {
+        let customUserData = '';
+        let customUserDataKeys = [];
         if (angular.isArray(metadataItems)) {
+          let customUserDataItem = metadataItems.find(metadataItem => metadataItem.key === 'customUserData');
+          if (customUserDataItem) {
+            customUserData = customUserDataItem.value;
+            customUserDataKeys = getCustomUserDataKeys(customUserData);
+            command.userData = customUserData;
+          }
           metadataItems.forEach(function (metadataItem) {
-            if (!_.includes(gceServerGroupHiddenMetadataKeys, metadataItem.key)) {
+            if (!_.includes(customUserDataKeys, metadataItem.key) && !_.includes(gceServerGroupHiddenMetadataKeys, metadataItem.key)) {
               command.instanceMetadata[metadataItem.key] = metadataItem.value;
             }
           });
         } else {
+          if (metadataItems.customUserData) {
+            customUserData = metadataItems.customUserData;
+            customUserDataKeys = getCustomUserDataKeys(customUserData);
+            command.userData = customUserData;
+            metadataItems = _.omit(metadataItems, customUserDataKeys);
+          }
           angular.extend(command.instanceMetadata, _.omit(metadataItems, gceServerGroupHiddenMetadataKeys));
         }
       }
+    }
+
+    function getCustomUserDataKeys(customUserData) {
+      let customUserDataKeys = [];
+      customUserData.split(/\n|,/).forEach(function (userDataItem) {
+        let customUserDataKey = userDataItem.split('=')[0];
+        customUserDataKeys.push(customUserDataKey);
+      });
+      return customUserDataKeys;
     }
 
     function populateTags(instanceTemplateTags, command) {

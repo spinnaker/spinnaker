@@ -49,6 +49,7 @@ const helpContents: {[key: string]: string} = {
   'gce.serverGroup.imageName': '(Required) <b>Image</b> is the Google Compute Engine image. Images are restricted to the account selected.',
   'gce.serverGroup.capacity': 'The number of instances that the instance group manager will attempt to maintain. Deleting or abandoning instances will affect this number, as will resizing the group.',
   'gce.serverGroup.customMetadata': '<b>Custom Metadata</b> will be propagated to the instances in this server group. This is useful for passing in arbitrary values that can be queried by your code on the instance.',
+  'gce.serverGroup.userData': 'Custom user data will be propagated to the instances in this server group. Key/value pairs can either be newline or comma delimited. <br> <pre>example=value<br>example2=value2</pre>',
   'gce.serverGroup.customMetadata.load-balancer-names': 'This field is used to "remember" what load balancers this server group is associated with, even if the instances are deregistered.',
   'gce.serverGroup.customMetadata.global-load-balancer-names': 'This field is used to "remember" what global load balancers this server group is associated with, even if the instances are deregistered.',
   'gce.serverGroup.customMetadata.backend-service-names': 'This field is used to "remember" what backend services this server group is associated with, even if the instances are deregistered.',
