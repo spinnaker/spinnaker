@@ -66,8 +66,9 @@ import validate_bom__test
 from spinnaker.run import run_quick
 
 
-def build_report(options):
+def build_report(test_controller):
   """Report on the test results."""
+  options = test_controller.options
   citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
   if not os.path.exists(citest_log_dir):
     logging.warning('%s does not exist -- no citest logs.', citest_log_dir)
@@ -80,6 +81,8 @@ def build_report(options):
   if response.returncode != 0:
     logging.error('Error building report: %s', response.stdout)
   logging.info('Logging information is in %s', options.log_dir)
+
+  return test_controller.build_summary()
 
 
 def get_options():
@@ -106,15 +109,13 @@ def get_options():
 def main():
   """The main controller."""
   options = get_options()
-
   deployer = validate_bom__deploy.make_deployer(options)
+  test_controller = validate_bom__test.ValidateBomTestController(deployer)
   config_script = validate_bom__config.make_script(options)
   file_set = validate_bom__config.get_files_to_upload(options)
 
   try:
     deployer.deploy(config_script, file_set)
-
-    test_controller = validate_bom__test.ValidateBomTestController(deployer)
     test_controller.run_tests()
   finally:
     if sys.exc_info()[0] is not None:
@@ -122,33 +123,10 @@ def main():
       logging.exception('Caught Exception')
     deployer.collect_logs()
     deployer.undeploy()
-    build_report(options)
+    summary = build_report(test_controller)
+    print summary
 
-  def dump_list(name, entries):
-    """Write out all the names from the test results."""
-    if not entries:
-      return
-    print '{0}:'.format(name)
-    for entry in entries:
-      print '  * {0}'.format(entry[0])
-
-  print '\nSummary:'
-  dump_list('SKIPPED', test_controller.skipped)
-  dump_list('PASSED', test_controller.passed)
-  dump_list('FAILED', test_controller.failed)
-
-  num_skipped = len(test_controller.skipped)
-  num_passed = len(test_controller.passed)
-  num_failed = len(test_controller.failed)
-
-  print ''
-  if num_failed:
-    print 'FAILED {0} of {1}, skipped {2}'.format(
-        num_failed, (num_failed + num_passed), num_skipped)
-    return -1
-
-  print 'PASSED {0}, skipped {1}'.format(num_passed, num_skipped)
-  return 0
+  return test_controller.exit_code
 
 
 if __name__ == '__main__':

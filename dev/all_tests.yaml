@@ -49,7 +49,7 @@ tests:
       alias: [standard_google_provider_params]
       gcs_bucket: $storage_gcs_bucket
       gcs_json_path: $storage_gcs_credentials
-      gcs_base_path: spinnaker
+      gcs_base_path: front50
 
   google_kato_test:
     requires:
