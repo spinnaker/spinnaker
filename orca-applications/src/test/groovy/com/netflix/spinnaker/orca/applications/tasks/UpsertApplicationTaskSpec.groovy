@@ -35,7 +35,6 @@ class UpsertApplicationTaskSpec extends Specification {
 
   void setup() {
     config = [
-      account    : "test",
       application: [
         "name" : "application",
         "owner": "owner",
@@ -49,7 +48,7 @@ class UpsertApplicationTaskSpec extends Specification {
 
   void "should create an application in global registries"() {
     given:
-    def app = new Application(config.application + [accounts: config.account, user: config.user])
+    def app = new Application(config.application + [user: config.user])
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> null
       1 * create(app)
@@ -64,20 +63,17 @@ class UpsertApplicationTaskSpec extends Specification {
     result.status == ExecutionStatus.SUCCEEDED
   }
 
-  @Unroll
-  void "should update existing application, using existing accounts (#accounts) if not supplied"() {
+  void "should update existing application"() {
     given:
-    config.application.accounts = accounts
     Application application = new Application(config.application + [
         user    : config.user
     ])
     Application existingApplication = new Application(
-      name: "application", owner: "owner", description: "description", accounts: "prod,test"
+      name: "application", owner: "owner", description: "description"
     )
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> existingApplication
-      // assert that the global application is updated w/ new application attributes and merged accounts
-      1 * update("application", {it == application && it.accounts == expectedAccounts })
+      1 * update("application", application)
       1 * updatePermission(application.name, application.permission)
       0 * _._
     }
@@ -87,18 +83,12 @@ class UpsertApplicationTaskSpec extends Specification {
 
     then:
     result.status == ExecutionStatus.SUCCEEDED
-
-    where:
-    accounts   || expectedAccounts
-    null       || "prod,test"
-    "test"     || "test"
   }
 
   @Unroll
   void "should keep track of previous and new state during #operation"() {
     given:
     Application application = new Application(config.application)
-    application.accounts = config.account
     application.user = config.user
 
     task.front50Service = Mock(Front50Service) {

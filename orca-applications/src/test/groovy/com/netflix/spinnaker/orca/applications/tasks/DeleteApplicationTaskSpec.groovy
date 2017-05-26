@@ -40,7 +40,7 @@ class DeleteApplicationTaskSpec extends Specification {
   void "should delete global application if it was only associated with a single account"() {
     given:
     task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> new Application(accounts: "test")
+      1 * get(config.application.name) >> new Application()
       1 * delete(config.application.name)
       1 * deletePermission(config.application.name)
       0 * _._
@@ -53,24 +53,9 @@ class DeleteApplicationTaskSpec extends Specification {
     taskResult.status == ExecutionStatus.SUCCEEDED
   }
 
-  void "should de-associate global application if it was associated with multiple accounts"() {
-    given:
-    task.front50Service = Mock(Front50Service) {
-      1 * get(config.application.name) >> new Application(name: "application", accounts: "prod,test")
-      1 * update("application", { it.accounts == "prod" })
-      0 * _._
-    }
-
-    when:
-    def taskResult = task.execute(new Stage<>(new Pipeline(), "DeleteApplication", config))
-
-    then:
-    taskResult.status == ExecutionStatus.SUCCEEDED
-  }
-
   void "should keep track of previous state"() {
     given:
-    Application application = new Application(accounts: "test")
+    Application application = new Application()
     task.front50Service = Mock(Front50Service) {
       1 * get(config.application.name) >> application
       1 * delete(config.application.name)

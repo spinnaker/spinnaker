@@ -27,11 +27,10 @@ import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 
 @Canonical
-public class Application {
+class Application {
   public String name
   public String description
   public String email
-  public String accounts
   public String updateTs
   public String createTs
   public Boolean platformHealthOnly
@@ -62,19 +61,6 @@ public class Application {
   @JsonAnySetter
   public void set(String name, Object value) {
     details.put(name, value)
-  }
-
-  @JsonIgnore
-  Set<String> listAccounts() {
-    if (!accounts?.trim()) {
-      return []
-    }
-    return accounts.split(",").collect { it.toLowerCase() } as Set<String>
-  }
-
-  @JsonIgnore
-  void updateAccounts(Set<String> accounts) {
-    this.accounts = accounts ? accounts.collect { it.trim().toLowerCase() }.join(",") : null
   }
 
   @JsonIgnore

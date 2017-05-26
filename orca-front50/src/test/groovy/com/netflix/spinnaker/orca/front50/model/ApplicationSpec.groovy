@@ -24,38 +24,7 @@ import spock.lang.Unroll
 
 class ApplicationSpec extends Specification {
   @Subject
-  def application = new Application(accounts: "prod,test")
-
-  @Unroll
-  void "'#accounts' should expand to #expected"() {
-    setup:
-    application.accounts = accounts
-
-    expect:
-    application.listAccounts() == expected
-
-    where:
-    accounts    | expected
-    "prod,test" | ["prod", "test"] as Set
-    ""          | [] as Set
-    null        | [] as Set
-  }
-
-  @Unroll
-  void "#accounts should reduce to '#expected'"() {
-    setup:
-    application.updateAccounts(accounts as Set)
-
-    expect:
-    application.accounts == expected
-
-    where:
-    accounts                  | expected
-    ["prod", "test", "extra"] | "prod,test,extra"
-    ["prod"]                  | "prod"
-    []                        | null
-    null                      | null
-  }
+  def application = new Application()
 
   void 'dynamic properties should be marshalled at root of application'() {
     setup:
@@ -63,7 +32,6 @@ class ApplicationSpec extends Specification {
     application.someBoolean = true
     application.someMap = [ a: 'some string', b: 4 ]
     def expected = [
-        accounts: "prod,test",
         requiredGroupMembership: [],
         someBoolean: true,
         someMap: [a: 'some string', b: 4]

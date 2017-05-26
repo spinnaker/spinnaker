@@ -28,7 +28,7 @@ import retrofit.RetrofitError
 @CompileStatic
 class UpsertApplicationTask extends AbstractFront50Task {
   @Override
-  Map<String, Object> performRequest(String account, Application application) {
+  Map<String, Object> performRequest(Application application) {
     Map<String, Object> outputs = [:]
     outputs.previousState = [:]
 
@@ -39,16 +39,9 @@ class UpsertApplicationTask extends AbstractFront50Task {
     def existingApplication = fetchApplication(application.name)
     if (existingApplication) {
       outputs.previousState = existingApplication
-
-      if (!application.accounts) {
-        application.updateAccounts((existingApplication.listAccounts() << account) as Set)
-      }
-
       log.info("Updating application (name: ${application.name})")
       front50Service.update(application.name, application)
     } else {
-      application.updateAccounts((application.listAccounts() << account) as Set)
-
       log.info("Creating application (name: ${application.name})")
       front50Service.create(application)
     }
