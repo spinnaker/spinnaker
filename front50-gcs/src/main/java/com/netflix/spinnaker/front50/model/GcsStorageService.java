@@ -320,6 +320,7 @@ public class GcsStorageService implements StorageService {
     String path = keyToPath(objectKey, objectType.group);
     try {
       timeExecute(deleteTimer, obj_api.delete(bucketName, path));
+      log.info("Deleted {} '{}'", objectType.group, objectKey);
       writeLastModified(objectType.group);
     } catch (HttpResponseException e) {
       if (e.getStatusCode() == 404) {
@@ -343,6 +344,7 @@ public class GcsStorageService implements StorageService {
       ByteArrayContent content = new ByteArrayContent("application/json", bytes);
       timeExecute(insertTimer, obj_api.insert(bucketName, object, content));
       writeLastModified(objectType.group);
+      log.info("Wrote {} '{}'", objectType.group, objectKey);
     } catch (IOException e) {
       log.error("Update failed on path={}: {}", path, e);
       throw new IllegalStateException(e);
