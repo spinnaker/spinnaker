@@ -65,11 +65,11 @@ public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentia
     this.vpcId = vpcId;
   }
 
-  public Boolean getInternal() {
+  public Boolean getIsInternal() {
     return isInternal;
   }
 
-  public void setInternal(Boolean internal) {
+  public void setIsInternal(Boolean internal) {
     isInternal = internal;
   }
 

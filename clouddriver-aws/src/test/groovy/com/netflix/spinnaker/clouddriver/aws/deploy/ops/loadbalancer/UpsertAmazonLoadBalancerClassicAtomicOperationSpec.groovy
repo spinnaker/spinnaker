@@ -288,7 +288,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
   void "should handle VPC ELB creation backward compatibility"() {
     description.subnetType = "internal"
-    description.setInternal(null)
+    description.setIsInternal(null)
     when:
     operation.operate([])
 
@@ -309,7 +309,7 @@ class UpsertAmazonLoadBalancerClassicAtomicOperationSpec extends Specification {
 
   void "should handle VPC ELB creation"() {
       description.subnetType = "internal"
-      description.setInternal(true)
+      description.setIsInternal(true)
       when:
       operation.operate([])
 

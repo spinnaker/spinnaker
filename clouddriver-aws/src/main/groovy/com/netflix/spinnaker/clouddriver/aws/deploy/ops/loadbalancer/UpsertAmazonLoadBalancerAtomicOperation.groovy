@@ -74,7 +74,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
       def loadBalancerName = description.name ?: "${description.clusterName}-frontend".toString()
 
       //maintains bwc with the contains internal check.
-      boolean isInternal = description.getInternal() != null ? description.getInternal() : description.subnetType?.contains('internal')
+      boolean isInternal = description.getIsInternal() != null ? description.getIsInternal() : description.subnetType?.contains('internal')
 
       task.updateStatus BASE_PHASE, "Beginning deployment to $region in $availabilityZones for $loadBalancerName"
 
