@@ -45,7 +45,7 @@ import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.IN
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
 
 @Slf4j
-class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent,HealthProvidingCachingAgent, AccountAware {
+class AmazonLoadBalancerInstanceStateCachingAgent implements CachingAgent, HealthProvidingCachingAgent, AccountAware {
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region

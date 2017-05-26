@@ -42,13 +42,12 @@ class InstanceLoadBalancerState {
     this.healthState = deriveHealthState()
   }
 
+  // Used for testing only
   static List<InstanceLoadBalancerState> fromLoadBalancerInstanceState(LoadBalancerInstanceState lbis) {
     lbis.instances.collect { new InstanceLoadBalancerState(it.instanceId, lbis.loadBalancerType, lbis.name, it.state, it.reasonCode, it.description)}
   }
 
   private HealthState deriveHealthState() {
-    //ELBv2 has concrete states: unused -> initial -> healthy    -> draining
-    //                                            \-> unhealthy -/
     /* for ELBv1 we derive state from descriptions:
         * Instance registration is still in progress
         * Instance has not passed the configured HealthyThreshold number of health checks consecutively.
@@ -56,14 +55,14 @@ class InstanceLoadBalancerState {
         * Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.
         * Instance is not currently registered with the LoadBalancer.
      */
-    if (state == 'InService' || state == 'healthy') {
+    if (state == 'InService') {
       return HealthState.Up
     }
 
-    if (state == 'initial' || description == 'Instance registration is still in progress') {
+    if (description == 'Instance registration is still in progress') {
       return HealthState.Starting
     }
-    if (state == 'unused' || state == 'draining' || description == 'Instance is not currently registered with the LoadBalancer.') {
+    if (description == 'Instance is not currently registered with the LoadBalancer.') {
       return HealthState.OutOfService
     }
     if (description == 'Instance is in the EC2 Availability Zone for which LoadBalancer is not configured to route traffic to.') {

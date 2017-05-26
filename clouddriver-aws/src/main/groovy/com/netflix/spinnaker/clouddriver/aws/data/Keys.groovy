@@ -61,6 +61,11 @@ class Keys {
         String loadBalancerType = vpcId && parts.length > 6 ? parts[6] : 'classic'
         result << [account: parts[2], region: parts[3], loadBalancer: parts[4], vpcId: vpcId, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail, loadBalancerType: loadBalancerType]
         break
+      case Namespace.TARGET_GROUPS.ns:
+        def names = Names.parseName(parts[4])
+        String vpcId = parts.length > 5 ? (parts[5] ?: null) : null
+        result << [account: parts[2], region: parts[3], targetGroup: parts[4], vpcId: vpcId, application: names.app?.toLowerCase(), stack: names.stack, detail: names.detail]
+        break
       case Namespace.CLUSTERS.ns:
         def names = Names.parseName(parts[4])
         result << [application: parts[2].toLowerCase(), account: parts[3], cluster: parts[4], stack: names.stack, detail: names.detail]
@@ -109,6 +114,10 @@ class Keys {
       }
     }
     return key
+  }
+
+  static String getTargetGroupKey(String targetGroupName, String account, String region, String vpcId) {
+    "${ID}:${Namespace.TARGET_GROUPS}:${account}:${region}:${targetGroupName}:${vpcId}"
   }
 
   static String getClusterKey(String clusterName, String application, String account) {

@@ -41,6 +41,7 @@ class AwsProvider extends AgentSchedulerAware implements SearchableProvider, Eur
     LOAD_BALANCERS.ns,
     CLUSTERS.ns,
     SERVER_GROUPS.ns,
+    TARGET_GROUPS.ns,
     INSTANCES.ns
   ].asImmutable()
 

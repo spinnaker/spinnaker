@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
+import com.amazonaws.services.elasticloadbalancingv2.model.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
@@ -265,7 +266,7 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
   //
   ////////////////////////////////////
   public DescribeLoadBalancersResult describeLoadBalancers() {
-    return describeLoadBalancers(null);
+    return describeLoadBalancers((DescribeLoadBalancersRequest)null);
   }
 
   public DescribeLoadBalancersResult describeLoadBalancers(DescribeLoadBalancersRequest request) {
@@ -273,6 +274,38 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       .withLoadBalancerDescriptions(
         describe(request, "loadBalancerNames", "loadBalancers", LoadBalancerDescription.class));
   }
+
+   // Cannot have overloaded method with same parameters and different return types, for now, no calls to this parameter-less function, so commenting out for now
+   // public com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult describeLoadBalancers() {
+   //   return describeLoadBalancers((com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest)null);
+   // }
+
+  public com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult describeLoadBalancers(com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest request) {
+    return new com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult()
+      .withLoadBalancers(
+        describe(request, "names", "appLoadBalancers", LoadBalancer.class));
+  }
+
+  public DescribeTargetGroupsResult describeTargetGroups() {
+    return describeTargetGroups(null);
+  }
+
+  public DescribeTargetGroupsResult describeTargetGroups(DescribeTargetGroupsRequest request) {
+    return new DescribeTargetGroupsResult()
+      .withTargetGroups(
+        describe(request, "names", "targetGroups", TargetGroup.class));
+  }
+
+  // TODO:jmr - add listener invocation handlers once edda adds them
+//  public DescribeListenersResult describeListeners() {
+//    return describeListeners(null);
+//  }
+//
+//  public DescribeListenersResult describeListeners(DescribeListenersRequest request) {
+//    return new DescribeListenersResult()
+//      .withListeners(
+//        describe(request, "listenerArns", "listeners", Listener.class));
+//  }
 
   ////////////////////////////////////
   private <T> List<T> describe(AmazonWebServiceRequest request, String idKey, final String object, final Class<T> singleType) {

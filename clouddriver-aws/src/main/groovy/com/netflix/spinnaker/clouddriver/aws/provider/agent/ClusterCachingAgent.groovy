@@ -44,6 +44,7 @@ import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -70,6 +71,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     AUTHORITATIVE.forType(APPLICATIONS.ns),
     INFORMATIVE.forType(CLUSTERS.ns),
     INFORMATIVE.forType(LOAD_BALANCERS.ns),
+    INFORMATIVE.forType(TARGET_GROUPS.ns),
     INFORMATIVE.forType(LAUNCH_CONFIGS.ns),
     INFORMATIVE.forType(INSTANCES.ns)
   ] as Set)
@@ -422,6 +424,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     log.info("Caching ${cacheResults[CLUSTERS.ns]?.size()} clusters in ${agentType}")
     log.info("Caching ${cacheResults[SERVER_GROUPS.ns]?.size()} server groups in ${agentType}")
     log.info("Caching ${cacheResults[LOAD_BALANCERS.ns]?.size()} load balancers in ${agentType}")
+    log.info("Caching ${cacheResults[TARGET_GROUPS.ns]?.size()} target groups in ${agentType}")
     log.info("Caching ${cacheResults[LAUNCH_CONFIGS.ns]?.size()} launch configs in ${agentType}")
     log.info("Caching ${cacheResults[INSTANCES.ns]?.size()} instances in ${agentType}")
     if (evictableOnDemandCacheDatas) {
@@ -465,6 +468,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     Map<String, CacheData> clusters = cache()
     Map<String, CacheData> serverGroups = cache()
     Map<String, CacheData> loadBalancers = cache()
+    Map<String, CacheData> targetGroups = cache()
     Map<String, CacheData> launchConfigs = cache()
     Map<String, CacheData> instances = cache()
 
@@ -479,6 +483,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
         cache(cacheResults["clusters"], clusters)
         cache(cacheResults["serverGroups"], serverGroups)
         cache(cacheResults["loadBalancers"], loadBalancers)
+        cache(cacheResults["targetGroups"], targetGroups)
         cache(cacheResults["launchConfigs"], launchConfigs)
         cache(cacheResults["instances"], instances)
       } else {
@@ -490,6 +495,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
           cacheLaunchConfig(data, launchConfigs)
           cacheInstances(data, instances)
           cacheLoadBalancers(data, loadBalancers)
+          cacheTargetGroups(data, targetGroups)
         } catch (Exception ex) {
           log.warn("Failed to cache ${asg.autoScalingGroupName} in ${account.name}/${region}", ex)
         }
@@ -501,6 +507,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       (CLUSTERS.ns)      : clusters.values(),
       (SERVER_GROUPS.ns) : serverGroups.values(),
       (LOAD_BALANCERS.ns): loadBalancers.values(),
+      (TARGET_GROUPS.ns): targetGroups.values(),
       (LAUNCH_CONFIGS.ns): launchConfigs.values(),
       (INSTANCES.ns)     : instances.values(),
       (ON_DEMAND.ns)     : onDemandCacheDataByAsg.values()
@@ -529,6 +536,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
+      relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
     }
   }
 
@@ -538,6 +546,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[SERVER_GROUPS.ns].add(data.serverGroup)
       relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
+      relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
     }
   }
 
@@ -552,10 +561,12 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       attributes.vpcId = data.vpcId
       attributes.scalingPolicies = data.scalingPolicies
       attributes.scheduledActions = data.scheduledActions
+      attributes.targetGroups = data.targetGroupNames
 
       relationships[APPLICATIONS.ns].add(data.appName)
       relationships[CLUSTERS.ns].add(data.cluster)
       relationships[LOAD_BALANCERS.ns].addAll(data.loadBalancerNames)
+      relationships[TARGET_GROUPS.ns].addAll(data.targetGroupKeys)
       relationships[LAUNCH_CONFIGS.ns].add(data.launchConfig)
       relationships[INSTANCES.ns].addAll(data.instanceIds)
     }
@@ -584,6 +595,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     }
   }
 
+  private void cacheTargetGroups(AsgData data, Map<String, CacheData> targetGroups) {
+    for (String targetGroupKey : data.targetGroupKeys) {
+      targetGroups[targetGroupKey].with {
+        relationships[APPLICATIONS.ns].add(data.appName)
+        relationships[SERVER_GROUPS.ns].add(data.serverGroup)
+      }
+    }
+  }
+
   private AutoScalingGroup loadAutoScalingGroup(String autoScalingGroupName, boolean skipEdda) {
     def autoScaling = amazonClientProvider.getAutoScaling(account, region, skipEdda)
     def result = autoScaling.describeAutoScalingGroups(
@@ -591,7 +611,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     )
 
     if (result.autoScalingGroups && !result.autoScalingGroups.isEmpty()) {
-      def asg = result.autoScalingGroups.get(0)
+      AutoScalingGroup asg = result.autoScalingGroups.get(0)
 
       // A non-null status indicates that the ASG is in the process of being destroyed
       return (asg.status == null) ? asg : null
@@ -639,6 +659,8 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     final String vpcId
     final String launchConfig
     final Set<String> loadBalancerNames
+    final Set<String> targetGroupKeys
+    final Set<String> targetGroupNames
     final Set<String> instanceIds
     final List<Map> scalingPolicies
     final List<Map> scheduledActions
@@ -672,6 +694,15 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
       loadBalancerNames = (asg.loadBalancerNames.collect {
         Keys.getLoadBalancerKey(it, account, region, vpcId, null)
       } as Set).asImmutable()
+
+      targetGroupNames = (asg.targetGroupARNs.collect {
+        ArnUtils.extractTargetGroupName(it).get()
+      } as Set).asImmutable()
+
+      targetGroupKeys = (targetGroupNames.collect {
+        Keys.getTargetGroupKey(it, account, region, vpcId)
+      } as Set).asImmutable()
+
       instanceIds = (asg.instances.instanceId.collect { Keys.getInstanceKey(it, account, region) } as Set).asImmutable()
     }
   }

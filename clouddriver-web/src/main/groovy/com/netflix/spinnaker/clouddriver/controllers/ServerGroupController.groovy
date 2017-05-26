@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
+import com.netflix.spinnaker.clouddriver.aws.model.InstanceTargetGroups
 import com.netflix.spinnaker.clouddriver.aws.model.edda.InstanceLoadBalancers
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
@@ -179,6 +180,7 @@ class ServerGroupController {
     Long createdTime
     List<InstanceViewModel> instances
     Set<String> loadBalancers
+    Set<String> targetGroups
     Set<String> securityGroups
     ServerGroup.InstanceCounts instanceCounts
     Map<String, Object> tags
@@ -215,6 +217,9 @@ class ServerGroupController {
       if (serverGroup.hasProperty("providerMetadata")) {
         providerMetadata = serverGroup.providerMetadata
       }
+      if (serverGroup.hasProperty("targetGroups")) {
+        targetGroups = serverGroup.targetGroups
+      }
     }
   }
 
@@ -240,7 +245,12 @@ class ServerGroupController {
         }
         if (health.type == InstanceLoadBalancers.HEALTH_TYPE && health.containsKey("loadBalancers")) {
           healthMetric.loadBalancers = health.loadBalancers.collect {
-            [name: it.loadBalancerName, state: it.state, description: it.description, healthState: it.healthState, loadBalancerType: it.loadBalancerType]
+            [name: it.loadBalancerName, state: it.state, description: it.description, healthState: it.healthState]
+          }
+        }
+        if (health.type == InstanceTargetGroups.HEALTH_TYPE && health.containsKey("targetGroups")) {
+          healthMetric.targetGroups = health.targetGroups.collect {
+            [name: it.targetGroupName, state: it.state, description: it.description, healthState: it.healthState]
           }
         }
         healthMetric

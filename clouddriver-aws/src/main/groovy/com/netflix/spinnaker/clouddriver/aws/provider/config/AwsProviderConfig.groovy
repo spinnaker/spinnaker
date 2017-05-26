@@ -22,7 +22,10 @@ import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentProvider
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerV2InstanceStateCachingAgent
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonApplicationLoadBalancerCachingAgent
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonLoadBalancerCachingAgent
+
+import com.netflix.spinnaker.clouddriver.aws.provider.agent.AmazonTargetGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservedInstancesCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonCredentials
@@ -38,7 +41,6 @@ import com.netflix.spinnaker.clouddriver.aws.provider.agent.EddaLoadBalancerCach
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ImageCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.InstanceCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.LaunchConfigCachingAgent
-import com.netflix.spinnaker.clouddriver.aws.provider.agent.LoadBalancerCachingAgent
 import com.netflix.spinnaker.clouddriver.aws.provider.agent.ReservationReportCachingAgent
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -139,7 +141,9 @@ class AwsProviderConfig {
             publicRegions.add(region.name)
           }
           newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new LoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new AmazonLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new AmazonApplicationLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new AmazonTargetGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
 
           if (credentials.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region.name)) {
@@ -149,7 +153,6 @@ class AwsProviderConfig {
               amazonClientProvider, credentials, region.name, objectMapper, ctx
             )
           }
-          newlyAddedAgents << new AmazonLoadBalancerV2InstanceStateCachingAgent(amazonClientProvider, credentials, region.name, objectMapper)
         }
       }
     }

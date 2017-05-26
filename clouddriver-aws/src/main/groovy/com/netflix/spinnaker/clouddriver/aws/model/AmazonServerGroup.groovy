@@ -42,16 +42,18 @@ class AmazonServerGroup implements ServerGroup, Serializable {
   final String type = AmazonCloudProvider.ID
   final String cloudProvider = AmazonCloudProvider.ID
 
+  Set<String> targetGroups
+
   private Map<String, Object> dynamicProperties = new HashMap<String, Object>()
 
   @JsonAnyGetter
-  public Map<String,Object> any() {
-    return dynamicProperties;
+  Map<String,Object> any() {
+    return dynamicProperties
   }
 
   @JsonAnySetter
-  public void set(String name, Object value) {
-    dynamicProperties.put(name, value);
+  void set(String name, Object value) {
+    dynamicProperties.put(name, value)
   }
 
   @Override
@@ -80,6 +82,15 @@ class AmazonServerGroup implements ServerGroup, Serializable {
       loadBalancerNames = (Set<String>) asg.loadBalancerNames
     }
     return loadBalancerNames
+  }
+
+  void setTargetGroups() {
+    Set<String> targetGroupNames = []
+    def asg = getAsg()
+    if (asg && asg.containsKey("targetGroupNames")) {
+      targetGroupNames = (Set<String>) asg.targetGroupNames
+    }
+    this.targetGroups = targetGroupNames
   }
 
   @Override
