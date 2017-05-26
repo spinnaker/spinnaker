@@ -38,6 +38,8 @@ module.exports = {
     ],
     alias: {
       '@spinnaker/amazon': path.join(__dirname, 'src'),
+      'coreImports': path.resolve(basePath, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'commonImports.less'),
+      'coreColors': path.resolve(basePath, 'app', 'scripts', 'modules', 'core', 'src', 'presentation', 'less', 'imports', 'colors.less'),
       'amazon': path.join(__dirname, 'src')
     }
   },

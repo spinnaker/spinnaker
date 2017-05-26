@@ -6,17 +6,8 @@ import { ILoadBalancerClusterContainerProps, LoadBalancerClusterContainer } from
 import { IAmazonApplicationLoadBalancer } from '../domain/IAmazonLoadBalancer';
 import { TargetGroup } from './TargetGroup';
 
-interface IState {
-}
-
 @autoBindMethods
-export class AmazonLoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps, IState> {
-  constructor(props: ILoadBalancerClusterContainerProps) {
-    super(props);
-    this.state = {
-    };
-  }
-
+export class AmazonLoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps, void> {
   public render(): React.ReactElement<AmazonLoadBalancerClusterContainer> {
     const { loadBalancer, showInstances, showServerGroups } = this.props;
 

@@ -1,9 +1,10 @@
 {
   "name": "@spinnaker/core",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "lib": "tsc && node ../../../../node_modules/webpack/bin/webpack.js"
+    "lib": "../../../../node_modules/typescript/bin/tsc && node ../../../../node_modules/webpack/bin/webpack.js",
+    "prepublish": "npm run lib"
   }
 }
