@@ -51,6 +51,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   private final StorageService service;
   private final Scheduler scheduler;
   private final long refreshIntervalMs;
+  private final boolean shouldWarmCache;
   private final Registry registry;
   private final Timer cacheRefreshTimer;      // All refreshes
   private final Timer autoRefreshTimer;       // Only spontaneous refreshes in all()
@@ -65,6 +66,7 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
                                StorageService service,
                                Scheduler scheduler,
                                long refreshIntervalMs,
+                               boolean shouldWarmCache,
                                Registry registry) {
     this.objectType = objectType;
     this.service = service;
@@ -73,9 +75,10 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
     if (refreshIntervalMs >= getHealthMillis()) {
       throw new IllegalArgumentException("Cache refresh time must be more frequent than cache health timeout");
     }
-    String typeName = objectType.name();
+    this.shouldWarmCache = shouldWarmCache;
     this.registry = registry;
 
+    String typeName = objectType.name();
     this.cacheRefreshTimer = registry.timer(
       registry.createId("storageServiceSupport.cacheRefreshTime", "objectType", typeName));
     this.autoRefreshTimer = registry.timer(
@@ -107,11 +110,13 @@ public abstract class StorageServiceSupport<T extends Timestamped> {
   @PostConstruct
   void startRefresh() {
     if (refreshIntervalMs > 0) {
-      try {
-        log.info("Warming Cache");
-        refresh();
-      } catch (Exception e) {
-        log.error("Unable to warm cache: {}", e);
+      if (shouldWarmCache) {
+        try {
+          log.info("Warming Cache");
+          refresh();
+        } catch (Exception e) {
+          log.error("Unable to warm cache: {}", e);
+        }
       }
 
       Observable

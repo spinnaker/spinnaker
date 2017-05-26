@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.front50.config
 
-import groovy.transform.Canonical
 import org.springframework.boot.context.properties.ConfigurationProperties
 
 import java.util.concurrent.TimeUnit;
@@ -34,16 +33,21 @@ class StorageServiceConfigurationProperties {
   PerObjectType snapshot = new PerObjectType(2, TimeUnit.MINUTES.toMillis(1))
 
   // not commonly used outside of Netflix
-  PerObjectType entityTags = new PerObjectType(2, TimeUnit.MINUTES.toMillis(5))
+  PerObjectType entityTags = new PerObjectType(2, TimeUnit.MINUTES.toMillis(5), false)
 
-  @Canonical
   static class PerObjectType {
     int threadPool
     long refreshMs
+    boolean shouldWarmCache
 
     PerObjectType(int threadPool, long refreshMs) {
+      this(threadPool, refreshMs, true)
+    }
+
+    PerObjectType(int threadPool, long refreshMs, boolean shouldWarmCache) {
       setThreadPool(threadPool)
       setRefreshMs(refreshMs)
+      setShouldWarmCache(shouldWarmCache)
     }
 
     void setThreadPool(int threadPool) {
@@ -51,10 +55,6 @@ class StorageServiceConfigurationProperties {
         throw new IllegalArgumentException("threadPool must be >= 1")
       }
       this.threadPool = threadPool
-    }
-
-    void setRefreshMs(long refreshMs) {
-      this.refreshMs = refreshMs
     }
   }
 }

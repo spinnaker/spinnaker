@@ -26,8 +26,9 @@ public class DefaultServiceAccountDAO extends StorageServiceSupport<ServiceAccou
   public DefaultServiceAccountDAO(StorageService service,
                                   Scheduler scheduler,
                                   long refreshIntervalMs,
+                                  boolean shouldWarmCache,
                                   Registry registry) {
-    super(ObjectType.SERVICE_ACCOUNT, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.SERVICE_ACCOUNT, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

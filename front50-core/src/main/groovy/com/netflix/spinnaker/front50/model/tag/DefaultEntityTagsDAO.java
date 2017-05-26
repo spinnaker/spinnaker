@@ -29,8 +29,9 @@ public class DefaultEntityTagsDAO extends StorageServiceSupport<EntityTags> impl
   public DefaultEntityTagsDAO(StorageService service,
                               Scheduler scheduler,
                               long refreshIntervalMs,
+                              boolean shouldWarmCache,
                               Registry registry) {
-    super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.ENTITY_TAGS, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

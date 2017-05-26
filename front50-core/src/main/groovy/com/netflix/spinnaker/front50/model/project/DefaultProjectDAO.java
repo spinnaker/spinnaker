@@ -29,8 +29,9 @@ public class DefaultProjectDAO extends StorageServiceSupport<Project> implements
   public DefaultProjectDAO(StorageService service,
                            Scheduler scheduler,
                            long refreshIntervalMs,
+                           boolean shouldWarmCache,
                            Registry registry) {
-    super(ObjectType.PROJECT, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.PROJECT, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

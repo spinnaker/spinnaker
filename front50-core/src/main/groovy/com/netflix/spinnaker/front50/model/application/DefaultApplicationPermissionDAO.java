@@ -26,8 +26,9 @@ public class DefaultApplicationPermissionDAO extends StorageServiceSupport<Appli
   public DefaultApplicationPermissionDAO(StorageService service,
                                          Scheduler scheduler,
                                          long refreshIntervalMs,
+                                         boolean shouldWarmCache,
                                          Registry registry) {
-    super(ObjectType.APPLICATION_PERMISSION, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.APPLICATION_PERMISSION, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

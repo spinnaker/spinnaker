@@ -30,8 +30,9 @@ public class DefaultApplicationDAO extends StorageServiceSupport<Application> im
   public DefaultApplicationDAO(StorageService service,
                                Scheduler scheduler,
                                long refreshIntervalMs,
+                               boolean shouldWarmCache,
                                Registry registry) {
-    super(ObjectType.APPLICATION, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.APPLICATION, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

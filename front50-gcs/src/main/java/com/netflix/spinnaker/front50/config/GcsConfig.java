@@ -116,6 +116,7 @@ public class GcsConfig extends CommonStorageServiceDAOConfig {
       service,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
       storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
+      storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
       registry
     );
   }

@@ -29,8 +29,9 @@ public class DefaultSnapshotDAO extends StorageServiceSupport<Snapshot> implemen
   public DefaultSnapshotDAO(StorageService service,
                             Scheduler scheduler,
                             long refreshIntervalMs,
+                            boolean shouldWarmCache,
                             Registry registry) {
-    super(ObjectType.SNAPSHOT, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.SNAPSHOT, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

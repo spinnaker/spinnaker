@@ -52,6 +52,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplication().getThreadPool())),
       storageServiceConfigurationProperties.getApplication().getRefreshMs(),
+      storageServiceConfigurationProperties.getApplication().getShouldWarmCache(),
       registry
     );
   }
@@ -64,6 +65,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getApplicationPermission().getThreadPool())),
       storageServiceConfigurationProperties.getApplicationPermission().getRefreshMs(),
+      storageServiceConfigurationProperties.getApplicationPermission().getShouldWarmCache(),
       registry
     );
   }
@@ -76,6 +78,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getServiceAccount().getThreadPool())),
       storageServiceConfigurationProperties.getServiceAccount().getRefreshMs(),
+      storageServiceConfigurationProperties.getServiceAccount().getShouldWarmCache(),
       registry
     );
   }
@@ -88,6 +91,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getProject().getThreadPool())),
       storageServiceConfigurationProperties.getProject().getRefreshMs(),
+      storageServiceConfigurationProperties.getProject().getShouldWarmCache(),
       registry
     );
   }
@@ -100,6 +104,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getNotification().getThreadPool())),
       storageServiceConfigurationProperties.getNotification().getRefreshMs(),
+      storageServiceConfigurationProperties.getNotification().getShouldWarmCache(),
       registry
     );
   }
@@ -112,6 +117,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipelineStrategy().getThreadPool())),
       storageServiceConfigurationProperties.getPipelineStrategy().getRefreshMs(),
+      storageServiceConfigurationProperties.getPipelineStrategy().getShouldWarmCache(),
       registry
     );
   }
@@ -124,6 +130,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipeline().getThreadPool())),
       storageServiceConfigurationProperties.getPipeline().getRefreshMs(),
+      storageServiceConfigurationProperties.getPipeline().getShouldWarmCache(),
       registry
     );
   }
@@ -136,6 +143,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getPipelineTemplate().getThreadPool())),
       storageServiceConfigurationProperties.getPipelineTemplate().getRefreshMs(),
+      storageServiceConfigurationProperties.getPipelineTemplate().getShouldWarmCache(),
       registry
     );
   }
@@ -148,6 +156,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getSnapshot().getThreadPool())),
       storageServiceConfigurationProperties.getSnapshot().getRefreshMs(),
+      storageServiceConfigurationProperties.getSnapshot().getShouldWarmCache(),
       registry
     );
   }
@@ -160,6 +169,7 @@ public class CommonStorageServiceDAOConfig {
       storageService,
       Schedulers.from(Executors.newFixedThreadPool(storageServiceConfigurationProperties.getEntityTags().getThreadPool())),
       storageServiceConfigurationProperties.getEntityTags().getRefreshMs(),
+      storageServiceConfigurationProperties.getEntityTags().getShouldWarmCache(),
       registry
     );
   }

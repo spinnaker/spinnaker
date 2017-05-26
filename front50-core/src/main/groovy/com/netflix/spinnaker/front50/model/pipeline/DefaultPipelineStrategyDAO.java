@@ -31,8 +31,9 @@ public class DefaultPipelineStrategyDAO extends StorageServiceSupport<Pipeline> 
   public DefaultPipelineStrategyDAO(StorageService service,
                                     Scheduler scheduler,
                                     long refreshIntervalMs,
+                                    boolean shouldWarmCache,
                                     Registry registry) {
-    super(ObjectType.STRATEGY, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.STRATEGY, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override

@@ -27,8 +27,9 @@ public class DefaultNotificationDAO extends StorageServiceSupport<Notification> 
   public DefaultNotificationDAO(StorageService service,
                                 Scheduler scheduler,
                                 long refreshIntervalMs,
+                                boolean shouldWarmCache,
                                 Registry registry) {
-    super(ObjectType.NOTIFICATION, service, scheduler, refreshIntervalMs, registry);
+    super(ObjectType.NOTIFICATION, service, scheduler, refreshIntervalMs, shouldWarmCache, registry);
   }
 
   @Override
