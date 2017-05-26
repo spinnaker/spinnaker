@@ -44,24 +44,17 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
   @Override
   TaskResult execute(Stage stage) {
     def application = objectMapper.convertValue(stage.context.application, Application)
-    def account = (stage.context.account as String).toLowerCase()
 
     def existingDependencyTypes = []
     try {
       def oortResult = getOortResult(application.name as String)
-      if (oortResult && oortResult.clusters[account]) {
-        if (oortResult.clusters[account]*."loadBalancers".flatten()) {
-          existingDependencyTypes << "load balancers"
-        }
-
-        if (oortResult.clusters[account]*."serverGroups".flatten()) {
-          existingDependencyTypes << "server groups"
-        }
+      if (oortResult && oortResult.clusters) {
+        existingDependencyTypes << "clusters"
       }
 
       def mortResults = getMortResults(application.name as String, "securityGroups")
       if (mortResults.find {
-        it.application.equalsIgnoreCase(application.name) && it.account == account
+        it.application.equalsIgnoreCase(application.name)
       }) {
         existingDependencyTypes << "security groups"
       }

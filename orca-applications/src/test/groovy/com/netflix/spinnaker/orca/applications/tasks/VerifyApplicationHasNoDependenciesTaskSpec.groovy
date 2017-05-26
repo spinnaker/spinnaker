@@ -28,29 +28,17 @@ import spock.lang.Unroll
 
 class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
   @Shared
-  def config = [account: "test", application: ["name": "application"]]
+  def config = [application: ["name": "application"]]
 
   @Unroll
-  void "should be TERMINAL when application has load balancers, server groups or security groups"() {
+  void "should be TERMINAL when application has clusters or security groups"() {
     given:
-    def fixedAccount = account
-    def fixedLoadBalancers = loadBalancers
-    def fixedServerGroups = serverGroups
     def fixedSecurityGroups = securityGroups
+    def fixedClusters = clusters
     def task = new VerifyApplicationHasNoDependenciesTask() {
       @Override
       protected Map getOortResult(String applicationName) {
-        return [
-          clusters: [
-            (fixedAccount): [
-              [
-                "loadBalancers": fixedLoadBalancers,
-                "serverGroups" : fixedServerGroups
-              ]
-            ]
-          ]
-
-        ]
+        return [clusters: fixedClusters]
       }
 
       @Override
@@ -71,21 +59,10 @@ class VerifyApplicationHasNoDependenciesTaskSpec extends Specification {
     taskResult.status == executionStatus
 
     where:
-    account        | loadBalancers     | serverGroups     | securityGroups || executionStatus
-    config.account | []                | []               | []             || ExecutionStatus.SUCCEEDED
-    config.account | ["loadBalancer1"] | []               | []             || ExecutionStatus.TERMINAL
-    config.account | []                | ["serverGroup1"] | []             || ExecutionStatus.TERMINAL
-    config.account | []                | []               | [[
-                                                               "application": config.application.name,
-                                                               "account"    : config.account
-                                                             ]]            || ExecutionStatus.TERMINAL
-    config.account | ["loadBalancer1"] | ["serverGroup1"] | [[
-                                                               "application": config.application.name,
-                                                               "account"    : config.account
-                                                             ]]            || ExecutionStatus.TERMINAL
-    "prod"         | ["loadBalancer1"] | ["serverGroup1"] | [[
-                                                               "application": config.application.name,
-                                                               "account"    : "prod"
-                                                             ]]            || ExecutionStatus.SUCCEEDED
+    clusters          | securityGroups                             || executionStatus
+    []                | []                                         || ExecutionStatus.SUCCEEDED
+    [['a cluster']]   | []                                         || ExecutionStatus.TERMINAL
+    []                | [["application": config.application.name]] || ExecutionStatus.TERMINAL
+    [['a cluster']]   | [["application": config.application.name]] || ExecutionStatus.TERMINAL
   }
 }
