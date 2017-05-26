@@ -153,7 +153,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         packageBase = parts.slice(0, -3).join('-');
       }
       if (!packageBase || packageBase.length < 3) {
-        return [command.image];
+        return [{account: command.credentials, imageName: command.image}];
       }
 
       return gceImageReader.findImages({
