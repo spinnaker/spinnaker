@@ -22,7 +22,6 @@ module.exports = angular
     APPLICATION_NAME_VALIDATION_MESSAGES,
     VALIDATE_APPLICATION_NAME,
     require('./applicationProviderFields.component.js'),
-    require('./groupMembershipConfigurer.component.js'),
     CHAOS_MONKEY_NEW_APPLICATION_CONFIG_COMPONENT,
   ])
   .controller('CreateApplicationModalCtrl', function($scope, $q, $log, $state, $uibModalInstance, accountService,
@@ -43,6 +42,7 @@ module.exports = angular
       initializing: true,
       submitting: false,
       errorMessages: [],
+      permissionsInvalid: false,
     };
     this.data = {
 
@@ -102,6 +102,12 @@ module.exports = angular
           option above is usually sufficient for most applications that want the same health provider behavior for
           all stages. Note that pipelines will require manual updating if this setting is disabled in the future.`;
       }
+    };
+
+    this.handlePermissionsChange = (permissions) => {
+      this.state.permissionsInvalid = permissions.READ.includes(null) || permissions.WRITE.includes(null);
+      this.application.permissions = permissions;
+      $scope.$digest();
     };
 
     this.submit = () => {

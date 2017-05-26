@@ -14,12 +14,13 @@ module.exports = angular
     TASK_READ_SERVICE,
     require('./applicationProviderFields.component.js'),
   ])
-  .controller('EditApplicationController', function ($window, $state, $uibModalInstance, application, applicationWriter,
+  .controller('EditApplicationController', function ($scope, $window, $state, $uibModalInstance, application, applicationWriter,
                                                      accountService, taskReader) {
     var vm = this;
     this.data = {};
     this.state = {
       submitting: false,
+      permissionsInvalid: false,
     };
     vm.errorMsgs = [];
     vm.application = application;
@@ -90,6 +91,13 @@ module.exports = angular
           (task) => taskReader.waitUntilTaskCompletes(task).then(closeModal, extractErrorMsg),
           () => vm.errorMsgs.push('Could not update application')
         );
+    };
+
+    vm.handlePermissionsChange = (permissions) => {
+      vm.state.permissionsInvalid = permissions.READ.includes(null) || permissions.WRITE.includes(null);
+      vm.applicationAttributes.permissions = permissions;
+      delete vm.applicationAttributes.requiredGroupMembership;
+      $scope.$digest();
     };
 
     return vm;

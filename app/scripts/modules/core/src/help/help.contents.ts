@@ -12,6 +12,14 @@ module(HELP_CONTENTS, [])
         determine task completion. When this option is disabled, tasks will normally need health status reported by some other health provider (e.g. a
         load balancer or discovery service) to determine task completion.`,
     'application.showPlatformHealthOverride': 'When this option is enabled, users will be able to toggle the option above on a task-by-task basis.',
+    'application.permissions': `
+      <ul>
+        <li>To read from this application, a user must be a member of at least one group with read access.</li>
+        <li>To write to this application, a user must be a member of at least one group with write access.</li>
+        <li>If no permissions are specified, any user can read from or write to this application.</li>
+        <li>These permissions will only be enforced if Fiat is enabled.</li>
+      </ul>
+    `,
     'core.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
     'cluster.search': `
         Quickly filter the displayed server groups by the following fields:

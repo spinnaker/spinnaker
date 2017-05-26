@@ -25,10 +25,10 @@
   <dd ng-if="vm.application.attributes.enableRestartRunningExecutions">Allows restarting running pipelines</dd>
   <dt ng-if="vm.application.attributes.legacyUdf">User Data Format</dt>
   <dd ng-if="vm.application.attributes.legacyUdf">This application requires legacy user data format.</dd>
-  <dt ng-if="vm.application.attributes.requiredGroupMembership.length">Group Membership</dt>
-  <dd ng-if="vm.application.attributes.requiredGroupMembership.length">
-    {{ vm.application.attributes.requiredGroupMembership.join(', ')}}
-  </dd>
+  <render-if-feature feature="fiatEnabled" ng-if="vm.permissions">
+    <dt>Permissions</dt>
+    <dd>{{vm.permissions}}</dd>
+  </render-if-feature>
 </dl>
 <button class="btn btn-link" ng-click="vm.editApplication()"><span class="glyphicon glyphicon-cog"></span>
   Edit Application Attributes

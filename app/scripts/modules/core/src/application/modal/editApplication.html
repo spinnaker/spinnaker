@@ -174,8 +174,19 @@
         </div>
       </div>
 
-      <group-membership-configurer required-group-membership="editApp.applicationAttributes.requiredGroupMembership">
-      </group-membership-configurer>
+      <render-if-feature feature="fiatEnabled">
+        <div class="form-group row">
+          <div class="col-sm-3 sm-label-right">
+            Permissions <help-field key="application.permissions"></help-field>
+          </div>
+          <div class="col-sm-9">
+            <permissions-configurer permissions="editApp.applicationAttributes.permissions"
+                                    on-permissions-change="editApp.handlePermissionsChange"
+                                    required-group-membership="editApp.applicationAttributes.requiredGroupMembership">
+            </permissions-configurer>
+          </div>
+        </div>
+      </render-if-feature>
 
       <div class="form-group row slide-in" ng-if="editApp.errorMsgs">
         <div class="col-sm-9 col-sm-offset-3 error-message" ng-repeat="errorMsg in editApp.errorMsgs">
@@ -194,7 +205,7 @@
     <div class="modal-footer">
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
       <submit-button is-new="false"
-                     is-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning"
+                     is-disabled="!editApplicationForm.$valid || editApp.state.submitting || editApp.data.showOverrideWarning || editApp.state.permissionsInvalid"
                      submitting="editApp.state.submitting"
                      on-click="editApp.submit()"></submit-button>
     </div>

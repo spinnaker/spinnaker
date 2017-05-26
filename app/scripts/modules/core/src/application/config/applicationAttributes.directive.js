@@ -44,6 +44,34 @@ module.exports = angular
     };
     setHealthMessage();
 
+    const setPermissions = () => {
+      const permissions = get(this.application, 'attributes.permissions');
+      if (permissions) {
+        const permissionsMap = new Map();
+        permissions.READ.forEach(role => {
+          permissionsMap.set(role, 'read');
+        });
+        permissions.WRITE.forEach(role => {
+          if (permissionsMap.has(role)) {
+            permissionsMap.set(role, permissionsMap.get(role) + ', write');
+          } else {
+            permissionsMap.set(role, 'write');
+          }
+        });
+
+        if (permissionsMap.size) {
+          this.permissions = Array.from(permissionsMap)
+            .map(([role, accessTypes]) => `${role} (${accessTypes})`)
+            .join(', ');
+        } else {
+          this.permissions = null;
+        }
+      } else {
+        this.permissions = null;
+      }
+    };
+    setPermissions();
+
     this.editApplication = () => {
       $uibModal.open({
         templateUrl: overrideRegistry.getTemplate('editApplicationModal', require('../modal/editApplication.html')),
@@ -57,6 +85,7 @@ module.exports = angular
       }).result.then((newAttributes) => {
           this.application.attributes = newAttributes;
           setHealthMessage();
+          setPermissions();
         });
     };
   });

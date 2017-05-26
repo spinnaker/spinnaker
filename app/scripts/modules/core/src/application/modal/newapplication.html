@@ -189,8 +189,19 @@
         </div>
       </div>
 
-      <group-membership-configurer required-group-membership="newAppModal.application.requiredGroupMembership">
-      </group-membership-configurer>
+      <render-if-feature feature="fiatEnabled">
+        <div class="form-group row">
+          <div class="col-sm-3 sm-label-right">
+            Permissions <help-field key="application.permissions"></help-field>
+          </div>
+          <div class="col-sm-9">
+            <permissions-configurer permissions="newAppModal.application.permissions"
+                                    on-permissions-change="newAppModal.handlePermissionsChange"
+                                    required-group-membership="newAppModal.application.requiredGroupMembership">
+            </permissions-configurer>
+          </div>
+        </div>
+      </render-if-feature>
 
       <div class="form-group row slide-in" ng-if="newAppModal.state.errorMessages.length">
         <div class="col-md-12">
@@ -212,7 +223,7 @@
     <div class="modal-footer">
       <a href class="btn btn-default" ng-click="$dismiss()">Cancel</a>
       <submit-button is-new="true"
-                     is-disabled="newApplicationForm.$invalid || newAppModal.application.accounts.length < 1 || newAppModal.state.submitting || newAppModal.data.showOverrideWarning"
+                     is-disabled="newApplicationForm.$invalid || newAppModal.application.accounts.length < 1 || newAppModal.state.submitting || newAppModal.data.showOverrideWarning || newAppModal.state.permissionsInvalid"
                      submitting="newAppModal.state.submitting"
                      on-click="newAppModal.submit()"></submit-button>
     </div>
