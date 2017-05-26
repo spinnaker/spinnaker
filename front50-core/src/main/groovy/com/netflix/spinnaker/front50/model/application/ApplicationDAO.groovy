@@ -22,7 +22,7 @@ import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.ItemDAO
 import com.netflix.spinnaker.front50.model.SearchUtils
 
-public interface ApplicationDAO extends ItemDAO<Application> {
+interface ApplicationDAO extends ItemDAO<Application> {
   Application findByName(String name) throws NotFoundException
 
   Collection<Application> search(Map<String, String> attributes)
@@ -31,17 +31,6 @@ public interface ApplicationDAO extends ItemDAO<Application> {
     static Collection<Application> search(Collection<Application> searchableApplications,
                                           Map<String, String> attributes) {
       attributes = attributes.collect { k,v -> [k.toLowerCase(), v] }.collectEntries()
-
-      if (attributes["accounts"]) {
-        def accounts = attributes["accounts"].split(",").collect { it.trim().toLowerCase() }
-        searchableApplications = searchableApplications.findAll {
-          def applicationAccounts = (it.accounts ?: "").split(",").collect { it.trim().toLowerCase() }
-          return applicationAccounts.containsAll(accounts)
-        }
-
-        // remove the 'accounts' search attribute so it's not picked up again in the field-level filtering below
-        attributes.remove("accounts")
-      }
 
       // filtering vs. querying to achieve case-insensitivity without using an additional column (small data set)
       def items = searchableApplications.findAll { app ->

@@ -45,7 +45,7 @@ class CassandraApplicationDAOSpec extends Specification {
   @Shared
   Map<String, String> newApplicationAttrs = [
       name: "new-application", email: "email@netflix.com", description: "My application", pdApiKey: "pdApiKey",
-      accounts: "prod,test", repoProjectKey: "project-key", repoSlug: "repo", repoType: "github"
+      repoProjectKey: "project-key", repoSlug: "repo", repoType: "github"
   ]
 
   void setupSpec() {
@@ -140,28 +140,6 @@ class CassandraApplicationDAOSpec extends Specification {
 
     then:
     foundApplications*.persistedProperties == [newApplication]*.persistedProperties
-  }
-
-  @Unroll
-  void "applications can be searched for by account"() {
-    given:
-    cassandraApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
-    cassandraApplicationDAO.create("another-app", new Application([
-        name: "another-app", email: "another@netflix.com", accounts: "prod,test,extra"
-    ]))
-
-    when:
-    def foundApplications = cassandraApplicationDAO.search([accounts: searchAccounts])
-
-    then:
-    foundApplications.size() == size
-
-    where:
-    searchAccounts    | size
-    "prod"            | 2
-    "test"            | 2
-    "prod, test  "    | 2
-    "prod,test,extra" | 1
   }
 
   @Unroll

@@ -80,7 +80,6 @@ class CassandraApplicationDAO implements ApplicationDAO {
                 email varchar,
                 updatets varchar,
                 createts varchar,
-                accounts list<text>,
                 details_json varchar,
                 version int,
                 PRIMARY KEY (name)
@@ -194,17 +193,10 @@ class CassandraApplicationDAO implements ApplicationDAO {
         }
       }
 
-      def accountsColumn = columns.getColumnByName("accounts")
-      def accounts = []
-      if (accountsColumn?.hasValue()) {
-        accounts.addAll(accountsColumn.getValue(listSerializer))
-      }
-
       return new Application(
           name: getStringValue('name'),
           description: getStringValue('description'),
           email: getStringValue('email'),
-          accounts: accounts ? accounts.join(",") : null,
           updateTs: getStringValue('updatets'),
           createTs: getStringValue('createts'),
           details: details
@@ -246,10 +238,6 @@ class CassandraApplicationDAO implements ApplicationDAO {
     def values = [VERSION]
     application.getPersistedProperties().each { key, value ->
       switch (key) {
-        case "accounts":
-          keys << key
-          values << (value ? value.split(",").collect { it.trim().toLowerCase() } : [])
-          break
         case "details":
           keys << "details_json"
           values << objectMapper.writeValueAsString(value) ?: null

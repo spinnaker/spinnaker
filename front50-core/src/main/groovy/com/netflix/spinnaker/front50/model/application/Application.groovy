@@ -48,7 +48,6 @@ class Application implements Timestamped {
   String name
   String description
   String email
-  String accounts
   String updateTs
   String createTs
   String lastModifiedBy
@@ -76,7 +75,6 @@ class Application implements Timestamped {
         name: this.name,
         description: this.description,
         email: this.email,
-        accounts: this.accounts,
         updateTs: this.updateTs,
         createTs: this.createTs,
         details: this.details
@@ -110,7 +108,6 @@ class Application implements Timestamped {
     updatedApplication.createTs = this.createTs
     updatedApplication.description = updatedApplication.description ?: this.description
     updatedApplication.email = updatedApplication.email ?: this.email
-    updatedApplication.accounts = updatedApplication.accounts ?: this.accounts
     mergeDetails(updatedApplication, this)
     validate(updatedApplication)
 
