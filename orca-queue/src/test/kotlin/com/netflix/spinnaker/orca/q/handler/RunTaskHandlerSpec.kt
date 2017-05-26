@@ -29,10 +29,7 @@ import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.dsl.context
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.given
-import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
@@ -676,6 +673,40 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       it("does not overwrite the stage's parameters with the pipeline's") {
         verify(task).execute(check {
           it.getContext()["parameters"] shouldEqual mapOf("message" to "o hai")
+        })
+      }
+    }
+
+    given("an expression in the context that refers to a global context value") {
+      val pipeline = pipeline {
+        context["foo"] = "bar"
+        stage {
+          refId = "1"
+          context["expression"] = "\${foo}"
+          type = "whatever"
+          task {
+            id = "1"
+            implementingClass = DummyTask::class.qualifiedName
+            startTime = clock.instant().toEpochMilli()
+          }
+        }
+      }
+      val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "1", DummyTask::class.java)
+
+      beforeGroup {
+        whenever(task.execute(any())) doReturn TaskResult.SUCCEEDED
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving $message") {
+        subject.handle(message)
+      }
+
+      it("passes the decoded expression to the task") {
+        verify(task).execute(check {
+          it.getContext()["expression"] shouldEqual "bar"
         })
       }
     }

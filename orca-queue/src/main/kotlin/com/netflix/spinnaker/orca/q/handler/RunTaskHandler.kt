@@ -225,9 +225,9 @@ open class RunTaskHandler
       true
     )
 
-  private fun Map<String, Any?>.augmentContext(execution: Execution<*>?) =
+  private fun Map<String, Any?>.augmentContext(execution: Execution<*>) =
     if (execution is Pipeline) {
-      this + mapOf("trigger" to execution.trigger, "execution" to execution)
+      this + execution.context + mapOf("trigger" to execution.trigger, "execution" to execution)
     } else {
       this
     }
