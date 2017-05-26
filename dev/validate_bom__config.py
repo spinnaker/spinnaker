@@ -79,7 +79,7 @@ class AzsStorageConfiguratorHelper(object):
         'AZS_PASSWORD=$(cat {file})'
         .format(file=os.path.basename(options.storage_azs_credentials)))
     hal = (
-        'hal --color=false config storage azs edit'
+        'hal -q --log=info config storage azs edit'
         ' --storage-account-name {name}'
         ' --storage-account-key "$AZS_PASSWORD"'
         .format(name=options.storage_azs_account_name))
@@ -138,7 +138,7 @@ class S3StorageConfiguratorHelper(object):
       script.append('sudo service halyard restart')
       script.append('while ! hal --ready; do sleep 1; done')
 
-    command = ['hal config storage s3 edit']
+    command = ['hal -q --log=info config storage s3 edit']
 
     if options.storage_s3_bucket:
       command.extend(['--bucket', options.storage_s3_bucket])
@@ -149,6 +149,7 @@ class S3StorageConfiguratorHelper(object):
 
   @classmethod
   def hack_credentials_for_hal(cls, options, script):
+    """Workaround for halyard not providing means to add credentials."""
     cred_basename = os.path.basename(options.storage_s3_credentials)
     for aws_user in [options.deploy_hal_user, 'root']:
       # Halyard seems to need these credentials in both places
@@ -186,7 +187,7 @@ class GcsStorageConfiguratorHelper(object):
               ' This is suggested if using gcs storage, though can be left'
               ' empty to let Halyard create one.'))
     parser.add_argument(
-        '--storage_gcs_location', choices=cls.LOCATIONS,
+        '--storage_gcs_location', choices=cls.LOCATIONS, default='us-central1',
         help=('Location for the bucket if it needs to be created.'))
     parser.add_argument(
         '--storage_gcs_project', default=None,
@@ -216,7 +217,7 @@ class GcsStorageConfiguratorHelper(object):
     """Implements interface."""
     project = options.storage_gcs_project or options.deploy_google_project
     hal = (
-        'hal --color=false config storage gcs edit'
+        'hal -q --log=info config storage gcs edit'
         ' --project {project}'
         ' --bucket {bucket}'
         ' --bucket-location {location}'
@@ -270,7 +271,7 @@ class StorageConfigurator(object):
       raise ValueError('Unknown --spinnaker_storage="{0}"'
                        .format(options.spinnaker_storage))
     helper.add_config(options, script)
-    script.append('hal --color=false config storage edit --type {type}'
+    script.append('hal -q --log=info config storage edit --type {type}'
                   .format(type=options.spinnaker_storage))
 
 
@@ -336,8 +337,8 @@ class AwsConfigurator(object):
     if options.aws_account_regions:
       account_params.extend(['--regions', options.aws_account_regions])
 
-    script.append('hal --color=false config provider aws enable')
-    script.append('hal --color=false config provider aws account add {params}'
+    script.append('hal -q --log=info config provider aws enable')
+    script.append('hal -q --log=info config provider aws account add {params}'
                   .format(params=' '.join(account_params)))
 
   def add_files_to_upload(self, options, file_set):
@@ -394,7 +395,7 @@ class AppengineConfigurator(object):
     if not options.appengine_account_project:
       return
 
-    script.append('hal --color=false config provider appengine enable')
+    script.append('hal -q --log=info config provider appengine enable')
     account_params = [
         options.appengine_account_name,
         '--project', options.appengine_account_project
@@ -408,10 +409,10 @@ class AppengineConfigurator(object):
           ['--local-repository-directory',
            options.appengine_account_local_repository_directory])
     script.append(
-        'hal --color=false config provider appengine account add {params}'
+        'hal -q --log=info config provider appengine account add {params}'
         .format(params=' '.join(account_params)))
 
-    hal_edit = ('hal --color=false'
+    hal_edit = ('hal -q --log=info'
                 ' config provider appengine account edit {name}'
                 .format(name=options.appengine_account_name))
 
@@ -544,9 +545,9 @@ class AzureConfigurator(object):
       account_params.extend(['--packer-storage-account',
                              options.azure_account_packer_storage_account])
 
-    script.append('hal --color=false config provider azure enable')
+    script.append('hal -q --log=info config provider azure enable')
     script.append(
-        'hal --color=false config provider azure account add {params}'
+        'hal -q --log=info config provider azure account add {params}'
         ' --app-key < {creds}'
         .format(params=' '.join(account_params),
                 creds=os.path.basename(options.azure_account_credentials)))
@@ -597,9 +598,9 @@ class GoogleConfigurator(object):
         '--project', options.google_account_project,
         '--json-path', os.path.basename(options.google_account_credentials)])
 
-    script.append('hal --color=false config provider google enable')
+    script.append('hal -q --log=info config provider google enable')
     script.append(
-        'hal --color=false config provider google account add {params}'
+        'hal -q --log=info config provider google account add {params}'
         .format(params=' '.join(account_params)))
 
   def add_files_to_upload(self, options, file_set):
@@ -654,8 +655,8 @@ class KubernetesConfigurator(object):
     if options.k8s_account_namespaces:
       account_params.extend(['--namespaces', options.k8s_account_namespaces])
 
-    script.append('hal --color=false config provider kubernetes enable')
-    script.append('hal --color=false config provider kubernetes account'
+    script.append('hal -q --log=info config provider kubernetes enable')
+    script.append('hal -q --log=info config provider kubernetes account'
                   ' add {params}'
                   .format(params=' '.join(account_params)))
 
@@ -708,8 +709,8 @@ class DockerConfigurator(object):
       account_params.extend(
           ['--repositories', options.docker_account_repositories])
 
-    script.append('hal --color=false config provider docker-registry enable')
-    script.append('hal --color=false config provider docker-registry account'
+    script.append('hal -q --log=info config provider docker-registry enable')
+    script.append('hal -q --log=info config provider docker-registry account'
                   ' add {params}'
                   .format(params=' '.join(account_params)))
 
@@ -791,8 +792,8 @@ class JenkinsConfigurator(object):
       raise ValueError(
           'No --jenkins_master_credentials or JENKINS_MASTER_PASSWORD'
           ' environment variable was supplied.')
-    script.append('hal --color=false config ci jenkins enable')
-    script.append('hal --color=false config ci jenkins master'
+    script.append('hal -q --log=info config ci jenkins enable')
+    script.append('hal -q --log=info config ci jenkins master'
                   ' add {name}'
                   ' --address {address}'
                   ' --username {user}'
@@ -818,15 +819,32 @@ class MonitoringConfigurator(object):
 
   def init_argument_parser(self, parser):
     """Implements interface."""
-    pass
+    parser.add_argument(
+        '--monitoring_prometheus_gateway', default=None,
+        help='If provided, and which is "prometheus",'
+             ' configure to use the gateway server at thsi URL.')
+    parser.add_argument(
+        '--monitoring_install_which', default=None,
+        help='If provided, install monitoring with these params.')
 
   def validate_options(self, options):
     """Implements interface."""
-    pass
+    if (options.monitoring_prometheus_gateway
+        and (options.monitoring_install_which != 'prometheus')):
+      raise ValueError('gateway is only applicable to '
+                       ' --monitoring_install_which="prometheus"')
 
   def add_config(self, options, script):
     """Implements interface."""
-    pass
+    if not options.monitoring_install_which:
+      return
+
+    script.append('hal -q --log=info config metric-stores {which} enable'
+                  .format(which=options.monitoring_install_which))
+    if options.monitoring_prometheus_gateway:
+      script.append('hal -q --log=info config metric-stores prometheus edit'
+                    ' --push-gateway {gateway}'
+                    .format(gateway=options.monitoring_prometheus_gateway))
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
@@ -874,6 +892,7 @@ class SecurityConfigurator(object):
 
 
 CONFIGURATOR_LIST = [
+    MonitoringConfigurator(),
     StorageConfigurator(),
     AwsConfigurator(),
     AppengineConfigurator(),
@@ -882,7 +901,6 @@ CONFIGURATOR_LIST = [
     GoogleConfigurator(),
     KubernetesConfigurator(),
     JenkinsConfigurator(),
-    MonitoringConfigurator(),
     NotificationConfigurator(),
     SecurityConfigurator(),
 ]
