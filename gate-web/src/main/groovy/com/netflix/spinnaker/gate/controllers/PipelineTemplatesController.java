@@ -79,6 +79,12 @@ public class PipelineTemplatesController {
     return taskService.create(operation);
   }
 
+  @RequestMapping(value = "/resolve", method = RequestMethod.GET)
+  public Map resolveTemplates(@RequestParam("source") String source) {
+    Map template = pipelineTemplateService.resolve(source);
+    return template;
+  }
+
   @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   public Map get(@PathVariable String id) {
     return pipelineTemplateService.get(id);

@@ -103,8 +103,12 @@ interface OrcaService {
   @Headers("Accept: application/json")
   @GET("/pipelines/{id}/evaluateExpression")
   Map evaluateExpressionForExecution(@Path("id") String executionId, @Query("expression") String pipelineExpression)
-  
+
   @Headers("Accept: application/json")
   @GET("/webhooks/preconfigured")
   List preconfiguredWebhooks()
+
+  @Headers("Accept: application/json")
+  @GET("/pipelineTemplate")
+  Map resolvePipelineTemplate(@Query("source") String source)
 }

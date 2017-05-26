@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.internal.Front50Service
+import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -30,9 +31,12 @@ class PipelineTemplateService {
 
   private final Front50Service front50Service;
 
+  private final OrcaService orcaService;
+
   @Autowired
-  public PipelineTemplateService(Front50Service front50Service) {
+  public PipelineTemplateService(Front50Service front50Service, OrcaService orcaService) {
     this.front50Service = front50Service;
+    this.orcaService = orcaService;
   }
 
   Map get(String id) {
@@ -41,5 +45,9 @@ class PipelineTemplateService {
 
   List<Map> findByScope(List<String> scopes) {
     front50Service.getPipelineTemplates((String[]) scopes.toArray())
+  }
+
+  Map resolve(String source) {
+    orcaService.resolvePipelineTemplate(source)
   }
 }
