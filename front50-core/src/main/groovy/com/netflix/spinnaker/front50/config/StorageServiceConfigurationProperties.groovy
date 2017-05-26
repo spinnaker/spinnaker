@@ -34,11 +34,27 @@ class StorageServiceConfigurationProperties {
   PerObjectType snapshot = new PerObjectType(2, TimeUnit.MINUTES.toMillis(1))
 
   // not commonly used outside of Netflix
-  PerObjectType entityTags = new PerObjectType(1, TimeUnit.MINUTES.toMillis(5))
+  PerObjectType entityTags = new PerObjectType(2, TimeUnit.MINUTES.toMillis(5))
 
   @Canonical
   static class PerObjectType {
     int threadPool
     long refreshMs
+
+    PerObjectType(int threadPool, long refreshMs) {
+      setThreadPool(threadPool)
+      setRefreshMs(refreshMs)
+    }
+
+    void setThreadPool(int threadPool) {
+      if (threadPool <= 1) {
+        throw new IllegalArgumentException("threadPool must be >= 1")
+      }
+      this.threadPool = threadPool
+    }
+
+    void setRefreshMs(long refreshMs) {
+      this.refreshMs = refreshMs
+    }
   }
 }
