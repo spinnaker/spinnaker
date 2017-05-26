@@ -70,6 +70,7 @@ export class ApplicationWriter {
     if (application.cloudProviders) {
       command.cloudProviders = application.cloudProviders.join(',');
     }
+    delete command.accounts;
     jobs.push({
       type: type,
       application: command,
