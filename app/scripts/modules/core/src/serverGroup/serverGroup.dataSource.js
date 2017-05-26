@@ -1,4 +1,3 @@
-import {uniq} from 'lodash';
 const angular = require('angular');
 
 import {DataSourceConfig} from '../application/service/applicationDataSource';
@@ -37,8 +36,8 @@ module.exports = angular
       if (!SETTINGS.feature.entityTags) {
         return $q.when(null);
       }
-      const serverGroupNames = uniq(serverGroups.map(g => g.name));
-      const clusterNames = uniq(serverGroups.map(g => g.cluster));
+      const serverGroupNames = serverGroups.map(g => g.name);
+      const clusterNames = serverGroups.map(g => g.cluster);
       const serverGroupTagger = entityTagsReader.getAllEntityTags('serverGroup', serverGroupNames).then(tags => {
         serverGroups.forEach(serverGroup => {
           serverGroup.entityTags = tags.find(t => t.entityRef.entityId === serverGroup.name &&
