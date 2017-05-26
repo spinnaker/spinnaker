@@ -11,6 +11,7 @@ export class ApplicationController implements IComponentController {
 
   public app: Application;
   public refreshTooltipTemplate = require('./applicationRefresh.tooltip.html');
+  public compactHeader = false;
 
   constructor(private recentHistoryService: RecentHistoryService, private $uibModal: IModalService) {
     'ngInject';
@@ -31,6 +32,9 @@ export class ApplicationController implements IComponentController {
       this.recentHistoryService.removeLastItem('applications');
       return;
     }
+    if (this.app.name.length > 20) {
+      this.compactHeader = true;
+    }
     this.app.enableAutoRefresh();
   }
 
@@ -47,7 +51,7 @@ const applicationComponent: IComponentOptions = {
   },
   controller: ApplicationController,
   template: `
-    <div class="page-header">
+    <div class="page-header" ng-class="{'compact-header': $ctrl.compactHeader}">
       <div ng-if="$ctrl.app.notFound">
         <h2 class="text-center">Application Not Found</h2>
         <p class="text-center" style="margin-bottom: 20px">Please check your URL - we can't find any data for <em>{{$ctrl.app.name}}</em>.</p>

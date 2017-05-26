@@ -49,13 +49,26 @@ application-nav, secondary-application-nav, .application-nav {
   }
 }
 
+.compact(@font-size) {
+  font-size: @font-size;
+  padding: 15px 10px 13px 10px;
+}
+
+.compact-header {
+  application-nav a {
+    .compact(14px);
+  }
+  secondary-application-nav a {
+    .compact(12px);
+  }
+}
+
 application-nav {
   a {
     font-size: 18px;
     font-weight: 600;
     @media (max-width: 1400px) {
-      font-size: 14px;
-      padding: 15px 10px 13px 10px;
+      .compact(14px)
     }
   }
 }
@@ -65,8 +78,7 @@ secondary-application-nav {
     font-size: 14px;
     padding: 18px 10px 27px;
     @media (max-width: 1400px) {
-      font-size: 12px;
-      padding: 15px 10px 13px 10px;
+      .compact(12px)
     }
   }
 }
