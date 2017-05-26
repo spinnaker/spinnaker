@@ -26,15 +26,14 @@ export class LoadBalancerPod extends React.Component<IProps, IState> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;
     const { AccountTag } = NgReact;
     const subgroups = grouping.subgroups.map((subgroup) => (
-      <div key={subgroup.heading} className="pod-subgroup">
-        <LoadBalancer
-          application={application}
-          loadBalancer={subgroup.loadBalancer}
-          serverGroups={subgroup.serverGroups}
-          showServerGroups={showServerGroups}
-          showInstances={showInstances}
-        />
-      </div>
+      <LoadBalancer
+        key={subgroup.heading}
+        application={application}
+        loadBalancer={subgroup.loadBalancer}
+        serverGroups={subgroup.serverGroups}
+        showServerGroups={showServerGroups}
+        showInstances={showInstances}
+      />
     ));
 
     return (

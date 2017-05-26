@@ -18,6 +18,8 @@ export interface ILoadBalancerDeleteDescription extends IJob {
   cloudProvider: string;
   loadBalancerName: string;
   credentials: string;
+  regions?: string[];
+  vpcId?: string;
 }
 
 export class LoadBalancerWriter {

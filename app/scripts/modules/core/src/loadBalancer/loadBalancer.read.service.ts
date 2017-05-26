@@ -30,7 +30,7 @@ export class LoadBalancerReader {
       });
   }
 
-  public getLoadBalancerDetails(cloudProvider: string, account: string, region: string, name: string): ng.IPromise<ILoadBalancer> {
+  public getLoadBalancerDetails(cloudProvider: string, account: string, region: string, name: string): ng.IPromise<ILoadBalancer[]> {
     return this.API.all('loadBalancers').all(account).all(region).all(name).withParams({'provider': cloudProvider}).get();
   }
 
@@ -47,6 +47,7 @@ export class LoadBalancerReader {
       lb.stack = nameParts.stack;
       lb.detail = nameParts.freeFormDetails;
       lb.cloudProvider = lb.cloudProvider || lb.type || lb.provider;
+      lb.loadBalancerType = lb.loadBalancerType || 'classic';
       return lb;
     });
   }

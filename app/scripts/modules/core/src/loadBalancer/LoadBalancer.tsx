@@ -1,46 +1,47 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
-import { isEqual, flatten, get, last, map, orderBy } from 'lodash';
+import { isEqual, get, last } from 'lodash';
 import { $timeout } from 'ngimport';
 import { PathNode } from 'angular-ui-router';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
-import { ILoadBalancer, IInstance, IServerGroup } from 'core/domain';
+import { ILoadBalancer, IServerGroup } from 'core/domain';
 import { NgReact, ReactInjector } from 'core/reactShims';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
-import { LoadBalancerServerGroup } from './LoadBalancerServerGroup';
+import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
 
-interface IProps {
-  application: Application,
+export interface ILoadBalancerProps {
+  application: Application;
   loadBalancer: ILoadBalancer;
   serverGroups: IServerGroup[];
   showServerGroups?: boolean;
   showInstances?: boolean;
 }
 
-interface IState {
+export interface ILoadBalancerState {
   active: boolean;
-  instances: IInstance[];
 }
 
 @autoBindMethods
-export class LoadBalancer extends React.Component<IProps, IState> {
-  public static defaultProps: Partial<IProps> = {
+export class LoadBalancer extends React.Component<ILoadBalancerProps, ILoadBalancerState> {
+  public static defaultProps: Partial<ILoadBalancerProps> = {
     showServerGroups: true,
     showInstances : false
   };
 
   private stateChangeListener: Subscription;
-  private clusterChangeListener: Subscription;
   private baseRef: string;
 
-  constructor(props: IProps) {
+  constructor(props: ILoadBalancerProps) {
     super(props);
-    this.state = this.getState(props);
-    const { stateEvents, clusterFilterService } = ReactInjector;
+    this.state = {
+      active: this.isActive()
+    }
+
+    const { stateEvents } = ReactInjector;
 
     this.stateChangeListener = stateEvents.stateChangeSuccess.subscribe(
       () => {
@@ -50,22 +51,11 @@ export class LoadBalancer extends React.Component<IProps, IState> {
         }
       }
     );
-
-    this.clusterChangeListener = clusterFilterService.groupsUpdatedStream.subscribe(() => this.setState(this.getState(this.props)));
   }
 
   private isActive(): boolean {
     const { loadBalancer } = this.props;
     return ReactInjector.$state.includes('**.loadBalancerDetails', {region: loadBalancer.region, accountId: loadBalancer.account, name: loadBalancer.name, vpcId: loadBalancer.vpcId, provider: loadBalancer.cloudProvider});
-  }
-
-  private getState(props: IProps): IState {
-    const { loadBalancer } = props;
-
-    return {
-      active: this.isActive(),
-      instances: loadBalancer.instances.concat(flatten(map<IInstance, IInstance>(loadBalancer.serverGroups, 'detachedInstances'))),
-    };
   }
 
   private loadDetails(event: React.MouseEvent<HTMLElement>): void {
@@ -100,52 +90,48 @@ export class LoadBalancer extends React.Component<IProps, IState> {
     this.baseRef = this.baseRef || last(get<PathNode[]>($(element).parent().inheritedData('$uiView'), '$cfg.path')).state.name;
   }
 
-  public componentWillReceiveProps(nextProps: IProps): void {
-    this.setState(this.getState(nextProps));
-  }
-
   public componentWillUnmount(): void {
     this.stateChangeListener.unsubscribe();
-    this.clusterChangeListener.unsubscribe();
   }
 
   public render(): React.ReactElement<LoadBalancer> {
     const { application, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
-    const { EntityUiTags, Instances } = NgReact;
-    const ServerGroups = orderBy(serverGroups, ['isDisabled', 'name'], ['asc', 'desc']).map((serverGroup) => (
-      <LoadBalancerServerGroup
-        key={serverGroup.name}
-        loadBalancer={loadBalancer}
-        serverGroup={serverGroup}
-        showInstances={showInstances}
-      />
-    ));
+    const { EntityUiTags } = NgReact;
+    const { cloudProviderRegistry } = ReactInjector;
+    const config = cloudProviderRegistry.getValue(loadBalancer.provider || loadBalancer.cloudProvider, 'loadBalancer');
+    const ClusterContainer = config.ClusterContainer || LoadBalancerClusterContainer;
 
     return (
       <div
-        className={`pod-subgroup clickable clickable-row ${this.state.active ? 'active' : ''}`}
-        onClick={this.loadDetails}
+        className="pod-subgroup load-balancer"
         ref={this.refCallback}
       >
-        <Sticky topOffset={36}>
-          <h6>
-            <span className="icon icon-elb"/> {(loadBalancer.region || '').toUpperCase()}
-            <EntityUiTags
-              component={loadBalancer}
-              application={application}
-              entityType="loadBalancer"
-              pageLocation="pod"
-              onUpdate={application.loadBalancers.refresh}
-            />
-            <span className="text-right">
-              <HealthCounts container={loadBalancer.instanceCounts}/>
-            </span>
-          </h6>
-        </Sticky>
-        <div className="cluster-container">
-          {showServerGroups && <div>{ServerGroups}</div>}
-          {!showServerGroups && showInstances && <div className="instance-list"><Instances instances={this.state.instances}/></div>}
+        <div
+          className={`load-balancer-header clickable clickable-row ${this.state.active ? 'active' : ''}`}
+          onClick={this.loadDetails}
+        >
+          <Sticky topOffset={36}>
+            <h6>
+              <span className="icon icon-elb"/> {(loadBalancer.region || '').toUpperCase()}
+              <EntityUiTags
+                component={loadBalancer}
+                application={application}
+                entityType="loadBalancer"
+                pageLocation="pod"
+                onUpdate={application.loadBalancers.refresh}
+              />
+              <span className="text-right">
+                <HealthCounts container={loadBalancer.instanceCounts}/>
+              </span>
+            </h6>
+          </Sticky>
         </div>
+        <ClusterContainer
+          loadBalancer={loadBalancer}
+          serverGroups={serverGroups}
+          showServerGroups={showServerGroups}
+          showInstances={showInstances}
+        />
       </div>
     );
   }

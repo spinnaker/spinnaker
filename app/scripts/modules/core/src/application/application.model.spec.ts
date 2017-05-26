@@ -1,16 +1,18 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
-import {Application} from './application.model';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from './applicationModel.builder';
-import {ApplicationDataSourceRegistry} from './service/applicationDataSource.registry';
-import {SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
+import { Application } from './application.model';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from './applicationModel.builder';
+import { ApplicationDataSourceRegistry } from './service/applicationDataSource.registry';
+import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
+import { SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
 
 import {
+  IEntityTag,
+  IEntityTags,
   IServerGroup,
   IInstanceCounts,
   ILoadBalancer
 } from 'core/domain';
-import {IEntityTag, IEntityTags} from '../domain/IEntityTags';
 
 describe ('Application Model', function () {
 
@@ -27,7 +29,7 @@ describe ('Application Model', function () {
     mock.module(
       require('../securityGroup/securityGroup.dataSource'),
       require('../serverGroup/serverGroup.dataSource'),
-      require('../loadBalancer/loadBalancer.dataSource'),
+      LOAD_BALANCER_DATA_SOURCE,
       APPLICATION_MODEL_BUILDER
   ));
 

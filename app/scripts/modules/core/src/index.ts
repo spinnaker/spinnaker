@@ -20,6 +20,7 @@ export * from './entityTag';
 
 export * from './filterModel';
 
+export * from './healthCounts';
 export * from './help';
 export * from './history';
 

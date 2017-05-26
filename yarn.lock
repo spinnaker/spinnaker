@@ -24,6 +24,10 @@
   version "0.22.1"
   resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.1.tgz#740c4cd8c4d3f3074f83b9ab62e711eac2c764ce"
 
+"@types/classnames@^2.2.0":
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@types/classnames/-/classnames-2.2.0.tgz#f2312039e780bdf89d7d4102a26ec11de5ec58aa"
+
 "@types/clipboard@^1.5.33":
   version "1.5.33"
   resolved "https://registry.yarnpkg.com/@types/clipboard/-/clipboard-1.5.33.tgz#add44ab691a2d64c79100c8d29c0bd303828636c"
@@ -1400,6 +1404,10 @@ clap@^1.0.9:
 class-autobind-decorator@^2.2.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/class-autobind-decorator/-/class-autobind-decorator-2.2.1.tgz#4d2534e55490db7321988f9ae8f25d253ad34557"
+
+classname@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/classname/-/classname-0.0.0.tgz#43d171b484e354c7a293a5b78004df6852db20d6"
 
 classnames@^2.2.4, classnames@^2.2.5:
   version "2.2.5"

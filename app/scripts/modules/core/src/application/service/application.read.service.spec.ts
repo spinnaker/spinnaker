@@ -1,13 +1,14 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 
 import Spy = jasmine.Spy;
-import {IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE} from './application.read.service';
-import {Api} from '../../api/api.service';
-import {ApplicationDataSourceRegistry} from './applicationDataSource.registry';
-import {Application} from '../application.model';
-import {LOAD_BALANCER_READ_SERVICE, LoadBalancerReader} from 'core/loadBalancer/loadBalancer.read.service';
-import {SECURITY_GROUP_READER, SecurityGroupReader} from 'core/securityGroup/securityGroupReader.service';
-import {CLUSTER_SERVICE, ClusterService} from 'core/cluster/cluster.service';
+import { IApplicationDataSourceAttribute, ApplicationReader, APPLICATION_READ_SERVICE } from './application.read.service';
+import { Api } from 'core/api/api.service';
+import { ApplicationDataSourceRegistry } from './applicationDataSource.registry';
+import { Application } from '../application.model';
+import { LOAD_BALANCER_DATA_SOURCE } from 'core/loadBalancer/loadBalancer.dataSource';
+import { LOAD_BALANCER_READ_SERVICE, LoadBalancerReader } from 'core/loadBalancer/loadBalancer.read.service';
+import { SECURITY_GROUP_READER, SecurityGroupReader } from 'core/securityGroup/securityGroupReader.service';
+import { CLUSTER_SERVICE, ClusterService } from 'core/cluster/cluster.service';
 
 describe('Service: applicationReader', function () {
 
@@ -23,9 +24,9 @@ describe('Service: applicationReader', function () {
   beforeEach(
     mock.module(
       APPLICATION_READ_SERVICE,
-      require('../../securityGroup/securityGroup.dataSource'),
-      require('../../serverGroup/serverGroup.dataSource'),
-      require('../../loadBalancer/loadBalancer.dataSource'),
+      require('core/securityGroup/securityGroup.dataSource'),
+      require('core/serverGroup/serverGroup.dataSource'),
+      LOAD_BALANCER_DATA_SOURCE,
       SECURITY_GROUP_READER,
       CLUSTER_SERVICE,
       LOAD_BALANCER_READ_SERVICE,

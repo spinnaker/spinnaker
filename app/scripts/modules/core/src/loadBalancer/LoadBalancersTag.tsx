@@ -3,18 +3,14 @@ import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
 import { sortBy } from 'lodash';
 
-import { Application } from 'core/application/application.model';
-import { IHealth, ILoadBalancer, IServerGroup } from 'core/domain';
+import { ILoadBalancer } from 'core/domain';
+import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
+import { LoadBalancerDataUtils } from 'core/loadBalancer/loadBalancerDataUtils';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { ReactInjector } from 'core/reactShims';
 
-export interface ILoadBalancersTagProps {
-  application: Application;
-  serverGroup: IServerGroup;
-};
-
-interface IState {
+export interface ILoadBalancersTagState {
   loadBalancers: ILoadBalancer[];
   showPopover: boolean;
 };
@@ -64,7 +60,7 @@ class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps, voi
 }
 
 @autoBindMethods
-export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IState> {
+export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, ILoadBalancersTagState> {
   private loadBalancersRefreshUnsubscribe: () => void;
 
   constructor(props: ILoadBalancersTagProps) {
@@ -74,50 +70,9 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IS
       showPopover: false
     };
 
-    this.populateLoadBalancers();
+    LoadBalancerDataUtils.populateLoadBalancers(props.application, props.serverGroup).then(loadBalancers => this.setState({loadBalancers}))
 
-    this.loadBalancersRefreshUnsubscribe = this.props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
-  }
-
-  public buildLoadBalancer(match: ILoadBalancer): ILoadBalancer {
-    if (!match) {
-      return null;
-    }
-
-    const loadBalancer: ILoadBalancer = { name: match.name, vpcId: match.vpcId, cloudProvider: match.cloudProvider };
-    loadBalancer.instanceCounts = {up: 0, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0};
-
-    this.props.serverGroup.instances.forEach(instance => {
-      const lbHealth: IHealth = instance.health.find(h => h.type === 'LoadBalancer');
-      if (lbHealth) {
-
-        const matchedHealth: ILoadBalancer = lbHealth.loadBalancers.find(lb => lb.name === match.name);
-
-        if (matchedHealth !== undefined && matchedHealth.healthState !== undefined && loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()] !== undefined) {
-          loadBalancer.instanceCounts[matchedHealth.healthState.toLowerCase()]++;
-        }
-      }
-    });
-    return loadBalancer;
-  }
-
-  private populateLoadBalancers(): void {
-    this.props.application.getDataSource('loadBalancers').ready().then(() => {
-      const serverGroup: IServerGroup = this.props.serverGroup;
-      const loadBalancers = serverGroup.loadBalancers.map((lbName: string) => {
-        const match = this.props.application.getDataSource('loadBalancers')
-          .data
-          .find((lb: ILoadBalancer): boolean => {
-            return lb.name === lbName
-              && lb.account === serverGroup.account
-              && (lb.region === serverGroup.region || lb.region === 'global');
-          });
-
-        return this.buildLoadBalancer(match);
-      });
-
-      this.setState({loadBalancers});
-    });
+    this.loadBalancersRefreshUnsubscribe = props.application.getDataSource('loadBalancers').onRefresh(null, () => { this.forceUpdate(); });
   }
 
   private showLoadBalancerDetails(name: string): void {

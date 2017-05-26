@@ -33,6 +33,7 @@ import { HEALTH_COUNTS_MODULE } from './healthCounts/healthCounts.module';
 import { HELP_MODULE } from './help/help.module';
 import { INSIGHT_NGMODULE } from './insight/insight.module';
 import { INTERCEPTOR_MODULE } from './interceptor/interceptor.module';
+import { LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { PAGE_TITLE_MODULE } from './pageTitle/pageTitle.module';
 import { PIPELINE_TEMPLATE_MODULE } from './pipeline/config/templates/pipelineTemplate.module';
 import { REACT_MODULE } from './reactShims';
@@ -90,7 +91,7 @@ module.exports = angular
     require('./instance/instance.module'),
     INTERCEPTOR_MODULE,
 
-    require('./loadBalancer/loadBalancer.module'),
+    LOAD_BALANCER_MODULE,
 
     require('./modal/modal.module'),
 

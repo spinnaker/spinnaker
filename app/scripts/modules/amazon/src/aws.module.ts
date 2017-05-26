@@ -2,6 +2,7 @@ import { module } from 'angular';
 
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
 
+import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
 import { VPC_MODULE } from './vpc/vpc.module';
 import { SUBNET_RENDERER } from './subnet/subnet.renderer';
@@ -9,6 +10,9 @@ import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module'
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { COMMON_MODULE } from './common/common.module';
 import { AMAZON_HELP } from './help/amazon.help';
+
+import { AmazonLoadBalancerClusterContainer } from './loadBalancer/AmazonLoadBalancerClusterContainer';
+import { AmazonLoadBalancersTag } from './loadBalancer/AmazonLoadBalancersTag';
 
 import './logo/aws.logo.less';
 
@@ -42,7 +46,7 @@ module(AMAZON_MODULE, [
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller'),
   require('./instance/awsInstanceType.service'),
   require('./loadBalancer/loadBalancer.transformer'),
-  require('./loadBalancer/details/loadBalancerDetail.controller'),
+  AWS_LOAD_BALANCER_MODULE,
   require('./loadBalancer/configure/createLoadBalancer.controller'),
   require('./instance/details/instance.details.controller'),
   AWS_SECURITY_GROUP_MODULE,
@@ -80,11 +84,15 @@ module(AMAZON_MODULE, [
     },
     loadBalancer: {
       transformer: 'awsLoadBalancerTransformer',
-      detailsTemplateUrl: require('./loadBalancer/details/loadBalancerDetail.html'),
+      detailsTemplateUrl: require('./loadBalancer/details/loadBalancerDetails.html'),
       detailsController: 'awsLoadBalancerDetailsCtrl',
       createLoadBalancerTemplateUrl: require('./loadBalancer/configure/createLoadBalancer.html'),
       createLoadBalancerController: 'awsCreateLoadBalancerCtrl',
       editLoadBalancerTemplateUrl: require('./loadBalancer/configure/editLoadBalancer.html'),
+      targetGroupDetailsTemplateUrl: require('./loadBalancer/details/targetGroupDetails.html'),
+      targetGroupDetailsController: 'awsTargetGroupDetailsCtrl',
+      ClusterContainer: AmazonLoadBalancerClusterContainer,
+      LoadBalancersTag: AmazonLoadBalancersTag
     },
     securityGroup: {
       transformer: 'awsSecurityGroupTransformer',

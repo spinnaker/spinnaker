@@ -1,0 +1,43 @@
+@import (reference) "~core/presentation/less/imports/colors.less";
+
+.target-group-title {
+  color: @dark_grey;
+  font-weight: 600;
+  font-size: 14px;
+  padding-right: 15px;
+  text-transform: uppercase;
+  padding-left: 10px;
+}
+
+.cluster-container {
+  .target-group-container {
+    margin-top: 5px;
+    &:not(:first-child) {
+      margin-top: 3px;
+      padding-top: 5px;
+    }
+  }
+}
+
+.target-group-container {
+  .target-group-header {
+    padding: 4px 0;
+  }
+
+  .server-group-title {
+    padding-top: 0;
+    .clickable-row {
+      margin-top: -1px;
+    }
+  }
+  .no-margin-top {
+    margin-top: -1px !important;
+  }
+
+  >div {
+    >.text-right {
+      padding-right: 10px;
+      font-weight: 600;
+    }
+  }
+}

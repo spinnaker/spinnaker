@@ -78,8 +78,9 @@ export class InstancesController implements IComponentController {
     const base = last(get<PathNode[]>(this.$element.parent().inheritedData('$uiView'), '$cfg.path')).state.name;
 
     this.$element.click((event) => {
-      this.$timeout(() => {
-        if (event.target && event.target.getAttribute('data-instance-id')) {
+      if (event.target && event.target.getAttribute('data-instance-id')) {
+        event.stopPropagation();
+        this.$timeout(() => {
           // anything handled by ui-sref or actual links should be ignored
           if (event.isDefaultPrevented() || (event.originalEvent && event.originalEvent.defaultPrevented)) {
             return;
@@ -98,8 +99,8 @@ export class InstancesController implements IComponentController {
           }
           event.target.className += ' active';
           event.preventDefault();
-        }
-      });
+        });
+      }
     });
 
     this.$element.mouseover((event) => {

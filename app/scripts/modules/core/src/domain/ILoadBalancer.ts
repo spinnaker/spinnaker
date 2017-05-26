@@ -21,6 +21,7 @@ export interface ILoadBalancer extends ITaggedEntity {
   vpcId?: string;
   vpcName?: string;
   searchField?: string;
+  listenerDescriptions?: any[];
 }
 
 export interface ILoadBalancerGroup {

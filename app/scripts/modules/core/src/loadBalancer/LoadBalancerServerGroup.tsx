@@ -1,49 +1,73 @@
 import * as React from 'react';
 import * as $ from 'jquery';
+import * as classNames from 'classnames';
 import autoBindMethods from 'class-autobind-decorator';
 import { clone, last, get } from 'lodash';
 import { PathNode } from 'angular-ui-router';
+import { Subscription } from 'rxjs';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
-import { ILoadBalancer, IServerGroup, IInstance } from 'core/domain';
+import { IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 
-interface IProps {
-  loadBalancer: ILoadBalancer;
+export interface ILoadBalancerServerGroupProps {
+  cloudProvider: string;
+  region: string;
+  account: string;
   serverGroup: IServerGroup;
   showInstances: boolean; // boolean on sortFilter, but shouldn't be handled here
 }
 
-interface IState {
+export interface ILoadBalancerServerGroupState {
   instances: IInstance[];
+  active: boolean;
 }
 
 @autoBindMethods
-export class LoadBalancerServerGroup extends React.Component<IProps, IState> {
+export class LoadBalancerServerGroup extends React.Component<ILoadBalancerServerGroupProps, ILoadBalancerServerGroupState> {
   private baseRef: string;
+  private stateChangeListener: Subscription;
 
-  constructor(props: IProps) {
+  constructor(props: ILoadBalancerServerGroupProps) {
     super(props);
     this.state = this.getState(props);
+
+    const { stateEvents } = ReactInjector;
+
+    this.stateChangeListener = stateEvents.stateChangeSuccess.subscribe(
+      () => {
+        const active = this.isActive();
+        if (this.state.active !== active) {
+          this.setState({active});
+        }
+      }
+    );
   }
+
+  private isActive(): boolean {
+    const { cloudProvider, serverGroup } = this.props;
+    return ReactInjector.$state.includes('**.serverGroup', {region: serverGroup.region, accountId: serverGroup.account, serverGroup: serverGroup.name, provider: cloudProvider});
+  }
+
 
   private handleServerGroupClicked(event: React.MouseEvent<HTMLElement>): void {
     event.stopPropagation();
-    const { serverGroup, loadBalancer } = this.props;
+    const { serverGroup, region, account, cloudProvider } = this.props;
     const params = {
-      region: serverGroup.region || loadBalancer.region,
-      accountId: loadBalancer.account,
+      region: serverGroup.region || region,
+      accountId: account,
       serverGroup: serverGroup.name,
-      provider: loadBalancer.cloudProvider
+      provider: cloudProvider
     };
     ReactInjector.$state.go('.serverGroup', params, { relative: this.baseRef, inherit: true });
   }
 
-  private getState(props: IProps): IState {
+  private getState(props: ILoadBalancerServerGroupProps): ILoadBalancerServerGroupState {
     return {
-      instances: clone(props.serverGroup.instances)
+      instances: clone(props.serverGroup.instances),
+      active: this.isActive()
     };
   }
 
@@ -51,26 +75,39 @@ export class LoadBalancerServerGroup extends React.Component<IProps, IState> {
     this.baseRef = this.baseRef || last(get<PathNode[]>($(element).parent().inheritedData('$uiView'), '$cfg.path')).state.name;
   }
 
-  public componentWillReceiveProps(nextProps: IProps): void {
+  public componentWillReceiveProps(nextProps: ILoadBalancerServerGroupProps): void {
     this.setState(this.getState(nextProps));
   }
 
+  public componentWillUnmount(): void {
+    this.stateChangeListener.unsubscribe();
+  }
+
   public render(): React.ReactElement<LoadBalancerServerGroup> {
-    const { loadBalancer, serverGroup, showInstances } = this.props;
+    const { cloudProvider, serverGroup, showInstances } = this.props;
     const { Instances } = NgReact;
+
+    const className = classNames({
+      clickable: true,
+      'clickable-row': true,
+      'no-margin-top': true,
+      disabled: serverGroup.isDisabled,
+      active: this.state.active
+    });
+
     return (
-      <div className={`cluster-container ${serverGroup.isDisabled ? 'disabled' : ''}`} ref={this.refCallback}>
-        <div className="server-group-title">
-          <div className="container-fluid no-padding">
-            <div className="row">
-              <div className="col-md-8">
-                <a onClick={this.handleServerGroupClicked}>
-                  <CloudProviderLogo provider={loadBalancer.cloudProvider} height={'14px'} width={'14px'}/> {serverGroup.name}
-                </a>
-              </div>
-              <div className="col-md-4 text-right">
-                <HealthCounts container={serverGroup.instanceCounts}/>
-              </div>
+      <div
+        className={className}
+        onClick={this.handleServerGroupClicked}
+        ref={this.refCallback}
+      >
+        <div className="server-group-title container-fluid no-padding">
+          <div className="row">
+            <div className="col-md-8">
+              <CloudProviderLogo provider={cloudProvider} height={'14px'} width={'14px'}/> {serverGroup.name}
+            </div>
+            <div className="col-md-4 text-right">
+              <HealthCounts container={serverGroup.instanceCounts}/>
             </div>
           </div>
         </div>

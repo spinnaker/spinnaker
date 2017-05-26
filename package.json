@@ -26,6 +26,7 @@
     "int": "protractor protractor.conf.js"
   },
   "dependencies": {
+    "@types/classnames": "^2.2.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "~1.6.3",
     "angular-cache": "^4.6.0",
@@ -40,6 +41,7 @@
     "angular2react": "^2.0.0",
     "bootstrap": "3.3.7",
     "class-autobind-decorator": "^2.2.1",
+    "classname": "^0.0.0",
     "clipboard": "^1.5.12",
     "d3-scale": "^1.0.4",
     "d3-shape": "^1.0.4",

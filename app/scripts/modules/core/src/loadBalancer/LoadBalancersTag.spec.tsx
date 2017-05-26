@@ -4,7 +4,8 @@ import { ReactWrapper, mount } from 'enzyme';
 
 import { Application } from 'core/application/application.model';
 import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
-import { ILoadBalancersTagProps, LoadBalancersTag } from './LoadBalancersTag';
+import { ILoadBalancersTagProps } from './LoadBalancersTagWrapper';
+import { LoadBalancersTag } from './LoadBalancersTag';
 import { IServerGroup } from 'core/domain';
 
 describe('<LoadBalancersTag />', () => {
@@ -74,59 +75,5 @@ describe('<LoadBalancersTag />', () => {
     expect(menuChildren.at(0).text().trim()).toBe('Load Balancers');
     expect(menuChildren.at(1).find('.name').text().trim()).toBe('lb1');
     expect(menuChildren.at(2).find('.name').text().trim()).toBe('lb2');
-  });
-
-  it('renders instance counts', () => {
-    const serverGroup = {
-      account: 'prod',
-      region: 'us-east-1',
-      type: 'aws',
-      loadBalancers: ['lb1', 'lb2'],
-      instances: [
-      {
-        id: 'not-in-lb',
-        health: [
-          { type: 'Discovery' },
-        ]
-      },
-      {
-        id: 'in-one-lb',
-        health: [
-          {
-            type: 'LoadBalancer',
-            loadBalancers: [
-              { name: 'lb1', healthState: 'Up' },
-              { name: 'some-other-lb', healthState: 'Down' }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'in-two-lbs',
-        health: [
-          {
-            type: 'LoadBalancer',
-            loadBalancers: [
-              { name: 'lb1', healthState: 'Up' },
-              { name: 'lb2', healthState: 'Down' }
-            ]
-          }
-        ]
-      }
-    ]} as IServerGroup;
-
-    application.getDataSource('loadBalancers').data = [ lb1, lb2 ];
-
-    const props: ILoadBalancersTagProps = { application, serverGroup };
-    component = mount(<LoadBalancersTag {...props}/>);
-
-    // Make sure the application dataSource promises resolve
-    $scope.$digest();
-
-    const instance = component.instance() as LoadBalancersTag;
-    const builtLB1 = instance.buildLoadBalancer(lb1);
-    expect(builtLB1.instanceCounts).toEqual({ up: 2, down: 0, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 });
-    const builtLB2 = instance.buildLoadBalancer(lb2);
-    expect(builtLB2.instanceCounts).toEqual({ up: 0, down: 1, succeeded: 0, failed: 0, outOfService: 0, unknown: 0, starting: 0 });
   });
 });

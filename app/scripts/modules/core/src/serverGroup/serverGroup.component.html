@@ -37,7 +37,7 @@
                   ng-if="$ctrl.viewModel.serverGroup.runningTasks.length || $ctrl.viewModel.serverGroup.runningExecutions.length"
                   application="$ctrl.application" tasks="$ctrl.viewModel.serverGroup.runningTasks" executions="$ctrl.viewModel.serverGroup.runningExecutions"></running-tasks-tag>
               <load-balancers-tag
-                  ng-if="$ctrl.viewModel.serverGroup.loadBalancers.length"
+                  ng-if="$ctrl.viewModel.serverGroup.loadBalancers.length || $ctrl.viewModel.serverGroup.targetGroups.length"
                   server-group="$ctrl.viewModel.serverGroup" application="$ctrl.application"></load-balancers-tag>
             </div>
           </div>

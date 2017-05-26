@@ -12,8 +12,8 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
   .factory('awsLoadBalancerTransformer', function (vpcReader) {
 
     function updateHealthCounts(container) {
-      var instances = container.instances;
-      var serverGroups = container.serverGroups || [container];
+      const instances = container.instances;
+      const serverGroups = container.serverGroups || [container];
       container.instanceCounts = {
         up: instances.filter(function (instance) {
           return instance.health[0].state === 'InService';
@@ -29,31 +29,33 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
       };
     }
 
-    function transformInstance(instance, loadBalancer) {
+    function transformInstance(instance, provider, account, region) {
       instance.health = instance.health || {};
-      instance.provider = loadBalancer.type;
-      instance.account = loadBalancer.account;
-      instance.region = loadBalancer.region;
-      instance.health.type = 'LoadBalancer';
+      if (instance.health.state === 'healthy') {
+        // Target groups use 'healthy' instead of 'InService' and a lot of deck expects InService
+        // to surface health in the UI; just set it as InService since we don't really care the
+        // specific state name... yet
+        instance.health.state = 'InService';
+      }
+      instance.provider = provider;
+      instance.account = account;
+      instance.region = region;
       instance.healthState = instance.health.state ? instance.health.state === 'InService' ? 'Up' : 'Down' : 'OutOfService';
       instance.health = [instance.health];
-      instance.loadBalancers = [loadBalancer.name];
     }
 
-    function addVpcNameToLoadBalancer(loadBalancer) {
-      return function(vpcs) {
-        var matches = vpcs.filter(function(test) {
-          return test.id === loadBalancer.vpcId;
-        });
-        loadBalancer.vpcName = matches.length ? matches[0].name : '';
-        return loadBalancer;
+    function addVpcNameToContainer(container) {
+      return (vpcs) => {
+        const match = vpcs.find((test) => test.id === container.vpcId);
+        container.vpcName = match ? match.name : '';
+        return container;
       };
     }
 
-    function normalizeLoadBalancer(loadBalancer) {
-      loadBalancer.serverGroups.forEach(function(serverGroup) {
-        serverGroup.account = loadBalancer.account;
-        serverGroup.region = loadBalancer.region;
+    function normalizeServerGroups(serverGroups, container, containerType, healthType) {
+      serverGroups.forEach((serverGroup) => {
+        serverGroup.account = container.account;
+        serverGroup.region = container.region;
         if (serverGroup.detachedInstances) {
           serverGroup.detachedInstances = serverGroup.detachedInstances.map(function(instanceId) {
             return { id: instanceId };
@@ -64,16 +66,41 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
         }
 
         serverGroup.instances.forEach(function(instance) {
-          transformInstance(instance, loadBalancer);
+          transformInstance(instance, container.type, container.account, container.region);
+          instance[containerType] = [container.name];
+          instance.health.type = healthType;
         });
         updateHealthCounts(serverGroup);
       });
-      var activeServerGroups = _.filter(loadBalancer.serverGroups, {isDisabled: false});
+    }
+
+    function normalizeTargetGroup(targetGroup) {
+      normalizeServerGroups(targetGroup.serverGroups, targetGroup, 'targetGroups', 'TargetGroup');
+
+      const activeServerGroups = _.filter(targetGroup.serverGroups, {isDisabled: false});
+      targetGroup.provider = targetGroup.type;
+      targetGroup.instances = _.chain(activeServerGroups).map('instances').flatten().value();
+      targetGroup.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
+      updateHealthCounts(targetGroup);
+
+      return vpcReader.listVpcs().then(addVpcNameToContainer(targetGroup));
+    }
+
+    function normalizeLoadBalancer(loadBalancer) {
+      normalizeServerGroups(loadBalancer.serverGroups, loadBalancer, 'loadBalancers', 'LoadBalancer');
+
+      let serverGroups = loadBalancer.serverGroups;
+      if (loadBalancer.targetGroups) {
+        loadBalancer.targetGroups.forEach((targetGroup) => normalizeTargetGroup(targetGroup, loadBalancer));
+        serverGroups = _.flatten(_.map(loadBalancer.targetGroups, 'serverGroups'));
+      }
+
+      const activeServerGroups = _.filter(serverGroups, {isDisabled: false});
       loadBalancer.provider = loadBalancer.type;
       loadBalancer.instances = _.chain(activeServerGroups).map('instances').flatten().value();
       loadBalancer.detachedInstances = _.chain(activeServerGroups).map('detachedInstances').flatten().value();
       updateHealthCounts(loadBalancer);
-      return vpcReader.listVpcs().then(addVpcNameToLoadBalancer(loadBalancer));
+      return vpcReader.listVpcs().then(addVpcNameToContainer(loadBalancer));
     }
 
     function convertLoadBalancerForEditing(loadBalancer) {
@@ -89,10 +116,10 @@ module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
       if (loadBalancer.elb) {
         var elb = loadBalancer.elb;
         toEdit.securityGroups = elb.securityGroups;
-        toEdit.vpcId = elb.vpcid;
+        toEdit.vpcId = elb.vpcid || elb.vpcId;
 
         if (elb.listenerDescriptions) {
-          toEdit.listeners = elb.listenerDescriptions.map(function (description) {
+          toEdit.listeners = elb.listenerDescriptions.map((description) => {
             var listener = description.listener;
             if (listener.sslcertificateId) {
               var splitCertificateId = listener.sslcertificateId.split('/');

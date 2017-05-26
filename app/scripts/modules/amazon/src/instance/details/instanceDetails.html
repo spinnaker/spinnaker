@@ -96,7 +96,7 @@
       <dl class="horizontal-when-filters-collapsed">
         <dt ng-repeat-start="metric in healthMetrics | orderBy: 'type'">{{metric.type | robotToHuman}}</dt>
         <dd ng-repeat-end>
-          <div ng-if="metric.type !== 'LoadBalancer'">
+          <div ng-if="metric.type !== 'LoadBalancer' && metric.type !== 'TargetGroup'">
             <span uib-tooltip="{{metric.state.toLowerCase() === 'down' ? metric.description : ''}}" tooltip-placement="left">
               <span class="glyphicon glyphicon-{{metric.state}}-triangle"></span>
               {{metric.state | robotToHuman}}
@@ -109,6 +109,9 @@
           </div>
           <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">
             <instance-load-balancer-health load-balancer="loadBalancer"></instance-load-balancer-health>
+          </div>
+          <div ng-if="metric.type === 'TargetGroup' && metric.targetGroups.length" ng-repeat="targetGroup in metric.targetGroups">
+            <instance-load-balancer-health load-balancer="targetGroup"></instance-load-balancer-health>
           </div>
         </dd>
       </dl>

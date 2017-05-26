@@ -21,6 +21,7 @@ export interface IServerGroup {
   cluster: string;
   clusterEntityTags?: IEntityTags[];
   detail?: string;
+  detachedInstances?: IInstance[];
   entityTags?: IEntityTags;
   instanceCounts: IInstanceCounts;
   instanceType?: string;
