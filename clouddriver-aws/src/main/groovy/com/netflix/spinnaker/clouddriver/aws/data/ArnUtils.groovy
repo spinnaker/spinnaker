@@ -19,7 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.data
 import java.util.regex.Pattern
 
 class ArnUtils {
-  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/app\/([^\/]+)\/.+$/)
+  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/[^:]+\/([^\/]+)\/.+$/)
   private static final Pattern TARGET_GROUP_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:targetgroup\/([^\/]+)\/.+$/)
 
   static Optional<String> extractLoadBalancerName(String loadBalancerArn) {
