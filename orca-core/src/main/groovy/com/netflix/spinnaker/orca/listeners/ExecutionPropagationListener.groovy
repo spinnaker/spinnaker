@@ -48,7 +48,7 @@ class ExecutionPropagationListener implements ExecutionListener {
       executionStatus = TERMINAL
     }
 
-    def failedStages = execution.stages.findAll { it.status.complete && it.status != SUCCEEDED }
+    def failedStages = execution.stages.findAll { it.status.complete && ![SUCCEEDED, SKIPPED].contains(it.status) }
     if (failedStages.any { it.context.completeOtherBranchesThenFail }) {
       executionStatus = TERMINAL
     }

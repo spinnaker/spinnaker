@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.listeners
 
+import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import spock.lang.Specification
 import spock.lang.Subject
@@ -55,6 +56,20 @@ class ExecutionPropagationListenerSpec extends Specification {
     null                  || TERMINAL  // if no source execution status can be derived, consider the execution TERMINAL
 
     execution = Pipeline.builder().withId("1").build()
+  }
+
+  def "afterExecution should update execution status to succeeded if all stages are skipped or succeeded"() {
+    when:
+
+    def stages = [[:], [completeOtherBranchesThenFail: true]]
+    Execution execution = Pipeline.builder().withId("1").withStages(stages).build()
+    execution.stages[0].status = SUCCEEDED
+    execution.stages[1].status = SKIPPED
+    listener.afterExecution(persister, execution, STOPPED, true)
+
+    then:
+    1 * persister.updateStatus("1", SUCCEEDED)
+
   }
 
   @Unroll
