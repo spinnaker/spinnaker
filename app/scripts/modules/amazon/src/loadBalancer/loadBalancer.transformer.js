@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { AWSProviderSettings } from '../aws.settings';
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
-module.exports = angular.module('spinnaker.aws.loadBalancer.transformer', [
+module.exports = angular.module('spinnaker.amazon.loadBalancer.transformer', [
   VPC_READ_SERVICE,
 ])
   .factory('awsLoadBalancerTransformer', function (vpcReader) {

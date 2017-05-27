@@ -5,7 +5,7 @@ const angular = require('angular');
 import { TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.scalingPolicy.write.service', [
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.write.service', [
     TASK_EXECUTOR,
   ])
   .factory('scalingPolicyWriter', function (taskExecutor) {

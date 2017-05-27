@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws.basicSettings', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.configure.basicSettings', [
   require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   V2_MODAL_WIZARD_SERVICE,

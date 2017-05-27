@@ -12,7 +12,7 @@ import {
   SETTINGS
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.instance.detail.aws.controller', [
+module.exports = angular.module('spinnaker.amazon.instance.details.controller', [
   require('angular-ui-router').default,
   require('angular-ui-bootstrap'),
   INSTANCE_WRITE_SERVICE,

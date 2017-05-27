@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { SECURITY_GROUP_READER, SERVER_GROUP_WRITER, TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.details.aws.securityGroup.editSecurityGroups.modal.controller', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.securityGroup.editSecurityGroups.modal.controller', [
   TASK_MONITOR_BUILDER,
   SERVER_GROUP_WRITER,
   SECURITY_GROUP_READER,

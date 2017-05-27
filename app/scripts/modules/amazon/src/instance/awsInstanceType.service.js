@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { API_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.aws.instanceType.service', [
+module.exports = angular.module('spinnaker.amazon.instanceType.service', [
   API_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE
 ])

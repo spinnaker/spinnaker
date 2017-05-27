@@ -8,7 +8,7 @@ import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component
 
 import './scalingPolicySummary.component.less';
 
-module.exports = angular.module('spinnaker.aws.serverGroup.details.scalingPolicy.component', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.scalingPolicy.component', [
   require('./scalingPolicy.write.service.js'),
   require('./upsert/upsertScalingPolicy.controller.js'),
   SCALING_POLICY_POPOVER,

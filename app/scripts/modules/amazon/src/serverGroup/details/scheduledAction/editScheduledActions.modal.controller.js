@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.details.aws.scheduledActions.editScheduledActions.modal.controller', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.scheduledActions.editScheduledActions.modal.controller', [
   TASK_MONITOR_BUILDER,
   TASK_EXECUTOR,
 ])

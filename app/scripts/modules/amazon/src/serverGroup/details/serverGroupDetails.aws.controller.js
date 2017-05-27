@@ -17,7 +17,7 @@ import {
   ServerGroupTemplates,
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.details.aws.controller', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller', [
   require('angular-ui-router').default,
   SERVER_GROUP_CONFIGURE_MODULE,
   CONFIRMATION_MODAL_SERVICE,

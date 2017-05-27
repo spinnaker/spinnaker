@@ -10,7 +10,7 @@ import {
   V2_MODAL_WIZARD_SERVICE
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.aws.cloneServerGroup.controller', [
+module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', [
   require('angular-ui-router').default,
   require('../serverGroupConfiguration.service.js'),
   SERVER_GROUP_WRITER,

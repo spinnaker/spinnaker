@@ -17,7 +17,7 @@ import {
 import { AWSProviderSettings } from '../../aws.settings';
 import { SUBNET_SELECT_FIELD_COMPONENT } from '../../subnet/subnetSelectField.component';
 
-module.exports = angular.module('spinnaker.loadBalancer.aws.create.controller', [
+module.exports = angular.module('spinnaker.amazon.loadBalancer.create.controller', [
   require('angular-ui-router').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,

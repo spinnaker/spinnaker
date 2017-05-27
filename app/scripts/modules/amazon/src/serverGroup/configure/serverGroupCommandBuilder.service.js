@@ -7,7 +7,7 @@ import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE, SUBNET_READ_SER
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
 
-module.exports = angular.module('spinnaker.aws.serverGroupCommandBuilder.service', [
+module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
   SUBNET_READ_SERVICE,
   INSTANCE_TYPE_SERVICE,

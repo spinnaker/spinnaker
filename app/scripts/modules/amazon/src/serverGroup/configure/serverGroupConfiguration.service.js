@@ -15,7 +15,7 @@ import {
 
 import { KEY_PAIRS_READ_SERVICE } from 'amazon/keyPairs/keyPairs.read.service';
 
-module.exports = angular.module('spinnaker.aws.serverGroup.configure.service', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.configure.service', [
   require('../../image/image.reader.js'),
   ACCOUNT_SERVICE,
   NAMING_SERVICE,

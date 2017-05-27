@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process', [])
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscaling.process', [])
   .factory('autoScalingProcessService', function() {
     function listProcesses() {
       return [

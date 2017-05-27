@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { SERVER_GROUP_READER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.configure.aws.deployInitialization.controller', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.configure.deployInitialization.controller', [
   SERVER_GROUP_READER,
   require('../../serverGroupCommandBuilder.service.js'),
 ])

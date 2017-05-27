@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
-module.exports = angular.module('spinnaker.vpc.tag.directive', [
+module.exports = angular.module('spinnaker.amazon.vpc.tag.directive', [
   VPC_READ_SERVICE,
 ])
   .directive('vpcTag', function(vpcReader) {

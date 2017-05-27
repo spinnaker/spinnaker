@@ -9,7 +9,7 @@ import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
 import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
     require('../scalingPolicy.write.service.js'),
     require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
     require('./simple/simplePolicyAction.component.js'),

@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { API_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.aws.image.reader', [API_SERVICE])
+module.exports = angular.module('spinnaker.amazon.image.reader', [API_SERVICE])
   .factory('awsImageReader', function ($q, API) {
 
     function findImages(params) {

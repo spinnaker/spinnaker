@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.scalingPolicy.upsert.actions.simplePolicy', [
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsert.actions.simplePolicy', [
   ])
   .component('awsSimplePolicyAction', {
     bindings: {

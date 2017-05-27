@@ -74,7 +74,7 @@ export class AwsTargetGroupDetailsController {
 }
 
 
-export const AWS_TARGET_GROUP_DETAILS_CTRL = 'spinnaker.aws.loadBalancer.details.targetGroupDetails.controller';
+export const AWS_TARGET_GROUP_DETAILS_CTRL = 'spinnaker.amazon.loadBalancer.details.targetGroupDetails.controller';
 module(AWS_TARGET_GROUP_DETAILS_CTRL, [
   require('angular-ui-router').default,
 ]).controller('awsTargetGroupDetailsCtrl', AwsTargetGroupDetailsController);

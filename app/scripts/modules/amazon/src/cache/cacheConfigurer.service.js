@@ -11,7 +11,7 @@ import {
 
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
-module.exports = angular.module('spinnaker.aws.cache.initializer', [
+module.exports = angular.module('spinnaker.amazon.cache.initializer', [
   ACCOUNT_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
   INSTANCE_TYPE_SERVICE,

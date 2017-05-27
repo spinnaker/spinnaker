@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { TASK_EXECUTOR, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.serverGroup.details.aws.autoscaling.process.controller', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.autoscaling.process.controller', [
   TASK_MONITOR_BUILDER,
   TASK_EXECUTOR,
   ])

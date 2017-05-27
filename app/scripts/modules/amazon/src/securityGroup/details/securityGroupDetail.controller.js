@@ -11,7 +11,7 @@ import {
   SECURITY_GROUP_WRITER
 } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.securityGroup.aws.details.controller', [
+module.exports = angular.module('spinnaker.amazon.securityGroup.details.controller', [
   require('angular-ui-router').default,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,

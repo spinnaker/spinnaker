@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.loadBalancers.configure.aws.loadBalancerZoneSelector.directive', [
+module.exports = angular.module('spinnaker.amazon.loadBalancerZoneSelector.directive', [
 ])
   .directive('loadBalancerAvailabilityZoneSelector', function() {
     return {

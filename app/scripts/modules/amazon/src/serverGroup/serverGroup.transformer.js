@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { VPC_READ_SERVICE } from '../vpc/vpc.read.service';
 
-module.exports = angular.module('spinnaker.aws.serverGroup.transformer', [
+module.exports = angular.module('spinnaker.amazon.serverGroup.transformer', [
     VPC_READ_SERVICE,
   ])
   .factory('awsServerGroupTransformer', function (vpcReader) {

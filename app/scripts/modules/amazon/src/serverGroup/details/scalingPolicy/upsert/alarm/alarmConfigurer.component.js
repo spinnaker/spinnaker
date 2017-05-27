@@ -9,7 +9,7 @@ import { AWSProviderSettings } from 'amazon/aws.settings';
 
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.scalingPolicy.alarm.configurer', [
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarm.configurer', [
     CLOUD_METRICS_READ_SERVICE,
     require('./dimensionsEditor.component.js'),
   ])

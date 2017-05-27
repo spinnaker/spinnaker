@@ -9,7 +9,7 @@ import { Observable, Subject } from 'rxjs';
 import './dimensionsEditor.component.less';
 
 module.exports = angular
-  .module('spinnaker.aws.serverGroup.details.scalingPolicy.dimensionEditor', [
+  .module('spinnaker.amazon.serverGroup.details.scalingPolicy.dimensionEditor', [
     CLOUD_METRICS_READ_SERVICE,
   ])
   .component('dimensionsEditor', {

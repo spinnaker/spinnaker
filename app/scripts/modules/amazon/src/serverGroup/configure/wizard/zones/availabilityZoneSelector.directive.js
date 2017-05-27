@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.serverGroups.configure.aws.wizard.zoneSelector.directive', [
+module.exports = angular.module('spinnaker.amazon.serverGroups.configure.wizard.zoneSelector.directive', [
 ])
   .directive('availabilityZoneSelector', function() {
     return {
