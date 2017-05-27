@@ -3,10 +3,11 @@ import { module } from 'angular';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
 
 import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
+import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
+import { AWS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
 import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
 import { VPC_MODULE } from './vpc/vpc.module';
 import { SUBNET_RENDERER } from './subnet/subnet.renderer';
-import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
 import { SERVER_GROUP_DETAILS_MODULE } from './serverGroup/details/serverGroupDetails.module';
 import { COMMON_MODULE } from './common/common.module';
 import { AMAZON_HELP } from './help/amazon.help';
@@ -42,7 +43,7 @@ module(AMAZON_MODULE, [
   require('./pipeline/stages/tagImage/awsTagImageStage'),
   SERVER_GROUP_DETAILS_MODULE,
   COMMON_MODULE,
-  require('./serverGroup/serverGroup.transformer'),
+  AWS_SERVER_GROUP_TRANSFORMER,
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller'),
   require('./instance/awsInstanceType.service'),
   require('./loadBalancer/loadBalancer.transformer'),

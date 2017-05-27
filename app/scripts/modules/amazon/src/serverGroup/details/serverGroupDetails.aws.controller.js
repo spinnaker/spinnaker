@@ -4,6 +4,7 @@ const angular = require('angular');
 import { chain, filter, find, get, isEmpty } from 'lodash';
 
 import { AWS_SCHEDULED_ACTION_COMPONENT } from './scheduledAction/scheduledAction.component';
+import { AWS_SERVER_GROUP_TRANSFORMER } from 'amazon/serverGroup/serverGroup.transformer';
 import { SERVER_GROUP_CONFIGURE_MODULE } from '../configure/serverGroup.configure.aws.module';
 
 import {
@@ -19,21 +20,21 @@ import {
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller', [
   require('angular-ui-router').default,
-  SERVER_GROUP_CONFIGURE_MODULE,
-  CONFIRMATION_MODAL_SERVICE,
-  SERVER_GROUP_WRITER,
-  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
-  OVERRIDE_REGISTRY,
   ACCOUNT_SERVICE,
+  AWS_SCHEDULED_ACTION_COMPONENT,
+  AWS_SERVER_GROUP_TRANSFORMER,
   CLUSTER_TARGET_BUILDER,
-  require('./scalingProcesses/autoScalingProcess.service.js'),
+  CONFIRMATION_MODAL_SERVICE,
+  OVERRIDE_REGISTRY,
+  SERVER_GROUP_CONFIGURE_MODULE,
   SERVER_GROUP_READER,
+  SERVER_GROUP_WARNING_MESSAGE_SERVICE,
+  SERVER_GROUP_WRITER,
+  require('./scalingProcesses/autoScalingProcess.service.js'),
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('./scalingPolicy/scalingPolicySummary.component.js'),
-  AWS_SCHEDULED_ACTION_COMPONENT,
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
-  require('../serverGroup.transformer.js'),
   require('./scalingPolicy/addScalingPolicyButton.component.js'),
   require('./securityGroup/editSecurityGroups.modal.controller'),
 ])
