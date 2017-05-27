@@ -206,7 +206,7 @@ class ApplicationService {
           String accounts = (app.clusters as Map)?.keySet()?.join(',') ?:
             (app.clusterNames as Map)?.keySet()?.join(',')
 
-          mergedApp.attributes.accounts = mergeAccounts(accounts, mergedApp.attributes.accounts)
+          mergedApp.attributes.accounts = accounts
 
           (app["attributes"] as Map).entrySet().each {
             if (it.value && !(mergedApp.attributes as Map)[it.key]) {
@@ -217,9 +217,7 @@ class ApplicationService {
         } else {
           Map attributes = app.attributes ?: app
           attributes.entrySet().each {
-            if (it.key == 'accounts') {
-              mergedApp.attributes.accounts = mergeAccounts(mergedApp.attributes.accounts, it.value)
-            } else if (it.value != null) {
+            if (it.value != null) {
               (mergedApp.attributes as Map)[it.key] = it.value
             }
           }

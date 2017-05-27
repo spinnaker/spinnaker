@@ -65,7 +65,7 @@ class ApplicationServiceSpec extends Specification {
     providerType = "aws"
   }
 
-  void "should include accounts from front50 and from clouddriver clusters"() {
+  void "should ignore accounts from front50 and only include those from clouddriver clusters"() {
     setup:
     HystrixRequestContext.initializeContext()
 
@@ -90,7 +90,7 @@ class ApplicationServiceSpec extends Specification {
     1 * clouddriver.getApplication(name) >> clouddriverApp
     1 * front50.getApplication(name) >> front50App
 
-    app == [name: name, attributes: (clouddriverApp.attributes + front50App + [accounts: [clouddriverAccount, front50Account].toSet().sort().join(',')]), clusters: clouddriverApp.clusters]
+    app == [name: name, attributes: (clouddriverApp.attributes + front50App + [accounts: [clouddriverAccount].toSet().sort().join(',')]), clusters: clouddriverApp.clusters]
 
     where:
     name = "foo"
