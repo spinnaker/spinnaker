@@ -112,7 +112,7 @@
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Instance Health</div>
-        <div class="col-sm-9 checkbox" style="margin-bottom: 0">
+        <div class="col-sm-9 sm-control-field checkbox">
           <label>
             <input type="checkbox"
                    ng-model="editApp.applicationAttributes.platformHealthOnly"
@@ -124,7 +124,7 @@
       </div>
 
       <div class="form-group row">
-        <div class="col-sm-9 col-sm-offset-3 checkbox" style="margin-top: 0">
+        <div class="col-sm-9 col-sm-offset-3 sm-control-field checkbox">
           <label>
             <input type="checkbox"
                    ng-model="editApp.applicationAttributes.platformHealthOnlyShowOverride"
@@ -147,7 +147,10 @@
       </div>
 
       <div class="form-group row">
-        <div class="col-sm-3 sm-label-right">Instance Port</div>
+        <div class="col-sm-3 sm-label-right">
+          Instance Port
+          <help-field key="application.instance.port"></help-field>
+        </div>
         <div class="col-sm-2">
           <input type="number"
                  min="0"
@@ -160,10 +163,12 @@
 
       <div class="form-group row">
         <div class="col-sm-3 sm-label-right">Pipeline Behavior</div>
-        <div class="col-sm-9">
-          <input type="checkbox"
-                 ng-model="editApp.applicationAttributes.enableRestartRunningExecutions">
-          Enable restarting running pipelines
+        <div class="col-sm-9 sm-control-field checkbox">
+          <label>
+            <input type="checkbox"
+                   ng-model="editApp.applicationAttributes.enableRestartRunningExecutions">
+            Enable restarting running pipelines
+          </label>
           <help-field key="application.enableRestartRunningExecutions"></help-field>
         </div>
       </div>

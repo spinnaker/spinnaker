@@ -20,6 +20,7 @@ import Spinner from 'spin.js';
 
 import { ANALYTICS_MODULE } from './analytics/analytics.module';
 import { APPLICATION_BOOTSTRAP_MODULE } from './bootstrap/applicationBootstrap.module';
+import { APPLICATION_MODULE } from './application/application.module';
 import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
 import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
@@ -65,7 +66,7 @@ module.exports = angular
     require('angular-spinner').angularSpinner.name,
 
     ANALYTICS_MODULE,
-    require('./application/application.module'),
+    APPLICATION_MODULE,
     APPLICATION_BOOTSTRAP_MODULE,
     AUTHENTICATION_MODULE,
 

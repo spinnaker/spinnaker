@@ -7,19 +7,6 @@ export interface IHelpContents {
 export const HELP_CONTENTS = 'spinnaker.core.help.contents';
 module(HELP_CONTENTS, [])
   .constant('helpContents', {
-    'application.platformHealthOnly': `
-        When this option is enabled, instance status as reported by the cloud provider will be considered sufficient to
-        determine task completion. When this option is disabled, tasks will normally need health status reported by some other health provider (e.g. a
-        load balancer or discovery service) to determine task completion.`,
-    'application.showPlatformHealthOverride': 'When this option is enabled, users will be able to toggle the option above on a task-by-task basis.',
-    'application.permissions': `
-      <ul>
-        <li>To read from this application, a user must be a member of at least one group with read access.</li>
-        <li>To write to this application, a user must be a member of at least one group with write access.</li>
-        <li>If no permissions are specified, any user can read from or write to this application.</li>
-        <li>These permissions will only be enforced if Fiat is enabled.</li>
-      </ul>
-    `,
     'core.serverGroup.strategy': 'The deployment strategy tells Spinnaker what to do with the previous version of the server group.',
     'cluster.search': `
         Quickly filter the displayed server groups by the following fields:
@@ -225,9 +212,6 @@ module(HELP_CONTENTS, [])
     'travis.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the Travis job to complete',
     'script.waitForCompletion': 'if unchecked, marks the stage as successful right away without waiting for the script to complete',
     'markdown.examples': 'Some examples of markdown syntax: <br/> *<em>emphasis</em>* <br/> **<b>strong</b>** <br/> [link text](http://url-goes-here)',
-    'application.enableRestartRunningExecutions': `
-        When this option is enabled, users will be able to restart pipeline stages while a pipeline is still running.
-        This behavior can have varying unexpected results and is <b>not recommended</b> to enable.`,
     'pipeline.config.webhook.payload': 'JSON payload to be added to the webhook call.',
     'pipeline.config.webhook.waitForCompletion': 'If not checked, we consider the stage succeeded if the webhook returns an HTTP status code 2xx, otherwise it will be failed. If checked, it will poll a status url (defined below) to determine the progress of the stage.',
     'pipeline.config.webhook.statusUrlResolutionIsGetMethod': 'Use the webhook\'s URL with GET method as status endpoint.',
