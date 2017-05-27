@@ -14,7 +14,7 @@ var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'openstack'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,

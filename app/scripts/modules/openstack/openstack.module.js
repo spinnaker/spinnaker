@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 import { OPENSTACK_HELP } from './help/openstack.help';
 
 import './logo/openstack.logo.less';
@@ -95,3 +95,5 @@ module.exports = angular.module('spinnaker.openstack', [
       }
     });
   });
+
+DeploymentStrategyRegistry.registerProvider('openstack', ['redblack']);

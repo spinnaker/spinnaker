@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { AZURE_HELP } from './help/azure.help';
 
@@ -79,3 +79,5 @@ module.exports = angular.module('spinnaker.azure', [
       }
     });
   });
+
+DeploymentStrategyRegistry.registerProvider('azure', []);

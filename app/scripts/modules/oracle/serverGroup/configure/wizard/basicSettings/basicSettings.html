@@ -97,6 +97,6 @@
         <input type="text" class="form-control input-sm" ng-pattern="basicSettingsCtrl.detailPattern" name="details" ng-model="command.freeFormDetails" />
       </div>
     </div>
-    <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+    <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
   </div>
 </div>

@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { KUBERNETES_ANNOTATION_CONFIGURER } from './annotation/annotationConfigurer.component';
 import { KUBERNETES_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
@@ -104,3 +104,5 @@ module.exports = angular.module('spinnaker.kubernetes', [
       },
     });
   });
+
+DeploymentStrategyRegistry.registerProvider('kubernetes', ['custom', 'redblack']);

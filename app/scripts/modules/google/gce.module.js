@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
@@ -114,3 +114,4 @@ module.exports = angular.module('spinnaker.gce', [
     });
   });
 
+DeploymentStrategyRegistry.registerProvider('gce', ['custom', 'redblack']);

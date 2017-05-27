@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
@@ -14,6 +14,8 @@ import { AMAZON_HELP } from './help/amazon.help';
 
 import { AmazonLoadBalancerClusterContainer } from './loadBalancer/AmazonLoadBalancerClusterContainer';
 import { AmazonLoadBalancersTag } from './loadBalancer/AmazonLoadBalancersTag';
+
+import './deploymentStrategy/rollingPush.strategy';
 
 import './logo/aws.logo.less';
 
@@ -114,3 +116,5 @@ module(AMAZON_MODULE, [
     },
   });
 });
+
+DeploymentStrategyRegistry.registerProvider('aws', ['custom', 'redblack', 'rollingPush']);

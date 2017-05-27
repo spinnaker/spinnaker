@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { APPENGINE_CACHE_CONFIGURER } from './cache/cacheConfigurer.service';
 import { APPENGINE_COMPONENT_URL_DETAILS } from './common/componentUrlDetails.component';
@@ -76,3 +76,5 @@ module(APPENGINE_MODULE, [
       },
     });
   });
+
+DeploymentStrategyRegistry.registerProvider('appengine', ['custom']);

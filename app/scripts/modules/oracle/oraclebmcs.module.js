@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { ORACLE_HELP_CONTENTS_REGISTRY } from './helpContents/oracleHelpContents';
 
@@ -72,3 +72,5 @@ module.exports = angular.module('spinnaker.oraclebmcs', [
       }
     });
   });
+
+DeploymentStrategyRegistry.registerProvider('oraclebmcs', []);

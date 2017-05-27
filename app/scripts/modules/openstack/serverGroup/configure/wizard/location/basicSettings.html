@@ -83,7 +83,7 @@
         </div>
       </div>
       <os-subnet-select-field model="command.subnetId" filter="subnetFilter" help-key="openstack.serverGroup.subnet"></os-subnet-select-field>
-      <deployment-strategy-selector label-columns="3" field-columns="9" ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
+      <deployment-strategy-selector ng-if="!command.viewState.disableStrategySelection && command.selectedProvider" command="command"></deployment-strategy-selector>
     </ng-form>
     <task-reason command="command"></task-reason>
 </div>
