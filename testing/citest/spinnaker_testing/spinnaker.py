@@ -335,12 +335,10 @@ class SpinnakerAgent(service_testing.HttpAgent):
         context_relation = 'INVALID'
         raise RuntimeError(error)
 
-      approx_config = cls.__get_deployed_local_yaml_bindings(gcloud,
-                                                             instance)
-      protocol = approx_config.get('services.default.protocol', 'http')
+      protocol = bindings['NETWORK_PROTOCOL']
       base_url = '{protocol}://{netloc}'.format(protocol=protocol,
                                                 netloc=netloc)
-      logger.info('%s is available at %s', name, base_url)
+      logger.info('%s is available at %s. Using %s', name, netloc, base_url)
       deployed_config = scrape_spring_config(
           os.path.join(base_url, 'resolvedEnv'))
       spinnaker_agent = cls(base_url, status_factory)
