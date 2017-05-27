@@ -1,0 +1,65 @@
+<div class="row">
+  <div class="col-md-12" ng-if="$ctrl.command.viewState.dirty.loadBalancers">
+    <div class="alert alert-warning">
+      <p><i class="fa fa-exclamation-triangle"></i>
+        The following load balancers could not be found in the selected account/region/VPC and were removed:
+      </p>
+      <ul>
+        <li ng-repeat="loadBalancer in $ctrl.command.viewState.dirty.loadBalancers">{{loadBalancer}}</li>
+      </ul>
+      <p class="text-right">
+        <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="$ctrl.command.viewState.dirty.loadBalancers = null">Okay</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-md-3 sm-label-right"><b>Load Balancers</b></div>
+    <div class="col-md-9">
+      <ui-select ng-if="$ctrl.command.backingData.filtered.loadBalancers.length"
+                 multiple
+                 ng-model="$ctrl.command.loadBalancers"
+                 class="form-control input-sm">
+        <ui-select-match>{{$item}}</ui-select-match>
+        <ui-select-choices repeat="loadBalancer in $ctrl.command.backingData.filtered.loadBalancers | filter: $select.search">
+          <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
+        </ui-select-choices>
+      </ui-select>
+    </div>
+  </div>
+  <div class="form-group" ng-if="!$ctrl.command.vpcId">
+    <div ng-if="!$ctrl.command.vpcLoadBalancers.length && !$ctrl.showVpcLoadBalancers">
+      <div class="col-md-9 col-md-offset-3">
+        <a href ng-click="$ctrl.showVpcLoadBalancers = true">Add VPC Load Balancers</a>
+      </div>
+    </div>
+    <div ng-if="$ctrl.command.vpcLoadBalancers.length || $ctrl.showVpcLoadBalancers">
+      <div class="col-md-3 sm-label-right"><b>VPC Load Balancers</b></div>
+      <div class="col-md-9">
+        <ui-select ng-if="$ctrl.command.backingData.filtered.vpcLoadBalancers.length"
+                   multiple
+                   ng-model="$ctrl.command.vpcLoadBalancers"
+                   class="form-control input-sm">
+          <ui-select-match>{{$item}}</ui-select-match>
+          <ui-select-choices repeat="loadBalancer in $ctrl.command.backingData.filtered.vpcLoadBalancers | filter: $select.search">
+            <span ng-bind-html="loadBalancer | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-group small" style="margin-top: 20px">
+    <div class="col-md-9 col-md-offset-3">
+      <p>
+        <span ng-if="$ctrl.refreshing"><span class="fa fa-refresh fa-spin"></span></span>
+        Load balancers
+        <span ng-if="!$ctrl.refreshing">last refreshed {{ $ctrl.refreshTime | timestamp }}</span>
+        <span ng-if="$ctrl.refreshing"> refreshing...</span>
+      </p>
+      <p>If you're not finding a load balancer that was recently added,
+        <a href ng-click="$ctrl.refreshLoadBalancers()">click here</a> to refresh the list.
+      </p>
+    </div>
+  </div>
+</div>
