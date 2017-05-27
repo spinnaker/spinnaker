@@ -58,6 +58,14 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
   )
   private boolean alphaListed = false;
 
+  @Parameter(
+      names = "--user-data",
+      converter = PathExpandingConverter.class,
+      description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION
+  )
+  private String userDataFile;
+
+
   @Override
   protected Account buildAccount(String accountName) {
     GoogleAccount account = (GoogleAccount) new GoogleAccount().setName(accountName);
@@ -65,7 +73,9 @@ public class GoogleAddAccountCommand extends AbstractAddAccountCommand {
         .setProject(project);
 
     account.setAlphaListed(alphaListed)
-        .setImageProjects(imageProjects);
+        .setImageProjects(imageProjects)
+        .setUserDataFile(userDataFile);
+
 
     return account;
   }

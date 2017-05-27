@@ -71,6 +71,13 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
   )
   private Boolean alphaListed = null;
 
+  @Parameter(
+      names = "--user-data",
+      converter = PathExpandingConverter.class,
+      description = CommonGoogleCommandProperties.USER_DATA_DESCRIPTION
+  )
+  private String userDataFile;
+
   @Override
   protected Account editAccount(GoogleAccount account) {
     account.setJsonPath(isSet(jsonPath) ? jsonPath : account.getJsonPath());

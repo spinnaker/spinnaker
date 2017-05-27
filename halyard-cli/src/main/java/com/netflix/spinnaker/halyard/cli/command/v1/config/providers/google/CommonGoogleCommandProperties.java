@@ -23,4 +23,9 @@ public class CommonGoogleCommandProperties {
       + "This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, "
       + "or needs permissions not afforded to the VM it is running on. "
       + "See https://cloud.google.com/compute/docs/access/service-accounts for more information.";
+
+  static public final String USER_DATA_DESCRIPTION = "The path to user data template file. "
+      + "Spinnaker has the ability to inject userdata into generated instance templates. "
+      + "The mechanism is via a template file that is token replaced to provide some specifics about the deployment. "
+      + "See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/UserData.md for more information.";
 }

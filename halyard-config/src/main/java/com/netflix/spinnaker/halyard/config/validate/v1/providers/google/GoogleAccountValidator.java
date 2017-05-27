@@ -23,8 +23,11 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAcco
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,5 +61,17 @@ public class GoogleAccountValidator extends Validator<GoogleAccount> {
     } catch (IOException e) {
       p.addProblem(Severity.ERROR, "Failed to load project \"" + n.getProject() + "\": " + e.getMessage() + ".");
     }
+
+    String userDataFile = null;
+    if (!StringUtils.isEmpty(n.getUserDataFile())) {
+      userDataFile = ValidatingFileReader.contents(p, n.getUserDataFile());
+
+      if (userDataFile == null) {
+        return;
+      } else if (userDataFile.isEmpty()) {
+        p.addProblem(Severity.WARNING, "The supplied user data file is empty.");
+      }
+    }
+
   }
 }
