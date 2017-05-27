@@ -8,7 +8,11 @@ class LoadBalancerSelectorController implements IComponentController {
   public refreshTime: number;
   public refreshing = false;
 
-  constructor(private awsServerGroupConfigurationService: any, private infrastructureCaches: InfrastructureCacheService) { 'ngInject'; }
+  constructor(private awsServerGroupConfigurationService: any, private infrastructureCaches: InfrastructureCacheService) {
+    'ngInject';
+
+    this.setLoadBalancerRefreshTime();
+}
 
   public setLoadBalancerRefreshTime(): void {
     this.refreshTime = this.infrastructureCaches.get('loadBalancers').getStats().ageMax;
