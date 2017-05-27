@@ -340,6 +340,11 @@ class ValidateBomTestController(object):
     """Returns the skipped tests and reasons."""
     return self.__skipped
 
+  @property
+  def exit_code(self):
+    """Determine final exit code for all tests."""
+    return -1 if self.failed else 0
+
   def __close_forwarded_ports(self):
     for forwarding in self.__forwarded_ports.values():
       try:
@@ -411,6 +416,38 @@ class ValidateBomTestController(object):
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE)
     return ForwardedPort(child, local_port)
+
+  def build_summary(self):
+    """Return a summary of all the test results."""
+    def append_list_summary(summary, name, entries):
+      """Write out all the names from the test results."""
+      if not entries:
+        return
+      summary.append('{0}:'.format(name))
+      for entry in entries:
+        summary.append('  * {0}'.format(entry[0]))
+
+    options = self.options
+    if options.test_disable:
+      return 'No test output: testing was disabled.', 0
+
+    summary = ['\nSummary:']
+    append_list_summary(summary, 'SKIPPED', self.skipped)
+    append_list_summary(summary, 'PASSED', self.passed)
+    append_list_summary(summary, 'FAILED', self.failed)
+
+    num_skipped = len(self.skipped)
+    num_passed = len(self.passed)
+    num_failed = len(self.failed)
+
+    summary.append('')
+    if num_failed:
+      summary.append(
+          'FAILED {0} of {1}, skipped {2}'.format(
+              num_failed, (num_failed + num_passed), num_skipped))
+    else:
+      summary.append('PASSED {0}, skipped {1}'.format(num_passed, num_skipped))
+    return '\n'.join(summary)
 
   def wait_on_service(self, service_name, port=None, timeout=120):
     """Wait for the given service to be available on the specified port.
@@ -518,6 +555,10 @@ class ValidateBomTestController(object):
     be recorded as a FAILURE.
     """
     options = self.options
+    if options.test_disable:
+      logging.info('--test_disable skips test phase entirely.')
+      return
+
     all_test_profiles = self.test_suite['tests']
 
     logging.info(
@@ -781,6 +822,10 @@ def init_argument_parser(parser):
       '--test_quota', default='google_backend_services=5,google_cpu=20',
       help='Comma-delimited name=value list of quota limits. This is used'
            ' to rate-limit tests based on their profiled quota specifications.')
+
+  parser.add_argument(
+      '--test_disable', default=False, action='store_true',
+      help='If true then dont run the testing phase.')
 
   parser.add_argument(
       '--test_include', default='.*',
