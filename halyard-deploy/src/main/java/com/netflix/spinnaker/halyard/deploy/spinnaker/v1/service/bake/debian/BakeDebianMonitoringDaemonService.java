@@ -59,9 +59,16 @@ public class BakeDebianMonitoringDaemonService extends SpinnakerMonitoringDaemon
   public String installArtifactCommand(DeploymentDetails deploymentDetails) {
     String installCommand = BakeDebianService.super.installArtifactCommand(deploymentDetails);
     return String.join("\n", installCommand,
-        "apt-get install -y python-dev",
-        "sed -i -e 's/#@ //g' " + pipRequirementsFile,
-        "pip install -r " + pipRequirementsFile
+        "apt-get install -y python-dev"
+    );
+  }
+
+  // TODO(lwander): put back into `installArtifactCommand` once pip/datadog issue is resolved that corrupts GCE hostname
+  @Override
+  public String getStartupCommand() {
+    return String.join("\n", "sed -i -e 's/#@ //g' " + pipRequirementsFile,
+        "pip install -r " + pipRequirementsFile,
+        "sudo service " + upstartServiceName + " restart"
     );
   }
 
