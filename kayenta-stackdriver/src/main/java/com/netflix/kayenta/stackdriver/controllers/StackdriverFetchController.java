@@ -82,8 +82,8 @@ public class StackdriverFetchController {
     if (metricsService.isPresent()) {
       StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
       stackdriverCanaryScope.setScope(scope);
-      stackdriverCanaryScope.setStart(startTimeMillis);
-      stackdriverCanaryScope.setEnd(endTimeMillis);
+      stackdriverCanaryScope.setStart(startTimeMillis + "");
+      stackdriverCanaryScope.setEnd(endTimeMillis + "");
       stackdriverCanaryScope.setIntervalStartTimeIso(intervalStartTimeIso);
       stackdriverCanaryScope.setIntervalEndTimeIso(intervalEndTimeIso);
       stackdriverCanaryScope.setStep(step);

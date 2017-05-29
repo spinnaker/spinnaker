@@ -69,8 +69,8 @@ public class IntegrationTest {
 
     private CanaryMetricConfigWithResults queryMetric(CanaryMetricConfig metric, AtlasCanaryScope scope) {
         long step = Duration.parse(scope.getStep()).toMillis();
-        long start = scope.getStart() / step * step;
-        long end = scope.getEnd() / step * step;
+        long start = Long.parseLong(scope.getStart()) / step * step;
+        long end = Long.parseLong(scope.getEnd()) / step * step;
         long count = (end - start) / step;
 
         AtlasMetricSetQuery atlasMetricSetQuery = (AtlasMetricSetQuery)metric.getQuery();
@@ -99,14 +99,14 @@ public class IntegrationTest {
         AtlasCanaryScope experiment = new AtlasCanaryScope();
         experiment.setType("application");
         experiment.setScope("app_leo");
-        experiment.setStart(0L);
-        experiment.setEnd(600000L);
+        experiment.setStart("0");
+        experiment.setEnd("600000");
         experiment.setStep("PT1M");
         AtlasCanaryScope control = new AtlasCanaryScope();
         control.setType("application");
         control.setScope("app_lep");
-        control.setStart(0L);
-        control.setEnd(600000L);
+        control.setStart("0");
+        control.setEnd("600000");
         control.setStep("PT1M");
 
         //   3.  for each metric in the config:

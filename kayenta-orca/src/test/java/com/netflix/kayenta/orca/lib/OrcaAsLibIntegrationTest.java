@@ -39,7 +39,6 @@ import com.netflix.spinnaker.orca.q.ExecutionLatchKt;
 import com.netflix.spinnaker.orca.q.PipelineBuilderKt;
 import com.netflix.spinnaker.orca.q.Queue;
 import com.netflix.spinnaker.orca.q.QueueExecutionRunner;
-import com.netflix.spinnaker.orca.q.QueueProcessor;
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -47,19 +46,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.STARTING;
@@ -147,7 +144,9 @@ public class OrcaAsLibIntegrationTest {
   RestrictExecutionDuringTimeWindow.class
 })
 
+@EnableScheduling
 class TestConfig {
+
   @Bean
   Registry registry() {
     return new NoopRegistry();
@@ -173,37 +172,6 @@ class TestConfig {
       @Override
       public String getType() {
         return "dummy";
-      }
-    };
-  }
-
-  @Bean
-  Object stupidPretendScheduler(QueueProcessor queueProcessor) {
-    return new DisposableBean() {
-      AtomicBoolean running = new AtomicBoolean(false);
-
-      @PostConstruct
-      void afterPropertiesSet() {
-        running.set(true);
-
-        new Thread(new Runnable() {
-          @Override
-          public void run() {
-            while (running.get()) {
-              queueProcessor.pollOnce();
-              try {
-                Thread.sleep(10);
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
-            }
-          }
-        }).start();
-      }
-
-      @Override
-      public void destroy() throws Exception {
-        running.set(false);
       }
     };
   }

@@ -26,10 +26,10 @@ public class CanaryScope {
     protected String scope;
 
     @NotNull
-    protected Long start;
+    protected String start;
 
     @NotNull
-    protected Long end;
+    protected String end;
 
     @NotNull
     protected String step;

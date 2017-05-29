@@ -97,7 +97,9 @@ public class StackdriverMetricsService implements MetricsService {
 
     ListTimeSeriesResponse response = list.execute();
 
-    long elapsedSeconds = (stackdriverCanaryScope.getStart() - stackdriverCanaryScope.getEnd()) / 1000;
+    long startAsLong = Long.parseLong(stackdriverCanaryScope.getStart());
+    long endAsLong = Long.parseLong(stackdriverCanaryScope.getEnd());
+    long elapsedSeconds = (endAsLong - startAsLong) / 1000;
     long numIntervals = elapsedSeconds / alignmentPeriodSec;
     long remainder = elapsedSeconds % alignmentPeriodSec;
 

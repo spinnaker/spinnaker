@@ -34,11 +34,11 @@ public class AtlasCanaryScope extends CanaryScope {
   public String cq() {
     switch (type) {
       case "application":
-        return ":list,(,nf.app," + scope + ",:eq,:cq,),:each";
       case "cluster":
-        return ":list,(,nf.cluster," + scope + ",:eq,:cq,),:each";
+      case "node":
+        return ":list,(,nf." + type + "," + scope + ",:eq,:cq,),:each";
       default:
-        throw new IllegalArgumentException("Scope type is unknown: " + scope);
+        throw new IllegalArgumentException("Scope type '" + type + "' is unknown: scope=" + scope);
     }
   }
 }

@@ -63,8 +63,8 @@ public class AtlasFetchController {
                              @ApiParam(defaultValue = "cpu") @RequestParam String metricSetName,
                              @ApiParam(defaultValue = "cluster") @RequestParam String type,
                              @RequestParam String scope,
-                             @ApiParam(defaultValue = "0") @RequestParam Long start,
-                             @ApiParam(defaultValue = "6000000") @RequestParam Long end,
+                             @ApiParam(defaultValue = "0") @RequestParam String start,
+                             @ApiParam(defaultValue = "6000000") @RequestParam String end,
                              @ApiParam(defaultValue = "PT1M") @RequestParam String step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
