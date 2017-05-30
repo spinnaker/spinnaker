@@ -1,29 +1,30 @@
 import * as React from 'react';
 import { OverlayTrigger, Popover as BSPopover } from 'react-bootstrap';
 
-import { Placement } from 'core/presentation/Placement';
+import { Placement } from 'core/presentation';
 
-interface IProps {
+export interface IPopoverProps {
   value?: string;
   template?: JSX.Element;
   placement?: Placement;
 }
 
-export class Popover extends React.Component<IProps, void> {
-  public static defaultProps: Partial<IProps> = {
+export class Popover extends React.Component<IPopoverProps, void> {
+  public static defaultProps: Partial<IPopoverProps> = {
     placement: 'top',
     value: ''
   };
 
   public render() {
-    let popover = <BSPopover id={this.props.value}>{this.props.value}</BSPopover>;
-    if (this.props.template) {
-      popover = <BSPopover id={this.props.value}>{this.props.template}</BSPopover>;
+    const { value, template, placement, children } = this.props;
+    let popover = <BSPopover id={value}>{value}</BSPopover>;
+    if (template) {
+      popover = <BSPopover id={value}>{template}</BSPopover>;
     }
 
     return (
-      <OverlayTrigger placement={this.props.placement} overlay={popover}>
-        {this.props.children}
+      <OverlayTrigger placement={placement} overlay={popover}>
+        {children}
       </OverlayTrigger>
     );
   }

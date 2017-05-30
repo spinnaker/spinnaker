@@ -20,11 +20,17 @@
       <h3 select-on-dbl-click>
         {{securityGroup.name || '(not found)'}}
         <render-if-feature feature="entityTags">
-          <entity-ui-tags component="securityGroup"
-                          application="ctrl.application"
-                          entity-type="securityGroup"
-                          page-location="details"
-                          on-update="ctrl.application.securityGroups.refresh()"></entity-ui-tags>
+
+          <entity-notifications
+            entity="securityGroup"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="securityGroup"
+            page-location="details"
+            on-update="ctrl.application.securityGroups.refresh()"
+          ></entity-notifications>
+
         </render-if-feature>
       </h3>
     </div>

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { OverlayTrigger, Tooltip as BSTooltip } from 'react-bootstrap';
 
-import { Placement } from 'core/presentation/Placement';
+import { Placement } from 'core/presentation';
 
 export interface ITooltipProps {
   value?: string;

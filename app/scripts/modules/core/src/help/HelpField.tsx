@@ -5,8 +5,7 @@ import autoBindMethods from 'class-autobind-decorator';
 import { $injector } from 'ngimport';
 
 import { HelpContentsRegistry, IHelpContents } from 'core/help';
-import { HoverablePopover } from 'core/presentation';
-import { Placement } from 'core/presentation/Placement';
+import { HoverablePopover, Placement } from 'core/presentation';
 
 export interface IHelpFieldProps {
   id?: string;

@@ -1,0 +1,72 @@
+@import "~core/presentation/less/imports/commonImports.less";
+
+.popover.notifications-popover {
+  padding: 0;
+  min-width: 200px;
+  max-width: 500px;
+
+  .popover-title {
+    padding: 0.6em 0.8em;
+    margin: 0;
+    border-bottom: none;
+  }
+
+  .list-group-item {
+    padding: 0.333em 1em;
+    border-radius: 0;
+    background-color: @lightest_grey;
+    border-left: none;
+    border-right: none;
+  }
+
+  .notification-categories {
+    margin: 0;
+
+    background-color: @lightest_grey;
+    border-right: 1px solid @mid_light_grey;
+
+    .notification-category-label {
+      padding: 0 1em;
+    }
+
+    .badge {
+      border-radius: 3px;
+      padding: 3px 6px;
+    }
+  }
+
+  .notification-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    max-height: 15em;
+    padding: 1em;
+  }
+
+  .server-group-list {
+    margin: 0.75em 0;
+  }
+
+  .entityname {
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    .account-region {
+      flex: 1 1 auto;
+      text-align: end;
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
+
+  .notification-message {
+    min-width: 150px;
+
+    &:not(:first-child) {
+      padding-top: 10px;
+      margin-top: 5px;
+      border-top: 1px solid @mid_light_grey;
+    }
+  }
+}

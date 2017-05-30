@@ -4,7 +4,6 @@ import { StateService } from 'angular-ui-router';
 
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';
-import { ENTITY_UI_TAGS_COMPONENT } from 'core/entityTag/entityUiTags.component';
 import { INSTANCES_COMPONENT } from './../instance/instances.component';
 import { SERVER_GROUP_SEQUENCE_FILTER } from 'core/cluster/serverGroup.sequence.filter';
 import { IInstance, IServerGroup } from 'core/domain';
@@ -146,6 +145,5 @@ module(SERVER_GROUP_COMPONENT, [
   INSTANCES_COMPONENT,
   require('../instance/instanceList.directive'),
   require('./serverGroup.transformer'),
-  ENTITY_UI_TAGS_COMPONENT,
 ])
 .component('serverGroup', new ServerGroupComponent());

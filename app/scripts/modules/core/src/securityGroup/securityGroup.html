@@ -5,11 +5,16 @@
     <h6>
       <span class="glyphicon glyphicon-transfer"></span>
       {{heading | uppercase}}
-      <entity-ui-tags component="securityGroup"
-                      application="application"
-                      entity-type="securityGroup"
-                      page-location="details"
-                      on-update="application.securityGroups.refresh()"></entity-ui-tags>
+
+      <entity-notifications
+        entity="securityGroup"
+        application="application"
+        placement="top"
+        entity-type="securityGroup"
+        page-location="details"
+        on-update="application.securityGroups.refresh()"
+      ></entity-notifications>
+
     </h6>
   </sticky-header>
   <div class="cluster-container">

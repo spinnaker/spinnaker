@@ -1,13 +1,13 @@
 const angular = require('angular');
 
-import {DATA_SOURCE_ALERTS_COMPONENT} from 'core/entityTag/dataSourceAlerts.component';
+import { ENTITY_TAGS_MODULE } from 'core/entityTag/entityTags.module';
 
 import './applicationNav.component.less';
 
 module.exports = angular
   .module('spinnaker.core.application.nav.component', [
     require('angular-ui-router').default,
-    DATA_SOURCE_ALERTS_COMPONENT,
+    ENTITY_TAGS_MODULE,
   ])
   .component('applicationNav', {
     bindings: {
@@ -20,12 +20,17 @@ module.exports = angular
            analytics-on="click"
            analytics-category="Application Nav"
            analytics-event="{{dataSource.title}}"
-           ng-class="{active: $ctrl.isActive(dataSource)}">
-           <i ng-if="dataSource.icon" class="ds-icon fa fa-{{dataSource.icon}}"></i>
+           ng-class="{active: $ctrl.isActive(dataSource)}"
+        >
+          <i ng-if="dataSource.icon" class="ds-icon fa fa-{{dataSource.icon}}"></i>
           {{dataSource.label}}
-           <ds-alerts alerts="dataSource.alerts" 
-                      application-name="$ctrl.application.name" 
-                      tab-name="{{dataSource.key}}"></ds-alerts>
+          
+          <x-data-source-notifications
+            tags="dataSource.alerts"
+            application="$ctrl.application"
+            tab-name="dataSource.key"
+          ></x-data-source-notifications>
+          
           <span class="badge"
                 ng-if="dataSource.badge && $ctrl.application[dataSource.badge].data.length">
             {{$ctrl.application[dataSource.badge].data.length}}

@@ -4,8 +4,6 @@ import { Application, IEntityTag } from 'core';
 import { EntityTagEditor, IEntityTagEditorProps, IOwnerOption } from './EntityTagEditor';
 import { ENTITY_TAGS_HELP } from './entityTags.help';
 
-import './entityTagDetails.component.less';
-
 class AddEntityTagLinksCtrl implements ng.IComponentController {
   public application: Application;
   public tagType: string;

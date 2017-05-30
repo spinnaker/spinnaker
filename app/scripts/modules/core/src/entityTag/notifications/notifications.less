@@ -1,0 +1,73 @@
+@import (reference) "~core/presentation/less/imports/commonImports.less";
+
+// A mixin which creates all the color styles for a notification category
+.notification-category-color(@class, @color, @secondary-color: lighten(@color, 30%)) {
+  .notification.@{class}, .notifications-popover.@{class} {
+    &.fa {
+      color: @color;
+    }
+
+    // popover trigger fg/bg inverts for alerts on "all server groups in all regions"
+    .popover-title,
+    &.inverse .notification.fa {
+      background-color: @color;
+      color: white;
+    }
+
+    // must be more specific than the stock bootstrap style
+    &.bottom > div.arrow:after {
+      border-bottom-color: @color;
+    }
+  }
+
+
+  .notifications-popover .notification-categories .@{class} {
+    color: @color;
+
+    .notification-category-label {
+      color: black;
+      & when (@class = alerts-severity-2) {
+        // Extra (red) color to emphasize severe alerts
+        color: @color;
+      }
+    }
+
+    .badge {
+      background-color: @color;
+    }
+
+    &.selected {
+      background-color: @secondary-color;
+    }
+
+    &:hover {
+      background-color: lighten(@secondary-color, 3%)
+    }
+  }
+}
+
+.notification-category-color(notices-severity-0, @spinnaker-link-color);
+.notification-category-color(notices-severity-1, @spinnaker-link-color);
+.notification-category-color(notices-severity-2, @spinnaker-link-color);
+.notification-category-color(alerts-severity-0, @unhealthy_yellow, @unhealthy_yellow_bg);
+.notification-category-color(alerts-severity-1, @unhealthy_orange, @unhealthy_orange_bg);
+.notification-category-color(alerts-severity-2, @unhealthy_red, @unhealthy_red_bg);
+
+.entity-notifications {
+  display: inline-block;
+  position: relative;
+
+  .tag-marker {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 15px;
+
+    &.inverse {
+      .fa {
+        border-radius: 3px;
+        padding: 2px;
+        font-size: 90%;
+      }
+    }
+  }
+}

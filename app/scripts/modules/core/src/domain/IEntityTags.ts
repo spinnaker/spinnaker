@@ -24,6 +24,8 @@ export interface IEntityTag {
   lastModified?: number;
   createdBy?: string;
   lastModifiedBy?: string;
+  namespace?: string;
+  category?: string;
 }
 
 export interface ICreationMetadataTag extends IEntityTag {
@@ -44,8 +46,12 @@ export interface IEntityTags {
 }
 
 export interface IEntityRef {
-  cloudProvider: string;
-  entityType: string;
-  entityId: string;
   [attribute: string]: any;
+  account?: string;
+  accountId?: string;
+  cloudProvider?: string;
+  entityId: string;
+  entityType: string;
+  region?: string;
+  vpcId?: string;
 }

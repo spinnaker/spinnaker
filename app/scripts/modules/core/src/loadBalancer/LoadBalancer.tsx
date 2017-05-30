@@ -7,11 +7,12 @@ import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
 import { ILoadBalancer, IServerGroup } from 'core/domain';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
 import { Sticky } from 'core/utils/stickyHeader/Sticky';
+import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 
 export interface ILoadBalancerProps {
   application: Application;
@@ -96,7 +97,6 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps, ILoadBalan
 
   public render(): React.ReactElement<LoadBalancer> {
     const { application, loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
-    const { EntityUiTags } = NgReact;
     const { cloudProviderRegistry } = ReactInjector;
     const config = cloudProviderRegistry.getValue(loadBalancer.provider || loadBalancer.cloudProvider, 'loadBalancer');
     const ClusterContainer = config.ClusterContainer || LoadBalancerClusterContainer;
@@ -111,20 +111,22 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps, ILoadBalan
           onClick={this.loadDetails}
         >
           <Sticky topOffset={36}>
-            <h6>
-              <span className="icon icon-elb"/> {(loadBalancer.region || '').toUpperCase()}
-              <EntityUiTags
-                component={loadBalancer}
-                application={application}
-                entityType="loadBalancer"
-                pageLocation="pod"
-                onUpdate={application.loadBalancers.refresh}
-              />
-              <span className="text-right">
-                <HealthCounts container={loadBalancer.instanceCounts}/>
-              </span>
-            </h6>
-          </Sticky>
+          <h6>
+            <span className="icon icon-elb"/> {(loadBalancer.region || '').toUpperCase()}
+            <EntityNotifications
+              entity={loadBalancer}
+              application={application}
+              placement="bottom"
+              entityType="loadBalancer"
+              pageLocation="pod"
+              onUpdate={application.loadBalancers.refresh}
+            />
+            <span className="text-right">
+              <HealthCounts container={loadBalancer.instanceCounts}/>
+            </span>
+          </h6>
+        </Sticky>
+
         </div>
         <ClusterContainer
           loadBalancer={loadBalancer}

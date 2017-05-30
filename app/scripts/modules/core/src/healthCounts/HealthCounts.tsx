@@ -3,8 +3,7 @@ import autoBindMethods from 'class-autobind-decorator';
 import { isEqual } from 'lodash';
 
 import { IInstanceCounts } from 'core/domain';
-import { Placement } from 'core/presentation/Placement';
-import { Tooltip } from 'core/presentation/Tooltip';
+import { Placement, Tooltip } from 'core/presentation';
 
 import './healthCounts.less';
 

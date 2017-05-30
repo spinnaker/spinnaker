@@ -1,0 +1,30 @@
+// flex container
+.flex-container-h {
+  display: flex;
+  flex-flow: row nowrap;
+
+  &.baseline {
+    align-items: baseline;
+  }
+}
+
+.flex-container-v {
+  display: flex;
+  flex-flow: column nowrap;
+}
+
+
+// Flex item
+.flex-grow {
+  flex: 1 1 auto;
+}
+
+.flex-nogrow {
+  flex: 0 1 auto;
+}
+
+.flex-fill {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}

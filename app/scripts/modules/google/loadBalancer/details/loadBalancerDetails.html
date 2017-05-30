@@ -24,11 +24,17 @@
       <h3 select-on-dbl-click>
         {{loadBalancer.name}}
         <render-if-feature feature="entityTags">
-          <entity-ui-tags component="loadBalancer"
-                          application="ctrl.application"
-                          entity-type="loadBalancer"
-                          page-location="details"
-                          on-update="ctrl.application.loadBalancers.refresh()"></entity-ui-tags>
+
+          <entity-notifications
+            entity="loadBalancer"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="loadBalancer"
+            page-location="details"
+            on-update="ctrl.application.loadBalancers.refresh()"
+          ></entity-notifications>
+
         </render-if-feature>
       </h3>
     </div>

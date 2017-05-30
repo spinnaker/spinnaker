@@ -9,6 +9,7 @@ import { PAGE_SECTION_COMPONENT } from './navigation/pageSection.component';
 import { REPLACE_FILTER } from './replace.filter';
 import { ROBOT_TO_HUMAN_FILTER } from './robotToHumanFilter/robotToHuman.filter';
 
+import './flex-layout.less';
 import './details.less';
 import './main.less';
 import './navPopover.less';

@@ -26,11 +26,17 @@
       <h3 select-on-dbl-click>
         {{ctrl.serverGroup.name}}
         <render-if-feature feature="entityTags">
-          <entity-ui-tags component="ctrl.serverGroup"
-                          application="ctrl.application"
-                          entity-type="serverGroup"
-                          page-location="details"
-                          on-update="ctrl.application.serverGroups.refresh()"></entity-ui-tags>
+
+          <entity-notifications
+            entity="ctrl.serverGroup"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="serverGroup"
+            page-location="details"
+            on-update="ctrl.application.serverGroups.refresh()"
+          ></entity-notifications>
+
         </render-if-feature>
       </h3>
     </div>
