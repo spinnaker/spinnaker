@@ -58,6 +58,10 @@ public class CreatePipelineTemplateTask implements RetryableTask {
       throw new IllegalArgumentException("Pipeline template task parameter is not valid", e);
     }
 
+    if (pipelineTemplate.getId().contains(".")) {
+      throw new IllegalArgumentException("Pipeline Template IDs cannot have dots");
+    }
+
     Response response = front50Service.savePipelineTemplate((Map<String, Object>) stage.getContext().get("pipelineTemplate"));
 
     // TODO rz - app & account context?
