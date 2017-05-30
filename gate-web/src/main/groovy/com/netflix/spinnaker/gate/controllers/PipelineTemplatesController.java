@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/pipelineTemplates")
@@ -65,6 +66,13 @@ public class PipelineTemplatesController {
   @RequestMapping(method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map create(@RequestBody Map<String, Object> pipelineTemplate) {
+    PipelineTemplate template;
+    try {
+      template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException("Pipeline template is invalid", e);
+    }
+
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "createPipelineTemplate");
@@ -72,8 +80,8 @@ public class PipelineTemplatesController {
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
-    operation.put("description", "Create pipeline template");
-    operation.put("application", getApplicationFromTemplate(pipelineTemplate));
+    operation.put("description", "Create pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
 
     return taskService.create(operation);
@@ -93,6 +101,13 @@ public class PipelineTemplatesController {
   @RequestMapping(value = "/{id}", method = RequestMethod.POST)
   @ResponseStatus(value = HttpStatus.ACCEPTED)
   public Map update(@PathVariable String id, @RequestBody Map<String, Object> pipelineTemplate) {
+    PipelineTemplate template;
+    try {
+      template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException("Pipeline template is invalid", e);
+    }
+
     List<Map<String, Object>> jobs = new ArrayList<>();
     Map<String, Object> job = new HashMap<>();
     job.put("type", "updatePipelineTemplate");
@@ -101,32 +116,36 @@ public class PipelineTemplatesController {
     jobs.add(job);
 
     Map<String, Object> operation = new HashMap<>();
-    operation.put("description", "Update pipeline template '" + id + "'");
-    operation.put("application", getApplicationFromTemplate(pipelineTemplate));
+    operation.put("description", "Update pipeline template '" + getNameFromTemplate(template) + "'");
+    operation.put("application", getApplicationFromTemplate(template));
     operation.put("job", jobs);
 
     return taskService.create(operation);
   }
 
-  private String getApplicationFromTemplate(Map<String, Object> pipelineTemplate) {
-    PipelineTemplate template;
-    try {
-      template = objectMapper.convertValue(pipelineTemplate, PipelineTemplate.class);
-    } catch (IllegalArgumentException e) {
-      return DEFAULT_APPLICATION;
-    }
+  private String getNameFromTemplate(PipelineTemplate template) {
+    return Optional.ofNullable(template.metadata.name).orElse(template.id);
+  }
+
+  private String getApplicationFromTemplate(PipelineTemplate template) {
     List<String> scopes = template.metadata.scopes;
     return (scopes.isEmpty() || scopes.size() > 1) ? DEFAULT_APPLICATION : scopes.get(0);
   }
 
   @JsonIgnoreProperties(ignoreUnknown = true)
-  private static class PipelineTemplate {
+  static class PipelineTemplate {
     @JsonProperty
-    private Metadata metadata = new Metadata();
+    String id;
 
-    private static class Metadata {
+    @JsonProperty
+    Metadata metadata = new Metadata();
+
+    static class Metadata {
       @JsonProperty
-      private List<String> scopes = new ArrayList<>();
+      String name;
+
+      @JsonProperty
+      List<String> scopes = new ArrayList<>();
     }
   }
 }

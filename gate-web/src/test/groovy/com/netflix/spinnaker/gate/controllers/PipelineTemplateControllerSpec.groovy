@@ -53,7 +53,7 @@ class PipelineTemplateControllerSpec extends Specification {
     response.status == 202
     1 * taskService.create([
       application: app,
-      description: "Create pipeline template",
+      description: "Create pipeline template 'foo'",
       job: [
         [
           type: 'createPipelineTemplate',
