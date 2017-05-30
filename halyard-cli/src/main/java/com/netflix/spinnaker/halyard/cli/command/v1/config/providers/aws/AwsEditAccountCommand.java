@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
@@ -33,47 +34,66 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
   }
 
   @Parameter(
-      names = "--default-key-pair",
-      description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION
+    names = "--default-key-pair",
+    description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION
   )
   private String defaultKeyPair;
 
   @Parameter(
-      names = "--edda",
-      description = AwsCommandProperties.EDDA_DESCRIPTION
+    names = "--edda",
+    description = AwsCommandProperties.EDDA_DESCRIPTION
   )
   private String edda;
 
   @Parameter(
-      names = "--discovery",
-      description = AwsCommandProperties.DISCOVERY_DESCRIPTION
+    names = "--discovery",
+    description = AwsCommandProperties.DISCOVERY_DESCRIPTION
   )
   private String discovery;
 
   @Parameter(
-      names = "--account-id",
-      description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION
+    names = "--account-id",
+    description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION
   )
   private String accountId;
 
   @Parameter(
-      names = "--regions",
-      variableArity = true,
-      description = AwsCommandProperties.REGIONS_DESCRIPTION
+    names = "--regions",
+    variableArity = true,
+    description = AwsCommandProperties.REGIONS_DESCRIPTION
   )
   private List<String> regions;
 
   @Parameter(
-      names = "--add-region",
-      description = "Add this region to the list of managed regions."
+    names = "--add-region",
+    description = "Add this region to the list of managed regions."
   )
   private String addRegion;
 
   @Parameter(
-      names = "--remove-region",
-      description = "Remove this region from the list of managed regions."
+    names = "--remove-region",
+    description = "Remove this region from the list of managed regions."
   )
   private String removeRegion;
+
+  @Parameter(
+    names = {"--assume-role", "--role"},
+    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
+  )
+  private String assumeRole;
+
+  @Parameter(
+    names = {"--access-key-id", "--access-key"},
+    description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+  )
+  private String accessKeyId;
+
+  @Parameter(
+    names = "--secret-key",
+    description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
+    password = true
+  )
+  private String secretKey;
 
   @Override
   protected Account editAccount(AwsAccount account) {
@@ -81,20 +101,23 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
     account.setEdda(isSet(edda) ? edda : account.getEdda());
     account.setDiscovery(isSet(discovery) ? discovery : account.getDiscovery());
     account.setAccountId(isSet(accountId) ? accountId : account.getAccountId());
+    account.setAssumeRole(isSet(assumeRole) ? assumeRole : account.getAssumeRole());
+    account.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : account.getAccessKeyId());
+    account.setSecretKey(isSet(secretKey) ? secretKey : account.getSecretKey());
 
     try {
       List<String> existingRegions = account
-          .getRegions()
-          .stream()
-          .map(AwsAccount.AwsRegion::getName).collect(Collectors.toList());
+        .getRegions()
+        .stream()
+        .map(AwsAccount.AwsRegion::getName).collect(Collectors.toList());
       regions = updateStringList(existingRegions, regions, addRegion, removeRegion);
       account.setRegions(regions
-              .stream()
-              .map(r -> new AwsAccount.AwsRegion().setName(r))
-              .collect(Collectors.toList())
-          );
+        .stream()
+        .map(r -> new AwsAccount.AwsRegion().setName(r))
+        .collect(Collectors.toList())
+      );
     } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("Set either --region or --[add/remove]-region");
+      throw new IllegalArgumentException("Set either --regions or --[add/remove]-region");
     }
 
     return account;

@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.s3
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.persistentStorage.AbstractPersistentStoreEditCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws.AwsCommandProperties;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
@@ -52,11 +53,33 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
   )
   private String region;
 
+  @Parameter(
+    names = {"--assume-role", "--role"},
+    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
+  )
+  private String assumeRole;
+
+  @Parameter(
+    names = {"--access-key-id", "--access-key"},
+    description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+  )
+  private String accessKeyId;
+
+  @Parameter(
+    names = "--secret-key",
+    description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
+    password = true
+  )
+  private String secretKey;
+
   @Override
   protected S3PersistentStore editPersistentStore(S3PersistentStore persistentStore) {
     persistentStore.setBucket(isSet(bucket) ? bucket : persistentStore.getBucket());
     persistentStore.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStore.getRootFolder());
     persistentStore.setRegion(isSet(region) ? region : persistentStore.getRegion());
+    persistentStore.setAssumeRole(isSet(assumeRole) ? assumeRole : persistentStore.getAssumeRole());
+    persistentStore.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : persistentStore.getAccessKeyId());
+    persistentStore.setSecretKey(isSet(secretKey) ? secretKey : persistentStore.getSecretKey());
 
     if (persistentStore.getBucket() == null) {
       String bucketName = "spin-" + UUID.randomUUID().toString();

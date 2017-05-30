@@ -21,13 +21,18 @@ import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
+@ToString(exclude = {"accessKeyId", "secretKey"})
 public class S3PersistentStore extends PersistentStore {
   private String bucket;
   private String rootFolder = "front50";
   private String region;
+  private String assumeRole;
+  private String accessKeyId;
+  private String secretKey;
 
   @Override
   public PersistentStoreType persistentStoreType() {

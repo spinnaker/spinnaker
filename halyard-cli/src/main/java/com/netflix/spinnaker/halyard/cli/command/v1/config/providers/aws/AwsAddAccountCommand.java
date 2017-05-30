@@ -17,6 +17,7 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
@@ -34,48 +35,71 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
   }
 
   @Parameter(
-      names = "--default-key-pair",
-      description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION
+    names = "--default-key-pair",
+    description = AwsCommandProperties.DEFAULT_KEY_PAIR_DESCRIPTION
   )
   private String defaultKeyPair;
 
   @Parameter(
-      names = "--edda",
-      description = AwsCommandProperties.EDDA_DESCRIPTION
+    names = "--edda",
+    description = AwsCommandProperties.EDDA_DESCRIPTION
   )
   private String edda;
 
   @Parameter(
-      names = "--discovery",
-      description = AwsCommandProperties.DISCOVERY_DESCRIPTION
+    names = "--discovery",
+    description = AwsCommandProperties.DISCOVERY_DESCRIPTION
   )
   private String discovery;
 
   @Parameter(
-      names = "--account-id",
-      description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION
+    names = "--account-id",
+    description = AwsCommandProperties.ACCOUNT_ID_DESCRIPTION,
+    required = true
   )
   private String accountId;
 
   @Parameter(
-      names = "--regions",
-      variableArity = true,
-      description = AwsCommandProperties.REGIONS_DESCRIPTION
+    names = "--regions",
+    variableArity = true,
+    description = AwsCommandProperties.REGIONS_DESCRIPTION
   )
   private List<String> regions = new ArrayList<>();
+
+  @Parameter(
+    names = {"--assume-role", "--role"},
+    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
+  )
+  private String assumeRole;
+
+  @Parameter(
+    names = {"--access-key-id", "--access-key"},
+    description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
+  )
+  private String accessKeyId;
+
+  @Parameter(
+    names = "--secret-key",
+    description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
+    password = true
+  )
+  private String secretKey;
 
   @Override
   protected Account buildAccount(String accountName) {
     AwsAccount account = (AwsAccount) new AwsAccount().setName(accountName);
     account.setDefaultKeyPair(defaultKeyPair)
-        .setEdda(edda)
-        .setDiscovery(discovery)
-        .setAccountId(accountId)
-        .setRegions(regions
-            .stream()
-            .map(r -> new AwsAccount.AwsRegion().setName(r))
-            .collect(Collectors.toList())
-        );
+      .setEdda(edda)
+      .setDiscovery(discovery)
+      .setAccountId(accountId)
+      .setRegions(regions
+        .stream()
+        .map(r -> new AwsAccount.AwsRegion().setName(r))
+        .collect(Collectors.toList())
+      )
+      .setAssumeRole(assumeRole)
+      .setAccessKeyId(accessKeyId)
+      .setSecretKey(secretKey);
 
     return account;
   }
