@@ -6,13 +6,14 @@ import _ from 'lodash';
 import { ACCOUNT_SERVICE, INSTANCE_TYPE_SERVICE, NAMING_SERVICE, SUBNET_READ_SERVICE } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
 module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.service', [
   ACCOUNT_SERVICE,
   SUBNET_READ_SERVICE,
   INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
-  require('./serverGroupConfiguration.service.js'),
+  AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
 ])
   .factory('awsServerGroupCommandBuilder', function ($q, accountService, subnetReader, namingService, instanceTypeService,
                                                      awsServerGroupConfigurationService) {

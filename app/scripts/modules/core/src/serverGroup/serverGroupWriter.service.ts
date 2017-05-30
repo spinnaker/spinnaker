@@ -2,30 +2,14 @@ import { module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { ISecurityGroup, IServerGroup, ITask } from 'core/domain';
+import { IServerGroupCommand } from './configure/common/serverGroupCommandBuilder.service';
 import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
-
-export interface ISource {
-  asgName: string;
-}
-
-export interface IViewState {
-  mode: string;
-}
 
 export interface ICapacity {
   desired: number;
   max: number;
   min: number;
-}
-
-export interface IServerGroupCommand {
-  application?: Application;
-  freeFormDetails?: string;
-  source?: ISource;
-  stack?: string;
-  type?: string;
-  viewState?: IViewState;
 }
 
 export interface IServerGroupJob extends IJob {

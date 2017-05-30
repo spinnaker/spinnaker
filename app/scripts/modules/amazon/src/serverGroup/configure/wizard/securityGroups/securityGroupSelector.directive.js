@@ -1,12 +1,15 @@
 'use strict';
 
 const angular = require('angular');
+
 import { INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
+
+import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.configure.wizard.securityGroups.selector.directive', [
     INFRASTRUCTURE_CACHE_SERVICE,
-    require('../../serverGroupConfiguration.service.js'),
+    AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   ])
   .directive('serverGroupSecurityGroupSelector', function () {
     return {

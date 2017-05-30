@@ -9,6 +9,7 @@ import {SETTINGS} from 'core/config/settings';
 export interface IRegion {
   account?: string;
   availabilityZones?: string[];
+  deprecated?: boolean;
   endpoint?: string;
   faultDomains?: string[];
   name: string;
@@ -28,13 +29,14 @@ export interface IAccountDetails extends IAccount {
   awsVpc?: string;
   challengeDestructiveActions: boolean;
   cloudProvider: string;
+  defaultKeyPair?: string;
   environment: string;
   primaryAccount: boolean;
   regions: IRegion[];
 }
 
 export interface IAggregatedAccounts {
-  [key: string]: IAccountDetails;
+  [credentials: string]: IAccountDetails;
 }
 
 export interface IZone {

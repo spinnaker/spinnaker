@@ -1,11 +1,12 @@
-import {mock, noop} from 'angular';
+import { mock, noop } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {SERVER_GROUP_WRITER, ServerGroupWriter, IServerGroupCommand} from './serverGroupWriter.service';
-import {ITaskCommand} from 'core/task/taskExecutor';
-import {Application} from 'core/application/application.model';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry} from 'core/application/service/applicationDataSource.registry';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { SERVER_GROUP_WRITER, ServerGroupWriter } from './serverGroupWriter.service';
+import { IServerGroupCommand, IServerGroupCommandViewState } from './configure/common/serverGroupCommandBuilder.service';
+import { ITaskCommand } from 'core/task/taskExecutor';
+import { Application } from 'core/application/application.model';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { APPLICATION_DATA_SOURCE_REGISTRY, ApplicationDataSourceRegistry } from 'core/application/service/applicationDataSource.registry';
 
 interface IApplicationTask {
   refresh: () => void;
@@ -88,7 +89,7 @@ describe('serverGroupWriter', function () {
           mode: 'create',
         },
         application
-      };
+      } as IServerGroupCommand;
     });
 
     it('sets action type and description appropriately when creating new', function () {
@@ -123,7 +124,7 @@ describe('serverGroupWriter', function () {
       };
       command.viewState = {
         mode: 'clone',
-      };
+      } as IServerGroupCommandViewState;
 
       const submitted: ITaskCommand = postTask(command);
       expect(submitted.job[0].type).toBe('cloneServerGroup');

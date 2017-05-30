@@ -23,27 +23,27 @@ export interface IRegionAccount {
 }
 
 export interface IRegions {
-  [key: string]: IRegionAccount[]; // regionName
+  [region: string]: IRegionAccount[];
 }
 
 export interface IProviders {
-  [key: string]: IRegions; // providerName
+  [provider: string]: IRegions;
 }
 
 export interface IGroupsByRegion {
-  [key: string]: IRegionAccount[]; // regionName
+  [region: string]: IRegionAccount[];
 }
 
 export interface IGroupsByProvider {
-  [key: string]: IGroupsByRegion; // providerName
+  [provider: string]: IGroupsByRegion;
 }
 
 export interface ISecurityGroupsByRegion {
-  [key: string]: IRegionAccount;  // regionName
+  [region: string]: IRegionAccount;
 }
 
 export interface ISecurityGroupsByAccount {
-  [key: string]: ISecurityGroupsByRegion;  // accountName
+  [account: string]: ISecurityGroupsByRegion;
 }
 
 export interface IIndexedSecurityGroups {
@@ -315,7 +315,7 @@ export class SecurityGroupReader {
     'ngInject';
   }
 
-  public getAllSecurityGroups(): IPromise<IGroupsByAccount[]> {
+  public getAllSecurityGroups(): IPromise<IGroupsByAccount> {
     return this.API.one('securityGroups').useCache(this.infrastructureCaches.get('securityGroups')).get();
   }
 
@@ -389,7 +389,7 @@ export class SecurityGroupReader {
 
   public loadSecurityGroups(): IPromise<IIndexedSecurityGroups> {
 
-    return this.getAllSecurityGroups().then((groupsByAccount: IGroupsByAccount[]) => {
+    return this.getAllSecurityGroups().then((groupsByAccount: IGroupsByAccount) => {
       const securityGroups: IReaderSecurityGroup[] = [];
       forOwn(groupsByAccount, (groupsByProvider: IGroupsByProvider, account: string) => {
         return forOwn(groupsByProvider, (groupsByRegion: IRegions, provider: string) => {

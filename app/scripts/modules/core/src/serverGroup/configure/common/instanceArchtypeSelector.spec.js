@@ -1,7 +1,8 @@
 'use strict';
 
-import {INFRASTRUCTURE_CACHE_SERVICE} from 'core/cache/infrastructureCaches.service';
-import {INSTANCE_TYPE_SERVICE} from 'core/instance/instanceType.service';
+import { INFRASTRUCTURE_CACHE_SERVICE } from 'core/cache/infrastructureCaches.service';
+import { INSTANCE_TYPE_SERVICE } from 'core/instance/instanceType.service';
+import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/common/serverGroupConfiguration.service';
 
 describe('Controller: Instance Archetype Selector', function() {
 
@@ -19,7 +20,7 @@ describe('Controller: Instance Archetype Selector', function() {
       require('./instanceArchetypeSelector.js'),
       INFRASTRUCTURE_CACHE_SERVICE,
       INSTANCE_TYPE_SERVICE,
-      require('./serverGroupConfiguration.service.js')
+      SERVER_GROUP_CONFIGURATION_SERVICE
     )
   );
 

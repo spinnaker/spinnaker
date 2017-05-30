@@ -4,21 +4,19 @@ import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from '@spinn
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE, AwsServerGroupConfigurationService } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
-class LoadBalancerSelectorController implements IComponentController {
+class TargetGroupSelectorController implements IComponentController {
   public command: any;
 
   public refreshTime: number;
   public refreshing = false;
 
   constructor(private awsServerGroupConfigurationService: AwsServerGroupConfigurationService,
-              private infrastructureCaches: InfrastructureCacheService) {
+              private infrastructureCacheService: InfrastructureCacheService) {
     'ngInject';
-
-    this.setLoadBalancerRefreshTime();
-}
+  }
 
   public setLoadBalancerRefreshTime(): void {
-    this.refreshTime = this.infrastructureCaches.get('loadBalancers').getStats().ageMax;
+    this.refreshTime = this.infrastructureCacheService.get('loadBalancers').getStats().ageMax;
   }
 
   public refreshLoadBalancers(): void {
@@ -30,17 +28,17 @@ class LoadBalancerSelectorController implements IComponentController {
   }
 }
 
-export class LoadBalancerSelectorComponent implements IComponentOptions {
+export class TargetGroupSelectorComponent implements IComponentOptions {
   public bindings: any = {
     command: '='
   };
-  public controller: any = LoadBalancerSelectorController;
-  public templateUrl = require('./loadBalancerSelector.component.html');
+  public controller: any = TargetGroupSelectorController;
+  public templateUrl = require('./targetGroupSelector.component.html');
 }
 
-export const LOAD_BALANCER_SELECTOR = 'spinnaker.amazon.serverGroup.configure.wizard.loadBalancers.selector.component';
-module (LOAD_BALANCER_SELECTOR, [
+export const TARGET_GROUP_SELECTOR_COMPONENT = 'spinnaker.amazon.serverGroup.configure.wizard.targetGroups.selector.component';
+module (TARGET_GROUP_SELECTOR_COMPONENT, [
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE
 ])
-  .component('awsServerGroupLoadBalancerSelector', new LoadBalancerSelectorComponent());
+  .component('awsServerGroupTargetGroupSelector', new TargetGroupSelectorComponent());
