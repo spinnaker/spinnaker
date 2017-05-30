@@ -39,14 +39,13 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails.I
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedLogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.extensions.ReplicaSet;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
-import lombok.experimental.Delegate;
 
 import java.nio.file.Paths;
 import java.util.*;
@@ -534,6 +533,17 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       List<Instance> knownInstances = instances.getOrDefault(version, new ArrayList<>());
       knownInstances.add(instance);
       instances.put(version, knownInstances);
+    }
+
+    List<ReplicaSet> replicaSets = client.extensions().replicaSets().inNamespace(settings.getLocation()).list().getItems();
+    for (ReplicaSet rs : replicaSets) {
+      String rsName = rs.getMetadata().getName();
+      Names parsedRsName = Names.parseName(rsName);
+      if (!parsedRsName.getCluster().equals(getServiceName())) {
+        continue;
+      }
+
+      instances.computeIfAbsent(parsedRsName.getSequence(), i -> new ArrayList<>());
     }
 
     return res;

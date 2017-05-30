@@ -58,6 +58,22 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       AccountDeploymentDetails<T> deploymentDetails,
       SpinnakerRuntimeSettings runtimeSettings,
       List<SpinnakerService.Type> serviceTypes) {
+    DaemonTaskHandler.newStage("Checking if it is safe to roll back all services");
+    for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceTypes)) {
+      SpinnakerService service = distributedService.getService();
+      ServiceSettings settings = runtimeSettings.getServiceSettings(service);
+      boolean safeToUpdate = settings.getSafeToUpdate();
+
+      if (!settings.getEnabled() || distributedService.isRequiredToBootstrap() || !safeToUpdate) {
+        continue;
+      }
+
+      RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(deploymentDetails, runtimeSettings);
+      if (runningServiceDetails.getInstances().keySet().size() == 1) {
+        throw new HalException(Problem.Severity.FATAL, "Service " + service.getCanonicalName() + " has only one server group - there is nothing to rollback to.");
+      }
+    }
+
     DaemonTaskHandler.newStage("Rolling back all updatable services");
     for (DistributedService distributedService : serviceProvider.getPrioritizedDistributedServices(serviceTypes)) {
       SpinnakerService service = distributedService.getService();
