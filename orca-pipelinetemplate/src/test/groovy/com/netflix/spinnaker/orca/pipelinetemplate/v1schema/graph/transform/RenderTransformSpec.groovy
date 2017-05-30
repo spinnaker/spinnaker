@@ -121,7 +121,6 @@ class RenderTransformSpec extends Specification {
       ]
     )
     TemplateConfiguration configuration = new TemplateConfiguration(
-      id: 'gateDeployToPrestaging',
       schema: '1',
       pipeline: new PipelineDefinition(
         application: 'gate',
@@ -196,7 +195,6 @@ class RenderTransformSpec extends Specification {
       ]
     )
     TemplateConfiguration configuration = new TemplateConfiguration(
-      id: 'myConfig',
       schema: '1',
       pipeline: new PipelineDefinition(
         application: 'orca',

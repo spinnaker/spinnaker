@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.VersionedSchema;
 
 import java.util.ArrayList;
@@ -25,10 +26,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TemplateConfiguration implements VersionedSchema {
 
   private String schema;
-  private String id;
   private PipelineDefinition pipeline;
   private PipelineConfiguration configuration = new PipelineConfiguration();
   private List<StageDefinition> stages;
@@ -177,14 +178,6 @@ public class TemplateConfiguration implements VersionedSchema {
 
   public void setSchema(String schema) {
     this.schema = schema;
-  }
-
-  public String getId() {
-    return id;
-  }
-
-  public void setId(String id) {
-    this.id = id;
   }
 
   public PipelineDefinition getPipeline() {
