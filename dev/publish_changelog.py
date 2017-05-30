@@ -85,8 +85,7 @@ class ChangelogPublisher(BomPublisher):
     return post
 
   def __publish_post(self, post_content):
-    day = '{:%Y-%m-%d}'.format(datetime.datetime.now())
-    post_name = '{day}-{version}-changelog.md'.format(day=day, version=self.__version)
+    post_name = '{version}-changelog.md'.format(version=self.__version)
     repo_name = os.path.basename(self.__githubio_repo_uri)
 
     if repo_name.endswith('.git'):

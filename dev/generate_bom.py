@@ -27,6 +27,11 @@ DEPENDENCIES = 'dependencies'
 SERVICES = 'services'
 VERSION = 'version'
 
+BUG_FIXES = 'Bug Fixes'
+FEATURES = 'Features'
+BREAKING_CHANGES = 'Breaking Changes'
+CONFIG_CHANGES = 'Configuration Changes'
+
 # Dependency versions.
 CONSUL_VERSION = '0.7.5'
 REDIS_VERSION = '2:2.8.4-2'
@@ -188,8 +193,11 @@ class BomGenerator(Annotator):
     changes made since the last Spinnaker release. It also contains the
     version information as well.
     """
-    changelog = ['Spinnaker {0}\n'.format(self.__toplevel_version)]
-    for comp, hash in self.__changelog_start_hashes.iteritems():
+    changelog = []
+    for comp in sorted(self.__changelog_start_hashes.keys()):
+      if comp == 'spinnaker':
+        continue
+      hash = self.__changelog_start_hashes.get(comp, None)
       version = self.__version_from_tag(comp)
 
       # Generate the changelog for the component.
@@ -205,8 +213,12 @@ class BomGenerator(Annotator):
         print "Changelog generation failed for {0} with \n{1}\n exiting...".format(comp, result.stdout)
         exit(result.returncode)
       # Capitalize
-      comp_cap = comp[0].upper() + comp[1:]
-      changelog.append('# {0}\n{1}'.format(comp_cap, result.stdout))
+      if (BUG_FIXES in result.stdout
+          or FEATURES in result.stdout
+          or BREAKING_CHANGES in result.stdout
+          or CONFIG_CHANGES in result.stdout):
+        comp_cap = comp[0].upper() + comp[1:]
+        changelog.append('# {0}\n{1}'.format(comp_cap, result.stdout))
     print 'Writing changelog...'
     # Write the changelog with the toplevel version without the build number.
     # This is ok since the changelog is only published if the toplevel version is released.
