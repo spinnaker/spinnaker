@@ -609,7 +609,6 @@ hal config features edit [parameters]
 ```
 #### Parameters
  * `--chaos`: Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here https://github.com/Netflix/chaosmonkey/wiki.
- * `--fiat`: Enable Fiat (Spinnaker's access-control system). This assumes you have followed the steps here: http://www.spinnaker.io/docs/securing-spinnaker.
  * `--jobs`: Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 

@@ -43,14 +43,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
   private Boolean chaos = null;
 
   @Parameter(
-      names = "--fiat",
-      description = "Enable Fiat (Spinnaker's access-control system). This assumes you have followed the steps here: "
-          + "http://www.spinnaker.io/docs/securing-spinnaker.",
-      arity = 1
-  )
-  private Boolean fiat = null;
-
-  @Parameter(
       names = "--jobs",
       description = "Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.",
       arity = 1
@@ -69,7 +61,6 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
     int originalHash = features.hashCode();
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
-    features.setFiat(fiat != null ? fiat : features.isFiat());
     features.setJobs(jobs != null ? jobs : features.isJobs());
 
     if (originalHash == features.hashCode()) {
