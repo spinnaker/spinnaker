@@ -39,6 +39,9 @@ class RestEventListener implements EchoEventListener {
   @Autowired
   RestUrls restUrls
 
+  @Autowired
+  RestEventTemplateEngine restEventTemplateEngine
+
   @Value('${rest.defaultEventName:spinnaker_events}')
   String eventName
 
@@ -51,15 +54,21 @@ class RestEventListener implements EchoEventListener {
       try {
         Map eventAsMap = mapper.convertValue(event, Map)
         Map sentEvent = eventAsMap
+
         if (service.config.flatten) {
           eventAsMap.content = mapper.writeValueAsString(eventAsMap.content)
           eventAsMap.details = mapper.writeValueAsString(eventAsMap.details)
         }
+
         if (service.config.wrap) {
-          sentEvent = [
-            "eventName": "${service.config.eventName ?: eventName}" as String,
-          ]
-          sentEvent["${service.config.fieldName ?: fieldName}" as String] = eventAsMap
+          if (service.config.template) {
+            sentEvent = restEventTemplateEngine.render(service.config.template as String, sentEvent)
+          } else {
+            sentEvent = [
+              eventName: "${service.config.eventName ?: eventName}" as String,
+            ]
+            sentEvent["${service.config.fieldName ?: fieldName}" as String] = eventAsMap
+          }
         }
         service.client.recordEvent(sentEvent)
       } catch (e) {

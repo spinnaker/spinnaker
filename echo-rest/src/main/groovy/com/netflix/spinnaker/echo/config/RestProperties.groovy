@@ -36,6 +36,7 @@ class RestProperties {
   static class RestEndpointConfiguration {
     String eventName
     String fieldName
+    String template
     Boolean wrap = false
     @NotEmpty
     String url

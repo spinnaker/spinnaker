@@ -34,7 +34,29 @@ class RestEventListenerSpec extends Specification {
     listener.eventName = 'defaultEvent'
     listener.fieldName = 'defaultField'
     listener.restUrls = new RestUrls()
+    listener.restEventTemplateEngine = new SimpleEventTemplateEngine()
     restService = Mock(RestService)
+  }
+
+  void 'render template when template is set'() {
+    given:
+    listener.restUrls.services = [
+      [
+        client: restService,
+        config: [
+          template: '{"myCustomEventField":${event}}',
+          wrap    : true
+        ]
+      ]
+    ]
+
+    when:
+    listener.processEvent(event)
+
+    then:
+    1 * restService.recordEvent({
+      it.myCustomEventField == listener.mapper.convertValue(event, Map)
+    })
   }
 
   void 'wraps events when wrap is set'() {
