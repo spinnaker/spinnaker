@@ -65,7 +65,6 @@ class RedisApplicationDAOSpec extends Specification {
     def foundApplication = redisApplicationDAO.findByName("MY-APP")
     foundApplication.persistedProperties == newApplication.persistedProperties
     foundApplication.name == newApplication.name
-    foundApplication.accounts == 'prod,test'
     foundApplication.id == foundApplication.name.toLowerCase()
   }
 
@@ -143,28 +142,6 @@ class RedisApplicationDAOSpec extends Specification {
   }
 
   @Unroll
-  void "applications can be searched for by account"() {
-    given:
-    redisApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
-    redisApplicationDAO.create("another-app", new Application([
-        name: "another-app", email: "another@netflix.com", accounts: "prod,test,extra"
-    ]))
-
-    when:
-    def foundApplications = redisApplicationDAO.search([accounts: searchAccounts])
-
-    then:
-    foundApplications.size() == size
-
-    where:
-    searchAccounts    | size
-    "prod"            | 2
-    "test"            | 2
-    "prod, test  "    | 2
-    "prod,test,extra" | 1
-  }
-
-  @Unroll
   void "application '#attribute' can be updated"() {
     given:
     def newApplication = redisApplicationDAO.create(newApplicationAttrs.name, new Application(newApplicationAttrs))
@@ -222,7 +199,6 @@ class RedisApplicationDAOSpec extends Specification {
     def foundApp = redisApplicationDAO.findByName("app1")
 
     then:
-    foundApp.accounts == application.accounts
     foundApp.applicationEventListeners == null
     foundApp.createTs == application.createTs
     foundApp.dao == application.dao
@@ -239,7 +215,6 @@ class RedisApplicationDAOSpec extends Specification {
 
     then:
     apps.size() == 1
-    apps[0].accounts == application.accounts
     apps[0].applicationEventListeners == null
     apps[0].createTs == application.createTs
     apps[0].dao == application.dao
