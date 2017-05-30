@@ -48,7 +48,7 @@ class CorsFilter implements Filter {
     response.setHeader("Access-Control-Allow-Origin", origin)
     response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT, PATCH")
     response.setHeader("Access-Control-Max-Age", "3600")
-    response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type, authorization")
+    response.setHeader("Access-Control-Allow-Headers", "x-requested-with, content-type, authorization, X-RateLimit-App")
     response.setHeader("Access-Control-Expose-Headers", [Headers.AUTHENTICATION_REDIRECT_HEADER_NAME].join(", "))
     chain.doFilter(req, res)
   }

@@ -93,4 +93,21 @@ class RateLimitingInterceptorSpec extends Specification {
     true     | 'baz@example.com' || false
     false    | 'baz@example.com' || true
   }
+
+  def 'should ignore deck requests'() {
+    given:
+    def subject = new RateLimitingInterceptor(rateLimiter, registry, new StaticRateLimitPrincipalProvider(new RateLimiterConfiguration()))
+
+    and:
+    def request = Mock(HttpServletRequest)
+    def response = Mock(HttpServletResponse)
+
+    when:
+    subject.preHandle(request, response, null)
+
+    then:
+    noExceptionThrown()
+    1 * request.getHeader("X-RateLimit-App") >> { return "deck" }
+    0 * _
+  }
 }

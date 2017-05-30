@@ -51,6 +51,12 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    if ("deck".equalsIgnoreCase(request.getHeader("X-RateLimit-App"))) {
+      // If the API request is being made from deck, just let it through without question.
+      // Better than trying to keep tuning the rate limiter based on changes to deck.
+      return true;
+    }
+
     String principalName = getPrincipal(request).toString();
     if (UNKNOWN_PRINCIPAL.equals(principalName)) {
       // Occurs when Spring decides to dispatch to /error after we send the initial 429.
