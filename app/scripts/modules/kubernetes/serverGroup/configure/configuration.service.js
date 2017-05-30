@@ -17,8 +17,15 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
 
       // this ensures we get the images we need when cloning or copying a server group template.
       let queries = command.containers
-        .map(c => grabImageAndTag(c.imageDescription.imageId));
-
+         .filter(c => {
+          return !c.imageDescription.fromContext;
+         })
+        .map(c => {
+          if (c.imageDescription.fromTrigger) {
+            return c.imageDescription.repository;
+          } else {
+            return grabImageAndTag(c.imageDescription.imageId);
+          }});
       if (query) {
         queries.push(query);
       }
