@@ -7,6 +7,7 @@ import {SETTINGS} from 'core/config/settings';
 
 interface DefaultParams {
   timeout: number;
+  headers: {[key: string]: string};
 }
 
 export interface IRequestBuilder {
@@ -34,7 +35,10 @@ export class Api {
     'ngInject';
     this.gateUrl = SETTINGS.gateUrl;
     this.defaultParams = {
-      timeout: SETTINGS.pollSchedule * 2 + 5000
+      timeout: SETTINGS.pollSchedule * 2 + 5000,
+      headers: {
+        'X-RateLimit-App': 'deck'
+      }
     };
   }
 
