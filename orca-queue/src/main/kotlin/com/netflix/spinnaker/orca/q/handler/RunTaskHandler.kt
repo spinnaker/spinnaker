@@ -205,7 +205,7 @@ open class RunTaskHandler
           }
         }
 
-        val result = processed[key]
+        val result = processed[key] ?: execution.getContext()[key]
 
         if (result is String && contextParameterProcessor.containsExpression(result)) {
           val augmentedContext = processed.augmentContext(execution)
