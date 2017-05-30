@@ -76,7 +76,7 @@ open class CompleteExecutionHandler
         block.invoke(TERMINAL)
       } else if (stages.any { it.getStatus() == CANCELED }) {
         block.invoke(CANCELED)
-      } else if (stages.any { it.getStatus() == STOPPED }) {
+      } else if (stages.any { it.getStatus() == STOPPED } && stages.none { it.getStatus() == RUNNING }) {
         block.invoke(if (execution.shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
       } else {
         log.warn("Re-queuing $this as the execution is not yet complete")

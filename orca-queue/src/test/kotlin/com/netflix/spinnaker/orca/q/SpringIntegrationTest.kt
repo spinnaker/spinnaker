@@ -329,14 +329,19 @@ class SpringIntegrationTest {
         requisiteStageRefIds = listOf("2a1")
       }
       stage {
-        refId = "2b"
+        refId = "2b1"
+        type = "dummy"
+        requisiteStageRefIds = listOf("1")
+      }
+      stage {
+        refId = "2b2"
         type = "dummy"
         requisiteStageRefIds = listOf("1")
       }
       stage {
         refId = "3"
         type = "dummy"
-        requisiteStageRefIds = listOf("2a2", "2b")
+        requisiteStageRefIds = listOf("2a2", "2b2")
       }
     }
     repository.store(pipeline)
@@ -352,7 +357,8 @@ class SpringIntegrationTest {
       stageByRef("1").status shouldEqual SUCCEEDED
       stageByRef("2a1").status shouldEqual STOPPED
       stageByRef("2a2").status shouldEqual NOT_STARTED
-      stageByRef("2b").status shouldEqual SUCCEEDED
+      stageByRef("2b1").status shouldEqual SUCCEEDED
+      stageByRef("2b2").status shouldEqual SUCCEEDED
       stageByRef("3").status shouldEqual NOT_STARTED
     }
   }

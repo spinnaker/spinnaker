@@ -24,6 +24,7 @@ import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
@@ -59,7 +60,7 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving $message") {
         subject.handle(message)
       }
 
@@ -81,40 +82,43 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
     }
   }
 
-  describe("an execution appears to complete but other branches are still running") {
-    val pipeline = pipeline {
-      application = "foo"
-      stage {
-        refId = "1"
-        status = SUCCEEDED
+  setOf(SUCCEEDED, STOPPED, FAILED_CONTINUE, SKIPPED).forEach { stageStatus ->
+    describe("an execution appears to complete with one branch $stageStatus but other branches are still running") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          status = stageStatus
+        }
+        stage {
+          refId = "2"
+          status = RUNNING
+        }
       }
-      stage {
-        refId = "2"
-        status = RUNNING
+      val message = CompleteExecution(pipeline)
+
+      beforeGroup {
+        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
       }
-    }
-    val message = CompleteExecution(pipeline)
 
-    beforeGroup {
-      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-    }
+      afterGroup(::resetMocks)
 
-    afterGroup(::resetMocks)
+      on("receiving $message") {
+        subject.handle(message)
+      }
 
-    action("the handler receives a message") {
-      subject.handle(message)
-    }
+      it("waits for the other branch(es)") {
+        verify(repository, never()).updateStatus(eq(pipeline.id), any())
+      }
 
-    it("waits for the other branch(es)") {
-      verify(repository, never()).updateStatus(eq(pipeline.id), any())
-    }
+      it("does not publish any events") {
+        verifyZeroInteractions(publisher)
+      }
 
-    it("does not publish any events") {
-      verifyZeroInteractions(publisher)
-    }
-
-    it("re-queues the message for later evaluation") {
-      verify(queue).push(message, retryDelay)
+      it("re-queues the message for later evaluation") {
+        verify(queue).push(message, retryDelay)
+        verifyNoMoreInteractions(queue)
+      }
     }
   }
 
@@ -143,7 +147,7 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving $message") {
         subject.handle(message)
       }
 
@@ -193,7 +197,7 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving $message") {
       subject.handle(message)
     }
 
@@ -240,7 +244,7 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
 
     afterGroup(::resetMocks)
 
-    action("the handler receives a message") {
+    on("receiving $message") {
       subject.handle(message)
     }
 
