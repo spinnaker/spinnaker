@@ -1,4 +1,4 @@
-_Version: 0.27.0-SNAPSHOT_
+_Version: 0.21.0-SNAPSHOT_
 
 # Table of Contents
 
@@ -131,6 +131,7 @@ _Version: 0.27.0-SNAPSHOT_
  * [**hal config provider kubernetes account get**](#hal-config-provider-kubernetes-account-get)
  * [**hal config provider kubernetes account list**](#hal-config-provider-kubernetes-account-list)
  * [**hal config provider kubernetes disable**](#hal-config-provider-kubernetes-disable)
+ * [**hal config provider kubernetes edit**](#hal-config-provider-kubernetes-edit)
  * [**hal config provider kubernetes enable**](#hal-config-provider-kubernetes-enable)
  * [**hal config provider openstack**](#hal-config-provider-openstack)
  * [**hal config provider openstack account**](#hal-config-provider-openstack-account)
@@ -1044,7 +1045,7 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--regions`: (*Default*: `[]`) The AWS regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--secret-key`: Your AWS Secret Key.
+ * `--secret-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config provider aws account delete
@@ -1089,7 +1090,7 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--remove-region`: Remove this region from the list of managed regions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--secret-key`: Your AWS Secret Key.
+ * `--secret-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config provider aws account get
@@ -2083,6 +2084,7 @@ hal config provider kubernetes [parameters] [subcommands]
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the kubernetes provider's account
  * `disable`: Set the kubernetes provider as disabled
+ * `edit`: Set provider-wide properties for the Kubernetes provider
  * `enable`: Set the kubernetes provider as enabled
 
 ---
@@ -2206,6 +2208,18 @@ Set the kubernetes provider as disabled
 #### Usage
 ```
 hal config provider kubernetes disable [parameters]
+```
+#### Parameters
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider kubernetes edit
+
+Due to how the Kubenretes provider shards its cache resources, there is opportunity to tune how its caching should be handled. This command exists to allow you tune this caching behavior.
+
+#### Usage
+```
+hal config provider kubernetes edit [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -3100,7 +3114,7 @@ Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region.
  * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
- * `--secret-key`: Your AWS Secret Key.
+ * `--secret-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config version

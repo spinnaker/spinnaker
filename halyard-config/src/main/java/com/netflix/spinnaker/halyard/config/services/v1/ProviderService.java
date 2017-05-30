@@ -18,10 +18,16 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
-import com.netflix.spinnaker.halyard.config.model.v1.node.HasClustersProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.HasImageProvider;
-import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
-import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
+import com.netflix.spinnaker.halyard.config.model.v1.node.*;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.appengine.AppengineProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.azure.AzureProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.oraclebmcs.OracleBMCSProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
@@ -41,6 +47,9 @@ public class ProviderService {
 
   @Autowired
   private ValidateService validateService;
+
+  @Autowired
+  private DeploymentService deploymentService;
 
   public HasImageProvider getHasImageProvider(String deploymentName, String providerName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setProvider(providerName);
@@ -85,6 +94,42 @@ public class ProviderService {
               .build());
     } else {
       return matching;
+    }
+  }
+
+  public void setProvider(String deploymentName, Provider provider) {
+    DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
+    Providers providers = deploymentConfiguration.getProviders();
+    switch (provider.providerType()) {
+      case APPENGINE:
+        providers.setAppengine((AppengineProvider) provider);
+        break;
+      case AWS:
+        providers.setAws((AwsProvider) provider);
+        break;
+      case AZURE:
+        providers.setAzure((AzureProvider) provider);
+        break;
+      case DCOS:
+        providers.setDcos((DCOSProvider) provider);
+        break;
+      case DOCKERREGISTRY:
+        providers.setDockerRegistry((DockerRegistryProvider) provider);
+        break;
+      case GOOGLE:
+        providers.setGoogle((GoogleProvider) provider);
+        break;
+      case KUBERNETES:
+        providers.setKubernetes((KubernetesProvider) provider);
+        break;
+      case OPENSTACK:
+        providers.setOpenstack((OpenstackProvider) provider);
+        break;
+      case ORACLEBMCS:
+        providers.setOraclebmcs((OracleBMCSProvider) provider);
+        break;
+      default:
+        throw new IllegalArgumentException("Unknonwn provider type " + provider.providerType());
     }
   }
 

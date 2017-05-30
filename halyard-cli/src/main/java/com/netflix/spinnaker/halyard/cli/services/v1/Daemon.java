@@ -263,6 +263,12 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> setProvider(String deploymentName, String providerName, boolean validate, Provider provider) {
+    return () -> {
+      ResponseUnwrapper.get(getService().setProvider(deploymentName, providerName, validate, provider));
+      return null;
+    };
+  }
 
   public static Supplier<Provider> getProvider(String deploymentName, String providerName, boolean validate) {
     return () -> {

@@ -150,6 +150,13 @@ public interface DaemonService {
       @Path("providerName") String providerName,
       @Query("validate") boolean validate);
 
+  @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/")
+  DaemonTask<Halconfig, Object> setProvider(
+      @Path("deploymentName") String deploymentName,
+      @Path("providerName") String providerName,
+      @Query("validate") boolean validate,
+      @Body Provider provider);
+
   @PUT("/v1/config/deployments/{deploymentName}/providers/{providerName}/enabled/")
   DaemonTask<Halconfig, Void> setProviderEnabled(
       @Path("deploymentName") String deploymentName,
