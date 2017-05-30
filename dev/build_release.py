@@ -199,6 +199,9 @@ class Builder(object):
       target = 'buildDeb'
       extra_args = []
 
+    if self.__options.debug_gradle:
+      extra_args.append('--debug')
+
     if name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
     elif name == 'halyard':
@@ -515,6 +518,8 @@ class Builder(object):
       refresh_source.Refresher.init_argument_parser(parser)
       parser.add_argument('--build', default=True, action='store_true',
                           help='Build the sources.')
+      parser.add_argument('--debug_gradle', default=False, action='store_true',
+                          help='Run gradle with --debug.')
       parser.add_argument(
         '--cpu_ratio', type=float, default=1.25,  # 125%
         help='Number of concurrent threads as ratio of available cores.')

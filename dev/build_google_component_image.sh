@@ -15,6 +15,7 @@
 # limitations under the License.
 
 set -e
+set -x
 set -o pipefail
 
 # Import some functions from other scripts.
@@ -119,6 +120,10 @@ function create_component_prototype_disk() {
   local version=$2
 
   install_script_path=$(basename $INSTALL_SCRIPT)
+  local ssh_key=$(cat ${SSH_KEY_FILE}.pub)
+  if [[ $ssh_key == ssh-rsa* ]]; then
+      ssh_key="$LOGNAME:$ssh_key"
+  fi
 
   echo "`date`: Creating prototype instance '$BUILD_INSTANCE' from $BASE_IMAGE."
   gcloud compute instances create $BUILD_INSTANCE \
@@ -129,8 +134,7 @@ function create_component_prototype_disk() {
       --boot-disk-type pd-ssd \
       --image $BASE_IMAGE  \
       --image-project $IMAGE_PROJECT \
-      --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub \
-      --metadata block-project-ssh-keys=TRUE,startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git"
+      --metadata block-project-ssh-keys=TRUE,startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git",ssh-keys="$ssh_key"
 
   trap cleanup_instances_on_error EXIT
 
@@ -145,8 +149,7 @@ function create_component_prototype_disk() {
       --zone $ZONE \
       --machine-type n1-standard-1 \
       --image $BASE_IMAGE \
-      --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub \
-      --metadata startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git" \
+      --metadata startup-script="apt-get update && apt-get install -y git && git clone https://github.com/spinnaker/spinnaker.git",ssh-keys="$ssh_key" \
       --image-project $IMAGE_PROJECT >& /dev/null&)
 
   args="--component $component --version $version"
@@ -154,8 +157,19 @@ function create_component_prototype_disk() {
   sleep 120 # Wait for the startup scripts to complete.
 
   echo "`date`: Installing $component and spinnaker-monitoring onto '$BUILD_INSTANCE'"
-  gcloud alpha compute ssh $BUILD_INSTANCE \
-    --internal-ip \
+  for i in {1..10}; do
+    if gcloud compute ssh $BUILD_INSTANCE \
+      --project $BUILD_PROJECT \
+      --account $ACCOUNT \
+      --zone $ZONE \
+      --ssh-key-file $SSH_KEY_FILE \
+      --command="exit 0"
+    then
+        break
+    fi
+  done
+
+  gcloud compute ssh $BUILD_INSTANCE \
     --project $BUILD_PROJECT \
     --account $ACCOUNT \
     --zone $ZONE \
@@ -164,8 +178,7 @@ function create_component_prototype_disk() {
 
   if [[ "$UPDATE_OS" == "true" ]]; then
     echo "`date`: Updating distribution on '$BUILD_INSTANCE'"
-    gcloud alpha compute ssh $BUILD_INSTANCE \
-      --internal-ip \
+    gcloud compute ssh $BUILD_INSTANCE \
       --project $BUILD_PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
@@ -221,8 +234,7 @@ function extract_clean_component_disk() {
       --device-name spinnaker
 
   echo "`date`: Cleaning in '$worker_instance'"
-  gcloud alpha compute ssh ${worker_instance} \
-      --internal-ip \
+  gcloud compute ssh ${worker_instance} \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
@@ -231,8 +243,7 @@ function extract_clean_component_disk() {
 
   if [[ $output_file != "" ]]; then
     echo "`date`: Extracting disk as tar file '$output_file.'"
-    gcloud alpha compute ssh ${worker_instance} \
-        --internal-ip \
+    gcloud compute ssh ${worker_instance} \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \
@@ -325,10 +336,10 @@ declare -A COMPONENTS=( ['clouddriver']='clouddriver' \
 TIME_DECORATOR=$(date +%Y%m%d%H%M%S)
 ZONE=us-central1-f
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
-SSH_KEY_FILE=$HOME/.ssh/google_empty
+PROJECT=$BUILD_PROJECT
 
 fix_defaults
-create_empty_ssh_key
+ensure_empty_ssh_key
 
 for artifact in "${!COMPONENTS[@]}"; do
   service=${COMPONENTS[$artifact]}

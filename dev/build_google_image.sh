@@ -229,12 +229,12 @@ function process_args() {
 
 function create_cleaner_instance() {
   # see https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#instance-only
-  local key=$(cat $HOME/.ssh/google_empty.pub)
-  if [[ $key == ssh-rsa* ]]; then
-      key="$LOGNAME:$key"
+  local ssh_key=$(cat ${SSH_KEY_FILE}.pub)
+  if [[ $ssh_key == ssh-rsa* ]]; then
+      ssh_key="$LOGNAME:$ssh_key"
   fi
   gcloud compute instances create ${CLEANER_INSTANCE} \
-      --metadata ssh-keys="$key" \
+      --metadata ssh-keys="$ssh_key" \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
@@ -267,6 +267,11 @@ function delete_cleaner_instance() {
 
 
 function create_prototype_disk() {
+  local ssh_key=$(cat ${SSH_KEY_FILE}.pub)
+  if [[ $ssh_key == ssh-rsa* ]]; then
+      ssh_key="$LOGNAME:$ssh_key"
+  fi
+
   if [[ "$SOURCE_IMAGE"  != "" ]]; then
     echo "`date` Creating disk '$BUILD_INSTANCE' from image '$SOURCE_IMAGE'"
     gcloud compute instances create ${BUILD_INSTANCE} \
@@ -321,16 +326,25 @@ function create_prototype_disk() {
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
-      --metadata-from-file ssh-keys=$HOME/.ssh/google_empty.pub
+      --metadata ssh-keys="$ssh_key"
 
   echo "`date`: Uploading startup script to '$PROTOTYPE_INSTANCE' when ready"
-  gcloud compute copy-files \
-      --project $PROJECT \
-      --account $ACCOUNT \
-      --zone $ZONE \
-      --ssh-key-file $SSH_KEY_FILE \
-      $install_script_path \
-      $PROTOTYPE_INSTANCE:.
+  local copied=false
+  for i in {1..10}; do
+      if gcloud compute copy-files \
+          --project $PROJECT \
+          --account $ACCOUNT \
+          --zone $ZONE \
+          --ssh-key-file $SSH_KEY_FILE \
+          $install_script_path \
+          $PROTOTYPE_INSTANCE:.; then
+        copied=true
+        break
+     else
+        sleep 1
+        echo "trying again...."
+     fi
+  done
 
   if [[ "$install_script_path" != "$INSTALL_SCRIPT" ]]; then
     rm $install_script_path
@@ -418,7 +432,7 @@ function fix_defaults() {
 process_args "$@"
 fix_defaults
 
-create_empty_ssh_key
+ensure_empty_ssh_key
 
 trap cleanup_instances_on_error EXIT
 create_prototype_disk
