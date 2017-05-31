@@ -76,6 +76,7 @@ webpack.dependsOn 'yarn'
 karma.dependsOn 'webpack'
 test.dependsOn 'karma'
 buildDeb.dependsOn 'test'
+buildRpm.dependsOn 'webpack'
 
 String toVers(String v) {
   int idx = v.indexOf('-')
