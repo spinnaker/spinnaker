@@ -15,7 +15,7 @@
  */
 
 
-package com.netflix.spinnaker.orca.batch.exceptions
+package com.netflix.spinnaker.orca.exceptions
 
 import com.google.common.base.Throwables
 import groovy.util.logging.Slf4j

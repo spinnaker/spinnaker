@@ -18,17 +18,12 @@ package com.netflix.spinnaker.orca.echo.pipeline
 
 import java.util.concurrent.TimeUnit
 import com.google.common.annotations.VisibleForTesting
-import com.netflix.spinnaker.orca.AuthenticatedStage
-import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.TaskResult
-import com.netflix.spinnaker.orca.batch.RestartableStage
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.echo.EchoService
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -44,13 +39,9 @@ class ManualJudgmentStage implements StageDefinitionBuilder, RestartableStage, A
   }
 
   @Override
-  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage, Collection<StageDefinitionBuilder> allStageBuilders) {
-    stage = StageDefinitionBuilder.StageDefinitionBuilderSupport
-      .prepareStageForRestart(executionRepository, stage, this, allStageBuilders)
-
+  void prepareStageForRestart(Stage stage) {
     stage.context.remove("judgmentStatus")
     stage.context.remove("lastModifiedBy")
-    return stage
   }
 
   @Override

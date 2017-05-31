@@ -16,9 +16,9 @@
 
 package com.netflix.spinnaker.orca.eureka;
 
+import java.lang.management.ManagementFactory;
 import com.netflix.appinfo.InstanceInfo;
 import com.netflix.discovery.DiscoveryClient;
-import com.netflix.spinnaker.orca.restart.InstanceStatusProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -28,9 +28,6 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
-
-import java.lang.management.ManagementFactory;
-import java.util.Optional;
 
 @Configuration
 public class DiscoveryPollingConfiguration {
@@ -53,11 +50,6 @@ public class DiscoveryPollingConfiguration {
     public String currentInstanceId() {
       return ManagementFactory.getRuntimeMXBean().getName();
     }
-
-    @Bean
-    public InstanceStatusProvider instanceStatusProvider(String currentInstanceId) {
-      return (String app, String instanceId) -> appName.equals(app) && currentInstanceId.equals(instanceId);
-    }
   }
 
   @Configuration
@@ -66,14 +58,6 @@ public class DiscoveryPollingConfiguration {
     @Bean
     public String currentInstanceId(InstanceInfo instanceInfo) {
       return instanceInfo.getInstanceId();
-    }
-
-    @Bean
-    public InstanceStatusProvider instanceStatusProvider(DiscoveryClient discoveryClient) {
-      return (String app, String instanceId) -> Optional.ofNullable(discoveryClient.getApplication(app))
-        .map(a -> a.getByInstanceId(instanceId))
-        .map(InstanceInfo::getStatus)
-        .orElse(InstanceInfo.InstanceStatus.UNKNOWN)  == InstanceInfo.InstanceStatus.UP;
     }
   }
 }

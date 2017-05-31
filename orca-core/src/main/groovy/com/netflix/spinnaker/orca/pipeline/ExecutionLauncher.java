@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.pipeline;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,7 +28,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import lombok.extern.slf4j.Slf4j;
 import static java.lang.Boolean.parseBoolean;
-import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
@@ -40,16 +38,16 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
   protected final String currentInstanceId;
   protected final ExecutionRepository executionRepository;
 
-  private final Collection<ExecutionRunner> runners;
+  private final ExecutionRunner executionRunner;
 
   protected ExecutionLauncher(ObjectMapper objectMapper,
                               String currentInstanceId,
                               ExecutionRepository executionRepository,
-                              Collection<ExecutionRunner> runners) {
+                              ExecutionRunner executionRunner) {
     this.objectMapper = objectMapper;
     this.currentInstanceId = currentInstanceId;
     this.executionRepository = executionRepository;
-    this.runners = runners;
+    this.executionRunner = executionRunner;
   }
 
   public T start(String configJson) throws Exception {
@@ -76,12 +74,7 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
     if (shouldQueue(execution)) {
       log.info("Queueing {}", execution.getId());
     } else {
-      ExecutionRunner runner = runners
-        .stream()
-        .filter(it -> it.engine() == execution.getExecutionEngine())
-        .findFirst()
-        .orElseThrow(()-> new IllegalStateException(format("Unsupported execution engine %s", execution.getExecutionEngine())));
-      runner.start(execution);
+      executionRunner.start(execution);
       onExecutionStarted(execution);
     }
     return execution;

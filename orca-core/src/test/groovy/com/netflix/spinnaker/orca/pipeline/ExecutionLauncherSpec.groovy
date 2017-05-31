@@ -35,10 +35,7 @@ abstract class ExecutionLauncherSpec<T extends Execution, L extends ExecutionLau
   abstract L create()
 
   @Shared def objectMapper = new ObjectMapper()
-  def v2Runner = Mock(ExecutionRunner) {
-    engine() >> v2
-  }
-  def v3Runner = Mock(ExecutionRunner) {
+  def executionRunner = Mock(ExecutionRunner) {
     engine() >> v3
   }
   def executionRepository = Mock(ExecutionRepository)
@@ -52,7 +49,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
 
   @Override
   PipelineLauncher create() {
-    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, [v2Runner, v3Runner], Optional.of(startTracker), Optional.of(pipelineValidator))
+    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, executionRunner, Optional.of(startTracker), Optional.of(pipelineValidator))
   }
 
   def "can autowire pipeline launcher with optional dependencies"() {
@@ -63,7 +60,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
         register(TestConfiguration)
         registerSingleton("objectMapper", objectMapper)
         registerSingleton("executionRepository", executionRepository)
-        registerSingleton("executionRunner", v2Runner)
+        registerSingleton("executionRunner", executionRunner)
         registerSingleton("whateverStageDefBuilder", new StageDefinitionBuilder() {
           @Override
           String getType() {
@@ -88,7 +85,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
         register(TestConfiguration)
         registerSingleton("objectMapper", objectMapper)
         registerSingleton("executionRepository", executionRepository)
-        registerSingleton("executionRunner", v2Runner)
+        registerSingleton("executionRunner", executionRunner)
         registerSingleton("whateverStageDefBuilder", new StageDefinitionBuilder() {
           @Override
           String getType() {
@@ -116,7 +113,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
 
     then:
     1 * executionRepository.store(_)
-    0 * v2Runner.start(_)
+    0 * executionRunner.start(_)
 
     where:
     config = [id: "whatever", stages: [], limitConcurrent: true, executionEngine: "v2"]
@@ -134,7 +131,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
     launcher.start(json)
 
     then:
-    1 * v2Runner.start(_)
+    1 * executionRunner.start(_)
     1 * startTracker.addToStarted(config.id, _)
 
     where:

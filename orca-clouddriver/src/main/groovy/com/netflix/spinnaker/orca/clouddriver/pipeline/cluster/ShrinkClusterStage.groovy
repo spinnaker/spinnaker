@@ -20,7 +20,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractClusterWideC
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.AbstractWaitForClusterWideClouddriverTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.ShrinkClusterTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.WaitForClusterShrinkTask
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
@@ -58,7 +57,7 @@ class ShrinkClusterStage extends AbstractClusterWideClouddriverOperationStage {
       }
 
       return [
-        StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+        newStage(
           stage.execution, disableClusterStage.type, "disableCluster", context, stage, SyntheticStageOwner.STAGE_BEFORE
         )
       ]

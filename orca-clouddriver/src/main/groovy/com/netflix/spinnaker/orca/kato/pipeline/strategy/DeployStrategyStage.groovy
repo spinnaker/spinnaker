@@ -35,8 +35,6 @@ import groovy.transform.CompileDynamic
 import groovy.transform.Immutable
 import org.springframework.beans.factory.annotation.Autowired
 
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage
-
 /**
  * DEPRECATED - Use AbstractDeployStrategyStage instead.
  */

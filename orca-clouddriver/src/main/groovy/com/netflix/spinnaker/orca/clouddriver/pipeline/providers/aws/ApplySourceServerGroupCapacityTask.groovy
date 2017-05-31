@@ -17,7 +17,6 @@
 
 package com.netflix.spinnaker.orca.clouddriver.pipeline.providers.aws
 
-import groovy.util.logging.Slf4j
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -28,9 +27,10 @@ import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.StageDefinitionBuilderSupport.getType
+import static com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder.getType
 
 @Slf4j
 @Component

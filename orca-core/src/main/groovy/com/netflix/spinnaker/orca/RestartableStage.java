@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.restart;
+package com.netflix.spinnaker.orca;
 
-public interface InstanceStatusProvider {
-  boolean isInstanceUp(String applicationName, String instanceId);
+public interface RestartableStage {
 }

@@ -16,9 +16,8 @@
 
 package com.netflix.spinnaker.orca.igor.pipeline
 
-import groovy.transform.CompileStatic
 import com.netflix.spinnaker.orca.ExecutionStatus
-import com.netflix.spinnaker.orca.batch.RestartableStage
+import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.igor.tasks.MonitorJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.MonitorQueuedJenkinsJobTask
 import com.netflix.spinnaker.orca.igor.tasks.StartScriptTask
@@ -27,7 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.Task
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 
 @Component
@@ -46,13 +45,12 @@ class ScriptStage implements StageDefinitionBuilder, RestartableStage {
   }
 
   @Override
-  Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage, Collection<StageDefinitionBuilder> allStageBuilders) {
-    stage = StageDefinitionBuilder.StageDefinitionBuilderSupport
-      .prepareStageForRestart(executionRepository, stage, this, allStageBuilders)
+  void prepareStageForRestart(Stage stage) {
     stage.startTime = null
     stage.endTime = null
 
     if (stage.context.buildInfo) {
+      if (!stage.context.restartDetails) stage.context.restartDetails = [:]
       stage.context.restartDetails["previousBuildInfo"] = stage.context.buildInfo
     }
     stage.context.remove("buildInfo")
@@ -63,7 +61,5 @@ class ScriptStage implements StageDefinitionBuilder, RestartableStage {
       task.endTime = null
       task.status = ExecutionStatus.NOT_STARTED
     }
-
-    return stage
   }
 }

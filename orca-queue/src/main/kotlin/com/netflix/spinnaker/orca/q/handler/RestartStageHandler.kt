@@ -52,12 +52,11 @@ open class RestartStageHandler
   }
 
   private fun Stage<*>.addRestartDetails(user: String?) {
-    val restartDetails = mapOf(
+    getContext()["restartDetails"] = mapOf(
       "restartedBy" to (user ?: "anonymous"),
       "restartTime" to clock.millis(),
       "previousException" to getContext().remove("exception")
     )
-    getContext()["restartDetails"] = restartDetails
   }
 
   private fun Stage<*>.reset() {
@@ -66,7 +65,7 @@ open class RestartStageHandler
       setStartTime(null)
       setEndTime(null)
       setTasks(emptyList())
-      builder().prepareStageForRestart(repository, this, stageDefinitionBuilders)
+      builder().prepareStageForRestart(this)
       repository.storeStage(this)
 
       removeSynthetics()

@@ -97,7 +97,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
 
       Map enableServerGroupContext = new HashMap(parentStage.context)
       enableServerGroupContext.serverGroupName = restoreServerGroupName
-      stages << StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      stages << newStage(
         parentStage.execution, enableServerGroupStage.type, "enable", enableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
       )
 
@@ -113,13 +113,13 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
         asgName           : restoreServerGroupName,
         pinMinimumCapacity: true
       ]
-      stages << StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      stages << newStage(
         parentStage.execution, resizeServerGroupStage.type, "resize", resizeServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
       )
 
       Map disableServerGroupContext = new HashMap(parentStage.context)
       disableServerGroupContext.serverGroupName = rollbackServerGroupName
-      stages << StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      stages << newStage(
         parentStage.execution, disableServerGroupStage.type, "disable", disableServerGroupContext, parentStage, SyntheticStageOwner.STAGE_AFTER
       )
 
@@ -139,7 +139,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
           cloudProvider  : source.cloudProvider
         ]
       ]
-      return StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      return newStage(
         parentStage.execution,
         captureSourceServerGroupCapacityStage.type,
         "snapshot",
@@ -161,7 +161,7 @@ class RollbackServerGroupStage implements StageDefinitionBuilder {
           cloudProvider  : source.cloudProvider
         ]
       ]
-      return StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      return newStage(
         parentStage.execution,
         applySourceServerGroupCapacityStage.type,
         "apply",

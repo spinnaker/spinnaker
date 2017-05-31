@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.orca.batch.exceptions
+package com.netflix.spinnaker.orca.exceptions
 
 import groovy.transform.InheritConstructors
 

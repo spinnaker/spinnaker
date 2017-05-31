@@ -11,7 +11,6 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3
 import static java.lang.System.currentTimeMillis
 
 /**
@@ -34,16 +33,13 @@ class EchoNotifyingStageListener implements StageListener {
   <T extends Execution<T>> void beforeTask(Persister persister,
                                            Stage<T> stage,
                                            Task task) {
-    if (task.status == NOT_STARTED || stage.execution.executionEngine == v3) {
       recordEvent('task', 'starting', stage, task)
-    }
   }
 
   @Override
   @CompileDynamic
   <T extends Execution<T>> void beforeStage(Persister persister,
                                             Stage<T> stage) {
-    if (stage.status == NOT_STARTED || stage.execution.executionEngine == v3) {
       def details = [
         name       : stage.name,
         type       : stage.type,
@@ -55,9 +51,7 @@ class EchoNotifyingStageListener implements StageListener {
       stage.context.stageDetails = details
       repository.updateStageContext(stage)
 
-      log.debug("***** $stage.execution.id Echo stage $stage.name starting v2")
       recordEvent("stage", "starting", stage)
-    }
   }
 
   @Override

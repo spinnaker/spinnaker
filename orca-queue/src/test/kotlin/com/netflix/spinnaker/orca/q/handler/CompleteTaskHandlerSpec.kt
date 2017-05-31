@@ -26,10 +26,11 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
+import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.dsl.context
 import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
 import org.jetbrains.spek.api.dsl.it
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
@@ -49,7 +50,7 @@ object CompleteTaskHandlerSpec : SubjectSpek<CompleteTaskHandler>({
   fun resetMocks() = reset(queue, repository, publisher)
 
   describe("when a task completes successfully") {
-    describe("the stage contains further tasks") {
+    given("the stage contains further tasks") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -100,7 +101,7 @@ object CompleteTaskHandlerSpec : SubjectSpek<CompleteTaskHandler>({
       }
     }
 
-    describe("the stage is complete") {
+    given("the stage is complete") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -141,7 +142,7 @@ object CompleteTaskHandlerSpec : SubjectSpek<CompleteTaskHandler>({
       }
     }
 
-    context("the stage has synthetic after stages") {
+    given("the stage has synthetic after stages") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -182,7 +183,7 @@ object CompleteTaskHandlerSpec : SubjectSpek<CompleteTaskHandler>({
       }
     }
 
-    describe("the task is the end of a rolling push loop") {
+    given("the task is the end of a rolling push loop") {
       val pipeline = pipeline {
         application = "foo"
         stage {
@@ -192,7 +193,7 @@ object CompleteTaskHandlerSpec : SubjectSpek<CompleteTaskHandler>({
         }
       }
 
-      context("when the task returns REDIRECT") {
+      and("when the task returns REDIRECT") {
         val message = CompleteTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stageByRef("1").id, "4", REDIRECT)
 
         beforeGroup {

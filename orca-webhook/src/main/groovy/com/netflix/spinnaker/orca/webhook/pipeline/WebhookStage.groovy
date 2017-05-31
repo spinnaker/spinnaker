@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.orca.webhook.pipeline
 
 import com.netflix.spinnaker.orca.CancellableStage
-import com.netflix.spinnaker.orca.batch.RestartableStage
+import com.netflix.spinnaker.orca.RestartableStage
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution

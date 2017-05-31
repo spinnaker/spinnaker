@@ -16,13 +16,13 @@
 
 package com.netflix.spinnaker.orca.mahe.pipeline
 
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.mahe.tasks.RollbackPropertyTask
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -35,7 +35,7 @@ class UpdatePersistedPropertyStage implements StageDefinitionBuilder, Cancellabl
   @Override
   def <T extends Execution> List<Stage<T>> aroundStages(Stage<T> parentStage) {
     return [
-      StageDefinitionBuilder.StageDefinitionBuilderSupport.newStage(
+      newStage(
         parentStage.execution,
         monitorCreatePropertyStage.getType(),
         "Monitor Update Property",

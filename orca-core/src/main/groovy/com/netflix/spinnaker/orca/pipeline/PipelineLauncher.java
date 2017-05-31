@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,10 +39,10 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
   public PipelineLauncher(ObjectMapper objectMapper,
                           String currentInstanceId,
                           ExecutionRepository executionRepository,
-                          Collection<ExecutionRunner> runners,
+                          ExecutionRunner executionRunner,
                           Optional<PipelineStartTracker> startTracker,
                           Optional<PipelineValidator> pipelineValidator) {
-    super(objectMapper, currentInstanceId, executionRepository, runners);
+    super(objectMapper, currentInstanceId, executionRepository, executionRunner);
     this.startTracker = startTracker;
     this.pipelineValidator = pipelineValidator;
   }

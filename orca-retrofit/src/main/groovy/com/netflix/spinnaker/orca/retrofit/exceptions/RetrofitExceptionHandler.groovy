@@ -18,7 +18,7 @@ package com.netflix.spinnaker.orca.retrofit.exceptions
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
-import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import org.springframework.core.annotation.Order
 import retrofit.RetrofitError
 import retrofit.http.RestMethod

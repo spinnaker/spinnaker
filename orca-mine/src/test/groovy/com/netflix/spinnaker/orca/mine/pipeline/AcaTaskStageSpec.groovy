@@ -40,23 +40,23 @@ class AcaTaskStageSpec extends Specification {
     acaTaskStage.mineService = mineService
 
     when:
-    Stage result = acaTaskStage.prepareStageForRestart(executionRepository, stage, [])
+    acaTaskStage.prepareStageForRestart(stage)
 
     then: "canary should be copied to the restart details"
-    result.context.restartDetails.previousCanary == canary
+    stage.context.restartDetails.previousCanary == canary
 
     and: "preserve the canary config"
-    result.context.canary.canaryConfig == canary.canaryConfig
+    stage.context.canary.canaryConfig == canary.canaryConfig
 
     and: "clean up the canary"
-    result.context.canary.id == null
-    result.context.canary.launchDate == null
-    result.context.canary.endDate == null
-    result.context.canary.canaryDeployments == null
-    result.context.canary.canaryResult == null
-    result.context.canary.status == null
-    result.context.canary.health == null
-    result.status == ExecutionStatus.NOT_STARTED
+    stage.context.canary.id == null
+    stage.context.canary.launchDate == null
+    stage.context.canary.endDate == null
+    stage.context.canary.canaryDeployments == null
+    stage.context.canary.canaryResult == null
+    stage.context.canary.status == null
+    stage.context.canary.health == null
+    stage.status == ExecutionStatus.NOT_STARTED
 
     and: "reset the tasks"
     stage.tasks.each { task ->
@@ -83,23 +83,23 @@ class AcaTaskStageSpec extends Specification {
     acaTaskStage.mineService = mineService
 
     when:
-    Stage result = acaTaskStage.prepareStageForRestart(executionRepository, stage, [])
+    acaTaskStage.prepareStageForRestart(stage)
 
     then: "canary should be copied to the restart details"
-    result.context.restartDetails.previousCanary == canary
+    stage.context.restartDetails.previousCanary == canary
 
     and: "preserve the canary config"
-    result.context.canary.canaryConfig == canary.canaryConfig
+    stage.context.canary.canaryConfig == canary.canaryConfig
 
     and: "clean up the canary"
-    result.context.canary.id == null
-    result.context.canary.launchDate == null
-    result.context.canary.endDate == null
-    result.context.canary.canaryDeployments == null
-    result.context.canary.canaryResult == null
-    result.context.canary.status == null
-    result.context.canary.health == null
-    result.status == ExecutionStatus.NOT_STARTED
+    stage.context.canary.id == null
+    stage.context.canary.launchDate == null
+    stage.context.canary.endDate == null
+    stage.context.canary.canaryDeployments == null
+    stage.context.canary.canaryResult == null
+    stage.context.canary.status == null
+    stage.context.canary.health == null
+    stage.status == ExecutionStatus.NOT_STARTED
 
     and: "reset the tasks"
     stage.tasks.each { task ->

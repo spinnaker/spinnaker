@@ -22,9 +22,6 @@ import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Task
-import org.springframework.batch.core.JobExecution
-import org.springframework.batch.core.JobParameter
-import org.springframework.batch.core.JobParameters
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,7 +29,6 @@ class DependentPipelineExecutionListenerSpec extends Specification {
 
   def front50Service = Mock(Front50Service)
   def dependentPipelineStarter = Mock(DependentPipelineStarter)
-  def jobExecution = new JobExecution(0L, new JobParameters([pipeline: new JobParameter('something')]))
   def pipelineConfig = [
     triggers: [
       [

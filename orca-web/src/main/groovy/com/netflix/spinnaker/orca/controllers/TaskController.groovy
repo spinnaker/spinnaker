@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.controllers
 
 import java.time.Clock
-import com.netflix.spinnaker.orca.ActiveExecutionTracker
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.log.ExecutionLogEntry
@@ -31,7 +30,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,10 +41,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.web.bind.annotation.*
 import rx.schedulers.Schedulers
-
-import static com.netflix.spinnaker.orca.ExecutionStatus.CANCELED
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3
 import static java.time.ZoneOffset.UTC
 
 @RestController
@@ -61,16 +55,10 @@ class TaskController {
   PipelineStartTracker startTracker
 
   @Autowired
-  Collection<ExecutionRunner> executionRunners
+  ExecutionRunner executionRunner
 
   @Autowired
   Collection<StageDefinitionBuilder> stageBuilders
-
-  @Autowired(required = false)
-  Optional<ZombiePipelineCleanupAgent> zombiePipelineCleanupAgent
-
-  @Autowired(required = false)
-  ActiveExecutionTracker activeExecutionTracker
 
   @Autowired(required = false)
   ExecutionLogRepository executionLogRepository
@@ -211,16 +199,11 @@ class TaskController {
   void cancel(@PathVariable String id, @RequestParam(required = false) String reason,
               @RequestParam(defaultValue = "false") boolean force) {
     executionRepository.retrievePipeline(id).with { pipeline ->
-      if (pipeline.executionEngine == v3) {
-        executionRunners.find {
-          it.engine() == v3
-        }.cancel(pipeline, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
-      } else {
-        executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
-        zombiePipelineCleanupAgent.ifPresent({
-          it.slayIfZombie(executionRepository.retrievePipeline(id), force)
-        })
-      }
+      executionRunner.cancel(
+        pipeline,
+        AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"),
+        reason
+      )
     }
     executionRepository.updateStatus(id, ExecutionStatus.CANCELED)
   }
@@ -238,9 +221,7 @@ class TaskController {
   void resume(@PathVariable String id) {
     executionRepository.resume(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"))
     def pipeline = executionRepository.retrievePipeline(id)
-    if (pipeline.executionEngine == v3) {
-      executionRunners.find { it.engine() == v3 }.unpause(pipeline)
-    }
+    executionRunner.unpause(pipeline)
   }
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission()")
@@ -286,17 +267,7 @@ class TaskController {
   Pipeline retryPipelineStage(
     @PathVariable String id, @PathVariable String stageId) {
     def pipeline = executionRepository.retrievePipeline(id)
-    if (pipeline.executionEngine == v3) {
-      executionRunners.find { it.engine() == v3 }.restart(pipeline, stageId)
-    } else {
-      def stage = pipeline.stages.find { it.id == stageId }
-      if (stage) {
-        def stageBuilder = stageBuilders.find { it.type == stage.type }
-        stage = stageBuilder.prepareStageForRestart(executionRepository, stage, stageBuilders)
-        executionRepository.storeStage(stage)
-        executionRunners.find { it.engine() == v2 }.restart(pipeline)
-      }
-    }
+    executionRunner.restart(pipeline, stageId)
     if (pipeline.pipelineConfigId) {
       startTracker.addToStarted(pipeline.pipelineConfigId, pipeline.id)
     }
@@ -352,19 +323,6 @@ class TaskController {
     }).subscribeOn(Schedulers.io()).toList().toBlocking().single().sort(startTimeOrId)
 
     return filterPipelinesByHistoryCutoff(allPipelines)
-  }
-
-  @RequestMapping(value = "/executions/activeByInstance", method = RequestMethod.GET)
-  Map<String, ActiveExecutionTracker.OrcaInstance> activeExecutionsByInstance() {
-    activeExecutionTracker
-      .activeExecutionsByInstance()
-      .sort { a, b ->
-        def result = b.value.overdue <=> a.value.overdue
-        if (result != 0) {
-          return result
-        }
-        b.value.count <=> a.value.count
-      }
   }
 
   private List<Pipeline> filterPipelinesByHistoryCutoff(List<Pipeline> pipelines) {

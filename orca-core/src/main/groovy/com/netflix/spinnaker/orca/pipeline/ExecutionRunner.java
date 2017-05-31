@@ -19,17 +19,10 @@ package com.netflix.spinnaker.orca.pipeline;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
-import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine;
 import static java.lang.String.format;
 
 public interface ExecutionRunner {
   <T extends Execution<T>> void start(@Nonnull T execution) throws Exception;
-
-  @Deprecated
-  default <T extends Execution<T>> void restart(
-    @Nonnull T execution) throws Exception {
-    throw new UnsupportedOperationException();
-  }
 
   default <T extends Execution<T>> void restart(
     @Nonnull T execution, @Nonnull String stageId) throws Exception {
@@ -46,8 +39,6 @@ public interface ExecutionRunner {
     @Nonnull String user, @Nullable String reason) throws Exception {
     throw new UnsupportedOperationException();
   }
-
-  ExecutionEngine engine();
 
   class NoSuchStageDefinitionBuilder extends RuntimeException {
     public NoSuchStageDefinitionBuilder(String type) {

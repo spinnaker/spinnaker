@@ -1,9 +1,8 @@
 package com.netflix.spinnaker.orca.front50.pipeline;
 
-import java.util.Collection;
 import java.util.List;
 import com.netflix.spinnaker.orca.CancellableStage;
-import com.netflix.spinnaker.orca.batch.RestartableStage;
+import com.netflix.spinnaker.orca.RestartableStage;
 import com.netflix.spinnaker.orca.front50.tasks.MonitorPipelineTask;
 import com.netflix.spinnaker.orca.front50.tasks.StartPipelineTask;
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
@@ -23,7 +22,7 @@ import static java.util.Collections.emptyMap;
 @Slf4j
 public class PipelineStage implements StageDefinitionBuilder, RestartableStage, CancellableStage {
 
-  public static final String PIPELINE_CONFIG_TYPE = StageDefinitionBuilderSupport.getType(PipelineStage.class);
+  public static final String PIPELINE_CONFIG_TYPE = StageDefinitionBuilder.getType(PipelineStage.class);
 
   @Autowired
   ExecutionRepository executionRepository;
@@ -39,9 +38,7 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
   }
 
   @Override
-  public Stage prepareStageForRestart(ExecutionRepository executionRepository, Stage stage, Collection<StageDefinitionBuilder> allStageBuilders) {
-    stage = StageDefinitionBuilderSupport
-      .prepareStageForRestart(executionRepository, stage, this, allStageBuilders);
+  public void prepareStageForRestart(Stage stage) {
     stage.setStartTime(null);
     stage.setEndTime(null);
 
@@ -55,8 +52,6 @@ public class PipelineStage implements StageDefinitionBuilder, RestartableStage, 
       task.setEndTime(null);
       task.setStatus(NOT_STARTED);
     });
-
-    return stage;
   }
 
   @Override
