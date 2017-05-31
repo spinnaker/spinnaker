@@ -1,6 +1,6 @@
 We prefer small, well tested pull requests.
 
-Please refer to [Contributing to Spinnaker](https://spinnaker.github.io/community/contributing/).
+Please refer to [Contributing to Spinnaker](https://spinnaker.io/community/contributing/).
 
 When filling out a pull request, please consider the following:
 
