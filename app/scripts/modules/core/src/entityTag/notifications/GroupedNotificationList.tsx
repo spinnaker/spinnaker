@@ -1,13 +1,14 @@
 import * as React from 'react';
-import * as marked from 'marked';
 import { groupBy } from 'lodash';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { EntityName } from './EntityName';
 import { INotification } from './NotificationsPopover';
+import { Markdown } from 'core/presentation';
 
 export interface IMessageNotifications {
   message: string;
+  tagline?: string;
   notifications: INotification[];
 }
 
@@ -47,6 +48,8 @@ export class GroupedNotificationList extends React.Component<IGroupedNotificatio
 
     return Object.keys(grouped).map(message => ({
       message,
+      // assume all the taglines are the same (for identical messages)
+      tagline: grouped[message][0].entityTag.value.tagline,
       notifications: grouped[message],
     }));
   }
@@ -108,11 +111,12 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
   }
 
   public render() {
-    const { alertsForMessage } = this.props;
+    const { alertsForMessage: { notifications, message, tagline } } = this.props;
     return (
       <div className="notification-message">
-        {this.renderServerGroupNames(alertsForMessage.notifications)}
-        <div dangerouslySetInnerHTML={{ __html: marked(alertsForMessage.message) }}/>
+        {this.renderServerGroupNames(notifications)}
+        <Markdown message={message} />
+        <Markdown className="small" message={tagline} />
       </div>
     );
   }

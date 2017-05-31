@@ -1,8 +1,7 @@
 import * as React from 'react';
-import * as marked from 'marked';
-import * as DOMPurify from 'dompurify';
 import autoBindMethods from 'class-autobind-decorator';
 
+import { Markdown } from 'core/presentation';
 import { relativeTime, timestamp } from 'core/utils';
 import { INotification } from './NotificationsPopover';
 
@@ -22,19 +21,29 @@ export class NotificationList extends React.Component<INotificationListProps, vo
 
     return (
       <div className="notification-list">
-        {notifications.map((notification: INotification, idx: number) => (
-          <div className="notification-message" key={idx}>
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(marked(notification.entityTag.value.message)) }}/>
+        {notifications.map((notification: INotification, idx: number) => {
+          const {
+            entityTag: { value: { message, tagline } },
+            entityTags: { lastModified },
+          } = notification;
 
-            <div className="flex-container-h">
-              <div className="small flex-grow" title={timestamp(notification.entityTags.lastModified)}>
-                {relativeTime(notification.entityTags.lastModified)}
+          return (
+            <div className="notification-message" key={idx}>
+              <Markdown message={message} />
+
+              <div className="notification-tagline flex-container-h baseline">
+                <Markdown className="small" message={tagline} />
+
+                <div className="small flex-grow" title={timestamp(lastModified)}>
+                  {relativeTime(lastModified)}
+                </div>
+
+                <NotificationActions notification={notification} onEditTag={onEditTag} onDeleteTag={onDeleteTag} />
               </div>
-
-              <NotificationActions notification={notification} onEditTag={onEditTag} onDeleteTag={onDeleteTag} />
             </div>
-          </div>
-        ))}
+            )
+          }
+        )}
       </div>
     );
   }
