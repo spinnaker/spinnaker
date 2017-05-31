@@ -26,6 +26,7 @@ import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.google.GoogleAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
+import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskInterrupted;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
@@ -152,6 +153,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
       for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
+        if (profile == null) {
+          throw new HalException(Problem.Severity.FATAL, "Service " + sidecarService.getService().getCanonicalName() + " is required but was not supplied for deployment.");
+        }
+
         String secretName = secretName(profile.getName(), version);
         String mountPoint = Paths.get(profile.getOutputFile()).toString();
         Path stagedFile = Paths.get(profile.getStagedFile(stagingPath));

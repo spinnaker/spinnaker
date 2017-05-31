@@ -178,6 +178,10 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
 
     for (SidecarService sidecarService : getSidecars(runtimeSettings)) {
       for (Profile profile : sidecarService.getSidecarProfiles(resolvedConfiguration, thisService)) {
+        if (profile == null) {
+          throw new HalException(Problem.Severity.FATAL, "Service " + sidecarService.getService().getCanonicalName() + " is required but was not supplied for deployment.");
+        }
+
         serviceProfiles.put(profile.getName(), profile);
         requiredFiles.addAll(profile.getRequiredFiles());
       }
