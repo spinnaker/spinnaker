@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.ratelimit
 
-import com.netflix.spectator.api.Counter
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.gate.config.RateLimiterConfiguration
 import com.netflix.spinnaker.security.User
@@ -30,9 +30,7 @@ import javax.servlet.http.HttpServletResponse
 
 class RateLimitingInterceptorSpec extends Specification {
 
-  Registry registry = Mock() {
-    counter(_) >> Mock(Counter)
-  }
+  Registry registry = new NoopRegistry()
 
   RateLimiter rateLimiter = Mock()
 

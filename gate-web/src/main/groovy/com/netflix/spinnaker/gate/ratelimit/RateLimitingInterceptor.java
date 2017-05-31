@@ -15,8 +15,10 @@
  */
 package com.netflix.spinnaker.gate.ratelimit;
 
+import com.netflix.spectator.api.BasicTag;
 import com.netflix.spectator.api.Counter;
 import com.netflix.spectator.api.Registry;
+import com.netflix.spectator.api.Tag;
 import com.netflix.spinnaker.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,7 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 
 public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
@@ -38,6 +41,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   private RateLimiter rateLimiter;
   private RateLimitPrincipalProvider rateLimitPrincipalProvider;
+  private Registry registry;
 
   private Counter throttlingCounter;
   private Counter learningThrottlingCounter;
@@ -45,6 +49,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
   public RateLimitingInterceptor(RateLimiter rateLimiter, Registry registry, RateLimitPrincipalProvider rateLimitPrincipalProvider) {
     this.rateLimiter = rateLimiter;
     this.rateLimitPrincipalProvider = rateLimitPrincipalProvider;
+    this.registry = registry;
     throttlingCounter = registry.counter("rateLimit.throttling");
     learningThrottlingCounter = registry.counter("rateLimit.throttlingLearning");
   }
@@ -69,6 +74,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     Rate rate = rateLimiter.incrementAndGetRate(principal);
 
     rate.assignHttpHeaders(response, principal.isLearning());
+    recordPrincipalMetrics(principal, rate);
 
     if (principal.isLearning()) {
       if (rate.isThrottled()) {
@@ -122,5 +128,13 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       return request.getRemoteAddr();
     }
     return ip;
+  }
+
+  private void recordPrincipalMetrics(RateLimitPrincipal principal, Rate rate) {
+    Iterable<Tag> tags = Collections.singletonList(new BasicTag("principal", principal.getName()));
+    if (rate.isThrottled()) {
+      registry.counter("rateLimit.principal.throttled", tags).increment();
+    }
+    registry.gauge("rateLimit.principal.remaining", tags, rate.remaining);
   }
 }
