@@ -22,24 +22,34 @@ import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Permissions
 import com.netflix.spinnaker.fiat.model.resources.ResourceType
 import com.netflix.spinnaker.fiat.model.resources.Role
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class FiatPermissionEvaluatorSpec extends Specification {
 
+  @Shared
+  FiatPermissionEvaluator evaluator
+
+  @Shared
+  FiatService fiatService
+
+  def setup() {
+    FiatClientConfigurationProperties configProps = new FiatClientConfigurationProperties()
+    configProps.cache.maxEntries = 0
+    fiatService = Mock(FiatService)
+    evaluator = new FiatPermissionEvaluator(fiatEnabled: true,
+                                            fiatService: fiatService,
+                                            configProps: configProps)
+    evaluator.afterPropertiesSet()
+  }
+
   @Unroll
   def "should parse application name"() {
     setup:
-    FiatClientConfigurationProperties configProps = new FiatClientConfigurationProperties()
-    configProps.cache.maxEntries = 0
-    FiatService fiatService = Mock(FiatService)
-    FiatPermissionEvaluator evaluator = new FiatPermissionEvaluator(fiatEnabled: true,
-                                                                    fiatService: fiatService,
-                                                                    configProps: configProps)
-    evaluator.afterPropertiesSet()
-
     Authentication authentication = new PreAuthenticatedAuthenticationToken("testUser",
                                                                             null,
                                                                             new ArrayList<>())
@@ -80,5 +90,60 @@ class FiatPermissionEvaluatorSpec extends Specification {
     "abc-def-ghi-1234" | "abc"        | ResourceType.APPLICATION
 
     authorization = 'READ'
+  }
+
+  def "should grant or deny permission"() {
+    setup:
+    Authentication authentication = new PreAuthenticatedAuthenticationToken("testUser",
+                                                                            null,
+                                                                            new ArrayList<>())
+    String resource = "readable"
+    String svcAcct = "svcAcct"
+
+    UserPermission.View upv = new UserPermission.View()
+    upv.setApplications([new Application.View().setName(resource)
+                                               .setAuthorizations([Authorization.READ] as Set)] as Set)
+    upv.setServiceAccounts([new ServiceAccount.View().setName(svcAcct)
+                                                     .setMemberOf(["foo"])] as Set)
+
+    when:
+    def hasPermission = evaluator.hasPermission(authentication,
+                                                resource,
+                                                'APPLICATION',
+                                                'READ')
+
+    then:
+    1 * fiatService.getUserPermission("testUser") >> upv
+    hasPermission
+
+    when:
+    hasPermission = evaluator.hasPermission(authentication,
+                                            resource,
+                                            'APPLICATION',
+                                            'WRITE') // Missing authorization
+
+    then:
+    1 * fiatService.getUserPermission("testUser") >> upv
+    !hasPermission
+
+    when:
+    hasPermission = evaluator.hasPermission(authentication,
+                                            resource, // Missing resource
+                                            'SERVICE_ACCOUNT',
+                                            'WRITE')
+
+    then:
+    1 * fiatService.getUserPermission("testUser") >> upv
+    !hasPermission
+
+    when:
+    hasPermission = evaluator.hasPermission(authentication,
+                                            svcAcct,
+                                            'SERVICE_ACCOUNT',
+                                            'WRITE')
+
+    then:
+    1 * fiatService.getUserPermission("testUser") >> upv
+    hasPermission
   }
 }

@@ -178,7 +178,7 @@ public class GoogleDirectoryUserRolesProvider implements UserRolesProvider, Init
     accessor.setPropertyValue("serviceAccountScopes", SERVICE_ACCOUNT_SCOPES);
 
     return new Directory.Builder(httpTransport, jacksonFactory, credential)
-        .setApplicationName("Spinnaker-Gate")
+        .setApplicationName("Spinnaker-Fiat")
         .build();
   }
 
