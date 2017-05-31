@@ -51,6 +51,8 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
   @Autowired
   ApacheSpinnakerProfileFactory apacheSpinnakerProfileFactory;
 
+  String htmlPath = "/opt/deck/html/";
+
   @Override
   public Class<Deck> getEndpointClass() {
     return Deck.class;
@@ -66,10 +68,17 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
     return Type.DECK;
   }
 
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    if (profileName.equals("settings.js")) {
+      return Optional.of(htmlPath + profileName);
+    } else {
+      return Optional.empty();
+    }
+  }
+
   @Override
   public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     List<Profile> result = new ArrayList<>();
-    String htmlPath = "/opt/deck/html/";
     String apache2Path = "/etc/apache2/";
     String sitePath = "/etc/apache2/sites-available/";
     String filename = "settings.js";
@@ -120,10 +129,5 @@ abstract public class DeckService extends SpinnakerService<DeckService.Deck> {
         scheme = "https";
       }
     }
-  }
-
-  @Override
-  protected Optional<String> customProfileOutputPath(String profileName) {
-    return Optional.empty();
   }
 }
