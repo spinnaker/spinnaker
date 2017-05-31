@@ -98,16 +98,13 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     Errors validationErrors = new Errors();
 
-    setTemplateSourceWithJinja(request);
-
     TemplateConfiguration templateConfiguration = request.getConfig();
     new V1TemplateConfigurationSchemaValidator().validate(templateConfiguration, validationErrors);
     if (validationErrors.hasErrors(request.plan)) {
       return validationErrors.toResponse();
     }
 
-    List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
-    PipelineTemplate template = TemplateMerge.merge(templates);
+    PipelineTemplate template = getPipelineTemplate(request, templateConfiguration);
 
     new V1TemplateSchemaValidator().validate(template, validationErrors, new SchemaValidatorContext(!templateConfiguration.getStages().isEmpty()));
     if (validationErrors.hasErrors(request.plan)) {
@@ -125,6 +122,22 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     return generatedPipeline;
   }
 
+  private PipelineTemplate getPipelineTemplate(TemplatedPipelineRequest request, TemplateConfiguration templateConfiguration) {
+    if (request.plan && request.template != null) {
+      // Allow template inlining to perform plans without first publishing the template somewhere.
+      return request.template;
+    }
+
+    if (request.getConfig().getPipeline().getTemplate() == null) {
+      throw new IllegalTemplateConfigurationException(new Error().withMessage("configuration is missing a template"));
+    }
+
+    setTemplateSourceWithJinja(request);
+    List<PipelineTemplate> templates = templateLoader.load(templateConfiguration.getPipeline().getTemplate());
+
+    return TemplateMerge.merge(templates);
+  }
+
   private void setTemplateSourceWithJinja(TemplatedPipelineRequest request) {
     RenderContext context = new DefaultRenderContext(request.getConfig().getPipeline().getApplication(), null, request.getTrigger());
     request.getConfig().getPipeline().getTemplate().setSource(renderer.render(request.getConfig().getPipeline().getTemplate().getSource(), context ));
@@ -134,6 +147,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     String type;
     Map<String, Object> trigger;
     TemplateConfiguration config;
+    PipelineTemplate template;
     Boolean plan = false;
 
     public boolean isTemplatedPipelineRequest() {
@@ -162,6 +176,14 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
 
     public void setTrigger(Map<String, Object> trigger) {
       this.trigger = trigger;
+    }
+
+    public PipelineTemplate getTemplate() {
+      return template;
+    }
+
+    public void setTemplate(PipelineTemplate template) {
+      this.template = template;
     }
 
     public Boolean getPlan() {

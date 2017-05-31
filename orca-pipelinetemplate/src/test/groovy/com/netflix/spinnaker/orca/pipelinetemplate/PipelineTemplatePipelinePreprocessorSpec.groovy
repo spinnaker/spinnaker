@@ -193,17 +193,33 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   @Unroll
   def 'should be able to set source using jinja'() {
-      when:
-      def result = subject.process(createInjectedTemplateRequest(template))
+    when:
+    def result = subject.process(createInjectedTemplateRequest(template))
 
-      then:
-      result.stages*.name == expectedStageNames
+    then:
+    result.stages*.name == expectedStageNames
 
-      where:
-      template       || expectedStageNames
-      'jinja-001.yml' || ['jinja1']
-      'jinja-002.yml' || ['jinja2']
-    }
+    where:
+    template        || expectedStageNames
+    'jinja-001.yml' || ['jinja1']
+    'jinja-002.yml' || ['jinja2']
+  }
+
+  def 'should allow inlined templates during plan'() {
+    when:
+    def result = subject.process(createInlinedTemplateRequest(true))
+
+    then:
+    noExceptionThrown()
+    0 * templateLoader.load(_)
+    result.stages*.name == ['wait']
+
+    when:
+    result = subject.process(createInlinedTemplateRequest(false))
+
+    then:
+    result.errors != null
+  }
 
 
   Map<String, Object> createTemplateRequest(String templatePath, Map<String, Object> variables = [:], List<Map<String, Object>> stages = [], boolean plan = false) {
@@ -217,7 +233,6 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       ],
       config: [
         schema: '1',
-        id: 'myTemplate',
         pipeline: [
           application: 'myapp',
           template: [
@@ -241,7 +256,6 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
       ],
       config: [
         schema: '1',
-        id: 'myTemplate',
         pipeline: [
           application: 'myapp',
           template: [
@@ -250,6 +264,32 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
         ],
       ],
       plan: false
+    ]
+  }
+
+  Map<String, Object> createInlinedTemplateRequest(boolean plan) {
+    return [
+      type: 'templatedPipeline',
+      config: [
+        schema: '1',
+        pipeline: [
+          application: 'myapp'
+        ]
+      ],
+      template: [
+        schema: '1',
+        id: 'myTemplate',
+        stages: [
+          [
+            id: 'wait',
+            type: 'wait',
+            config: [
+              waitTime: 5
+            ]
+          ]
+        ]
+      ],
+      plan: plan
     ]
   }
 }
