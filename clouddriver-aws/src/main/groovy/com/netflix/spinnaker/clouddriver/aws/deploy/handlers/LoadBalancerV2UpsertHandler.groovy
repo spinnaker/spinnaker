@@ -84,7 +84,17 @@ class LoadBalancerV2UpsertHandler {
     task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
 
     // Get existing target groups so we can reconcile
-    def existingTargetGroups = loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroups.collect { it.name }))?.targetGroups
+    def existingTargetGroups = []
+    if (targetGroups.size() > 0) {
+      try {
+        existingTargetGroups = loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroups.collect {
+          it.name
+        }))?.targetGroups
+      } catch (TargetGroupNotFoundException e) {
+        // If a subset of the target groups requested does not exist, actually returns the target groups that do exist
+        // If none of the target groups requested exist, throws an exception instead.
+      }
+    }
 
     // Can't modify the port or protocol of a target group, so if changed, have to delete/recreate
     def targetGroupsSplit = existingTargetGroups.split { awsTargetGroup ->
