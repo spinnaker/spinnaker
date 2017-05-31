@@ -114,7 +114,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     Map<String, CacheData> loadBalancers = CacheHelpers.cache()
 
     for (LoadBalancer lb : allLoadBalancers) {
-      String loadBalancerKey = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, "application")
+      String loadBalancerKey = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, lb.type)
 
       def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, "application")] : null
       if (onDemandCacheData) {

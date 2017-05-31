@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.CacheFilter
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
+import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonTargetGroup
 import com.netflix.spinnaker.clouddriver.model.LoadBalancerInstance
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
@@ -258,13 +259,13 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   }
 
   List<AmazonLoadBalancerSummary> list() {
-    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, null) + '*'
+    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, '*') + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   AmazonLoadBalancerSummary get(String name) {
-    def searchKey = Keys.getLoadBalancerKey(name, '*', '*', null, null)  + "*"
+    def searchKey = Keys.getLoadBalancerKey(name, '*', '*', '*', '*')  + "*"
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
       key.loadBalancer == name
@@ -275,7 +276,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   List<Map> byAccountAndRegionAndName(String account,
                                       String region,
                                       String name) {
-    def searchKey = Keys.getLoadBalancerKey(name, account, region, null, null) + '*'
+    def searchKey = Keys.getLoadBalancerKey(name, account, region, '*', '*') + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
       key.loadBalancer == name
@@ -286,7 +287,8 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
     Map<String, AmazonLoadBalancerSummary> map = [:]
-    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.none()).collectEntries { [(it.id): it] }
+    Map<String, CacheData> loadBalancers = cacheView.getAll(LOAD_BALANCERS.ns, loadBalancerKeys, RelationshipCacheFilter.include(TARGET_GROUPS.ns)).collectEntries { [(it.id): it] }
+
     for (lb in loadBalancerKeys) {
       CacheData loadBalancerFromCache = loadBalancers[lb]
       if (loadBalancerFromCache) {
@@ -304,8 +306,22 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
         loadBalancer.region = parts.region
         loadBalancer.name = parts.loadBalancer
         loadBalancer.vpcId = parts.vpcId
-        loadBalancer.loadBalancerType = parts.loadBalancerType
         loadBalancer.securityGroups = loadBalancerFromCache.attributes.securityGroups
+        loadBalancer.loadBalancerType = parts.loadBalancerType
+        if (loadBalancer.loadBalancerType == null) {
+          loadBalancer.loadBalancerType = "classic"
+        }
+
+        // Add target group list to the load balancer. At time of implementation, this is only used
+        // to get the list of available target groups to deploy a server group into. Since target
+        // groups only exist within load balancers (in clouddriver, amazon allows them to exist
+        // independently), this was an easy way to get them into deck without creating a whole new
+        // provider type.
+        if (loadBalancerFromCache.relationships[TARGET_GROUPS.ns]) {
+          loadBalancer.targetGroups = loadBalancerFromCache.relationships[TARGET_GROUPS.ns].collect {
+            Keys.parse(it).targetGroup
+          }
+        }
 
         summary.getOrCreateAccount(account).getOrCreateRegion(region).loadBalancers << loadBalancer
       }
@@ -362,5 +378,6 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
     String type = 'aws'
     String loadBalancerType
     List<String> securityGroups = []
+    List<String> targetGroups = []
   }
 }
