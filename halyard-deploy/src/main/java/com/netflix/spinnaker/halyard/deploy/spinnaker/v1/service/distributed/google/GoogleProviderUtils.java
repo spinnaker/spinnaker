@@ -159,7 +159,11 @@ class GoogleProviderUtils {
     JobStatus status = jobExecutor.backoffWait(jobExecutor.startJob(request));
 
     if (status.getResult() != JobStatus.Result.SUCCESS) {
-      throw new HalException(FATAL, "Unable to remove old host entry " + status.getStdErr());
+      if (status.getStdErr().contains("No such file")) {
+        log.info("No ssh known_hosts file exists yet");
+      } else {
+        throw new HalException(FATAL, "Unable to remove old host entry " + status.getStdErr());
+      }
     }
 
     int localPort = SocketUtils.findAvailableTcpPort();
@@ -236,7 +240,8 @@ class GoogleProviderUtils {
         connected = checkIfProxyIsOpen(proxy);
 
         if (!connected) {
-          if (jobExecutor.updateJob(proxy.jobId).getState() == JobStatus.State.COMPLETED) {
+          if (!jobExecutor.jobExists(proxy.jobId)
+              || jobExecutor.updateJob(proxy.jobId).getState() == JobStatus.State.COMPLETED) {
             log.warn("SSH tunnel closed prematurely");
           }
 
