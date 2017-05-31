@@ -46,7 +46,10 @@ import io.fabric8.kubernetes.api.model.extensions.ReplicaSet;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +60,10 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
   ObjectMapper getObjectMapper();
+
+  default String getHomeDirectory() {
+    return "/root";
+  }
 
   default JobExecutor getJobExecutor() {
     return DaemonTaskHandler.getJobExecutor();
@@ -187,6 +194,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
       collapseByDirectory.put(mountPoint, profiles);
     }
 
+    String stagingPath = getSpinnakerStagingPath(details.getDeploymentName());
     if (!requiredFiles.isEmpty()) {
       String secretName = KubernetesProviderUtils.componentDependencies(name, version);
       String mountPoint = null;
@@ -198,7 +206,11 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
         assert(mountPoint.equals(nextMountPoint));
       }
 
-      KubernetesProviderUtils.upsertSecret(details, requiredFiles, secretName, namespace);
+      Set<Pair<File, String>> pairs = requiredFiles.stream().map(f -> {
+        return new ImmutablePair<>(new File(f), new File(f).getName());
+      }).collect(Collectors.toSet());
+
+      KubernetesProviderUtils.upsertSecret(details, pairs, secretName, namespace);
       configSources.add(new ConfigSource().setId(secretName).setMountPath(mountPoint));
     }
 
@@ -218,15 +230,14 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
           }
       ));
 
-      Set<String> files = profiles
-          .stream()
-          .map(p -> p.getStagedFile(getSpinnakerStagingPath(details.getDeploymentName())))
-          .collect(Collectors.toSet());
-
       String secretName = KubernetesProviderUtils.componentSecret(name + ind, version);
       ind += 1;
 
-      KubernetesProviderUtils.upsertSecret(details, files, secretName, namespace);
+      Set<Pair<File, String>> pairs = profiles.stream().map(p -> {
+        return new ImmutablePair<>(new File(stagingPath, p.getName()), new File(p.getOutputFile()).getName());
+      }).collect(Collectors.toSet());
+
+      KubernetesProviderUtils.upsertSecret(details, pairs, secretName, namespace);
       configSources.add(new ConfigSource()
           .setId(secretName)
           .setMountPath(mountPoint)

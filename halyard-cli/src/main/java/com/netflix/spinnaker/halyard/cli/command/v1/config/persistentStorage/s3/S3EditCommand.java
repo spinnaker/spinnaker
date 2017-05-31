@@ -54,32 +54,31 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
   private String region;
 
   @Parameter(
-    names = {"--assume-role", "--role"},
+    names = "--assume-role",
     description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
   )
   private String assumeRole;
 
   @Parameter(
-    names = {"--access-key-id", "--access-key"},
+    names = "--access-key-id",
     description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
   )
   private String accessKeyId;
 
   @Parameter(
-    names = "--secret-key",
+    names = "--secret-access-key",
     description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
     password = true
   )
-  private String secretKey;
+  private String secretAccessKey;
 
   @Override
   protected S3PersistentStore editPersistentStore(S3PersistentStore persistentStore) {
     persistentStore.setBucket(isSet(bucket) ? bucket : persistentStore.getBucket());
     persistentStore.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStore.getRootFolder());
     persistentStore.setRegion(isSet(region) ? region : persistentStore.getRegion());
-    persistentStore.setAssumeRole(isSet(assumeRole) ? assumeRole : persistentStore.getAssumeRole());
     persistentStore.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : persistentStore.getAccessKeyId());
-    persistentStore.setSecretKey(isSet(secretKey) ? secretKey : persistentStore.getSecretKey());
+    persistentStore.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : persistentStore.getSecretAccessKey());
 
     if (persistentStore.getBucket() == null) {
       String bucketName = "spin-" + UUID.randomUUID().toString();

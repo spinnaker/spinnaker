@@ -64,6 +64,7 @@ _Version: 0.21.0-SNAPSHOT_
  * [**hal config provider aws account get**](#hal-config-provider-aws-account-get)
  * [**hal config provider aws account list**](#hal-config-provider-aws-account-list)
  * [**hal config provider aws disable**](#hal-config-provider-aws-disable)
+ * [**hal config provider aws edit**](#hal-config-provider-aws-edit)
  * [**hal config provider aws enable**](#hal-config-provider-aws-enable)
  * [**hal config provider azure**](#hal-config-provider-azure)
  * [**hal config provider azure account**](#hal-config-provider-azure-account)
@@ -998,6 +999,7 @@ hal config provider aws [parameters] [subcommands]
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the aws provider's account
  * `disable`: Set the aws provider as disabled
+ * `edit`: Set provider-wide properties for the AWS provider
  * `enable`: Set the aws provider as enabled
 
 ---
@@ -1030,9 +1032,8 @@ hal config provider aws account add ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--access-key-id, --access-key`: Your AWS Access Key ID. If not provided, Halyard will try to find AWS as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
  * `--account-id`: (*Required*) Your AWS account ID to manage. See http://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html for more information.
- * `--assume-role, --role`: If set, Halyard will configure a credentials provider that use AWS Security Token Service to assume the specified role.
+ * `--assume-role`: (*Required*) If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--default-key-pair`: Provide the name of the AWS key-pair to use. See http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html for more information.
@@ -1045,7 +1046,6 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--regions`: (*Default*: `[]`) The AWS regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--secret-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config provider aws account delete
@@ -1071,11 +1071,10 @@ hal config provider aws account edit ACCOUNT [parameters]
 ```
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
- * `--access-key-id, --access-key`: Your AWS Access Key ID. If not provided, Halyard will try to find AWS as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
  * `--account-id`: Your AWS account ID to manage. See http://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html for more information.
  * `--add-region`: Add this region to the list of managed regions.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
- * `--assume-role, --role`: If set, Halyard will configure a credentials provider that use AWS Security Token Service to assume the specified role.
+ * `--assume-role`: If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--default-key-pair`: Provide the name of the AWS key-pair to use. See http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html for more information.
@@ -1090,7 +1089,6 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--remove-region`: Remove this region from the list of managed regions.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--secret-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config provider aws account get
@@ -1128,6 +1126,20 @@ hal config provider aws disable [parameters]
 ```
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
+---
+## hal config provider aws edit
+
+The AWS provider requires a central "Managing Account" to authenticate on behalf of other AWS accounts, or act as your sole, credential-based account. Since this configuration, as well as some defaults, span all AWS accounts, it is generally required to edit the AWS provider using this command.
+
+#### Usage
+```
+hal config provider aws edit [parameters]
+```
+#### Parameters
+ * `--access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config provider aws enable
@@ -3106,15 +3118,15 @@ Edit configuration for the "s3" persistent store.
 hal config storage s3 edit [parameters]
 ```
 #### Parameters
- * `--access-key-id, --access-key`: Your AWS Access Key ID. If not provided, Halyard will try to find AWS as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
- * `--assume-role, --role`: If set, Halyard will configure a credentials provider that use AWS Security Token Service to assume the specified role.
+ * `--access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * `--assume-role`: If set, Halyard will configure a credentials provider that uses AWS Security Token Service to assume the specified role.
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region.
  * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
- * `--secret-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
+ * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
 ---
 ## hal config version

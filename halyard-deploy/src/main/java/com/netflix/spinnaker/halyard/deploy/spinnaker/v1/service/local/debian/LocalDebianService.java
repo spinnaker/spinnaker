@@ -38,6 +38,10 @@ public interface LocalDebianService<T> extends LocalService<T> {
     return String.format("spinnaker-%s=%s", artifact.getName(), version);
   }
 
+  default String getHomeDirectory() {
+    return "/home/spinnaker";
+  }
+
   default String installArtifactCommand(DeploymentDetails deploymentDetails) {
     Map<String, String> bindings = new HashMap<>();
     String artifactName = getArtifact().getName();

@@ -17,12 +17,12 @@
 
 package com.netflix.spinnaker.halyard.cli.command.v1.config.providers.aws;
 
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,23 +67,11 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
   private List<String> regions = new ArrayList<>();
 
   @Parameter(
-    names = {"--assume-role", "--role"},
-    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
+    names = "--assume-role",
+    description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION,
+    required = true
   )
   private String assumeRole;
-
-  @Parameter(
-    names = {"--access-key-id", "--access-key"},
-    description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
-  )
-  private String accessKeyId;
-
-  @Parameter(
-    names = "--secret-key",
-    description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
-    password = true
-  )
-  private String secretKey;
 
   @Override
   protected Account buildAccount(String accountName) {
@@ -94,12 +82,10 @@ public class AwsAddAccountCommand extends AbstractAddAccountCommand {
       .setAccountId(accountId)
       .setRegions(regions
         .stream()
-        .map(r -> new AwsAccount.AwsRegion().setName(r))
+        .map(r -> new AwsProvider.AwsRegion().setName(r))
         .collect(Collectors.toList())
       )
-      .setAssumeRole(assumeRole)
-      .setAccessKeyId(accessKeyId)
-      .setSecretKey(secretKey);
+      .setAssumeRole(assumeRole);
 
     return account;
   }

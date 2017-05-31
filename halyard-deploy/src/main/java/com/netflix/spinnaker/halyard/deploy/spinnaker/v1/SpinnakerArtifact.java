@@ -18,13 +18,6 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1;
 
 import lombok.Getter;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 /**
  * An artifact is something deployed as a part of Spinnaker. It can be run with a number
  * of Profiles, but ultimately refers to a compiled/distributable binary of some format.

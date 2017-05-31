@@ -18,14 +18,10 @@
 package com.netflix.spinnaker.halyard.cli.command.v1.versions;
 
 import com.beust.jcommander.Parameters;
-import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.AbstractConfigCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.versions.BomVersionCommand;
-import com.netflix.spinnaker.halyard.cli.command.v1.versions.LatestVersionCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
-import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import lombok.AccessLevel;
 import lombok.Getter;

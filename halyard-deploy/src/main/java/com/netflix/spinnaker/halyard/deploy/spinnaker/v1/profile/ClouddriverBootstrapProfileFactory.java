@@ -18,7 +18,6 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
-import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
@@ -30,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -62,6 +62,18 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
     deploymentConfiguration.setProviders(clonedProviders);
 
     account.makeBootstrappingAccount(artifactSources);
+
+    NodeIterator children = providers.getChildren();
+    Provider child = (Provider) children.getNext();
+    while (child != null) {
+      boolean isBootstrappingAccount = child.getAccounts().stream().anyMatch(a -> ((Account) a).getName().equals(account.getName()));
+      // ugly check for docker registry here since it can be depended on by the bootstrapping account, meaning it's not safe to disable
+      if (child.providerType() != Provider.ProviderType.DOCKERREGISTRY && !isBootstrappingAccount) {
+        child.setEnabled(false);
+      }
+
+      child = (Provider) children.getNext();
+    }
 
     if (account instanceof SupportsConsul) {
       SupportsConsul consulAccount = (SupportsConsul) account;

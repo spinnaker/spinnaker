@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.Front50Service;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
 import lombok.Data;
@@ -40,6 +41,13 @@ public class GoogleFront50Service extends Front50Service implements GoogleDistri
   @Delegate
   @Autowired
   GoogleDistributedServiceDelegate googleDistributedServiceDelegate;
+
+  @Override
+  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(p -> profiles.add(p));
+    return profiles;
+  }
 
   @Override
   public List<SidecarService> getSidecars(SpinnakerRuntimeSettings runtimeSettings) {

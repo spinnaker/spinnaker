@@ -25,14 +25,12 @@ import lombok.ToString;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@ToString(exclude = {"accessKeyId", "secretKey"})
 public class S3PersistentStore extends PersistentStore {
   private String bucket;
   private String rootFolder = "front50";
   private String region;
-  private String assumeRole;
   private String accessKeyId;
-  private String secretKey;
+  private String secretAccessKey;
 
   @Override
   public PersistentStoreType persistentStoreType() {

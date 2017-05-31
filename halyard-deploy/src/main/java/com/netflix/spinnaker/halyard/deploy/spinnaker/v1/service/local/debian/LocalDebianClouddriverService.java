@@ -19,6 +19,8 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.HasServiceSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
@@ -29,6 +31,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Delegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -45,6 +49,13 @@ public class LocalDebianClouddriverService extends ClouddriverService implements
   @Delegate(excludes = HasServiceSettings.class)
   LogCollector getLocalLogCollector() {
     return localLogCollectorFactory.build(this);
+  }
+
+  @Override
+  public List<Profile> getProfiles(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
+    List<Profile> profiles = super.getProfiles(deploymentConfiguration, endpoints);
+    generateAwsProfile(deploymentConfiguration, endpoints, getHomeDirectory()).ifPresent(p -> profiles.add(p));
+    return profiles;
   }
 
   @Override

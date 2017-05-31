@@ -61,6 +61,10 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     return "n1-highmem-2" ;
   }
 
+  default String getHomeDirectory() {
+    return "/home/spinnaker";
+  }
+
   default String buildAddress() {
     return String.format("%s.service.spinnaker.consul", getService().getCanonicalName());
   }

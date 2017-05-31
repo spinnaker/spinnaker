@@ -19,13 +19,16 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.AwsCredentialsProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.ClouddriverProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import com.squareup.okhttp.Response;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.Body;
@@ -37,6 +40,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -44,6 +48,9 @@ import java.util.Map;
 abstract public class ClouddriverService extends SpringService<ClouddriverService.Clouddriver> {
   @Autowired
   ClouddriverProfileFactory clouddriverProfileFactory;
+
+  @Autowired
+  AwsCredentialsProfileFactoryBuilder awsCredentialsProfileFactoryBuilder;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -70,6 +77,19 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
 
     profiles.add(profile);
     return profiles;
+  }
+
+  protected Optional<Profile> generateAwsProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints, String spinnakerHome) {
+    AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
+    if (awsProvider.isEnabled()
+        && !StringUtils.isEmpty(awsProvider.getAccessKeyId())
+        && !StringUtils.isEmpty(awsProvider.getSecretAccessKey())) {
+      String outputFile = awsCredentialsProfileFactoryBuilder.getOutputFile(spinnakerHome);
+      return Optional.of(awsCredentialsProfileFactoryBuilder.build(SpinnakerArtifact.CLOUDDRIVER)
+          .getProfile("aws/clouddriver-credentials", outputFile, deploymentConfiguration, endpoints));
+    } else {
+      return Optional.empty();
+    }
   }
 
   public interface Clouddriver {

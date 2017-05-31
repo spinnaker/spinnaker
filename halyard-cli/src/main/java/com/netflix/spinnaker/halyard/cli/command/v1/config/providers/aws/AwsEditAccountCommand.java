@@ -23,6 +23,7 @@ import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractEditAccountCommand;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsAccount;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -77,23 +78,10 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
   private String removeRegion;
 
   @Parameter(
-    names = {"--assume-role", "--role"},
+    names = "--assume-role",
     description = AwsCommandProperties.ASSUME_ROLE_DESCRIPTION
   )
   private String assumeRole;
-
-  @Parameter(
-    names = {"--access-key-id", "--access-key"},
-    description = AwsCommandProperties.ACCESS_KEY_ID_DESCRIPTION
-  )
-  private String accessKeyId;
-
-  @Parameter(
-    names = "--secret-key",
-    description = AwsCommandProperties.SECRET_KEY_DESCRIPTION,
-    password = true
-  )
-  private String secretKey;
 
   @Override
   protected Account editAccount(AwsAccount account) {
@@ -102,18 +90,16 @@ public class AwsEditAccountCommand extends AbstractEditAccountCommand<AwsAccount
     account.setDiscovery(isSet(discovery) ? discovery : account.getDiscovery());
     account.setAccountId(isSet(accountId) ? accountId : account.getAccountId());
     account.setAssumeRole(isSet(assumeRole) ? assumeRole : account.getAssumeRole());
-    account.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : account.getAccessKeyId());
-    account.setSecretKey(isSet(secretKey) ? secretKey : account.getSecretKey());
 
     try {
       List<String> existingRegions = account
         .getRegions()
         .stream()
-        .map(AwsAccount.AwsRegion::getName).collect(Collectors.toList());
+        .map(AwsProvider.AwsRegion::getName).collect(Collectors.toList());
       regions = updateStringList(existingRegions, regions, addRegion, removeRegion);
       account.setRegions(regions
         .stream()
-        .map(r -> new AwsAccount.AwsRegion().setName(r))
+        .map(r -> new AwsProvider.AwsRegion().setName(r))
         .collect(Collectors.toList())
       );
     } catch (IllegalArgumentException e) {

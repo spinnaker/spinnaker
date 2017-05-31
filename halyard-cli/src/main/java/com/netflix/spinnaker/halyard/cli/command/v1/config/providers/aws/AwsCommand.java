@@ -32,5 +32,6 @@ public class AwsCommand extends AbstractNamedProviderCommand {
   public AwsCommand() {
     super();
     registerSubcommand(new AwsAccountCommand());
+    registerSubcommand(new AwsEditProviderCommand());
   }
 }

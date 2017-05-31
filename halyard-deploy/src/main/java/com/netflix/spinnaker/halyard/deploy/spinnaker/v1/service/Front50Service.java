@@ -18,13 +18,19 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
+import com.netflix.spinnaker.front50.model.S3StorageService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
+import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
+import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.AwsCredentialsProfileFactoryBuilder;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Front50ProfileFactory;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.GET;
@@ -33,6 +39,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -40,6 +47,9 @@ import java.util.Map;
 abstract public class Front50Service extends SpringService<Front50Service.Front50> {
   @Autowired
   Front50ProfileFactory front50ProfileFactory;
+
+  @Autowired
+  AwsCredentialsProfileFactoryBuilder awsCredentialsProfileFactoryBuilder;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -66,6 +76,20 @@ abstract public class Front50Service extends SpringService<Front50Service.Front5
 
     profiles.add(profile);
     return profiles;
+  }
+
+  protected Optional<Profile> generateAwsProfile(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints, String spinnakerHome) {
+    PersistentStore.PersistentStoreType type = deploymentConfiguration.getPersistentStorage().getPersistentStoreType();
+    S3PersistentStore store = deploymentConfiguration.getPersistentStorage().getS3();
+    if (type == PersistentStore.PersistentStoreType.S3
+        && !StringUtils.isEmpty(store.getAccessKeyId())
+        && !StringUtils.isEmpty(store.getSecretAccessKey())) {
+      String outputFile = awsCredentialsProfileFactoryBuilder.getOutputFile(spinnakerHome);
+      return Optional.of(awsCredentialsProfileFactoryBuilder.build(SpinnakerArtifact.FRONT50)
+          .getProfile("aws/front50-credentials", outputFile, deploymentConfiguration, endpoints));
+    } else {
+      return Optional.empty();
+    }
   }
 
   public interface Front50 {

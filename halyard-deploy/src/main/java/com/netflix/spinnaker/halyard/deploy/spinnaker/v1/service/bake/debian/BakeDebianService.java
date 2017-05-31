@@ -32,6 +32,10 @@ public interface BakeDebianService<T> extends BakeService<T> {
   ArtifactService getArtifactService();
   String getUpstartServiceName();
 
+  default String getHomeDirectory() {
+    return "/home/spinnaker";
+  }
+
   @Override
   default String getStartupCommand() {
     if (getUpstartServiceName() != null) {

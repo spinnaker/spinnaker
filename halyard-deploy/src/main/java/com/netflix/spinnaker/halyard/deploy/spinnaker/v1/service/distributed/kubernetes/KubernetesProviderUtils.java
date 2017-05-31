@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Data;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.client.utils.URIBuilder;
 
 import java.io.File;
@@ -133,7 +134,7 @@ class KubernetesProviderUtils {
     return new DefaultKubernetesClient(config);
   }
 
-  static void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, Set<String> files, String secretName, String namespace) {
+  static void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, Set<Pair<File, String>> files, String secretName, String namespace) {
     KubernetesClient client = getClient(details);
 
     if (client.secrets().inNamespace(namespace).withName(secretName).get() != null) {
@@ -142,15 +143,15 @@ class KubernetesProviderUtils {
 
     Map<String, String> secretContents = new HashMap<>();
 
-    files.forEach(s -> {
+    files.forEach(pair -> {
       try {
-        File f = new File(s);
-        String name = f.getName();
-        String data = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(f))));
+        File file = pair.getLeft();
+        String name = pair.getRight();
+        String data = new String(Base64.getEncoder().encode(IOUtils.toByteArray(new FileInputStream(file))));
 
         secretContents.putIfAbsent(name, data);
       } catch (IOException e) {
-        throw new HalException(Severity.ERROR, "Unable to read contents of \"" + s + "\": " + e);
+        throw new HalException(Severity.ERROR, "Unable to read contents of \"" + pair.getLeft() + "\": " + e);
       }
     });
 

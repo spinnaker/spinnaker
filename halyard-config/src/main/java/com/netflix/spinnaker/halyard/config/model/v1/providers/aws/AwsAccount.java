@@ -17,8 +17,6 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.aws;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -31,25 +29,17 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ToString(exclude = {"accessKeyId", "secretKey"})
 public class AwsAccount extends Account {
-
   private String defaultKeyPair;
   private String edda;
   private String discovery;
   private String accountId;
-  private List<AwsRegion> regions = new ArrayList<>();
+  private List<AwsProvider.AwsRegion> regions = new ArrayList<>();
   private String assumeRole;
-  private String accessKeyId;
-  private String secretKey;
+  private String sessionName;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
-  }
-
-  @Data
-  public static class AwsRegion {
-    String name;
   }
 }
