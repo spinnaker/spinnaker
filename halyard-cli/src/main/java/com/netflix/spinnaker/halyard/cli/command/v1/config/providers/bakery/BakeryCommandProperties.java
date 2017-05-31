@@ -28,6 +28,6 @@ class BakeryCommandProperties {
       + "For example, specifying 'deb' indicates that your artifacts will need to be fetched from a debian repository.";
 
   static final String TEMPLATE_FILE_DESCRIPTION = "This is the name of the packer template that will be used to bake images from "
-      + "this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer. "
-      + "In the future, halyard will support custom packer templates as well.";
+      + "this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or "
+      + "supplied as described here: https://spinnaker.io/setup/bakery/";
 }

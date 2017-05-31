@@ -30,10 +30,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.http.GET;
 
+import javax.swing.text.html.Option;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -60,6 +62,18 @@ abstract public class RoscoService extends SpringService<RoscoService.Rosco> {
   @Override
   public Class<Rosco> getEndpointClass() {
     return Rosco.class;
+  }
+
+  @Override
+  protected Optional<String> customProfileOutputPath(String profileName) {
+    Optional<String> result = super.customProfileOutputPath(profileName);
+    if (!result.isPresent()) {
+      if (profileName.startsWith("rosco/")) {
+        return Optional.of(roscoConfigPath + profileName.substring("rosco".length()));
+      }
+    }
+
+    return result;
   }
 
   @Override

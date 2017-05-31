@@ -154,7 +154,6 @@ public class GenerateService {
     return profileMap;
   }
 
-
   private static List<String> aggregateProfilesInPath(String basePath, String relativePath) {
     String filePrefix;
     if (!relativePath.isEmpty()) {
