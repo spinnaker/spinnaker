@@ -81,11 +81,12 @@ fun StageDefinitionBuilder.buildSyntheticStages(
   stage: Stage<out Execution<*>>,
   callback: (Stage<*>) -> Unit = {}
 ): Unit {
+  val executionWindow = stage.buildExecutionWindow()
   syntheticStages(stage).apply {
-    buildBeforeStages(stage, callback)
+    buildBeforeStages(stage, executionWindow, callback)
     buildAfterStages(stage, callback)
   }
-  buildParallelStages(stage, callback)
+  buildParallelStages(stage, executionWindow, callback)
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -93,14 +94,6 @@ private fun BranchingStageDefinitionBuilder.parallelContexts(stage: Stage<*>) =
   when (stage.getExecution()) {
     is Pipeline -> parallelContexts(stage as Stage<Pipeline>)
     is Orchestration -> parallelContexts(stage as Stage<Orchestration>)
-    else -> throw IllegalStateException()
-  }
-
-@Suppress("UNCHECKED_CAST")
-private fun BranchingStageDefinitionBuilder.parallelStageName(stage: Stage<*>, hasParallelStages: Boolean) =
-  when (stage.getExecution()) {
-    is Pipeline -> parallelStageName(stage as Stage<Pipeline>, hasParallelStages)
-    is Orchestration -> parallelStageName(stage as Stage<Orchestration>, hasParallelStages)
     else -> throw IllegalStateException()
   }
 
@@ -115,8 +108,7 @@ private fun StageDefinitionBuilder.syntheticStages(stage: Stage<out Execution<*>
   }
     .groupBy { it.getSyntheticStageOwner() }
 
-private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
-  val executionWindow = stage.buildExecutionWindow()
+private fun SyntheticStages.buildBeforeStages(stage: Stage<out Execution<*>>, executionWindow: Stage<out Execution<*>>?, callback: (Stage<*>) -> Unit) {
   val beforeStages = if (executionWindow == null) {
     this[STAGE_BEFORE].orEmpty()
   } else {
@@ -155,7 +147,7 @@ private fun SyntheticStages.buildAfterStages(stage: Stage<out Execution<*>>, cal
   }
 }
 
-private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>, callback: (Stage<*>) -> Unit) {
+private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Execution<*>>, executionWindow: Stage<out Execution<*>>?, callback: (Stage<*>) -> Unit) {
   if (this is BranchingStageDefinitionBuilder && (stage.getParentStageId() == null || stage.parent().getType() != stage.getType())) {
     val parallelContexts = parallelContexts(stage)
     parallelContexts
@@ -172,7 +164,7 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
       }
       .forEachIndexed { i, it ->
         it.setRefId("${stage.getRefId()}=${i + 1}")
-        it.setRequisiteStageRefIds(emptySet())
+        it.setRequisiteStageRefIds(if (executionWindow == null) emptySet() else setOf(executionWindow.getRefId()))
         stage.getExecution().apply {
           injectStage(getStages().indexOf(stage), it)
           callback.invoke(it)

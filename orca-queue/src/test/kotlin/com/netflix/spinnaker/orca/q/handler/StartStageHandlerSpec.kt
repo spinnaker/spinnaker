@@ -440,38 +440,84 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
     }
 
     given("the stage has an execution window") {
-      val pipeline = pipeline {
-        application = "foo"
-        stage {
-          type = stageWithSyntheticBefore.type
-          context["restrictExecutionDuringTimeWindow"] = true
+      and("synthetic before stages") {
+        val pipeline = pipeline {
+          application = "foo"
+          stage {
+            refId = "1"
+            type = stageWithSyntheticBefore.type
+            context["restrictExecutionDuringTimeWindow"] = true
+          }
+        }
+        val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("injects a 'wait for execution window' stage before any other synthetic stages") {
+          argumentCaptor<Stage<Pipeline>>().apply {
+            verify(repository, times(3)).addStage(capture())
+            firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
+            firstValue.parentStageId shouldEqual message.stageId
+            firstValue.syntheticStageOwner shouldEqual STAGE_BEFORE
+            secondValue.requisiteStageRefIds shouldEqual setOf(firstValue.refId)
+          }
+        }
+
+        it("starts the 'wait for execution window' stage") {
+          verify(queue).push(check<StartStage> {
+            it.stageId shouldEqual pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id
+          })
+          verifyNoMoreInteractions(queue)
         }
       }
-      val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
 
-      beforeGroup {
-        whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-      }
-
-      afterGroup(::resetMocks)
-
-      on("receiving a message") {
-        subject.handle(message)
-      }
-
-      it("injects a 'wait for execution window' stage before any other synthetic stages") {
-        argumentCaptor<Stage<Pipeline>>().apply {
-          verify(repository, times(3)).addStage(capture())
-          firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
-          firstValue.parentStageId shouldEqual message.stageId
-          firstValue.syntheticStageOwner shouldEqual STAGE_BEFORE
+      and("parallel stages") {
+        val pipeline = pipeline {
+          application = "foo"
+          stage {
+            refId = "1"
+            type = stageWithParallelBranches.type
+            context["restrictExecutionDuringTimeWindow"] = true
+          }
         }
-      }
+        val message = StartStage(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id)
 
-      it("starts the 'wait for execution window' stage") {
-        verify(queue).push(check<StartStage> {
-          it.stageId shouldEqual pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id
-        })
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving a message") {
+          subject.handle(message)
+        }
+
+        it("injects a 'wait for execution window' stage before any other synthetic stages") {
+          argumentCaptor<Stage<Pipeline>>().apply {
+            verify(repository, times(4)).addStage(capture())
+            firstValue.type shouldEqual RestrictExecutionDuringTimeWindow.TYPE
+            firstValue.parentStageId shouldEqual message.stageId
+            firstValue.syntheticStageOwner shouldEqual STAGE_BEFORE
+            allValues[1..3].forEach {
+              it.requisiteStageRefIds shouldEqual setOf(firstValue.refId)
+            }
+          }
+        }
+
+        it("starts the 'wait for execution window' stage") {
+          verify(queue).push(check<StartStage> {
+            it.stageId shouldEqual pipeline.stages.find { it.type == RestrictExecutionDuringTimeWindow.TYPE }!!.id
+          })
+          verifyNoMoreInteractions(queue)
+        }
       }
     }
 
