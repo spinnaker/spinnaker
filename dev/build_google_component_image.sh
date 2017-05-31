@@ -201,13 +201,13 @@ function extract_clean_component_disk() {
     fi
   fi
 
-  gcloud compute instances get ${worker_instance} \
+  gcloud compute instances describe ${worker_instance} \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE > /dev/null
 
   if [ $? -ne 0 ]; then
-    >&2 echo "`date`: ERROR - ${worker_instance} was not created." 
+    >&2 echo "`date`: ERROR - ${worker_instance} was not created."
     >&2 echo "Check if you have enough quota (CPU/IP) to create all instances."
     exit 1
   fi
