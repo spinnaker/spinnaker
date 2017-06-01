@@ -41,6 +41,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -64,6 +65,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
     given:
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
 
     and:
     def instance1 = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -102,6 +104,7 @@ class EnableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitS
 
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")

@@ -42,6 +42,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -66,6 +67,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -94,6 +96,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
   def 'should disable instances for asg in discovery'() {
     given:
     def asg = Mock(AutoScalingGroup)
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
     def describeInstanceResult = Mock(DescribeInstancesResult)
     describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
@@ -129,6 +132,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")

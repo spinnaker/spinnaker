@@ -108,25 +108,29 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         asgService.resumeProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       }
 
-      List<String> instanceIds = new ArrayList<>()
-      DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withFilters(
-        new Filter().withName(INSTANCE_ASG_TAG_NAME).withValues(serverGroupName)
-      )
+      List<String> instanceIds = asg.instances.findAll {
+        it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
+      }*.instanceId
 
-      DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
-      List<Reservation> reservations = describeInstancesResult.getReservations()
-      while (describeInstancesResult.getNextToken()) {
-        describeInstancesRequest.setNextToken(describeInstancesResult.getNextToken())
-        describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
-        reservations += describeInstancesResult.getReservations()
+      if (instanceIds) {
+        DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withInstanceIds(instanceIds)
+        List<Reservation> reservations = []
+        while (true) {
+          DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
+          reservations.addAll(describeInstancesResult.getReservations())
+          if (!describeInstancesResult.nextToken) {
+            break
+          }
+          describeInstancesRequest.setNextToken(describeInstancesResult.nextToken)
+        }
+        List<String> filteredInstanceIds = []
+        for (Reservation reservation : reservations) {
+          filteredInstanceIds += reservation.getInstances().findAll {
+            [ InstanceStateName.Running, InstanceStateName.Pending ].contains(InstanceStateName.fromValue(it.getState().getName()))
+          }*.instanceId
+        }
+        instanceIds = filteredInstanceIds
       }
-
-      for (Reservation reservation : reservations) {
-        instanceIds += reservation.getInstances().findAll {
-          [ InstanceStateName.Running, InstanceStateName.Pending ].contains(InstanceStateName.fromValue(it.getState().getName()))
-        }*.instanceId
-      }
-
 
       if (disable) {
         changeRegistrationOfInstancesWithLoadBalancer(asg.loadBalancerNames, instanceIds) { String loadBalancerName, List<Instance> instances ->
