@@ -151,14 +151,6 @@ google:
   bakeryDefaults:
     baseImages:
     - baseImage:
-        id: precise
-        shortDescription: v12.04
-        detailedDescription: Ubuntu Precise Pangolin v12.04
-        packageType: deb
-        isImageFamily: true
-      virtualizationSettings:
-        sourceImageFamily: ubuntu-1204-lts
-    - baseImage:
         id: trusty
         shortDescription: v14.04
         detailedDescription: Ubuntu Trusty Tahr v14.04
