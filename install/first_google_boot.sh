@@ -40,6 +40,7 @@ METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
 
 SPINNAKER_SUBSYSTEMS="spinnaker-clouddriver spinnaker-deck spinnaker-echo spinnaker-fiat spinnaker-front50 spinnaker-gate spinnaker-igor spinnaker-orca spinnaker-rosco spinnaker"
+SPINNAKER_DEPENDENCIES="redis-server"
 
 # By default we'll tradeoff the utmost in security for less startup latency
 # (often several minutes worth if there are any OS updates at all).
@@ -434,10 +435,10 @@ fi
 # This can take several minutes so we are performing it at the end after
 # spinnaker has already started and is available.
 
-apt-mark hold $SPINNAKER_SUBSYSTEMS
+apt-mark hold $SPINNAKER_SUBSYSTEMS $SPINNAKER_DEPENDENCIES
 apt-get -y update
 DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" -y dist-upgrade
-apt-mark unhold $SPINNAKER_SUBSYSTEMS
+apt-mark unhold $SPINNAKER_SUBSYSTEMS $SPINNAKER_DEPENDENCIES
 
 if [[ -f /opt/spinnaker/cassandra/SPINNAKER_INSTALLED_CASSANDRA ]]; then
   sed -i "s/start_rpc: false/start_rpc: true/" /etc/cassandra/cassandra.yaml
