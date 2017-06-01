@@ -139,6 +139,8 @@ class BomGenerator(Annotator):
       if comp == 'spinnaker-monitoring':
         config = dict(GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG)
         version = self.__version_from_tag(comp)
+        # spinnaker-monitoring has two distinct parts.
+        # We produce a container image for 'spinnaker-monitoring-daemon' only.
         versioned_image = '{reg}/monitoring-daemon:{tag}'.format(reg=self.__docker_registry,
                                                                  tag=version)
         config['steps'][0]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile', '.']
@@ -178,9 +180,17 @@ class BomGenerator(Annotator):
       if comp == 'spinnaker':
         pass
       gradle_version = self.__version_from_tag(comp)
-      docker_tag = '{reg}/{comp}:{tag}'.format(reg=self.__docker_registry,
-                                               comp=comp,
-                                               tag=gradle_version)
+      docker_tag = ''
+      if comp == 'spinnaker-monitoring':
+        # spinnaker-monitoring has two distinct parts.
+        # We produce a container image for 'spinnaker-monitoring-daemon' only.
+        docker_tag = '{reg}/{comp}-daemon:{tag}'.format(reg=self.__docker_registry,
+                                                        comp=comp,
+                                                        tag=gradle_version)
+      else:
+        docker_tag = '{reg}/{comp}:{tag}'.format(reg=self.__docker_registry,
+                                                 comp=comp,
+                                                 tag=gradle_version)
 
       config_file = '{0}-docker.yml'.format(comp)
       with open(config_file, 'w') as cfg:
