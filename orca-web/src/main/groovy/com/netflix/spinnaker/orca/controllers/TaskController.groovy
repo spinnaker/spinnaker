@@ -283,6 +283,9 @@ class TaskController {
         executionRunners.find { it.engine() == v2 }.restart(pipeline)
       }
     }
+    if (pipeline.pipelineConfigId) {
+      startTracker.addToStarted(pipeline.pipelineConfigId, pipeline.id)
+    }
     pipeline
   }
 
