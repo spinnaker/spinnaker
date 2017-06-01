@@ -19,10 +19,7 @@ package com.netflix.spinnaker.halyard.core.registry.v1;
 
 import lombok.Data;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Data
@@ -53,6 +50,10 @@ public class Versions {
   String latestSpinnaker;
   List<Version> versions = new ArrayList<>();
   List<IllegalVersion> illegalVersions = new ArrayList<>();
+
+  public Optional<Version> getVersion(String version) {
+    return versions.stream().filter(v -> v.getVersion().equals(version)).findFirst();
+  }
 
   @Override
   public String toString() {

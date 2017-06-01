@@ -28,6 +28,8 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.Opensta
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackProvider;
 import com.netflix.spinnaker.halyard.config.model.v1.security.UiSecurity;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
+import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
+import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
 import com.netflix.spinnaker.halyard.core.resource.v1.StringResource;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
@@ -39,12 +41,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class DeckProfileFactory extends RegistryBackedProfileFactory {
 
   @Autowired
   AccountService accountService;
+
+  @Autowired
+  VersionsService versionsService;
 
   @Override
   public String commentPrefix() {
@@ -64,11 +70,20 @@ public class DeckProfileFactory extends RegistryBackedProfileFactory {
 
     Features features = deploymentConfiguration.getFeatures();
     Map<String, String> bindings = new HashMap<>();
+    String version = deploymentConfiguration.getVersion();
 
     // Configure global settings
     bindings.put("gate.baseUrl", endpoints.getServices().getGate().getBaseUrl());
     bindings.put("timezone", deploymentConfiguration.getTimezone());
     bindings.put("version", deploymentConfiguration.getVersion());
+
+    Optional<Versions.Version> validatedVersion = versionsService.getVersions().getVersion(version);
+
+    validatedVersion.ifPresent(v -> {
+      String changelog = v.getChangelog();
+      bindings.put("changelog.gist.id", changelog.substring(changelog.lastIndexOf("/") + 1));
+      bindings.put("changelog.gist.name", "changelog.md");
+    });
 
     // Configure feature-flags
     bindings.put("features.auth", Boolean.toString(features.isAuth(deploymentConfiguration)));
