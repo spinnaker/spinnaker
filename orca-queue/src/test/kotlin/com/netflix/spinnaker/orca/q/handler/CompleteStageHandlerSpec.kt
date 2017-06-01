@@ -237,10 +237,39 @@ object CompleteStageHandlerSpec : SubjectSpek<CompleteStageHandler>({
         }
 
         it("still signals completion of the execution") {
-          it("completes the execution") {
-            verify(queue).push(CompleteExecution(
-              pipeline // execution is SUCCEEDED even if stage was FAILED_CONTINUE or SKIPPED
-            ))
+          verify(queue).push(CompleteExecution(pipeline))
+        }
+      }
+
+      setOf(CANCELED, TERMINAL, STOPPED).forEach { failureStatus ->
+        and("there are parallel stages that failed") {
+          val pipeline = pipeline {
+            application = "covfefe"
+            stage {
+              refId = "1"
+              type = singleTaskStage.type
+              status = RUNNING
+            }
+            stage {
+              refId = "2"
+              type = singleTaskStage.type
+              status = failureStatus
+            }
+          }
+          val message = CompleteStage(pipeline.stageByRef("1"), stageStatus)
+
+          beforeGroup {
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          }
+
+          afterGroup(::resetMocks)
+
+          on("receiving $message") {
+            subject.handle(message)
+          }
+
+          it("still signals completion of the execution") {
+            verify(queue).push(CompleteExecution(pipeline))
           }
         }
       }

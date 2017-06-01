@@ -50,7 +50,11 @@ open class StartStageHandler
 
   override fun handle(message: StartStage) {
     message.withStage { stage ->
-      if (stage.allUpstreamStagesComplete()) {
+      if (stage.anyUpstreamStagesFailed()) {
+        // this only happens in restart scenarios
+        log.warn("Tried to start stage ${stage.getId()} but something upstream had failed")
+        queue.push(CompleteExecution(message))
+      } else if (stage.allUpstreamStagesComplete()) {
         if (stage.getStatus() != NOT_STARTED) {
           log.warn("Ignoring $message as stage is already ${stage.getStatus()}")
         } else if (stage.shouldSkip()) {

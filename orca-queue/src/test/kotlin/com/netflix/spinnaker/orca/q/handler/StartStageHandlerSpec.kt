@@ -415,6 +415,29 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         }
       }
 
+      and("one of them failed") {
+        beforeGroup {
+          pipeline.stageByRef("1").status = SUCCEEDED
+          pipeline.stageByRef("2").status = TERMINAL
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving $message") {
+          subject.handle(message)
+        }
+
+        it("publishes no events") {
+          verifyZeroInteractions(publisher)
+        }
+
+        it("completes the execution") {
+          verify(queue).push(CompleteExecution(message))
+          verifyNoMoreInteractions(queue)
+        }
+      }
+
       and("completion of another has already started this stage") {
         beforeGroup {
           pipeline.stageByRef("1").status = SUCCEEDED

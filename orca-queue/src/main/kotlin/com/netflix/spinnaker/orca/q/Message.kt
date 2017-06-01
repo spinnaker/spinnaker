@@ -180,7 +180,7 @@ data class RestartStage(
   override val stageId: String,
   val user: String?
 ) : Message(), StageLevel {
-  constructor(source: Execution<*>, stageId: String, user: String) :
+  constructor(source: Execution<*>, stageId: String, user: String?) :
     this(source.javaClass, source.getId(), source.getApplication(), stageId, user)
 }
 
