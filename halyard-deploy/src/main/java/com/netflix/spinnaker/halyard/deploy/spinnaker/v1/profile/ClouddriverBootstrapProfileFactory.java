@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.SupportsConsul;
@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -38,7 +37,7 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
   AccountService accountService;
 
   @Autowired
-  ArtifactSources artifactSources;
+  ArtifactSourcesConfig artifactSourcesConfig;
 
   @Override
   public SpinnakerArtifact getArtifact() {
@@ -61,7 +60,7 @@ public class ClouddriverBootstrapProfileFactory extends SpringProfileFactory {
     Providers clonedProviders = providers.cloneNode(Providers.class);
     deploymentConfiguration.setProviders(clonedProviders);
 
-    account.makeBootstrappingAccount(artifactSources);
+    account.makeBootstrappingAccount(artifactSourcesConfig);
 
     NodeIterator children = providers.getChildren();
     Provider child = (Provider) children.getNext();

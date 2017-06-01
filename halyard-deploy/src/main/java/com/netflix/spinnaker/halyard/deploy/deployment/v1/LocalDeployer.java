@@ -57,7 +57,7 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
       return m1;
     });
 
-    String installCommand = serviceProvider.getInstallCommand(resolvedConfiguration, installCommands);
+    String installCommand = serviceProvider.getInstallCommand(deploymentDetails, resolvedConfiguration, installCommands);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);

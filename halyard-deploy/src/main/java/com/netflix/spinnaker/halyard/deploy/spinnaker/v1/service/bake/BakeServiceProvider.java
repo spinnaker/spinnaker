@@ -51,7 +51,7 @@ abstract public class BakeServiceProvider extends SpinnakerServiceProvider<Deplo
   }
 
   // TODO(lwander) move from string to something like RemoteAction
-  abstract public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand);
+  abstract public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand);
 
   public List<BakeService> getPrioritizedBakeableServices(List<SpinnakerService.Type> serviceTypes) {
     List<BakeService> result = getFieldsOfType(BakeService.class)

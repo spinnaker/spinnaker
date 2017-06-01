@@ -31,6 +31,7 @@ public class BillOfMaterials {
   String hostname;
   Services services;
   Dependencies dependencies;
+  ArtifactSources artifactSources;
 
   @Data
   static class Dependencies {
@@ -41,6 +42,13 @@ public class BillOfMaterials {
     String getArtifactVersion(String artifactName) {
       return getFieldVersion(Dependencies.class, this, artifactName);
     }
+  }
+
+  @Data
+  public static class ArtifactSources {
+    String debianRepository;
+    String dockerRegistry;
+    String googleImageProject;
   }
 
   @Data

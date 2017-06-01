@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public interface KubernetesDistributedService<T> extends DistributedService<T, KubernetesAccount>, LogCollector<T, AccountDeploymentDetails<KubernetesAccount>> {
-  String getDockerRegistry();
+  String getDockerRegistry(String deploymentName);
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
   ObjectMapper getObjectMapper();
@@ -81,7 +81,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
 
-    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry());
+    KubernetesImageDescription image = new KubernetesImageDescription(artifactName, version, getDockerRegistry(deploymentName));
     return KubernetesUtil.getImageId(image);
   }
 

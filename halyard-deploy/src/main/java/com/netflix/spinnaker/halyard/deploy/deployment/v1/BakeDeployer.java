@@ -62,7 +62,7 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
         .filter(Objects::nonNull)
         .collect(Collectors.toList()));
 
-    String installCommand = serviceProvider.getInstallCommand(resolvedConfiguration, installCommands, startupCommand);
+    String installCommand = serviceProvider.getInstallCommand(deploymentDetails, resolvedConfiguration, installCommands, startupCommand);
     RemoteAction result = new RemoteAction();
     result.setAutoRun(true);
     result.setScript(installCommand);

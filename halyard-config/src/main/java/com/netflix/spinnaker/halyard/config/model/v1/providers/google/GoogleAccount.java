@@ -19,7 +19,7 @@ package com.netflix.spinnaker.halyard.config.model.v1.providers.google;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.clouddriver.google.ComputeVersion;
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials;
-import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.consul.ConsulConfig;
@@ -83,8 +83,8 @@ public class GoogleAccount extends CommonGoogleAccount implements Cloneable, Sup
   }
 
   @Override
-  public void makeBootstrappingAccount(ArtifactSources artifactSources) {
-    super.makeBootstrappingAccount(artifactSources);
-    imageProjects.add(artifactSources.getGoogleImageProject());
+  public void makeBootstrappingAccount(ArtifactSourcesConfig artifactSourcesConfig) {
+    super.makeBootstrappingAccount(artifactSourcesConfig);
+    imageProjects.add(artifactSourcesConfig.getGoogleImageProject());
   }
 }

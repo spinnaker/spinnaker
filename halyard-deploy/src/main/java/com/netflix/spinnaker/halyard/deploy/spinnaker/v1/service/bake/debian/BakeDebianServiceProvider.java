@@ -17,13 +17,15 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.bake.debian;
 
-import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
@@ -39,7 +41,10 @@ import java.util.stream.Collectors;
 @Component
 public class BakeDebianServiceProvider extends BakeServiceProvider {
   @Autowired
-  private ArtifactSources artifactSources;
+  private ArtifactSourcesConfig artifactSourcesConfig;
+
+  @Autowired
+  ArtifactService artifactService;
 
   @Autowired
   BakeDebianClouddriverService clouddriverService;
@@ -90,7 +95,7 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
   String startupScriptPath;
 
   @Override
-  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand) {
+  public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands, String startupCommand) {
     Map<String, String> bindings = new HashMap<>();
     List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream().map(SpinnakerService.Type::fromCanonicalName).collect(Collectors.toList());
     List<String> upstartNames = getPrioritizedBakeableServices(serviceTypes)
@@ -106,10 +111,11 @@ public class BakeDebianServiceProvider extends BakeServiceProvider {
     TemplatedResource resource = new JarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     String upstartInit = resource.setBindings(bindings).toString();
+    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
     resource = new JarResource("/debian/pre-bake.sh");
     bindings = new HashMap<>();
-    bindings.put("debian-repository", artifactSources.getDebianRepository());
+    bindings.put("debian-repository", artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("upstart-init", upstartInit);
     bindings.put("startup-file", Paths.get(startupScriptPath, "startup.sh").toString());

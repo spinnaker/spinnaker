@@ -131,9 +131,9 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
 
     if (smoketest) {
       Config config = KubernetesConfigParser.parse(kubeconfigFile, context, cluster, user, namespaces, false);
-      KubernetesClient client = new DefaultKubernetesClient(config);
-
       try {
+        KubernetesClient client = new DefaultKubernetesClient(config);
+
         client.namespaces().list();
       } catch (Exception e) {
         ConfigProblemBuilder pb = psBuilder.addProblem(ERROR, "Unable to communicate with your Kubernetes cluster: " + e.getMessage() + ".");

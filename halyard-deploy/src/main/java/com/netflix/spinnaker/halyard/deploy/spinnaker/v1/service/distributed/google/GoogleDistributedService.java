@@ -55,7 +55,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
   GoogleConsulServerService getConsulServerService();
   ArtifactService getArtifactService();
   ServiceInterfaceFactory getServiceInterfaceFactory();
-  String getGoogleImageProject();
+  String getGoogleImageProject(String deploymentName);
   String getStartupScriptPath();
 
   default String getDefaultInstanceType() {
@@ -103,7 +103,7 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     String artifactName = getArtifact().getName();
     String version = getArtifactService().getArtifactVersion(deploymentName, getArtifact());
     return String.format("projects/%s/global/images/%s",
-        getGoogleImageProject(),
+        getGoogleImageProject(deploymentName),
         String.join("-", "spinnaker", artifactName, version.replace(".", "-").replace(":", "-")));
   }
 

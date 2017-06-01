@@ -67,6 +67,11 @@ public class ArtifactService {
     return versionsService.getBillOfMaterials(version);
   }
 
+  public BillOfMaterials.ArtifactSources getArtifactSources(String deploymentName) {
+    BillOfMaterials bom = getBillOfMaterials(deploymentName);
+    return bom.getArtifactSources();
+  }
+
   public String getArtifactVersion(String deploymentName, SpinnakerArtifact artifact) {
     return getBillOfMaterials(deploymentName).getArtifactVersion(artifact.getName());
   }

@@ -17,11 +17,13 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.debian;
 
-import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSources;
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
 import com.netflix.spinnaker.halyard.core.resource.v1.TemplatedResource;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.DeploymentDetails;
+import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
@@ -36,7 +38,10 @@ import java.util.stream.Collectors;
 @Component
 public class LocalDebianServiceProvider extends LocalServiceProvider {
   @Autowired
-  private ArtifactSources artifactSources;
+  private ArtifactSourcesConfig artifactSourcesConfig;
+
+  @Autowired
+  private ArtifactService artifactService;
 
   @Autowired
   LocalDebianClouddriverService clouddriverService;
@@ -72,7 +77,7 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
   LocalDebianRoscoService roscoService;
 
   @Override
-  public String getInstallCommand(GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
+  public String getInstallCommand(DeploymentDetails deploymentDetails, GenerateService.ResolvedConfiguration resolvedConfiguration, Map<String, String> installCommands) {
     Map<String, String> bindings = new HashMap<>();
     List<SpinnakerService.Type> serviceTypes = new ArrayList<>(installCommands.keySet()).stream()
         .map(SpinnakerService.Type::fromCanonicalName)
@@ -90,12 +95,13 @@ public class LocalDebianServiceProvider extends LocalServiceProvider {
     TemplatedResource resource = new JarResource("/debian/init.sh");
     bindings.put("services", Strings.join(upstartNames, " "));
     String upstartInit = resource.setBindings(bindings).toString();
+    BillOfMaterials.ArtifactSources artifactSources = artifactService.getArtifactSources(deploymentDetails.getDeploymentName());
 
     resource = new JarResource("/debian/install.sh");
     bindings = new HashMap<>();
     bindings.put("prepare-environment", "true");
     bindings.put("install-redis", "true");
-    bindings.put("debian-repository", artifactSources.getDebianRepository());
+    bindings.put("debian-repository", artifactSourcesConfig.mergeWithBomSources(artifactSources).getDebianRepository());
     bindings.put("install-commands", String.join("\n", serviceInstalls));
     bindings.put("service-action", "restart");
     bindings.put("upstart-init", upstartInit);

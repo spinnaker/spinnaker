@@ -18,15 +18,37 @@
 
 package com.netflix.spinnaker.halyard.config.config.v1;
 
+import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
 import lombok.Data;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Data
 @ConfigurationProperties("spinnaker.artifacts")
 @Configuration
-public class ArtifactSources {
+public class ArtifactSourcesConfig {
   String googleImageProject = "marketplace-spinnaker-release";
   String dockerRegistry = "gcr.io/spinnaker-marketplace";
   String debianRepository = "https://dl.bintray.com/spinnaker-releases/debians";
+
+  public ArtifactSourcesConfig mergeWithBomSources(BillOfMaterials.ArtifactSources artifactSources) {
+    if (artifactSources == null) {
+      return this;
+    }
+
+    if (!StringUtils.isEmpty(artifactSources.getGoogleImageProject())) {
+      googleImageProject = artifactSources.getGoogleImageProject();
+    }
+
+    if (!StringUtils.isEmpty(artifactSources.getDockerRegistry())) {
+      dockerRegistry = artifactSources.getDockerRegistry();
+    }
+
+    if (!StringUtils.isEmpty(artifactSources.getDebianRepository())) {
+      debianRepository = artifactSources.getDebianRepository();
+    }
+
+    return this;
+  }
 }

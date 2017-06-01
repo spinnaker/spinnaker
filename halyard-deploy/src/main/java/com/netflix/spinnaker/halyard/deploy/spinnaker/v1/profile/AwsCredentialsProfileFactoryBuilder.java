@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,6 +45,7 @@ public class AwsCredentialsProfileFactoryBuilder {
     return Paths.get(spinnakerHome, ".aws/credentials").toString();
   }
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public class AwsCredentialsProfileFactory extends TemplateBackedProfileFactory {
     public AwsCredentialsProfileFactory(SpinnakerArtifact artifact) {
