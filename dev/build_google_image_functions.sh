@@ -16,15 +16,17 @@
 
 CLEAN_GOOGLE_IMAGE_SCRIPT=${CLEAN_GOOGLE_IMAGE_SCRIPT:-"$(dirname $0)/clean_google_image.sh"}
 EXTRACT_DISK_TO_GCS_SCRIPT=${EXTRACT_DISK_TO_GCS_SCRIPT:-"$(dirname $0)/extract_disk_to_gcs.sh"}
-SSH_KEY_FILE=${SSH_KEY_FILE:-"$HOME/.ssh/google_empty"}
 
 
-function create_empty_ssh_key() {
+function ensure_empty_ssh_key() {
+  ACCOUNT_NAME=$(echo "$ACCOUNT" | sed "s/\(.*\)@.*/\1/")
+  ACCOUNT_NAME=$LOGNAME
+  SSH_KEY_FILE=${SSH_KEY_FILE:-"$HOME/.ssh/${ACCOUNT_NAME}_empty_key"}
+
   # https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys
-  if [[ ! -f ~/.ssh/google_empty.pub ]]; then
-    echo "Creating ~/.ssh/google_empty SSH key"
-    ssh-keygen -N "" -t rsa -f ~/.ssh/google_empty -C builder
-    sed "s/^ssh-rsa/builder:ssh-rsa/" -i ~/.ssh/google_empty.pub
+  if [[ ! -f $SSH_KEY_FILE ]]; then
+    echo "Creating $SSH_KEY_FILE SSH key"
+    ssh-keygen -N "" -t rsa -f $SSH_KEY_FILE -C $ACCOUNT_NAME
   fi
 }
 
@@ -50,6 +52,19 @@ function extract_clean_prototype_disk() {
       --zone $ZONE \
       --disk $prototype_disk \
       --device-name spinnaker
+
+  # Wait for sever/key to be ready so next commands wont fail
+  for i in {1..10}; do
+    if gcloud compute ssh ${worker_instance} \
+        --project $PROJECT \
+        --account $ACCOUNT \
+        --zone $ZONE \
+        --ssh-key-file $SSH_KEY_FILE \
+        --command="exit 0"
+    then
+        break
+    fi
+  done
 
   if ! gcloud compute copy-files  \
       --project $PROJECT \
@@ -80,8 +95,7 @@ function extract_clean_prototype_disk() {
   fi
 
   echo "`date`: Cleaning in '$worker_instance'"
-  gcloud alpha compute ssh ${worker_instance} \
-      --internal-ip \
+  gcloud compute ssh ${worker_instance} \
       --project $PROJECT \
       --account $ACCOUNT \
       --zone $ZONE \
@@ -90,8 +104,7 @@ function extract_clean_prototype_disk() {
 
   if [[ $output_file != "" ]]; then
     echo "`date`: Extracting disk as tar file '$output_file.'"
-    gcloud alpha compute ssh ${worker_instance} \
-        --internal-ip \
+    gcloud compute ssh ${worker_instance} \
         --project $PROJECT \
         --account $ACCOUNT \
         --zone $ZONE \

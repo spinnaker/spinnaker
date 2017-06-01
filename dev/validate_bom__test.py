@@ -410,8 +410,11 @@ class ValidateBomTestController(object):
     # We dont need to lock because this function is called from within
     # the lock already.
     logging.debug('RUNNING %s', ' '.join(command))
+
+    # Redirect stdout to prevent buffer overflows (at least in k8s)
+    # but keep errors for failures.
     child = subprocess.Popen(
-        command,
+        ' '.join(command) + ' > /dev/null', shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         stdin=subprocess.PIPE)

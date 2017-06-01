@@ -305,6 +305,7 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
     if not options.k8s_account_name:
       raise ValueError('--deploy_distributed_platform="kubernetes" requires'
                        ' a --k8s_account_name be configured.')
+
     if hasattr(options, "injected_deploy_spinnaker_account"):
       raise ValueError('deploy_spinnaker_account was already set to "{0}"'
                        .format(options.injected_deploy_spinnaker_account))
@@ -312,10 +313,15 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
 
   def __get_pod_name(self, k8s_namespace, service):
     """Determine the pod name for the deployed service."""
+    options = self.options
     response = check_run_quick(
-        'kubectl get pods --namespace {namespace}'
+        'kubectl {context} get pods --namespace {namespace}'
         ' | gawk -F "[[:space:]]+" "/{service}-v/ {{print \\$1}}" | tail -1'
-        .format(namespace=k8s_namespace, service=service))
+        .format(context=('--context {0}'.format(options.k8s_account_context)
+                         if options.k8s_account_context
+                         else ''),
+                namespace=k8s_namespace,
+                service=service))
     pod = response.stdout.strip()
     if not pod:
       message = 'There is no pod for "{service}" in {namespace}'.format(
@@ -367,13 +373,21 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
       service: [string] The service's log to get
       log_dir: [string] The directory name to write the logs into.
     """
-    k8s_namespace = self.options.deploy_k8s_namespace
+    options = self.options
+    k8s_namespace = options.deploy_k8s_namespace
     service_pod = self.__get_pod_name(k8s_namespace, service)
     path = os.path.join(log_dir, service + '.log')
     write_data_to_secure_path('', path)
     check_run_quick(
-        'kubectl -n {namespace} logs {pod} >> {path}'
-        .format(namespace=k8s_namespace, pod=service_pod, path=path))
+        'kubectl -n {namespace} -c {container} {context} logs {pod}'
+        '  >> {path}'
+        .format(namespace=k8s_namespace,
+                container='spin-{service}'.format(service),
+                context=('--context {0}'.format(options.k8s_account_context)
+                         if options.k8s_account_context
+                         else ''),
+                pod=service_pod,
+                path=path))
 
 class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
   """Concrete deployer used to deploy Hal onto Generic VM
@@ -489,8 +503,31 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
     finally:
       os.remove(script_path)
 
-    logging.info('Running install script')
     try:
+      logging.info('Waiting for ssh...')
+      end_time = time.time() + 30
+      logging.info('Entering while %f < %f', time.time(), end_time)
+      while time.time() < end_time:
+        logging.info('Running quick...')
+        ready_response = run_quick(
+            'ssh'
+            ' -i {ssh_key}'
+            ' -o StrictHostKeyChecking=no'
+            ' -o UserKnownHostsFile=/dev/null'
+            ' {user}@{ip}'
+            ' "exit 0"'
+            .format(user=self.hal_user,
+                    ip=self.instance_ip,
+                    ssh_key=self.__ssh_key_path),
+            echo=False)
+        logging.info('got %s', ready_response)
+        if ready_response.returncode == 0:
+          logging.info('ssh is ready.')
+          break
+        logging.info('ssh not yet ready...')
+        time.sleep(1)
+
+      logging.info('Running install script')
       check_run_and_monitor(
           'ssh'
           ' -i {ssh_key}'
@@ -502,8 +539,13 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
                   ip=self.instance_ip,
                   ssh_key=self.__ssh_key_path,
                   script_name=os.path.basename(script_path)))
-    except RuntimeError:
+    except RuntimeError as error:
+      logging.error('Caught runtime error: %s', error)
       raise RuntimeError('Halyard deployment failed.')
+    except Exception as ex:
+      print str(ex)
+      logging.exception('Unexpected exception: %s', ex)
+      raise
 
   def do_fetch_service_log_file(self, service, log_dir):
     """Implements the BaseBomValidateDeployer interface."""
