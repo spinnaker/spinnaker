@@ -34,7 +34,7 @@ class LocalJobFriendlyPackerCommandFactory implements PackerCommandFactory {
     }
 
     if (absoluteVarFilePath) {
-      packerCommand << "-var-file=$absoluteVarFilePath"
+      packerCommand << "-var-file=$absoluteVarFilePath".toString()
     }
 
     packerCommand << absoluteTemplateFilePath
