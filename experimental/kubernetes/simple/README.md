@@ -1,5 +1,8 @@
 # Spinnaker on Kubernetes
 
+> :warning: These instructions are being deprecated in favor of
+> [halyard](https://github.com/spinnaker/halyard).
+
 This guide will walk you through deploying Spinnaker to a running Kubernetes
 cluster. The steps below assume that you will be using that Spinnaker installation
 to manage and deploy other applications to that same Kubernetes cluster.
