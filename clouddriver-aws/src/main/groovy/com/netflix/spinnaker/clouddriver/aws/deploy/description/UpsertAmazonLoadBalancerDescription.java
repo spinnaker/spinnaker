@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UpsertAmazonLoadBalancerDescription extends AbstractAmazonCredentialsDescription {
-  private AmazonLoadBalancerType loadBalancerType = AmazonLoadBalancerType.ELB_CLASSIC;
+  private AmazonLoadBalancerType loadBalancerType = AmazonLoadBalancerType.CLASSIC;
 
   private String clusterName;
   private String name;

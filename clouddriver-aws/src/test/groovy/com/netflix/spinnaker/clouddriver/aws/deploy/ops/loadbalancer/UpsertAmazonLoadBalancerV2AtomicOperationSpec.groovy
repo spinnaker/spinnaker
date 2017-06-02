@@ -40,7 +40,7 @@ class UpsertAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
   def targetGroupName = 'target-group-foo'
   UpsertAmazonLoadBalancerV2Description description = new UpsertAmazonLoadBalancerV2Description(
-    loadBalancerType: AmazonLoadBalancerType.ALB,
+    loadBalancerType: AmazonLoadBalancerType.APPLICATION,
     name: "foo-main-frontend",
     availabilityZones: ["us-east-1": ["us-east-1a"]],
     listeners: [

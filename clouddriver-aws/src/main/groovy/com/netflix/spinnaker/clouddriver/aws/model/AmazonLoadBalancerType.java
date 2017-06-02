@@ -17,6 +17,20 @@
 package com.netflix.spinnaker.clouddriver.aws.model;
 
 public enum AmazonLoadBalancerType {
-  ELB_CLASSIC,
-  ALB
+  CLASSIC,
+  APPLICATION;
+
+  public static AmazonLoadBalancerType getByValue(String value) {
+    for(AmazonLoadBalancerType lbt: values()) {
+      if (lbt.toString().equals(value)) {
+        return lbt;
+      }
+    }
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return this.name().toLowerCase();
+  }
 }

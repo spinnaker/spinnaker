@@ -19,15 +19,28 @@ package com.netflix.spinnaker.clouddriver.aws.data
 import java.util.regex.Pattern
 
 class ArnUtils {
-  private static final Pattern ALB_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/[^:]+\/([^\/]+)\/.+$/)
+  private static final Pattern ELBV2_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:loadbalancer\/([^:]+)\/([^\/]+)\/.+$/)
   private static final Pattern TARGET_GROUP_ARN_PATTERN = Pattern.compile(/^arn:aws(?:-cn)?:elasticloadbalancing:[^:]+:[^:]+:targetgroup\/([^\/]+)\/.+$/)
 
   static Optional<String> extractLoadBalancerName(String loadBalancerArn) {
-    def m = ALB_ARN_PATTERN.matcher(loadBalancerArn)
-    if (m.matches()) {
-      return Optional.of(m.group(1))
+    def m = ELBV2_ARN_PATTERN.matcher(loadBalancerArn)
+    if (m.matches() && m.groupCount() > 1) {
+      return Optional.of(m.group(2))
     }
     return Optional.empty()
+  }
+
+  static String extractLoadBalancerType(String loadBalancerArn) {
+    def m = ELBV2_ARN_PATTERN.matcher(loadBalancerArn)
+    if (m.matches()) {
+      String typeShort = m.group(1)
+      if (typeShort.equals("app")) {
+        return "application"
+      } else if (typeShort.equals("net")) {
+        return "network"
+      }
+    }
+    return "unknown"
   }
 
   static Optional<String> extractTargetGroupName(String targetGroupArn) {

@@ -18,6 +18,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.converters
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.UpsertAmazonLoadBalancerAtomicOperationConverter
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerV2AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerDescription
@@ -36,7 +39,7 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
     this.converter = new UpsertAmazonLoadBalancerAtomicOperationConverter(objectMapper: new ObjectMapper(), accountCredentialsProvider: accountCredentialsProvider)
   }
 
-  void "basicAmazonDeployDescription type returns BasicAmazonDeployDescription and DeployAtomicOperation"() {
+  void "UpsertAmazonLoadBalancerAtomicOperationConverter convertDescription with no type returns UpsertAmazonLoadBalancerClassicDescription"() {
     setup:
     def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
                  listeners  :
@@ -47,13 +50,77 @@ class UpsertAmazonLoadBalancerAtomicOperationConverterUnitSpec extends Specifica
     def description = converter.convertDescription(input)
 
     then:
-    description instanceof UpsertAmazonLoadBalancerDescription
+    description instanceof UpsertAmazonLoadBalancerClassicDescription
+  }
+
+  void "UpsertAmazonLoadBalancerAtomicOperationConverter convertOperation with no type returns UpsertAmazonLoadBalancerAtomicOperation"() {
+    setup:
+    def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]],
+                 listeners  :
+                   [[externalProtocol: "HTTP", internalProtocol: "HTTP", externalPort: 7001, internalPort: 7001]],
+                 credentials: "test"]
 
     when:
     def operation = converter.convertOperation(input)
 
     then:
     operation instanceof UpsertAmazonLoadBalancerAtomicOperation
+  }
+
+  void "UpsertAmazonLoadBalancerAtomicOperationConverter convertDescription with classic type returns UpsertAmazonLoadBalancerV2Description"() {
+    setup:
+    def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]], loadBalancerType: "classic",
+                 listeners  :
+                   [[externalProtocol: "HTTP", internalProtocol: "HTTP", externalPort: 7001, internalPort: 7001]],
+                 credentials: "test"]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description instanceof UpsertAmazonLoadBalancerClassicDescription
+  }
+
+  void "UpsertAmazonLoadBalancerAtomicOperationConverter convertOperation with classic type returns UpsertAmazonLoadBalancerAtomicOperation"() {
+    setup:
+    def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]], loadBalancerType: "classic",
+                 listeners  :
+                   [[externalProtocol: "HTTP", internalProtocol: "HTTP", externalPort: 7001, internalPort: 7001]],
+                 credentials: "test"]
+
+    when:
+    def operation = converter.convertOperation(input)
+
+    then:
+    operation instanceof UpsertAmazonLoadBalancerAtomicOperation
+  }
+
+  void "UpsertAmazonLoadBalancerAtomicOperationConverter convertDescription with application type returns UpsertAmazonLoadBalancerV2Description"() {
+    setup:
+    def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]], loadBalancerType: "application",
+                 listeners  :
+                   [[externalProtocol: "HTTP", internalProtocol: "HTTP", externalPort: 7001, internalPort: 7001]],
+                 credentials: "test"]
+
+    when:
+    def description = converter.convertDescription(input)
+
+    then:
+    description instanceof UpsertAmazonLoadBalancerV2Description
+  }
+
+  void "UpsertAmazonLoadBalancerAtomicOperationConverter convertOperation with application type returns UpsertAmazonLoadBalancerV2AtomicOperation"() {
+    setup:
+    def input = [name: "kato-main", availabilityZones: ["us-east-1": ["us-east-1a"]], loadBalancerType: "application",
+                 listeners  :
+                   [[externalProtocol: "HTTP", internalProtocol: "HTTP", externalPort: 7001, internalPort: 7001]],
+                 credentials: "test"]
+
+    when:
+    def operation = converter.convertOperation(input)
+
+    then:
+    operation instanceof UpsertAmazonLoadBalancerV2AtomicOperation
   }
 
   void "should coerce types properly in nested structures"() {

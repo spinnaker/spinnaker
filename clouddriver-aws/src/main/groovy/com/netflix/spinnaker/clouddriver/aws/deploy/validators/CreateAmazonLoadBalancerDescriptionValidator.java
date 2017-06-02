@@ -62,13 +62,13 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
     }
 
     switch (description.getLoadBalancerType()) {
-      case ELB_CLASSIC:
+      case CLASSIC:
         UpsertAmazonLoadBalancerClassicDescription classicDescription = (UpsertAmazonLoadBalancerClassicDescription) description;
         if (classicDescription.getListeners() == null || classicDescription.getListeners().size() == 0) {
           errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.empty");
         }
         break;
-      case ALB:
+      case APPLICATION:
         UpsertAmazonLoadBalancerV2Description albDescription = (UpsertAmazonLoadBalancerV2Description) description;
         if (albDescription.targetGroups == null || albDescription.targetGroups.size() == 0) {
           errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.empty");

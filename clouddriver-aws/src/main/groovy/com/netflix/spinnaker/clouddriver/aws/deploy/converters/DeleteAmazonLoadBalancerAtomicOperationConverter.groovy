@@ -29,27 +29,28 @@ import org.springframework.stereotype.Component
 @AmazonOperation(AtomicOperations.DELETE_LOAD_BALANCER)
 @Component("deleteAmazonLoadBalancerDescription")
 class DeleteAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
-  @Override
-  AtomicOperation convertOperation(Map input) {
-    DeleteAmazonLoadBalancerDescription description = convertDescription(input)
-    // Default to Classic ELBs
-    if (description.loadBalancerType == null) {
-      description.loadBalancerType = AmazonLoadBalancerType.ELB_CLASSIC
-    }
-
-    switch (description.loadBalancerType) {
-      case AmazonLoadBalancerType.ALB:
-        return new DeleteAmazonLoadBalancerV2AtomicOperation(description)
-        break
-      case AmazonLoadBalancerType.ELB_CLASSIC:
-        return new DeleteAmazonLoadBalancerClassicAtomicOperation(description)
-        break
+  private void sanitizeInput(Map input) {
+    if (!input.containsKey("loadBalancerType")) {
+      input.put("loadBalancerType", AmazonLoadBalancerType.CLASSIC.toString())
     }
   }
 
   @Override
+  AtomicOperation convertOperation(Map input) {
+    this.sanitizeInput(input)
+    DeleteAmazonLoadBalancerDescription description = convertDescription(input)
+
+    if (input.get("loadBalancerType") == AmazonLoadBalancerType.CLASSIC.toString()) {
+      return new DeleteAmazonLoadBalancerClassicAtomicOperation(description)
+    }
+    return new DeleteAmazonLoadBalancerV2AtomicOperation(description)
+  }
+
+  @Override
   DeleteAmazonLoadBalancerDescription convertDescription(Map input) {
+    this.sanitizeInput(input)
+    input.put("loadBalancerType", AmazonLoadBalancerType.getByValue((String)input.get("loadBalancerType")));
+
     def converted = objectMapper.convertValue(input, DeleteAmazonLoadBalancerDescription)
     converted.credentials = getCredentialsObject(input.credentials as String)
     converted

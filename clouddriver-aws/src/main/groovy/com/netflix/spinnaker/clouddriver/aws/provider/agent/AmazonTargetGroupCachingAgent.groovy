@@ -154,8 +154,9 @@ class AmazonTargetGroupCachingAgent implements CachingAgent, HealthProvidingCach
 
       // Get associated load balancer keys
       Collection<String> loadBalancerIds = tg.loadBalancerArns.collect {
-        def lbName = ArnUtils.extractLoadBalancerName(it).get()
-        Keys.getLoadBalancerKey(lbName, account.name, region, tg.vpcId, "application")
+        String lbName = ArnUtils.extractLoadBalancerName(it).get()
+        String lbType = ArnUtils.extractLoadBalancerType(it)
+        Keys.getLoadBalancerKey(lbName, account.name, region, tg.vpcId, lbType)
       }
 
       // Get target group attributes

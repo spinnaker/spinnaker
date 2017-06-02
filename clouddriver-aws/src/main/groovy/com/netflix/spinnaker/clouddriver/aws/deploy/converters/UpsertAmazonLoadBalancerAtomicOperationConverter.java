@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerClassicDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazonLoadBalancerV2AtomicOperation;
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancer;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
@@ -33,15 +34,18 @@ import java.util.Map;
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
 @Component("upsertAmazonLoadBalancerDescription")
 class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
-
-  private Boolean isClassic (Map input) {
-    String loadBalancerType = (String)input.get("loadBalancerType");
-    return loadBalancerType == null || input.get("loadBalancerType").equals(AmazonLoadBalancerType.ELB_CLASSIC.toString());
+  private void sanitizeInput(Map input) {
+    if (!input.containsKey("loadBalancerType")) {
+      input.put("loadBalancerType", AmazonLoadBalancerType.CLASSIC.toString());
+    }
   }
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    if (isClassic(input)) {
+    // default to classic load balancer if no type specified
+    this.sanitizeInput(input);
+
+    if (input.get("loadBalancerType").equals(AmazonLoadBalancerType.CLASSIC.toString())) {
       return new UpsertAmazonLoadBalancerAtomicOperation(convertDescription(input));
     }
     return new UpsertAmazonLoadBalancerV2AtomicOperation(convertDescription(input));
@@ -49,13 +53,12 @@ class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
 
   @Override
   public UpsertAmazonLoadBalancerDescription convertDescription(Map input) {
-    // default to classic load balancer if no type specified
-    if (!input.containsKey("loadBalancerType")) {
-      input.put("loadBalancerType", AmazonLoadBalancerType.ELB_CLASSIC.toString());
-    }
-
     UpsertAmazonLoadBalancerDescription converted;
-    if (isClassic(input)) {
+
+    this.sanitizeInput(input);
+    input.put("loadBalancerType", AmazonLoadBalancerType.getByValue((String)input.get("loadBalancerType")));
+
+    if (input.get("loadBalancerType") == AmazonLoadBalancerType.CLASSIC) {
       converted = getObjectMapper().convertValue(input, UpsertAmazonLoadBalancerClassicDescription.class);
     } else {
       converted = getObjectMapper().convertValue(input, UpsertAmazonLoadBalancerV2Description.class);
