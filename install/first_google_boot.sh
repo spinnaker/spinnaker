@@ -205,7 +205,6 @@ function attempt_write_kube_credentials() {
 
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
   local kube_zone=$(get_instance_metadata_attribute "kube_zone")
-
   local kube_config=$(get_instance_metadata_attribute "kube_config")
 
   if [ -n "$kube_cluster" ] && [ -n "$kube_config" ]; then

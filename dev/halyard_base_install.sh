@@ -81,6 +81,12 @@ function main() {
 
   echo "Install spinnaker subcomponents"
   hal deploy apply --service-names clouddriver deck echo front50 gate igor orca rosco redis
+
+  mkdir -p /var/spinnaker/startup/
+
+  echo "Installing boot script"
+  wget https://raw.githubusercontent.com/spinnaker/spinnaker/master/install/first_halyard_boot.sh
+  mv first_halyard_boot.sh /var/spinnaker/startup/
 }
 
 process_args "$@"
