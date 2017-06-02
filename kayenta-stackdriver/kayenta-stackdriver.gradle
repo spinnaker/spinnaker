@@ -4,6 +4,7 @@ dependencies {
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency("korkSwagger")
   compile spinnaker.dependency('lombok')
+  compile 'com.netflix.spinnaker.orca:orca-core:2.8.3'
   spinnaker.group('google')
 
   compile 'com.google.apis:google-api-services-monitoring:v3-rev35-1.22.0'

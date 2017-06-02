@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.metrics;
+package com.netflix.kayenta.canary;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-@JsonTypeInfo(use= JsonTypeInfo.Id.NAME, include= JsonTypeInfo.As.PROPERTY, property = "type")
-@JsonSubTypes({@JsonSubTypes.Type(value = AtlasMetricSetQuery.class, name = "atlas"),
-               @JsonSubTypes.Type(value = StackdriverMetricSetQuery.class, name = "stackdriver")})
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public interface MetricSetQuery {}
+import javax.validation.constraints.NotNull;
+
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+// TODO(duftler): Figure out how to move this into the kayenta-atlas module. Doing so as-is would introduce a circular dependency.
+public class AtlasCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
+
+  @NotNull
+  @Getter
+  private String q;
+}

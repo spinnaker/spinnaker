@@ -36,6 +36,9 @@ kayenta:
   memory:
     enabled: false
 
+queue.redis.enabled: false
+executionLog.redis.enabled: false
+
 swagger:
   enabled: true
   title: Kayenta API
@@ -46,3 +49,5 @@ swagger:
     - /credentials.*
     - /fetch.*
     - /metricSetList.*
+    - /metricSetPairList.*
+    - /pipeline.*

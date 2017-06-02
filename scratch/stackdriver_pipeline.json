@@ -1,0 +1,61 @@
+{
+  "application": "kayentatest",
+  "executionEngine": "v3",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "name": "TestFetchFromStackdriver",
+  "parallel": true,
+  "stages": [
+    {
+      "name": "Fetch Baseline from Stackdriver",
+      "refId": "1",
+      "requisiteStageRefIds": [
+
+      ],
+      "type": "stackdriverFetch",
+      "user": "[anonymous]",
+      "stackdriverQuery": {
+        "metricsAccountName": "",
+        "storageAccountName": "",
+        "metricSetName": "cpu",
+        "metricType": "compute.googleapis.com/instance/cpu/utilization",
+        "scope": "myapp-v010-",
+        "intervalStartTimeIso": "2017-05-01T15:13:00Z",
+        "intervalEndTimeIso": "2017-05-02T15:27:00Z",
+        "step": "3600"
+      }
+    },
+    {
+      "name": "Fetch Canary from Stackdriver",
+      "refId": "2",
+      "requisiteStageRefIds": [
+
+      ],
+      "type": "stackdriverFetch",
+      "user": "[anonymous]",
+      "stackdriverQuery": {
+        "metricsAccountName": "",
+        "storageAccountName": "",
+        "metricSetName": "cpu",
+        "metricType": "compute.googleapis.com/instance/cpu/utilization",
+        "scope": "myapp-v010-",
+        "intervalStartTimeIso": "2017-05-01T15:13:00Z",
+        "intervalEndTimeIso": "2017-05-02T15:27:00Z",
+        "step": "7200"
+      }
+    },
+    {
+      "name": "Mix Baseline and Canary Results",
+      "refId": "3",
+      "requisiteStageRefIds": [
+        "1",
+        "2"
+      ],
+      "controlMetricSetListId": "${ #stage('Fetch Baseline from Stackdriver')['context']['metricSetListId']}",
+      "experimentMetricSetListId": "${ #stage('Fetch Canary from Stackdriver')['context']['metricSetListId']}",
+      "type": "metricSetMixer",
+      "user": "[anonymous]"
+    }
+  ]
+}

@@ -14,29 +14,58 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.metrics;
+package com.netflix.kayenta.stackdriver.query;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Builder
-@ToString
+@ToString(includeFieldNames = true)
 @NoArgsConstructor
 @AllArgsConstructor
-// TODO(duftler): Figure out how to move this into the kayenta-stackdriver module. Doing so as-is would introduce a circular dependency.
-public class StackdriverMetricSetQuery implements MetricSetQuery {
+public class StackdriverQuery {
+
+  @NotNull
+  @Getter
+  private String metricsAccountName;
+
+  @NotNull
+  @Getter
+  private String storageAccountName;
+
+  @NotNull
+  @Getter
+  private String metricSetName;
 
   @NotNull
   @Getter
   private String metricType;
 
   @NotNull
+  @Singular
   @Getter
   private List<String> groupByFields;
+
+  @NotNull
+  @Getter
+  private String scope;
+
+  @NotNull
+  @Getter
+  private String intervalStartTimeIso;
+
+  @NotNull
+  @Getter
+  private String intervalEndTimeIso;
+
+  @NotNull
+  @Getter
+  private String step;
 }

@@ -29,7 +29,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ComponentScan({"com.netflix.kayenta.config", "com.netflix.kayenta.retrofit.config"})
+@ComponentScan({
+  "com.netflix.kayenta.config",
+  "com.netflix.kayenta.metrics.orca",
+  "com.netflix.kayenta.persistence.config",
+  "com.netflix.kayenta.retrofit.config"
+})
 public class KayentaConfiguration {
 
   @Bean
@@ -45,7 +50,7 @@ public class KayentaConfiguration {
   }
 
   @Bean
-  @ConditionalOnMissingBean(MetricsServiceRepository.class)
+  @ConditionalOnMissingBean
   MetricSetMixerService metricSetMixerService() {
     return new MetricSetMixerService();
   }

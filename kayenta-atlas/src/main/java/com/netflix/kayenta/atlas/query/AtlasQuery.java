@@ -14,42 +14,55 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.metrics;
+package com.netflix.kayenta.atlas.query;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
 
 @Builder
-@ToString
+@ToString(includeFieldNames = true)
 @NoArgsConstructor
-public class MetricSetPair {
+@AllArgsConstructor
+public class AtlasQuery {
 
   @NotNull
   @Getter
-  private String name;
+  String metricsAccountName;
 
   @NotNull
-  @Singular
   @Getter
-  private Map<String, String> tags;
+  String storageAccountName;
 
   @NotNull
-  @Singular
   @Getter
-  private Map<String, List<Double>> values;
+  String q;
 
-  public MetricSetPair(String name,
-                       Map<String, String> tags,
-                       Map<String, List<Double>> values) {
-    this.name = name;
-    this.tags = tags;
-    this.values = values;
-  }
+  @NotNull
+  @Getter
+  String metricSetName;
+
+  @NotNull
+  @Getter
+  String type;
+
+  @NotNull
+  @Getter
+  String scope;
+
+  @NotNull
+  @Getter
+  String start;
+
+  @NotNull
+  @Getter
+  String end;
+
+  @NotNull
+  @Getter
+  String step;
 }

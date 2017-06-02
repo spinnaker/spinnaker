@@ -52,7 +52,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -144,7 +143,6 @@ public class OrcaAsLibIntegrationTest {
   RestrictExecutionDuringTimeWindow.class
 })
 
-@EnableScheduling
 class TestConfig {
 
   @Bean

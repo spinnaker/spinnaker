@@ -17,10 +17,10 @@
 package com.netflix.kayenta.metrics;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.Singular;
 import lombok.ToString;
 import org.springframework.util.StringUtils;
@@ -34,11 +34,11 @@ import java.util.stream.Collectors;
 @Builder
 @ToString
 @NoArgsConstructor
-@AllArgsConstructor
 public class MetricSet {
 
   @NotNull
   @Getter
+  @Setter
   private String name;
 
   @NotNull
@@ -65,6 +65,22 @@ public class MetricSet {
 
   @JsonIgnore
   private String metricSetKey;
+
+  public MetricSet(String name,
+                   Map<String, String> tags,
+                   long startTimeMillis,
+                   String startTimeIso,
+                   long stepMillis,
+                   List<Double> values,
+                   String metricSetKey) {
+    this.name = name;
+    this.tags = tags;
+    this.startTimeMillis = startTimeMillis;
+    this.startTimeIso = startTimeIso;
+    this.stepMillis = stepMillis;
+    this.values = values;
+    this.metricSetKey = metricSetKey;
+  }
 
   public String getMetricSetKey() {
     // Only need to generate the key once since MetricSet is immutable.

@@ -14,42 +14,29 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.metrics;
+package com.netflix.kayenta.canary;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
 @Builder
 @ToString
 @NoArgsConstructor
-public class MetricSetPair {
+@AllArgsConstructor
+// TODO(duftler): Figure out how to move this into the kayenta-stackdriver module. Doing so as-is would introduce a circular dependency.
+public class StackdriverCanaryMetricSetQueryConfig implements CanaryMetricSetQueryConfig {
 
   @NotNull
   @Getter
-  private String name;
+  private String metricType;
 
   @NotNull
-  @Singular
   @Getter
-  private Map<String, String> tags;
-
-  @NotNull
-  @Singular
-  @Getter
-  private Map<String, List<Double>> values;
-
-  public MetricSetPair(String name,
-                       Map<String, String> tags,
-                       Map<String, List<Double>> values) {
-    this.name = name;
-    this.tags = tags;
-    this.values = values;
-  }
+  private List<String> groupByFields;
 }

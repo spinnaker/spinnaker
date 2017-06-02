@@ -23,10 +23,10 @@ import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.canary.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
-import com.netflix.kayenta.metrics.StackdriverMetricSetQuery;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import lombok.Builder;
@@ -74,7 +74,7 @@ public class StackdriverMetricsService implements MetricsService {
       .getOne(accountName)
       .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
     Monitoring monitoring = credentials.getMonitoring();
-    StackdriverMetricSetQuery stackdriverMetricSetQuery = (StackdriverMetricSetQuery)canaryMetricConfig.getQuery();
+    StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     int alignmentPeriodSec = Integer.parseInt(canaryScope.getStep());
     Monitoring.Projects.TimeSeries.List list = monitoring
       .projects()

@@ -16,18 +16,8 @@
 
 package com.netflix.kayenta.stackdriver.controllers;
 
-import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.metrics.MetricSet;
-import com.netflix.kayenta.metrics.MetricsService;
-import com.netflix.kayenta.metrics.MetricsServiceRepository;
-import com.netflix.kayenta.metrics.StackdriverMetricSetQuery;
-import com.netflix.kayenta.security.AccountCredentials;
-import com.netflix.kayenta.security.AccountCredentialsRepository;
-import com.netflix.kayenta.security.CredentialsHelper;
-import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
-import com.netflix.kayenta.storage.ObjectType;
-import com.netflix.kayenta.storage.StorageService;
-import com.netflix.kayenta.storage.StorageServiceRepository;
+import com.netflix.kayenta.stackdriver.query.StackdriverQuery;
+import com.netflix.kayenta.stackdriver.query.StackdriverSynchronousQueryProcessor;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,11 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/fetch/stackdriver")
@@ -49,13 +35,7 @@ import java.util.UUID;
 public class StackdriverFetchController {
 
   @Autowired
-  AccountCredentialsRepository accountCredentialsRepository;
-
-  @Autowired
-  MetricsServiceRepository metricsServiceRepository;
-
-  @Autowired
-  StorageServiceRepository storageServiceRepository;
+  StackdriverSynchronousQueryProcessor stackdriverSynchronousQueryProcessor;
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public String queryMetrics(@RequestParam(required = false) final String metricsAccountName,
@@ -67,66 +47,22 @@ public class StackdriverFetchController {
                              @ApiParam(defaultValue = "2017-05-01T15:13:00Z") @RequestParam String intervalStartTimeIso,
                              @ApiParam(defaultValue = "2017-05-02T15:27:00Z") @RequestParam String intervalEndTimeIso,
                              @ApiParam(defaultValue = "3600") @RequestParam String step) throws IOException {
-    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
-                                                                                     AccountCredentials.Type.METRICS_STORE,
-                                                                                     accountCredentialsRepository);
-    Optional<MetricsService> metricsService = metricsServiceRepository.getOne(resolvedMetricsAccountName);
-    List<MetricSet> metricSetList;
+    StackdriverQuery.StackdriverQueryBuilder stackdriverQueryBuilder =
+      StackdriverQuery
+        .builder()
+        .metricsAccountName(metricsAccountName)
+        .storageAccountName(storageAccountName)
+        .metricSetName(metricSetName)
+        .metricType(metricType)
+        .scope(scope)
+        .intervalStartTimeIso(intervalStartTimeIso)
+        .intervalEndTimeIso(intervalEndTimeIso)
+        .step(step);
 
-    Instant startTimeInstant = Instant.parse(intervalStartTimeIso);
-    long startTimeMillis = startTimeInstant.toEpochMilli();
-    Instant endTimeInstant = Instant.parse(intervalEndTimeIso);
-    long endTimeMillis = endTimeInstant.toEpochMilli();
-
-    // TODO(duftler): Factor out the duplicate code between this and AtlasFetchController.
-    if (metricsService.isPresent()) {
-      StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
-      stackdriverCanaryScope.setScope(scope);
-      stackdriverCanaryScope.setStart(startTimeMillis + "");
-      stackdriverCanaryScope.setEnd(endTimeMillis + "");
-      stackdriverCanaryScope.setIntervalStartTimeIso(intervalStartTimeIso);
-      stackdriverCanaryScope.setIntervalEndTimeIso(intervalEndTimeIso);
-      stackdriverCanaryScope.setStep(step);
-
-      StackdriverMetricSetQuery.StackdriverMetricSetQueryBuilder stackdriverMetricSetQueryBuilder =
-        StackdriverMetricSetQuery
-          .builder()
-          .metricType(metricType);
-
-      if (groupByFields != null && !groupByFields.isEmpty()) {
-        stackdriverMetricSetQueryBuilder.groupByFields(groupByFields);
-      }
-
-      CanaryMetricConfig canaryMetricConfig =
-        CanaryMetricConfig
-          .builder()
-          .name(metricSetName)
-          .query(stackdriverMetricSetQueryBuilder.build())
-          .build();
-
-      metricSetList = metricsService
-        .get()
-        .queryMetrics(resolvedMetricsAccountName, canaryMetricConfig, stackdriverCanaryScope);
-    } else {
-      log.debug("No metrics service was configured; skipping placeholder logic to read from metrics store.");
-
-      metricSetList = Collections.singletonList(MetricSet.builder().name("no-metrics").build());
+    if (groupByFields != null) {
+      stackdriverQueryBuilder.groupByFields(groupByFields);
     }
 
-    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
-                                                                                     AccountCredentials.Type.OBJECT_STORE,
-                                                                                     accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedStorageAccountName);
-    String metricSetListId = UUID.randomUUID() + "";
-
-    if (storageService.isPresent()) {
-      storageService
-        .get()
-        .storeObject(resolvedStorageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
-    } else {
-      log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
-    }
-
-    return metricSetListId;
+    return stackdriverSynchronousQueryProcessor.processQuery(stackdriverQueryBuilder.build());
   }
 }

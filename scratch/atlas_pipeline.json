@@ -1,0 +1,61 @@
+{
+  "application": "kayentatest",
+  "executionEngine": "v3",
+  "keepWaitingPipelines": false,
+  "lastModifiedBy": "anonymous",
+  "limitConcurrent": true,
+  "name": "TestFetchFromAtlas",
+  "parallel": true,
+  "stages": [
+    {
+      "name": "Fetch Baseline from Atlas",
+      "refId": "1",
+      "requisiteStageRefIds": [
+
+      ],
+      "type": "atlasFetch",
+      "user": "[anonymous]",
+      "atlasQuery": {
+        "metricsAccountName":"atlas-acct-1",
+        "q": "name,randomValue,:eq",
+        "metricSetName": "cpu",
+        "type": "node",
+        "scope": "duftler-macbookpro2.roam.corp.google.com",
+        "start": "1496436680000",
+        "end": "now",
+        "step": "PT10S"
+      }
+    },
+    {
+      "name": "Fetch Canary from Atlas",
+      "refId": "2",
+      "requisiteStageRefIds": [
+
+      ],
+      "type": "atlasFetch",
+      "user": "[anonymous]",
+      "atlasQuery": {
+        "metricsAccountName":"atlas-acct-1",
+        "q": "name,randomValue,:eq",
+        "metricSetName": "cpu",
+        "type": "node",
+        "scope": "duftler-macbookpro2.roam.corp.google.com",
+        "start": "1496436680000",
+        "end": "now",
+        "step": "PT10S"
+      }
+    },
+    {
+      "name": "Mix Baseline and Canary Results",
+      "refId": "3",
+      "requisiteStageRefIds": [
+        "1",
+        "2"
+      ],
+      "controlMetricSetListId": "${ #stage('Fetch Baseline from Atlas')['context']['metricSetListId']}",
+      "experimentMetricSetListId": "${ #stage('Fetch Canary from Atlas')['context']['metricSetListId']}",
+      "type": "metricSetMixer",
+      "user": "[anonymous]"
+    }
+  ]
+}

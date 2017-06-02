@@ -17,7 +17,6 @@
 package com.netflix.kayenta.canary;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.netflix.kayenta.metrics.MetricSetQuery;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -46,7 +45,7 @@ public class CanaryMetricConfig {
 
   @NotNull
   @Getter
-  private MetricSetQuery query;
+  private CanaryMetricSetQueryConfig query;
 
   @NotNull
   @Singular

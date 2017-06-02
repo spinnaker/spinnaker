@@ -5,10 +5,15 @@ import com.google.common.base.Charsets;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
 import com.netflix.kayenta.atlas.model.AtlasResults;
 import com.netflix.kayenta.atlas.model.TimeseriesData;
+import com.netflix.kayenta.canary.AtlasCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.metrics.AtlasMetricSetQuery;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,7 +27,9 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
@@ -73,7 +80,7 @@ public class IntegrationTest {
         long end = Long.parseLong(scope.getEnd()) / step * step;
         long count = (end - start) / step;
 
-        AtlasMetricSetQuery atlasMetricSetQuery = (AtlasMetricSetQuery)metric.getQuery();
+        AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery = (AtlasCanaryMetricSetQueryConfig)metric.getQuery();
         AtlasResults results = AtlasResults.builder()
                 .id("dummyId")
                 .start(start)
