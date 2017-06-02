@@ -57,12 +57,28 @@ fun <E : Execution<E>> ConfigurableApplicationContext.runToCompletion(execution:
   launcher.invoke(execution)
   assert(latch.await()) { "Pipeline did not complete" }
 
+  repository.waitForAllStagesToComplete(execution)
+}
+
+fun <E : Execution<E>> ConfigurableApplicationContext.restartAndRunToCompletion(stage: Stage<E>, launcher: (E, String) -> Unit, repository: ExecutionRepository) {
+  val execution = stage.execution
+  val latch = ExecutionLatch(
+    has(ExecutionComplete::getExecutionId, equalTo(execution.id))
+  )
+  addApplicationListener(latch)
+  launcher.invoke(execution, stage.id)
+  assert(latch.await()) { "Pipeline did not complete after restarting" }
+
+  repository.waitForAllStagesToComplete(execution)
+}
+
+private fun <E : Execution<E>> ExecutionRepository.waitForAllStagesToComplete(execution: E) {
   var complete = false
   while (!complete) {
     Thread.sleep(100)
     complete = when (execution) {
-      is Pipeline -> repository.retrievePipeline(execution.id)
-      else -> repository.retrieveOrchestration(execution.id)
+      is Pipeline -> retrievePipeline(execution.id)
+      else -> retrieveOrchestration(execution.id)
     }
       .getStages()
       .map(Stage<*>::getStatus)

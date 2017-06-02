@@ -19,11 +19,10 @@ package com.netflix.spinnaker.orca.q
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.q.Queue.Companion.maxRetries
 import com.netflix.spinnaker.orca.time.MutableClock
+import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.context
-import org.jetbrains.spek.api.dsl.describe
-import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.*
 import java.io.Closeable
 import java.time.Clock
 import java.time.Duration
@@ -50,7 +49,7 @@ abstract class QueueSpec<out Q : Queue>(
   }
 
   describe("polling the queue") {
-    context("there are no messages") {
+    given("there are no messages") {
       beforeGroup {
         queue = createQueue.invoke(clock, deadLetterCallback)
       }
@@ -58,7 +57,7 @@ abstract class QueueSpec<out Q : Queue>(
       afterGroup(::stopQueue)
       afterGroup(::resetMocks)
 
-      action("the queue is polled") {
+      on("polling the queue") {
         queue!!.poll(callback)
       }
 
@@ -67,7 +66,7 @@ abstract class QueueSpec<out Q : Queue>(
       }
     }
 
-    context("there is a single message") {
+    given("there is a single message") {
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
@@ -78,7 +77,7 @@ abstract class QueueSpec<out Q : Queue>(
       afterGroup(::stopQueue)
       afterGroup(::resetMocks)
 
-      action("the queue is polled") {
+      on("polling the queue") {
         queue!!.poll(callback)
       }
 
@@ -87,7 +86,7 @@ abstract class QueueSpec<out Q : Queue>(
       }
     }
 
-    context("there are multiple messages") {
+    given("there are multiple messages") {
       val message1 = StartExecution(Pipeline::class.java, "1", "foo")
       val message2 = StartExecution(Pipeline::class.java, "2", "foo")
 
@@ -102,7 +101,7 @@ abstract class QueueSpec<out Q : Queue>(
       afterGroup(::stopQueue)
       afterGroup(::resetMocks)
 
-      action("the queue is polled twice") {
+      on("polling the queue twice") {
         queue!!.apply {
           poll(callback)
           poll(callback)
@@ -115,10 +114,10 @@ abstract class QueueSpec<out Q : Queue>(
       }
     }
 
-    context("there is a delayed message") {
+    given("there is a delayed message") {
       val delay = Duration.ofHours(1)
 
-      context("whose delay has not expired") {
+      and("its delay has not expired") {
         val message = StartExecution(Pipeline::class.java, "1", "foo")
 
         beforeGroup {
@@ -129,7 +128,7 @@ abstract class QueueSpec<out Q : Queue>(
         afterGroup(::stopQueue)
         afterGroup(::resetMocks)
 
-        action("the queue is polled") {
+        on("polling the queue") {
           queue!!.poll(callback)
         }
 
@@ -138,7 +137,7 @@ abstract class QueueSpec<out Q : Queue>(
         }
       }
 
-      context("whose delay has expired") {
+      and("its delay has expired") {
         val message = StartExecution(Pipeline::class.java, "1", "foo")
 
         beforeGroup {
@@ -150,7 +149,7 @@ abstract class QueueSpec<out Q : Queue>(
         afterGroup(::stopQueue)
         afterGroup(::resetMocks)
 
-        action("the queue is polled") {
+        on("polling the queue") {
           queue!!.poll(callback)
         }
 
@@ -162,22 +161,24 @@ abstract class QueueSpec<out Q : Queue>(
   }
 
   describe("message redelivery") {
-    context("a message is acknowledged") {
+    given("a message was acknowledged") {
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
         queue = createQueue.invoke(clock, deadLetterCallback)
-        queue!!.push(message)
+        queue!!.apply {
+          push(message)
+          poll { _, ack ->
+            ack.invoke()
+          }
+        }
       }
 
       afterGroup(::stopQueue)
       afterGroup(::resetMocks)
 
-      action("the queue is polled and the message is acknowledged") {
+      on("polling the queue after the message acknowledgment has timed out") {
         queue!!.apply {
-          poll { _, ack ->
-            ack.invoke()
-          }
           clock.incrementBy(ackTimeout)
           retry()
           poll(callback)
@@ -189,20 +190,22 @@ abstract class QueueSpec<out Q : Queue>(
       }
     }
 
-    context("a message is not acknowledged") {
+    given("a message was not acknowledged") {
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
         queue = createQueue.invoke(clock, deadLetterCallback)
-        queue!!.push(message)
+        queue!!.apply {
+          push(message)
+          poll { _, _ -> }
+        }
       }
 
       afterGroup(::stopQueue)
       afterGroup(::resetMocks)
 
-      action("the queue is polled then the message is not acknowledged") {
+      on("polling the queue after the message acknowledgment has timed out") {
         queue!!.apply {
-          poll { _, _ -> }
           clock.incrementBy(ackTimeout)
           retry()
           poll(callback)
@@ -214,24 +217,26 @@ abstract class QueueSpec<out Q : Queue>(
       }
     }
 
-    context("a message is not acknowledged more than once") {
+    given("a message was not acknowledged more than once") {
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
         queue = createQueue.invoke(clock, deadLetterCallback)
-        queue!!.push(message)
-      }
-
-      afterGroup(::stopQueue)
-      afterGroup(::resetMocks)
-
-      action("the queue is polled and the message is not acknowledged") {
         queue!!.apply {
+          push(message)
           repeat(2) {
             poll { _, _ -> }
             clock.incrementBy(ackTimeout)
             retry()
           }
+        }
+      }
+
+      afterGroup(::stopQueue)
+      afterGroup(::resetMocks)
+
+      on("polling the queue again") {
+        queue!!.apply {
           poll(callback)
         }
       }
@@ -241,24 +246,26 @@ abstract class QueueSpec<out Q : Queue>(
       }
     }
 
-    context("a message is not acknowledged more than $maxRetries times") {
+    given("a message was not acknowledged more than $maxRetries times") {
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
         queue = createQueue.invoke(clock, deadLetterCallback)
-        queue!!.push(message)
-      }
-
-      afterGroup(::stopQueue)
-      afterGroup(::resetMocks)
-
-      action("the queue is polled and the message is not acknowledged") {
         queue!!.apply {
+          push(message)
           repeat(maxRetries) {
             poll { _, _ -> }
             clock.incrementBy(ackTimeout)
             retry()
           }
+        }
+      }
+
+      afterGroup(::stopQueue)
+      afterGroup(::resetMocks)
+
+      on("polling the queue again") {
+        queue!!.apply {
           poll(callback)
         }
       }
@@ -272,7 +279,7 @@ abstract class QueueSpec<out Q : Queue>(
       }
 
       context("once the message has been dead-lettered") {
-        action("the next time retry checks happen") {
+        on("the next time retry checks happen") {
           queue!!.apply {
             retry()
             poll(callback)

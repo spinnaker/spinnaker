@@ -436,6 +436,47 @@ class SpringIntegrationTest {
       (stages.first().context["key"] as Map<String, Any>)["expr"] shouldEqual true
     }
   }
+
+  @Test fun `a restarted branch will not stall due to original cancellation`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+        status = TERMINAL
+        startTime = now().minusSeconds(30).toEpochMilli()
+        endTime = now().minusSeconds(10).toEpochMilli()
+      }
+      stage {
+        refId = "2"
+        type = "dummy"
+        status = CANCELED // parallel stage canceled when other failed
+        startTime = now().minusSeconds(30).toEpochMilli()
+        endTime = now().minusSeconds(10).toEpochMilli()
+      }
+      stage {
+        refId = "3"
+        requisiteStageRefIds = setOf("1", "2")
+        type = "dummy"
+        status = NOT_STARTED // never ran first time
+      }
+      status = TERMINAL
+      startTime = now().minusSeconds(31).toEpochMilli()
+      endTime = now().minusSeconds(9).toEpochMilli()
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED // second run succeeds
+
+    context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual CANCELED
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2").status shouldEqual CANCELED
+    }
+  }
 }
 
 @Configuration

@@ -32,6 +32,7 @@ import org.jetbrains.spek.api.dsl.on
 import org.springframework.context.ApplicationEventPublisher
 import java.io.Closeable
 import java.time.Clock
+import java.time.Duration
 
 abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
   createQueue: (Clock, DeadMessageCallback, ApplicationEventPublisher) -> Q,
@@ -68,7 +69,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 0
+        readyDepth shouldEqual 0
       }
+    }
+
+    it("reports no orphaned messages") {
+      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -89,7 +95,38 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       queue!!.apply {
         queueDepth shouldEqual 1
         unackedDepth shouldEqual 0
+        readyDepth shouldEqual 1
       }
+    }
+
+    it("reports no orphaned messages") {
+      queue!!.orphanedMessages shouldEqual 0
+    }
+  }
+
+  describe("pushing a message with a delay") {
+    beforeGroup(::startQueue)
+    afterGroup(::stopQueue)
+    afterGroup(::resetMocks)
+
+    on("pushing a message with a delay") {
+      queue!!.push(StartExecution(Pipeline::class.java, "1", "spinnaker"), Duration.ofMinutes(1))
+    }
+
+    it("fires an event to report the push") {
+      verify(publisher).publishEvent(isA<MessagePushed>())
+    }
+
+    it("reports the updated queue depth") {
+      queue!!.apply {
+        queueDepth shouldEqual 1
+        unackedDepth shouldEqual 0
+        readyDepth shouldEqual 0
+      }
+    }
+
+    it("reports no orphaned messages") {
+      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -114,7 +151,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 1
+        readyDepth shouldEqual 0
       }
+    }
+
+    it("reports no orphaned messages") {
+      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -141,7 +183,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       queue!!.apply {
         queueDepth shouldEqual 0
         unackedDepth shouldEqual 0
+        readyDepth shouldEqual 0
       }
+    }
+
+    it("reports no orphaned messages") {
+      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -191,7 +238,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
         queue!!.apply {
           queueDepth shouldEqual 1
           unackedDepth shouldEqual 0
+          readyDepth shouldEqual 1
         }
+      }
+
+      it("reports no orphaned messages") {
+        queue!!.orphanedMessages shouldEqual 0
       }
     }
 
@@ -224,7 +276,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
         queue!!.apply {
           queueDepth shouldEqual 0
           unackedDepth shouldEqual 0
+          readyDepth shouldEqual 0
         }
+      }
+
+      it("reports no orphaned messages") {
+        queue!!.orphanedMessages shouldEqual 0
       }
     }
   }

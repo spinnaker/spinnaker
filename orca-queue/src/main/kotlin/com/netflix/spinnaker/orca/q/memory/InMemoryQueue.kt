@@ -37,6 +37,7 @@ import java.util.concurrent.DelayQueue
 import java.util.concurrent.Delayed
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.NANOSECONDS
 
 class InMemoryQueue(
   private val clock: Clock,
@@ -92,6 +93,9 @@ class InMemoryQueue(
 
   override val unackedDepth: Int
     get() = unacked.size
+
+  override val readyDepth: Int
+    get() = queue.count { it.getDelay(NANOSECONDS) <= 0 }
 
   private fun <T : Delayed> DelayQueue<T>.pollAll(block: (T) -> Unit) {
     var done = false

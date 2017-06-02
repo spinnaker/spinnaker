@@ -37,6 +37,19 @@ interface MonitorableQueue : Queue {
    * Number of messages currently being processed but not yet acknowledged.
    */
   val unackedDepth: Int
+
+  /**
+   * Number of messages neither queued or in-process. Some implementations
+   * may not have any way to implement this metric. It is only intended for
+   * alerting leaks.
+   */
+  val orphanedMessages: Int
+    get() = 0
+
+  /**
+   * Number of messages ready for delivery.
+   */
+  val readyDepth: Int
 }
 
 /**
