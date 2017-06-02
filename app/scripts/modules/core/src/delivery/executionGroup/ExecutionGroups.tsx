@@ -9,21 +9,21 @@ import { ReactInjector } from 'core/reactShims';
 
 import './executionGroups.less';
 
-interface IProps {
+export interface IExecutionGroupsProps {
   application: Application;
 }
 
-interface IState {
+export interface IExecutionGroupsState {
   groups: IExecutionGroup[];
   showingDetails: boolean;
 }
 
-export class ExecutionGroups extends React.Component<IProps, IState> {
+export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExecutionGroupsState> {
   private applicationRefreshUnsubscribe: () => void;
   private groupsUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
 
-  constructor(props: IProps) {
+  constructor(props: IExecutionGroupsProps) {
     super(props);
     const { executionFilterModel, executionFilterService, stateEvents } = ReactInjector;
     this.state = {

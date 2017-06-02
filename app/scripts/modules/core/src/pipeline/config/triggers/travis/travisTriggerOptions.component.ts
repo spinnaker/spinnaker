@@ -3,14 +3,14 @@ import {module, IScope, IComponentOptions} from 'angular';
 import {IGOR_SERVICE, IgorService} from 'core/ci/igor.service';
 import {IBuild} from 'core/domain/IBuild';
 
-interface IViewState {
+export interface ITravisTriggerOptionsViewState {
   buildsLoading: boolean;
   loadError: boolean;
   selectedBuild: IBuild;
 }
 
 export class TravisTriggerOptionsController {
-  public viewState: IViewState;
+  public viewState: ITravisTriggerOptionsViewState;
   public command: any;
   public builds: IBuild[];
 

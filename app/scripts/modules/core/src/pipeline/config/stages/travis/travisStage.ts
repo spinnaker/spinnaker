@@ -7,7 +7,7 @@ import {IGOR_SERVICE, IgorService, BuildServiceType} from 'core/ci/igor.service'
 import {IJobConfig, ParameterDefinitionList, IStage} from 'core/domain';
 import {TravisExecutionLabel} from './TravisExecutionLabel';
 
-interface IViewState {
+export interface ITravisStageViewState {
   mastersLoaded: boolean;
   mastersRefreshing: boolean;
   jobsLoaded: boolean;
@@ -20,7 +20,7 @@ interface IViewState {
 }
 
 export class TravisStage {
-  public viewState: IViewState;
+  public viewState: ITravisStageViewState;
   public useDefaultParameters: any;
   public userSuppliedParameters: any;
   public masters: string[];

@@ -11,12 +11,12 @@ import { timestamp } from 'core/utils/timeFormatters';
 
 import './projectPipeline.less';
 
-interface IProjectPipelineProps {
+export interface IProjectPipelineProps {
   application: Application;
   execution: IExecution;
 }
 
-interface IProjectPipelineState {
+export interface IProjectPipelineState {
   hasBuildInfo: boolean;
   loaded: boolean;
   stageWidth: string;

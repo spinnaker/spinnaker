@@ -5,12 +5,12 @@ import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.uti
 import {PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider} from 'core/pipeline/config/pipelineConfigProvider';
 import {API_SERVICE, Api} from 'core/api/api.service';
 
-interface IViewState {
+export interface IWebhookStageViewState {
   waitForCompletion?: boolean;
   statusUrlResolution: string;
 }
 
-interface ICommand {
+export interface IWebhookStageCommand {
   errorMessage?: string;
   invalid?: boolean;
   payloadJSON: string;
@@ -31,8 +31,8 @@ interface IPreconfiguredWebhook {
 }
 
 export class WebhookStage {
-  public command: ICommand;
-  public viewState: IViewState;
+  public command: IWebhookStageCommand;
+  public viewState: IWebhookStageViewState;
   public methods: string[];
   public preconfiguredProperties: string[];
   public noUserConfigurableFields: boolean;

@@ -7,20 +7,20 @@ import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 import { SkipWait } from './SkipWait';
 
-interface IProps {
+export interface IWaitExecutionLabelProps {
   stage: IExecutionStageSummary;
   execution: IExecution;
   application: Application;
   executionMarker: boolean;
 }
 
-interface IState {
+export interface IWaitExecutionLabelState {
   target?: any;
 }
 
-export class WaitExecutionLabel extends React.Component<IProps, IState> {
+export class WaitExecutionLabel extends React.Component<IWaitExecutionLabelProps, IWaitExecutionLabelState> {
 
-  constructor(props: IProps) {
+  constructor(props: IWaitExecutionLabelProps) {
     super(props);
     this.state = {};
   }

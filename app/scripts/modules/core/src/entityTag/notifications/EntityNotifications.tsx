@@ -10,7 +10,7 @@ import { Application } from 'core/application';
 import { noop } from 'core/utils';
 import { NotificationsPopover } from './NotificationsPopover';
 
-interface IProps {
+export interface IEntityNotificationsProps {
   entity: any;
   application: Application;
 
@@ -31,8 +31,8 @@ interface IProps {
  * Shows the notifications for a single entity (not rolled up, and not grouped by message)
  */
 @autoBindMethods
-export class EntityNotifications extends React.Component<IProps, void> {
-  public static defaultProps: Partial<IProps> = {
+export class EntityNotifications extends React.Component<IEntityNotificationsProps, void> {
+  public static defaultProps: Partial<IEntityNotificationsProps> = {
     placement: 'bottom',
     hOffsetPercent: '50%',
     className: '',

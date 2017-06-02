@@ -4,15 +4,13 @@ import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTempla
 
 import './TemplateDescription.less';
 
-interface IProps {
+export interface ITemplateDescriptionProps {
   template: IPipelineTemplate;
   loading: boolean;
   loadingError: boolean;
 }
 
-interface IState { }
-
-export class TemplateDescription extends React.Component<IProps, IState> {
+export class TemplateDescription extends React.Component<ITemplateDescriptionProps, void> {
   public render() {
     const { Spinner } = NgReact;
     return (

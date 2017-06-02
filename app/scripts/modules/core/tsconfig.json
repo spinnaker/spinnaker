@@ -42,10 +42,12 @@
     "useBabel": true,
     "useCache": true
   },
-  "files": [
-    "src/index.ts"
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
-    "./lib"
+    "./lib",
+    "**/*.spec.ts"
   ]
 }

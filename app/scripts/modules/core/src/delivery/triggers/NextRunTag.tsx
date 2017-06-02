@@ -8,24 +8,24 @@ import { SETTINGS } from 'core/config/settings';
 import { later } from 'core/utils/later/later';
 import { timestamp } from 'core/utils/timeFormatters';
 
-interface IProps {
+export interface INextRunTagProps {
   pipeline: IPipeline;
 }
 
-interface IState {
+export interface INextRunTagState {
   nextScheduled: number;
   hasNextScheduled: boolean;
 }
 
 @autoBindMethods
-export class NextRunTag extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export class NextRunTag extends React.Component<INextRunTagProps, INextRunTagState> {
+  constructor(props: INextRunTagProps) {
     super(props);
 
     this.state = this.updateSchedule();
   }
 
-  private updateSchedule(): IState {
+  private updateSchedule(): INextRunTagState {
     if (this.props.pipeline) {
       const crons = (this.props.pipeline.triggers || []).filter(t => t.type === 'cron' && t.enabled) as ICronTrigger[];
       const nextTimes: number[] = [];

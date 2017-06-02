@@ -17,12 +17,12 @@ import { NgReact, ReactInjector } from 'core/reactShims';
 
 import './executionGroup.less';
 
-interface IProps {
+export interface IExecutionGroupProps {
   group: IExecutionGroup;
   application: Application;
 }
 
-interface IState {
+export interface IExecutionGroupState {
   deploymentAccounts: string[];
   pipelineConfig: IPipeline;
   triggeringExecution: boolean;
@@ -34,12 +34,12 @@ interface IState {
 }
 
 @autoBindMethods
-export class ExecutionGroup extends React.Component<IProps, IState> {
+export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecutionGroupState> {
   private strategyConfig: IPipeline;
   private expandUpdatedSubscription: Subscription;
   private stateChangeSuccessSubscription: Subscription;
 
-  constructor(props: IProps) {
+  constructor(props: IExecutionGroupProps) {
     super(props);
     const { collapsibleSectionStateCache, executionFilterModel } = ReactInjector;
 

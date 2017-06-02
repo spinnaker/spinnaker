@@ -8,12 +8,12 @@ import { INSTANCES_COMPONENT } from './../instance/instances.component';
 import { SERVER_GROUP_SEQUENCE_FILTER } from 'core/cluster/serverGroup.sequence.filter';
 import { IInstance, IServerGroup } from 'core/domain';
 
-interface JenkinsViewModel {
+export interface JenkinsViewModel {
   number: number;
   href?: string;
 }
 
-interface ViewModel {
+export interface ServerGroupViewModel {
   serverGroup: IServerGroup;
   serverGroupSequence: string[];
   jenkins: JenkinsViewModel;
@@ -31,7 +31,7 @@ export class ServerGroupController implements IComponentController {
   public hasDiscovery: boolean;
 
   public headerIsSticky: () => boolean;
-  public viewModel: ViewModel;
+  public viewModel: ServerGroupViewModel;
   public sortFilter: any;
 
   private lastStringVal: string = null;
@@ -81,7 +81,7 @@ export class ServerGroupController implements IComponentController {
 
     const serverGroup = this.serverGroup;
 
-    const viewModel: ViewModel = {
+    const viewModel: ServerGroupViewModel = {
       serverGroup: serverGroup,
       serverGroupSequence: (<Function>this.$filter('serverGroupSequence'))(serverGroup.name),
       jenkins: null,

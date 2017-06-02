@@ -1,2 +1,2 @@
-export { Input } from './Input';
-export { TextArea } from './TextArea';
+export * from './Input';
+export * from './TextArea';

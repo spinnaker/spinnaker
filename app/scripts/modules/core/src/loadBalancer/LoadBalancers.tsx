@@ -12,11 +12,11 @@ import { Tooltip } from 'core/presentation/Tooltip';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
 
-interface IProps {
+export interface ILoadBalancersProps {
   app: Application;
 }
 
-interface IState {
+export interface ILoadBalancersState {
   initialized: boolean;
   groups: ILoadBalancerGroup[];
   tags: IFilterTag[];
@@ -25,11 +25,11 @@ interface IState {
 }
 
 @autoBindMethods
-export class LoadBalancers extends React.Component<IProps, IState> {
+export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBalancersState> {
   private groupsUpdatedListener: Subscription;
   private loadBalancersRefreshUnsubscribe: () => any;
 
-  constructor(props: IProps) {
+  constructor(props: ILoadBalancersProps) {
     super(props);
     const { $stateParams, loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
     this.state = {
@@ -91,7 +91,7 @@ export class LoadBalancers extends React.Component<IProps, IState> {
     });
   };
 
-  private updateUIState(state: IState): void {
+  private updateUIState(state: ILoadBalancersState): void {
     const params: any = {};
     if (!state.showServerGroups) {
       params.hideServerGroups = true;

@@ -13,7 +13,7 @@ export interface IPermissions {
   WRITE: string[];
 }
 
-interface IPermissionRow {
+export interface IPermissionRow {
   group: string;
   access: string;
 }
@@ -24,7 +24,7 @@ export interface IPermissionsConfigurerProps {
   onPermissionsChange: (permissions: IPermissions) => void;
 }
 
-interface IPermissionsConfigurerState {
+export interface IPermissionsConfigurerState {
   permissionRows: IPermissionRow[];
   roleOptions: Select.Option[];
 }

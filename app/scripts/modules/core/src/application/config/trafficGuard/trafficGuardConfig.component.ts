@@ -13,7 +13,7 @@ import { NAMING_SERVICE, NamingService } from 'core/naming/naming.service';
 import { CLUSTER_MATCHES_COMPONENT, IClusterMatch } from 'core/widgets/cluster/clusterMatches.component';
 import { TRAFFIC_GUARD_CONFIG_HELP } from './trafficGuardConfig.help';
 
-interface ITrafficGuard {
+export interface ITrafficGuard {
   account: string;
   location: string;
   stack: string;

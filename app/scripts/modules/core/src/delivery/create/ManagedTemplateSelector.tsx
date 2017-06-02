@@ -3,16 +3,14 @@ import * as Select from 'react-select';
 import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
 import autoBindMethods from 'class-autobind-decorator';
 
-interface IProps {
+export interface IManagedTemplateSelectorProps {
   selectedTemplate: IPipelineTemplate;
   templates: IPipelineTemplate[];
   onChange: (template: IPipelineTemplate) => void;
 }
 
-interface IState { }
-
 @autoBindMethods
-export class ManagedTemplateSelector extends React.Component<IProps, IState> {
+export class ManagedTemplateSelector extends React.Component<IManagedTemplateSelectorProps, void> {
 
   public render() {
     const selected = this.props.selectedTemplate;

@@ -5,7 +5,7 @@ import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
 import {IPipeline, IStage} from 'core/domain';
 
-interface ICommand {
+export interface IEditPipelineJsonModalCommand {
   errorMessage?: string;
   invalid?: boolean;
   pipelineJSON: string;
@@ -15,7 +15,7 @@ interface ICommand {
 export class EditPipelineJsonModalCtrl implements IComponentController {
 
   public isStrategy: boolean;
-  public command: ICommand;
+  public command: IEditPipelineJsonModalCommand;
 
   constructor(private $uibModalInstance: IModalServiceInstance,
               private jsonUtilityService: JsonUtilityService,

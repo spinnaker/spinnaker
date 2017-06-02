@@ -8,13 +8,13 @@ import {timePickerTime} from 'core/utils/timeFormatters';
 import {SystemTimezone} from 'core/utils/SystemTimezone';
 import {DAYS_OF_WEEK} from './daysOfWeek';
 
-export interface IProps {
+export interface IExecutionWindowActionsProps {
   execution: IExecution;
   stage: IExecutionStage;
   application: Application;
 }
 
-export interface IState {
+export interface IExecutionWindowActionsState {
   dayText: string;
 }
 
@@ -26,8 +26,8 @@ export interface IExecutionWindowWhitelistEntry {
 }
 
 @autoBindMethods
-export class ExecutionWindowActions extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export class ExecutionWindowActions extends React.Component<IExecutionWindowActionsProps, IExecutionWindowActionsState> {
+  constructor(props: IExecutionWindowActionsProps) {
     super(props);
     const days = props.stage.context.restrictedExecutionWindow.days;
     let dayText = 'Everyday';

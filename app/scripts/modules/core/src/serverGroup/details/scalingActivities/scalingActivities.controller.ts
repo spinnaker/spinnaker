@@ -5,7 +5,7 @@ import {IModalServiceInstance} from 'angular-ui-bootstrap';
 import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
 import { IServerGroup } from 'core/domain';
 
-interface IViewState {
+export interface IScalingActivitiesViewState {
   loading: boolean;
   error: boolean;
 }
@@ -32,7 +32,7 @@ export interface IRawScalingActivity {
 }
 
 export class ScalingActivitiesCtrl implements ng.IComponentController {
-  public viewState: IViewState;
+  public viewState: IScalingActivitiesViewState;
   public activities: IScalingEventSummary[] = [];
 
   public constructor(private $uibModalInstance: IModalServiceInstance,

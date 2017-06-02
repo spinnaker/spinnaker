@@ -9,7 +9,7 @@ import { Sticky } from 'core/utils/stickyHeader/Sticky';
 
 import './loadBalancerPod.less';
 
-interface IProps {
+export interface ILoadBalancerPodProps {
   grouping: ILoadBalancerGroup,
   application: Application,
   parentHeading: string,
@@ -17,11 +17,8 @@ interface IProps {
   showInstances: boolean
 }
 
-interface IState {
-}
-
 @autoBindMethods
-export class LoadBalancerPod extends React.Component<IProps, IState> {
+export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps, void> {
   public render(): React.ReactElement<LoadBalancerPod> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;
     const { AccountTag } = NgReact;

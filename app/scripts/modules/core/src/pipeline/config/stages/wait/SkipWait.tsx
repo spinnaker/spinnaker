@@ -6,20 +6,20 @@ import {ReactInjector} from 'core/reactShims';
 import {duration} from 'core/utils/timeFormatters';
 import {OrchestratedItemRunningTime} from 'core/delivery/executionGroup/execution/OrchestratedItemRunningTime';
 
-interface IProps {
+export interface ISkipWaitProps {
   execution: IExecution;
   stage: IExecutionStage;
   application: Application;
 }
 
-interface IState {
+export interface ISkipWaitState {
   remainingWait?: string;
 }
 
-export class SkipWait extends React.Component<IProps, IState> {
+export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
   private runningTime: OrchestratedItemRunningTime;
 
-  constructor(props: IProps) {
+  constructor(props: ISkipWaitProps) {
     super(props);
     this.state = {
       remainingWait: null

@@ -2,14 +2,14 @@ import * as React from 'react';
 
 import { FormComponent, IFormComponentState, IFormComponentProps } from '../FormComponent';
 
-export interface IProps extends IFormComponentProps {
+export interface IInputProps extends IFormComponentProps {
   className: string;
   label: string;
   type: string;
 }
 
 /** A simple Formsy form component for validated <input> tags (text or checkbox) */
-export class Input extends FormComponent<string, IProps, IFormComponentState> {
+export class Input extends FormComponent<string, IInputProps, IFormComponentState> {
   public handleValueChanged(value: any) {
     this.setValue(value);
   }

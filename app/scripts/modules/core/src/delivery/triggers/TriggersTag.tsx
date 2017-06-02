@@ -3,17 +3,17 @@ import { filter } from 'lodash';
 
 import { IPipeline } from 'core/domain/IPipeline';
 
-interface IProps {
+export interface ITriggersTagProps {
   pipeline: IPipeline;
-};
+}
 
-interface IState {
+export interface ITriggersTagState {
   triggerCount: number;
   activeTriggerCount: number;
-};
+}
 
-export class TriggersTag extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export class TriggersTag extends React.Component<ITriggersTagProps, ITriggersTagState> {
+  constructor(props: ITriggersTagProps) {
     super(props);
 
     let triggerCount = 0,

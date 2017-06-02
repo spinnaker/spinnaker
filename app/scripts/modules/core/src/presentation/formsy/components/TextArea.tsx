@@ -7,7 +7,7 @@ import { FormComponent, IFormComponentProps, IFormComponentState } from '../Form
 import { IFormFieldLayoutProps } from 'core/presentation';
 import { noop } from 'core/utils';
 
-export interface IProps extends IFormComponentProps, React.HTMLAttributes<HTMLTextAreaElement> {
+export interface ITextAreaProps extends IFormComponentProps, React.HTMLAttributes<HTMLTextAreaElement> {
   /** A react class that will layout the label, input, help, and validation error components */
   Layout: React.ComponentClass<IFormFieldLayoutProps>;
   /** The label text for the textarea */
@@ -20,7 +20,7 @@ export interface IProps extends IFormComponentProps, React.HTMLAttributes<HTMLTe
   onChange?(event: ChangeEvent<HTMLTextAreaElement>): void;
 }
 
-export interface IState extends IFormComponentState { }
+export interface ITextAreaState extends IFormComponentState { }
 
 export interface ITextAreaContext {
   formsy: IFormsyContext;
@@ -30,12 +30,12 @@ export interface ITextAreaContext {
  * A Formsy form component that accepts a LayoutComponent
  */
 @autoBindMethods()
-export class TextArea extends FormComponent<string, IProps, IState> {
+export class TextArea extends FormComponent<string, ITextAreaProps, ITextAreaState> {
   public static contextTypes: ValidationMap<ITextAreaContext> = {
     formsy: PropTypes.object,
   };
 
-  public static defaultProps: Partial<IProps> = {
+  public static defaultProps: Partial<ITextAreaProps> = {
     name: null as any,
     onChange: noop,
     className: '',

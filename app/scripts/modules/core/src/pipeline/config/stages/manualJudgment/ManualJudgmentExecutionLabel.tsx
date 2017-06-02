@@ -7,20 +7,20 @@ import { Application } from 'core/application/application.model';
 import { HoverablePopover } from 'core/presentation/HoverablePopover';
 import { ExecutionBarLabel } from 'core/pipeline/config/stages/core/ExecutionBarLabel';
 
-interface IProps {
+export interface IManualJudgmentExecutionLabelProps {
   stage: IExecutionStageSummary;
   execution: IExecution;
   application: Application;
   executionMarker: boolean;
 }
 
-interface IState {
+export interface IManualJudgmentExecutionLabelState {
   target?: any;
 }
 
-export class ManualJudgmentExecutionLabel extends React.Component<IProps, IState> {
+export class ManualJudgmentExecutionLabel extends React.Component<IManualJudgmentExecutionLabelProps, IManualJudgmentExecutionLabelState> {
 
-  constructor(props: IProps) {
+  constructor(props: IManualJudgmentExecutionLabelProps) {
     super(props);
     this.state = {};
   }

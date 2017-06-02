@@ -9,13 +9,13 @@ import {IExecution, IExecutionStage} from 'core/domain';
 import {Application} from 'core/application/application.model';
 import {NgReact, ReactInjector} from 'core/reactShims';
 
-interface IProps {
+export interface IManualJudgmentApprovalProps {
   execution: IExecution;
   stage: IExecutionStage;
   application: Application;
 }
 
-interface IState {
+export interface IManualJudgmentApprovalState {
   submitting: boolean;
   judgmentDecision: string;
   judgmentInput: { value?: string };
@@ -23,8 +23,8 @@ interface IState {
 }
 
 @autoBindMethods
-export class ManualJudgmentApproval extends React.Component<IProps, IState> {
-  constructor(props: IProps) {
+export class ManualJudgmentApproval extends React.Component<IManualJudgmentApprovalProps, IManualJudgmentApprovalState> {
+  constructor(props: IManualJudgmentApprovalProps) {
     super(props);
     this.state = {
       submitting: false,

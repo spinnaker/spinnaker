@@ -14,7 +14,7 @@ import { CHAOS_MONKEY_EXCEPTIONS_COMPONENT } from './chaosMonkeyExceptions.compo
 
 import './chaosMonkeyConfig.component.less';
 
-class GroupingOption {
+export class ChaosMonkeyGroupingOption {
   public key: string;
   public label: string;
 }
@@ -38,7 +38,7 @@ export class ChaosMonkeyConfigController implements ng.IComponentController {
   public application: Application;
   public config: ChaosMonkeyConfig;
   public chaosEnabled = false;
-  public groupingOptions: GroupingOption[] = [];
+  public groupingOptions: ChaosMonkeyGroupingOption[] = [];
   public viewState: IConfigSectionFooterViewState = {
     originalConfig: null,
     originalStringVal: null,

@@ -7,7 +7,7 @@ import { ReactInjector } from 'core/reactShims';
 
 import './ExecutionBuildNumber.less';
 
-interface IExecutionBuildNumberProps {
+export interface IExecutionBuildNumberProps {
   execution: IExecution;
 }
 

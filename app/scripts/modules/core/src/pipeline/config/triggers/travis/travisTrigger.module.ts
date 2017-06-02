@@ -7,7 +7,7 @@ import {IBuildTrigger} from 'core/domain/ITrigger';
 import {TRAVIS_TRIGGER_OPTIONS_COMPONENT} from './travisTriggerOptions.component';
 import {SETTINGS} from 'core/config/settings';
 
-interface IViewState {
+export interface ITravisTriggerViewState {
   mastersLoaded: boolean;
   mastersRefreshing: boolean;
   jobsLoaded: boolean;
@@ -15,7 +15,7 @@ interface IViewState {
 }
 
 export class TravisTrigger {
-  public viewState: IViewState;
+  public viewState: ITravisTriggerViewState;
   public masters: string[];
   public jobs: string[];
   public filterLimit = 100;

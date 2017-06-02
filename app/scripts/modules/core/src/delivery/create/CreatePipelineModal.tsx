@@ -38,7 +38,7 @@ export interface ICreatePipelineModalState {
   templateSourceUrl: string;
 }
 
-interface ICreatePipelineCommand {
+export interface ICreatePipelineCommand {
   parallel: boolean;
   strategy: boolean;
   name: string;
