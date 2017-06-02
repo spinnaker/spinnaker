@@ -48,7 +48,7 @@ import org.springframework.expression.spel.support.StandardTypeLocator
 class ContextParameterProcessor {
 
   // uses $ instead of  #
-  private final ParserContext parserContext = new TemplateParserContext('${', '}')
+  private static final ParserContext parserContext = new TemplateParserContext('${', '}')
 
   private final MapPropertyAccessor allowUnknownKeysAccessor = new MapPropertyAccessor(true)
   private final MapPropertyAccessor requireKeysAccessor = new MapPropertyAccessor(false)
@@ -85,7 +85,7 @@ class ContextParameterProcessor {
     return augmentedContext
   }
 
-  boolean containsExpression(String value) {
+  static boolean containsExpression(String value) {
     return value?.contains(parserContext.getExpressionPrefix())
   }
 
@@ -330,12 +330,18 @@ abstract class ContextUtilities {
 
   @PackageScope static final AtomicReference<ContextFunctionConfiguration> contextFunctionConfiguration = new AtomicReference<>(new ContextFunctionConfiguration())
 
+  private static final ObjectMapper mapper = new ObjectMapper()
+
   static String alphanumerical(String str) {
     str.replaceAll('[^A-Za-z0-9]', '')
   }
 
   static String toJson(Object o) {
-    new ObjectMapper().writeValueAsString(o)
+    String converted = mapper.writeValueAsString(o)
+    if (ContextParameterProcessor.containsExpression(converted)) {
+      return null
+    }
+    return converted
   }
 
   static Integer toInt(String str) {
@@ -361,7 +367,7 @@ abstract class ContextUtilities {
   }
 
   static Object readJson(String text) {
-    new ObjectMapper().readValue(text, text.startsWith('[') ? List : Map)
+    return mapper.readValue(text, text.startsWith('[') ? List : Map)
   }
 
   static Map propertiesFromUrl(String url) {

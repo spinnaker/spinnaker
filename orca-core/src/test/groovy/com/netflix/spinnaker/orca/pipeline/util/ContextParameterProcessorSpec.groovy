@@ -586,6 +586,22 @@ class ContextParameterProcessorSpec extends Specification {
     result.comments == "NOT_STARTED"
   }
 
+  def "can not toJson an execution with expressions in the context"() {
+    given:
+    def pipe = Pipeline.builder()
+        .withStage("wait", "Wait1", [comments: '${#toJson(execution)}', waitTime: 1, refId: "1", requisiteStageRefIds:[]])
+        .build()
+
+    def stage = pipe.stages.find { it.name == "Wait1" }
+    def ctx = contextParameterProcessor.buildExecutionContext(stage, true)
+
+    when:
+    def result = contextParameterProcessor.process(stage.context, ctx, true)
+
+    then:
+    result.comments == '${#toJson(execution)}'
+  }
+
   def "can read authenticated user in an execution"() {
     given:
     def pipe = Pipeline.builder()
