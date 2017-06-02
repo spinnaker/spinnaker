@@ -23,10 +23,13 @@ import com.google.api.services.compute.model.Instance
 import com.google.api.services.compute.model.InstanceAggregatedList
 import com.google.api.services.compute.model.InstanceReference
 import com.google.api.services.compute.model.InstancesScopedList
+import com.google.api.services.compute.model.Operation
 import com.google.api.services.compute.model.TargetPoolsRemoveInstanceRequest
 import com.netflix.spectator.api.DefaultRegistry
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.google.config.GoogleConfigurationProperties
+import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.DeregisterInstancesFromGoogleLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleResourceNotFoundException
@@ -54,6 +57,7 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
   private static final INSTANCE_IDS = [INSTANCE_ID1, INSTANCE_ID2]
   private static final INSTANCE_URLS = [INSTANCE_URL1, INSTANCE_URL2]
 
+  @Shared def threadSleeperMock = Mock(GoogleOperationPoller.ThreadSleeper)
   @Shared SafeRetry safeRetry
   @Shared DefaultRegistry registry = new DefaultRegistry()
 
@@ -87,6 +91,15 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
       def instanceAggregatedListReal = new InstanceAggregatedList(items: zoneToInstanceMap)
       def targetPoolsMock = Mock(Compute.TargetPools)
       def removeInstanceMock = Mock(Compute.TargetPools.RemoveInstance)
+      def removeInstanceOp1 = new Operation(
+        name: TARGET_POOL_NAME_1,
+        status: "DONE")
+      def removeInstanceOp2 = new Operation(
+        name: TARGET_POOL_NAME_2,
+        status: "DONE")
+
+      def regionalOperations = Mock(Compute.RegionOperations)
+      def regionalOperationsGet = Mock(Compute.RegionOperations.Get)
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeregisterInstancesFromGoogleLoadBalancerDescription(
@@ -96,6 +109,12 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
           accountName: ACCOUNT_NAME,
           credentials: credentials)
       @Subject def operation = new DeregisterInstancesFromGoogleLoadBalancerAtomicOperation(description)
+      operation.googleOperationPoller = new GoogleOperationPoller(
+          googleConfigurationProperties: new GoogleConfigurationProperties(),
+          threadSleeper: threadSleeperMock,
+          registry: registry,
+          safeRetry: safeRetry
+      )
       operation.registry = registry
       operation.safeRetry = safeRetry
 
@@ -116,11 +135,17 @@ class DeregisterInstancesFromGoogleLoadBalancerAtomicOperationUnitSpec extends S
     then:
       1 * computeMock.targetPools() >> targetPoolsMock
       1 * targetPoolsMock.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME_1, request) >> removeInstanceMock
-      1 * removeInstanceMock.execute()
+      1 * removeInstanceMock.execute() >> removeInstanceOp1
+      1 * computeMock.regionOperations() >> regionalOperations
+      1 * regionalOperations.get(PROJECT_NAME, REGION, TARGET_POOL_NAME_1) >> regionalOperationsGet
+      1 * regionalOperationsGet.execute() >> removeInstanceOp1
     then:
       1 * computeMock.targetPools() >> targetPoolsMock
       1 * targetPoolsMock.removeInstance(PROJECT_NAME, REGION, TARGET_POOL_NAME_2, request) >> removeInstanceMock
-      1 * removeInstanceMock.execute()
+      1 * removeInstanceMock.execute() >> removeInstanceOp2
+      1 * computeMock.regionOperations() >> regionalOperations
+      1 * regionalOperations.get(PROJECT_NAME, REGION, TARGET_POOL_NAME_2) >> regionalOperationsGet
+      1 * regionalOperationsGet.execute() >> removeInstanceOp2
   }
 
   void "throws ResourceNotFound with unknown load balancer"() {
