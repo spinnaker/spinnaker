@@ -259,13 +259,13 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   }
 
   List<AmazonLoadBalancerSummary> list() {
-    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, '*') + '*'
+    def searchKey = Keys.getLoadBalancerKey('*', '*', '*', null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey)
     getSummaryForLoadBalancers(identifiers).values() as List
   }
 
   AmazonLoadBalancerSummary get(String name) {
-    def searchKey = Keys.getLoadBalancerKey(name, '*', '*', '*', '*')  + "*"
+    def searchKey = Keys.getLoadBalancerKey(name, '*', '*', null, null)  + "*"
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
       key.loadBalancer == name
@@ -276,7 +276,7 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
   List<Map> byAccountAndRegionAndName(String account,
                                       String region,
                                       String name) {
-    def searchKey = Keys.getLoadBalancerKey(name, account, region, '*', '*') + '*'
+    def searchKey = Keys.getLoadBalancerKey(name, account, region, null, null) + '*'
     Collection<String> identifiers = cacheView.filterIdentifiers(LOAD_BALANCERS.ns, searchKey).findAll {
       def key = Keys.parse(it)
       key.loadBalancer == name
