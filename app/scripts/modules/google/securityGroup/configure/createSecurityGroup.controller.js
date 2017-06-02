@@ -5,7 +5,7 @@ const angular = require('angular');
 import { ACCOUNT_SERVICE, INFRASTRUCTURE_CACHE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.securityGroup.create.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
 ])

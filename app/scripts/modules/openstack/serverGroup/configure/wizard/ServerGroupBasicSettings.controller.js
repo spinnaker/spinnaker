@@ -5,7 +5,7 @@ const angular = require('angular');
 import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.openstack.serverGroup.configure.basicSettings', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
   V2_MODAL_WIZARD_SERVICE,
   IMAGE_READER,

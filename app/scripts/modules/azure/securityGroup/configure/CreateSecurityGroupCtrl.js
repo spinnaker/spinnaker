@@ -6,7 +6,7 @@ import { ACCOUNT_SERVICE, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.create.controller', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     TASK_MONITOR_BUILDER,
     require('../securityGroup.write.service.js'),
     ACCOUNT_SERVICE,

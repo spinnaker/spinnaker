@@ -2,7 +2,7 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 import { $timeout } from 'ngimport';
 import { get, isEqual, last, orderBy } from 'lodash';
-import { PathNode } from 'angular-ui-router';
+import { PathNode } from '@uirouter/angularjs';
 import { Subscription } from 'rxjs';
 
 import { HealthCounts, LoadBalancerInstances, LoadBalancerServerGroup, ReactInjector } from '@spinnaker/core';

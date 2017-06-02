@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.filterModel.service', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
   ])
 .factory('filterModelService', function ($location, $state, $stateParams, $urlRouter, $timeout) {
 

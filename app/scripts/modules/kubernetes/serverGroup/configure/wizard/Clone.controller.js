@@ -5,7 +5,7 @@ const angular = require('angular');
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clone', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   SERVER_GROUP_WRITER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,

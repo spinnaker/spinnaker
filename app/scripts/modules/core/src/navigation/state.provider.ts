@@ -1,7 +1,6 @@
 import { IServiceProvider, module } from 'angular';
-import { Ng1StateDeclaration } from 'angular-ui-router';
 import { isEqual, isPlainObject } from 'lodash';
-import { ParamDeclaration, UrlRouterProvider, UrlService } from 'angular-ui-router';
+import { Ng1StateDeclaration, ParamDeclaration, UrlRouterProvider, UrlService } from '@uirouter/angularjs';
 
 import { STATE_HELPER, StateHelper } from './stateHelper.provider';
 import { IFilterConfig } from '../filterModel/IFilterModel';
@@ -145,7 +144,7 @@ export const sortKeyParamType = {
 
 export const STATE_CONFIG_PROVIDER = 'spinnaker.core.navigation.state.config.provider';
 module(STATE_CONFIG_PROVIDER, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   STATE_HELPER,
 ]).provider('stateConfig', StateConfigProvider)
   .config(($urlRouterProvider: UrlRouterProvider) => {

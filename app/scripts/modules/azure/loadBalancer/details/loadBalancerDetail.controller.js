@@ -11,7 +11,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.loadBalancer.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

@@ -1,5 +1,5 @@
 import { extend, IControllerService, IScope, module } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
 import { NamingService } from '@spinnaker/core';

@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { ACCOUNT_SERVICE, SECURITY_GROUP_WRITER, TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.securityGroup.edit.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   TASK_MONITOR_BUILDER,
   SECURITY_GROUP_WRITER

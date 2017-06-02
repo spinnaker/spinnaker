@@ -1,4 +1,4 @@
-import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
+import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 
 export interface IFilterConfig {
   model: string;

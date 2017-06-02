@@ -11,7 +11,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.securityGroup.azure.edit.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,

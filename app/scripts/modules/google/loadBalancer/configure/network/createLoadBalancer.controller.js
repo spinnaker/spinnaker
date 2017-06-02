@@ -10,7 +10,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.create.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
   require('../../loadBalancer.transformer.js'),

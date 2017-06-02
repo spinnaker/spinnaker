@@ -5,7 +5,7 @@ const angular = require('angular');
 import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.loadBalancer.openstack.details.controller', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     ACCOUNT_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     LOAD_BALANCER_WRITE_SERVICE,

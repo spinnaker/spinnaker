@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {StateParams} from 'angular-ui-router';
+import {StateParams} from '@uirouter/angularjs';
 
 import {EXECUTION_DETAILS_SECTION_SERVICE,
         ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
@@ -20,6 +20,6 @@ class DestroyAsgExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
 export const DESTROY_ASG_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.stage.destroyAsg.executionDetails.controller';
 
 module(DESTROY_ASG_EXECUTION_DETAILS_CTRL, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
 ]).controller('destroyAsgExecutionDetailsCtrl', DestroyAsgExecutionDetailsCtrl);

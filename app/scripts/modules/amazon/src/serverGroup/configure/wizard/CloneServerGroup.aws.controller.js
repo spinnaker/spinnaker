@@ -13,7 +13,7 @@ import {
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
 module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   SERVER_GROUP_WRITER,
   TASK_MONITOR_BUILDER,

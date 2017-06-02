@@ -13,7 +13,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.instance.detail.openstack.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,

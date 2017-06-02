@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { INSTANCE_TYPE_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServerGroup', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('google/instance/custom/customInstanceBuilder.gce.service.js'),
   INSTANCE_TYPE_SERVICE,
   require('./hiddenMetadataKeys.value.js'),

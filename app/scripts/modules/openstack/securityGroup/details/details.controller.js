@@ -11,7 +11,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.openstack.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   CONFIRMATION_MODAL_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,

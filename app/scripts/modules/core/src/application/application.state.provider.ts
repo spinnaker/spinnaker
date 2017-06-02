@@ -1,5 +1,5 @@
 import { IServiceProvider, module } from 'angular';
-import { StateParams } from 'angular-ui-router';
+import { StateParams } from '@uirouter/angularjs';
 import { ApplicationReader } from './service/application.read.service';
 import { Application } from './application.model';
 import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';

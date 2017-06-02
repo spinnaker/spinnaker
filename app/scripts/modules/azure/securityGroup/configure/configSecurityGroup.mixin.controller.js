@@ -7,7 +7,7 @@ import { ACCOUNT_SERVICE, SECURITY_GROUP_READER, SECURITY_GROUP_WRITER, TASK_MON
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.baseConfig.controller', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,

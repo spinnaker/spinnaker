@@ -1,6 +1,6 @@
 import IInjectorService = angular.auto.IInjectorService;
 import { IModalService } from 'angular-ui-bootstrap';
-import { StateService, StateParams } from 'angular-ui-router';
+import { StateService, StateParams } from '@uirouter/angularjs';
 import { IQService, IRootScopeService } from 'angular';
 
 import { Api } from '../api/api.service';

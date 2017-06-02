@@ -12,7 +12,7 @@ import {URL_BUILDER_SERVICE} from 'core/navigation/urlBuilder.service';
 let angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.deploy.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   CLUSTER_FILTER_SERVICE,
   EXECUTION_DETAILS_SECTION_SERVICE,
   URL_BUILDER_SERVICE,

@@ -10,7 +10,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.google.securityGroup.edit.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   TASK_MONITOR_BUILDER,

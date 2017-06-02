@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.cloneServerGroup', [
-  require('angular-ui-router').default
+  require('@uirouter/angularjs').default
 ])
   .controller('oraclebmcsCloneServerGroupCtrl', function ($scope, $uibModalInstance, $q,
                                                           application,

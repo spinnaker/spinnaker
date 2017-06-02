@@ -6,7 +6,7 @@ import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineCon
 
 module.exports = angular.module('spinnaker.core.pipeline.config.actions.delete', [
   PIPELINE_CONFIG_SERVICE,
-  require('angular-ui-router').default
+  require('@uirouter/angularjs').default
 ])
   .controller('DeletePipelineModalCtrl', function($scope, $uibModalInstance, $log,
                                                   pipelineConfigService,

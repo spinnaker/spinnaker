@@ -9,7 +9,7 @@ const angular = require('angular');
 
 module.exports = angular.module('spinnaker.oraclebmcs.pipeline.stage.bake.executionDetails.controller', [
   EXECUTION_DETAILS_SECTION_SERVICE,
-  require('angular-ui-router').default
+  require('@uirouter/angularjs').default
 ])
   .controller('oraclebmcsBakeExecutionDetailsCtrl', function ($log, $scope, $stateParams, executionDetailsSectionService, $interpolate) {
 

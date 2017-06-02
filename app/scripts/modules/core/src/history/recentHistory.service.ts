@@ -4,7 +4,7 @@ import { omit, omitBy, isUndefined, sortBy, find } from 'lodash';
 
 import { UUIDGenerator } from 'core/utils/uuid.service';
 import { DECK_CACHE_SERVICE, ICache, DeckCacheService } from 'core/cache/deckCache.service';
-import { Ng1StateDeclaration } from 'angular-ui-router';
+import { Ng1StateDeclaration } from '@uirouter/angularjs';
 import IAngularEvent = angular.IAngularEvent;
 
 export interface ICacheEntryStateMigrator {

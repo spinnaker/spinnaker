@@ -1,5 +1,5 @@
 import {module, IScope} from 'angular';
-import {StateParams} from 'angular-ui-router';
+import {StateParams} from '@uirouter/angularjs';
 import {get} from 'lodash';
 
 import {

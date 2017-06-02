@@ -5,7 +5,7 @@ import {
 } from 'core/application/application.state.provider';
 import {CloudProviderRegistry} from 'core/cloudProvider/cloudProvider.registry';
 import {INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
-import {StateParams} from 'angular-ui-router';
+import {StateParams} from '@uirouter/angularjs';
 import {Application} from 'core/application/application.model';
 import {ApplicationModelBuilder} from '../application/applicationModel.builder';
 

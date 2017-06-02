@@ -6,7 +6,7 @@ import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServerGroups.controller', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../../cluster/filter/multiselect.model'),

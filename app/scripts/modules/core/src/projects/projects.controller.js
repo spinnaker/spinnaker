@@ -6,7 +6,7 @@ import {ACCOUNT_SERVICE} from 'core/account/account.service';
 import {VIEW_STATE_CACHE_SERVICE} from 'core/cache/viewStateCache.service';
 
 module.exports = angular.module('spinnaker.projects.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('./service/project.write.service.js'),
   require('./service/project.read.service.js'),
   ACCOUNT_SERVICE,

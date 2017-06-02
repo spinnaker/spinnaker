@@ -5,7 +5,7 @@ import _ from 'lodash';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.config.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
 ])
   .controller('PipelineConfigCtrl', function($scope, $stateParams, app) {
 

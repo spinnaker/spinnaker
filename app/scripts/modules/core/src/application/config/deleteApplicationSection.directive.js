@@ -8,7 +8,7 @@ import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 
 module.exports = angular
   .module('spinnaker.core.application.config.delete.directive', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     APPLICATION_WRITE_SERVICE,
     CONFIRMATION_MODAL_SERVICE,
     OVERRIDE_REGISTRY,

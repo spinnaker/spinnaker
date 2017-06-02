@@ -1,5 +1,5 @@
 import { IScope } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 import { trimEnd } from 'lodash';
 
 import { Application, InfrastructureCacheService } from '@spinnaker/core';

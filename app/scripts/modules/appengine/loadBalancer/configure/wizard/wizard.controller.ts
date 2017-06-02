@@ -1,7 +1,7 @@
 import { module } from 'angular';
 import { cloneDeep } from 'lodash';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 
 import {
   Application,

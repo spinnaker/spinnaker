@@ -19,7 +19,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   AWS_SCHEDULED_ACTION_COMPONENT,
   AWS_SERVER_GROUP_TRANSFORMER,

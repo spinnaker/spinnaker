@@ -59,7 +59,7 @@ module.exports = angular
   .module(CORE_MODULE, [
     require('angular-messages'),
     require('angular-sanitize'),
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     UI_ROUTER_STATE_SHIM,
     require('angular-ui-bootstrap'),
     require('ui-select'),
@@ -159,7 +159,6 @@ module.exports = angular
       });
     });
   })
-  .run($trace => $trace.enable(1))
   .run(function (cacheInitializer) {
     cacheInitializer.initialize();
   })
@@ -226,7 +225,7 @@ module.exports = angular
       // eslint-disable-next-line no-underscore-dangle
       collapsedStates.forEach(state => $stateRegistry.get(state).$$state()._collapsed = true);
 
-      return System.import('ui-router-visualizer').then(vis => $uiRouter.plugin(vis.Visualizer));
+      return System.import('@uirouter/visualizer').then(vis => $uiRouter.plugin(vis.Visualizer));
     }
 
     function toggleVisualizer(enabled) {

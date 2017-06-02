@@ -26,7 +26,7 @@ module.exports = {
     'lodash': 'lodash',
     'rxjs': 'rxjs',
     '@uirouter/core': '@uirouter/core',
-    'angular-ui-router': { root: 'angular-ui-router', amd: 'angular-ui-router', commonjs2: 'angular-ui-router', commonjs: 'angular-ui-router' },
+    '@uirouter/angularjs': '@uirouter/angularjs',
     'exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js': 'exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js',
     'angular-ui-bootstrap': 'angular-ui-bootstrap',
   },

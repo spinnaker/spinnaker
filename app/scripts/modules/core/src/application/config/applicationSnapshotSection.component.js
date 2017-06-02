@@ -6,7 +6,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.core.application.config.serialize.component', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     require('./../../snapshot/snapshot.write.service.js'),
     CONFIRMATION_MODAL_SERVICE,
     require('core/snapshot/diff/viewSnapshotDiffButton.component.js'),

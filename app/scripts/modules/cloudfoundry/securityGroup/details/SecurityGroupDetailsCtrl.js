@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { ACCOUNT_SERVICE, SECURITY_GROUP_READER } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.cf.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   SECURITY_GROUP_READER,
 ])

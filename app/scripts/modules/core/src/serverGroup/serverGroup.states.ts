@@ -1,6 +1,6 @@
 import {module} from 'angular';
 
-import {StateParams} from 'angular-ui-router';
+import {StateParams} from '@uirouter/angularjs';
 import {STATE_CONFIG_PROVIDER, INestedState, StateConfigProvider} from 'core/navigation/state.provider';
 import {
   APPLICATION_STATE_PROVIDER, ApplicationStateProvider,

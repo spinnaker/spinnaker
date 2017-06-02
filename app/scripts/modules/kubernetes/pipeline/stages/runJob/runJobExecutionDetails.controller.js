@@ -4,7 +4,7 @@ const angular = require('angular');
 
 module.exports = angular
   .module('spinnaker.kubernetes.pipeline.stage.disableCluster.runJobExecutionDetails.controller', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
   ])
   .controller('kubernetesRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

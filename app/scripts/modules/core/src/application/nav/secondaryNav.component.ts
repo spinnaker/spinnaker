@@ -1,7 +1,7 @@
 import {module, IComponentController, IComponentOptions} from 'angular';
 import {Application} from '../application.model';
 import {ApplicationDataSource} from '../service/applicationDataSource';
-import {StateService} from 'angular-ui-router';
+import {StateService} from '@uirouter/angularjs';
 
 class SecondaryApplicationNavComponentController implements IComponentController {
 

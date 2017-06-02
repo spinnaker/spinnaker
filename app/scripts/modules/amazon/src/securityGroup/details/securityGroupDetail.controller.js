@@ -12,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.amazon.securityGroup.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,
   CONFIRMATION_MODAL_SERVICE,

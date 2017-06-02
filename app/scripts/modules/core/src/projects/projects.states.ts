@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {StateParams} from 'angular-ui-router';
+import {StateParams} from '@uirouter/angularjs';
 import {APPLICATION_STATE_PROVIDER, ApplicationStateProvider} from 'core/application/application.state.provider';
 import {INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider} from 'core/navigation/state.provider';
 import {IProject} from '../domain/IProject';

@@ -15,7 +15,7 @@ module.exports = angular
     SECURITY_GROUP_READER,
     ACCOUNT_SERVICE,
     V2_MODAL_WIZARD_SERVICE,
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
   ])
   .controller('oraclebmcsConfigSecurityGroupMixin', function ($scope,
                                                               $state,

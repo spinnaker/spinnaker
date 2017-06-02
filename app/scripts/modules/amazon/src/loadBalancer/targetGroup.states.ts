@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { StateParams } from 'angular-ui-router';
+import { StateParams } from '@uirouter/angularjs';
 
 import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider, CloudProviderRegistry, INestedState } from '@spinnaker/core';
 

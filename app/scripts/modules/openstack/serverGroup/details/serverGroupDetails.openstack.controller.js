@@ -16,7 +16,7 @@ import {
 require('../configure/serverGroup.configure.openstack.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.openstack.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,
   SECURITY_GROUP_READER,

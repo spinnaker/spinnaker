@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
 
 import {

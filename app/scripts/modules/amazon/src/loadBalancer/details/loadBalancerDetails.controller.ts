@@ -1,6 +1,6 @@
 import { IPromise, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, head, get, sortBy } from 'lodash';
 
 import {
@@ -197,7 +197,7 @@ export class AwsLoadBalancerDetailsController {
 
 export const AWS_LOAD_BALANCER_DETAILS_CTRL = 'spinnaker.amazon.loadBalancer.details.controller';
 module(AWS_LOAD_BALANCER_DETAILS_CTRL, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   SECURITY_GROUP_READER,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

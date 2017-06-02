@@ -1,5 +1,5 @@
 import { IScope, module } from 'angular';
-import { StateParams } from 'angular-ui-router';
+import { StateParams } from '@uirouter/angularjs';
 
 import { ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
 

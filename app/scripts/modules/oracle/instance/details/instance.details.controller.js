@@ -9,7 +9,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.instance.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   CLOUD_PROVIDER_REGISTRY

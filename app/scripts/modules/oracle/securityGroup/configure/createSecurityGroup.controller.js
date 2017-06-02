@@ -10,7 +10,7 @@ import {
 module.exports = angular.module('spinnaker.oraclebmcs.securityGroup.create.controller', [
   INFRASTRUCTURE_CACHE_SERVICE,
   CACHE_INITIALIZER_SERVICE,
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('./configSecurityGroup.mixin.controller.js'),
 ])
   .controller('oraclebmcsCreateSecurityGroupCtrl', function ($scope, $uibModalInstance, $state, $controller,

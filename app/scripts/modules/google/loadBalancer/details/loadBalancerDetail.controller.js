@@ -12,7 +12,7 @@ import { SESSION_AFFINITY_FILTER } from './backendService/sessionAffinity.filter
 import { DELETE_MODAL_CONTROLLER } from './deleteModal/deleteModal.controller';
 
 module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,

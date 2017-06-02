@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@types/classnames": "^2.2.0",
+    "@uirouter/angularjs": "^1.0.3",
+    "@uirouter/visualizer": "^4.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
     "angular": "~1.6.3",
     "angular-cache": "^4.6.0",
@@ -36,7 +38,6 @@
     "angular-sanitize": "~1.6.3",
     "angular-spinner": "^1.0.1",
     "angular-ui-bootstrap": "^2.5.0",
-    "angular-ui-router": "1.0.0",
     "angular-ui-sortable": "^0.17.0",
     "angular2react": "^2.0.0",
     "bootstrap": "3.3.7",
@@ -73,7 +74,6 @@
     "source-map": "^0.4.4",
     "source-sans-pro": "^2.0.10",
     "spin.js": "git://github.com/fgnass/spin.js.git#2.3.1",
-    "ui-router-visualizer": "^4.0.0",
     "ui-select": "^0.19.6"
   },
   "devDependencies": {

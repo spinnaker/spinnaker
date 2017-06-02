@@ -8,7 +8,7 @@ import { ACCOUNT_SERVICE, CONFIRMATION_MODAL_SERVICE, LOAD_BALANCER_WRITE_SERVIC
 import { KubernetesProviderSettings } from 'kubernetes/kubernetes.settings';
 
 module.exports = angular.module('spinnaker.loadBalancer.kubernetes.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,

@@ -1,6 +1,6 @@
 import { IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 import { cloneDeep } from 'lodash';
 
 import {

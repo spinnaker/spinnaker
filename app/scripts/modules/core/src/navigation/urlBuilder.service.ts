@@ -1,7 +1,7 @@
 import {isDate, isObject, isUndefined} from 'lodash';
 import {module} from 'angular';
 
-import {StateService} from 'angular-ui-router';
+import {StateService} from '@uirouter/angularjs';
 import { ITask } from 'core/domain';
 
 export interface IUrlBuilderInput {
@@ -431,5 +431,5 @@ export class UrlBuilderService {
 }
 
 export const URL_BUILDER_SERVICE = 'spinnaker.core.navigation.urlBuilder.service';
-module(URL_BUILDER_SERVICE, [require('angular-ui-router').default])
+module(URL_BUILDER_SERVICE, [require('@uirouter/angularjs').default])
   .service('urlBuilderService', UrlBuilderService);

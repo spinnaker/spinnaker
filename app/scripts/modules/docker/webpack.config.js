@@ -26,7 +26,7 @@ module.exports = {
     'lodash': 'lodash',
     'rxjs': 'rxjs',
     '@uirouter/core': '@uirouter/core',
-    'angular-ui-router': { root: 'angular-ui-router', amd: 'angular-ui-router', commonjs2: 'angular-ui-router', commonjs: 'angular-ui-router' },
+    '@uirouter/angularjs': '@uirouter/angularjs',
   },
   resolve: {
     extensions: ['.json', '.js', '.jsx', '.ts', '.tsx', '.css', '.less', '.html'],

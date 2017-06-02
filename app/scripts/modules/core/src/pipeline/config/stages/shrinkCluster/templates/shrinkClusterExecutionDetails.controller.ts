@@ -1,5 +1,5 @@
 import {module} from 'angular';
-import {StateParams} from 'angular-ui-router';
+import {StateParams} from '@uirouter/angularjs';
 
 import {EXECUTION_DETAILS_SECTION_SERVICE,
         ExecutionDetailsSectionService} from 'core/delivery/details/executionDetailsSection.service';
@@ -20,6 +20,6 @@ class ShrinkClusterExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
 export const SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL = 'spinnaker.core.pipeline.stage.shrinkCluster.executionDetails.controller';
 
 module(SHRINK_CLUSTER_EXECUTION_DETAILS_CTRL, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
 ]).controller('shrinkClusterExecutionDetailsCtrl', ShrinkClusterExecutionDetailsCtrl);

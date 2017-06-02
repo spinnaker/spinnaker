@@ -7,7 +7,7 @@ import { INFRASTRUCTURE_CACHE_SERVICE, TASK_EXECUTOR } from '@spinnaker/core';
 
 module.exports = angular
   .module('spinnaker.azure.securityGroup.write.service', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     TASK_EXECUTOR,
     INFRASTRUCTURE_CACHE_SERVICE
   ])

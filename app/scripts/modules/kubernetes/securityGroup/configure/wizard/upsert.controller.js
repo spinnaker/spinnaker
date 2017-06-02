@@ -12,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.securityGroup.kubernetes.create.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   LOAD_BALANCER_READ_SERVICE,
   SECURITY_GROUP_READER,
   SECURITY_GROUP_WRITER,

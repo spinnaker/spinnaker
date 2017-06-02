@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { StateParams, StateService } from 'angular-ui-router';
+import { StateParams, StateService } from '@uirouter/angularjs';
 
 export class ExecutionDetailsSectionService {
 
@@ -36,5 +36,5 @@ export class ExecutionDetailsSectionService {
 
 export const EXECUTION_DETAILS_SECTION_SERVICE = 'spinnaker.executionDetails.section.service';
 module(EXECUTION_DETAILS_SECTION_SERVICE, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
 ]).service('executionDetailsSectionService', ExecutionDetailsSectionService);

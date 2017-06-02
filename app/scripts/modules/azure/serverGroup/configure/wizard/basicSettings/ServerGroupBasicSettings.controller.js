@@ -5,7 +5,7 @@ import { IMAGE_READER, NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnake
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure.basicSettings', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
   require('./image.regional.filter.js'),
   V2_MODAL_WIZARD_SERVICE,

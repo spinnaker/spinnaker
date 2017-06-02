@@ -1,5 +1,5 @@
 import { mock, noop } from 'angular';
-import { StateParams, StateService } from 'angular-ui-router';
+import { StateParams, StateService } from '@uirouter/angularjs';
 
 import { EXECUTION_DETAILS_SECTION_SERVICE, ExecutionDetailsSectionService } from './executionDetailsSection.service';
 

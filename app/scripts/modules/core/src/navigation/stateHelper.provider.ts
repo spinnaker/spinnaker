@@ -1,5 +1,5 @@
 import { copy, module } from 'angular';
-import { StateProvider } from 'angular-ui-router';
+import { StateProvider } from '@uirouter/angularjs';
 import { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {

@@ -3,7 +3,7 @@ import * as $ from 'jquery';
 import * as classNames from 'classnames';
 import autoBindMethods from 'class-autobind-decorator';
 import { clone, last, get } from 'lodash';
-import { PathNode } from 'angular-ui-router';
+import { PathNode } from '@uirouter/angularjs';
 import { Subscription } from 'rxjs';
 
 import { NgReact, ReactInjector } from 'core/reactShims';

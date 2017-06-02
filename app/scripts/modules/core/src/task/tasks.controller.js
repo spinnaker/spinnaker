@@ -10,7 +10,7 @@ import {SETTINGS} from 'core/config/settings';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.task.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('./taskProgressBar.directive.js'),
   VIEW_STATE_CACHE_SERVICE,
   require('./task.write.service.js'),

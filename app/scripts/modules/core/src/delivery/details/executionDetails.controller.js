@@ -5,7 +5,7 @@ import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvi
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.executionDetails.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   PIPELINE_CONFIG_PROVIDER
 ])
   .controller('executionDetails', function($scope, $stateParams, $state, pipelineConfig) {

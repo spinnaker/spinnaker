@@ -7,7 +7,7 @@ import {CLUSTER_FILTER_MODEL} from './clusterFilter.model';
 
 module.exports = angular
   .module('spinnaker.core.cluster.filter.multiselect.model', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     CLUSTER_FILTER_MODEL,
   ])
   .factory('MultiselectModel', function ($state, ClusterFilterModel) {

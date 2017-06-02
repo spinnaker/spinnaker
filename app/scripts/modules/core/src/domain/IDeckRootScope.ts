@@ -1,5 +1,5 @@
 import { IRootScopeService } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 
 export interface IDeckRootScope extends IRootScopeService {
   $state: StateService;

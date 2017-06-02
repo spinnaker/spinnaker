@@ -1,5 +1,5 @@
 import { IAngularEvent, IRootScopeService, module } from 'angular';
-import { Ng1StateDeclaration, StateParams } from 'angular-ui-router';
+import { Ng1StateDeclaration, StateParams } from '@uirouter/angularjs';
 
 import { IFilterConfig, IFilterModel } from 'core/filterModel/IFilterModel';
 import { UrlParser } from 'core/navigation/urlParser';

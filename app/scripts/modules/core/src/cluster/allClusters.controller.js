@@ -28,7 +28,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   INSIGHT_NGMODULE.name,
   require('angular-ui-bootstrap'),
   CLOUD_PROVIDER_REGISTRY,
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state,
                                           ClusterFilterModel, MultiselectModel, InsightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry) {

@@ -6,7 +6,7 @@ import './applicationNav.component.less';
 
 module.exports = angular
   .module('spinnaker.core.application.nav.component', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     ENTITY_TAGS_MODULE,
   ])
   .component('applicationNav', {

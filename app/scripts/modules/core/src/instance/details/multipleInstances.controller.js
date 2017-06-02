@@ -6,7 +6,7 @@ import {INSTANCE_WRITE_SERVICE} from 'core/instance/instance.write.service';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.instance.details.multipleInstances.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   INSTANCE_WRITE_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   require('../../cluster/filter/multiselect.model'),

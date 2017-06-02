@@ -6,7 +6,7 @@ import {EXECUTION_DETAILS_SECTION_SERVICE} from 'core/delivery/details/execution
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.pipeline.executionDetails.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   EXECUTION_DETAILS_SECTION_SERVICE,
 ])
   .controller('pipelineExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {

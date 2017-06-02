@@ -87,6 +87,6 @@ const applicationComponent: IComponentOptions = {
 
 export const APPLICATION_COMPONENT = 'spinnaker.core.application.component';
 module(APPLICATION_COMPONENT, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   RECENT_HISTORY_SERVICE,
 ]).component('application', applicationComponent);

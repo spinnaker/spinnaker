@@ -3,7 +3,7 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.jenkins.executionDetails.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
 ])
   .controller('JenkinsExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 

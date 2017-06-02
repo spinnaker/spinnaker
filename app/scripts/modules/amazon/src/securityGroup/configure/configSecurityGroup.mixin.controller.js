@@ -17,7 +17,7 @@ import { VPC_READ_SERVICE } from 'amazon/vpc/vpc.read.service';
 
 module.exports = angular
   .module('spinnaker.amazon.securityGroup.baseConfig.controller', [
-    require('angular-ui-router').default,
+    require('@uirouter/angularjs').default,
     TASK_MONITOR_BUILDER,
     SECURITY_GROUP_READER,
     SECURITY_GROUP_WRITER,

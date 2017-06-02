@@ -1,6 +1,6 @@
 import { has } from 'lodash';
 import { IComponentController, IComponentOptions, IFilterService, ITimeoutService, IScope, module } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.service';

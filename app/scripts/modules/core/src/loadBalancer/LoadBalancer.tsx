@@ -2,7 +2,7 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 import { isEqual, get, last } from 'lodash';
 import { $timeout } from 'ngimport';
-import { PathNode } from 'angular-ui-router';
+import { PathNode } from '@uirouter/angularjs';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';

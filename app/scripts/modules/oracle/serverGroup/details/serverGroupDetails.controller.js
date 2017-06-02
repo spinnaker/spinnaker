@@ -12,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   SERVER_GROUP_READER,
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WRITER,

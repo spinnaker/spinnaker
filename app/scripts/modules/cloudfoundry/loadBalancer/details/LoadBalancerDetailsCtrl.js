@@ -10,7 +10,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.loadBalancer.cf.details.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,

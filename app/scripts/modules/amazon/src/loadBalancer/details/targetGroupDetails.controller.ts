@@ -1,5 +1,5 @@
 import { IPromise, IQService, IScope, module } from 'angular';
-import { StateService } from 'angular-ui-router';
+import { StateService } from '@uirouter/angularjs';
 
 import { Application, ILoadBalancer } from '@spinnaker/core';
 
@@ -76,5 +76,5 @@ export class AwsTargetGroupDetailsController {
 
 export const AWS_TARGET_GROUP_DETAILS_CTRL = 'spinnaker.amazon.loadBalancer.details.targetGroupDetails.controller';
 module(AWS_TARGET_GROUP_DETAILS_CTRL, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
 ]).controller('awsTargetGroupDetailsCtrl', AwsTargetGroupDetailsController);

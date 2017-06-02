@@ -5,7 +5,7 @@ const angular = require('angular');
 import { SERVER_GROUP_WRITER, TASK_MONITOR_BUILDER, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.azure.cloneServerGroup.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('../serverGroupConfiguration.service.js'),
   require('../../serverGroup.transformer.js'),
   SERVER_GROUP_WRITER,

@@ -1,7 +1,7 @@
 import { ILogService, module } from 'angular';
 import { each, forOwn, groupBy, sortBy } from 'lodash';
 import { Debounce } from 'lodash-decorators';
-import { StateParams } from 'angular-ui-router';
+import { StateParams } from '@uirouter/angularjs';
 import { Subject } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -471,7 +471,7 @@ export class ClusterFilterService {
 
 export const CLUSTER_FILTER_SERVICE = 'spinnaker.core.cluster.filter.service';
 module(CLUSTER_FILTER_SERVICE, [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   CLUSTER_FILTER_MODEL,
   require('./multiselect.model'),
   require('core/filterModel/filter.model.service'),

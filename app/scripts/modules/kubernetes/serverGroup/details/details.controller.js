@@ -12,7 +12,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.kubernetes.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('../configure/configure.kubernetes.module.js'),
   CONFIRMATION_MODAL_SERVICE,
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,

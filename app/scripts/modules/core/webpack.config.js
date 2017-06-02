@@ -24,6 +24,7 @@ module.exports = {
     'root/version.json': 'root/version.json',
     '@uirouter/angularjs': '@uirouter/angularjs',
     '@uirouter/core': '@uirouter/core',
+    '@uirouter/visualizer': '@uirouter/visualizer',
     'angular': 'angular',
     'angular-animate': 'angular-animate',
     'angular-cache': 'angular-cache',
@@ -33,7 +34,6 @@ module.exports = {
     'angular-sanitize': 'angular-sanitize',
     'angular-spinner': 'angular-spinner',
     'angular-ui-bootstrap': 'angular-ui-bootstrap',
-    'angular-ui-router': { root: 'angular-ui-router', amd: 'angular-ui-router', commonjs2: 'angular-ui-router', commonjs: 'angular-ui-router' },
     'angular-ui-sortable': 'angular-ui-sortable',
     'angular2react': 'angular2react',
     'angulartics': 'angulartics',
@@ -75,7 +75,6 @@ module.exports = {
     'select2-bootstrap-css/select2-bootstrap.css': 'select2-bootstrap-css/select2-bootstrap.css',
     'source-sans-pro': 'source-sans-pro',
     'spin.js': 'spin.js',
-    'ui-router-visualizer': 'ui-router-visualizer',
     'ui-select': 'ui-select',
   },
   resolve: {

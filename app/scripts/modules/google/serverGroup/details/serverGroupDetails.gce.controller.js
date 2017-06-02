@@ -16,7 +16,7 @@ import {
 require('../configure/serverGroup.configure.gce.module.js');
 
 module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('../configure/serverGroupCommandBuilder.service.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
   SERVER_GROUP_READER,

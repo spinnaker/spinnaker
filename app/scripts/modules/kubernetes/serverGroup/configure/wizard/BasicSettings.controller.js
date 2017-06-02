@@ -6,7 +6,7 @@ import { Observable, Subject } from 'rxjs';
 import { NAMING_SERVICE, V2_MODAL_WIZARD_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.basicSettings', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
   V2_MODAL_WIZARD_SERVICE,
   NAMING_SERVICE,
