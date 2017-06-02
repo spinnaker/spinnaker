@@ -22,11 +22,17 @@
       <cloud-provider-logo provider="serverGroup.type" height="'36px'" width="'36px'"></cloud-provider-logo>
       <h3 select-on-dbl-click>
         {{serverGroup.name}}
-        <entity-ui-tags component="serverGroup"
-                        application="ctrl.application"
-                        entity-type="serverGroup"
-                        page-location="details"
-                        on-update="ctrl.application.serverGroups.refresh()"></entity-ui-tags>
+        <render-if-feature feature="entityTags">
+          <entity-notifications
+            entity="serverGroup"
+            application="ctrl.application"
+            placement="bottom"
+            h-offset-percent="90%"
+            entity-type="serverGroup"
+            page-location="details"
+            on-update="ctrl.application.serverGroups.refresh()"
+          ></entity-notifications>
+        </render-if-feature>
       </h3>
     </div>
     <div>
