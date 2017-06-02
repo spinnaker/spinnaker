@@ -1,0 +1,6 @@
+dependencies {
+  compile project(":kayenta-core")
+  compile spinnaker.dependency('bootWeb')
+  compile spinnaker.dependency("korkSwagger")
+  compile spinnaker.dependency('lombok')
+}

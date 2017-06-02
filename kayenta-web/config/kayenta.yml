@@ -33,6 +33,9 @@ kayenta:
   redis:
     enabled: false
 
+  memory:
+    enabled: false
+
 swagger:
   enabled: true
   title: Kayenta API
