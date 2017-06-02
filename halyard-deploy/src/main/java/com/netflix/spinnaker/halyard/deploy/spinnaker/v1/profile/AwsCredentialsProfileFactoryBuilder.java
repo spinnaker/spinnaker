@@ -45,7 +45,7 @@ public class AwsCredentialsProfileFactoryBuilder {
     return Paths.get(spinnakerHome, ".aws/credentials").toString();
   }
 
-  @EqualsAndHashCode(callSuper = true)
+  @EqualsAndHashCode(callSuper = false)
   @Data
   public class AwsCredentialsProfileFactory extends TemplateBackedProfileFactory {
     public AwsCredentialsProfileFactory(SpinnakerArtifact artifact) {

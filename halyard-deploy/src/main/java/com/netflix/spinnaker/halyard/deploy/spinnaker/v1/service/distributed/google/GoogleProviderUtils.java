@@ -33,6 +33,7 @@ import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetai
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -104,7 +105,7 @@ class GoogleProviderUtils {
       command.add("-f"); // path to keyfile
       command.add(getSshKeyFile());
       command.add("-C"); // username sshing into machine
-      command.add("halyard");
+      command.add("ubuntu");
 
       JobRequest request = new JobRequest().setTokenizedCommand(command);
 
@@ -117,6 +118,19 @@ class GoogleProviderUtils {
 
       if (status.getResult() == JobStatus.Result.FAILURE) {
         throw new HalException(FATAL, "ssh-keygen failed: " + status.getStdErr());
+      }
+
+
+      try {
+        File sshPublicKeyFile = new File(getSshPublicKeyFile());
+        String sshKeyContents = IOUtils.toString(new FileInputStream(sshPublicKeyFile));
+
+        if (!sshKeyContents.startsWith("ubuntu:")) {
+          sshKeyContents = "ubuntu:" + sshKeyContents;
+          FileUtils.writeByteArrayToFile(sshPublicKeyFile, sshKeyContents.getBytes());
+        }
+      } catch (IOException e) {
+        throw new HalException(FATAL, "Cannot reformat ssh key to match google key format expectation: " + e.getMessage(), e);
       }
 
       command = new ArrayList<>();
