@@ -54,6 +54,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib2
 from urllib2 import HTTPError
 
@@ -445,6 +446,8 @@ class Builder(object):
 
   def __do_container_build(self, subsys):
     try:
+      # HACK: Space out the container builds to address scalability concerns.
+      time.sleep(2 * SUBSYSTEM_LIST.index(subsys))
       self.start_container_build(subsys).check_wait()
     except Exception as ex:
       print ex
