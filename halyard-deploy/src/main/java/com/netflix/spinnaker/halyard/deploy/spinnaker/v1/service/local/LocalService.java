@@ -41,6 +41,7 @@ public interface LocalService<T> extends HasServiceSettings<T>, LogCollector<T, 
       String source = profile.getStagedFile(getSpinnakerStagingPath(details.getDeploymentName()));
       String dest = profile.getOutputFile();
       String user = profile.getUser();
+      allCommands.add(String.format("mkdir -p $(dirname %s)", dest));
       allCommands.add(String.format("cp -p %s %s", source, dest));
       allCommands.add(String.format("chown %s:%s %s", user, user, dest));
       allCommands.add(String.format("chmod 600 %s", dest));
