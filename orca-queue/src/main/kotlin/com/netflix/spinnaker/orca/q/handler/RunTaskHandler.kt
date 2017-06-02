@@ -147,7 +147,7 @@ open class RunTaskHandler
       is RetryableTask -> {
         val startTime = taskModel.startTime.toInstant()
         val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
-        if (Duration.between(startTime, clock.instant()).minus(pausedDuration) > timeout.toDuration()) {
+        if (Duration.between(startTime, clock.instant()).minus(pausedDuration) > timeoutDuration(stage)) {
           log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after ${Duration.between(startTime, clock.instant())}")
           true
         } else {
@@ -156,6 +156,12 @@ open class RunTaskHandler
       }
       else -> false
     }
+
+  private fun RetryableTask.timeoutDuration(stage: Stage<*>): Duration {
+    val durationOverride: Int? = stage.getContext()["stageTimeoutMs"] as Int?
+    return durationOverride?.toLong()?.toDuration() ?: timeout.toDuration()
+  }
+
 
   private fun Execution<*>.pausedDurationRelativeTo(instant: Instant?): Duration {
     val pausedDetails = getPaused()
