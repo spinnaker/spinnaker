@@ -422,6 +422,8 @@ public abstract class NestableCommand {
           }
         }
       }
+
+      result.append("\n");
     }
 
     if (parameters.size() > parameterCount) {
