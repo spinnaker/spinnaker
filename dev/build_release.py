@@ -450,7 +450,8 @@ class Builder(object):
   def __do_container_build(self, subsys):
     try:
       # HACK: Space out the container builds to address scalability concerns.
-      time.sleep(2 * SUBSYSTEM_LIST.index(subsys))
+      full_subsystem_list = SUBSYSTEM_LIST + ADDITIONAL_SUBSYSTEMS
+      time.sleep(2 * full_subsystem_list.index(subsys))
       self.start_container_build(subsys).check_wait()
     except Exception as ex:
       print ex
