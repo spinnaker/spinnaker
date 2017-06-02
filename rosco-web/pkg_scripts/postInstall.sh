@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 
 # ubuntu
 # check that owner group exists
