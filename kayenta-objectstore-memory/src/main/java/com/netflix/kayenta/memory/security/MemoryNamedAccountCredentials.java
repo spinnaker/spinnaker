@@ -27,21 +27,22 @@ import java.util.List;
 @Builder
 @Data
 public class MemoryNamedAccountCredentials implements AccountCredentials<MemoryAccountCredentials> {
-    @NotNull
-    private String name;
 
-    @NotNull
-    @Singular
-    private List<Type> supportedTypes;
+  @NotNull
+  private String name;
 
-    @NotNull
-    private MemoryAccountCredentials credentials;
+  @NotNull
+  @Singular
+  private List<Type> supportedTypes;
 
-    @NotNull
-    private String namespace;
+  @NotNull
+  private MemoryAccountCredentials credentials;
 
-    @Override
-    public String getType() {
-        return "memory";
-    }
+  @NotNull
+  private String namespace;
+
+  @Override
+  public String getType() {
+    return "memory";
+  }
 }

@@ -37,111 +37,113 @@ import java.util.stream.Collectors;
 
 @Builder
 class ObjectMetadata {
-    @NotNull
-    public final String name;
+
+  @NotNull
+  public final String name;
 }
 
 @Builder
 @Slf4j
 public class MemoryStorageService implements StorageService {
 
-    public static class MemoryStorageServiceBuilder {
-        private Map<String, String> entries = new ConcurrentHashMap<String, String>();
+  public static class MemoryStorageServiceBuilder {
+    private Map<String, String> entries = new ConcurrentHashMap<String, String>();
+  }
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  @NotNull
+  @Singular
+  @Getter
+  private List<String> accountNames;
+
+  @Autowired
+  AccountCredentialsRepository accountCredentialsRepository;
+
+  private Map<String, String> entries;
+
+  @Override
+  public boolean servicesAccount(String accountName) {
+    return accountNames.contains(accountName);
+  }
+
+  @Override
+  public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
+    String key = makeKey(accountName, objectType, objectKey);
+    log.info("Getting key {}", key);
+    String json = entries.get(key);
+    if (json == null) {
+      throw new IllegalArgumentException("No such object named " + key);
     }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @NotNull
-    @Singular
-    @Getter
-    private List<String> accountNames;
-
-    @Autowired
-    AccountCredentialsRepository accountCredentialsRepository;
-
-    private Map<String, String> entries;
-
-    @Override
-    public boolean servicesAccount(String accountName) {
-        return accountNames.contains(accountName);
+    try {
+      return objectMapper.readValue(json, objectType.getTypeReference());
+    } catch (IOException e) {
+      log.error("Read failed on path {}: {}", key, e);
+      throw new IllegalStateException(e);
     }
+  }
 
-    @Override
-    public <T> T loadObject(String accountName, ObjectType objectType, String objectKey) throws IllegalArgumentException {
-        String key = makekey(accountName, objectType, objectKey);
-        log.info("Getting key {}", key);
-        String json = entries.get(key);
-        if (json == null)
-            throw new IllegalArgumentException("No such object named " + key);
-
-        try {
-            return objectMapper.readValue(json, objectType.getTypeReference());
-        } catch (IOException e) {
-            log.error("Read failed on path {}: {}", key, e);
-            throw new IllegalStateException(e);
-        }
+  @Override
+  public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
+    String key = makeKey(accountName, objectType, objectKey);
+    log.info("Writing key {}", key);
+    try {
+      String json = objectMapper.writeValueAsString(obj);
+      entries.put(key, json);
+    } catch (IOException e) {
+      log.error("Update failed on path {}: {}", key, e);
+      throw new IllegalStateException(e);
     }
+  }
 
-    @Override
-    public <T> void storeObject(String accountName, ObjectType objectType, String objectKey, T obj) {
-        String key = makekey(accountName, objectType, objectKey);
-        log.info("Writing key {}", key);
-        try {
-            String json = objectMapper.writeValueAsString(obj);
-            entries.put(key, json);
-        } catch (IOException e) {
-            log.error("Update failed on path {}: {}", key, e);
-            throw new IllegalStateException(e);
-        }
+  @Override
+  public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
+    String key = makeKey(accountName, objectType, objectKey);
+    log.info("Deleting key {}", key);
+    String oldValue = entries.remove(key);
+    if (oldValue == null) {
+      log.error("Object named {} does not exist", key);
+      throw new IllegalStateException("Does not exist");
     }
+  }
 
-    @Override
-    public void deleteObject(String accountName, ObjectType objectType, String objectKey) {
-        String key = makekey(accountName, objectType, objectKey);
-        log.info("Deleting key {}", key);
-        String oldValue = entries.remove(key);
-        if (oldValue == null) {
-            log.error("Object named {} does not exist", key);
-            throw new IllegalStateException("Does not exist");
-        }
-    }
+  @Override
+  public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
+    String prefix = makePrefix(accountName, objectType);
 
-    @Override
-    public List<Map<String, Object>> listObjectKeys(String accountName, ObjectType objectType) {
-        String prefix = makeprefix(accountName, objectType);
+    return entries
+            .entrySet()
+            .parallelStream()
+            .filter(e -> e.getKey().startsWith(prefix))
+            .map(e -> mapFrom(e.getKey()))
+            .collect(Collectors.toList());
+  }
 
-        return entries
-                .entrySet()
-                .parallelStream()
-                .filter(e -> e.getKey().startsWith(prefix))
-                .map(e -> mapFrom(e.getKey()))
-                .collect(Collectors.toList());
-    }
+  private Map<String, Object> mapFrom(String key) {
+    Map<String, Object> ret = new HashMap<String, Object>();
+    ret.put(nameFromKey(key), metadataFor(key));
+    return ret;
+  }
 
-    private Map<String, Object> mapFrom(String key) {
-        Map<String, Object> ret = new HashMap<String, Object>();
-        ret.put(nameFromKey(key), metadataFor(key));
-        return ret;
-    }
+  private String nameFromKey(String key) {
+    return key.split(":", 3)[2];
+  }
 
-    private String nameFromKey(String key) {
-        return key.split(":", 3)[2];
-    }
+  private ObjectMetadata metadataFor(String key) {
+    return ObjectMetadata.builder().name(nameFromKey(key)).build();
+  }
 
-    private ObjectMetadata metadataFor(String key) {
-        return ObjectMetadata.builder().name(nameFromKey(key)).build();
-    }
+  private String makePrefix(String accountName, ObjectType objectType) {
+    MemoryNamedAccountCredentials credentials = (MemoryNamedAccountCredentials) accountCredentialsRepository
+            .getOne(accountName)
+            .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+    String namespace = credentials.getNamespace();
+    String typename = objectType.getTypeReference().getType().getTypeName();
+    return namespace + ":" + typename + ":";
+  }
 
-    private String makeprefix(String accountName, ObjectType objectType) {
-        MemoryNamedAccountCredentials credentials = (MemoryNamedAccountCredentials)accountCredentialsRepository
-                .getOne(accountName)
-                .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
-        String namespace = credentials.getNamespace();
-        String typename = objectType.getTypeReference().getType().getTypeName();
-        return namespace + ":" + typename + ":";
-    }
-
-    private String makekey(String accountName, ObjectType objectType, String objectKey) {
-        return makeprefix(accountName, objectType) + objectKey;
-    }
+  private String makeKey(String accountName, ObjectType objectType, String objectKey) {
+    return makePrefix(accountName, objectType) + objectKey;
+  }
 }

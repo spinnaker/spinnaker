@@ -40,45 +40,44 @@ import java.util.List;
 @Slf4j
 public class MemoryConfiguration {
 
-    @Bean
-    @ConfigurationProperties("kayenta.memory")
-    MemoryConfigurationProperties memoryConfigurationProperties() {
-        return new MemoryConfigurationProperties();
+  @Bean
+  @ConfigurationProperties("kayenta.memory")
+  MemoryConfigurationProperties memoryConfigurationProperties() {
+    return new MemoryConfigurationProperties();
+  }
+
+  @Bean
+  StorageService storageService(MemoryConfigurationProperties memoryConfigurationProperties,
+                                AccountCredentialsRepository accountCredentialsRepository) {
+    MemoryStorageService.MemoryStorageServiceBuilder memoryStorageServiceBuilder = MemoryStorageService.builder();
+
+    for (MemoryManagedAccount memoryManagedAccount : memoryConfigurationProperties.getAccounts()) {
+      String name = memoryManagedAccount.getName();
+      String namespace = memoryManagedAccount.getNamespace();
+      List<AccountCredentials.Type> supportedTypes = memoryManagedAccount.getSupportedTypes();
+
+      log.info("Registering Memory account {} with supported types {}.", name, supportedTypes);
+
+      MemoryAccountCredentials memoryAccountCredentials = MemoryAccountCredentials.builder().build();
+      MemoryNamedAccountCredentials.MemoryNamedAccountCredentialsBuilder memoryNamedAccountCredentialsBuilder =
+        MemoryNamedAccountCredentials.builder()
+          .name(name)
+          .namespace(namespace)
+          .credentials(memoryAccountCredentials);
+
+      if (!CollectionUtils.isEmpty(supportedTypes)) {
+        memoryNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
+      }
+
+      MemoryNamedAccountCredentials memoryNamedAccountCredentials = memoryNamedAccountCredentialsBuilder.build();
+      accountCredentialsRepository.save(name, memoryNamedAccountCredentials);
+      memoryStorageServiceBuilder.accountName(name);
     }
 
-    @Bean
-    StorageService storageService(MemoryConfigurationProperties memoryConfigurationProperties,
-                                  AccountCredentialsRepository accountCredentialsRepository) {
-        MemoryStorageService.MemoryStorageServiceBuilder memoryStorageServiceBuilder = MemoryStorageService.builder();
+    MemoryStorageService memoryStorageService = memoryStorageServiceBuilder.build();
 
-        for (MemoryManagedAccount memoryManagedAccount : memoryConfigurationProperties.getAccounts()) {
-            String name = memoryManagedAccount.getName();
-            String namespace = memoryManagedAccount.getNamespace();
-            List<AccountCredentials.Type> supportedTypes = memoryManagedAccount.getSupportedTypes();
+    log.info("Populated MemoryStorageService with {} in-memory accounts.", memoryStorageService.getAccountNames().size());
 
-            log.info("Registering Memory account {} with supported types {}.", name, supportedTypes);
-
-            MemoryAccountCredentials memoryAccountCredentials =
-                    MemoryAccountCredentials.builder().build();
-            MemoryNamedAccountCredentials.MemoryNamedAccountCredentialsBuilder memoryNamedAccountCredentialsBuilder =
-                    MemoryNamedAccountCredentials.builder()
-                    .name(name)
-                    .namespace(namespace)
-                    .credentials(memoryAccountCredentials);
-
-            if (!CollectionUtils.isEmpty(supportedTypes)) {
-                memoryNamedAccountCredentialsBuilder.supportedTypes(supportedTypes);
-            }
-
-            MemoryNamedAccountCredentials memoryNamedAccountCredentials = memoryNamedAccountCredentialsBuilder.build();
-            accountCredentialsRepository.save(name, memoryNamedAccountCredentials);
-            memoryStorageServiceBuilder.accountName(name);
-        }
-
-        MemoryStorageService memoryStorageService = memoryStorageServiceBuilder.build();
-
-        log.info("Populated MemoryStorageService with {} in-memory accounts.", memoryStorageService.getAccountNames().size());
-
-        return memoryStorageService;
-    }
+    return memoryStorageService;
+  }
 }

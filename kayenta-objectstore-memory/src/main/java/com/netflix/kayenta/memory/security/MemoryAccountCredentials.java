@@ -28,6 +28,6 @@ import java.util.Optional;
 // TODO: Not sure what kind of credentials or configuration is really required here yet.
 public class MemoryAccountCredentials {
 
-    private static String applicationVersion =
-            Optional.ofNullable(MemoryAccountCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
+  private static String applicationVersion =
+    Optional.ofNullable(MemoryAccountCredentials.class.getPackage().getImplementationVersion()).orElse("Unknown");
 }

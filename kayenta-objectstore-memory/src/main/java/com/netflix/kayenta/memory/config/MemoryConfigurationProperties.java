@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MemoryConfigurationProperties {
-    @Getter
-    private List<MemoryManagedAccount> accounts = new ArrayList<>();
+
+  @Getter
+  private List<MemoryManagedAccount> accounts = new ArrayList<>();
 }

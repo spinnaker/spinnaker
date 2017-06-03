@@ -24,10 +24,11 @@ import java.util.List;
 
 @Data
 public class MemoryManagedAccount {
-    @NotNull
-    private String name;
 
-    private String namespace;
+  @NotNull
+  private String name;
 
-    private List<AccountCredentials.Type> supportedTypes;
+  private String namespace;
+
+  private List<AccountCredentials.Type> supportedTypes;
 }
