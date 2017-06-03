@@ -17,8 +17,15 @@
 package com.netflix.kayenta.atlas.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.netflix.kayenta.atlas.query.AtlasQuery;
-import com.netflix.kayenta.atlas.query.AtlasSynchronousQueryProcessor;
+import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
+import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
+import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.security.AccountCredentials;
+import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.security.CredentialsHelper;
+import com.netflix.kayenta.storage.ObjectType;
+import com.netflix.kayenta.storage.StorageService;
+import com.netflix.kayenta.storage.StorageServiceRepository;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.RetryableTask;
 import com.netflix.spinnaker.orca.TaskResult;
@@ -30,6 +37,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class AtlasFetchTask implements RetryableTask {
@@ -38,7 +46,13 @@ public class AtlasFetchTask implements RetryableTask {
   ObjectMapper objectMapper;
 
   @Autowired
-  AtlasSynchronousQueryProcessor atlasSynchronousQueryProcessor;
+  AccountCredentialsRepository accountCredentialsRepository;
+
+  @Autowired
+  StorageServiceRepository storageServiceRepository;
+
+  @Autowired
+  SynchronousQueryProcessor synchronousQueryProcessor;
 
   @Override
   public long getBackoffPeriod() {
@@ -54,16 +68,38 @@ public class AtlasFetchTask implements RetryableTask {
 
   @Override
   public TaskResult execute(Stage stage) {
-    AtlasQuery atlasQuery =
-      objectMapper.convertValue(stage.getContext().get("atlasQuery"), AtlasQuery.class);
+    Map<String, Object> context = stage.getContext();
+    String metricsAccountName = (String)context.get("metricsAccountName");
+    String storageAccountName = (String)context.get("storageAccountName");
+    String canaryConfigId = (String)context.get("canaryConfigId");
+    AtlasCanaryScope atlasCanaryScope =
+      objectMapper.convertValue(stage.getContext().get("atlasCanaryScope"), AtlasCanaryScope.class);
+    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
+                                                                                     AccountCredentials.Type.METRICS_STORE,
+                                                                                     accountCredentialsRepository);
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
+    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedStorageAccountName);
 
-    try {
-      String metricSetListId = atlasSynchronousQueryProcessor.processQuery(atlasQuery);
-      Map outputs = Collections.singletonMap("metricSetListId", metricSetListId);
+    if (storageService.isPresent()) {
+      try {
+        CanaryConfig canaryConfig =
+          storageService.get().loadObject(resolvedStorageAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+        // TODO(duftler): Fetch _all_ metric sets specified in canaryConfig.getMetrics(), not just the first.
+        String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                        resolvedStorageAccountName,
+                                                                        canaryConfig.getMetrics().get(0),
+                                                                        atlasCanaryScope);
+        Map outputs = Collections.singletonMap("metricSetListId", metricSetListId);
+
+        return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      throw new IllegalArgumentException("No storage service was configured; unable to load canary config.");
     }
   }
 }

@@ -30,8 +30,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ComponentScan({
+  "com.netflix.kayenta.canary",
   "com.netflix.kayenta.config",
-  "com.netflix.kayenta.metrics.orca",
+  "com.netflix.kayenta.metrics",
   "com.netflix.kayenta.persistence.config",
   "com.netflix.kayenta.retrofit.config"
 })

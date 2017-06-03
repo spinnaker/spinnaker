@@ -15,12 +15,12 @@
       ],
       "type": "atlasFetch",
       "user": "[anonymous]",
-      "atlasQuery": {
-        "metricsAccountName":"atlas-acct-1",
-        "q": "name,randomValue,:eq",
-        "metricSetName": "cpu",
+      "metricsAccountName": "atlas-acct-1",
+      "storageAccountName": "my-account-name-1",
+      "canaryConfigId": "MySampleAtlasCanaryConfig",
+      "atlasCanaryScope": {
         "type": "node",
-        "scope": "duftler-macbookpro2.roam.corp.google.com",
+        "scope": "duftler-mac",
         "start": "1496436680000",
         "end": "now",
         "step": "PT10S"
@@ -34,12 +34,12 @@
       ],
       "type": "atlasFetch",
       "user": "[anonymous]",
-      "atlasQuery": {
-        "metricsAccountName":"atlas-acct-1",
-        "q": "name,randomValue,:eq",
-        "metricSetName": "cpu",
+      "metricsAccountName": "atlas-acct-1",
+      "storageAccountName": "my-account-name-1",
+      "canaryConfigId": "MySampleAtlasCanaryConfig",
+      "atlasCanaryScope": {
         "type": "node",
-        "scope": "duftler-macbookpro2.roam.corp.google.com",
+        "scope": "duftler-mac",
         "start": "1496436680000",
         "end": "now",
         "step": "PT10S"
@@ -52,10 +52,22 @@
         "1",
         "2"
       ],
-      "controlMetricSetListId": "${ #stage('Fetch Baseline from Atlas')['context']['metricSetListId']}",
-      "experimentMetricSetListId": "${ #stage('Fetch Canary from Atlas')['context']['metricSetListId']}",
       "type": "metricSetMixer",
-      "user": "[anonymous]"
+      "user": "[anonymous]",
+      "storageAccountName": "my-account-name-1",
+      "controlMetricSetListId": "${ #stage('Fetch Baseline from Atlas')['context']['metricSetListId']}",
+      "experimentMetricSetListId": "${ #stage('Fetch Canary from Atlas')['context']['metricSetListId']}"
+    },
+    {
+      "name": "Perform Analysis",
+      "refId": "4",
+      "requisiteStageRefIds": [
+        "3"
+      ],
+      "type": "canaryJudge",
+      "user": "[anonymous]",
+      "canaryConfigId": "MySampleAtlasCanaryConfig",
+      "metricSetPairListId": "${ #stage('Mix Baseline and Canary Results')['context']['metricSetPairListId']}"
     }
   ]
 }

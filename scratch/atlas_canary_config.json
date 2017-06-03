@@ -1,0 +1,57 @@
+{
+  "name": "MySampleAtlasCanaryConfig",
+  "description": "Example Automated Canary Analysis (ACA) Configuration using Atlas",
+  "configVersion": "1.0",
+  "metrics": [
+    {
+      "name": "cpu",
+      "serviceName": "atlas",
+      "query": {
+        "type": "atlas",
+        "q": "name,randomValue,:eq"
+      },
+      "groups": [
+        "system"
+      ],
+      "analysisConfigurations": {
+        "canary": {
+
+        }
+      }
+    },
+    {
+      "name": "requests",
+      "serviceName": "atlas",
+      "query": {
+        "type": "atlas",
+        "q": "name,apache.http.requests,:eq,:sum"
+      },
+      "groups": [
+        "requests"
+      ],
+      "analysisConfigurations": {
+        "canary": {
+
+        }
+      }
+    }
+  ],
+  "services": {
+    "atlas": {
+      "name": "atlas",
+      "type": "atlas",
+      "region": "us-east-1",
+      "environment": "prod"
+    }
+  },
+  "classifier": {
+    "groupWeights": {
+      "requests": 50.0,
+      "system": 50.0
+    },
+    "scoreThresholds": {
+      "pass": 95.0,
+      "marginal": 75.0
+    }
+  }
+}

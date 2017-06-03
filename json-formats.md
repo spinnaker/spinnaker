@@ -91,7 +91,7 @@ Atlas and Stackdriver are used.
   },
   "classifier": {
     "groupWeights": {
-      "system": 50.0
+      "system": 100.0
     },
     "scoreThresholds": {
       "pass": 95.0,

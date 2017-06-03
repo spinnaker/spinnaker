@@ -15,11 +15,10 @@
       ],
       "type": "stackdriverFetch",
       "user": "[anonymous]",
-      "stackdriverQuery": {
-        "metricsAccountName": "",
-        "storageAccountName": "",
-        "metricSetName": "cpu",
-        "metricType": "compute.googleapis.com/instance/cpu/utilization",
+      "metricsAccountName": "my-account-name-1",
+      "storageAccountName": "my-account-name-1",
+      "canaryConfigId": "MySampleStackdriverCanaryConfig",
+      "stackdriverCanaryScope": {
         "scope": "myapp-v010-",
         "intervalStartTimeIso": "2017-05-01T15:13:00Z",
         "intervalEndTimeIso": "2017-05-02T15:27:00Z",
@@ -34,11 +33,10 @@
       ],
       "type": "stackdriverFetch",
       "user": "[anonymous]",
-      "stackdriverQuery": {
-        "metricsAccountName": "",
-        "storageAccountName": "",
-        "metricSetName": "cpu",
-        "metricType": "compute.googleapis.com/instance/cpu/utilization",
+      "metricsAccountName": "my-account-name-1",
+      "storageAccountName": "my-account-name-1",
+      "canaryConfigId": "MySampleStackdriverCanaryConfig",
+      "stackdriverCanaryScope": {
         "scope": "myapp-v010-",
         "intervalStartTimeIso": "2017-05-01T15:13:00Z",
         "intervalEndTimeIso": "2017-05-02T15:27:00Z",
@@ -52,10 +50,22 @@
         "1",
         "2"
       ],
-      "controlMetricSetListId": "${ #stage('Fetch Baseline from Stackdriver')['context']['metricSetListId']}",
-      "experimentMetricSetListId": "${ #stage('Fetch Canary from Stackdriver')['context']['metricSetListId']}",
       "type": "metricSetMixer",
-      "user": "[anonymous]"
+      "user": "[anonymous]",
+      "storageAccountName": "my-account-name-1",
+      "controlMetricSetListId": "${ #stage('Fetch Baseline from Stackdriver')['context']['metricSetListId']}",
+      "experimentMetricSetListId": "${ #stage('Fetch Canary from Stackdriver')['context']['metricSetListId']}"
+    },
+    {
+      "name": "Perform Analysis",
+      "refId": "4",
+      "requisiteStageRefIds": [
+        "3"
+      ],
+      "type": "canaryJudge",
+      "user": "[anonymous]",
+      "canaryConfigId": "MySampleStackdriverCanaryConfig",
+      "metricSetPairListId": "${ #stage('Mix Baseline and Canary Results')['context']['metricSetPairListId']}"
     }
   ]
 }

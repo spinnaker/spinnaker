@@ -16,8 +16,13 @@
 
 package com.netflix.kayenta.stackdriver.controllers;
 
-import com.netflix.kayenta.stackdriver.query.StackdriverQuery;
-import com.netflix.kayenta.stackdriver.query.StackdriverSynchronousQueryProcessor;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.StackdriverCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
+import com.netflix.kayenta.security.AccountCredentials;
+import com.netflix.kayenta.security.AccountCredentialsRepository;
+import com.netflix.kayenta.security.CredentialsHelper;
+import com.netflix.kayenta.stackdriver.canary.StackdriverCanaryScope;
 import io.swagger.annotations.ApiParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -35,7 +41,10 @@ import java.util.List;
 public class StackdriverFetchController {
 
   @Autowired
-  StackdriverSynchronousQueryProcessor stackdriverSynchronousQueryProcessor;
+  AccountCredentialsRepository accountCredentialsRepository;
+
+  @Autowired
+  SynchronousQueryProcessor synchronousQueryProcessor;
 
   @RequestMapping(value = "/query", method = RequestMethod.POST)
   public String queryMetrics(@RequestParam(required = false) final String metricsAccountName,
@@ -47,22 +56,45 @@ public class StackdriverFetchController {
                              @ApiParam(defaultValue = "2017-05-01T15:13:00Z") @RequestParam String intervalStartTimeIso,
                              @ApiParam(defaultValue = "2017-05-02T15:27:00Z") @RequestParam String intervalEndTimeIso,
                              @ApiParam(defaultValue = "3600") @RequestParam String step) throws IOException {
-    StackdriverQuery.StackdriverQueryBuilder stackdriverQueryBuilder =
-      StackdriverQuery
-        .builder()
-        .metricsAccountName(metricsAccountName)
-        .storageAccountName(storageAccountName)
-        .metricSetName(metricSetName)
-        .metricType(metricType)
-        .scope(scope)
-        .intervalStartTimeIso(intervalStartTimeIso)
-        .intervalEndTimeIso(intervalEndTimeIso)
-        .step(step);
+    String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
+                                                                                     AccountCredentials.Type.METRICS_STORE,
+                                                                                     accountCredentialsRepository);
+    String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
+                                                                                     AccountCredentials.Type.OBJECT_STORE,
+                                                                                     accountCredentialsRepository);
 
-    if (groupByFields != null) {
-      stackdriverQueryBuilder.groupByFields(groupByFields);
+    StackdriverCanaryMetricSetQueryConfig.StackdriverCanaryMetricSetQueryConfigBuilder stackdriverCanaryMetricSetQueryConfigBuilder =
+      StackdriverCanaryMetricSetQueryConfig
+        .builder()
+        .metricType(metricType);
+
+    if (groupByFields != null && !groupByFields.isEmpty()) {
+      stackdriverCanaryMetricSetQueryConfigBuilder.groupByFields(groupByFields);
     }
 
-    return stackdriverSynchronousQueryProcessor.processQuery(stackdriverQueryBuilder.build());
+    CanaryMetricConfig canaryMetricConfig =
+      CanaryMetricConfig
+        .builder()
+        .name(metricSetName)
+        .query(stackdriverCanaryMetricSetQueryConfigBuilder.build())
+        .build();
+
+    Instant startTimeInstant = Instant.parse(intervalStartTimeIso);
+    long startTimeMillis = startTimeInstant.toEpochMilli();
+    Instant endTimeInstant = Instant.parse(intervalEndTimeIso);
+    long endTimeMillis = endTimeInstant.toEpochMilli();
+
+    StackdriverCanaryScope stackdriverCanaryScope = new StackdriverCanaryScope();
+    stackdriverCanaryScope.setScope(scope);
+    stackdriverCanaryScope.setStart(startTimeMillis + "");
+    stackdriverCanaryScope.setEnd(endTimeMillis + "");
+    stackdriverCanaryScope.setIntervalStartTimeIso(intervalStartTimeIso);
+    stackdriverCanaryScope.setIntervalEndTimeIso(intervalEndTimeIso);
+    stackdriverCanaryScope.setStep(step);
+
+    return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                  resolvedStorageAccountName,
+                                                  canaryMetricConfig,
+                                                  stackdriverCanaryScope);
   }
 }

@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.metrics;
+package com.netflix.kayenta.canary;
 
-import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.CanaryScope;
+import com.netflix.kayenta.metrics.MetricSetPair;
+import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 
-public interface MetricsService {
-  boolean servicesAccount(String accountName);
+@Component
+public class CanaryJudge {
+  private Random random = new Random();
 
-  List<MetricSet> queryMetrics(String accountName,
-                               CanaryMetricConfig canaryMetricConfig,
-                               CanaryScope canaryScope) throws IOException;
+  public float judge(CanaryConfig canaryConfig, List<MetricSetPair> metricSetPairList) {
+    // TODO: "You're the judge; so judge!"
+    return random.nextFloat() * 100;
+  }
 }
