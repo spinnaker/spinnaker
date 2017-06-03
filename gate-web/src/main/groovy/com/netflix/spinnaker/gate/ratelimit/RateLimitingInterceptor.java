@@ -79,7 +79,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
     if (principal.isLearning()) {
       if (rate.isThrottled()) {
         learningThrottlingCounter.increment();
-        log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)", principal, rate.rateSeconds, rate.capacity);
+        log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: true)", principal.getName(), rate.rateSeconds, rate.capacity);
       }
       return true;
     }
@@ -87,7 +87,7 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
     if (rate.isThrottled()) {
       throttlingCounter.increment();
-      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)", principal, rate.rateSeconds, rate.capacity);
+      log.warn("Rate limiting principal (principal: {}, rateSeconds: {}, capacity: {}, learning: false)", principal.getName(), rate.rateSeconds, rate.capacity);
       response.sendError(429, "Rate capacity exceeded");
       return false;
     }
