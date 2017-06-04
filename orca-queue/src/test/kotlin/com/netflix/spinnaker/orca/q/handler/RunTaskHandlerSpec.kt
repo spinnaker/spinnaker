@@ -551,69 +551,73 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       val timeout = Duration.ofMinutes(5)
       val timeoutOverride = Duration.ofMinutes(10)
 
-      and("the task is between the default and overridden duration") {
-        val pipeline = pipeline {
-          stage {
-            type = "whatever"
-            context["stageTimeoutMs"] = timeoutOverride.toMillis().toInt()
-            task {
-              id = "1"
-              implementingClass = DummyTask::class.qualifiedName
-              status = RUNNING
-              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+      timeoutOverride.toMillis().let { listOf(it.toInt(), it, it.toDouble()) }.forEach { stageTimeoutMs ->
+        and("the override is a ${stageTimeoutMs.javaClass.simpleName}") {
+          and("the task is between the default and overridden duration") {
+            val pipeline = pipeline {
+              stage {
+                type = "whatever"
+                context["stageTimeoutMs"] = stageTimeoutMs
+                task {
+                  id = "1"
+                  implementingClass = DummyTask::class.qualifiedName
+                  status = RUNNING
+                  startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+                }
+              }
+            }
+            val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+
+            beforeGroup {
+              whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+              whenever(task.timeout) doReturn timeout.toMillis()
+            }
+
+            afterGroup(::resetMocks)
+
+            on("receiving $message") {
+              subject.handle(message)
+            }
+
+            it("executes the task") {
+              verify(task).execute(any())
             }
           }
-        }
-        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
 
-        beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
-        }
+          and("the timeout override has been exceeded") {
+            val pipeline = pipeline {
+              stage {
+                type = "whatever"
+                context["stageTimeoutMs"] = stageTimeoutMs
+                task {
+                  id = "1"
+                  implementingClass = DummyTask::class.qualifiedName
+                  status = RUNNING
+                  startTime = clock.instant().minusMillis(timeoutOverride.toMillis() + 1).toEpochMilli()
+                }
+              }
+            }
+            val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
 
-        afterGroup(::resetMocks)
+            beforeGroup {
+              whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+              whenever(task.timeout) doReturn timeout.toMillis()
+            }
 
-        on("receiving $message") {
-          subject.handle(message)
-        }
+            afterGroup(::resetMocks)
 
-        it("executes the task") {
-          verify(task).execute(any())
-        }
-      }
+            on("receiving $message") {
+              subject.handle(message)
+            }
 
-      and("the timeout override has been exceeded") {
-        val pipeline = pipeline {
-          stage {
-            type = "whatever"
-            context["stageTimeoutMs"] = timeoutOverride.toMillis().toInt()
-            task {
-              id = "1"
-              implementingClass = DummyTask::class.qualifiedName
-              status = RUNNING
-              startTime = clock.instant().minusMillis(timeoutOverride.toMillis() + 1).toEpochMilli()
+            it("fails the task") {
+              verify(queue).push(CompleteTask(message, TERMINAL))
+            }
+
+            it("does not execute the task") {
+              verify(task, never()).execute(any())
             }
           }
-        }
-        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-
-        beforeGroup {
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-          whenever(task.timeout) doReturn timeout.toMillis()
-        }
-
-        afterGroup(::resetMocks)
-
-        on("receiving $message") {
-          subject.handle(message)
-        }
-
-        it("fails the task") {
-          verify(queue).push(CompleteTask(message, TERMINAL))
-        }
-
-        it("does not execute the task") {
-          verify(task, never()).execute(any())
         }
       }
     }

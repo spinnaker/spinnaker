@@ -158,7 +158,7 @@ open class RunTaskHandler
     }
 
   private fun RetryableTask.timeoutDuration(stage: Stage<*>): Duration {
-    val durationOverride = stage.getContext()["stageTimeoutMs"]?.toString()?.toInt()
+    val durationOverride = (stage.getContext()["stageTimeoutMs"] as Number?)?.toInt()
     return durationOverride?.toLong()?.toDuration() ?: timeout.toDuration()
   }
 
