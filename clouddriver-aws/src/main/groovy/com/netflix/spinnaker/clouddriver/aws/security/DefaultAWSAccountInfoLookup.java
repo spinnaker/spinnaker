@@ -34,7 +34,7 @@ import java.util.regex.Pattern;
 
 public class DefaultAWSAccountInfoLookup implements AWSAccountInfoLookup {
     private static final String DEFAULT_SECURITY_GROUP_NAME = "default";
-    private static final Pattern IAM_ARN_PATTERN = Pattern.compile(".*?arn:aws(?:-cn)?:(?:iam|sts)::(\\d+):.*");
+    private static final Pattern IAM_ARN_PATTERN = Pattern.compile(".*?arn:aws(?:-cn|-us-gov)?:(?:iam|sts)::(\\d+):.*");
 
     private final AWSCredentialsProvider credentialsProvider;
     private final AmazonClientProvider amazonClientProvider;
