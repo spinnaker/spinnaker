@@ -282,7 +282,18 @@ class AmazonLoadBalancerProvider implements LoadBalancerProvider<AmazonLoadBalan
       key.loadBalancer == name
     }
 
-    cacheView.getAll(LOAD_BALANCERS.ns, identifiers).attributes
+    Collection<CacheData> lbCache = cacheView.getAll(LOAD_BALANCERS.ns, identifiers)
+
+    // Add target groups if there are any
+    lbCache.collect { lbData ->
+      Map<String, Object> lb = lbData.attributes
+      lb.targetGroups = []
+      if (lbData.relationships.get("targetGroups")) {
+        Collection<CacheData> tgCache = cacheView.getAll(TARGET_GROUPS.ns, lbData.relationships.get("targetGroups"))
+        lb.targetGroups = tgCache.collect { it.attributes }
+      }
+      lb
+    }
   }
 
   private Map<String, AmazonLoadBalancerSummary> getSummaryForLoadBalancers(Collection<String> loadBalancerKeys) {
