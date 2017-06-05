@@ -251,7 +251,7 @@ class BomGenerator(Annotator):
       else:
         output_yaml[SERVICES][comp] = version_entry
 
-    timestamp = '{:%Y-%m-%d}'.format(datetime.datetime.now())
+    timestamp = '{:%Y-%m-%d}'.format(datetime.datetime.utcnow())
     self.__toplevel_version = '{0}-{1}'.format(self.branch, timestamp)
     toplevel_with_build = '{0}-{1}'.format(self.__toplevel_version, self.build_number)
     output_yaml[VERSION] = toplevel_with_build
@@ -276,7 +276,7 @@ class BomGenerator(Annotator):
       output_yaml [dict]: Dictionary containing BOM information.
     """
     with open(filename, 'w') as output_file:
-      output_yaml['timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+      output_yaml['timestamp'] = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.utcnow())
       yaml.dump(output_yaml, output_file, default_flow_style=False)
       print 'Wrote BOM to {0}.'.format(filename)
 

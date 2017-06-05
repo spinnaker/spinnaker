@@ -337,7 +337,7 @@ def __determine_list_kwargs(options):
 
 def __determine_before_str(options):
   """Determine the date string for the newest timestamp to filter by."""
-  now = datetime.datetime.now()
+  now = datetime.datetime.utcnow()
   today = datetime.datetime(now.year, now.month, now.day)
   day_offset = options.age
   before_str = ((today - datetime.timedelta(day_offset)).isoformat()

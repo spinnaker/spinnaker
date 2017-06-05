@@ -126,7 +126,7 @@ class Builder(object):
       self.__background_processes = []
 
       os.environ['NODE_ENV'] = os.environ.get('NODE_ENV', 'dev')
-      self.__build_number = build_number or os.environ.get('BUILD_NUMBER') or '{:%Y-%m-%d}'.format(datetime.datetime.now())
+      self.__build_number = build_number or os.environ.get('BUILD_NUMBER') or '{:%Y-%m-%d}'.format(datetime.datetime.utcnow())
       self.__gcb_service_account = options.gcb_service_account
       self.__options = options
       if (container_builder and container_builder not in ['gcb', 'docker']):
