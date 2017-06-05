@@ -63,7 +63,7 @@ class ChangelogPublisher(BomPublisher):
   def __format_changelog_post(self):
     # Initialized with 'front matter' necessary for the post.
     # Also tag the post so we can group by <major>.<minor> version.
-    timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(datetime.datetime.now())
+    timestamp = '{:%Y-%m-%d %H:%M:%S %Z}'.format(datetime.datetime.utcnow())
     major, minor, _ = self.__version.split('.')
     version_post_tag = '.'.join([major, minor])
     post_lines = [

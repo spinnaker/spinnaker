@@ -192,7 +192,7 @@ class HalyardPublisher(object):
           '',
           'Published: {}'.format(datetime
               .datetime
-              .now()
+              .utcnow()
               .strftime('%Y-%m-%d %H:%M:%S')),
           '',
         ])
