@@ -37,6 +37,8 @@ public class OrcaProfileFactory extends SpringProfileFactory {
     AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
     if (awsProvider.isEnabled()) {
       profile.appendContents("default.bake.account: " + awsProvider.getPrimaryAccount());
+      profile.appendContents("default.securityGroups: ");
+      profile.appendContents("default.vpc.securityGroups: ");
     }
   }
 }
