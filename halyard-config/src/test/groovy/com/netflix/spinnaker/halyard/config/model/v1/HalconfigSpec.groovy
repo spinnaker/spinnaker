@@ -45,7 +45,6 @@ class HalconfigSpec extends Specification {
     then:
     deployment.getNodeName()
     deployment.getName()
-    deployment.getVersion()
     deployment.getProviders()
     deployment.getCi()
   }

@@ -67,7 +67,7 @@ public class VersionsService {
     if (version == null || version.isEmpty()) {
       throw new HalException(
           new ConfigProblemBuilder(FATAL,
-              "No version specified to load.")
+              "You must pick a version of Spinnaker to deploy.")
               .build()
       );
     }

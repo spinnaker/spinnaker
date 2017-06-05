@@ -45,7 +45,7 @@ public class DeploymentConfiguration extends Node {
    *
    * @see Halconfig#halyardVersion
    */
-  String version = "master-latest-unvalidated";
+  String version = "";
 
   /**
    * Providers, e.g. Kubernetes, GCE, AWS, etc...

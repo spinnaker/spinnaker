@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.services.v1.VersionsService;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.registry.v1.Versions;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,11 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
   public void validate(ConfigProblemSetBuilder p, DeploymentConfiguration n) {
     String version = n.getVersion();
     Versions versions = versionsService.getVersions();
+
+    if (StringUtils.isEmpty(version)) {
+      p.addProblem(Problem.Severity.WARNING, "You have not yet selected a version of Spinnaker to deploy.", "version");
+      return;
+    }
 
     Optional<Versions.IllegalVersion> illegalVersion = versions.getIllegalVersions()
         .stream()
