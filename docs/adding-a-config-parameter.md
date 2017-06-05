@@ -2,7 +2,7 @@
 
 Before we get started, keep in mind that not all configuration needs to be
 surfaced in Halyard since Halyard exposes mechanisms for loading [custom
-configuration](https://spinnaker.github.io/reference/halyard/custom/). However,
+configuration](https://spinnaker.io/reference/halyard/custom/). However,
 if you have a flag/parameter that you expect many users will need to modify or
 overwrite, it's probably a good idea to surface it in Halyard.
 

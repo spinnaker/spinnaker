@@ -79,10 +79,10 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
 
         if (patchVersion.isPresent()) {
           p.addProblem(Problem.Severity.WARNING, "Version \"" + version + "\" was patched by \"" + patchVersion.get().getVersion() + "\". Please upgrade when possible.")
-              .setRemediation("https://spinnaker.github.io/setup/install/upgrades/");
+              .setRemediation("https://spinnaker.io/setup/install/upgrades/");
         } else {
           p.addProblem(Problem.Severity.WARNING, "Version \"" + version + "\" is no longer supported by the Spinnaker team. Please upgrade when possible.")
-              .setRemediation("https://spinnaker.github.io/setup/install/upgrades/");
+              .setRemediation("https://spinnaker.io/setup/install/upgrades/");
         }
       } else {
         p.addProblem(Problem.Severity.WARNING, "Version \"" + version + "\" is not a released (validated) version of Spinnaker.", "version");
