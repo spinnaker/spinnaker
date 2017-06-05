@@ -11,7 +11,8 @@ module.exports = angular.module('spinnaker.core.pipeline.config.configView', [
       scope: {
         pipeline: '=',
         application: '=',
-        viewState: '='
+        viewState: '=',
+        pipelineConfig: '=',
       },
       templateUrl: require('./pipelineConfigView.html'),
       link: function(scope, elem, attrs, pipelineConfigurerCtrl) {

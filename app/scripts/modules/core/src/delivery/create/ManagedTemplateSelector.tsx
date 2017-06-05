@@ -12,20 +12,17 @@ interface IProps {
 interface IState { }
 
 @autoBindMethods
-export class TemplateSelector extends React.Component<IProps, IState> {
+export class ManagedTemplateSelector extends React.Component<IProps, IState> {
 
   public render() {
     const selected = this.props.selectedTemplate;
     return (
       <div className="form-group clearfix">
-        <div className="col-md-3 sm-label-right">
-          Use Template
-        </div>
-        <div className="col-md-7">
+        <div className="col-md-7 col-md-offset-3">
           <Select
             options={this.createOptionsFromTemplates()}
             clearable={true}
-            value={selected ? {label: selected.metadata.name, id: selected.id} : null}
+            value={selected ? {label: selected.metadata.name, value: selected.id} : null}
             onChange={this.handleTemplateSelect}
             optionRenderer={this.templateOptionRenderer}
           />

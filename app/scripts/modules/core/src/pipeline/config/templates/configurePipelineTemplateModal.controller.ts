@@ -1,14 +1,15 @@
-import {module, IComponentController, IScope} from 'angular';
-import {IModalInstanceService} from 'angular-ui-bootstrap';
-import {load} from 'js-yaml';
+import { module, IComponentController, IScope, IHttpPromiseCallbackArg, IPromise } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
+import { load, dump } from 'js-yaml';
 import autoBindMethods from 'class-autobind-decorator';
-import {without, chain} from 'lodash';
+import { without, chain, has } from 'lodash';
 import {
-  PIPELINE_TEMPLATE_SERVICE, IPipelineTemplate,
-  IVariableMetadata, IPipelineConfig
+  PIPELINE_TEMPLATE_SERVICE,
+  IVariableMetadata, IPipelineTemplateConfig, IPipelineTemplatePlanResponse, IPipelineTemplate,
+  IPipelineTemplatePlanError
 } from './pipelineTemplate.service';
-import {IVariable} from './inputs/variableInput.service';
-import {Application} from 'core/application/application.model';
+import { IVariable } from './inputs/variableInput.service';
+import { Application } from 'core/application/application.model';
 import { ReactInjector } from 'core/reactShims';
 
 export interface IVariableMetadataGroup {
@@ -19,52 +20,123 @@ export interface IVariableMetadataGroup {
 @autoBindMethods
 export class ConfigurePipelineTemplateModalController implements IComponentController {
 
+  public pipelineName: string;
   public variableMetadataGroups: IVariableMetadataGroup[];
+  public variables: IVariable[];
+  public state = {loading: true, error: false, errorMessage: '', noVariables: false};
+  private template: IPipelineTemplate;
+  private source: string;
 
   constructor(private $scope: IScope, private $uibModalInstance: IModalInstanceService,
-              private application: Application, private template: IPipelineTemplate, public pipelineName: string,
-              public variables: IVariable[]) { 'ngInject' }
+              private application: Application, public pipelineTemplateConfig: IPipelineTemplateConfig,
+              public isNew: boolean, private pipelineId: string) {
+    'ngInject';
+  }
 
   public $onInit(): void {
     this.initialize();
   }
 
   public initialize(): void {
-    this.groupVariableMetadata();
-    this.initializeVariables();
+    this.pipelineName = this.pipelineTemplateConfig.config.pipeline.name;
+    this.source = this.pipelineTemplateConfig.config.pipeline.template.source;
+    this.loadTemplate()
+      .then(() => {
+        this.groupVariableMetadata();
+        this.initializeVariables();
+        if (!this.variables.length) {
+          this.state.noVariables = true;
+        }
+      })
+      .then(() => this.state.loading = false)
+      .catch(() => {
+        Object.assign(this.state, {loading: false, error: true, errorMessage: 'Could not load pipeline template.'});
+      });
   }
 
   public cancel(): void {
-    this.$uibModalInstance.close();
+    this.$uibModalInstance.dismiss();
   }
 
   public formIsValid(): boolean {
     return this.variables.every(v => v.errors.length === 0);
   }
 
-  public getPipelineConfigPlan(): void {
-    ReactInjector.pipelineTemplateService.getPipelinePlan(this.buildConfig())
-      .then(() => { }).catch(() => { }); // TODO(dpeach)
+  public submit(): IPromise<void> {
+    const config = this.buildConfig();
+    return ReactInjector.pipelineTemplateService.getPipelinePlan(config)
+      .then(plan => {
+        this.$uibModalInstance.close({plan, config});
+      })
+      .catch((response: IHttpPromiseCallbackArg<IPipelineTemplatePlanResponse>) => {
+        let errorMessage: string;
+        if (has(response, 'data.errors.length')) {
+          errorMessage = response.data.errors.map(this.renderError).join('\n');
+        } else {
+          errorMessage = 'No message provided';
+        }
+        Object.assign(this.state, {loading: false, error: true, errorMessage});
+      });
   }
 
-  public buildConfig(): IPipelineConfig {
-    return {
-      type: 'templatedPipeline',
-      plan: true,
-      config: {
-        schema: '1',
-        pipeline: {
-          name: this.pipelineName,
-          application: this.application.name,
-          template: { source: null },
-          variables: this.transformVariablesForPipelinePlan(),
+  private renderError(e: IPipelineTemplatePlanError): string {
+    const messages = [];
+    if (e.severity) {
+      messages.push(`Severity: ${e.severity}`);
+    }
+    if (e.message) {
+      messages.push(`Message: ${e.message}`);
+    }
+    if (e.location) {
+      messages.push(`Location: ${e.location}`);
+    }
+    if (e.cause) {
+      messages.push(`Cause: ${e.cause}`);
+    }
+    if (e.suggestion) {
+      messages.push(`Suggestion: ${e.suggestion}`);
+    }
+    if (e.details) {
+      messages.push(`Details: ${e.details}`);
+    }
+    if (e.nestedErrors) {
+      messages.push(`Additional Errors: ${e.nestedErrors.map(nestedError => `${nestedError} <br>`)}`);
+    }
+    return `<ul>${messages.map(m => `<li>${m}</li>`).join('\n')}</ul>`;
+  }
+
+  public dismissError(): void {
+    Object.assign(this.state, {error: false, errorMessage: null});
+  }
+
+  public buildConfig(): IPipelineTemplateConfig {
+    return Object.assign(
+      this.pipelineTemplateConfig || {},
+      {
+        type: 'templatedPipeline',
+        name: this.pipelineName,
+        application: this.application.name,
+        config: {
+          schema: '1',
+          pipeline: {
+            name: this.pipelineName,
+            application: this.application.name,
+            pipelineConfigId: this.pipelineId,
+            template: {source: this.source},
+            variables: this.transformVariablesForPipelinePlan(),
+          }
         }
       }
-    };
+    );
   }
 
-  private transformVariablesForPipelinePlan(): {[key: string]: any} {
-    return chain(this.variables)
+  private loadTemplate(): IPromise<void> {
+    return ReactInjector.pipelineTemplateService.getPipelineTemplateFromSourceUrl(this.source)
+      .then(template => { this.template = template });
+  }
+
+  private transformVariablesForPipelinePlan(): { [key: string]: any } {
+    return chain(this.variables || [])
       .cloneDeep()
       .map(v => {
         if (v.type === 'object') {
@@ -91,7 +163,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
 
   private groupVariableMetadata(): void {
     this.variableMetadataGroups = [];
-    this.template.variables.forEach(v => {
+    (this.template.variables || []).forEach(v => {
       if (v.group) {
         this.addToGroup(v.group, v);
       } else {
@@ -110,21 +182,28 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
   }
 
   private initializeVariables(): void {
-    if (!this.variables) {
-      this.variables = this.template.variables.map(v => {
-        const defaultValue = (v.type === 'list' && !v.defaultValue) ? [''] : v.defaultValue;
-        return {
-          name: v.name,
-          type: v.type || 'string',
-          errors: [],
-          value: defaultValue,
-          hideErrors: true,
-        };
-      });
-    }
-    this.variables.forEach(v => {
-      v.errors = ReactInjector.variableValidatorService.validate(v);
+    this.variables = (this.template.variables || []).map(v => {
+      return {
+        name: v.name,
+        type: v.type || 'string',
+        errors: [],
+        value: this.getInitialVariableValue(v),
+        hideErrors: true,
+      };
     });
+    this.variables.forEach(v => v.errors = ReactInjector.variableValidatorService.validate(v));
+  }
+
+  private getInitialVariableValue(variable: IVariableMetadata): any {
+    if (has(this.pipelineTemplateConfig, 'config.pipeline.variables')) {
+      let value = this.pipelineTemplateConfig.config.pipeline.variables[variable.name];
+      if (variable.type === 'object' && value) {
+        value = dump(value);
+      }
+      return value;
+    } else {
+      return (variable.type === 'list' && !variable.defaultValue) ? [''] : variable.defaultValue;
+    }
   }
 }
 

@@ -1,7 +1,13 @@
-<v2-modal-wizard heading="Define template parameters: {{::ctrl.pipelineName}}" dismiss="$dismiss()" ng-if="ctrl.variableMetadataGroups">
+<div ng-if="ctrl.state.loading" style="height: 300px;">
+  <span us-spinner="{radius:20, width:6, length: 12}"></span>
+</div>
+<v2-modal-wizard heading="Define template parameters: {{::ctrl.pipelineName}}"
+                 dismiss="$dismiss()"
+                 ng-if="!ctrl.state.loading">
   <v2-wizard-page key="{{::group.name}}"
                   label="{{::group.name}}"
                   mark-complete-on-view="false"
+                  ng-if="!ctrl.state.error && !ctrl.state.loading && ctrl.variableMetadataGroups"
                   ng-repeat="group in ctrl.variableMetadataGroups">
     <variable ng-repeat="metadata in group.variableMetadata"
               class="clearfix"
@@ -9,11 +15,21 @@
               variable="ctrl.getVariable(metadata.name)"
               on-change="ctrl.handleVariableChange"></variable>
   </v2-wizard-page>
-  <div class="modal-footer">
-    <button class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
-    <submit-button label="'Create and Configure'"
+  <div ng-if="ctrl.state.error" class="alert alert-danger">
+    <p>Could not generate pipeline from provided template configuration.</p>
+    <p><strong>Errors(s): </strong> <span ng-bind-html="ctrl.state.errorMessage"></span></p>
+    <p><a href ng-click="ctrl.dismissError()">[dismiss]</a></p>
+  </div>
+  <div ng-if="ctrl.state.noVariables" class="alert alert-info">
+    <p>This template has no variables to configure.</p>
+  </div>
+  <div class="modal-footer" ng-if="!ctrl.state.loading">
+    <button ng-if="!ctrl.isNew && !ctrl.state.noVariables" class="btn btn-default" ng-click="ctrl.cancel()">Cancel</button>
+    <button ng-if="ctrl.state.noVariables" class="btn btn-default" ng-click="ctrl.submit()">Dismiss</button>
+    <submit-button label="'Configure'"
+                   ng-if="!ctrl.state.noVariables && !ctrl.state.error"
                    is-disabled="!ctrl.formIsValid()"
-                   on-click="ctrl.getPipelineConfigPlan()">
+                   on-click="ctrl.submit()">
     </submit-button>
   </div>
 </v2-modal-wizard>

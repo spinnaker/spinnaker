@@ -8,27 +8,34 @@ import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
 import {PIPELINE_CONFIG_SERVICE} from 'core/pipeline/config/services/pipelineConfig.service';
 import {EDIT_PIPELINE_JSON_MODAL_CONTROLLER, EditPipelineJsonModalCtrl} from './actions/json/editPipelineJsonModal.controller';
 import {PIPELINE_CONFIG_VALIDATOR} from './validation/pipelineConfig.validator';
+import {PIPELINE_TEMPLATE_SERVICE} from './templates/pipelineTemplate.service';
 
 module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigurer', [
   OVERRIDE_REGISTRY,
   PIPELINE_CONFIG_SERVICE,
   PIPELINE_CONFIG_VALIDATOR,
-  EDIT_PIPELINE_JSON_MODAL_CONTROLLER
+  EDIT_PIPELINE_JSON_MODAL_CONTROLLER,
+  PIPELINE_TEMPLATE_SERVICE,
 ])
   .directive('pipelineConfigurer', function() {
     return {
       restrict: 'E',
       scope: {
         pipeline: '=',
-        application: '='
+        application: '=',
+        plan: '<',
+        isTemplatedPipeline: '<',
       },
       controller: 'PipelineConfigurerCtrl as pipelineConfigurerCtrl',
       templateUrl: require('./pipelineConfigurer.html'),
     };
   })
-  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, $window,
-                                                 pipelineConfigValidator,
+  .controller('PipelineConfigurerCtrl', function($scope, $uibModal, $timeout, $window, $q,
+                                                 pipelineConfigValidator, pipelineTemplateService,
                                                  pipelineConfigService, viewStateCache, overrideRegistry, $location) {
+    // For standard pipelines, a 'renderablePipeline' is just the pipeline config.
+    // For templated pipelines, a 'renderablePipeline' is the pipeline template plan, and '$scope.pipeline' is the template config.
+    $scope.renderablePipeline = $scope.plan || $scope.pipeline;
 
     this.actionsTemplateUrl = overrideRegistry.getTemplate('pipelineConfigActions', require('./actions/pipelineConfigActions.html'));
 
@@ -49,11 +56,17 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     $scope.viewState = configViewStateCache.get(buildCacheKey()) || {
       section: 'triggers',
       stageIndex: 0,
+      loading: false,
     };
 
-    let setOriginal = (pipeline) => $scope.viewState.original = angular.toJson(pipeline);
+    let setOriginal = (pipeline) => {
+      $scope.viewState.original = angular.toJson(pipeline);
+      $scope.viewState.originalRenderablePipeline = angular.toJson($scope.renderablePipeline);
+    };
 
     let getOriginal = () => angular.fromJson($scope.viewState.original);
+
+    const getOriginalRenderablePipeline = () => angular.fromJson($scope.viewState.originalRenderablePipeline);
 
     // keep it separate from viewState, since viewState is cached...
     $scope.navMenuState = {
@@ -80,16 +93,16 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.addStage = function(newStage = { isNew: true }) {
-      $scope.pipeline.stages = $scope.pipeline.stages || [];
-      if ($scope.pipeline.parallel) {
-        newStage.refId = Math.max(0, ...$scope.pipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
+      $scope.renderablePipeline.stages = $scope.renderablePipeline.stages || [];
+      if ($scope.renderablePipeline.parallel) {
+        newStage.refId = Math.max(0, ...$scope.renderablePipeline.stages.map(s => Number(s.refId) || 0)) + 1 + '';
         newStage.requisiteStageRefIds = [];
-        if ($scope.pipeline.stages.length && $scope.viewState.section === 'stage') {
-          newStage.requisiteStageRefIds.push($scope.pipeline.stages[$scope.viewState.stageIndex].refId);
+        if ($scope.renderablePipeline.stages.length && $scope.viewState.section === 'stage') {
+          newStage.requisiteStageRefIds.push($scope.renderablePipeline.stages[$scope.viewState.stageIndex].refId);
         }
       }
-      $scope.pipeline.stages.push(newStage);
-      this.navigateToStage($scope.pipeline.stages.length - 1);
+      $scope.renderablePipeline.stages.push(newStage);
+      this.navigateToStage($scope.renderablePipeline.stages.length - 1);
     };
 
     this.copyExistingStage = function() {
@@ -137,8 +150,6 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.renamePipeline = function() {
-      var original = $scope.pipeline;
-      original.name = $scope.pipeline.name;
       $uibModal.open({
         templateUrl: require('./actions/rename/renamePipelineModal.html'),
         controller: 'RenamePipelineModalCtrl',
@@ -239,7 +250,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.navigateToStage = function(index, event) {
-      if (index < 0 || !$scope.pipeline.stages || $scope.pipeline.stages.length <= index) {
+      if (index < 0 || !$scope.renderablePipeline.stages || $scope.renderablePipeline.stages.length <= index) {
         $scope.viewState.section = 'triggers';
         return;
       }
@@ -269,9 +280,9 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
     };
 
     this.removeStage = function(stage) {
-      var stageIndex = $scope.pipeline.stages.indexOf(stage);
-      $scope.pipeline.stages.splice(stageIndex, 1);
-      $scope.pipeline.stages.forEach(function(test) {
+      var stageIndex = $scope.renderablePipeline.stages.indexOf(stage);
+      $scope.renderablePipeline.stages.splice(stageIndex, 1);
+      $scope.renderablePipeline.stages.forEach(function(test) {
         if (stage.refId && test.requisiteStageRefIds) {
           test.requisiteStageRefIds = _.without(test.requisiteStageRefIds, stage.refId);
         }
@@ -279,7 +290,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       if (stageIndex > 0) {
         $scope.viewState.stageIndex--;
       }
-      if (!$scope.pipeline.stages.length) {
+      if (!$scope.renderablePipeline.stages.length) {
         this.navigateTo({section: 'triggers'});
       }
     };
@@ -288,11 +299,29 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       return _.every($scope.pipeline.stages, 'name') && !ctrl.preventSave;
     };
 
-    this.savePipeline = function() {
-      var pipeline = $scope.pipeline;
+    this.configureTemplate = () => {
+      $scope.viewState.loading = true;
+      $uibModal.open({
+        size: 'lg',
+        templateUrl: require('core/pipeline/config/templates/configurePipelineTemplateModal.html'),
+        controller: 'ConfigurePipelineTemplateModalCtrl as ctrl',
+        resolve: {
+          application: () => $scope.application,
+          pipelineTemplateConfig: () => _.cloneDeep($scope.pipeline),
+          isNew: () => $scope.pipeline.isNew,
+          pipelineId: () => $scope.pipeline.id,
+        }
+      }).result.then(({plan, config}) => {
+        $scope.pipeline = config;
+        delete $scope.pipeline.isNew;
+        $scope.renderablePipeline = plan;
+      })
+      .finally(() => $scope.viewState.loading = false);
+    };
 
+    this.savePipeline = function() {
       $scope.viewState.saving = true;
-      pipelineConfigService.savePipeline(pipeline)
+      pipelineConfigService.savePipeline($scope.pipeline)
         .then(() => $scope.application.pipelineConfigs.refresh())
         .then(
           function() {
@@ -327,13 +356,23 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
         }
       });
 
+      if ($scope.isTemplatedPipeline) {
+        const originalRenderablePipeline = getOriginalRenderablePipeline();
+        Object.assign($scope.renderablePipeline, originalRenderablePipeline);
+        Object.keys($scope.renderablePipeline).forEach(key => {
+          if (!originalRenderablePipeline.hasOwnProperty(key)) {
+            delete $scope.renderablePipeline[key];
+          }
+        });
+      }
+
       // if we were looking at a stage that no longer exists, move to the last stage
       if ($scope.viewState.section === 'stage') {
-        var lastStage = $scope.pipeline.stages.length - 1;
+        var lastStage = $scope.renderablePipeline.stages.length - 1;
         if ($scope.viewState.stageIndex > lastStage) {
           $scope.viewState.stageIndex = lastStage;
         }
-        if (!$scope.pipeline.stages.length) {
+        if (!$scope.renderablePipeline.stages.length) {
           this.navigateTo({section: 'triggers'});
         }
       }
@@ -390,4 +429,7 @@ module.exports = angular.module('spinnaker.core.pipeline.config.pipelineConfigur
       $window.onbeforeunload = undefined;
     });
 
+    if ($scope.isTemplatedPipeline && $scope.pipeline.isNew) {
+      this.configureTemplate();
+    }
   });

@@ -1,11 +1,14 @@
-import {mock, IScope, IQService} from 'angular';
+import { mock, IScope, IQService } from 'angular';
 
-import {CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL, ConfigurePipelineTemplateModalController} from './configurePipelineTemplateModal.controller';
-import {IVariable, IVariableError} from './inputs/variableInput.service';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {Application} from 'core/application/application.model';
-import {REACT_MODULE} from 'core/reactShims';
-import {PIPELINE_TEMPLATE_MODULE} from './pipelineTemplate.module';
+import {
+  CONFIGURE_PIPELINE_TEMPLATE_MODAL_CTRL,
+  ConfigurePipelineTemplateModalController
+} from './configurePipelineTemplateModal.controller';
+import { IVariable } from './inputs/variableInput.service';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { Application } from 'core/application/application.model';
+import { REACT_MODULE, ReactInjector } from 'core/reactShims';
+import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
 
 describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
   let ctrl: ConfigurePipelineTemplateModalController,
@@ -13,17 +16,51 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     $q: IQService,
     application: Application;
 
-  const yaml =
-`- name: orca-test
-  region: us-west-2
-  availabilityZones: []
-  capacity: 1
-  keyPair: example-keypair
-  loadBalancers:
-  - orca-test
-  securityGroups: []
-  strategy: highlander
-  instanceType: m3.xlarge`;
+  // Hard to get the right newline and space characters with template strings.
+  const yaml = '- name: orca-test\n' +
+               '  region: us-west-2\n' +
+               '  availabilityZones: []\n' +
+               '  capacity: 1\n' +
+               '  keyPair: example-keypair\n' +
+               '  loadBalancers:\n' +
+               '   - orca-test\n' +
+               '  securityGroups: []\n' +
+               '  strategy: highlander\n' +
+               '  instanceType: m3.xlarge';
+
+  const template: any = {
+    variables: [
+      {
+        name: 'credentials',
+        group: 'Basic Settings',
+        type: 'string',
+        defaultValue: 'my-google-account',
+      },
+      {
+        name: 'cloudProvider',
+        group: 'Basic Settings',
+        type: 'string',
+        defaultValue: 'gce',
+      },
+      {
+        name: 'someObject',
+        group: 'Advanced Settings',
+        type: 'object',
+        defaultValue: yaml,
+      },
+      {
+        name: 'someList',
+        group: 'Advanced Settings',
+        type: 'list',
+        defaultValue: ['a', 'b', 'c'],
+      },
+      {
+        name: 'someInt',
+        type: 'int',
+        defaultValue: 42,
+      }
+    ]
+  };
 
   beforeEach(
     mock.module(
@@ -43,42 +80,25 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         $scope,
         application,
         $uibModalInstance: {close: $q.resolve(null)},
-        template: {
-          variables: [
-            {
-              name: 'credentials',
-              group: 'Basic Settings',
-              type: 'string',
-              defaultValue: 'my-google-account',
-            },
-            {
-              name: 'cloudProvider',
-              group: 'Basic Settings',
-              type: 'string',
-              defaultValue: 'gce',
-            },
-            {
-              name: 'someObject',
-              group: 'Advanced Settings',
-              type: 'object',
-              defaultValue: yaml,
-            },
-            {
-              name: 'someList',
-              group: 'Advanced Settings',
-              type: 'list',
-              defaultValue: ['a', 'b', 'c'],
-            },
-            {
-              name: 'someInt',
-              type: 'int',
-              defaultValue: 42,
+        pipelineTemplateConfig: {
+          config: {
+            pipeline: {
+              name: 'My Managed Pipeline',
+              template: {
+                source: 'spinnaker://myPipelineId',
+              }
             }
-          ]
+          }
         },
-        pipelineName: 'My DCD Pipeline',
-        variables: null,
+        pipelineId: '1234',
+        isNew: true,
       }) as ConfigurePipelineTemplateModalController;
+    });
+  });
+
+  beforeEach(() => {
+    spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+      return $q.resolve(template);
     });
   });
 
@@ -101,13 +121,25 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
       expect(ctrl.variables.map(v => v.value)).toEqual(['my-google-account', 'gce', yaml, ['a', 'b', 'c'], 42]);
     });
 
-    it('does not re-initialize `variables` if the property already exists on the controller', () => {
-      const variables = [{name: 'variable', value: 'alreadyExists', type: 'string', errors: [] as IVariableError[]}];
-      ctrl.variables = variables;
+    it('initializes variables on controller with variables provided from the pipeline template config ', () => {
+      const variables = {
+        credentials: 'my-credentials',
+        cloudProvider: 'gce',
+        someObject: {key: 'value'},
+        someList: ['a'],
+        someInt: 123,
+      };
+      ctrl.pipelineTemplateConfig.config.pipeline.variables = variables;
       ctrl.initialize();
       $scope.$digest();
 
-      expect(ctrl.variables).toEqual(variables);
+      expect(ctrl.variables.map(v => v.value)).toEqual([
+        'my-credentials',
+        'gce',
+        'key: value\n',
+        ['a'],
+        123
+      ]);
     });
   });
 

@@ -53,12 +53,14 @@ export class PipelineConfigService {
 
   public savePipeline(pipeline: IPipeline): IPromise<void> {
     delete pipeline.isNew;
-    pipeline.stages.forEach(function(stage) {
-      delete stage.isNew;
-      if (!stage.name) {
-        delete stage.name;
-      }
-    });
+    if (Array.isArray(pipeline.stages)) {
+      pipeline.stages.forEach(function(stage) {
+        delete stage.isNew;
+        if (!stage.name) {
+          delete stage.name;
+        }
+      });
+    }
     return this.API.one( pipeline.strategy ? 'strategies' : 'pipelines').data(pipeline).post();
   }
 

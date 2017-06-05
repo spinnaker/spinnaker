@@ -1,18 +1,21 @@
 import * as React from 'react';
-import {Button, Modal} from 'react-bootstrap';
+import { Button, Modal } from 'react-bootstrap';
 import * as Select from 'react-select';
 import autoBindMethods from 'class-autobind-decorator';
-import {$log} from 'ngimport';
-import {IHttpPromiseCallbackArg} from 'angular';
-import {cloneDeep, uniqBy} from 'lodash';
-import {Application} from 'core/application/application.model';
-import {IPipeline} from 'core/domain/IPipeline';
-import {SubmitButton} from 'core/modal/buttons/SubmitButton';
-import {ReactInjector, NgReact } from 'core/reactShims';
-import {SETTINGS} from 'core/config/settings';
-import {IPipelineTemplate} from 'core/pipeline/config/templates/pipelineTemplate.service';
-import {TemplateDescription} from './TemplateDescription';
-import {TemplateSelector} from './TemplateSelector';
+import { $log } from 'ngimport';
+import { IHttpPromiseCallbackArg } from 'angular';
+import { cloneDeep, uniqBy } from 'lodash';
+import { Debounce } from 'lodash-decorators';
+
+import { Application } from 'core/application/application.model';
+import { IPipeline } from 'core/domain/IPipeline';
+import { SubmitButton } from 'core/modal/buttons/SubmitButton';
+import { ReactInjector, NgReact } from 'core/reactShims';
+import { SETTINGS } from 'core/config/settings';
+import { IPipelineTemplateConfig, IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
+
+import { TemplateDescription } from './TemplateDescription';
+import { ManagedTemplateSelector } from './ManagedTemplateSelector';
 
 import './createPipelineModal.less';
 
@@ -29,6 +32,10 @@ export interface ICreatePipelineModalState {
   configOptions: Select.Option[];
   templates: IPipelineTemplate[]
   useTemplate: boolean;
+  useManagedTemplate: boolean;
+  loadingTemplateFromSource: boolean;
+  loadingTemplateFromSourceError: boolean;
+  templateSourceUrl: string;
 }
 
 interface ICreatePipelineCommand {
@@ -69,7 +76,6 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       limitConcurrent: true,
       keepWaitingPipelines: false,
       parallel: true,
-      executionEngine: 'v2',
     };
   }
 
@@ -95,30 +101,60 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
       existingNames: existingNames,
       command: {parallel: true, strategy: false, name: '', config: defaultConfig, template: null},
       useTemplate: false,
+      useManagedTemplate: true,
+      loadingTemplateFromSource: false,
+      loadingTemplateFromSourceError: false,
+      templateSourceUrl: '',
     };
   }
 
   public submit(): void {
     const command = cloneDeep(this.state.command);
-    const config: Partial<IPipeline> = command.strategy ? this.getDefaultConfig() : command.config;
+    const pipelineConfig: Partial<IPipelineTemplateConfig> = command.strategy ? this.getDefaultConfig() : command.config;
 
-    config.name = command.name;
-    config.index = this.props.application.getDataSource('pipelineConfigs').data.length;
-    delete config.id;
+    pipelineConfig.name = command.name;
+    pipelineConfig.index = this.props.application.getDataSource('pipelineConfigs').data.length;
+    delete pipelineConfig.id;
 
     if (command.strategy) {
-      config.strategy = true;
-      config.limitConcurrent = false;
+      pipelineConfig.strategy = true;
+      pipelineConfig.limitConcurrent = false;
+    }
+    if (pipelineConfig.type === 'templatedPipeline') {
+      delete pipelineConfig.config.pipeline.pipelineConfigId;
+      pipelineConfig.config.pipeline.name = command.name;
     }
 
     this.setState({submitting: true});
-    ReactInjector.pipelineConfigService.savePipeline(config as IPipeline)
-      .then(() => this.onSaveSuccess(config as IPipeline), this.onSaveFailure);
+    ReactInjector.pipelineConfigService.savePipeline(pipelineConfig as IPipeline)
+      .then(() => this.onSaveSuccess(pipelineConfig), this.onSaveFailure);
   }
 
-  private onSaveSuccess(config: IPipeline): void {
+  private submitPipelineTemplateConfig(): void {
+    const config: Partial<IPipelineTemplateConfig> = {
+      name: this.state.command.name,
+      application: this.props.application.name,
+      type: 'templatedPipeline',
+      limitConcurrent: true,
+      keepWaitingPipelines: false,
+      parallel: true,
+      triggers: [],
+      config: {
+        schema: '1',
+        pipeline: {
+          name: this.state.command.name,
+          application: this.props.application.name,
+          template: {source: this.state.command.template.selfLink},
+        }
+      }
+    };
+    this.setState({submitting: true});
+    ReactInjector.pipelineConfigService.savePipeline(config as IPipeline)
+      .then(() => this.onSaveSuccess(config), this.onSaveFailure);
+  }
+
+  private onSaveSuccess(config: Partial<IPipeline>): void {
     const application = this.props.application;
-    config.isNew = true;
     application.getDataSource('pipelineConfigs').refresh().then(() => {
       const newPipeline = (config.strategy ?
                           (application.strategyConfigs.data as IPipeline[]) :
@@ -131,6 +167,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
           submitting: false,
         });
       } else {
+        newPipeline.isNew = true;
         this.setState(this.getDefaultState());
         this.props.pipelineSavedCallback(newPipeline.id);
       }
@@ -180,6 +217,23 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     return () => this.setState({useTemplate});
   }
 
+  private handleUseManagedTemplateSelection(useManagedTemplate: boolean): () => void {
+    return () => {
+      this.setState({
+        useManagedTemplate,
+        templateSourceUrl: '',
+        loadingTemplateFromSourceError: false,
+        command: Object.assign({}, this.state.command, {template: null}),
+      });
+    };
+  }
+
+  public handleSourceUrlChange(e: React.ChangeEvent<HTMLInputElement>): void {
+    const templateSourceUrl = e.target.value;
+    this.setState({templateSourceUrl});
+    this.loadPipelineTemplateFromSource(templateSourceUrl);
+  }
+
   private configOptionRenderer(option: Select.Option) {
     const config = this.state.configs.find(t => t.name === option.value);
     return (
@@ -205,21 +259,6 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     return this.state.existingNames.every(name => name !== this.state.command.name);
   }
 
-  private openPipelineTemplateConfigModal(): void {
-    this.close();
-    ReactInjector.modalService.open({
-      size: 'lg',
-      templateUrl: require('core/pipeline/config/templates/configurePipelineTemplateModal.html'),
-      controller: 'ConfigurePipelineTemplateModalCtrl as ctrl',
-      resolve: {
-        application: () => this.props.application,
-        template: (): IPipelineTemplate => this.state.command.template,
-        pipelineName: () => this.state.command.name,
-        variables: (): void => null,
-      }
-    });
-  }
-
   public loadPipelineTemplates(): void {
     if (SETTINGS.feature.pipelineTemplates) {
       this.setState({loading: true});
@@ -234,7 +273,23 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
             loadErrorMessage: (response && response.data && response.data.message) || 'No message provided',
             loading: false,
           });
-        });
+        })
+        .finally(() => {
+          if (!this.state.templates.length) {
+            this.setState({useManagedTemplate: false});
+          }
+        })
+    }
+  }
+
+  @Debounce(200)
+  private loadPipelineTemplateFromSource(sourceUrl: string): void {
+    if (sourceUrl) {
+      this.setState({loadingTemplateFromSource: true, loadingTemplateFromSourceError: false});
+      ReactInjector.pipelineTemplateService.getPipelineTemplateFromSourceUrl(sourceUrl)
+        .then(template => this.state.command.template = template)
+        .catch(() => this.setState({loadingTemplateFromSourceError: true}))
+        .finally(() => this.setState({loadingTemplateFromSource: false}));
     }
   }
 
@@ -244,7 +299,8 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
     const nameIsNotUnique: boolean = !this.validateNameIsUnique();
     const formValid = !nameHasError &&
                       !nameIsNotUnique &&
-                      this.state.command.name.length > 0;
+                      this.state.command.name.length > 0 &&
+                      (!this.state.useTemplate || !!this.state.command.template);
 
     return (
       <Modal show={this.props.show} onHide={this.close} className="create-pipeline-modal-overflow-visible" backdrop="static">
@@ -316,7 +372,7 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                     </div>
                   </div>
                 )}
-                {SETTINGS.feature.pipelineTemplates && this.state.templates.length > 0 && !this.state.command.strategy && (
+                {SETTINGS.feature.pipelineTemplates && !this.state.command.strategy && (
                   <div className="form-group clearfix">
                     <div className="col-md-3 sm-label-right">
                       <strong>Create From</strong>
@@ -355,14 +411,56 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
                 {SETTINGS.feature.pipelineTemplates && this.state.useTemplate && (
                   <div>
                     <hr/>
-                    <TemplateSelector
-                      templates={this.state.templates}
-                      onChange={this.handleTemplateSelection}
-                      selectedTemplate={this.state.command.template}
-                    />
-                    {this.state.command.template && (
-                      <TemplateDescription templateMetadata={this.state.command.template.metadata}/>
+                    {this.state.templates.length > 0 && (
+                      <div className="form-group clearfix">
+                        <div className="col-md-3 sm-label-right">Template Source</div>
+                        <div className="col-md-7">
+                          <label className="radio-inline">
+                            <input
+                              type="radio"
+                              checked={this.state.useManagedTemplate}
+                              onChange={this.handleUseManagedTemplateSelection(true)}
+                            />
+                            Managed Templates
+                          </label>
+                          <label className="radio-inline">
+                            <input
+                              type="radio"
+                              checked={!this.state.useManagedTemplate}
+                              onChange={this.handleUseManagedTemplateSelection(false)}
+                            />
+                            URL
+                          </label>
+                        </div>
+                      </div>
                     )}
+                    {this.state.useManagedTemplate && (
+                      <ManagedTemplateSelector
+                        templates={this.state.templates}
+                        onChange={this.handleTemplateSelection}
+                        selectedTemplate={this.state.command.template}
+                      />
+                    )}
+                    {!this.state.useManagedTemplate && (
+                      <div className="form-group clearfix">
+                        {this.state.templates.length === 0 && (
+                          <div className="col-md-3 sm-label-right">Source URL</div>
+                        )}
+                        <div className={this.state.templates.length ? 'col-md-7 col-md-offset-3' : 'col-md-7'}>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={this.state.templateSourceUrl}
+                            onChange={this.handleSourceUrlChange}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <TemplateDescription
+                      loading={this.state.loadingTemplateFromSource}
+                      loadingError={this.state.loadingTemplateFromSourceError}
+                      template={this.state.command.template}
+                    />
                   </div>
                 )}
               </form>
@@ -372,10 +470,10 @@ export class CreatePipelineModal extends React.Component<ICreatePipelineModalPro
           <Button onClick={this.close}>Cancel</Button>
           {SETTINGS.feature.pipelineTemplates && this.state.useTemplate && (
             <SubmitButton
-              isDisabled={!formValid}
-              label="Define Template Parameters"
-              submitting={false}
-              onClick={this.openPipelineTemplateConfigModal}
+              label="Continue"
+              submitting={this.state.submitting}
+              isDisabled={!formValid || this.state.submitting || this.state.saveError || this.state.loading}
+              onClick={this.submitPipelineTemplateConfig}
             />
           )}
           {!this.state.useTemplate && (

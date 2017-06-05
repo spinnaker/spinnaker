@@ -1,27 +1,39 @@
 import * as React from 'react';
-import {ITemplateMetadata} from 'core/pipeline/config/templates/pipelineTemplate.service';
+import { NgReact } from '@spinnaker/core';
+import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 
 import './TemplateDescription.less';
 
 interface IProps {
-  templateMetadata: ITemplateMetadata
+  template: IPipelineTemplate;
+  loading: boolean;
+  loadingError: boolean;
 }
 
 interface IState { }
 
 export class TemplateDescription extends React.Component<IProps, IState> {
   public render() {
-    if (!this.props.templateMetadata) {
-      return null;
-    }
-
+    const { Spinner } = NgReact;
     return (
       <div className="col-md-12 template-description">
-        <div className="alert alert-info">
-          <strong>{this.props.templateMetadata.name}</strong>
-          {this.props.templateMetadata.owner && (<p className="small">{this.props.templateMetadata.owner}</p>)}
-          <p className="small">{this.props.templateMetadata.description || 'No description provided.'}</p>
-        </div>
+        {this.props.loading && (
+          <div className="spinner">
+            <Spinner radius={5} width={3} length={8} />
+          </div>
+        )}
+        {this.props.template && (
+          <div className="alert alert-info">
+            <strong>{this.props.template.metadata.name}</strong>
+            {this.props.template.metadata.owner && (<p className="small">{this.props.template.metadata.owner}</p>)}
+            <p className="small">{this.props.template.metadata.description || 'No template description provided.'}</p>
+          </div>
+        )}
+        {this.props.loadingError && (
+          <div className="alert alert-danger">
+            <p>There was an error loading the template.</p>
+          </div>
+        )}
       </div>
     );
   }

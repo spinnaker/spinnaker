@@ -9,7 +9,7 @@ class ListValidator implements IVariableValidator {
   }
 
   public validate(variable: IVariable, errors: IVariableError[]): void {
-    (variable.value as string[]).forEach((listElement, i) => {
+    (variable.value as string[] || []).forEach((listElement, i) => {
       if (!listElement) {
         errors.push({message: 'Field is required.', key: i});
       }

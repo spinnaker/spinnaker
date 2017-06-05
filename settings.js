@@ -127,5 +127,6 @@ window.spinnakerSettings = {
     jobs: false,
     snapshots: false,
     travis: false,
+    pipelineTemplates: false,
   },
 };
