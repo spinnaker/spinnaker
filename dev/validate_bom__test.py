@@ -84,6 +84,7 @@ import os
 import re
 import subprocess
 import socket
+import sys
 import threading
 import time
 import traceback
@@ -415,9 +416,9 @@ class ValidateBomTestController(object):
     # but keep errors for failures.
     child = subprocess.Popen(
         ' '.join(command) + ' > /dev/null', shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        stdin=subprocess.PIPE)
+        stderr=sys.stderr.fileno(),
+        stdout=None,
+        stdin=None)
     return ForwardedPort(child, local_port)
 
   def build_summary(self):

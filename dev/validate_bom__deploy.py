@@ -160,9 +160,7 @@ class BaseValidateBomDeployer(object):
     self.add_post_deploy_statements(script)
 
     if not self.options.deploy_deploy:
-      logging.warning('Skipping deployment because --deploy_deploy=false\n'
-                      ' Would have run:\n%s\n and uploaded:\n%s\n\n',
-                      script, files_to_upload)
+      logging.warning('Skipping deployment because --deploy_deploy=false\n')
       return
     self.do_deploy(script, files_to_upload)
     logging.info('Finished deploying to %s', platform)

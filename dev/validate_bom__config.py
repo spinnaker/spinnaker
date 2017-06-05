@@ -109,10 +109,7 @@ class S3StorageConfiguratorHelper(object):
 
     parser.add_argument(
         '--storage_s3_credentials', default=None,
-        help='HACK. The credentials file for AWS is only needed if using s3'
-             ' but without an AWS account configured. Otherwise S3 will use'
-             ' the same credentials as the account.'
-             ' Ultimately there needs to be a way to distinguish in Halyard.')
+        help='Path to file containing the secret access key for the S3 account')
 
   @classmethod
   def validate_options(cls, options):
@@ -124,45 +121,22 @@ class S3StorageConfiguratorHelper(object):
   def add_files_to_upload(cls, options, file_set):
     """Implements interface."""
     if options.storage_s3_credentials:
-      if options.aws_account_credentials:
-        raise ValueError('Cannot have both --storage_s3_credentials'
-                         ' and --aws_account_credentials')
       file_set.add(options.storage_s3_credentials)
 
   @classmethod
   def add_config(cls, options, script):
     """Implements interface."""
-    if options.storage_s3_credentials:
-      cls.hack_credentials_for_hal(options, script)
-      AwsConfigurator.ingest_credentials(options.storage_s3_credentials, script)
-      script.append('sudo service halyard restart')
-      script.append('while ! hal --ready; do sleep 1; done')
-
     command = ['hal -q --log=info config storage s3 edit']
 
     if options.storage_s3_bucket:
       command.extend(['--bucket', options.storage_s3_bucket])
     if options.storage_s3_region:
       command.extend(['--region', options.storage_s3_region])
+    if options.storage_s3_credentials:
+      command.extend(['--secret-access-key < {file}'.format(
+          file=os.path.basename(options.storage_s3_credentials))])
 
     script.append(' '.join(command))
-
-  @classmethod
-  def hack_credentials_for_hal(cls, options, script):
-    """Workaround for halyard not providing means to add credentials."""
-    cred_basename = os.path.basename(options.storage_s3_credentials)
-    for aws_user in [options.deploy_hal_user, 'root']:
-      # Halyard seems to need these credentials in both places
-      # in order to configure s3.
-      # (in addition to ~spinnaker later in order for front50 to start)
-      script.append('sudo mkdir -p ~{user}/.aws'.format(user=aws_user))
-      script.append('sudo chown {user}:{user} {file} ~{user}/.aws'
-                    .format(user=aws_user, file=cred_basename))
-      script.append('sudo chmod 600 {file}'.format(file=cred_basename))
-      script.append('sudo cp {file} ~{user}/.aws/credentials'
-                    .format(file=cred_basename, user=aws_user))
-      script.append('sudo chown {user}:{user} ~{user}/.aws/credentials'
-                    .format(user=aws_user))
 
 
 class GcsStorageConfiguratorHelper(object):
@@ -282,8 +256,12 @@ class AwsConfigurator(object):
     """Implements interface."""
     # pylint: disable=line-too-long
     parser.add_argument(
-        '--aws_account_credentials', default=None,
-        help='Path to AWS credentials file.')
+        '--aws_access_key_id', default=None,
+        help='The AWS ACCESS_KEY_ID.')
+    parser.add_argument(
+        '--aws_credentials', default=None,
+        help='A path to a file containing the AWS SECRET_ACCESS_KEY')
+
     parser.add_argument(
         '--aws_account_name', default='my-aws-account',
         help='The name of the primary AWS account to configure.')
@@ -292,59 +270,66 @@ class AwsConfigurator(object):
         help='The AWS account id for the account.'
              ' See http://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html')
     parser.add_argument(
+        '--aws_account_role', default='BaseIAMRole',
+        help=' The account will assume this role.')
+
+    parser.add_argument(
         '--aws_account_regions', default='us-east-1',
         help='The AWS account regions the account will manage.')
     parser.add_argument(
-        '--aws_account_keypair', default=None,
-        help='The AWS default account keypair to use. If not specified, this'
-        ' will default to "<aws_account_name>-keypair".')
+        '--aws_account_pem_path', default=None,
+        help='The path to the PEM file for the keypair to use.'
+             'The basename minus suffix will be the name of the keypair.')
 
   def validate_options(self, options):
     """Implements interface."""
-    options.aws_account_enabled = options.aws_account_credentials is not None
-    if options.aws_account_name and (options.aws_account_keypair is None):
-      options.aws_account_keypair = '{0}-keypair'.format(
-          options.aws_account_name)
+    options.aws_account_enabled = options.aws_access_key_id is not None
 
-  @staticmethod
-  def ingest_credentials(path, script):
-    """Put aws credentials into the user .aws/credentials location."""
+    if options.aws_account_enabled and not options.aws_credentials:
+      raise ValueError(
+          '--aws_access_key_id given, but not --aws_credentials')
 
-    cred_basename = os.path.basename(path)
-    # credentials needs to be available first
-    # hal is running as root, not spinnaker
-    # it wants the .aws/credentials file, so make it available first.
-    aws_user = 'spinnaker'
-    script.append('sudo mkdir -p ~{user}/.aws'.format(user=aws_user))
-    script.append('sudo chown {user}:{user} {file} ~{user}/.aws'
-                  .format(user=aws_user, file=cred_basename))
-    script.append('sudo chmod 600 {file}'.format(file=cred_basename))
-    script.append('sudo mv {file} ~{user}/.aws/credentials'
-                  .format(file=cred_basename, user=aws_user))
+    if options.aws_account_enabled and not options.aws_account_id:
+      raise ValueError(
+          '--aws_access_key_id given, but not --aws_account_id')
+
+    if options.aws_account_enabled and not options.aws_account_role:
+      raise ValueError(
+          '--aws_access_key_id given, but not --aws_account_role')
 
   def add_config(self, options, script):
     """Implements interface."""
-    if not options.aws_account_credentials:
+    if not options.aws_access_key_id:
       return
 
-    self.ingest_credentials(options.aws_account_credentials, script)
+    account_params = [options.aws_account_name,
+                      '--assume-role', options.aws_account_role,
+                      '--account-id', options.aws_account_id]
 
-    account_params = [options.aws_account_name]
-    if options.aws_account_id:
-      account_params.extend(['--account-id', options.aws_account_id])
-    if options.aws_account_keypair:
-      account_params.extend(['--default-key-pair', options.aws_account_keypair])
+    if options.aws_account_pem_path:
+      basename = os.path.basename(options.aws_account_pem_path)
+      script.append('mv {file} .ssh/'.format(file=basename))
+      account_params.extend(
+          ['--default-key-pair', os.path.splitext(basename)[0]])
     if options.aws_account_regions:
       account_params.extend(['--regions', options.aws_account_regions])
 
     script.append('hal -q --log=info config provider aws enable')
-    script.append('hal -q --log=info config provider aws account add {params}'
-                  .format(params=' '.join(account_params)))
+    script.append(
+        'hal -q --log=info config provider aws edit '
+        ' --access-key-id {id} --secret-access-key < {file}'
+        .format(id=options.aws_access_key_id,
+                file=os.path.basename(options.aws_credentials)))
+    script.append(
+        'hal -q --log=info config provider aws account add {params}'
+        .format(params=' '.join(account_params)))
 
   def add_files_to_upload(self, options, file_set):
     """Implements interface."""
-    if options.aws_account_credentials:
-      file_set.add(options.aws_account_credentials)
+    if options.aws_credentials:
+      file_set.add(options.aws_credentials)
+    if options.aws_account_pem_path:
+      file_set.add(options.aws_account_pem_path)
 
 
 class AppengineConfigurator(object):
