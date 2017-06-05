@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import org.springframework.stereotype.Component;
@@ -32,5 +33,10 @@ public class OrcaProfileFactory extends SpringProfileFactory {
   protected void setProfile(Profile profile, DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
     super.setProfile(profile, deploymentConfiguration, endpoints);
     profile.appendContents(profile.getBaseContents());
+
+    AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
+    if (awsProvider.isEnabled()) {
+      profile.appendContents("default.bake.account: " + awsProvider.getPrimaryAccount());
+    }
   }
 }
