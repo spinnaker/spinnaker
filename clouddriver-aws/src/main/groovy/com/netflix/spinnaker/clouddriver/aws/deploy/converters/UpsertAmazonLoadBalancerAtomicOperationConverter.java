@@ -29,6 +29,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer.UpsertAmazo
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonLoadBalancerType;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @AmazonOperation(AtomicOperations.UPSERT_LOAD_BALANCER)
@@ -56,12 +57,15 @@ class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
     UpsertAmazonLoadBalancerDescription converted;
 
     this.sanitizeInput(input);
-    input.put("loadBalancerType", AmazonLoadBalancerType.getByValue((String)input.get("loadBalancerType")));
+    Map<String, Object> description = new HashMap<>();
+    description.putAll(input);
 
-    if (input.get("loadBalancerType") == AmazonLoadBalancerType.CLASSIC) {
-      converted = getObjectMapper().convertValue(input, UpsertAmazonLoadBalancerClassicDescription.class);
+    description.put("loadBalancerType", AmazonLoadBalancerType.getByValue((String)description.get("loadBalancerType")));
+
+    if (description.get("loadBalancerType") == AmazonLoadBalancerType.CLASSIC) {
+      converted = getObjectMapper().convertValue(description, UpsertAmazonLoadBalancerClassicDescription.class);
     } else {
-      converted = getObjectMapper().convertValue(input, UpsertAmazonLoadBalancerV2Description.class);
+      converted = getObjectMapper().convertValue(description, UpsertAmazonLoadBalancerV2Description.class);
     }
 
     converted.setCredentials(getCredentialsObject((String)input.get("credentials")));
