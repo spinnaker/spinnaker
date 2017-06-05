@@ -69,7 +69,7 @@ ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring', 'halyard']
 
 
 class BackgroundProcess(
-    collections.namedtuple('BackgroundProcess', ['name', 'subprocess'])):
+    collections.namedtuple('BackgroundProcess', ['name', 'subprocess', 'log'])):
   """Denotes a running background process.
 
   Attributes:
@@ -78,10 +78,17 @@ class BackgroundProcess(
   """
 
   @staticmethod
-  def spawn(name, args):
+  def spawn(name, args, logfile=None):
+    sp = None
+    log = None
+    if logfile:
+      log = open(logfile, 'w')
+      sp = subprocess.Popen(args, shell=True, close_fds=True,
+                            stdout=log, stderr=log)
+    else:
       sp = subprocess.Popen(args, shell=True, close_fds=True,
                             stdout=sys.stdout, stderr=subprocess.STDOUT)
-      return BackgroundProcess(name, sp)
+    return BackgroundProcess(name, sp, log)
 
   def wait(self):
     if not self.subprocess:
@@ -89,12 +96,16 @@ class BackgroundProcess(
     return self.subprocess.wait()
 
   def check_wait(self):
-    if self.wait():
+    return_code = self.wait()
+    if return_code:
       error = '{name} failed.'.format(name=self.name)
       raise SystemError(error)
 
+    if not return_code is None and self.log:
+      self.log.close()
 
-NO_PROCESS = BackgroundProcess('nop', None)
+
+NO_PROCESS = BackgroundProcess('nop', None, None)
 
 def determine_project_root():
   return os.path.abspath(os.path.dirname(__file__) + '/..')
@@ -216,7 +227,8 @@ class Builder(object):
     return BackgroundProcess.spawn(
       'Building and publishing Debian for {name}...'.format(name=name),
       'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
-          gradle_root=gradle_root, extra=' '.join(extra_args), target=target)
+          gradle_root=gradle_root, extra=' '.join(extra_args), target=target),
+      logfile='{name}-debian-build.log'.format(name=name)
     )
 
   def start_container_build(self, name):
@@ -249,7 +261,8 @@ class Builder(object):
           'cd "{gradle_root}"'
           '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
         .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
-                project=self.__options.gcb_project)
+                project=self.__options.gcb_project),
+        logfile='{name}-gcb-build.log'.format(name=name)
       )
     elif self.__options.container_builder == 'docker':
       return BackgroundProcess.spawn(
