@@ -24,7 +24,6 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
     this.state = {
       remainingWait: null
     };
-    this.runningTime = new OrchestratedItemRunningTime(props.stage, (time: number) => this.setRemainingWait(time));
   }
 
   private setRemainingWait = (time: number): void => {
@@ -54,6 +53,10 @@ export class SkipWait extends React.Component<ISkipWaitProps, ISkipWaitState> {
 
   public componentWillReceiveProps() {
     this.runningTime.checkStatus();
+  }
+
+  public componentDidMount() {
+    this.runningTime = new OrchestratedItemRunningTime(this.props.stage, (time: number) => this.setRemainingWait(time));
   }
 
   public componentWillUnmount() {

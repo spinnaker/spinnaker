@@ -1,5 +1,3 @@
-export const CORE_MODULE = 'spinnaker.core';
-
 export * from './account';
 export * from './api';
 export * from './application';
@@ -60,4 +58,4 @@ export * from './utils';
 
 export * from './widgets';
 
-require('./core.module');
+export * from './core.module';
