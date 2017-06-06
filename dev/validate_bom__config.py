@@ -108,12 +108,21 @@ class S3StorageConfiguratorHelper(object):
              ' This is only used if the bucket does not already exist.')
 
     parser.add_argument(
+        '--storage_s3_access_key_id', default=None,
+        help='AWS Access Key ID for AWS account owning s3 storage.')
+    parser.add_argument(
         '--storage_s3_credentials', default=None,
         help='Path to file containing the secret access key for the S3 account')
 
   @classmethod
   def validate_options(cls, options):
     """Implements interface."""
+    if not options.storage_s3_credentials:
+      raise ValueError('--storage_s3_credentials is required.')
+
+    if not options.storage_s3_access_key_id:
+      raise ValueError('--storage_s3_access_key_id is required.')
+
     if not options.storage_s3_region:
       raise ValueError('--storage_s3_region is required.')
 
@@ -127,7 +136,8 @@ class S3StorageConfiguratorHelper(object):
   def add_config(cls, options, script):
     """Implements interface."""
     command = ['hal -q --log=info config storage s3 edit']
-
+    if options.storage_s3_access_key_id:
+      command.extend(['--access-key-id', options.storage_s3_access_key_id])
     if options.storage_s3_bucket:
       command.extend(['--bucket', options.storage_s3_bucket])
     if options.storage_s3_region:
@@ -270,7 +280,7 @@ class AwsConfigurator(object):
         help='The AWS account id for the account.'
              ' See http://docs.aws.amazon.com/IAM/latest/UserGuide/console_account-alias.html')
     parser.add_argument(
-        '--aws_account_role', default='BaseIAMRole',
+        '--aws_account_role', default='role/spinnakerManaged',
         help=' The account will assume this role.')
 
     parser.add_argument(
