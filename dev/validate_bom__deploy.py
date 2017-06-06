@@ -17,6 +17,8 @@
 It is responsible for deploying spinnaker (via Halyard) remotely.
 """
 
+from multiprocessing.pool import ThreadPool
+
 import distutils
 import json
 import logging
@@ -185,10 +187,7 @@ class BaseValidateBomDeployer(object):
     if not os.path.exists(log_dir):
       os.makedirs(log_dir)
 
-    logging.info('Collecting server log files into "%s"', log_dir)
-    all_services = list(SPINNAKER_SERVICES)
-    all_services.extend(HALYARD_SERVICES)
-    for service in all_services:
+    def fetch_service_log(service):
       try:
         logging.debug('Fetching logs for "%s"...', service)
         deployer = (self if service in HALYARD_SERVICES
@@ -207,6 +206,13 @@ class BaseValidateBomDeployer(object):
 
         write_data_to_secure_path(
             message, os.path.join(log_dir, service + '.log'))
+
+    logging.info('Collecting server log files into "%s"', log_dir)
+    all_services = list(SPINNAKER_SERVICES)
+    all_services.extend(HALYARD_SERVICES)
+    thread_pool = ThreadPool(len(all_services))
+    thread_pool.map(fetch_service_log, all_services)
+    thread_pool.terminate()
 
   def do_make_port_forward_command(self, service, local_port, remote_port):
     """Hook for concrete platforms to return the port forwarding command.
@@ -230,11 +236,11 @@ class BaseValidateBomDeployer(object):
     options = self.options
     script.append('curl -s -O {url}'.format(url=options.halyard_install_script))
     install_params = ['-y']
-    if options.halyard_repository is not None:
+    if options.halyard_repository:
       install_params.extend(['--repository', options.halyard_repository])
-    if options.halyard_version is not None:
+    if options.halyard_version:
       install_params.extend(['--version', options.halyard_version])
-    if options.spinnaker_repository is not None:
+    if options.spinnaker_repository:
       install_params.extend(
           ['--spinnaker-repository', options.spinnaker_repository])
     script.append('sudo bash ./InstallHalyard.sh {install_params}'
@@ -1066,7 +1072,7 @@ def init_argument_parser(parser):
       help='The URL to the InstallHalyard.sh script.')
 
   parser.add_argument(
-      '--halyard_version',
+      '--halyard_version', default=None,
       help='If provided, the specific version of halyard to use.')
 
   parser.add_argument(
@@ -1114,6 +1120,12 @@ def init_argument_parser(parser):
       type=make_bool_value,
       help='Actually perform the undeployment.'
            ' This is for facilitating debugging with this script.')
+
+  parser.add_argument(
+      '--deploy_always_collect_logs', default=False,
+      type=make_bool_value,
+      help='Always collect logs.'
+           'By default logs are only collected when deploy_undeploy is True.')
 
   AwsValidateBomDeployer.init_platform_argument_parser(parser)
   AzureValidateBomDeployer.init_platform_argument_parser(parser)

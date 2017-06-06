@@ -365,6 +365,12 @@ class ValidateBomTestController(object):
     self.__failed = []  # Resulted in failure
     self.__skipped = []  # Will not run at all
     self.__test_suite = yaml.safe_load(file(options.test_profiles, 'r'))
+    self.__extra_test_bindings = (
+        self.__load_bindings(options.test_extra_profile_bindings)
+        if options.test_extra_profile_bindings
+        else {}
+    )
+
     num_concurrent = len(self.__test_suite.get('tests')) or 1
     num_concurrent = int(min(num_concurrent,
                              options.test_concurrency or num_concurrent))
@@ -387,6 +393,15 @@ class ValidateBomTestController(object):
         'igor': 8088,
         'echo': 8089
     }
+
+  def __load_bindings(self, path):
+    with open(path, 'r') as stream:
+      content = stream.read()
+    result = {}
+    for line in content.split('\n'):
+      match = re.match('^([a-zA-Z][^=])+=(.*)', line)
+      if match:
+        result[match.group(1).strip()] = match.group(2).strip()
 
   def __forward_port_to_service(self, service_name):
     """Forward ports to the deployed service.
@@ -696,11 +711,16 @@ class ValidateBomTestController(object):
         pass
       elif value.startswith('$'):
         option_name = value[1:]
-        if option_name not in option_dict:
+        if option_name in option_dict:
+          value = option_dict[option_name] or '""'
+        elif option_name in self.__extra_test_bindings:
+          value = self.__extra_test_bindings[option_name] or '""'
+        elif option_name in os.environ:
+          value = os.environ[option_name]
+        else:
           raise KeyError(
               'Unknown option "{name}" referenced in args for "{test}"'
               .format(name=option_name, test=test_name))
-        value = option_dict[option_name] or '""'
       if value is None:
         commandline.append('--' + key)
       else:
@@ -817,6 +837,11 @@ def init_argument_parser(parser):
       '--test_profiles',
       default=os.path.join(os.path.dirname(__file__), 'all_tests.yaml'),
       help='The path to the set of test profiles.')
+
+  parser.add_argument(
+      '--test_extra_profile_bindings', default=None,
+      help='Path to a file with additional bindings that the --test_profiles'
+           ' file may reference.')
 
   parser.add_argument(
       '--test_concurrency', default=None, type=int,
