@@ -219,6 +219,7 @@ class LoadBalancerV2UpsertHandler {
             .withLoadBalancerArn(loadBalancerArn)
             .withPort(listener.port)
             .withProtocol(listener.protocol)
+            .withCertificates(listener.certificates)
             .withSslPolicy(listener.sslPolicy)
             .withDefaultActions(listenerToActions.get(listener)))
           task.updateStatus BASE_PHASE, "Listener ${isRollback ? 'rolled back on' : 'added to'} ${loadBalancerName} (${listener.port}:${listener.protocol})."

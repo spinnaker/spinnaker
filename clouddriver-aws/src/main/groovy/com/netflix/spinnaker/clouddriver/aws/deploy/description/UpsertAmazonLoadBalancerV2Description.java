@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 
 import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum;
+import com.amazonaws.services.elasticloadbalancingv2.model.Certificate;
 import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum;
 
 import java.util.List;
@@ -154,10 +155,19 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   }
 
   public static class Listener {
+    private List<Certificate> certificates;
     private ProtocolEnum protocol;
     private Integer port;
     private String sslPolicy;
     private List<Action> defaultActions;
+
+    public List<Certificate> getCertificates() {
+      return certificates;
+    }
+
+    public void setCertificates(List<Certificate> certificates) {
+      this.certificates = certificates;
+    }
 
     public ProtocolEnum getProtocol() {
       return protocol;
