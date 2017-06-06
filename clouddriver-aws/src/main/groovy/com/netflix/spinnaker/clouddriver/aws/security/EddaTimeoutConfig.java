@@ -36,14 +36,16 @@ public class EddaTimeoutConfig {
   private final int connectTimeout;
   private final int socketTimeout;
   private final Set<String> disabledRegions;
+  private boolean albEnabled;
 
-  public EddaTimeoutConfig(long retryBase, int backoffMillis, int maxAttempts, int connectTimeout, int socketTimeout, Collection<String> disabledRegions) {
+  public EddaTimeoutConfig(long retryBase, int backoffMillis, int maxAttempts, int connectTimeout, int socketTimeout, Collection<String> disabledRegions, boolean albEnabled) {
     this.retryBase = retryBase;
     this.backoffMillis = backoffMillis;
     this.maxAttempts = maxAttempts;
     this.connectTimeout = connectTimeout;
     this.socketTimeout = socketTimeout;
     this.disabledRegions = disabledRegions == null || disabledRegions.isEmpty() ? Collections.emptySet() : Collections.unmodifiableSet(new LinkedHashSet<>(disabledRegions));
+    this.albEnabled = albEnabled;
   }
 
   public long getRetryBase() {
@@ -70,6 +72,10 @@ public class EddaTimeoutConfig {
     return disabledRegions;
   }
 
+  public boolean getAlbEnabled() {
+    return albEnabled;
+  }
+
   public static class Builder {
     private long retryBase;
     private int backoffMillis;
@@ -77,6 +83,7 @@ public class EddaTimeoutConfig {
     private int connectTimeout;
     private int socketTimeout;
     private List<String> disabledRegions;
+    private boolean albEnabled;
 
     public Builder() {
       this.retryBase = EDDA_RETRY_BASE_MILLIS;
@@ -85,10 +92,11 @@ public class EddaTimeoutConfig {
       this.connectTimeout = EDDA_CONNECT_TIMEOUT_MILLIS;
       this.socketTimeout = EDDA_SOCKET_TIMEOUT_MILLIS;
       this.disabledRegions = null;
+      this.albEnabled = false;
     }
 
     public EddaTimeoutConfig build() {
-      return new EddaTimeoutConfig(retryBase, backoffMillis, maxAttempts, connectTimeout, socketTimeout, disabledRegions);
+      return new EddaTimeoutConfig(retryBase, backoffMillis, maxAttempts, connectTimeout, socketTimeout, disabledRegions, albEnabled);
     }
 
     public long getRetryBase() {
@@ -137,6 +145,14 @@ public class EddaTimeoutConfig {
 
     public void setDisabledRegions(List<String> disabledRegions) {
       this.disabledRegions = disabledRegions;
+    }
+
+    public boolean getAlbEnabled() {
+      return albEnabled;
+    }
+
+    public void setAlbEnabled(boolean albEnabled) {
+      this.albEnabled = albEnabled;
     }
   }
 }

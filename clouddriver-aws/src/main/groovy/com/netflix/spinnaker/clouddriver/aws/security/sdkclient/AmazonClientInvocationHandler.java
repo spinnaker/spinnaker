@@ -27,6 +27,7 @@ import com.amazonaws.services.ec2.model.Instance;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersRequest;
 import com.amazonaws.services.elasticloadbalancing.model.DescribeLoadBalancersResult;
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerDescription;
+import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing;
 import com.amazonaws.services.elasticloadbalancingv2.model.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -93,7 +94,11 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
     final Id id = registry.createId("awsClientProxy.invoke", metricTags).withTag("method", method.getName());
     final long startTime = System.nanoTime();
     boolean wasDelegated = false;
+
     try {
+      if (!eddaTimeoutConfig.getAlbEnabled() && method.getDeclaringClass().equals(AmazonElasticLoadBalancing.class)) {
+        throw new NoSuchMethodException();
+      }
       Method thisMethod = this.getClass().getMethod(method.getName(), args != null && args.length > 0 ?
         getClassArgs(args) : new Class[0]);
       return thisMethod.invoke(this, args);
@@ -295,19 +300,8 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       .withTargetGroups(
         describe(request, "names", "targetGroups", TargetGroup.class));
   }
-
-  // TODO:jmr - add listener invocation handlers once edda adds them
-//  public DescribeListenersResult describeListeners() {
-//    return describeListeners(null);
-//  }
-//
-//  public DescribeListenersResult describeListeners(DescribeListenersRequest request) {
-//    return new DescribeListenersResult()
-//      .withListeners(
-//        describe(request, "listenerArns", "listeners", Listener.class));
-//  }
-
   ////////////////////////////////////
+
   private <T> List<T> describe(AmazonWebServiceRequest request, String idKey, final String object, final Class<T> singleType) {
     lastModified.set(null);
     final Map<String, String> metricTags = new HashMap<>(this.metricTags);
