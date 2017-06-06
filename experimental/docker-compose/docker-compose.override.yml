@@ -1,29 +1,40 @@
-clouddriver: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-    - "../../config/aws:/root/.aws"
-    - "../../config/gcp:/root/.gcp"
-echo: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-#deck:
-#  volumes: 
-#    - "../../config/settings.js:/deck/settings.js"
-front50: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-gate: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-igor: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-orca: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-rosco: 
-  volumes: 
-    - "../../config:/opt/spinnaker/config"
-fiat:
-  volumes:
-    - "../../config:/opt/spinnaker/config"
+version: "2"
+services:
+  clouddriver:
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "../../config/aws:/root/.aws"
+      - "../../config/gcp:/root/.gcp"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+  echo: 
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+  #deck:
+  #  volumes: 
+  #    - "../../config/settings.js:/deck/settings.js"
+  front50: 
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+      - "./config/front50-local.yml:/opt/spinnaker/config/front50-local.yml"
+  gate: 
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+  igor: 
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+  orca: 
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+  rosco: 
+    volumes: 
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"
+  fiat:
+    volumes:
+      - "../../config:/opt/spinnaker/config"
+      - "./config/spinnaker-local.yml:/opt/spinnaker/config/spinnaker-local.yml"

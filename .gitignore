@@ -6,6 +6,7 @@ build/
 *~
 #*
 config/spinnaker-local.yml
+config/front50-local.yml
 .DS_Store
 packer/ami_table.md
 packer/ami_table.json
@@ -14,3 +15,4 @@ packer/example_output.txt
 *.deb
 consul/hello-consul/target
 .vscode/
+
