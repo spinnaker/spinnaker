@@ -28,8 +28,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
+import redis.clients.util.Pool;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static java.lang.String.format;
 
 @Component
@@ -37,6 +41,7 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
 
   private final Clock clock;
   private final ExecutionEngine executionEngine;
+  private final Pool<Jedis> pool;
 
   @Autowired
   public OrchestrationLauncher(
@@ -45,10 +50,13 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
     ExecutionRepository executionRepository,
     Collection<ExecutionRunner> runners,
     Clock clock,
-    @Value("${orchestration.executionEngine:v2}") ExecutionEngine executionEngine) {
+    @Qualifier("jedisPool") Pool<Jedis> pool,
+    @Value("${orchestration.executionEngine:v2}")
+      ExecutionEngine executionEngine) {
     super(objectMapper, currentInstanceId, executionRepository, runners);
     this.clock = clock;
     this.executionEngine = executionEngine;
+    this.pool = pool;
   }
 
   @Override
@@ -64,11 +72,12 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
     }
     if (config.containsKey("description")) {
       orchestration.setDescription(getString(config, "description"));
+      orchestration.setDescription(getString(config, "description"));
     }
     if (config.containsKey("appConfig")) {
       orchestration.getAppConfig().putAll(getMap(config, "appConfig"));
     }
-    orchestration.setExecutionEngine(executionEngine);
+    orchestration.setExecutionEngine(executionEngineForApp(orchestration.getApplication()));
 
     for (Map<String, Object> context : getList(config, "stages")) {
       String type = context.remove("type").toString();
@@ -88,6 +97,12 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
     orchestration.setExecutingInstance(currentInstanceId);
 
     return orchestration;
+  }
+
+  private ExecutionEngine executionEngineForApp(String application) {
+    try (Jedis redis = pool.getResource()) {
+      return redis.sismember("orchestration.executionEngine.v3", application) ? v3 : executionEngine;
+    }
   }
 
   @Override protected void persistExecution(Orchestration execution) {
