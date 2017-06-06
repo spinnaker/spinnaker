@@ -442,6 +442,8 @@ public abstract class NestableCommand {
           parameterDoc(result, parameter);
         }
       }
+
+      result.append("\n");
     }
 
     if (!subcommands.isEmpty()) {

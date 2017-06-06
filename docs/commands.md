@@ -234,6 +234,7 @@ hal [parameters] [subcommands]
  * `--print-bash-completion`: (*Default*: `false`) Print bash command completion. This is used during the installation of Halyard.
  * `--ready`: (*Default*: `false`) Check if Halyard is up and running. Will exit with non-zero return code when it isn't.
  * `--version, -v`: (*Default*: `false`) Version of Halyard.
+
 #### Subcommands
  * `admin`: This is meant for users building and publishing their own Spinnaker images and config.
  * `backup`: Backup and restore (remote or local) copies of your halconfig and all required files.
@@ -283,6 +284,7 @@ hal admin deprecate version [parameters]
  * `--illegal-reason`: If supplied, the version will not only be deprecated, but will no longer be installable by Halyard for the supplied reason
  * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be deprecated.
 
+
 ---
 ## hal admin publish
 
@@ -313,6 +315,7 @@ hal admin publish bom [parameters]
 
 #### Parameters
  * `--bom-path`: (*Required*) The path to the BOM owning the artifact to publish.
+
 
 ---
 ## hal admin publish latest
@@ -362,6 +365,7 @@ hal admin publish profile ARTIFACT-NAME [parameters]
  * `--bom-path`: (*Required*) The path to the BOM owning the artifact to publish.
  * `--profile-path`: (*Required*) The path to the artifact profile to publish.
 
+
 ---
 ## hal admin publish version
 
@@ -376,6 +380,7 @@ hal admin publish version [parameters]
  * `--alias`: (*Required*) The alias this version of Spinnaker goes by.
  * `--changelog`: (*Required*) A link to this Spinnaker release's changelog.
  * `--version`: (*Required*) The version (x.y.z) of Spinnaker to be recorded. This must exist as a BOM.
+
 
 ---
 ## hal backup
@@ -414,6 +419,7 @@ hal config [parameters] [subcommands]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--set-current-deployment`: If supplied, set the current active deployment to the supplied value, creating it if need-be.
+
 #### Subcommands
  * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
@@ -450,6 +456,7 @@ hal config ci jenkins [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set the jenkins ci as disabled
  * `enable`: Set the jenkins ci as enabled
@@ -468,6 +475,7 @@ hal config ci jenkins disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config ci jenkins enable
 
@@ -480,6 +488,7 @@ hal config ci jenkins enable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config ci jenkins master
@@ -494,6 +503,7 @@ hal config ci jenkins master MASTER [parameters] [subcommands]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add a master for the jenkins Continuous Integration service.
  * `delete`: Delete a specific jenkins master by name.
@@ -518,6 +528,7 @@ hal config ci jenkins master add MASTER [parameters]
  * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
  * `--username`: The username of the jenkins user to authenticate as.
 
+
 ---
 ## hal config ci jenkins master delete
 
@@ -531,6 +542,7 @@ hal config ci jenkins master delete MASTER [parameters]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config ci jenkins master edit
@@ -549,6 +561,7 @@ hal config ci jenkins master edit MASTER [parameters]
  * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
  * `--username`: The username of the jenkins user to authenticate as.
 
+
 ---
 ## hal config ci jenkins master get
 
@@ -563,6 +576,7 @@ hal config ci jenkins master get MASTER [parameters]
 `MASTER`: The name of the master to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config ci jenkins master list
 
@@ -576,6 +590,7 @@ hal config ci jenkins master list [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config deploy
 
@@ -588,6 +603,7 @@ hal config deploy [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit Spinnaker's deployment footprint and configuration.
 
@@ -612,6 +628,7 @@ LocalhostDebian: Download and run the Spinnaker debians on the machine running t
  * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--vault-enabled`: Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.
 
+
 ---
 ## hal config features
 
@@ -624,6 +641,7 @@ hal config features [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Enable and disable Spinnaker feature flags.
 
@@ -642,6 +660,7 @@ hal config features edit [parameters]
  * `--jobs`: Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config generate
 
@@ -655,6 +674,7 @@ hal config generate [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config metric-stores
 
@@ -667,6 +687,7 @@ hal config metric-stores [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `datadog`: Configure your datadog metric store.
  * `edit`: Configure global metric stores properties.
@@ -685,6 +706,7 @@ hal config metric-stores datadog [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set the datadog method as disabled
  * `edit`: Edit the datadog authentication method.
@@ -703,6 +725,7 @@ hal config metric-stores datadog disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config metric-stores datadog edit
 
@@ -718,6 +741,7 @@ hal config metric-stores datadog edit [parameters]
  * `--app-key`: Your datadog app key. This is only required if you want Spinnaker to push pre-configured Spinnaker dashboards to your Datadog account.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config metric-stores datadog enable
 
@@ -730,6 +754,7 @@ hal config metric-stores datadog enable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config metric-stores edit
@@ -745,6 +770,7 @@ hal config metric-stores edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--period`: (*Required*) Set the polling period for the monitoring daemon.
 
+
 ---
 ## hal config metric-stores prometheus
 
@@ -757,6 +783,7 @@ hal config metric-stores prometheus [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set the prometheus method as disabled
  * `edit`: Edit the prometheus authentication method.
@@ -775,6 +802,7 @@ hal config metric-stores prometheus disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config metric-stores prometheus edit
 
@@ -789,6 +817,7 @@ hal config metric-stores prometheus edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--push-gateway`: The endpoint the monitoring Daemon should push metrics to. If you have configured Prometheus to automatically discover all your Spinnaker services and pull metrics from them this is not required.
 
+
 ---
 ## hal config metric-stores prometheus enable
 
@@ -802,6 +831,7 @@ hal config metric-stores prometheus enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config metric-stores stackdriver
 
@@ -814,6 +844,7 @@ hal config metric-stores stackdriver [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set the stackdriver method as disabled
  * `edit`: Edit the stackdriver authentication method.
@@ -832,6 +863,7 @@ hal config metric-stores stackdriver disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config metric-stores stackdriver edit
 
@@ -848,6 +880,7 @@ hal config metric-stores stackdriver edit [parameters]
  * `--project`: The project Spinnaker's metrics should be published to.
  * `--zone`: The zone Spinnaker's metrics should be associated with.
 
+
 ---
 ## hal config metric-stores stackdriver enable
 
@@ -860,6 +893,7 @@ hal config metric-stores stackdriver enable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider
@@ -894,6 +928,7 @@ hal config provider appengine [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the appengine provider's account
  * `disable`: Set the appengine provider as disabled
@@ -912,6 +947,7 @@ hal config provider appengine account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the appengine provider.
  * `delete`: Delete a specific appengine account by name.
@@ -944,6 +980,7 @@ hal config provider appengine account add ACCOUNT [parameters]
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-trust-unknown-hosts`: (*Default*: `false`) Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
 
+
 ---
 ## hal config provider appengine account delete
 
@@ -957,6 +994,7 @@ hal config provider appengine account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider appengine account edit
@@ -985,6 +1023,7 @@ hal config provider appengine account edit ACCOUNT [parameters]
  * `--ssh-private-key-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase to an SSH private key to be used when connecting with a remote git repository over SSH.
  * `--ssh-trust-unknown-hosts`: Enabling this flag will allow Spinnaker to connect with a remote git repository over SSH without verifying the server's IP address against a known_hosts file.
 
+
 ---
 ## hal config provider appengine account get
 
@@ -999,6 +1038,7 @@ hal config provider appengine account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider appengine account list
 
@@ -1011,6 +1051,7 @@ hal config provider appengine account list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider appengine disable
@@ -1025,6 +1066,7 @@ hal config provider appengine disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider appengine enable
 
@@ -1038,6 +1080,7 @@ hal config provider appengine enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider aws
 
@@ -1050,6 +1093,7 @@ hal config provider aws [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the aws provider's account
  * `disable`: Set the aws provider as disabled
@@ -1069,6 +1113,7 @@ hal config provider aws account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the aws provider.
  * `delete`: Delete a specific aws account by name.
@@ -1103,6 +1148,7 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--regions`: (*Default*: `[]`) The AWS regions this Spinnaker account will manage.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
+
 ---
 ## hal config provider aws account delete
 
@@ -1116,6 +1162,7 @@ hal config provider aws account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider aws account edit
@@ -1148,6 +1195,7 @@ Using {{region}} will make Spinnaker use AWS regions in the hostname to access d
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
+
 ---
 ## hal config provider aws account get
 
@@ -1162,6 +1210,7 @@ hal config provider aws account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider aws account list
 
@@ -1175,6 +1224,7 @@ hal config provider aws account list [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider aws disable
 
@@ -1187,6 +1237,7 @@ hal config provider aws disable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider aws edit
@@ -1203,6 +1254,7 @@ hal config provider aws edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
+
 ---
 ## hal config provider aws enable
 
@@ -1216,6 +1268,7 @@ hal config provider aws enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider azure
 
@@ -1228,6 +1281,7 @@ hal config provider azure [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the azure provider's account
  * `bakery`: Manage and view Spinnaker configuration for the azure provider's image bakery configuration.
@@ -1247,6 +1301,7 @@ hal config provider azure account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the azure provider.
  * `delete`: Delete a specific azure account by name.
@@ -1278,6 +1333,7 @@ hal config provider azure account add ACCOUNT [parameters]
  * `--subscription-id`: (*Required*) The subscriptionId that your service principal is assigned to.
  * `--tenant-id`: (*Required*) The tenantId that your service principal is assigned to.
 
+
 ---
 ## hal config provider azure account delete
 
@@ -1291,6 +1347,7 @@ hal config provider azure account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider azure account edit
@@ -1318,6 +1375,7 @@ hal config provider azure account edit ACCOUNT [parameters]
  * `--subscription-id`: The subscriptionId that your service principal is assigned to.
  * `--tenant-id`: The tenantId that your service principal is assigned to.
 
+
 ---
 ## hal config provider azure account get
 
@@ -1332,6 +1390,7 @@ hal config provider azure account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider azure account list
 
@@ -1345,6 +1404,7 @@ hal config provider azure account list [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider azure bakery
 
@@ -1357,6 +1417,7 @@ hal config provider azure bakery [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `base-image`: Manage and view Spinnaker configuration for the azure provider's base image.
  * `edit`: Edit the azure provider's bakery default options.
@@ -1373,6 +1434,7 @@ hal config provider azure bakery base-image [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add a base image for the azure provider's bakery.
  * `delete`: Delete a specific azure base image by name.
@@ -1402,6 +1464,7 @@ hal config provider azure bakery base-image add BASE-IMAGE [parameters]
  * `--sku`: (*Required*) The SKU for your base image. See https://aka.ms/azspinimage to get a list of images.
  * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
 
+
 ---
 ## hal config provider azure bakery base-image delete
 
@@ -1415,6 +1478,7 @@ hal config provider azure bakery base-image delete BASE-IMAGE [parameters]
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider azure bakery base-image edit
@@ -1439,6 +1503,7 @@ hal config provider azure bakery base-image edit BASE-IMAGE [parameters]
  * `--sku`: The SKU for your base image. See https://aka.ms/azspinimage to get a list of images.
  * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
 
+
 ---
 ## hal config provider azure bakery base-image get
 
@@ -1453,6 +1518,7 @@ hal config provider azure bakery base-image get BASE-IMAGE [parameters]
 `BASE-IMAGE`: The name of the base image to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider azure bakery base-image list
 
@@ -1465,6 +1531,7 @@ hal config provider azure bakery base-image list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider azure bakery edit
@@ -1479,6 +1546,7 @@ hal config provider azure bakery edit [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider azure disable
 
@@ -1491,6 +1559,7 @@ hal config provider azure disable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider azure enable
@@ -1505,6 +1574,7 @@ hal config provider azure enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider dcos
 
@@ -1517,6 +1587,7 @@ hal config provider dcos [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the dcos provider's account
  * `cluster`: Manage and view Spinnaker configuration for the dcos provider's cluster
@@ -1536,6 +1607,7 @@ hal config provider dcos account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the dcos provider.
  * `delete`: Delete a specific dcos account by name.
@@ -1563,6 +1635,7 @@ hal config provider dcos account add ACCOUNT [parameters]
  * `--service-key`: Secret key for service account authentication
  * `--uid`: (*Required*) User or service account identifier
 
+
 ---
 ## hal config provider dcos account delete
 
@@ -1576,6 +1649,7 @@ hal config provider dcos account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider dcos account edit
@@ -1600,6 +1674,7 @@ hal config provider dcos account edit ACCOUNT [parameters]
  * `--update-service-credential`: (*Default*: `[]`) A DC/OS cluster service account credential in 3 parts: cluster-name uid serviceKey
  * `--update-user-credential`: (*Default*: `[]`) A DC/OS cluster user credential in 3 parts: cluster-name uid password
 
+
 ---
 ## hal config provider dcos account get
 
@@ -1614,6 +1689,7 @@ hal config provider dcos account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider dcos account list
 
@@ -1626,6 +1702,7 @@ hal config provider dcos account list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider dcos cluster
@@ -1640,6 +1717,7 @@ hal config provider dcos cluster CLUSTER [parameters] [subcommands]
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Manage and view Spinnaker configuration for the dcos provider's cluster
  * `delete`: Delete a specific dcos cluster by name.
@@ -1666,6 +1744,7 @@ hal config provider dcos cluster add CLUSTER [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--skip-tls-verify`: Set this flag to disable verification of certificates from the cluster (insecure)
 
+
 ---
 ## hal config provider dcos cluster delete
 
@@ -1679,6 +1758,7 @@ hal config provider dcos cluster delete CLUSTER [parameters]
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider dcos cluster edit
@@ -1701,6 +1781,7 @@ hal config provider dcos cluster edit CLUSTER [parameters]
  * `--remove-lb`: (*Default*: `false`) Remove the load balancer attributes for this cluster
  * `--skip-tls-verify`: Set this flag to disable verification of certificates from the cluster (insecure)
 
+
 ---
 ## hal config provider dcos cluster get
 
@@ -1714,6 +1795,7 @@ hal config provider dcos cluster get CLUSTER [parameters]
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider dcos cluster list
@@ -1729,6 +1811,7 @@ hal config provider dcos cluster list CLUSTER [parameters]
 `CLUSTER`: The name of the cluster to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider dcos disable
 
@@ -1741,6 +1824,7 @@ hal config provider dcos disable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider dcos enable
@@ -1755,6 +1839,7 @@ hal config provider dcos enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider docker-registry
 
@@ -1767,6 +1852,7 @@ hal config provider docker-registry [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the dockerRegistry provider's account
  * `disable`: Set the dockerRegistry provider as disabled
@@ -1785,6 +1871,7 @@ hal config provider docker-registry account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the dockerRegistry provider.
  * `delete`: Delete a specific dockerRegistry account by name.
@@ -1819,6 +1906,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--username`: Your docker registry username
 
+
 ---
 ## hal config provider docker-registry account delete
 
@@ -1832,6 +1920,7 @@ hal config provider docker-registry account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider docker-registry account edit
@@ -1864,6 +1953,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--username`: Your docker registry username
 
+
 ---
 ## hal config provider docker-registry account get
 
@@ -1878,6 +1968,7 @@ hal config provider docker-registry account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider docker-registry account list
 
@@ -1890,6 +1981,7 @@ hal config provider docker-registry account list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider docker-registry disable
@@ -1904,6 +1996,7 @@ hal config provider docker-registry disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider docker-registry enable
 
@@ -1917,6 +2010,7 @@ hal config provider docker-registry enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider google
 
@@ -1929,6 +2023,7 @@ hal config provider google [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the google provider's account
  * `bakery`: Manage and view Spinnaker configuration for the google provider's image bakery configuration.
@@ -1948,6 +2043,7 @@ hal config provider google account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the google provider.
  * `delete`: Delete a specific google account by name.
@@ -1975,6 +2071,7 @@ hal config provider google account add ACCOUNT [parameters]
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
  * `--user-data`: The path to user data template file. Spinnaker has the ability to inject userdata into generated instance templates. The mechanism is via a template file that is token replaced to provide some specifics about the deployment. See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/UserData.md for more information.
 
+
 ---
 ## hal config provider google account delete
 
@@ -1988,6 +2085,7 @@ hal config provider google account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider google account edit
@@ -2013,6 +2111,7 @@ hal config provider google account edit ACCOUNT [parameters]
  * `--set-alpha-listed`: Enable this flag if your project has access to alpha features and you want Spinnaker to take advantage of them.
  * `--user-data`: The path to user data template file. Spinnaker has the ability to inject userdata into generated instance templates. The mechanism is via a template file that is token replaced to provide some specifics about the deployment. See https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/UserData.md for more information.
 
+
 ---
 ## hal config provider google account get
 
@@ -2027,6 +2126,7 @@ hal config provider google account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider google account list
 
@@ -2040,6 +2140,7 @@ hal config provider google account list [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider google bakery
 
@@ -2052,6 +2153,7 @@ hal config provider google bakery [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `base-image`: Manage and view Spinnaker configuration for the google provider's base image.
  * `edit`: Edit the google provider's bakery default options.
@@ -2068,6 +2170,7 @@ hal config provider google bakery base-image [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add a base image for the google provider's bakery.
  * `delete`: Delete a specific google base image by name.
@@ -2096,6 +2199,7 @@ hal config provider google bakery base-image add BASE-IMAGE [parameters]
  * `--source-image-family`: The source image family to create the image from. The newest, non-deprecated image is used.
  * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
 
+
 ---
 ## hal config provider google bakery base-image delete
 
@@ -2109,6 +2213,7 @@ hal config provider google bakery base-image delete BASE-IMAGE [parameters]
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider google bakery base-image edit
@@ -2132,6 +2237,7 @@ hal config provider google bakery base-image edit BASE-IMAGE [parameters]
  * `--source-image-family`: The source image family to create the image from. The newest, non-deprecated image is used.
  * `--template-file`: This is the name of the packer template that will be used to bake images from this base image. The template file must be found in this list https://github.com/spinnaker/rosco/tree/master/rosco-web/config/packer, or supplied as described here: https://spinnaker.io/setup/bakery/
 
+
 ---
 ## hal config provider google bakery base-image get
 
@@ -2146,6 +2252,7 @@ hal config provider google bakery base-image get BASE-IMAGE [parameters]
 `BASE-IMAGE`: The name of the base image to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider google bakery base-image list
 
@@ -2158,6 +2265,7 @@ hal config provider google bakery base-image list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider google bakery edit
@@ -2175,6 +2283,7 @@ hal config provider google bakery edit [parameters]
  * `--use-internal-ip`: Use the internal rather than external IP of the VM baking your image.
  * `--zone`: Set the default zone your images will be baked in.
 
+
 ---
 ## hal config provider google disable
 
@@ -2188,6 +2297,7 @@ hal config provider google disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider google enable
 
@@ -2200,6 +2310,7 @@ hal config provider google enable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider kubernetes
@@ -2215,6 +2326,7 @@ hal config provider kubernetes [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the kubernetes provider's account
  * `disable`: Set the kubernetes provider as disabled
@@ -2236,6 +2348,7 @@ hal config provider kubernetes account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the kubernetes provider.
  * `delete`: Delete a specific kubernetes account by name.
@@ -2266,6 +2379,7 @@ When no namespaces are configured, this defaults to 'all namespaces'.
 This can only be set when no --namespaces are provided.
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
+
 ---
 ## hal config provider kubernetes account delete
 
@@ -2279,6 +2393,7 @@ hal config provider kubernetes account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider kubernetes account edit
@@ -2313,6 +2428,7 @@ This can only be set when no --namespaces are provided.
  * `--remove-required-group-membership`: Remove this group from the list of required group memberships.
  * `--required-group-membership`: A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
 
+
 ---
 ## hal config provider kubernetes account get
 
@@ -2327,6 +2443,7 @@ hal config provider kubernetes account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider kubernetes account list
 
@@ -2339,6 +2456,7 @@ hal config provider kubernetes account list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider kubernetes disable
@@ -2353,6 +2471,7 @@ hal config provider kubernetes disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider kubernetes edit
 
@@ -2365,6 +2484,7 @@ hal config provider kubernetes edit [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider kubernetes enable
@@ -2379,6 +2499,7 @@ hal config provider kubernetes enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider openstack
 
@@ -2391,6 +2512,7 @@ hal config provider openstack [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the openstack provider's account
  * `disable`: Set the openstack provider as disabled
@@ -2409,6 +2531,7 @@ hal config provider openstack account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the openstack provider.
  * `delete`: Delete a specific openstack account by name.
@@ -2441,6 +2564,7 @@ hal config provider openstack account add ACCOUNT [parameters]
  * `--user-data-file`: User data passed to Heat Orchestration Template. Replacement of tokens supported, see http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack for details.
  * `--username`: (*Required*) The username used to access your cloud.
 
+
 ---
 ## hal config provider openstack account delete
 
@@ -2454,6 +2578,7 @@ hal config provider openstack account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider openstack account edit
@@ -2485,6 +2610,7 @@ hal config provider openstack account edit ACCOUNT [parameters]
  * `--user-data-file`: User data passed to Heat Orchestration Template. Replacement of tokens supported, see http://www.spinnaker.io/v1.0/docs/target-deployment-configuration#section-openstack for details.
  * `--username`: The username used to access your cloud.
 
+
 ---
 ## hal config provider openstack account get
 
@@ -2499,6 +2625,7 @@ hal config provider openstack account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider openstack account list
 
@@ -2511,6 +2638,7 @@ hal config provider openstack account list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider openstack disable
@@ -2525,6 +2653,7 @@ hal config provider openstack disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider openstack enable
 
@@ -2538,6 +2667,7 @@ hal config provider openstack enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider oraclebmcs
 
@@ -2550,6 +2680,7 @@ hal config provider oraclebmcs [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `account`: Manage and view Spinnaker configuration for the oraclebmcs provider's account
  * `disable`: Set the oraclebmcs provider as disabled
@@ -2568,6 +2699,7 @@ hal config provider oraclebmcs account ACCOUNT [parameters] [subcommands]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `add`: Add an account to the oraclebmcs provider.
  * `delete`: Delete a specific oraclebmcs account by name.
@@ -2596,6 +2728,7 @@ hal config provider oraclebmcs account add ACCOUNT [parameters]
  * `--tenancyId`: (*Required*) Provide the OCID of the Oracle BMCS Tenancy to use.
  * `--user-id`: (*Required*) Provide the OCID of the Oracle BMCS User you're authenticating as
 
+
 ---
 ## hal config provider oraclebmcs account delete
 
@@ -2609,6 +2742,7 @@ hal config provider oraclebmcs account delete ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider oraclebmcs account edit
@@ -2633,6 +2767,7 @@ hal config provider oraclebmcs account edit ACCOUNT [parameters]
  * `--tenancyId`: Provide the OCID of the Oracle BMCS Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
 
+
 ---
 ## hal config provider oraclebmcs account get
 
@@ -2647,6 +2782,7 @@ hal config provider oraclebmcs account get ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider oraclebmcs account list
 
@@ -2659,6 +2795,7 @@ hal config provider oraclebmcs account list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config provider oraclebmcs disable
@@ -2673,6 +2810,7 @@ hal config provider oraclebmcs disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config provider oraclebmcs enable
 
@@ -2686,6 +2824,7 @@ hal config provider oraclebmcs enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security
 
@@ -2698,6 +2837,7 @@ hal config security [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `api`: Configure and view the API server's addressable URL and CORS policies.
  * `authn`: Configure your authentication settings for Spinnaker.
@@ -2716,6 +2856,7 @@ hal config security api [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Configure access policies specific to Spinnaker's API server.
  * `ssl`: Configure and view SSL settings for Spinnaker's API gateway.
@@ -2735,6 +2876,7 @@ hal config security api edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--override-base-url`: If you are accessing the API server remotely, provide the full base URL of whatever proxy or load balancer is fronting the API requests.
 
+
 ---
 ## hal config security api ssl
 
@@ -2747,6 +2889,7 @@ hal config security api ssl [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Disable SSL for the API gateway.
  * `edit`: Edit SSL settings for your API server.
@@ -2764,6 +2907,7 @@ hal config security api ssl disable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config security api ssl edit
@@ -2786,6 +2930,7 @@ hal config security api ssl edit [parameters]
  * `--truststore-password`: (*Sensitive data* - user will be prompted on standard input) The password to unlock your truststore.
  * `--truststore-type`: The type of your truststore. Examples include JKS, and PKCS12.
 
+
 ---
 ## hal config security api ssl enable
 
@@ -2799,6 +2944,7 @@ hal config security api ssl enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security authn
 
@@ -2811,6 +2957,7 @@ hal config security authn [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `oauth2`: Configure the oauth2 method for authenticating.
  * `saml`: Configure the saml method for authenticating.
@@ -2827,6 +2974,7 @@ hal config security authn oauth2 [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set the oauth2 method as disabled
  * `edit`: Edit the oauth2 authentication method.
@@ -2844,6 +2992,7 @@ hal config security authn oauth2 disable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config security authn oauth2 edit
@@ -2863,6 +3012,7 @@ hal config security authn oauth2 edit [parameters]
  * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
  * `--user-info-requirements`: (*Default*: `(empty)`) The map of requirements the userInfo request must have. This is used to restrict user login to specific domains or having a specific attribute. Use equal signs between key and value, and additional key/value pairs need to repeat the flag. Example: '--user-info-requirements foo=bar --userInfoRequirements baz=qux'.
 
+
 ---
 ## hal config security authn oauth2 enable
 
@@ -2876,6 +3026,7 @@ hal config security authn oauth2 enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security authn saml
 
@@ -2888,6 +3039,7 @@ hal config security authn saml [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set the saml method as disabled
  * `edit`: Configure authentication using a SAML identity provider.
@@ -2905,6 +3057,7 @@ hal config security authn saml disable [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal config security authn saml edit
@@ -2925,6 +3078,7 @@ hal config security authn saml edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-address-url`: The address of the Gate server that will be accesible by the SAML identity provider. This should be the full URL, including port, e.g. https://gate.org.com:8084/. If deployed behind a load balancer, this would be the laod balancer's address.
 
+
 ---
 ## hal config security authn saml enable
 
@@ -2938,6 +3092,7 @@ hal config security authn saml enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security authz
 
@@ -2950,6 +3105,7 @@ hal config security authz [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Set Spinnaker's role-based authorization to disabled
  * `edit`: Edit your roles provider settings.
@@ -2970,6 +3126,7 @@ hal config security authz disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security authz edit
 
@@ -2984,6 +3141,7 @@ hal config security authz edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Set a roles provider type
 
+
 ---
 ## hal config security authz enable
 
@@ -2997,6 +3155,7 @@ hal config security authz enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security authz github
 
@@ -3009,6 +3168,7 @@ hal config security authz github [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit the github role provider.
 
@@ -3028,6 +3188,7 @@ hal config security authz github edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--organization`: The GitHub organization under which to query for GitHub Teams.
 
+
 ---
 ## hal config security authz google
 
@@ -3040,6 +3201,7 @@ hal config security authz google [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit the google role provider.
 
@@ -3059,6 +3221,7 @@ hal config security authz google edit [parameters]
  * `--domain`: The domain your role provider is configured for e.g. myorg.net.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security ui
 
@@ -3071,6 +3234,7 @@ hal config security ui [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Configure access policies specific to Spinnaker's UI server.
  * `ssl`: Configure and view SSL settings for Spinnaker's UI gateway.
@@ -3089,6 +3253,7 @@ hal config security ui edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--override-base-url`: If you are accessing the UI server remotely, provide the full base URL of whatever proxy or load balancer is fronting the UI requests.
 
+
 ---
 ## hal config security ui ssl
 
@@ -3101,6 +3266,7 @@ hal config security ui ssl [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `disable`: Disable SSL for the UI gateway.
  * `edit`: Edit SSL settings for your UI server.
@@ -3119,6 +3285,7 @@ hal config security ui ssl disable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config security ui ssl edit
 
@@ -3135,6 +3302,7 @@ hal config security ui ssl edit [parameters]
  * `--ssl-certificate-key-file`: Path to your .key file.
  * `--ssl-certificate-passphrase`: (*Sensitive data* - user will be prompted on standard input) The passphrase needed to unlock your SSL certificate. This will be provided to Apache on startup.
 
+
 ---
 ## hal config security ui ssl enable
 
@@ -3148,6 +3316,7 @@ hal config security ui ssl enable [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal config storage
 
@@ -3160,6 +3329,7 @@ hal config storage [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `azs`: Manage and view Spinnaker configuration for the "azs" persistent store.
  * `edit`: Edit Spinnaker's persistent storage.
@@ -3179,6 +3349,7 @@ hal config storage azs [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit configuration for the "azs" persistent store.
 
@@ -3198,6 +3369,7 @@ hal config storage azs edit [parameters]
  * `--storage-account-name`: The name of an Azure Storage Account used for Spinnaker's persistent data.
  * `--storage-container-name`: (*Default*: `spinnaker`) The container name in the chosen storage account to place all of Spinnaker's persistent data.
 
+
 ---
 ## hal config storage edit
 
@@ -3212,6 +3384,7 @@ hal config storage edit [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: (*Required*) The type of the persistent store to use for Spinnaker.
 
+
 ---
 ## hal config storage gcs
 
@@ -3224,6 +3397,7 @@ hal config storage gcs [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit configuration for the "gcs" persistent store.
 
@@ -3245,6 +3419,7 @@ hal config storage gcs edit [parameters]
  * `--project`: The Google Cloud Platform project you are using to host the GCS bucket as a backing store.
  * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
 
+
 ---
 ## hal config storage oraclebmcs
 
@@ -3257,6 +3432,7 @@ hal config storage oraclebmcs [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit configuration for the "oraclebmcs" persistent store.
 
@@ -3281,6 +3457,7 @@ hal config storage oraclebmcs edit [parameters]
  * `--tenancy-id`: Provide the OCID of the Oracle BMCS Tenancy to use.
  * `--user-id`: Provide the OCID of the Oracle BMCS User you're authenticating as
 
+
 ---
 ## hal config storage s3
 
@@ -3293,6 +3470,7 @@ hal config storage s3 [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Edit configuration for the "s3" persistent store.
 
@@ -3317,6 +3495,7 @@ Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.
  * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
+
 ---
 ## hal config version
 
@@ -3329,6 +3508,7 @@ hal config version [parameters] [subcommands]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 #### Subcommands
  * `edit`: Set the desired Spinnaker version.
 
@@ -3345,6 +3525,7 @@ hal config version edit [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--version`: (*Required*) Must be either a version number "X.Y.Z" for a specific release of Spinnaker, or "$BRANCH-latest-unvalidated" for the most recently built (unvalidated) Spinnaker on $BRANCH.
+
 
 ---
 ## hal deploy
@@ -3383,6 +3564,7 @@ hal deploy apply [parameters]
  This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
+
 ---
 ## hal deploy clean
 
@@ -3395,6 +3577,7 @@ hal deploy clean [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal deploy collect-logs
@@ -3409,6 +3592,7 @@ hal deploy collect-logs [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, logs from only the specified services will be collected.
+
 
 ---
 ## hal deploy connect
@@ -3425,6 +3609,7 @@ hal deploy connect [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, connections to the specified Spinnaker services are opened. When omitted, connections to the UI & API servers are opened to allow you to interact with Spinnaker in your browser.
 
+
 ---
 ## hal deploy details
 
@@ -3439,6 +3624,7 @@ hal deploy details [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-name`: (*Required*) The name of the service to inspect.
 
+
 ---
 ## hal deploy diff
 
@@ -3451,6 +3637,7 @@ hal deploy diff [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 ## hal deploy rollback
@@ -3465,6 +3652,7 @@ hal deploy rollback [parameters]
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
+
 
 ---
 ## hal task
@@ -3532,6 +3720,7 @@ hal version bom VERSION [parameters]
  * `--artifact-name`: When supplied, print the version of this artifact only.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
+
 ---
 ## hal version latest
 
@@ -3555,6 +3744,7 @@ hal version list [parameters]
 
 #### Parameters
  * `--no-validate`: (*Default*: `false`) Skip validation.
+
 
 ---
 
