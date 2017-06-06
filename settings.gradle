@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-rootProject.name="clouddriver"
+rootProject.name = "clouddriver"
 
 include 'clouddriver-core', 'clouddriver-security', 'clouddriver-web', 'clouddriver-aws', 'clouddriver-google', 'clouddriver-google-common', 'clouddriver-cf', 'clouddriver-azure', 'clouddriver-kubernetes', 'clouddriver-docker', 'clouddriver-eureka', 'clouddriver-consul', 'clouddriver-elasticsearch', 'clouddriver-openstack', 'clouddriver-appengine', 'cats:cats-core', 'cats:cats-redis', 'cats:cats-test', 'clouddriver-oracle-bmcs'
+
+if (!Boolean.parseBoolean(System.getProperty('skip.loadtest'))) {
+  include "clouddriver-loadtest"
+}
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"

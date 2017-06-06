@@ -1,0 +1,22 @@
+{
+  "service": {
+    "clouddriver": {
+      "serviceUrl": "http://localhost:7002",
+      "rampUpPeriod": 10,
+      "duration": 120,
+
+      "fetchApplications": {
+        "rampUsersPerSec": 1,
+        "rampUsersTo": 3
+      },
+
+      "fetchServerGroups": {
+        "rampUsersPerSec": 1,
+        "rampUsersTo": 0,
+        "applicationFiles": [
+          "/tmp/applications.json"
+        ]
+      }
+    }
+  }
+}
