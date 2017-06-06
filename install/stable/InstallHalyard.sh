@@ -286,24 +286,12 @@ function configure_halyard_defaults() {
 
   echo "Configuring daemon to be run as $user"
 
-  local halconfig staging
-  echo ""
-  if [ -z "$YES" ]; then
-    read -p "Where would you like to store your halconfig? [default=$HOME/.hal]: " halconfig
-  fi
+  local halconfig="$HOME/.hal"
 
-  if [ -z "$halconfig" ]; then
-    halconfig="$HOME/.hal"
-  fi
-
-  echo "Halconfig will be stored at $halconfig"
+  echo "Halconfig will be stored at $halconfig/config"
 
   mkdir -p $halconfig
   chown $user $halconfig
-
-  staging=$halconfig-staging
-  mkdir -p $staging
-  chown $user $staging
 
   mkdir -p /opt/spinnaker/config
   chown $user /opt/spinnaker/config
@@ -314,9 +302,6 @@ halyard:
     directory: $halconfig
 
 spinnaker:
-  config:
-    staging:
-      directory: $staging
   artifacts:
     debianRepository: $SPINNAKER_REPOSITORY_URL
     dockerRegistry: $SPINNAKER_DOCKER_REGISTRY
