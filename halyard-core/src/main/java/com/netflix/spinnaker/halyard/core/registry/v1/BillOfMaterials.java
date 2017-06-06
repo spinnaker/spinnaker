@@ -76,6 +76,7 @@ public class BillOfMaterials {
   @Data
   static class Artifact {
     String version;
+    String commit;
   }
 
   static private <T> String getFieldVersion(Class<T> clazz, T obj, String artifactName) {
