@@ -32,6 +32,10 @@ public interface LocalDebianService<T> extends LocalService<T> {
   ArtifactService getArtifactService();
   String getUpstartServiceName();
 
+  default String getDefaultHost() {
+    return "localhost";
+  }
+
   default String getArtifactId(String deploymentName) {
     SpinnakerArtifact artifact = getArtifact();
     String version = getArtifactService().getArtifactVersion(deploymentName, artifact);

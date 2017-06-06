@@ -39,6 +39,7 @@ public class LocalDebianRedisService extends RedisService implements LocalDebian
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings().setArtifactId("redis")
+        .setHost(getDefaultHost())
         .setEnabled(true);
   }
 

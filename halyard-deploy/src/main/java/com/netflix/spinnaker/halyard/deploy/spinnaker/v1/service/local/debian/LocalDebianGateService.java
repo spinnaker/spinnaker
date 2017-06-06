@@ -49,8 +49,10 @@ public class LocalDebianGateService extends GateService implements LocalDebianSe
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    boolean authEnabled = deploymentConfiguration.getSecurity().getAuthn().isEnabled();
     return new Settings(deploymentConfiguration.getSecurity().getApiSecurity())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setHost(authEnabled ? "0.0.0.0" : getDefaultHost())
         .setEnabled(true);
   }
 

@@ -50,6 +50,7 @@ public class LocalDebianEchoService extends EchoService implements LocalDebianSe
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
     return new Settings().setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setHost(getDefaultHost())
         .setEnabled(true);
   }
 

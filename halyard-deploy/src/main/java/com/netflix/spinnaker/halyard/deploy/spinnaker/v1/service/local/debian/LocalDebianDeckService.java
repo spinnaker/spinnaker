@@ -56,8 +56,10 @@ public class LocalDebianDeckService extends DeckService implements LocalDebianSe
 
   @Override
   public ServiceSettings buildServiceSettings(DeploymentConfiguration deploymentConfiguration) {
+    boolean authEnabled = deploymentConfiguration.getSecurity().getAuthn().isEnabled();
     return new Settings(deploymentConfiguration.getSecurity().getUiSecurity())
         .setArtifactId(getArtifactId(deploymentConfiguration.getName()))
+        .setHost(authEnabled ? "0.0.0.0" : getDefaultHost())
         .setEnabled(true);
   }
 
