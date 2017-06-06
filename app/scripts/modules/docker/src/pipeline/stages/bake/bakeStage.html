@@ -27,4 +27,14 @@
       {{baseLabel}}
     </label>
   </stage-config-field>
+  <stage-config-field label="Rebake">
+      <div class="checkbox" style="margin-bottom: 0">
+        <label>
+          <input type="checkbox"
+                 ng-model="stage.rebake">
+          </input>
+          Rebake image without regard to the status of any existing bake
+        </label>
+      </div>
+    </stage-config-field>
 </div>
