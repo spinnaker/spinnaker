@@ -30,16 +30,15 @@ def __annotate_component(annotator, component):
   """Annotate the component's source but don't include it in the BOM.
 
   Returns:
-    Tuple of ([VersionBump] Halyard version bump, [string] head commit hash)
+    [VersionBump]: Version bump complete with commit hash.
   """
   annotator.path = component
   annotator.parse_git_tree()
   version_bump = annotator.tag_head()
-  head_hash = annotator.get_head_commit()
   annotator.delete_unwanted_tags()
-  return (version_bump, head_hash)
+  return version_bump
 
-def __record_halyard_nightly_version(version_bump, head_hash, options):
+def __record_halyard_nightly_version(version_bump, options):
   """Record the version and commit hash at which Halyard was built in a bucket.
 
   Assumes that gsutil is installed on the machine this script is run from.
@@ -59,7 +58,7 @@ def __record_halyard_nightly_version(version_bump, head_hash, options):
                   .format(remote_uri=bucket_uri, local_bucket=local_bucket_name))
   hal_version = version_bump.version_str.replace('version-', '')
   new_hal_nightly_entry = ('{version}-{build}: {commit}'
-                           .format(version=hal_version, build=build_number, commit=head_hash))
+                           .format(version=hal_version, build=build_number, commit=version_bump.commit_hash))
   nightly_entry_file = '{0}/nightly-version-commits.yml'.format(local_bucket_name)
   with open(nightly_entry_file, 'a') as nef:
     nef.write('{0}\n'.format(new_hal_nightly_entry))
@@ -82,7 +81,7 @@ def main():
   options = parser.parse_args()
 
   annotator = Annotator(options)
-  halyard_bump, halyard_head_hash = __annotate_component(annotator, 'halyard')
+  halyard_bump = __annotate_component(annotator, 'halyard')
 
   bom_generator = BomGenerator(options)
   bom_generator.determine_and_tag_versions()
@@ -98,7 +97,7 @@ def main():
   # Load version information into memory and write BOM to disk. Don't publish yet.
   bom_generator.write_bom()
   bom_generator.publish_microservice_configs()
-  __record_halyard_nightly_version(halyard_bump, halyard_head_hash, options)
+  __record_halyard_nightly_version(halyard_bump, options)
   bom_generator.publish_boms()
   bom_generator.generate_changelog()
 

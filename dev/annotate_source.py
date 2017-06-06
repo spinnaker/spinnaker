@@ -77,23 +77,31 @@ class CommitMessage:
 class VersionBump:
   """Provides a model for a semantic version bump.
   """
-  def __init__(self, version_str, major=False, minor=False, patch=False):
+  def __init__(self, version_str, commit_hash, major=False, minor=False, patch=False):
     self.__version_str = version_str
+    self.__commit_hash = commit_hash
     self.__major = major
     self.__minor = minor
     self.__patch = patch
 
   def __repr__(self):
-    return 'version_str: %s, major: %s, minor: %s, patch: %s' % (self.version_str,
-                                                                 self.major,
-                                                                 self.minor,
-                                                                 self.patch)
+    return ('version_str: {}, commit_hash: {}, major: {}, minor: {}, patch: {}'
+            .format(self.version_str,
+                    self.commit_hash,
+                    self.major,
+                    self.minor,
+                    self.patch))
 
   def __eq__(self, other):
     return (self.version_str == other.version_str
+            and self.commit_hash == other.commit_hash
             and self.major == other.major
             and self.minor == other.minor
             and self.patch == other.patch)
+
+  @property
+  def commit_hash(self):
+    return self.__commit_hash
 
   @property
   def version_str(self):
@@ -204,7 +212,7 @@ class Annotator(object):
     if self.__is_head_current():
       if self.__force_rebuild:
         self.__tag_head_with_build(self.__current_version.tag)
-        return VersionBump(self.__current_version.tag, patch=True)
+        return VersionBump(self.__current_version.tag, self.get_head_commit(), patch=True)
       else:
         logging.warn("There is already a tag of the form 'version-X.Y.Z' at HEAD. Not forcing rebuild.")
         return None
@@ -222,7 +230,7 @@ class Annotator(object):
     """Tags the current branch's HEAD with the next semver gradle build tag.
 
     Args:
-      version_bump [VersionBump]: Semver to add as a gradle build tag.
+      version_bump_tag [String]: Semver string to add as a gradle build tag.
     """
     next_tag_with_build = '{0}-{1}'.format(version_bump_tag,
                                            self.build_number)
@@ -297,7 +305,7 @@ class Annotator(object):
       of version bump it was. Version tag is of the form 'version-X.Y.Z'.
     """
     if self.__next_tag:
-      return VersionBump(self.__next_tag)
+      return VersionBump(self.__next_tag, self.get_head_commit())
 
     # 'git log' entries of the form '$hash $commit_title'
     log_onelines = run_quick('git -C {path} log --pretty=oneline'.format(path=self.path),
@@ -336,6 +344,7 @@ class Annotator(object):
     # Commits are output from 'git log ...' ordered most recent to least.
     commits_iter = iter([CommitMessage(hash, msg) for hash, msg in zip(commit_hashes, commit_msgs)])
     commit = next(commits_iter, None)
+    head_commit_hash = commit.hash
 
     feat_matcher = re.compile('feat\(.*\)*')
     bc_matcher = re.compile('BREAKING CHANGE')
@@ -358,13 +367,14 @@ class Annotator(object):
       commit = next(commits_iter, None)
 
     if breaking_change == True:
-      return VersionBump('version-' + str(int(major) + 1) + '.0.0', major=True)
+      return VersionBump(
+        'version-' + str(int(major) + 1) + '.0.0', head_commit_hash, major=True)
     elif feature == True:
-      return VersionBump('version-' + major + '.' + str(int(minor) + 1) + '.0',
-                         minor=True)
+      return VersionBump(
+        'version-' + major + '.' + str(int(minor) + 1) + '.0', head_commit_hash, minor=True)
     else:
-      return VersionBump('version-' + major + '.' + minor + '.' + str(int(patch) + 1),
-                         patch=True)
+      return VersionBump(
+        'version-' + major + '.' + minor + '.' + str(int(patch) + 1), head_commit_hash, patch=True)
 
   @classmethod
   def init_argument_parser(cls, parser):

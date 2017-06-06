@@ -26,6 +26,7 @@ from spinnaker.run import run_quick
 DEPENDENCIES = 'dependencies'
 SERVICES = 'services'
 VERSION = 'version'
+COMMIT = 'commit'
 
 BUG_FIXES = 'Bug Fixes'
 FEATURES = 'Features'
@@ -243,7 +244,7 @@ class BomGenerator(Annotator):
         feature = True
 
       gradle_version = self.__version_from_tag(comp)
-      version_entry = {VERSION: gradle_version}
+      version_entry = {COMMIT: version_bump.commit_hash, VERSION: gradle_version}
       if comp == 'spinnaker-monitoring':
         # Add two entries for both components of spinnaker-monitoring
         output_yaml[SERVICES]['monitoring-third-party'] = dict(version_entry)

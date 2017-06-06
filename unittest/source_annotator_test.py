@@ -27,7 +27,7 @@ class SourceAnnotatorTest(unittest.TestCase):
   PREV_VERSION = CommitTag('z refs/tag/version-1.0.0')
 
   def test_patch_version(self):
-    expect = VersionBump('version-1.0.1', patch=True)
+    expect = VersionBump('version-1.0.1', 'a', patch=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -41,7 +41,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_minor_version(self):
-    expect = VersionBump('version-1.1.0', minor=True)
+    expect = VersionBump('version-1.1.0', 'a', minor=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -57,7 +57,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_minor_two_digit_version(self):
-    expect = VersionBump('version-1.10.0', minor=True)
+    expect = VersionBump('version-1.10.0', 'a', minor=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -74,7 +74,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_minor_reset_patch(self):
-    expect = VersionBump('version-1.10.0', minor=True)
+    expect = VersionBump('version-1.10.0', 'a', minor=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -91,7 +91,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_major_version(self):
-    expect = VersionBump('version-2.0.0', major=True)
+    expect = VersionBump('version-2.0.0', 'a', major=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -107,7 +107,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_major_reset_version(self):
-    expect = VersionBump('version-2.0.0', major=True)
+    expect = VersionBump('version-2.0.0', 'a', major=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -124,7 +124,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_major_reset_version(self):
-    expect = VersionBump('version-2.0.0', major=True)
+    expect = VersionBump('version-2.0.0', 'a', major=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -141,7 +141,7 @@ class SourceAnnotatorTest(unittest.TestCase):
     self.assertEqual(expect, result)
 
   def test_default_msgs(self):
-    expect = VersionBump('version-1.0.1', patch=True)
+    expect = VersionBump('version-1.0.1', 'a', patch=True)
     annotator = Annotator(OPTIONS)
     commit_hashes = [
       'a',
@@ -163,4 +163,3 @@ if __name__ == '__main__':
   suite = loader.loadTestsFromTestCase(SourceAnnotatorTest)
   got = unittest.TextTestRunner(verbosity=2).run(suite)
   sys.exit(len(got.errors) + len(got.failures))
-
