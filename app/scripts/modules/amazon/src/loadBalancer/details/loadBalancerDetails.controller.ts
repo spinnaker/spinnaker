@@ -129,6 +129,7 @@ export class AwsLoadBalancerDetailsController {
         const securityGroups: IApplicationSecurityGroup[] = [];
         if (details.length) {
           this.loadBalancer.elb = details[0] as IAmazonLoadBalancer;
+          this.loadBalancer.elb.vpcId = this.loadBalancer.elb.vpcId || this.loadBalancer.elb.vpcid;
           this.loadBalancer.account = this.loadBalancerFromParams.accountId;
 
           if (details[0].loadBalancerType === 'application') {
