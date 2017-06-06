@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.Summary
 import com.netflix.spinnaker.clouddriver.model.TargetServerGroup
+import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -44,6 +45,9 @@ class ClusterController {
 
   @Autowired
   MessageSource messageSource
+
+  @Autowired
+  RequestQueue requestQueue
 
   @PreAuthorize("@fiatPermissionEvaluator.storeWholePermission() and hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
@@ -91,8 +95,8 @@ class ClusterController {
   Set<Cluster> getForAccountAndName(@PathVariable String application,
                                     @PathVariable String account,
                                     @PathVariable String name) {
-    def clusters = clusterProviders.collect {
-      it.getCluster(application, account, name)
+    def clusters = clusterProviders.collect { provider ->
+      requestQueue.execute(application, { provider.getCluster(application, account, name) })
     }
     clusters.removeAll([null])
     if (!clusters) {

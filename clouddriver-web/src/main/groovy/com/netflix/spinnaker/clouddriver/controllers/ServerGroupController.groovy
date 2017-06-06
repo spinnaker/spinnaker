@@ -25,6 +25,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
+import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import org.apache.catalina.Server
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -53,6 +54,9 @@ class ServerGroupController {
   @Autowired
   MessageSource messageSource
 
+  @Autowired
+  RequestQueue requestQueue
+
   @Autowired(required = false)
   ServerGroupViewModelPostProcessor serverGroupViewModelPostProcessor
 
@@ -62,8 +66,8 @@ class ServerGroupController {
                              @PathVariable String account,
                              @PathVariable String region,
                              @PathVariable String name) {
-    def matches = (Set<ServerGroup>) clusterProviders.findResults {
-      it.getServerGroup(account, region, name)
+    def matches = (Set<ServerGroup>) clusterProviders.findResults { provider ->
+      requestQueue.execute(application, { provider.getServerGroup(account, region, name) })
     }
     if (!matches) {
       throw new ServerGroupNotFoundException([name: name, account: account, region: region])
@@ -78,7 +82,7 @@ class ServerGroupController {
   List<Map> expandedList(String application, String cloudProvider) {
     return clusterProviders
       .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
-      .findResults { ClusterProvider cp -> cp.getClusterDetails(application)?.values() }
+      .findResults { ClusterProvider cp -> requestQueue.execute(application, { cp.getClusterDetails(application)?.values() }) }
       .collectNested { Cluster c ->
       c.serverGroups?.collect {
         expanded(it, c)
@@ -103,8 +107,8 @@ class ServerGroupController {
 
     def clusters = (Set<Cluster>) clusterProviders
       .findAll { cloudProvider ? cloudProvider.equalsIgnoreCase(it.cloudProviderId) : true }
-      .findResults {
-      it.getClusterDetails(application)?.values()
+      .findResults { provider ->
+        requestQueue.execute(application, { provider.getClusterDetails(application)?.values() })
     }.flatten()
     clusters.each { Cluster cluster ->
       cluster.serverGroups.each { ServerGroup serverGroup ->
@@ -141,7 +145,7 @@ class ServerGroupController {
       def (account, clusterName) = accountAndName.split(':')
       if (account && clusterName) {
         return clusterProviders.findResults { clusterProvider ->
-          clusterProvider.getCluster(application, account, clusterName)
+          requestQueue.execute(application, { clusterProvider.getCluster(application, account, clusterName) })
         }
       }
       return null

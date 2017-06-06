@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -32,7 +33,7 @@ class ClusterControllerSpec extends Specification {
   ClusterController clusterController
 
   def setup() {
-    clusterController = new ClusterController()
+    clusterController = new ClusterController(requestQueue: RequestQueue.noop())
   }
 
   void "should call all application providers to get and merge the cluster names"() {

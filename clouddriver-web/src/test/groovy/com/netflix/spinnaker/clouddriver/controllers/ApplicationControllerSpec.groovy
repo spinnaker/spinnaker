@@ -21,6 +21,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonApplication
+import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -31,7 +32,7 @@ class ApplicationControllerSpec extends Specification {
   ApplicationsController applicationsController
 
   def setup() {
-    applicationsController = new ApplicationsController()
+    applicationsController = new ApplicationsController(requestQueue: RequestQueue.noop())
   }
 
   def "call all application providers on listing"() {

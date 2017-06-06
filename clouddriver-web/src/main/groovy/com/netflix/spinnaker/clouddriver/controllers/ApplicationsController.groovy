@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.view.ApplicationClusterViewModel
 import com.netflix.spinnaker.clouddriver.model.view.ApplicationViewModel
+import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -45,14 +46,17 @@ class ApplicationsController {
   @Autowired
   MessageSource messageSource
 
+  @Autowired
+  RequestQueue requestQueue
+
   @PreAuthorize("#restricted ? @fiatPermissionEvaluator.storeWholePermission() : true")
   @PostFilter("#restricted ? hasPermission(filterObject.name, 'APPLICATION', 'READ') : true")
   @RequestMapping(method = RequestMethod.GET)
   List<Application> list(@RequestParam(required = false, value = 'expand', defaultValue = 'true') boolean expand,
                          @RequestParam(required = false, value = 'restricted', defaultValue = 'true') boolean restricted) {
-    def results = applicationProviders.collectMany {
-      it.getApplications(expand) ?: []
-    }
+    def results = requestQueue.execute("applications", {
+      applicationProviders.collectMany { it.getApplications(expand) ?: [] }
+    })
     results.removeAll([null])
     results.sort { a, b -> a?.name?.toLowerCase() <=> b?.name?.toLowerCase() }
   }
@@ -61,9 +65,9 @@ class ApplicationsController {
   @RequestMapping(value = "/{name:.+}", method = RequestMethod.GET)
   ApplicationViewModel get(@PathVariable String name) {
     try {
-      def apps = applicationProviders.collect {
-        it.getApplication(name)
-      } - null
+      def apps = requestQueue.execute(name, {
+        applicationProviders.collect { it.getApplication(name) }
+      }) - null
       if (!apps) {
         throw new ApplicationNotFoundException(name: name)
       } else {
@@ -95,8 +99,10 @@ class ApplicationsController {
       }
       attributes << app.attributes
 
-      clusterProviders.collectMany {
-        it.getClusterSummaries(app.name)?.values()?.flatten() as Set ?: []
+      clusterProviders.collectMany { provider ->
+        requestQueue.execute(app.name, {
+          provider.getClusterSummaries(app.name)?.values()?.flatten() as Set ?: []
+        })
       }.each { Cluster cluster ->
         def account = cluster.accountName
         if (!result.clusters.containsKey(account)) {
