@@ -761,7 +761,10 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
       if not exists:
         logging.warning('"%s" is not running', options.deploy_aws_name)
         return
-      all_ids = [instance['InstanceId'] for instance in exists['Instances']]
+      all_ids = []
+      for reservation in exists:
+        all_ids.extend([instance['InstanceId']
+                        for instance in reservation['Instances']])
 
     for instance_id in all_ids:
       logging.info('Terminating "%s" instanceId=%s',
