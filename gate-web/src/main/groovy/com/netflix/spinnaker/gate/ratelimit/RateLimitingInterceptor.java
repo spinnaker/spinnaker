@@ -118,7 +118,13 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
       return ((User) authentication.getPrincipal()).getEmail();
     }
 
-    log.warn("Unknown principal type, assuming anonymous");
+    String rateLimitApp = request.getHeader("X-RateLimit-App");
+    if (rateLimitApp != null && !rateLimitApp.equals("")) {
+      log.info("Unknown principal, using X-RateLimit-App instead");
+      return rateLimitApp;
+    }
+
+    log.warn("Unknown principal type and no X-RateLimit-App header, assuming anonymous");
     return "anonymous-" + sourceIpAddress(request);
   }
 
