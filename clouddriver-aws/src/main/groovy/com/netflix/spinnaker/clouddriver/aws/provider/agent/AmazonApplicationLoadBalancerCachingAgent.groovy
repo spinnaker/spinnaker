@@ -31,22 +31,32 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
+import retrofit.RetrofitError
 
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.LOAD_BALANCERS
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.ON_DEMAND
 import static com.netflix.spinnaker.clouddriver.core.provider.agent.Namespace.TARGET_GROUPS
 
 class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalancerCachingAgent {
+  final EddaApi eddaApi
+  final EddaTimeoutConfig eddaTimeoutConfig
+
   AmazonApplicationLoadBalancerCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                             AmazonClientProvider amazonClientProvider,
                                             NetflixAmazonCredentials account,
                                             String region,
+                                            EddaApi eddaApi,
                                             ObjectMapper objectMapper,
-                                            Registry registry) {
+                                            Registry registry,
+                                            EddaTimeoutConfig eddaTimeoutConfig) {
     super(amazonCloudProvider, amazonClientProvider, account, region, objectMapper, registry)
+    this.eddaApi = eddaApi
+    this.eddaTimeoutConfig = eddaTimeoutConfig
   }
 
   @Override
@@ -80,19 +90,28 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     Map<LoadBalancer, List<Listener>> loadBalancerToListeners = new HashMap<LoadBalancer, ArrayList<Listener>>()
     for (loadBalancer in allLoadBalancers) {
       loadBalancerToListeners[loadBalancer] = []
-      try {
-        def describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
-        while (true) {
-          def result = loadBalancing.describeListeners(describeListenersRequest)
-          loadBalancerToListeners.get(loadBalancer).addAll(result.listeners)
-          if (result.nextMarker) {
-            describeListenersRequest.withMarker(result.nextMarker)
-          } else {
-            break
-          }
+      if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
+        try {
+          List<Listener> listeners = eddaApi.listeners(loadBalancer.loadBalancerName)
+          loadBalancerToListeners.get(loadBalancer).addAll(listeners)
+        } catch (RetrofitError e) {
+          // this is acceptable since we may be waiting for the caches to catch up
         }
-      } catch (LoadBalancerNotFoundException e) {
-        // this is acceptable since we may be waiting for the caches to catch up
+      } else {
+        try {
+          def describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
+          while (true) {
+            def result = loadBalancing.describeListeners(describeListenersRequest)
+            loadBalancerToListeners.get(loadBalancer).addAll(result.listeners)
+            if (result.nextMarker) {
+              describeListenersRequest.withMarker(result.nextMarker)
+            } else {
+              break
+            }
+          }
+        } catch (LoadBalancerNotFoundException e) {
+          // this is acceptable since we may be waiting for the caches to catch up
+        }
       }
     }
 

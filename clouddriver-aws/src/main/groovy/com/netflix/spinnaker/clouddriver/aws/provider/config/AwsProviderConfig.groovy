@@ -142,8 +142,8 @@ class AwsProviderConfig {
           }
           newlyAddedAgents << new InstanceCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
           newlyAddedAgents << new AmazonLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new AmazonApplicationLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
-          newlyAddedAgents << new AmazonTargetGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, objectMapper, registry)
+          newlyAddedAgents << new AmazonApplicationLoadBalancerCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, eddaApiFactory.createApi(credentials.edda, region.name), objectMapper, registry, eddaTimeoutConfig)
+          newlyAddedAgents << new AmazonTargetGroupCachingAgent(amazonCloudProvider, amazonClientProvider, credentials, region.name, eddaApiFactory.createApi(credentials.edda, region.name), objectMapper, eddaTimeoutConfig)
           newlyAddedAgents << new ReservedInstancesCachingAgent(amazonClientProvider, credentials, region.name, objectMapper, registry)
 
           if (credentials.eddaEnabled && !eddaTimeoutConfig.disabledRegions.contains(region.name)) {
@@ -168,7 +168,7 @@ class AwsProviderConfig {
     }
 
     agentProviders.findAll { it.supports(AwsProvider.PROVIDER_NAME) }.each {
-      newlyAddedAgents.addAll(it.agents());
+      newlyAddedAgents.addAll(it.agents())
     }
 
     awsProvider.agents.addAll(newlyAddedAgents)

@@ -26,7 +26,6 @@ import com.amazonaws.services.elasticloadbalancingv2.model.TargetHealthDescripti
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.*
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
@@ -34,10 +33,14 @@ import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
+import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
 import com.netflix.spinnaker.clouddriver.aws.model.InstanceTargetGroupState
 import com.netflix.spinnaker.clouddriver.aws.model.InstanceTargetGroups
+import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupAttributes
+import com.netflix.spinnaker.clouddriver.aws.model.edda.TargetGroupHealth
 import com.netflix.spinnaker.clouddriver.aws.provider.AwsProvider
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
+import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
 import com.netflix.spinnaker.clouddriver.core.provider.agent.HealthProvidingCachingAgent
 import org.slf4j.Logger
@@ -65,21 +68,24 @@ class AmazonTargetGroupCachingAgent implements CachingAgent, HealthProvidingCach
   final AmazonClientProvider amazonClientProvider
   final NetflixAmazonCredentials account
   final String region
+  final EddaApi eddaApi
   final ObjectMapper objectMapper
-  final Registry registry
+  final EddaTimeoutConfig eddaTimeoutConfig
 
   AmazonTargetGroupCachingAgent(AmazonCloudProvider amazonCloudProvider,
                                 AmazonClientProvider amazonClientProvider,
                                 NetflixAmazonCredentials account,
                                 String region,
+                                EddaApi eddaApi,
                                 ObjectMapper objectMapper,
-                                Registry registry) {
+                                EddaTimeoutConfig eddaTimeoutConfig) {
     this.amazonCloudProvider = amazonCloudProvider
     this.amazonClientProvider = amazonClientProvider
     this.account = account
     this.region = region
+    this.eddaApi = eddaApi
     this.objectMapper = objectMapper.enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-    this.registry = registry
+    this.eddaTimeoutConfig = eddaTimeoutConfig
   }
 
   @Override
@@ -126,13 +132,22 @@ class AmazonTargetGroupCachingAgent implements CachingAgent, HealthProvidingCach
     }
 
     // Get all the target group health and attributes
-    Map<String, List<TargetHealthDescription>> targetGroupArnToHealths = new HashMap<String, List<TargetHealthDescription>>()
-    Map<String, List<TargetGroupAttribute>> targetGroupArnToAttributes = new HashMap<String, List<TargetGroupAttribute>>()
-    for (TargetGroup targetGroup : allTargetGroups) {
-      List<TargetHealthDescription> targetHealthDescriptions = loadBalancing.describeTargetHealth(new DescribeTargetHealthRequest().withTargetGroupArn(targetGroup.targetGroupArn)).targetHealthDescriptions
-      targetGroupArnToHealths.put(targetGroup.targetGroupArn, targetHealthDescriptions)
-      List<TargetGroupAttribute> targetGroupAttributes = loadBalancing.describeTargetGroupAttributes(new DescribeTargetGroupAttributesRequest().withTargetGroupArn(targetGroup.targetGroupArn)).attributes
-      targetGroupArnToAttributes.put(targetGroup.targetGroupArn, targetGroupAttributes)
+    Map<String, List<TargetHealthDescription>> targetGroupArnToHealths
+    Map<String, List<TargetGroupAttribute>> targetGroupArnToAttributes
+    if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
+      List<TargetGroupAttributes> targetGroupAttributesList = eddaApi.targetGroupAttributes()
+      List<TargetGroupHealth> targetGroupHealthList = eddaApi.targetGroupHealth()
+      targetGroupArnToAttributes = targetGroupAttributesList.collectEntries { [(it.targetGroupArn): it.attributes] }
+      targetGroupArnToHealths = targetGroupHealthList.collectEntries { [(it.targetGroupArn): it.health]}
+    } else {
+      targetGroupArnToHealths = new HashMap<String, List<TargetHealthDescription>>()
+      targetGroupArnToAttributes = new HashMap<String, List<TargetGroupAttribute>>()
+      for (TargetGroup targetGroup : allTargetGroups) {
+        List<TargetHealthDescription> targetHealthDescriptions = loadBalancing.describeTargetHealth(new DescribeTargetHealthRequest().withTargetGroupArn(targetGroup.targetGroupArn)).targetHealthDescriptions
+        targetGroupArnToHealths.put(targetGroup.targetGroupArn, targetHealthDescriptions)
+        List<TargetGroupAttribute> targetGroupAttributes = loadBalancing.describeTargetGroupAttributes(new DescribeTargetGroupAttributesRequest().withTargetGroupArn(targetGroup.targetGroupArn)).attributes
+        targetGroupArnToAttributes.put(targetGroup.targetGroupArn, targetGroupAttributes)
+      }
     }
 
     buildCacheResult(allTargetGroups, targetGroupArnToHealths, targetGroupArnToAttributes)
