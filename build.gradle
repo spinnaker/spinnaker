@@ -77,15 +77,22 @@ ospackage {
   from('etc/apache2/sites-available/spinnaker.conf') {
     into '/etc/apache2/sites-available'
     user = 'root'
-    permissionGroup = 'root'    
+    permissionGroup = 'root'
     fileMode = 0644
   }
 
   from('etc/default/spinnaker') {
     into '/etc/default'
     user = 'root'
-    permissionGroup = 'root'    
+    permissionGroup = 'root'
     fileMode = 0644
+  }
+
+  from('etc/sudoers.d/spinnaker') {
+    into '/etc/sudoers.d'
+    user = 'root'
+    permissionGroup = 'root'
+    fileMode = 0440
   }
 
   configurationFile('/etc/default/spinnaker\n')

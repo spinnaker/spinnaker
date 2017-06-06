@@ -1,0 +1,5 @@
+# An entry in /etc/sudoers.d is needed to grant spinnaker sudo rights for packer.
+# This is a security risk that can be exploited.
+# Uncomment the last line if you are using a template needing root in rosco.
+# User rules for spinnaker
+# spinnaker ALL=(ALL) NOPASSWD: /usr/bin/packer
