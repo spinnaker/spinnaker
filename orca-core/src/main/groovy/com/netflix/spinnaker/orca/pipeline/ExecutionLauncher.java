@@ -148,7 +148,8 @@ public abstract class ExecutionLauncher<T extends Execution<T>> {
   }
 
   protected final <E extends Enum<E>> E getEnum(Map<String, ?> map, String key, Class<E> type) {
-    return map.containsKey(key) ? Enum.valueOf(type, map.get(key).toString()) : null;
+    String value = (String) map.get(key);
+    return value != null ? Enum.valueOf(type, value) : null;
   }
 
   /**
