@@ -19,6 +19,7 @@ export class DeploymentStrategySelectorController implements IComponentControlle
 
   public $onInit() {
     this.strategies = DeploymentStrategyRegistry.listStrategies(this.command.selectedProvider || this.command.cloudProvider);
+    this.selectStrategy();
   }
 
   public selectStrategy(): void {
