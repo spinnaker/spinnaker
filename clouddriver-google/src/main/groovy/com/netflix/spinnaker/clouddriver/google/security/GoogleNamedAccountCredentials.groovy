@@ -284,10 +284,17 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     def locationToInstanceTypesMap = instanceTypeList.items.collectEntries { zone, machineTypesScopedList ->
       zone = GCEUtil.getLocalName(zone)
 
-      return [(zone): [
-        instanceTypes: machineTypesScopedList.machineTypes.collect { it.name },
-        vCpuMax: machineTypesScopedList.machineTypes.max { it.guestCpus }.guestCpus
-      ]]
+      if (machineTypesScopedList.machineTypes) {
+        return [(zone): [
+          instanceTypes: machineTypesScopedList.machineTypes.collect { it.name },
+          vCpuMax      : machineTypesScopedList.machineTypes.max { it.guestCpus }.guestCpus
+        ]]
+      } else {
+        return [(zone): [
+          instanceTypes: [],
+          vCpuMax      : 0
+        ]]
+      }
     }
 
     // Populate region to instance types mappings.
