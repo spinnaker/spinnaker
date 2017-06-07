@@ -19,6 +19,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -30,7 +31,7 @@ class CredentialsService {
   AccountLookupService accountLookupService
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
   FiatClientConfigurationProperties fiatConfig
@@ -69,9 +70,9 @@ class CredentialsService {
     } execute()
   }
 
-  Map getAccount(String account) {
+  Map getAccount(String account, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getAccount") {
-      clouddriverService.getAccount(account)
+      clouddriverServiceSelector.select(selectorKey).getAccount(account)
     } execute()
   }
 }

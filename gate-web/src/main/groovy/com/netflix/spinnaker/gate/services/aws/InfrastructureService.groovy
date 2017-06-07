@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.gate.services.aws
 
-import java.util.concurrent.Callable
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.Callable
 
 @CompileStatic
 @Component
@@ -31,35 +32,35 @@ class InfrastructureService {
   private static final String GROUP = "infrastructure"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   private static HystrixCommand<List> command(String type, Callable<List> work) {
     (HystrixCommand<List>)HystrixFactory.newListCommand(GROUP, type, work)
   }
 
-  List<Map> getInstanceTypes() {
+  List<Map> getInstanceTypes(String selectorKey = null) {
     command("instanceTypes") {
-      clouddriverService.instanceTypes
+      clouddriverServiceSelector.select(selectorKey).instanceTypes
     } execute()
   }
 
-  List<Map> getKeyPairs() {
+  List<Map> getKeyPairs(String selectorKey = null) {
     command("keyPairs") {
-      clouddriverService.keyPairs
+      clouddriverServiceSelector.select(selectorKey).keyPairs
     } execute()
   }
 
   @Deprecated
-  List<Map> getSubnets() {
+  List<Map> getSubnets(String selectorKey = null) {
     command("subnets") {
-      clouddriverService.getSubnets('aws')
+      clouddriverServiceSelector.select(selectorKey).getSubnets('aws')
     } execute()
   }
 
   @Deprecated
-  List<Map> getVpcs() {
+  List<Map> getVpcs(String selectorKey = null) {
     command("vpcs") {
-      clouddriverService.getNetworks('aws')
+      clouddriverServiceSelector.select(selectorKey).getNetworks('aws')
     } execute()
   }
 }

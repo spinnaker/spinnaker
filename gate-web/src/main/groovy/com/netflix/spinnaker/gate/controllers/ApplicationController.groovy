@@ -171,8 +171,10 @@ class ApplicationController {
    */
   @Deprecated
   @RequestMapping(value = "/{application}/tasks/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
-  Map getTaskDetails(@PathVariable("id") String id, @PathVariable("taskDetailsId") String taskDetailsId) {
-    taskService.getTaskDetails(taskDetailsId)
+  Map getTaskDetails(@PathVariable("id") String id,
+                     @PathVariable("taskDetailsId") String taskDetailsId,
+                     @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    taskService.getTaskDetails(taskDetailsId, sourceApp)
   }
 
   /**

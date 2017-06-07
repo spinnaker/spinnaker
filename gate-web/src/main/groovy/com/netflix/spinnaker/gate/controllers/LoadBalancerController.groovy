@@ -31,15 +31,17 @@ class LoadBalancerController {
 
   @ApiOperation(value = "Retrieve a list of load balancers for a given cloud provider")
   @RequestMapping(value = '/loadBalancers', method = RequestMethod.GET)
-  List getAll(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
-    loadBalancerService.getAll(provider)
+  List getAll(@RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+              @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    loadBalancerService.getAll(provider, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a load balancer for a given cloud provider")
   @RequestMapping(value = "/loadBalancers/{name:.+}", method = RequestMethod.GET)
   Map getLoadBalancer(@PathVariable String name,
-                      @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
-    loadBalancerService.get(name, provider)
+                      @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+                      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    loadBalancerService.get(name, sourceApp, provider)
   }
 
   @ApiOperation(value = "Retrieve a load balancer's details as a single element list for a given account, region, cloud provider and load balancer name")
@@ -47,13 +49,15 @@ class LoadBalancerController {
   List<Map> getLoadBalancerDetails(@PathVariable String account,
                                    @PathVariable String region,
                                    @PathVariable String name,
-                                   @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider) {
-    loadBalancerService.getDetailsForAccountAndRegion(account, region, name, provider)
+                                   @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
+                                   @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    loadBalancerService.getDetailsForAccountAndRegion(account, region, name, sourceApp, provider)
   }
 
   @ApiOperation(value = "Retrieve a list of load balancers for a given application")
   @RequestMapping(value = '/applications/{application}/loadBalancers', method = RequestMethod.GET)
-  List<Map> getApplicationLoadBalancers(@PathVariable String application) {
-    loadBalancerService.getApplicationLoadBalancers(application)
+  List<Map> getApplicationLoadBalancers(@PathVariable String application,
+                                        @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    loadBalancerService.getApplicationLoadBalancers(application, sourceApp)
   }
 }

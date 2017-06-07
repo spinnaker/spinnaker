@@ -30,32 +30,32 @@ class LoadBalancerService {
   @Autowired
   ClouddriverService clouddriverService
 
-  List<Map> getAll(String provider = "aws") {
+  List<Map> getAll(String provider = "aws", String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getAllLoadBalancersForProvider-$provider") {
       clouddriverService.getLoadBalancers(provider)
     } execute()
   }
 
-  Map get(String name, String provider = "aws") {
+  Map get(String name, String selectorKey, String provider = "aws") {
     HystrixFactory.newMapCommand(GROUP, "getLoadBalancer-$provider") {
       clouddriverService.getLoadBalancer(provider, name)
     } execute()
   }
 
-  List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String provider = "aws") {
+  List<Map> getDetailsForAccountAndRegion(String account, String region, String name, String selectorKey, String provider = "aws") {
     HystrixFactory.newListCommand(GROUP, "getLoadBalancerDetails-$provider") {
       clouddriverService.getLoadBalancerDetails(provider, account, region, name)
     } execute()
   }
 
-  List getClusterLoadBalancers(String appName, String account, String provider, String clusterName) {
+  List getClusterLoadBalancers(String appName, String account, String provider, String clusterName, String selectorKey) {
     HystrixFactory.newListCommand(GROUP,
         "getClusterLoadBalancers-$provider") {
       clouddriverService.getClusterLoadBalancers(appName, account, clusterName, provider)
     } execute()
   }
 
-  List getApplicationLoadBalancers(String appName) {
+  List getApplicationLoadBalancers(String appName, String selectorKey) {
     HystrixFactory.newListCommand(GROUP,
       "getApplicationLoadBalancers") {
       clouddriverService.getApplicationLoadBalancers(appName)

@@ -38,7 +38,7 @@ class InstanceService {
   @Autowired
   ProviderLookupService providerLookupService
 
-  Map getForAccountAndRegion(String account, String region, String instanceId) {
+  Map getForAccountAndRegion(String account, String region, String instanceId, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getInstancesForAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       def accountDetails = clouddriverService.getAccount(account)
       def instanceDetails = clouddriverService.getInstanceDetails(account, region, instanceId)
@@ -53,7 +53,7 @@ class InstanceService {
     } execute()
   }
 
-  Map getConsoleOutput(String account, String region, String instanceId, String provider) {
+  Map getConsoleOutput(String account, String region, String instanceId, String provider, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getConsoleOutput-${providerLookupService.providerForAccount(account)}") {
       return  clouddriverService.getConsoleOutput(account, region, instanceId, provider)
     } execute()

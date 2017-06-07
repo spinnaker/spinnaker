@@ -21,6 +21,7 @@ import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletResponse
@@ -36,6 +37,7 @@ class CredentialsControllerTest extends Specification {
 
   MockMvc mockMvc
   ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   def server = new MockWebServer()
 
@@ -50,10 +52,11 @@ class CredentialsControllerTest extends Specification {
     FiatClientConfigurationProperties fiatConfig = new FiatClientConfigurationProperties(enabled: false)
 
     clouddriverService = Mock(ClouddriverService)
+    clouddriverServiceSelector = Mock(ClouddriverServiceSelector)
 
     @Subject
     CredentialsService credentialsService = new CredentialsService(accountLookupService: accountLookupService,
-      clouddriverService: clouddriverService,
+      clouddriverServiceSelector: clouddriverServiceSelector,
       fiatConfig: fiatConfig)
 
     server.start()
@@ -63,6 +66,7 @@ class CredentialsControllerTest extends Specification {
   @Unroll
   def "should accept account names with dots"() {
     given:
+    1 * clouddriverServiceSelector.select(_) >> clouddriverService
     1 * clouddriverService.getAccount(account) >> ["accountName": account]
 
     when:

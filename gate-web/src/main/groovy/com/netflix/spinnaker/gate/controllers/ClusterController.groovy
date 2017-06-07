@@ -37,37 +37,44 @@ class ClusterController {
 
   @ApiOperation(value = "Retrieve a list of cluster names for an application, grouped by account")
   @RequestMapping(method = RequestMethod.GET)
-  Map getClusters(@PathVariable("application") String app) {
-    clusterService.getClusters(app)
+  Map getClusters(@PathVariable("application") String app,
+                  @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clusterService.getClusters(app, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a list of clusters for an account")
   @RequestMapping(value = "/{account}", method = RequestMethod.GET)
-  List<Map> getClusters(@PathVariable("application") String app, @PathVariable("account") String account) {
-    clusterService.getClustersForAccount(app, account)
+  List<Map> getClusters(@PathVariable("application") String app,
+                        @PathVariable("account") String account,
+                        @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clusterService.getClustersForAccount(app, account, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a cluster's details")
   @RequestMapping(value = "/{account}/{clusterName:.+}", method = RequestMethod.GET)
   Map getClusters(@PathVariable("application") String app,
                   @PathVariable("account") String account,
-                  @PathVariable("clusterName") String clusterName) {
-    clusterService.getCluster(app, account, clusterName)
+                  @PathVariable("clusterName") String clusterName,
+                  @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clusterService.getCluster(app, account, clusterName, sourceApp)
   }
 
   @RequestMapping(value = "/{account}/{clusterName}/{type}/loadBalancers", method = RequestMethod.GET)
-  List getClusterLoadBalancers(
-      @PathVariable String applicationName,
-      @PathVariable String account, @PathVariable String clusterName, @PathVariable String type) {
-    loadBalancerService.getClusterLoadBalancers(applicationName, account, type, clusterName)
+  List getClusterLoadBalancers(@PathVariable String applicationName,
+                               @PathVariable String account,
+                               @PathVariable String clusterName,
+                               @PathVariable String type,
+                               @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    loadBalancerService.getClusterLoadBalancers(applicationName, account, type, clusterName, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a list of server groups for a cluster")
   @RequestMapping(value = "/{account}/{clusterName}/serverGroups", method = RequestMethod.GET)
   List<Map> getServerGroups(@PathVariable("application") String app,
                             @PathVariable("account") String account,
-                            @PathVariable("clusterName") String clusterName) {
-    clusterService.getClusterServerGroups(app, account, clusterName)
+                            @PathVariable("clusterName") String clusterName,
+                            @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clusterService.getClusterServerGroups(app, account, clusterName, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a list of scaling activities for a server group")
@@ -77,8 +84,9 @@ class ClusterController {
                                  @PathVariable("clusterName") String clusterName,
                                  @PathVariable("serverGroupName") String serverGroupName,
                                  @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
-                                 @RequestParam(value = "region", required = false) String region) {
-    clusterService.getScalingActivities(app, account, clusterName, serverGroupName, provider, region)
+                                 @RequestParam(value = "region", required = false) String region,
+                                 @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clusterService.getScalingActivities(app, account, clusterName, serverGroupName, provider, region, sourceApp)
   }
 
   @CompileStatic(TypeCheckingMode.SKIP)
@@ -87,9 +95,10 @@ class ClusterController {
   List<Map> getServerGroups(@PathVariable("application") String app,
                             @PathVariable("account") String account,
                             @PathVariable("clusterName") String clusterName,
-                            @PathVariable("serverGroupName") String serverGroupName) {
+                            @PathVariable("serverGroupName") String serverGroupName,
+                            @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     // TODO this crappy logic needs to be here until the "type" field is removed in Clouddriver
-    clusterService.getClusterServerGroups(app, account, clusterName).findAll {
+    clusterService.getClusterServerGroups(app, account, clusterName, sourceApp).findAll {
       it.name == serverGroupName
     }
   }
@@ -104,7 +113,8 @@ class ClusterController {
                            @PathVariable("scope") String scope,
                            @PathVariable("target") String target,
                            @RequestParam(value = "onlyEnabled", required = false) Boolean onlyEnabled,
-                           @RequestParam(value = "validateOldest", required = false) Boolean validateOldest) {
-    clusterService.getTargetServerGroup(app, account, clusterName, cloudProvider, scope, target, onlyEnabled, validateOldest)
+                           @RequestParam(value = "validateOldest", required = false) Boolean validateOldest,
+                           @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clusterService.getTargetServerGroup(app, account, clusterName, cloudProvider, scope, target, onlyEnabled, validateOldest, sourceApp)
   }
 }

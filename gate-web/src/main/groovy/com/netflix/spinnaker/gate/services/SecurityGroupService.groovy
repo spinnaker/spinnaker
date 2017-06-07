@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +29,7 @@ class SecurityGroupService {
   private static final String GROUP = "security"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
   OrcaService orcaService
@@ -37,9 +37,9 @@ class SecurityGroupService {
   /**
    * Keyed by account
    */
-  Map getAll() {
+  Map getAll(String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getAllSecurityGroups") {
-      clouddriverService.securityGroups
+      clouddriverServiceSelector.select(selectorKey).securityGroups
     } execute()
   }
 
@@ -49,9 +49,9 @@ class SecurityGroupService {
    * @param id
    * @return
    */
-  Map getById(String id) {
+  Map getById(String id, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupById".toString()) {
-      def result = clouddriverService.search(id, "securityGroups", null, 10000, 1)[0]
+      def result = clouddriverServiceSelector.select(selectorKey).search(id, "securityGroups", null, 10000, 1)[0]
       if (result.results) {
         Map firstResult = ((List<Map>)result.results)[0]
         String uriString = firstResult.url
@@ -64,7 +64,7 @@ class SecurityGroupService {
         def account = pathParts[2]
         def provider = pathParts[3]
         def sgName = pathParts[-1]
-        return getSecurityGroup(account, provider, sgName, region, vpcId)
+        return getSecurityGroup(account, provider, sgName, region, selectorKey, vpcId)
       } else {
         [:]
       }
@@ -76,9 +76,9 @@ class SecurityGroupService {
    * @param provider provider name (aws, gce, docker)
    * @param region optional. nullable
    */
-  Map getForAccountAndProviderAndRegion(String account, String provider, String region) {
+  Map getForAccountAndProviderAndRegion(String account, String provider, String region, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupsForAccountAndProvider-$provider") {
-      clouddriverService.getSecurityGroups(account, provider, region)
+      clouddriverServiceSelector.select(selectorKey).getSecurityGroups(account, provider, region)
     } execute()
   }
 
@@ -88,9 +88,9 @@ class SecurityGroupService {
    * @param name security group name
    * @param region optional. nullable
    */
-  Map getSecurityGroup(String account, String provider, String name, String region, String vpcId = null) {
+  Map getSecurityGroup(String account, String provider, String name, String region, String selectorKey, String vpcId = null) {
     HystrixFactory.newMapCommand(GROUP, "getSecurityGroupByIdentifiers-$provider") {
-      clouddriverService.getSecurityGroup(account, provider, name, region, vpcId)
+      clouddriverServiceSelector.select(selectorKey).getSecurityGroup(account, provider, name, region, vpcId)
     } execute()
   }
 }

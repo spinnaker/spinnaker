@@ -16,13 +16,14 @@
 
 package com.netflix.spinnaker.gate.services
 
-import java.util.concurrent.Callable
 import com.netflix.hystrix.HystrixCommand
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
+import java.util.concurrent.Callable
 
 @CompileStatic
 @Component
@@ -31,7 +32,7 @@ class NetworkService {
   private static final String GROUP = "networks"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   private static HystrixCommand<List> listCommand(String type, Callable<List> work) {
     HystrixFactory.newListCommand(GROUP, type, work)
@@ -41,15 +42,15 @@ class NetworkService {
     HystrixFactory.newMapCommand(GROUP, type, work)
   }
 
-  Map getNetworks() {
+  Map getNetworks(String selectorKey) {
     mapCommand("networks") {
-      clouddriverService.getNetworks()
+      clouddriverServiceSelector.select(selectorKey).getNetworks()
     } execute()
   }
 
-  List<Map> getNetworks(String cloudProvider) {
+  List<Map> getNetworks(String cloudProvider, String selectorKey) {
     listCommand("networks-$cloudProvider") {
-      clouddriverService.getNetworks(cloudProvider)
+      clouddriverServiceSelector.select(selectorKey).getNetworks(cloudProvider)
     } execute()
   }
 }

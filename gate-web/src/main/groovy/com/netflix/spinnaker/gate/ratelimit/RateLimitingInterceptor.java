@@ -22,6 +22,7 @@ import com.netflix.spectator.api.Tag;
 import com.netflix.spinnaker.security.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -56,6 +57,8 @@ public class RateLimitingInterceptor extends HandlerInterceptorAdapter {
 
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    MDC.put("sourceApp", request.getHeader("X-RateLimit-App"));
+
     if ("deck".equalsIgnoreCase(request.getHeader("X-RateLimit-App"))) {
       // If the API request is being made from deck, just let it through without question.
       // Better than trying to keep tuning the rate limiter based on changes to deck.

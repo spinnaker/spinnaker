@@ -38,7 +38,7 @@ class InstanceServiceSpec extends Specification {
     )
 
     expect:
-    service.getForAccountAndRegion("account", "region", "instanceId").insightActions*.url == [
+    service.getForAccountAndRegion("account", "region", "instanceId", null).insightActions*.url == [
         "account-prod-region-instanceId-{DNE}-10.0.0.1"
     ]
   }

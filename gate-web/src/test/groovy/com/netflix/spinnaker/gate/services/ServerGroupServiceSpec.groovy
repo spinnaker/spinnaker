@@ -19,14 +19,19 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import spock.lang.Specification
 
 class ServerGroupServiceSpec extends Specification {
   void "should include relevant insight actions for server group"() {
     given:
     def service = new ServerGroupService(
-        clouddriverService: Mock(ClouddriverService) {
-          1 * getServerGroupDetails(_, _, _, _) >> { return [cloudProvider: "aws"] }
+        clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
+          1 * select(_) >> {
+            Mock(ClouddriverService) {
+              1 * getServerGroupDetails(_, _, _, _) >> { return [cloudProvider: "aws"] }
+            }
+          }
         },
         providerLookupService: Stub(ProviderLookupService) {
           providerForAccount(_) >> "test"
@@ -39,7 +44,7 @@ class ServerGroupServiceSpec extends Specification {
     )
 
     expect:
-    service.getForApplicationAndAccountAndRegion("application", "account", "region", "serverGroup").insightActions*.url == [
+    service.getForApplicationAndAccountAndRegion("application", "account", "region", "serverGroup", null).insightActions*.url == [
         "application-account-region-serverGroup-aws-{DNE}"
     ]
   }

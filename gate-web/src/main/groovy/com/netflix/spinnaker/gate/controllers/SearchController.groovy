@@ -20,6 +20,7 @@ package com.netflix.spinnaker.gate.controllers
 import com.netflix.spinnaker.gate.services.SearchService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -36,7 +37,8 @@ class SearchController {
                    @RequestParam(value = "type") String type,
                    @RequestParam(value = "platform", required = false) String platform,
                    @RequestParam(value = "pageSize", defaultValue = "10000", required = false) int pageSize,
-                   @RequestParam(value = "page", defaultValue = "1", required = false) int page) {
-    searchService.search(query, type, platform, pageSize, page)
+                   @RequestParam(value = "page", defaultValue = "1", required = false) int page,
+                   @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    searchService.search(query, type, platform, sourceApp, pageSize, page)
   }
 }

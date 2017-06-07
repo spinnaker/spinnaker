@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.services.CloudMetricService
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -37,9 +38,10 @@ class CloudMetricController {
   List<Map> findAll(@PathVariable String cloudProvider,
                     @PathVariable String account,
                     @PathVariable String region,
-                    @RequestParam Map<String, String> filters) {
+                    @RequestParam Map<String, String> filters,
+                    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
 
-    cloudMetricService.findAll(cloudProvider, account, region, filters)
+    cloudMetricService.findAll(cloudProvider, account, region, filters, sourceApp)
   }
 
   @RequestMapping(value = "/{cloudProvider}/{account}/{region}/{metricName}/statistics", method = RequestMethod.GET)
@@ -49,8 +51,9 @@ class CloudMetricController {
                     @PathVariable String metricName,
                     @RequestParam(required = false) Long startTime,
                     @RequestParam(required = false) Long endTime,
-                    @RequestParam Map<String, String> filters) {
+                    @RequestParam Map<String, String> filters,
+                    @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
 
-    cloudMetricService.getStatistics(cloudProvider, account, region, metricName, startTime, endTime, filters)
+    cloudMetricService.getStatistics(cloudProvider, account, region, metricName, startTime, endTime, filters, sourceApp)
   }
 }

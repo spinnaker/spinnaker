@@ -28,6 +28,7 @@ import com.netflix.spinnaker.gate.services.PipelineService
 import com.netflix.spinnaker.gate.services.TaskService
 import com.netflix.spinnaker.gate.services.commands.ThrottledRequestException
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import org.springframework.boot.SpringApplication
@@ -55,6 +56,7 @@ class FunctionalSpec extends Specification {
   static ExecutorService executorService
   static Front50Service front50Service
   static ClouddriverService clouddriverService
+  static ClouddriverServiceSelector clouddriverServiceSelector
   static TaskService taskService
   static OrcaService orcaService
   static CredentialsService credentialsService
@@ -70,6 +72,7 @@ class FunctionalSpec extends Specification {
     executorService = Mock(ExecutorService)
     taskService = Mock(TaskService)
     clouddriverService = Mock(ClouddriverService)
+    clouddriverServiceSelector = new ClouddriverServiceSelector(clouddriverService)
     orcaService = Mock(OrcaService)
     credentialsService = Mock(CredentialsService)
     accountLookupService = Mock(AccountLookupService)
@@ -181,6 +184,11 @@ class FunctionalSpec extends Specification {
   @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
   @Configuration
   static class FunctionalConfiguration {
+
+    @Bean
+    ClouddriverServiceSelector clouddriverSelector() {
+      clouddriverServiceSelector
+    }
 
     @Bean
     ClouddriverService clouddriverService() {

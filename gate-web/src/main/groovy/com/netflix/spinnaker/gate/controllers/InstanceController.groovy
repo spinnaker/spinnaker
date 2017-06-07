@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -38,8 +39,9 @@ class InstanceController {
   @RequestMapping(value = "/{account}/{region}/{instanceId:.+}", method = RequestMethod.GET)
   Map getInstanceDetails(@PathVariable(value = "account") String account,
                          @PathVariable(value = "region") String region,
-                         @PathVariable(value = "instanceId") String instanceId) {
-    instanceService.getForAccountAndRegion(account, region, instanceId)
+                         @PathVariable(value = "instanceId") String instanceId,
+                         @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    instanceService.getForAccountAndRegion(account, region, instanceId, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve an instance's console output")
@@ -47,7 +49,8 @@ class InstanceController {
   Map getConsoleOutput(@PathVariable(value = "account") String account,
                        @PathVariable(value = "region") String region,
                        @PathVariable(value = "instanceId") String instanceId,
-                       @RequestParam(value = "provider", required = false, defaultValue = "aws") String provider) {
-    instanceService.getConsoleOutput(account, region, instanceId, provider)
+                       @RequestParam(value = "provider", required = false, defaultValue = "aws") String provider,
+                       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    instanceService.getConsoleOutput(account, region, instanceId, provider, sourceApp)
   }
 }

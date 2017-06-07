@@ -29,6 +29,7 @@ import com.netflix.spinnaker.gate.retrofit.EurekaOkClient
 import com.netflix.spinnaker.gate.retrofit.Slf4jRetrofitLogger
 import com.netflix.spinnaker.gate.services.EurekaLookupService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.IgorService
@@ -150,6 +151,22 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
+  ClouddriverServiceSelector clouddriverServiceSelector(OkHttpClient okHttpClient) {
+    ClouddriverService defaultService = createClient "clouddriver", ClouddriverService, okHttpClient
+
+    // support named clouddriver service clients
+    Map<String, ClouddriverService> dynamicServices = [:]
+    if (serviceConfiguration.getService("clouddriver").getConfig().containsKey("dynamicEndpoints")) {
+      def endpoints = (Map<String, String>) serviceConfiguration.getService("clouddriver").getConfig().get("dynamicEndpoints")
+      dynamicServices = (Map<String, ClouddriverService>) endpoints.collectEntries { k, v ->
+        [k, createClient("clouddriver", ClouddriverService, okHttpClient, k)]
+      }
+    }
+
+    return new ClouddriverServiceSelector(defaultService, dynamicServices)
+  }
+
+  @Bean
   ClouddriverService clouddriverService(OkHttpClient okHttpClient) {
     createClient "clouddriver", ClouddriverService, okHttpClient
   }
@@ -180,7 +197,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
     createClient "mine", MineService, okHttpClient
   }
 
-  private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient) {
+  private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient, String dynamicName = null) {
     Service service = serviceConfiguration.getService(serviceName)
     if (service == null) {
       throw new IllegalArgumentException("Unknown service ${serviceName} requested of type ${type}")
@@ -188,9 +205,18 @@ class GateConfig extends RedisHttpSessionConfiguration {
     if (!service.enabled) {
       return null
     }
-    Endpoint endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
-      newFixedEndpoint("niws://${service.vipAddress}")
-      : newFixedEndpoint(service.baseUrl)
+
+    Endpoint endpoint
+    if (dynamicName == null) {
+      endpoint = serviceConfiguration.discoveryHosts && service.vipAddress ?
+        newFixedEndpoint("niws://${service.vipAddress}")
+        : newFixedEndpoint(service.baseUrl)
+    } else {
+      if (!service.getConfig().containsKey("dynamicEndpoints")) {
+        throw new IllegalArgumentException("Unknown dynamicEndpoint ${dynamicName} for service ${serviceName} of type ${type}")
+      }
+      endpoint = newFixedEndpoint(((Map<String, String>)service.getConfig().get("dynamicEndpoints")).get(dynamicName))
+    }
 
     def client = new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService)
 

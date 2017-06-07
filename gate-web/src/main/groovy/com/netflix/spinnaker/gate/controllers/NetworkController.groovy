@@ -20,6 +20,7 @@ import com.netflix.spinnaker.gate.services.NetworkService
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -33,13 +34,14 @@ class NetworkController {
 
   @ApiOperation(value = "Retrieve a list of networks, grouped by cloud provider")
   @RequestMapping(method = RequestMethod.GET)
-  Map all() {
-    networkService.getNetworks()
+  Map all(@RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    networkService.getNetworks(sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a list of networks for a given cloud provider")
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
-  List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
-    networkService.getNetworks(cloudProvider)
+  List<Map> allByCloudProvider(@PathVariable String cloudProvider,
+                               @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    networkService.getNetworks(cloudProvider, sourceApp)
   }
 }

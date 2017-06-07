@@ -19,9 +19,7 @@ package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.JobService
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @CompileStatic
@@ -31,15 +29,18 @@ class JobController {
   JobService jobService
 
   @RequestMapping(value = "/applications/{applicationName}/jobs", method = RequestMethod.GET)
-  List getJobs(@PathVariable String applicationName, @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
-    jobService.getForApplication(applicationName, expand)
+  List getJobs(@PathVariable String applicationName,
+               @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
+               @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    jobService.getForApplication(applicationName, expand, sourceApp)
   }
 
   @RequestMapping(value = "/applications/{applicationName}/jobs/{account}/{region}/{name}", method = RequestMethod.GET)
   Map getJob(@PathVariable String applicationName, @PathVariable String account,
              @PathVariable String region,
              @PathVariable String name,
-             @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand) {
-    jobService.getForApplicationAndAccountAndRegion(applicationName, account, region, name)
+             @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
+             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    jobService.getForApplicationAndAccountAndRegion(applicationName, account, region, name, sourceApp)
   }
 }

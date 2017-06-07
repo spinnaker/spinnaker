@@ -32,16 +32,17 @@ class SecurityGroupController {
 
   @ApiOperation(value = "Retrieve a list of security groups, grouped by account, cloud provider, and region")
   @RequestMapping(method = RequestMethod.GET)
-  Map all(@RequestParam(value = "id", required = false) String id) {
+  Map all(@RequestParam(value = "id", required = false) String id,
+          @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     if (id) {
-      def result = securityGroupService.getById(id)
+      def result = securityGroupService.getById(id, sourceApp)
       if (result) {
         result
       } else {
         throw new SecurityGroupNotFoundException(id)
       }
     } else {
-      securityGroupService.all
+      securityGroupService.getAll(sourceApp)
     }
   }
 
@@ -50,8 +51,9 @@ class SecurityGroupController {
   Map allByAccount(
       @PathVariable String account,
       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
-      @RequestParam(value = "region", required = false) String region) {
-    securityGroupService.getForAccountAndProviderAndRegion(account, provider, region)
+      @RequestParam(value = "region", required = false) String region,
+      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    securityGroupService.getForAccountAndProviderAndRegion(account, provider, region, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a security group's details")
@@ -61,8 +63,9 @@ class SecurityGroupController {
       @PathVariable String region,
       @PathVariable String name,
       @RequestParam(value = "provider", defaultValue = "aws", required = false) String provider,
-      @RequestParam(value = "vpcId", required = false) String vpcId) {
-    securityGroupService.getSecurityGroup(account, provider, name, region, vpcId)
+      @RequestParam(value = "vpcId", required = false) String vpcId,
+      @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    securityGroupService.getSecurityGroup(account, provider, name, region, sourceApp, vpcId)
   }
 
   @ResponseStatus(HttpStatus.NOT_FOUND)

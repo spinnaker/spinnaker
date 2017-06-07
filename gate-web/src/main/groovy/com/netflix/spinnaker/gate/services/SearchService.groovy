@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,11 +29,11 @@ class SearchService {
   private static final String GROUP = "searches"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
-  List<Map> search(String query, String type, String platform, int pageSize = 10000, int page = 1) {
+  List<Map> search(String query, String type, String platform, String selectorKey, int pageSize = 10000, int page = 1) {
     HystrixFactory.newListCommand(GROUP, "search-${type}") {
-      return clouddriverService.search(query, type, platform, pageSize, page)
+      return clouddriverServiceSelector.select(selectorKey).search(query, type, platform, pageSize, page)
     } execute()
   }
 }

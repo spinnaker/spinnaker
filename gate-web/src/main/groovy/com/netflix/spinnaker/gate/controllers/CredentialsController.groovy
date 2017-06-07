@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -47,7 +48,8 @@ class CredentialsController {
   @PreAuthorize("hasPermission(#account, 'ACCOUNT', 'READ')")
   @ApiOperation(value = "Retrieve an account's details")
   @RequestMapping(value = '/{account:.+}', method = RequestMethod.GET)
-  Map getAccount(@PathVariable("account") String account) {
-    credentialsService.getAccount(account)
+  Map getAccount(@PathVariable("account") String account,
+                 @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    credentialsService.getAccount(account, sourceApp)
   }
 }

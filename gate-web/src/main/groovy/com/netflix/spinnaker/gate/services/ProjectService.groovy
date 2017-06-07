@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
@@ -39,7 +39,7 @@ class ProjectService {
   OrcaService orcaService
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   List<Map> getAll() {
     HystrixFactory.newListCommand(GROUP, "getAll") {
@@ -59,9 +59,9 @@ class ProjectService {
     } execute()
   }
 
-  List getClusters(String projectId) {
+  List getClusters(String projectId, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getClusters") {
-      return clouddriverService.getProjectClusters(projectId)
+      return clouddriverServiceSelector.select(selectorKey).getProjectClusters(projectId)
     } execute()
   }
 }

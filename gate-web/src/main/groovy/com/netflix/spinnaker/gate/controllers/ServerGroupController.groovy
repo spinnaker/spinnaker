@@ -24,6 +24,7 @@ import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -41,8 +42,9 @@ class ServerGroupController {
   List getServerGroups(@PathVariable String applicationName,
                        @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
                        @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
-                       @RequestParam(required = false, value = 'clusters') String clusters) {
-    serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters)
+                       @RequestParam(required = false, value = 'clusters') String clusters,
+                       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters, sourceApp)
   }
 
   @ApiOperation(value = "Retrieve a server group's details")
@@ -50,8 +52,9 @@ class ServerGroupController {
   Map getServerGroupDetails(@PathVariable String applicationName,
                             @PathVariable String account,
                             @PathVariable String region,
-                            @PathVariable String serverGroupName) {
-    def serverGroupDetails = serverGroupService.getForApplicationAndAccountAndRegion(applicationName, account, region, serverGroupName)
+                            @PathVariable String serverGroupName,
+                            @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    def serverGroupDetails = serverGroupService.getForApplicationAndAccountAndRegion(applicationName, account, region, serverGroupName, sourceApp)
     if (!serverGroupDetails) {
       throw new ServerGroupNotFoundException()
     }

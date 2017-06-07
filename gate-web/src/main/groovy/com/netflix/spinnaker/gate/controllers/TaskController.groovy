@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
@@ -59,7 +60,9 @@ class TaskController {
   }
 
   @RequestMapping(value = "/{id}/details/{taskDetailsId}", method = RequestMethod.GET)
-  Map getTaskDetails(@PathVariable("id") String id, @PathVariable("taskDetailsId") String taskDetailsId) {
-    taskService.getTaskDetails(taskDetailsId)
+  Map getTaskDetails(@PathVariable("id") String id,
+                     @PathVariable("taskDetailsId") String taskDetailsId,
+                     @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    taskService.getTaskDetails(taskDetailsId, sourceApp)
   }
 }

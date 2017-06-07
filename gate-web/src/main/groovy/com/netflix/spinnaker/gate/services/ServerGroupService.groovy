@@ -20,7 +20,7 @@ package com.netflix.spinnaker.gate.services
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -32,7 +32,7 @@ class ServerGroupService {
   private static final String GROUP = "serverGroups"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
   InsightConfiguration insightConfiguration
@@ -40,17 +40,17 @@ class ServerGroupService {
   @Autowired
   ProviderLookupService providerLookupService
 
-  List getForApplication(String applicationName, String expand, String cloudProvider, String clusters) {
+  List getForApplication(String applicationName, String expand, String cloudProvider, String clusters, String selectorKey) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedServerGroupsForApplication" : "getServerGroupsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
-      clouddriverService.getServerGroups(applicationName, expand, cloudProvider, clusters)
+      clouddriverServiceSelector.select(selectorKey).getServerGroups(applicationName, expand, cloudProvider, clusters)
     } execute()
   }
 
-  Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName) {
+  Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
-        def serverGroupDetails = clouddriverService.getServerGroupDetails(applicationName, account, region, serverGroupName)
+        def serverGroupDetails = clouddriverServiceSelector.select(selectorKey).getServerGroupDetails(applicationName, account, region, serverGroupName)
         def serverGroupContext = serverGroupDetails.collectEntries {
           return it.value instanceof String ? [it.key, it.value] : [it.key, ""]
         } as Map<String, String>
