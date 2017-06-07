@@ -37,6 +37,7 @@ export class AwsLoadBalancerDetailsController {
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAmazonLoadBalancer;
   public securityGroups: ISecurityGroup[];
+  public ipAddressTypeDescription: string;
   public state = { loading: true };
 
   constructor(private $scope: IScope,
@@ -147,6 +148,13 @@ export class AwsLoadBalancerDetailsController {
                   this.listeners.push({ in: `${listener.protocol}:${listener.port}`, target: targetGroup });
                 })
               })
+            }
+
+            if (elb.ipAddressType === 'dualstack') {
+              this.ipAddressTypeDescription = 'IPv4 and IPv6';
+            }
+            if (elb.ipAddressType === 'ipv4') {
+              this.ipAddressTypeDescription = 'IPv4';
             }
           } else {
             // Classic

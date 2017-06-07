@@ -72,6 +72,8 @@
         <dd><vpc-tag vpc-id="ctrl.loadBalancer.elb.vpcId"></vpc-tag></dd>
         <dt>Subnet</dt>
         <dd>{{ctrl.getFirstSubnetPurpose(ctrl.loadBalancer.subnetDetails)}}</dd>
+        <dt ng-if="ctrl.ipAddressTypeDescription">IP Type</dt>
+        <dd ng-if="ctrl.ipAddressTypeDescription">{{ctrl.ipAddressTypeDescription}}</dd>
       </dl>
       <dl class="horizontal-when-filters-collapsed">
         <dt>Availability Zones</dt>

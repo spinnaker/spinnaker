@@ -13,6 +13,7 @@ export interface IAmazonClassicLoadBalancer extends IAmazonLoadBalancer {
 export interface IAmazonApplicationLoadBalancer extends IAmazonLoadBalancer {
   listeners: IALBListener[];
   targetGroups: ITargetGroup[];
+  ipAddressType: string;
 }
 
 export interface IALBListenerActions {
