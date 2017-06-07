@@ -28,6 +28,12 @@ SERVICES = 'services'
 VERSION = 'version'
 COMMIT = 'commit'
 
+ARTIFACT_SOURCES = 'artifactSources'
+DEBIAN_REPOSITORY = 'debianRepository'
+DOCKER_REGISTRY = 'dockerRegistry'
+GOOGLE_IMAGE_PROJECT = 'googleImageProject'
+GITHUB_ORG = 'githubOrganization'
+
 BUG_FIXES = 'Bug Fixes'
 FEATURES = 'Features'
 BREAKING_CHANGES = 'Breaking Changes'
@@ -89,6 +95,7 @@ class BomGenerator(Annotator):
   ]
 
   def __init__(self, options):
+    self.__options = options
     self.__base_dir = options.base_dir
     self.__docker_registry = options.docker_registry
     self.__bom_file = ''
@@ -97,6 +104,8 @@ class BomGenerator(Annotator):
     self.__toplevel_version = ''
     self.__changelog_output = options.changelog_output
     self.__alias = options.bom_alias
+    self.__google_image_project = options.google_image_project
+    self.__github_org = options.github_org
     super(BomGenerator, self).__init__(options)
 
   @property
@@ -108,14 +117,18 @@ class BomGenerator(Annotator):
     """Initialize command-line arguments."""
     parser.add_argument('--base_dir', default='.', required=True,
                         help="Base directory containing the component's git repositories as subdirectories.")
+    parser.add_argument('--bom_alias', default='',
+                        help="Alias to rename the 'real' BOM as. This also sets the Spinnaker version as the alias.")
+    parser.add_argument('--changelog_output', default='',
+                        help="Output file to write the changelog to.")
     parser.add_argument('--container_builder', default='gcb',
                         help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
     parser.add_argument('--docker_registry', default='',
                         help="Docker registry to push the container images to.")
-    parser.add_argument('--changelog_output', default='',
-                        help="Output file to write the changelog to.")
-    parser.add_argument('--bom_alias', default='',
-                        help="Alias to rename the 'real' BOM as. This also sets the Spinnaker version as the alias.")
+    parser.add_argument('--google_image_project', default='marketplace-spinnaker-release',
+                        help="GCE project we publish HA Spinnaker component images to.")
+    parser.add_argument('--github_org', default='https://github.com/spinnaker',
+                        help="Github organization we host source.")
     super(BomGenerator, cls).init_argument_parser(parser)
 
   def __version_from_tag(self, comp):
@@ -228,12 +241,21 @@ class BomGenerator(Annotator):
       clog.write('\n'.join(changelog))
 
   def write_bom(self):
-    output_yaml = {SERVICES: {}, DEPENDENCIES: {}}
+    output_yaml = {SERVICES: {}, DEPENDENCIES: {}, ARTIFACT_SOURCES: {}}
 
     # Dependencies
     output_yaml[DEPENDENCIES]['consul'] = {VERSION: CONSUL_VERSION}
     output_yaml[DEPENDENCIES]['redis'] = {VERSION: REDIS_VERSION}
     output_yaml[DEPENDENCIES]['vault'] = {VERSION: VAULT_VERSION}
+
+    # Artifact sources
+    if not self.__options.bintray_repo:
+      raise ValueError('No Debian repository provided.')
+
+    output_yaml[ARTIFACT_SOURCES][DEBIAN_REPOSITORY] = self.__options.bintray_repo
+    output_yaml[ARTIFACT_SOURCES][DOCKER_REGISTRY] = self.__docker_registry
+    output_yaml[ARTIFACT_SOURCES][GOOGLE_IMAGE_PROJECT] = self.__google_image_project
+    output_yaml[ARTIFACT_SOURCES][GITHUB_ORG] = self.__github_org
 
     for comp in self.__component_versions:
       version_bump = self.__component_versions[comp]
