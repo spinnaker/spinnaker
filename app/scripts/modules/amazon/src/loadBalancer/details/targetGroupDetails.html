@@ -54,6 +54,22 @@
         <dt>Port</dt>
         <dd>{{ctrl.targetGroup.port}}</dd>
       </dl>
+      <dl ng-if="ctrl.loadBalancer" class="horizontal-when-filters-collapsed">
+        <dt>Load Balancer</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li>
+              <a ui-sref="^.loadBalancerDetails({ name: ctrl.loadBalancer.name,
+                                                  region: ctrl.loadBalancer.region,
+                                                  accountId: ctrl.loadBalancer.account,
+                                                  vpcId: ctrl.loadBalancer.vpcId,
+                                                  provider: 'aws'})">
+              {{ctrl.loadBalancer.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
       <dl ng-if="ctrl.targetGroup.serverGroups && ctrl.targetGroup.serverGroups.length" class="horizontal-when-filters-collapsed">
         <dt>Server Groups</dt>
         <dd>

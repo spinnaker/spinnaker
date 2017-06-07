@@ -18,6 +18,7 @@ export class AwsTargetGroupDetailsController {
   public application: Application;
   public state = { loading: true };
   public targetGroup: ITargetGroup;
+  public loadBalancer: ILoadBalancer;
 
   constructor(private $scope: IScope,
               private $q: IQService,
@@ -67,6 +68,7 @@ export class AwsTargetGroupDetailsController {
     // end up causing problems, we can add a /targetGroups controller to clouddriver and expose it in gate like the
     // loadBalancer controller.
     this.targetGroup = targetGroup;
+    this.loadBalancer = appLoadBalancer;
     this.state.loading = false;
 
     return this.$q.when(null);
