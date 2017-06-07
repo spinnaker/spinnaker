@@ -29,10 +29,13 @@ class EddaApiFactory {
   }
 
   public EddaApi createApi(String endpointTemplate, String region) {
-    new RestAdapter.Builder()
-      .setConverter(eddaConverter)
-      .setEndpoint(endpointTemplate.replaceAll(Pattern.quote('{{region}}'), region))
-      .build()
-      .create(EddaApi)
+    if (endpointTemplate) {
+      return new RestAdapter.Builder()
+        .setConverter(eddaConverter)
+        .setEndpoint(endpointTemplate.replaceAll(Pattern.quote('{{region}}'), region))
+        .build()
+        .create(EddaApi)
+    }
+    return null
   }
 }
