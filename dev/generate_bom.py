@@ -252,7 +252,7 @@ class BomGenerator(Annotator):
     if not self.__options.bintray_repo:
       raise ValueError('No Debian repository provided.')
 
-    output_yaml[ARTIFACT_SOURCES][DEBIAN_REPOSITORY] = self.__options.bintray_repo
+    output_yaml[ARTIFACT_SOURCES][DEBIAN_REPOSITORY] = 'https://dl.bintray.com/' + self.__options.bintray_repo
     output_yaml[ARTIFACT_SOURCES][DOCKER_REGISTRY] = self.__docker_registry
     output_yaml[ARTIFACT_SOURCES][GOOGLE_IMAGE_PROJECT] = self.__google_image_project
     output_yaml[ARTIFACT_SOURCES][GIT_PREFIX] = self.__git_prefix
