@@ -1,6 +1,5 @@
 dependencies {
   compile spinnaker.dependency('bootAutoConfigure')
-  compile "io.springfox:springfox-swagger2:2.2.2"
-  compile "io.springfox:springfox-swagger-ui:2.2.2"
-  compile "com.wordnik:swagger-annotations:1.3.13"
+  compile "io.springfox:springfox-swagger2:2.7.0"
+  compile "io.springfox:springfox-swagger-ui:2.7.0"
 }
