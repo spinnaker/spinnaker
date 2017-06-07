@@ -24,7 +24,6 @@ import io.gatling.core.structure.PopulationBuilder
 import io.gatling.http.Predef._
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.duration._
 
 class ClouddriverSimulation extends Simulation {
 
@@ -37,29 +36,26 @@ class ClouddriverSimulation extends Simulation {
   def createScenarioList(): List[PopulationBuilder] = {
     val scenarios: ListBuffer[PopulationBuilder] = new ListBuffer()
 
-    if (config.fetchApplications.rampUsersTo > 0) {
+    if (config.fetchApplications.constantUsersPerSec > 0) {
       scenarios.append(
         ClouddriverScenarios.fetchApplications().inject(
-          rampUsersPerSec(config.fetchApplications.rampUsersPerSec) to config.fetchApplications.rampUsersTo during config.rampUpPeriod.seconds,
-          constantUsersPerSec(config.fetchApplications.rampUsersTo) during config.duration
+          constantUsersPerSec(config.fetchApplications.constantUsersPerSec) during config.fetchApplications.constantUsersDurationSec
         ).protocols(http.baseURL(config.serviceUrl))
       )
 
       scenarios.append(
         ClouddriverScenarios.fetchApplicationsExpanded().inject(
-          rampUsersPerSec(config.fetchApplications.rampUsersPerSec) to config.fetchApplications.rampUsersTo during config.rampUpPeriod.seconds,
-          constantUsersPerSec(config.fetchApplications.rampUsersTo) during config.duration
+          constantUsersPerSec(config.fetchApplications.constantUsersPerSec) during config.fetchApplications.constantUsersDurationSec
         ).protocols(http.baseURL(config.serviceUrl))
       )
     }
 
-    if (config.fetchServerGroups.rampUsersTo > 0) {
+    if (config.fetchServerGroups.constantUsersPerSec > 0) {
       config.fetchServerGroups.applicationFiles.foreach(a => {
         val applicationFeeder: RecordSeqFeederBuilder[Any] = jsonFile(a).circular
         scenarios.append(
           ClouddriverScenarios.fetchServerGroups(new File(a).getName, applicationFeeder).inject(
-            rampUsersPerSec(config.fetchServerGroups.rampUsersPerSec) to config.fetchServerGroups.rampUsersTo during config.rampUpPeriod.seconds,
-            constantUsersPerSec(config.fetchServerGroups.rampUsersTo) during config.duration
+            constantUsersPerSec(config.fetchServerGroups.constantUsersPerSec) during config.fetchServerGroups.constantUsersDurationSec
           ).protocols(http.baseURL(config.serviceUrl))
         )
       })

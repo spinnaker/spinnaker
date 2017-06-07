@@ -38,19 +38,14 @@ class ClouddriverSimulationConfig(config: Config) {
 
   val serviceUrl = config.getString("service.clouddriver.serviceUrl")
 
-  val rampUpPeriod = config.getInt("service.clouddriver.rampUpPeriod")
-  val duration = config.getInt("service.clouddriver.duration")
-
   val fetchApplications = new {
-    val rampUsersPerSec = config.getInt("service.clouddriver.fetchApplications.rampUsersPerSec")
-    val rampUsersTo = config.getInt("service.clouddriver.fetchApplications.rampUsersTo")
+    val constantUsersPerSec = config.getInt("service.clouddriver.fetchApplications.constantUsersPerSec")
+    val constantUsersDurationSec = config.getInt("service.clouddriver.fetchApplications.constantUsersDurationSec")
   }
 
   val fetchServerGroups = new {
-    val rampUsersPerSec = config.getInt("service.clouddriver.fetchServerGroups.rampUsersPerSec")
-    val rampUsersTo = config.getInt("service.clouddriver.fetchServerGroups.rampUsersTo")
+    val constantUsersPerSec = config.getInt("service.clouddriver.fetchServerGroups.constantUsersPerSec")
+    val constantUsersDurationSec = config.getInt("service.clouddriver.fetchServerGroups.constantUsersDurationSec")
     val applicationFiles : Set[String] = config.getStringList("service.clouddriver.fetchServerGroups.applicationFiles").asScala.toSet
   }
-
-
 }
