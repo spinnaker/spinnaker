@@ -30,7 +30,7 @@ class PooledRequest<T> implements Runnable {
   private final long startTime = System.nanoTime();
 
   PooledRequest(Registry registry, String partition, Callable<T> work) {
-    this.timer = registry.timer(registry.createId("pooledRequest.execute.time", "partition", partition));
+    this.timer = registry.timer(registry.createId("pooledRequestQueue.enqueueTime", "partition", partition));
     this.result = new Promise<>(registry, partition);
     this.work = work;
   }

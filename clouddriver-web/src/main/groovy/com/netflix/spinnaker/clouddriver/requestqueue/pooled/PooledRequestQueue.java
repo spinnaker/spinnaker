@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
 
+import com.netflix.spectator.api.Id;
 import com.netflix.spectator.api.NoopRegistry;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue;
@@ -80,6 +81,7 @@ public class PooledRequestQueue implements RequestQueue {
 
   @Override
   public <T> T execute(String partition, Callable<T> operation, long timeout, TimeUnit unit) throws Throwable {
+    final long startTime = System.nanoTime();
     final Queue<PooledRequest<?>> queue;
     if (!partitionedRequests.containsKey(partition)) {
       Queue<PooledRequest<?>> newQueue = new LinkedBlockingQueue<>();
@@ -100,6 +102,17 @@ public class PooledRequestQueue implements RequestQueue {
     queue.offer(request);
     pollCoordinator.notifyItemsAdded();
 
-    return request.getPromise().blockingGetOrThrow(timeout, unit);
+
+    Id id = registry.createId("pooledRequestQueue.totalTime", "partition", partition);
+    try {
+      T result = request.getPromise().blockingGetOrThrow(timeout, unit);
+      id = id.withTag("success", "true");
+      return result;
+    } catch (Throwable t) {
+      id = id.withTags("success", "false", "cause", t.getClass().getSimpleName());
+      throw t;
+    } finally {
+      registry.timer(id).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
+    }
   }
 }

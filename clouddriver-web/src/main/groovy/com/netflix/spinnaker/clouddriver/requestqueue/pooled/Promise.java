@@ -81,7 +81,7 @@ class Promise<T> {
     try {
       if (!latch.await(timeout, unit)) {
         registry.counter(registry.createId("pooledRequestQueue.promise.timeout", "partition", partition)).increment();
-        completeWithException(new TimeoutException());
+        completeWithException(new PromiseTimeoutException());
       }
     } catch (Throwable t) {
       completeWithException(t);

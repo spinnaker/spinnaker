@@ -41,6 +41,6 @@ class PooledRequestQueueSpec extends Specification {
     Long result = queue.execute("foo", { Thread.sleep(20); return 12345L })
 
     then:
-    thrown(TimeoutException)
+    thrown(PromiseTimeoutException)
   }
 }
