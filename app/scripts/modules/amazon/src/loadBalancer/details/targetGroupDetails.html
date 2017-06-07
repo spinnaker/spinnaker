@@ -54,6 +54,21 @@
         <dt>Port</dt>
         <dd>{{ctrl.targetGroup.port}}</dd>
       </dl>
+      <dl ng-if="ctrl.targetGroup.serverGroups && ctrl.targetGroup.serverGroups.length" class="horizontal-when-filters-collapsed">
+        <dt>Server Groups</dt>
+        <dd>
+          <ul class="collapse-margin-on-filter-collapse">
+            <li ng-repeat="serverGroup in ctrl.targetGroup.serverGroups | orderBy: ['isDisabled', '-name']">
+              <a ui-sref="^.serverGroup({region: serverGroup.region,
+                                          accountId: serverGroup.account,
+                                          serverGroup: serverGroup.name,
+                                          provider: 'aws'})">
+              {{serverGroup.name}}
+              </a>
+            </li>
+          </ul>
+        </dd>
+      </dl>
     </collapsible-section>
     <collapsible-section heading="Status" expanded="true">
       <health-counts class="pull-left" container="ctrl.targetGroup.instanceCounts"></health-counts>
