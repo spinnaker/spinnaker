@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.CompleteExecution
 import com.netflix.spinnaker.orca.q.ConfigurationError
+import com.netflix.spinnaker.orca.q.InvalidExecutionId
 import com.netflix.spinnaker.orca.q.MessageHandler
 import com.netflix.spinnaker.orca.q.Queue
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -33,7 +35,16 @@ open class ConfigurationErrorHandler
 
   override val messageType = ConfigurationError::class.java
 
+  private val log = LoggerFactory.getLogger(javaClass)
+
   override fun handle(message: ConfigurationError) {
-    queue.push(CompleteExecution(message))
+    when (message) {
+      is InvalidExecutionId ->
+        log.error("No such ${message.executionType.simpleName} ${message.executionId} for ${message.application}")
+      else -> {
+        log.error("${message.javaClass.simpleName} for ${message.executionType.simpleName} ${message.executionId} for ${message.application}")
+        repository.updateStatus(message.executionId, TERMINAL)
+      }
+    }
   }
 }

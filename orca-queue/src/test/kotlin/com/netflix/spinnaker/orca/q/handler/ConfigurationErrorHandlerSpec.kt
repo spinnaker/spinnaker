@@ -16,14 +16,17 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spinnaker.orca.ExecutionStatus.TERMINAL
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.reset
 import com.nhaarman.mockito_kotlin.verify
+import com.nhaarman.mockito_kotlin.verifyZeroInteractions
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 
@@ -36,26 +39,45 @@ object ConfigurationErrorHandlerSpec : SubjectSpek<ConfigurationErrorHandler>({
     ConfigurationErrorHandler(queue, repository)
   }
 
-  fun resetMocks() = reset(queue)
+  fun resetMocks() = reset(queue, repository)
 
-  setOf(
-    InvalidExecutionId(Pipeline::class.java, "1", "foo"),
+  InvalidExecutionId(Pipeline::class.java, "1", "foo").let { message ->
+    describe("handing a ${message.javaClass.simpleName} event") {
+      afterGroup(::resetMocks)
+
+      on("receiving $message") {
+        subject.handle(message)
+      }
+
+      it("does not try to update the execution status") {
+        verifyZeroInteractions(repository)
+      }
+
+      it("does not push any messages to the queue") {
+        verifyZeroInteractions(queue)
+      }
+    }
+  }
+
+  setOf<ConfigurationError>(
     InvalidStageId(Pipeline::class.java, "1", "foo", "1"),
-    InvalidTaskType(Pipeline::class.java, "1", "foo", "1", InvalidTask::class.java.name)
+    InvalidTaskId(Pipeline::class.java, "1", "foo", "1", "1"),
+    InvalidTaskType(Pipeline::class.java, "1", "foo", "1", InvalidTask::class.java.name),
+    NoDownstreamTasks(Pipeline::class.java, "1", "foo", "1", "1")
   ).forEach { message ->
     describe("handing a ${message.javaClass.simpleName} event") {
       afterGroup(::resetMocks)
 
-      action("the handler receives a message") {
+      on("receiving $message") {
         subject.handle(message)
       }
 
       it("marks the execution as terminal") {
-        verify(queue).push(CompleteExecution(
-          Pipeline::class.java,
-          message.executionId,
-          "foo"
-        ))
+        verify(repository).updateStatus(message.executionId, TERMINAL)
+      }
+
+      it("does not push any messages to the queue") {
+        verifyZeroInteractions(queue)
       }
     }
   }
