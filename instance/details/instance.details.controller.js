@@ -13,7 +13,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
   ACCOUNT_SERVICE,
   INSTANCE_WRITE_SERVICE,

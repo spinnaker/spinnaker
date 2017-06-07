@@ -5,7 +5,7 @@ import { get, has, filter } from 'lodash';
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.titus.pipeline.stage.runJob.executionDetails.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
 ])
   .controller('titusRunJobExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService, accountService) {
 

@@ -13,7 +13,7 @@ import {
 } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.serverGroup.details.titus.controller', [
-  require('angular-ui-router').default,
+  require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
   require('../configure/ServerGroupCommandBuilder.js'),
   SERVER_GROUP_WARNING_MESSAGE_SERVICE,
