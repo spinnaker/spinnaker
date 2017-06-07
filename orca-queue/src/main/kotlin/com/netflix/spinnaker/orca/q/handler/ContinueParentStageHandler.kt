@@ -49,7 +49,7 @@ open class ContinueParentStageHandler
         } else {
           queue.push(CompleteStage(stage, SUCCEEDED))
         }
-      } else {
+      } else if (!stage.anyBeforeStagesFailed()) {
         log.warn("Re-queuing $message as other BEFORE stages are still running")
         queue.push(message, retryDelay)
       }

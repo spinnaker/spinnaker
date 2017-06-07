@@ -16,8 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
-import com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.spek.and
@@ -70,6 +69,36 @@ object ContinueParentStageHandlerSpec : SubjectSpek<ContinueParentStageHandler>(
 
       it("re-queues the message for later evaluation") {
         verify(queue).push(message, retryDelay)
+      }
+    }
+
+    given("another pre-stage failed") {
+      val pipeline = pipeline {
+        application = "foo"
+        stage {
+          refId = "1"
+          type = stageWithSyntheticBefore.type
+          stageWithSyntheticBefore.buildSyntheticStages(this)
+          stageWithSyntheticBefore.buildTasks(this)
+        }
+      }
+
+      val message = ContinueParentStage(pipeline.stageByRef("1"))
+
+      beforeGroup {
+        pipeline.stageByRef("1<1").status = SUCCEEDED
+        pipeline.stageByRef("1<2").status = TERMINAL
+        whenever(repository.retrievePipeline(pipeline.id)) doReturn pipeline
+      }
+
+      afterGroup(::resetMocks)
+
+      on("receiving $message") {
+        subject.handle(message)
+      }
+
+      it("does not re-queue the message") {
+        verifyZeroInteractions(queue)
       }
     }
 

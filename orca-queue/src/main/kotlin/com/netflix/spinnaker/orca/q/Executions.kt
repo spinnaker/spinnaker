@@ -107,6 +107,9 @@ fun Stage<*>.beforeStages(): List<Stage<*>> =
 fun Stage<*>.allBeforeStagesComplete(): Boolean =
   beforeStages().all { it.getStatus() in listOf(SUCCEEDED, FAILED_CONTINUE, SKIPPED) }
 
+fun Stage<*>.anyBeforeStagesFailed(): Boolean =
+  beforeStages().any { it.getStatus() in listOf(TERMINAL, STOPPED, CANCELED) }
+
 fun Stage<*>.hasTasks(): Boolean =
   getTasks().isNotEmpty()
 
