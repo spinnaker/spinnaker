@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import springfox.documentation.annotations.ApiIgnore
 
 import javax.servlet.http.HttpServletResponse
 import java.util.regex.Pattern
@@ -68,8 +69,8 @@ class AuthController {
     }
   }
 
-  @RequestMapping("/user")
-  User user(@SpinnakerUser User user) {
+  @RequestMapping(value = "/user", method = RequestMethod.GET)
+  User user(@ApiIgnore @SpinnakerUser User user) {
     if (!user) {
       return user
     }
@@ -81,12 +82,12 @@ class AuthController {
     return user
   }
 
-  @RequestMapping("/user/serviceAccounts")
-  List<String> getServiceAccounts(@SpinnakerUser User user) {
+  @RequestMapping(value = "/user/serviceAccounts", method = RequestMethod.GET)
+  List<String> getServiceAccounts(@ApiIgnore @SpinnakerUser User user) {
     permissionService.getServiceAccounts(user)
   }
 
-  @RequestMapping("/loggedOut")
+  @RequestMapping(value = "/loggedOut", method = RequestMethod.GET)
   String loggedOut() {
     return LOGOUT_MESSAGES[r.nextInt(LOGOUT_MESSAGES.size()+1)]
   }
@@ -104,7 +105,7 @@ class AuthController {
     }
   }
 
-  @RequestMapping("/redirect")
+  @RequestMapping(value = "/redirect", method = RequestMethod.GET)
   void redirect(HttpServletResponse response, @RequestParam String to) {
     validDeckRedirect(to) ?
         response.sendRedirect(to) :

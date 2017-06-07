@@ -54,6 +54,7 @@ swagger:
   contact:
   patterns:
     - .*tasks.*
+    - .*auth.*
     - .*applications.*
     - .*securityGroups.*
     - /search
