@@ -32,7 +32,7 @@ ARTIFACT_SOURCES = 'artifactSources'
 DEBIAN_REPOSITORY = 'debianRepository'
 DOCKER_REGISTRY = 'dockerRegistry'
 GOOGLE_IMAGE_PROJECT = 'googleImageProject'
-GITHUB_ORG = 'githubOrganization'
+GIT_PREFIX = 'gitPrefix'
 
 BUG_FIXES = 'Bug Fixes'
 FEATURES = 'Features'
@@ -105,7 +105,7 @@ class BomGenerator(Annotator):
     self.__changelog_output = options.changelog_output
     self.__alias = options.bom_alias
     self.__google_image_project = options.google_image_project
-    self.__github_org = options.github_org
+    self.__git_prefix = options.git_prefix
     super(BomGenerator, self).__init__(options)
 
   @property
@@ -127,8 +127,8 @@ class BomGenerator(Annotator):
                         help="Docker registry to push the container images to.")
     parser.add_argument('--google_image_project', default='marketplace-spinnaker-release',
                         help="GCE project we publish HA Spinnaker component images to.")
-    parser.add_argument('--github_org', default='https://github.com/spinnaker',
-                        help="Github organization we host source.")
+    parser.add_argument('--git_prefix', default='https://github.com/spinnaker',
+                        help="Prefix to the component source URIs.")
     super(BomGenerator, cls).init_argument_parser(parser)
 
   def __version_from_tag(self, comp):
@@ -255,7 +255,7 @@ class BomGenerator(Annotator):
     output_yaml[ARTIFACT_SOURCES][DEBIAN_REPOSITORY] = self.__options.bintray_repo
     output_yaml[ARTIFACT_SOURCES][DOCKER_REGISTRY] = self.__docker_registry
     output_yaml[ARTIFACT_SOURCES][GOOGLE_IMAGE_PROJECT] = self.__google_image_project
-    output_yaml[ARTIFACT_SOURCES][GITHUB_ORG] = self.__github_org
+    output_yaml[ARTIFACT_SOURCES][GIT_PREFIX] = self.__git_prefix
 
     for comp in self.__component_versions:
       version_bump = self.__component_versions[comp]
