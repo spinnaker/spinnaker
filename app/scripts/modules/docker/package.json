@@ -1,9 +1,10 @@
 {
   "name": "@spinnaker/docker",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "main": "lib/lib.js",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "lib": "tsc && node ../../../../node_modules/webpack/bin/webpack.js"
+    "lib": "tsc && node ../../../../node_modules/webpack/bin/webpack.js",
+    "prepublish": "npm run lib"
   }
 }
