@@ -420,7 +420,7 @@ class KubernetesApiConverter {
             res = res.withNewSecretKeyRef(secret.key, secret.secretName)
           } else if (envVar.envSource.fieldRef) {
             def fieldPath = envVar.envSource.fieldRef.fieldPath
-            res = res.withNewFieldRef().withFieldPath(fieldPath)
+            res = res.withNewFieldRef().withFieldPath(fieldPath).endFieldRef()
           } else {
             return null
           }
