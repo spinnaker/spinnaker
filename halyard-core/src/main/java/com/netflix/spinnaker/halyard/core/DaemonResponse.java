@@ -112,6 +112,12 @@ public class DaemonResponse<T> {
           problemSet = validateResponse.get();
         }
         problemSet.throwifSeverityExceeds(severity);
+      } catch (Exception e) {
+        log.error("Unknown exception encountered: ", e);
+        throw e;
+      }
+
+      try {
         responseBody = buildResponse.get();
       } catch (HalException e) {
         // This is OK, propagate the exception to the HalconfigExceptionHandler
