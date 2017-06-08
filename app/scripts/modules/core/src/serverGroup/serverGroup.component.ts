@@ -29,6 +29,7 @@ export class ServerGroupController implements IComponentController {
   public parentHeading: string;
   public hasLoadBalancers: boolean;
   public hasDiscovery: boolean;
+  public key: string;
 
   public headerIsSticky: () => boolean;
   public viewModel: ServerGroupViewModel;
@@ -64,6 +65,8 @@ export class ServerGroupController implements IComponentController {
       }
       return this.viewModel.instances.length > 20;
     };
+    const { account, region, name } = this.serverGroup;
+    this.key = ['serverGroup', account, region, name].join('-');
   }
 
   public loadDetails(event: JQueryEventObject): void {
