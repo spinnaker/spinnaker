@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
-import com.amazonaws.services.cloudwatchevents.model.DescribeRuleRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersResult
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
@@ -38,6 +37,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
 import com.netflix.spinnaker.clouddriver.aws.edda.EddaApi
+import com.netflix.spinnaker.clouddriver.aws.model.edda.EddaRule
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.EddaTimeoutConfig
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -73,7 +73,6 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
   @Override
   CacheResult loadDataInternal(ProviderCache providerCache) {
-    // TODO: Support caching of ALBs
     def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region)
     List<LoadBalancer> allLoadBalancers = []
     def describeLoadBalancerRequest = new DescribeLoadBalancersRequest().withNames()
@@ -100,7 +99,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         try {
           List<Listener> listeners = eddaApi.listeners(loadBalancer.loadBalancerName)
           loadBalancerToListeners.get(loadBalancer).addAll(listeners)
-        } catch (RetrofitError e) {
+        } catch (RetrofitError ignore) {
           // this is acceptable since we may be waiting for the caches to catch up
         }
       } else {
@@ -115,22 +114,33 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
               break
             }
           }
-        } catch (LoadBalancerNotFoundException e) {
+        } catch (LoadBalancerNotFoundException ignore) {
           // this is acceptable since we may be waiting for the caches to catch up
         }
       }
     }
 
     Map<Listener, List<Rule>> listenerToRules = new HashMap<>()
+
     for (loadBalancer in allLoadBalancers) {
-      for (listener in loadBalancerToListeners.get(loadBalancer)) {
-        listenerToRules[listener] = []
-        try {
-          DescribeRulesRequest describeRulesRequest = new DescribeRulesRequest(listenerArn: listener.listenerArn)
-          DescribeRulesResult result = loadBalancing.describeRules(describeRulesRequest)
-          listenerToRules.get(listener).addAll(result.rules)
-        } catch (ListenerNotFoundException e) {
-          // should be fine
+      List<Listener> listeners = loadBalancerToListeners.get(loadBalancer)
+      if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
+        List<EddaRule> rules = eddaApi.rules(loadBalancer.loadBalancerName)
+        Map<String, Listener> listenerByListenerArn = listeners.collectEntries { [(it.listenerArn): it] }
+        for (EddaRule eddaRule : rules) {
+          Listener listener = listenerByListenerArn.get(eddaRule.listenerArn)
+          listenerToRules.put(listener, eddaRule.rules)
+        }
+      } else {
+        for (listener in listeners) {
+          listenerToRules[listener] = []
+          try {
+            DescribeRulesRequest describeRulesRequest = new DescribeRulesRequest(listenerArn: listener.listenerArn)
+            DescribeRulesResult result = loadBalancing.describeRules(describeRulesRequest)
+            listenerToRules.get(listener).addAll(result.rules)
+          } catch (ListenerNotFoundException ignore) {
+            // should be fine
+          }
         }
       }
     }
@@ -188,7 +198,7 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           Map<String, Object> listenerAttributes = objectMapper.convertValue(listener, ATTRIBUTES)
           listenerAttributes.loadBalancerName = ArnUtils.extractLoadBalancerName((String)listenerAttributes.loadBalancerArn).get()
           listenerAttributes.remove('loadBalancerArn')
-          for (Map<String, String> action : (List<Map<String, String>>)listenerAttributes.defaultActions) {
+          for (Map<String, Object> action : (List<Map<String, String>>)listenerAttributes.defaultActions) {
             String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn).get()
             action.targetGroupName = targetGroupName
             action.remove("targetGroupArn")
