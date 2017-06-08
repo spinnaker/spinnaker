@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import argparse
-import datetime
 import logging
 import os
 import re
@@ -380,8 +379,7 @@ class Annotator(object):
   @classmethod
   def init_argument_parser(cls, parser):
     """Initialize command-line arguments."""
-    parser.add_argument('--build_number',
-                        default='{:%Y_%m_%d_%H_%M_%S}'.format(datetime.datetime.utcnow()),
+    parser.add_argument('--build_number', default=os.environ.get('BUILD_NUMBER'),
                         help='The build number to append to the semantic version tag.')
     parser.add_argument('--branch', default='master',
                         help='Git branch to checkout.')
