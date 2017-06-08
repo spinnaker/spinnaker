@@ -177,10 +177,7 @@ public class HalconfigParser {
       writer.write(yamlParser.dump(objectMapper.convertValue(local, Map.class)));
       writer.commit();
     } catch (IOException e) {
-      throw new HalException(
-          new ConfigProblemBuilder(Severity.FATAL,
-              "Failure writing your halconfig to path \"" + halconfigPath + "\"").build()
-      );
+      throw new HalException(Severity.FATAL, "Failure writing your halconfig to path \"" + halconfigPath + "\": " + e.getMessage(), e);
     } finally {
       DaemonTaskHandler.setContext(null);
       if (writer != null) {
