@@ -235,7 +235,10 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
       var allPhasesResolved = true;
       // remove any invalid requisiteStageRefIds, set requisiteStageRefIds to empty for synthetic stages
       stages.forEach(function (stage) {
-        stage.requisiteStageRefIds = stage.requisiteStageRefIds || [];
+        if (_.has(stage, 'context.requisiteIds')) {
+          stage.context.requisiteIds = _.uniq(stage.context.requisiteIds);
+        }
+        stage.requisiteStageRefIds = _.uniq(stage.requisiteStageRefIds || []);
         stage.requisiteStageRefIds = stage.requisiteStageRefIds.filter(function(parentId) {
           return _.find(stages, { refId: parentId });
         });

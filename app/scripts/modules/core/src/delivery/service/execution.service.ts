@@ -60,7 +60,7 @@ export class ExecutionService {
         return;
       }
       executions.forEach((execution) => {
-        const stringVal = JSON.stringify(execution, this.jsonReplacer);
+        const stringVal = this.stringifyExecution(execution);
         // do not transform if it hasn't changed
         const match = (application.executions.data || []).find((test: IExecution) => test.id === execution.id);
         if (!match || !match.stringVal || match.stringVal !== stringVal) {
@@ -94,7 +94,7 @@ export class ExecutionService {
 
     // remove these fields - they are not of interest when determining if the pipeline has changed
     private jsonReplacer(key: string, value: any): any {
-      if (key === 'instances' || key === 'asg' || key === 'commits' || key === 'history' || key === '$$hashKey') {
+      if (key === 'instances' || key === 'asg' || key === 'commits' || key === 'history' || key === '$$hashKey' || key === 'requisiteIds' || key === 'requisiteStageRefIds') {
         return undefined;
       }
       return value;
@@ -281,8 +281,8 @@ export class ExecutionService {
         } else {
           // if the stage was not already completed, update it in place if it has changed to save Angular
           // from removing, then re-rendering every DOM node
-          if (!updatedSummary.isComplete || !current.isComplete) {
-            if (JSON.stringify(current, this.jsonReplacer) !== JSON.stringify(updatedSummary, this.jsonReplacer)) {
+          if ((!updatedSummary.isComplete || !currentSummary.isComplete) && (!updatedSummary.hasNotStarted || !currentSummary.hasNotStarted)) {
+            if (JSON.stringify(currentSummary, this.jsonReplacer) !== JSON.stringify(updatedSummary, this.jsonReplacer)) {
               Object.assign(currentSummary, updatedSummary);
             }
           }
@@ -306,7 +306,7 @@ export class ExecutionService {
       if (dataSource.data && dataSource.data.length) {
         dataSource.data.forEach((currentExecution: IExecution, idx: number) => {
           if (updatedExecution.id === currentExecution.id) {
-            updatedExecution.stringVal = JSON.stringify(updatedExecution, this.jsonReplacer);
+            updatedExecution.stringVal = this.stringifyExecution(updatedExecution);
             if (updatedExecution.status !== currentExecution.status) {
               this.transformExecution(application, updatedExecution);
               dataSource.data[idx] = updatedExecution;
@@ -356,6 +356,12 @@ export class ExecutionService {
         timeout: SETTINGS.pollSchedule * 2 + 5000
       };
       return this.$http(request).then(resp => resp.data);
+    }
+
+    private stringifyExecution(execution: IExecution): string {
+      const transient = Object.assign({}, execution);
+      transient.stages = transient.stages.filter(s => s.status !== 'SUCCEEDED' && s.status !== 'NOT_STARTED');
+      return JSON.stringify(transient, this.jsonReplacer);
     }
 }
 
