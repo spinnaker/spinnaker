@@ -3490,6 +3490,7 @@ hal config storage s3 edit [parameters]
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
+ * `--endpoint`: An alternate endpoint that your S3-compatible storage can be found at. This is intended for self-hosted storage services with S3-compatible APIs, e.g. Minio. If supplied, this storage type cannot be validated.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region.
  * `--root-folder`: The root folder in the chosen bucket to place all of Spinnaker's persistent data in.

@@ -29,6 +29,7 @@ public class S3PersistentStore extends PersistentStore {
   private String bucket;
   private String rootFolder = "front50";
   private String region;
+  private String endpoint;
   private String accessKeyId;
   private String secretAccessKey;
 

@@ -47,6 +47,13 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
   private String rootFolder;
 
   @Parameter(
+      names = "--endpoint",
+      description = "An alternate endpoint that your S3-compatible storage can be found at. This is intended for "
+        + "self-hosted storage services with S3-compatible APIs, e.g. Minio. If supplied, this storage type cannot be validated."
+  )
+  private String endpoint;
+
+  @Parameter(
     names = "--region",
     description = "This is only required if the bucket you specify doesn't exist yet. In that case, the "
       + "bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region."
@@ -77,6 +84,7 @@ public class S3EditCommand extends AbstractPersistentStoreEditCommand<S3Persiste
     persistentStore.setBucket(isSet(bucket) ? bucket : persistentStore.getBucket());
     persistentStore.setRootFolder(isSet(rootFolder) ? rootFolder : persistentStore.getRootFolder());
     persistentStore.setRegion(isSet(region) ? region : persistentStore.getRegion());
+    persistentStore.setEndpoint(isSet(endpoint) ? endpoint : persistentStore.getEndpoint());
     persistentStore.setAccessKeyId(isSet(accessKeyId) ? accessKeyId : persistentStore.getAccessKeyId());
     persistentStore.setSecretAccessKey(isSet(secretAccessKey) ? secretAccessKey : persistentStore.getSecretAccessKey());
 
