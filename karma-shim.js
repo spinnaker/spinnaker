@@ -20,4 +20,4 @@ beforeEach(angular.mock.module('bcherny/ngimport'));
 require('./test/helpers/customMatchers');
 
 const testContext = require.context('./app/scripts/', true, /\.spec\.(js|ts|tsx)$/);
-testContext.keys().forEach(testContext);
+testContext.keys().filter(k => !k.includes('/lib/')).forEach(testContext);
