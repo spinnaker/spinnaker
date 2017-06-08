@@ -98,6 +98,7 @@ public class RolesController {
   public long sync(HttpServletResponse response,
                    @RequestBody(required = false) List<String> specificRoles) throws IOException {
     if (specificRoles == null) {
+      log.info("Full role sync invoked by web request.");
       long count = syncer.syncAndReturn();
       if (count == 0) {
         response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE,
@@ -106,8 +107,10 @@ public class RolesController {
       return count;
     }
 
+    log.info("Web request role sync of roles: " + String.join(",", specificRoles));
     Map<String, UserPermission> affectedUsers = permissionsRepository.getAllByRoles(specificRoles);
     if (affectedUsers.size() == 0) {
+      log.info("No users found with specified roles");
       return 0;
     }
     return syncer.updateUserPermissions(affectedUsers);

@@ -67,7 +67,7 @@ class PermissionsSpec extends Specification {
     when:
     Permissions.Builder b = new Permissions.Builder()
     b.set([(R): ["foo"], (W): ["bar"]])
-    
+
     then:
     permissionJson ==  mapper.writeValueAsString(b.build())
   }
@@ -132,6 +132,13 @@ class PermissionsSpec extends Specification {
 
     then:
     p.allGroups() == ["bar"] as Set
+
+    when:
+    p = Permissions.factory([(R): ["foo"], (W): ["bar"]])
+
+    then:
+    p.allGroups() == ["foo", "bar"] as Set
+
   }
 
   def "test isRestricted"() {
