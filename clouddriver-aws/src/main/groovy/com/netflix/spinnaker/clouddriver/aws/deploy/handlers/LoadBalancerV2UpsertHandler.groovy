@@ -306,7 +306,7 @@ class LoadBalancerV2UpsertHandler {
             List<UpsertAmazonLoadBalancerV2Description.Action> actions = rule.actions.collect {
               UpsertAmazonLoadBalancerV2Description.Action action = new UpsertAmazonLoadBalancerV2Description.Action()
               action.setTargetGroupName(ArnUtils.extractTargetGroupName(it.targetGroupArn).get())
-              action.setType(ActionTypeEnum.fromValue(it.type))
+              action.setType(it.type)
               action
             }
 

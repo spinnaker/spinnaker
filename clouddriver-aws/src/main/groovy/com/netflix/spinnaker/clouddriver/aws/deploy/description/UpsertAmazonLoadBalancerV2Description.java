@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum;
 import com.amazonaws.services.elasticloadbalancingv2.model.Certificate;
 import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum;
-import com.amazonaws.services.elasticloadbalancingv2.model.Rule;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -238,14 +237,14 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
   }
 
   public static class Action {
-    private ActionTypeEnum type = ActionTypeEnum.Forward;
+    private String type = ActionTypeEnum.Forward.toString();
     private String targetGroupName;
 
-    public ActionTypeEnum getType() {
+    public String getType() {
       return type;
     }
 
-    public void setType(ActionTypeEnum type) {
+    public void setType(String type) {
       this.type = type;
     }
 
