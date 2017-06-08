@@ -24,6 +24,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -111,7 +112,7 @@ public class DockerRegistryAccountValidator extends Validator<DockerRegistryAcco
       }
     }
 
-    if (authFailureProblem != null) {
+    if (authFailureProblem != null && !StringUtils.isEmpty(resolvedPassword)) {
       String message = "Your registry password has %s whitespace; if this is unintentional, this may be the cause of failed authentication.";
       if (Character.isWhitespace(resolvedPassword.charAt(0))) {
         authFailureProblem.setRemediation(String.format(message, "leading"));
