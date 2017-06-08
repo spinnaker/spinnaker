@@ -57,8 +57,9 @@ def __record_halyard_nightly_version(version_bump, options):
   check_run_quick('gsutil rsync -r -d {remote_uri} {local_bucket}'
                   .format(remote_uri=bucket_uri, local_bucket=local_bucket_name))
   hal_version = version_bump.version_str.replace('version-', '')
-  new_hal_nightly_entry = ('{version}-{build}: {commit}'
-                           .format(version=hal_version, build=build_number, commit=version_bump.commit_hash))
+  full_hal_version = '{version}-{build}'.format(version=hal_version, build=build_number)
+  new_hal_nightly_entry = ('{full_hal_version}: {commit}'
+                           .format(full_hal_version=full_hal_version, commit=version_bump.commit_hash))
   nightly_entry_file = '{0}/nightly-version-commits.yml'.format(local_bucket_name)
   with open(nightly_entry_file, 'a') as nef:
     nef.write('{0}\n'.format(new_hal_nightly_entry))
@@ -66,9 +67,15 @@ def __record_halyard_nightly_version(version_bump, options):
   check_run_quick('gsutil rsync -r -d {local_bucket} {remote_uri}'
                   .format(remote_uri=bucket_uri, local_bucket=local_bucket_name))
 
+  # Opening with 'w' stomps the old file.
+  with open(options.output_built_halyard_version, 'w') as hal_version_file:
+    hal_version_file.write('{}'.format(full_hal_version))
+
 def init_argument_parser(parser):
   parser.add_argument('--hal_nightly_bucket_uri', default='',
                       help='The URI of the bucket to record the version and commit at which we built Halyard.')
+  parser.add_argument('--output_built_halyard_version', default='',
+                      help='A file path to record the last built Halyard version in.')
   # Don't need to init args for Annotator since BomGenerator extends it.
   BomGenerator.init_argument_parser(parser)
   Builder.init_argument_parser(parser)
