@@ -18,7 +18,7 @@
 package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -29,26 +29,26 @@ class ImageService {
   private static final String GROUP = "images"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
   ProviderLookupService providerLookupService
 
   List<Map> getForAccountAndRegion(String provider, String account, String region, String imageId, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getImagesForAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
-      clouddriverService.getImageDetails(provider, account, region, imageId)
+      clouddriverServiceSelector.select(selectorKey).getImageDetails(provider, account, region, imageId)
     } execute()
   }
 
   List<Map> search(String provider, String query, String region, String account, Integer count, Map<String, Object> additionalFilters, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "searchImages-${providerLookupService.providerForAccount(account)}") {
-      clouddriverService.findImages(provider, query, region, account, count, additionalFilters)
+      clouddriverServiceSelector.select(selectorKey).findImages(provider, query, region, account, count, additionalFilters)
     } execute()
   }
 
   List<String> findTags(String provider, String account, String repository, String selectorKey) {
     HystrixFactory.newListCommand(GROUP, "getTags-${providerLookupService.providerForAccount(account)}") {
-      clouddriverService.findTags(provider, account, repository)
+      clouddriverServiceSelector.select(selectorKey).findTags(provider, account, repository)
     } execute()
   }
 }

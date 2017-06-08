@@ -16,10 +16,11 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
@@ -29,11 +30,12 @@ import org.springframework.web.bind.annotation.RestController
 class SubnetController {
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @ApiOperation(value = "Retrieve a list of subnets for a given cloud provider")
   @RequestMapping(value = "/{cloudProvider}", method = RequestMethod.GET)
-  List<Map> allByCloudProvider(@PathVariable String cloudProvider) {
-    clouddriverService.getSubnets(cloudProvider)
+  List<Map> allByCloudProvider(@PathVariable String cloudProvider,
+                               @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+    clouddriverServiceSelector.select(sourceApp).getSubnets(cloudProvider)
   }
 }

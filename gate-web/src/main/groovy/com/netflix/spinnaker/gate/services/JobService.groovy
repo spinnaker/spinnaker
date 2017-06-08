@@ -18,7 +18,7 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
-import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import groovy.transform.CompileStatic
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -30,7 +30,7 @@ class JobService {
   private static final String GROUP = "jobs"
 
   @Autowired
-  ClouddriverService clouddriverService
+  ClouddriverServiceSelector clouddriverServiceSelector
 
   @Autowired
   InsightConfiguration insightConfiguration
@@ -41,7 +41,7 @@ class JobService {
   List getForApplication(String applicationName, String expand, String selectorKey) {
     String commandKey = Boolean.valueOf(expand) ? "getExpandedJobsForApplication" : "getJobsForApplication"
     HystrixFactory.newListCommand(GROUP, commandKey) {
-      clouddriverService.getJobs(applicationName, expand)
+      clouddriverServiceSelector.select(selectorKey).getJobs(applicationName, expand)
     } execute()
   }
 
@@ -49,7 +49,7 @@ class JobService {
     HystrixFactory.newMapCommand(GROUP, "getJobsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}", {
       try {
         def context = getContext(applicationName, account, region, name)
-        return clouddriverService.getJobDetails(applicationName, account, region, name) + [
+        return clouddriverServiceSelector.select(selectorKey).getJobDetails(applicationName, account, region, name) + [
             "insightActions": insightConfiguration.job.collect { it.applyContext(context) }
         ]
       } catch (RetrofitError e) {

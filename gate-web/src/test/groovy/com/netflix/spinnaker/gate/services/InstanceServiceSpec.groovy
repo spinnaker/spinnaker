@@ -19,15 +19,20 @@ package com.netflix.spinnaker.gate.services
 
 import com.netflix.spinnaker.gate.config.InsightConfiguration
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
+import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import spock.lang.Specification
 
 class InstanceServiceSpec extends Specification {
   void "should include relevant insight actions for instance"() {
     given:
     def service = new InstanceService(
-        clouddriverService: Mock(ClouddriverService) {
-          1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
-          1 * getAccount(_) >> { return [awsAccount: "prod"] }
+        clouddriverServiceSelector: Mock(ClouddriverServiceSelector) {
+          1 * select(_) >> {
+            Mock(ClouddriverService) {
+              1 * getInstanceDetails(_, _, _) >> { return [privateIpAddress: "10.0.0.1", map: [:]] }
+              1 * getAccount(_) >> { return [awsAccount: "prod"] }
+            }
+          }
         },
         providerLookupService: Stub(ProviderLookupService) {
           providerForAccount(_) >> "test"

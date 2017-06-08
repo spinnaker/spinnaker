@@ -151,9 +151,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   }
 
   @Bean
-  ClouddriverServiceSelector clouddriverServiceSelector(OkHttpClient okHttpClient) {
-    ClouddriverService defaultService = createClient "clouddriver", ClouddriverService, okHttpClient
+  ClouddriverService clouddriverService(OkHttpClient okHttpClient) {
+    createClient "clouddriver", ClouddriverService, okHttpClient
+  }
 
+  @Bean
+  ClouddriverServiceSelector clouddriverServiceSelector(ClouddriverService defaultClouddriverService, OkHttpClient okHttpClient) {
     // support named clouddriver service clients
     Map<String, ClouddriverService> dynamicServices = [:]
     if (serviceConfiguration.getService("clouddriver").getConfig().containsKey("dynamicEndpoints")) {
@@ -163,12 +166,7 @@ class GateConfig extends RedisHttpSessionConfiguration {
       }
     }
 
-    return new ClouddriverServiceSelector(defaultService, dynamicServices)
-  }
-
-  @Bean
-  ClouddriverService clouddriverService(OkHttpClient okHttpClient) {
-    createClient "clouddriver", ClouddriverService, okHttpClient
+    return new ClouddriverServiceSelector(defaultClouddriverService, dynamicServices)
   }
 
   //---- semi-optional components:
