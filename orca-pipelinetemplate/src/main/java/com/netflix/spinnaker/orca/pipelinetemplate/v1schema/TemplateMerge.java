@@ -42,6 +42,7 @@ public class TemplateMerge {
 
       result.setStages(mergeIdentifiable(result.getStages(), template.getStages()));
       result.setModules(mergeIdentifiable(result.getModules(), template.getModules()));
+      result.setPartials(mergeIdentifiable(result.getPartials(), template.getPartials()));
     }
 
     // Apply the last template's metadata to the final result

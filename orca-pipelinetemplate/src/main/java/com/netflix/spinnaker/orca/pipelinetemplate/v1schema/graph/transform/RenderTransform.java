@@ -160,7 +160,12 @@ public class RenderTransform implements PipelineTemplateVisitor {
             .withLocation(String.format("template:stages.%s", stage.getId()))
         );
       }
-      PartialDefinition partial = partials.stream().filter(p -> p.getId().equals(partialId)).findFirst().orElseThrow(() -> new TemplateRenderException("guh"));
+      PartialDefinition partial = partials.stream().filter(p -> p.getId().equals(partialId)).findFirst().orElseThrow(() ->
+        TemplateRenderException.fromError(
+          new Error().withMessage("Unable to find Partial by ID: " + partialId)
+            .withLocation(String.format("template:stages.%s", stage.getId()))
+        )
+      );
 
       RenderContext partialContext = context.copy();
       partialContext.getVariables().putAll(stage.getConfig());
