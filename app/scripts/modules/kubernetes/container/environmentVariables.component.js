@@ -21,6 +21,8 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
             return 'Config Map';
           } else if (_.get(envVar, 'envSource.secretSource')) {
             return 'Secret';
+          } else if (_.get(envVar, 'envSource.fieldRef')) {
+            return 'Field Ref';
           } else {
             return 'Explicit';
           }
@@ -36,7 +38,7 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
         this.envVarsSourceTypes.push('Explicit');
       };
 
-      this.sourceTypes = ['Explicit', 'Config Map', 'Secret'];
+      this.sourceTypes = ['Explicit', 'Config Map', 'Secret', 'Field Ref'];
 
       this.updateSourceTypeMap = {
         'Explicit': (envVar) => {
@@ -47,11 +49,26 @@ module.exports = angular.module('spinnaker.deck.kubernetes.environmentVariables.
           if (_.has(envVar, 'envSource.secretSource')) {
             delete envVar.envSource.secretSource;
           }
+          if (_.has(envVar, 'envSource.fieldRef')) {
+            delete envVar.envSource.fieldRef;
+          }
         },
         'Secret': (envVar) => {
           delete envVar.value;
           if (_.has(envVar, 'envSource.configMapSource')) {
             delete envVar.envSource.configMapSource;
+          }
+          if (_.has(envVar, 'envSource.fieldRef')) {
+            delete envVar.envSource.fieldRef;
+          }
+        },
+        'Field Ref': (envVar) => {
+          delete envVar.value;
+          if (_.has(envVar, 'envSource.configMapSource')) {
+            delete envVar.envSource.configMapSource;
+          }
+          if (_.has(envVar, 'envSource.secretSource')) {
+            delete envVar.envSource.secretSource;
           }
         }
       };

@@ -72,6 +72,16 @@
                    ng-model="envVar.envSource.secretSource.key">
           </div>
         </div>
+        <div class="form-group" ng-switch-when="Field Ref">
+          <div class="col-md-3 sm-label-right">
+            Field Path
+          </div>
+          <div class="col-md-3">
+            <input class="form-control input input-sm"
+                   type="text"
+                   ng-model="envVar.envSource.fieldRef.fieldPath">
+          </div>
+        </div>
       </div>
     </td>
   </tr>
