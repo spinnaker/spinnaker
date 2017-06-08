@@ -36,7 +36,6 @@ open class RedisQueueConfiguration {
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
-    currentInstanceId: String,
     deadMessageHandler: DeadMessageHandler,
     publisher: ApplicationEventPublisher
   ) =
@@ -44,7 +43,6 @@ open class RedisQueueConfiguration {
       queueName = redisQueueProperties.queueName,
       pool = redisPool,
       clock = clock,
-      currentInstanceId = currentInstanceId,
       deadMessageHandler = deadMessageHandler::handle,
       publisher = publisher
     )

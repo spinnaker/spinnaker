@@ -40,7 +40,6 @@ private fun createQueue(
     queueName = "test",
     pool = redis!!.pool,
     clock = clock,
-    currentInstanceId = "i-1234",
     deadMessageHandler = deadLetterCallback,
     publisher = publisher
   )
