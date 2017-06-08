@@ -36,8 +36,11 @@ include "orca-extensionpoint",
   "orca-queue-redis",
   "orca-queue-sqs",
   "orca-pipelinetemplate",
-  "orca-validation",
-  "orca-loadtest"
+  "orca-validation"
+
+if (!Boolean.parseBoolean(System.getProperty('skip.loadtest'))) {
+  include "orca-loadtest"
+}
 
 rootProject.name = "orca"
 
