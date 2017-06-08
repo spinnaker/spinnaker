@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -104,7 +105,11 @@ public class AmazonClientInvocationHandler implements InvocationHandler {
       return thisMethod.invoke(this, args);
     } catch (NoSuchMethodException e) {
       wasDelegated = true;
-      return method.invoke(delegate, args);
+      try {
+        return method.invoke(delegate, args);
+      } catch (InvocationTargetException ite) {
+        throw ite.getCause();
+      }
     } finally {
       registry.timer(id.withTag("requestMode", wasDelegated ? "sdkClient" : "edda")).record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
     }

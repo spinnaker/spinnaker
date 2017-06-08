@@ -19,6 +19,7 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
 import com.amazonaws.services.elasticloadbalancingv2.model.*
+import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.UpsertAmazonLoadBalancerV2Description
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
@@ -58,12 +59,11 @@ class LoadBalancerV2UpsertHandler {
       def exceptionMessage = "Failed to modify attributes for target group ${targetGroup.targetGroupName} - reason: ${e.errorMessage}."
       task.updateStatus BASE_PHASE, exceptionMessage
       return exceptionMessage
-    } finally {
-      return null
     }
+    return null
   }
 
-  public static void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer,
+  static void updateLoadBalancer(AmazonElasticLoadBalancing loadBalancing, LoadBalancer loadBalancer,
                                         Collection<String> securityGroups,
                                         List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                         List<UpsertAmazonLoadBalancerV2Description.Listener> listeners) {
@@ -84,26 +84,26 @@ class LoadBalancerV2UpsertHandler {
     task.updateStatus BASE_PHASE, "Security groups updated on ${loadBalancerName}."
 
     // Get existing target groups so we can reconcile
-    def existingTargetGroups = []
+    List<TargetGroup> existingTargetGroups = []
     if (targetGroups.size() > 0) {
       try {
         existingTargetGroups = loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest().withNames(targetGroups.collect {
           it.name
         }))?.targetGroups
-      } catch (TargetGroupNotFoundException e) {
+      } catch (TargetGroupNotFoundException ignore) {
         // If a subset of the target groups requested does not exist, actually returns the target groups that do exist
         // If none of the target groups requested exist, throws an exception instead.
       }
     }
 
     // Can't modify the port or protocol of a target group, so if changed, have to delete/recreate
-    def targetGroupsSplit = existingTargetGroups.split { awsTargetGroup ->
+    List<List<TargetGroup>> targetGroupsSplit = existingTargetGroups.split { awsTargetGroup ->
       (targetGroups.find { it.name == awsTargetGroup.targetGroupName &&
                             it.port == awsTargetGroup.port &&
                             it.protocol.toString() == awsTargetGroup.protocol }) == null
     }
-    def targetGroupsToRemove = targetGroupsSplit[0]
-    def targetGroupsToUpdate = targetGroupsSplit[1]
+    List<TargetGroup> targetGroupsToRemove = targetGroupsSplit[0]
+    List<TargetGroup> targetGroupsToUpdate = targetGroupsSplit[1]
 
     // Remove target groups that existed previously but were not supplied in upsert and should be deleted
     targetGroupsToRemove.each {
@@ -176,59 +176,113 @@ class LoadBalancerV2UpsertHandler {
       }
     }
 
+    // Create/update all listeners
     if (listeners) {
-      // Create aws actions for all listeners actions
-      Map<UpsertAmazonLoadBalancerV2Description.Listener, List<Action>> listenerToActions = new HashMap<>()
+      // Create aws actions and aws rules for all listeners actions
+      Map<UpsertAmazonLoadBalancerV2Description.Listener, List<Action>> listenerToDefaultActions = new HashMap<>()
+      Map<UpsertAmazonLoadBalancerV2Description.Listener, List<Rule>> listenerToRules = new HashMap<>()
       listeners.each { listener ->
-        def actions = []
+        List<Action> defaultActions = []
         listener.defaultActions.each { action ->
-          def targetGroup = existingTargetGroups.find { it.targetGroupName == action.targetGroupName }
+          TargetGroup targetGroup = existingTargetGroups.find { it.targetGroupName == action.targetGroupName }
           if (targetGroup != null) {
             Action awsAction = new Action().withTargetGroupArn(targetGroup.targetGroupArn).withType(action.type)
-            actions.add(awsAction)
+            defaultActions.add(awsAction)
           } else {
-            def exceptionMessage = "Target group name ${action.targetGroupName} not found when trying to create action for listener ${listener.protocol}:${listener.port}"
+            String exceptionMessage = "Target group name ${action.targetGroupName} not found when trying to create action for listener ${listener.protocol}:${listener.port}"
             task.updateStatus BASE_PHASE, exceptionMessage
             amazonErrors << exceptionMessage
           }
-          listenerToActions.put(listener, actions)
+          listenerToDefaultActions.put(listener, defaultActions)
         }
+        List<Rule> rules = []
+        listener.rules.each { rule ->
+          List<Action> actions = []
+          rule.actions.each { action ->
+            TargetGroup targetGroup = existingTargetGroups.find { it.targetGroupName == action.targetGroupName }
+            if (targetGroup != null) {
+              actions.add(new Action().withTargetGroupArn(targetGroup.targetGroupArn).withType(action.type))
+            }
+          }
+
+          List<RuleCondition> conditions = rule.conditions.collect { condition ->
+           new RuleCondition().withField(condition.field).withValues(condition.values)
+          }
+
+          rules.add(new Rule().withActions(actions).withConditions(conditions).withPriority(Integer.toString(rule.priority)))
+        }
+        listenerToRules.put(listener, rules)
       }
 
       // Get existing listeners so we can reconcile
-      def existingListeners = loadBalancing.describeListeners(new DescribeListenersRequest().withLoadBalancerArn(loadBalancerArn))?.listeners
+      List<Listener> existingListeners = loadBalancing.describeListeners(new DescribeListenersRequest().withLoadBalancerArn(loadBalancerArn))?.listeners
+
+      Map<Listener, List<Rule>> existingListenerToRules = new HashMap<>()
+      existingListeners.each { listener ->
+        List<Rule> rules = loadBalancing.describeRules(new DescribeRulesRequest(listenerArn: listener.listenerArn))?.rules
+        existingListenerToRules.put(listener, rules)
+      }
 
       // Remove listeners that existed previously but were not supplied in upsert and should be deleted;
       // also remove listeners that have changed since there is no good way to know if a listener should just be updated
-      def listenersToRemove = existingListeners.findAll { awsListener ->
-        (listeners.find { it.compare(awsListener, listenerToActions.get(it)) }) == null
+      List<Listener> listenersToRemove = existingListeners.findAll { awsListener ->
+        (listeners.find { it.compare(awsListener, listenerToDefaultActions.get(it), existingListenerToRules.get(awsListener), listenerToRules.get(it)) }) == null
       }
+
+      Map<Listener, List<Rule>> removedRules = new HashMap<>()
       listenersToRemove.each {
+        // Remove rules first
+        List<Rule> rulesToRemove = loadBalancing.describeRules(new DescribeRulesRequest().withListenerArn(it.listenerArn))?.rules
+        // We cannot remove the default rule(s)
+        rulesToRemove.removeAll { it.isDefault }
+        removedRules.put(it, rulesToRemove)
+        rulesToRemove.each { rule ->
+          loadBalancing.deleteRule(new DeleteRuleRequest().withRuleArn(rule.ruleArn))
+          task.updateStatus BASE_PHASE, "Rule associated with listener removed (${rule.ruleArn})."
+        }
+
         loadBalancing.deleteListener(new DeleteListenerRequest().withListenerArn(it.listenerArn))
         task.updateStatus BASE_PHASE, "Listener removed from ${loadBalancerName} (${it.port}:${it.protocol})."
+        existingListeners.remove(it)
       }
 
       // No unique identifier on listeners to know when to update vs create, so just remove ones that don't match exactly
-      def listenersToCreate = listeners.findAll { listener ->
-        existingListeners.find({ listener.compare(it, listenerToActions.get(listener)) }) == null
+      List<UpsertAmazonLoadBalancerV2Description.Listener> listenersToCreate = listeners.findAll { listener ->
+        existingListeners.find({ listener.compare(it, listenerToDefaultActions.get(listener), existingListenerToRules.get(it), listenerToRules.get(listener)) }) == null
       }
 
       def createListener = { UpsertAmazonLoadBalancerV2Description.Listener listener, boolean isRollback ->
+        CreateListenerResult result
         try {
-          loadBalancing.createListener(new CreateListenerRequest()
+          result = loadBalancing.createListener(new CreateListenerRequest()
             .withLoadBalancerArn(loadBalancerArn)
             .withPort(listener.port)
             .withProtocol(listener.protocol)
             .withCertificates(listener.certificates)
             .withSslPolicy(listener.sslPolicy)
-            .withDefaultActions(listenerToActions.get(listener)))
+            .withDefaultActions(listenerToDefaultActions.get(listener)))
           task.updateStatus BASE_PHASE, "Listener ${isRollback ? 'rolled back on' : 'added to'} ${loadBalancerName} (${listener.port}:${listener.protocol})."
         } catch (AmazonServiceException e) {
-          def exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} listener to ${loadBalancerName} (${listener.port}:${listener.protocol}) - reason: ${e.errorMessage}."
+          String exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} listener to ${loadBalancerName} (${listener.port}:${listener.protocol}) - reason: ${e.errorMessage}."
           task.updateStatus BASE_PHASE, exceptionMessage
           amazonErrors << exceptionMessage
           return false
         }
+
+        if (result != null && result.listeners.size() > 0) {
+          String listenerArn = result.listeners.get(0).listenerArn
+          try {
+            listenerToRules.get(listener).each { rule ->
+              loadBalancing.createRule(new CreateRuleRequest(listenerArn: listenerArn, conditions: rule.conditions, actions: rule.actions, priority: Integer.valueOf(rule.priority)))
+            }
+          } catch (AmazonServiceException e) {
+            String exceptionMessage = "Failed to ${isRollback ? 'roll back' : 'add'} rule to listener ${loadBalancerName} (${listener.port}:${listener.protocol}) reason: ${e.errorMessage}."
+            task.updateStatus BASE_PHASE, exceptionMessage
+            amazonErrors << exceptionMessage
+            return false
+          }
+        }
+
         return true
       }
 
@@ -245,7 +299,26 @@ class LoadBalancerV2UpsertHandler {
           listener.port = awsListener.getPort()
           listener.protocol = ProtocolEnum.fromValue(awsListener.getProtocol())
           listener.sslPolicy = awsListener.getSslPolicy()
-          listenerToActions.put(listener, awsListener.getDefaultActions())
+          listenerToDefaultActions.put(listener, awsListener.getDefaultActions())
+          listener.rules = []
+          List<Rule> rules = removedRules.get(awsListener)
+          rules.each { rule ->
+            List<UpsertAmazonLoadBalancerV2Description.Action> actions = rule.actions.collect {
+              UpsertAmazonLoadBalancerV2Description.Action action = new UpsertAmazonLoadBalancerV2Description.Action()
+              action.setTargetGroupName(ArnUtils.extractTargetGroupName(it.targetGroupArn).get())
+              action.setType(ActionTypeEnum.fromValue(it.type))
+              action
+            }
+
+            List<UpsertAmazonLoadBalancerV2Description.RuleCondition> conditions = rule.conditions.collect {
+              UpsertAmazonLoadBalancerV2Description.RuleCondition condition = new UpsertAmazonLoadBalancerV2Description.RuleCondition()
+              condition.field = it.field
+              condition.values = it.values
+              condition
+            }
+
+            listener.rules.add(new UpsertAmazonLoadBalancerV2Description.Rule(actions: actions, conditions: conditions))
+          }
 
           createListener(listener, true)
         }
@@ -257,7 +330,7 @@ class LoadBalancerV2UpsertHandler {
     }
   }
 
-  public static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
+  static String createLoadBalancer(AmazonElasticLoadBalancing loadBalancing, String loadBalancerName, boolean isInternal,
                                           Collection<String> subnetIds, Collection<String> securityGroups,
                                           List<UpsertAmazonLoadBalancerV2Description.TargetGroup> targetGroups,
                                           List<UpsertAmazonLoadBalancerV2Description.Listener> listeners) {
@@ -279,15 +352,15 @@ class LoadBalancerV2UpsertHandler {
       result = loadBalancing.createLoadBalancer(request)
     } catch (AmazonServiceException e) {
       def errors = []
-      errors << e.errorMessage;
-      throw new AtomicOperationException("Failed to create load balancer.", errors);
+      errors << e.errorMessage
+      throw new AtomicOperationException("Failed to create load balancer.", errors)
     }
 
     LoadBalancer createdLoadBalancer = null
     List<LoadBalancer> loadBalancers = result.getLoadBalancers()
     if (loadBalancers != null && loadBalancers.size() > 0) {
       createdLoadBalancer = loadBalancers.get(0)
-      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners);
+      updateLoadBalancer(loadBalancing, createdLoadBalancer, securityGroups, targetGroups, listeners)
     }
     createdLoadBalancer
   }

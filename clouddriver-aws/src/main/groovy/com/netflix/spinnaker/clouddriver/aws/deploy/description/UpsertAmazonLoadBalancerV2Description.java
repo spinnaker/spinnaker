@@ -19,12 +19,14 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.description;
 import com.amazonaws.services.elasticloadbalancingv2.model.ActionTypeEnum;
 import com.amazonaws.services.elasticloadbalancingv2.model.Certificate;
 import com.amazonaws.services.elasticloadbalancingv2.model.ProtocolEnum;
+import com.amazonaws.services.elasticloadbalancingv2.model.Rule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalancerDescription {
-  public List<Listener> listeners;
-  public List<TargetGroup> targetGroups;
+  public List<Listener> listeners = new ArrayList<>();
+  public List<TargetGroup> targetGroups = new ArrayList<>();
 
   public static class TargetGroup {
     private String name;
@@ -160,6 +162,7 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
     private Integer port;
     private String sslPolicy;
     private List<Action> defaultActions;
+    private List<Rule> rules = new ArrayList<>();
 
     public List<Certificate> getCertificates() {
       return certificates;
@@ -201,15 +204,35 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
       this.defaultActions = defaultActions;
     }
 
-    public Boolean compare(com.amazonaws.services.elasticloadbalancingv2.model.Listener awsListener, List<com.amazonaws.services.elasticloadbalancingv2.model.Action> actions) {
+    public List<Rule> getRules() {
+      return rules;
+    }
+
+    public void setRules(List<Rule> rules) {
+      this.rules = rules;
+    }
+
+    public Boolean compare(com.amazonaws.services.elasticloadbalancingv2.model.Listener awsListener,
+                           List<com.amazonaws.services.elasticloadbalancingv2.model.Action> actions,
+                           List<com.amazonaws.services.elasticloadbalancingv2.model.Rule> existingRules,
+                           List<com.amazonaws.services.elasticloadbalancingv2.model.Rule> rules) {
+      if (existingRules == null) {
+        existingRules = new ArrayList<>();
+      }
+      if (rules == null) {
+        rules = new ArrayList<>();
+      }
+
       Boolean actionsSame = awsListener.getDefaultActions().containsAll(actions) &&
         actions.containsAll(awsListener.getDefaultActions());
+      Boolean rulesSame = existingRules.containsAll(rules) && rules.containsAll(existingRules);
       Boolean sslPolicySame = (this.sslPolicy == null && awsListener.getSslPolicy() == null) ||
         (this.sslPolicy != null && this.sslPolicy.equals(awsListener.getSslPolicy()));
 
       return (this.protocol != null && this.protocol.toString().equals(awsListener.getProtocol())) &&
         (this.port != null && this.port.equals(awsListener.getPort())) &&
         actionsSame &&
+        rulesSame &&
         sslPolicySame;
     }
   }
@@ -271,6 +294,57 @@ public class UpsertAmazonLoadBalancerV2Description extends UpsertAmazonLoadBalan
 
     public void setStickinessDuration(Integer stickinessDuration) {
       this.stickinessDuration = stickinessDuration;
+    }
+  }
+
+  public static class RuleCondition {
+    private String field;
+    private List<String> values;
+
+    public String getField() {
+      return field;
+    }
+
+    public void setField(String field) {
+      this.field = field;
+    }
+
+    public List<String> getValues() {
+      return values;
+    }
+
+    public void setValues(List<String> values) {
+      this.values = values;
+    }
+  }
+
+  public static class Rule {
+    private Integer priority;
+    private List<Action> actions;
+    private List<RuleCondition> conditions;
+
+    public Integer getPriority() {
+      return priority;
+    }
+
+    public void setPriority(Integer priority) {
+      this.priority = priority;
+    }
+
+    public List<Action> getActions() {
+      return actions;
+    }
+
+    public void setActions(List<Action> actions) {
+      this.actions = actions;
+    }
+
+    public List<RuleCondition> getConditions() {
+      return conditions;
+    }
+
+    public void setConditions(List<RuleCondition> conditions) {
+      this.conditions = conditions;
     }
   }
 }

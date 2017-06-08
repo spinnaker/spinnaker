@@ -16,11 +16,17 @@
 
 package com.netflix.spinnaker.clouddriver.aws.provider.agent
 
+import com.amazonaws.services.cloudwatchevents.model.DescribeRuleRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersResult
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeRulesRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeRulesResult
 import com.amazonaws.services.elasticloadbalancingv2.model.Listener
+import com.amazonaws.services.elasticloadbalancingv2.model.ListenerNotFoundException
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancerNotFoundException
+import com.amazonaws.services.elasticloadbalancingv2.model.Rule
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.Registry
@@ -99,9 +105,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
         }
       } else {
         try {
-          def describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
+          DescribeListenersRequest describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
           while (true) {
-            def result = loadBalancing.describeListeners(describeListenersRequest)
+            DescribeListenersResult result = loadBalancing.describeListeners(describeListenersRequest)
             loadBalancerToListeners.get(loadBalancer).addAll(result.listeners)
             if (result.nextMarker) {
               describeListenersRequest.withMarker(result.nextMarker)
@@ -111,6 +117,20 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
           }
         } catch (LoadBalancerNotFoundException e) {
           // this is acceptable since we may be waiting for the caches to catch up
+        }
+      }
+    }
+
+    Map<Listener, List<Rule>> listenerToRules = new HashMap<>()
+    for (loadBalancer in allLoadBalancers) {
+      for (listener in loadBalancerToListeners.get(loadBalancer)) {
+        listenerToRules[listener] = []
+        try {
+          DescribeRulesRequest describeRulesRequest = new DescribeRulesRequest(listenerArn: listener.listenerArn)
+          DescribeRulesResult result = loadBalancing.describeRules(describeRulesRequest)
+          listenerToRules.get(listener).addAll(result.rules)
+        } catch (ListenerNotFoundException e) {
+          // should be fine
         }
       }
     }
@@ -126,10 +146,10 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
     def usableOnDemandCacheDatas = []
     // TODO: Supprt ALBs in ON_DEMAND
 
-    return buildCacheResult(allLoadBalancers, loadBalancerToListeners, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
+    return buildCacheResult(allLoadBalancers, loadBalancerToListeners, listenerToRules, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
   }
 
-  private CacheResult buildCacheResult(Collection<LoadBalancer> allLoadBalancers, Map<LoadBalancer, List<Listener>> loadBalancerToListeners, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
+  private CacheResult buildCacheResult(Collection<LoadBalancer> allLoadBalancers, Map<LoadBalancer, List<Listener>> loadBalancerToListeners, Map<Listener, List<Rule>> listenerToRules, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
     Map<String, CacheData> loadBalancers = CacheHelpers.cache()
 
     for (LoadBalancer lb : allLoadBalancers) {
@@ -161,9 +181,9 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
         // Add the listeners
         def listeners = []
-        def allTargetGroupKeys = []
+        Set<String> allTargetGroupKeys = []
+        String vpcId = Keys.parse(loadBalancerKey).vpcId
         for (Listener listener : loadBalancerToListeners.get(lb)) {
-          String vpcId = Keys.parse(loadBalancerKey).vpcId
 
           Map<String, Object> listenerAttributes = objectMapper.convertValue(listener, ATTRIBUTES)
           listenerAttributes.loadBalancerName = ArnUtils.extractLoadBalancerName((String)listenerAttributes.loadBalancerArn).get()
@@ -175,6 +195,23 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
             allTargetGroupKeys.add(Keys.getTargetGroupKey(targetGroupName, account.name, region, vpcId))
           }
+
+          // add the rules to the listener
+          List<Object> rules = new ArrayList<>()
+          for (Rule rule : listenerToRules.get(listener)) {
+            Map<String, Object> ruleAttributes = objectMapper.convertValue(rule, ATTRIBUTES)
+            for (Map<String, String> action : (List<Map<String, String>>)ruleAttributes.actions) {
+              String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn).get()
+              action.targetGroupName = targetGroupName
+              action.remove("targetGroupArn")
+
+              allTargetGroupKeys.add(Keys.getTargetGroupKey(targetGroupName, account.name, region, vpcId))
+            }
+
+            rules.push(ruleAttributes)
+          }
+          listenerAttributes.rules = rules
+
           listeners.push(listenerAttributes)
         }
 
