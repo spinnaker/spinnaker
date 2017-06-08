@@ -232,6 +232,8 @@ class BaseValidateBomDeployer(object):
     install_params = ['-y']
     if options.halyard_repository is not None:
       install_params.extend(['--repository', options.halyard_repository])
+    if options.halyard_version is not None:
+      install_params.extend(['--version', options.halyard_version])
     if options.spinnaker_repository is not None:
       install_params.extend(
           ['--spinnaker-repository', options.spinnaker_repository])
@@ -380,7 +382,7 @@ class KubernetesValidateBomDeployer(BaseValidateBomDeployer):
         'kubectl -n {namespace} -c {container} {context} logs {pod}'
         '  >> {path}'
         .format(namespace=k8s_namespace,
-                container='spin-{service}'.format(service),
+                container='spin-{service}'.format(service=service),
                 context=('--context {0}'.format(options.k8s_account_context)
                          if options.k8s_account_context
                          else ''),
@@ -1062,6 +1064,10 @@ def init_argument_parser(parser):
       '--halyard_install_script',
       default='https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh',
       help='The URL to the InstallHalyard.sh script.')
+
+  parser.add_argument(
+      '--halyard_version',
+      help='If provided, the specific version of halyard to use.')
 
   parser.add_argument(
       '--halyard_repository',
