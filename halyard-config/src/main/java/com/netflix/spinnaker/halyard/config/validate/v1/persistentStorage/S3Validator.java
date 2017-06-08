@@ -20,7 +20,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.netflix.spinnaker.front50.config.S3Config;
 import com.netflix.spinnaker.front50.config.S3Properties;
-import com.netflix.spinnaker.front50.model.StorageService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -32,17 +31,15 @@ import org.springframework.stereotype.Component;
 public class S3Validator extends Validator<S3PersistentStore> {
   @Override
   public void validate(ConfigProblemSetBuilder ps, S3PersistentStore n) {
-    AWSCredentialsProvider credentialsProvider = AwsAccountValidator.getAwsCredentialsProvider(n.getAccessKeyId(), n.getSecretAccessKey());
-    S3Config s3Config = new S3Config();
-    S3Properties s3Properties = new S3Properties();
-    s3Properties.setBucket(n.getBucket());
-    s3Properties.setRootFolder(n.getRootFolder());
-    s3Properties.setRegion(n.getRegion());
-    AmazonS3 s3Client = s3Config.awsS3Client(credentialsProvider, s3Properties);
-    StorageService s3StorageService = new S3Config().s3StorageService(s3Client, s3Properties);
-
     try {
-      s3StorageService.ensureBucketExists();
+      AWSCredentialsProvider credentialsProvider = AwsAccountValidator.getAwsCredentialsProvider(n.getAccessKeyId(), n.getSecretAccessKey());
+      S3Config s3Config = new S3Config();
+      S3Properties s3Properties = new S3Properties();
+      s3Properties.setBucket(n.getBucket());
+      s3Properties.setRootFolder(n.getRootFolder());
+      s3Properties.setRegion(n.getRegion());
+      AmazonS3 s3Client = s3Config.awsS3Client(credentialsProvider, s3Properties);
+      new S3Config().s3StorageService(s3Client, s3Properties);
     } catch (Exception e) {
       ps.addProblem(Problem.Severity.ERROR, "Failed to ensure the required bucket \"" + n.getBucket() + "\" exists: " + e.getMessage());
     }
