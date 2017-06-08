@@ -19,7 +19,6 @@ package com.netflix.spinnaker.orca.q.metrics
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -56,11 +55,12 @@ open class AtlasQueueMonitor
       is MessageAcknowledged -> ackCounter.increment()
       is MessageRetried -> retryCounter.increment()
       is MessageDead -> deadMessageCounter.increment()
+      is MessageDuplicate -> duplicateMessageCounter.increment()
       else -> log.error("Unhandled event $event")
     }
   }
 
-  @Scheduled(fixedRateString = "\${queue.depth.metric.frequency:1000}")
+  @Scheduled(fixedDelayString = "\${queue.depth.metric.frequency:1000}")
   fun pollQueueDepth() {
     _lastQueueDepth.set(queue.queueDepth)
     _lastUnackedDepth.set(queue.unackedDepth)
@@ -169,4 +169,11 @@ open class AtlasQueueMonitor
    */
   private val deadMessageCounter: Counter
     get() = registry.counter("queue.dead.messages")
+
+  /**
+   * Count of messages that have been pushed or re-delivered while an identical
+   * message is already on the queue.
+   */
+  private val duplicateMessageCounter: Counter
+    get() = registry.counter("queue.duplicate.messages")
 }

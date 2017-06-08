@@ -19,9 +19,7 @@ package com.netflix.spinnaker.orca.q.memory
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.metrics.MonitorableQueue
-import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
-import com.netflix.spinnaker.orca.q.metrics.fire
+import com.netflix.spinnaker.orca.q.metrics.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.context.ApplicationEventPublisher
@@ -64,22 +62,30 @@ class InMemoryQueue(
   }
 
   override fun push(message: Message, delay: TemporalAmount) {
-    queue.put(Envelope(message, clock.instant().plus(delay), clock))
-    fire<MessagePushed>()
+    if (queue.none { it.payload == message }) {
+      queue.put(Envelope(message, clock.instant().plus(delay), clock))
+      fire<MessagePushed>()
+    } else {
+      fire<MessageDuplicate>()
+    }
   }
 
   @Scheduled(fixedDelayString = "\${queue.retry.frequency.ms:10000}")
   override fun retry() {
     val now = clock.instant()
     fire<RetryPolled>()
-    unacked.pollAll {
-      if (it.count >= Queue.maxRetries) {
-        deadMessageHandler.invoke(this, it.payload)
+    unacked.pollAll { message ->
+      if (message.count >= Queue.maxRetries) {
+        deadMessageHandler.invoke(this, message.payload)
         fire<MessageDead>()
       } else {
-        log.warn("redelivering unacked message ${it.payload}")
-        queue.put(it.copy(scheduledTime = now, count = it.count + 1))
-        fire<MessageRetried>()
+        if (queue.none { it.payload == message.payload }) {
+          log.warn("redelivering unacked message ${message.payload}")
+          queue.put(message.copy(scheduledTime = now, count = message.count + 1))
+          fire<MessageRetried>()
+        } else {
+          fire<MessageDuplicate>()
+        }
       }
     }
   }

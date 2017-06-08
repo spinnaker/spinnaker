@@ -52,6 +52,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 import java.time.Duration
 import java.time.Instant.now
@@ -59,7 +60,10 @@ import java.time.ZoneId
 
 @RunWith(SpringJUnit4ClassRunner::class)
 @ContextConfiguration(classes = arrayOf(TestConfig::class))
-class SpringIntegrationTest {
+@TestPropertySource(properties = arrayOf(
+  "queue.retry.delay.ms=10"
+))
+open class QueueIntegrationTest {
 
   @Autowired lateinit var queue: Queue
   @Autowired lateinit var runner: QueueExecutionRunner
@@ -93,6 +97,24 @@ class SpringIntegrationTest {
 
     whenever(dummyTask.timeout) doReturn 2000L
     whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.runToCompletion(pipeline, runner::start, repository)
+
+    repository.retrievePipeline(pipeline.id).status shouldEqual SUCCEEDED
+  }
+
+  @Test fun `will run tasks to completion`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+      }
+    }
+    repository.store(pipeline)
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult(RUNNING) doReturn TaskResult.SUCCEEDED
 
     context.runToCompletion(pipeline, runner::start, repository)
 

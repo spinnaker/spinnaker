@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import org.springframework.context.ApplicationEventPublisher
 
 /**
@@ -63,6 +62,7 @@ inline fun <reified E : QueueEvent> MonitorableQueue.fire(): Unit {
     MessageAcknowledged::class -> MessageAcknowledged(this)
     MessageRetried::class -> MessageRetried(this)
     MessageDead::class -> MessageDead(this)
+    MessageDuplicate::class -> MessageDuplicate(this)
     else -> throw IllegalArgumentException("Unknown event type ${E::class}")
   }
   publisher.publishEvent(event)

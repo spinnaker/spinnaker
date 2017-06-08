@@ -18,7 +18,6 @@ package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
@@ -39,11 +38,13 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
   val ackCounter: Counter = mock()
   val retryCounter: Counter = mock()
   val deadCounter: Counter = mock()
+  val duplicateCounter: Counter = mock()
   val registry: Registry = mock {
     on { counter("queue.pushed.messages") } doReturn pushCounter
     on { counter("queue.acknowledged.messages") } doReturn ackCounter
     on { counter("queue.retried.messages") } doReturn retryCounter
     on { counter("queue.dead.messages") } doReturn deadCounter
+    on { counter("queue.duplicate.messages") } doReturn duplicateCounter
   }
 
   subject(GROUP) {
@@ -51,7 +52,7 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
   }
 
   fun resetMocks() =
-    reset(queue, pushCounter, ackCounter, retryCounter, deadCounter)
+    reset(queue, pushCounter, ackCounter, retryCounter, deadCounter, duplicateCounter)
 
   describe("default values") {
     it("reports system uptime if the queue has never been polled") {
@@ -145,6 +146,19 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
       }
     }
 
+    describe("when a duplicate message is pushed") {
+      afterGroup(::resetMocks)
+
+      val event = MessageDuplicate(queue)
+
+      on("receiving a ${event.javaClass.simpleName} event") {
+        subject.onApplicationEvent(event)
+      }
+
+      it("increments a counter") {
+        verify(duplicateCounter).increment()
+      }
+    }
   }
 
   describe("checking queue depth") {

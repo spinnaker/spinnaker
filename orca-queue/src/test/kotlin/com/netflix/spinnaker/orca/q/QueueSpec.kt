@@ -22,7 +22,10 @@ import com.netflix.spinnaker.orca.time.MutableClock
 import com.netflix.spinnaker.spek.and
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.Spek
-import org.jetbrains.spek.api.dsl.*
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import java.io.Closeable
 import java.time.Clock
 import java.time.Duration
@@ -169,7 +172,7 @@ abstract class QueueSpec<out Q : Queue>(
         queue!!.apply {
           push(message)
           poll { _, ack ->
-            ack.invoke()
+            ack()
           }
         }
       }
@@ -278,7 +281,7 @@ abstract class QueueSpec<out Q : Queue>(
         verify(deadLetterCallback).invoke(queue!!, message)
       }
 
-      context("once the message has been dead-lettered") {
+      and("the message has been dead-lettered") {
         on("the next time retry checks happen") {
           queue!!.apply {
             retry()
@@ -292,6 +295,160 @@ abstract class QueueSpec<out Q : Queue>(
 
         it("no longer gets sent to the dead letter handler") {
           verify(deadLetterCallback).invoke(queue!!, message)
+        }
+      }
+    }
+  }
+
+  describe("message hashing") {
+    given("a message was pushed") {
+      val message = StartExecution(Pipeline::class.java, "1", "foo")
+
+      and("a different message is pushed before acknowledging the first") {
+        val newMessage = message.copy(executionId = "2")
+
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message)
+            push(newMessage)
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("polling the queue more than once") {
+          queue!!.poll(callback)
+          queue!!.poll(callback)
+        }
+
+        it("enqueued the new message") {
+          verify(callback).invoke(eq(message), any())
+          verify(callback).invoke(eq(newMessage), any())
+        }
+      }
+
+      and("another identical message is pushed before acknowledging the first") {
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message)
+            push(message.copy())
+            poll { _, ack ->
+              ack()
+            }
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("polling the queue again") {
+          queue!!.poll(callback)
+        }
+
+        it("did not enqueue the duplicate message") {
+          verifyZeroInteractions(callback)
+        }
+      }
+
+      and("another identical message is pushed after reading but before acknowledging the first") {
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message)
+            poll { _, ack ->
+              push(message.copy())
+              ack()
+            }
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("polling the queue again") {
+          queue!!.poll(callback)
+        }
+
+        it("enqueued the second message") {
+          verify(callback).invoke(eq(message), any())
+        }
+      }
+
+      and("another identical message is pushed after acknowledging the first") {
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message)
+            poll { _, ack ->
+              ack()
+            }
+            push(message.copy())
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("polling the queue again") {
+          queue!!.poll(callback)
+        }
+
+        it("enqueued the second message") {
+          verify(callback).invoke(eq(message), any())
+        }
+      }
+
+      and("another identical message is pushed and the first is never acknowledged") {
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message)
+            poll { _, _ ->
+              push(message.copy())
+            }
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("after the first message's acknowledgment times out") {
+          with(queue!!) {
+            clock.incrementBy(ackTimeout)
+            retry()
+            poll(callback)
+            poll(callback)
+          }
+        }
+
+        it("does not re-deliver the first message") {
+          verify(callback).invoke(eq(message), any())
+          verifyNoMoreInteractions(callback)
+        }
+      }
+
+      and("the first message is never acknowledged, gets re-delivered then another identical message is pushed") {
+        beforeGroup {
+          queue = createQueue(clock, deadLetterCallback).apply {
+            push(message)
+            poll { _, _ -> }
+          }
+        }
+
+        afterGroup(::stopQueue)
+        afterGroup(::resetMocks)
+
+        on("after the first message's acknowledgment times out") {
+          with(queue!!) {
+            clock.incrementBy(ackTimeout)
+            retry()
+            push(message.copy())
+            poll(callback)
+            poll(callback)
+          }
+        }
+
+        it("did not enqueue the new duplicate message") {
+          verify(callback).invoke(eq(message), any())
+          verifyNoMoreInteractions(callback)
         }
       }
     }

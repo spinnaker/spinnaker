@@ -46,7 +46,6 @@ private fun createQueue(
 }
 
 private fun shutdownCallback() {
-  println("shutting down the redis")
   redis?.destroy()
 }
 

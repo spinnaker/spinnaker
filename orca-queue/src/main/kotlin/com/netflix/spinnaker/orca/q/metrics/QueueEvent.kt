@@ -20,15 +20,15 @@ import com.netflix.spinnaker.orca.time.toInstant
 import org.springframework.context.ApplicationEvent
 
 sealed class QueueEvent(source: MonitorableQueue) : ApplicationEvent(source) {
-
-  class QueuePolled(source: MonitorableQueue) : QueueEvent(source)
-  class RetryPolled(source: MonitorableQueue) : QueueEvent(source)
-  class MessagePushed(source: MonitorableQueue) : QueueEvent(source)
-  class MessageAcknowledged(source: MonitorableQueue) : QueueEvent(source)
-  class MessageRetried(source: MonitorableQueue) : QueueEvent(source)
-  class MessageDead(source: MonitorableQueue) : QueueEvent(source)
-
   val instant
     get() = timestamp.toInstant()
 }
+
+class QueuePolled(source: MonitorableQueue) : QueueEvent(source)
+class RetryPolled(source: MonitorableQueue) : QueueEvent(source)
+class MessagePushed(source: MonitorableQueue) : QueueEvent(source)
+class MessageAcknowledged(source: MonitorableQueue) : QueueEvent(source)
+class MessageRetried(source: MonitorableQueue) : QueueEvent(source)
+class MessageDead(source: MonitorableQueue) : QueueEvent(source)
+class MessageDuplicate(source: MonitorableQueue) : QueueEvent(source)
 

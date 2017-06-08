@@ -20,9 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
-import com.netflix.spinnaker.orca.q.metrics.MonitorableQueue
-import com.netflix.spinnaker.orca.q.metrics.QueueEvent.*
-import com.netflix.spinnaker.orca.q.metrics.fire
+import com.netflix.spinnaker.orca.q.metrics.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -58,17 +56,19 @@ class RedisQueue(
   private val messagesKey = queueName + ".messages"
   private val attemptsKey = queueName + ".attempts"
   private val locksKey = queueName + ".locks"
+  private val hashKey = queueName + ".hash"
+  private val hashesKey = queueName + ".hashes"
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
       redis.apply {
-        pop(queueKey, unackedKey, ackTimeout)
-          ?.also { id -> hincrBy(attemptsKey, id, 1) }
-          ?.let { id ->
-            readMessage(id) { payload ->
-              callback.invoke(payload) {
-                ack(id)
-                fire<MessageAcknowledged>()
+        zrangeByScore(queueKey, 0.0, score(), 0, 1)
+          .firstOrNull()
+          ?.takeIf { id -> acquireLock(id) }
+          ?.also { id ->
+            readMessage(id) { message ->
+              callback.invoke(message) {
+                ackMessage(id)
               }
             }
           }
@@ -79,13 +79,15 @@ class RedisQueue(
 
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
-      val id = randomUUID().toString()
-      redis.multi {
-        hset(messagesKey, id, mapper.writeValueAsString(message))
-        zadd(queueKey, score(delay), id)
+      val messageHash = message.hashCode().toString()
+      if (redis.sismember(hashesKey, messageHash)) {
+        log.warn("Ignoring message as an identical one is already on the queue: $message")
+        fire<MessageDuplicate>()
+      } else {
+        redis.queueMessage(message, delay)
+        fire<MessagePushed>()
       }
     }
-    fire<MessagePushed>()
   }
 
   @Scheduled(fixedDelayString = "\${queue.retry.frequency.ms:10000}")
@@ -104,13 +106,19 @@ class RedisQueue(
                 readMessage(id) { message ->
                   log.warn("Message $id with payload $message exceeded max retries")
                   handleDeadMessage(message)
-                  ack(id)
+                  removeMessage(id)
                 }
                 fire<MessageDead>()
               } else {
-                log.warn("Retrying message $id after $attempts attempts")
-                move(unackedKey, queueKey, ZERO, id)
-                fire<MessageRetried>()
+                if (sismember(hashesKey, hget(hashKey, id))) {
+                  log.warn("Not retrying message $id because an identical message is already on the queue")
+                  removeMessage(id)
+                  fire<MessageDuplicate>()
+                } else {
+                  log.warn("Retrying message $id after $attempts attempts")
+                  requeueMessage(id)
+                  fire<MessageRetried>()
+                }
               }
             }
           }
@@ -146,13 +154,40 @@ class RedisQueue(
 
   override fun toString() = "RedisQueue[$queueName]"
 
-  private fun ack(id: String) {
+  private fun ackMessage(id: String) {
     pool.resource.use { redis ->
-      redis.multi {
-        zrem(unackedKey, id)
-        hdel(messagesKey, id)
-        hdel(attemptsKey, id)
-      }
+      redis.removeMessage(id)
+      fire<MessageAcknowledged>()
+    }
+  }
+
+  private fun Jedis.queueMessage(message: Message, delay: TemporalAmount = ZERO) {
+    val id = randomUUID().toString()
+    val hash = message.hashCode().toString()
+    multi {
+      hset(messagesKey, id, mapper.writeValueAsString(message))
+      zadd(queueKey, score(delay), id)
+      hset(hashKey, id, hash)
+      sadd(hashesKey, hash)
+    }
+  }
+
+  private fun Jedis.requeueMessage(id: String) {
+    val hash = hget(hashKey, id)
+    multi {
+      zrem(unackedKey, id)
+      zadd(queueKey, score(), id)
+      sadd(hashesKey, hash)
+    }
+  }
+
+  private fun Jedis.removeMessage(id: String) {
+    multi {
+      zrem(queueKey, id)
+      zrem(unackedKey, id)
+      hdel(messagesKey, id)
+      hdel(attemptsKey, id)
+      hdel(hashKey, id)
     }
   }
 
@@ -161,26 +196,26 @@ class RedisQueue(
    * If it's not accessible for whatever reason any references are cleaned up.
    */
   private fun Jedis.readMessage(id: String, block: (Message) -> Unit) {
-    val json = hget(messagesKey, id)
-    if (json == null) {
-      log.error("Payload for message $id is missing")
-      // clean up what is essentially an unrecoverable message
-      multi {
-        zrem(queueKey, id)
-        zrem(unackedKey, id)
-        hdel(attemptsKey, id)
-      }
-    } else {
-      try {
-        val message = mapper.readValue<Message>(json)
-        block.invoke(message)
-      } catch(e: IOException) {
-        log.error("Failed to read message $id", e)
-        multi {
-          zrem(queueKey, id)
-          zrem(unackedKey, id)
-          hdel(messagesKey, id)
-          hdel(attemptsKey, id)
+    val hash = hget(hashKey, id)
+    multi {
+      hget(messagesKey, id)
+      zrem(queueKey, id)
+      zadd(unackedKey, score(ackTimeout), id)
+      srem(hashesKey, hash)
+      hincrBy(attemptsKey, id, 1)
+    }.let {
+      val json = it[0] as String?
+      if (json == null) {
+        log.error("Payload for message $id is missing")
+        // clean up what is essentially an unrecoverable message
+        removeMessage(id)
+      } else {
+        try {
+          val message = mapper.readValue<Message>(json)
+          block.invoke(message)
+        } catch(e: IOException) {
+          log.error("Failed to read message $id", e)
+          removeMessage(id)
         }
       }
     }
@@ -190,32 +225,13 @@ class RedisQueue(
     deadMessageHandler.invoke(this, it)
   }
 
-  /**
-   * Attempt to acquire a lock on a single value from a sorted set [from], adding
-   * them to sorted set [to] (with optional [delay]).
-   */
-  private fun Jedis.pop(from: String, to: String, delay: TemporalAmount = ZERO) =
-    zrangeByScore(from, 0.0, score(), 0, 1)
-      .firstOrNull()
-      ?.takeIf { id -> acquireLock(id) }
-      ?.also { id -> move(from, to, delay, id) }
-
   private fun Jedis.acquireLock(id: String) =
-    set("$locksKey:$id", "\uD83D\uDD12", "NX", "EX", lockTtlSeconds) == "OK"
-
-  /**
-   * Move [values] from sorted set [from] to sorted set [to]
-   */
-  private fun Jedis.move(from: String, to: String, delay: TemporalAmount, value: String) {
-      val score = score(delay)
-      multi {
-        zrem(from, value)
-        zadd(to, score, value)
+    (set("$locksKey:$id", "\uD83D\uDD12", "NX", "EX", lockTtlSeconds) == "OK")
+      .also {
+        if (!it) {
+          fire<MessageDuplicate>()
+        }
       }
-  }
-
-  private fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
-    hget(key, field)?.toInt() ?: default
 
   /**
    * @return current time (plus optional [delay]) converted to a score for a
@@ -232,4 +248,7 @@ class RedisQueue(
       tx.block()
       tx.exec()
     }
+
+  private fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
+    hget(key, field)?.toInt() ?: default
 }
