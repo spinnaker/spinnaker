@@ -15,8 +15,17 @@ spinnaker:
       bucket: halconfig
 
 endpoints:
+  env:
+    sensitive: false
+  autoconfig:
+    sensitive: false
+  resolvedEnv:
+    sensitive: false
+  beans:
+    sensitive: false
   shutdown:
     enabled: true
+    sensitive: false
 
 backup:
   google:
@@ -24,3 +33,7 @@ backup:
 
 retrofit:
   logLevel: BASIC
+
+security:
+  basic:
+    enabled: false
