@@ -2,7 +2,7 @@
 
 import { map } from 'lodash';
 
-import {AWSProviderSettings} from '../../aws.settings';
+import {AWSProviderSettings} from 'amazon/aws.settings';
 
 describe('Controller: CreateSecurityGroup', function () {
   beforeEach(

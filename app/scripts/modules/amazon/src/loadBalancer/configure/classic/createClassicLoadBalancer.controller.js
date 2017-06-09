@@ -14,14 +14,15 @@ import {
   TASK_MONITOR_BUILDER,
   V2_MODAL_WIZARD_SERVICE
 } from '@spinnaker/core';
-import { AWSProviderSettings } from '../../aws.settings';
-import { SUBNET_SELECT_FIELD_COMPONENT } from '../../subnet/subnetSelectField.component';
 
-module.exports = angular.module('spinnaker.amazon.loadBalancer.create.controller', [
+import { AWSProviderSettings } from 'amazon/aws.settings';
+import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
+
+module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.controller', [
   require('@uirouter/angularjs').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
-  require('../loadBalancer.transformer.js'),
+  require('../../loadBalancer.transformer.js'),
   SECURITY_GROUP_READER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
@@ -29,21 +30,20 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.create.controller
   CACHE_INITIALIZER_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   NAMING_SERVICE,
-  require('./loadBalancerAvailabilityZoneSelector.directive.js'),
+  require('../common/loadBalancerAvailabilityZoneSelector.directive.js'),
   SUBNET_SELECT_FIELD_COMPONENT,
 ])
-  .controller('awsCreateLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
-                                                    accountService, awsLoadBalancerTransformer, securityGroupReader,
-                                                    cacheInitializer, infrastructureCaches,
-                                                    v2modalWizardService, loadBalancerWriter, taskMonitorBuilder,
-                                                    subnetReader, namingService,
-                                                    application, loadBalancer, isNew, forPipelineConfig) {
+  .controller('awsCreateClassicLoadBalancerCtrl', function($scope, $uibModalInstance, $state,
+                                                           accountService, awsLoadBalancerTransformer, securityGroupReader,
+                                                           cacheInitializer, infrastructureCaches,
+                                                           v2modalWizardService, loadBalancerWriter, taskMonitorBuilder,
+                                                           subnetReader, namingService,
+                                                           application, loadBalancer, isNew, forPipelineConfig) {
 
     var ctrl = this;
-
     $scope.pages = {
-      location: require('./createLoadBalancerProperties.html'),
-      securityGroups: require('./securityGroups.html'),
+      location: require('../common/createLoadBalancerLocation.html'),
+      securityGroups: require('../common/securityGroups.html'),
       listeners: require('./listeners.html'),
       healthCheck: require('./healthCheck.html'),
       advancedSettings: require('./advancedSettings.html'),
@@ -140,7 +140,7 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.create.controller
           $scope.loadBalancer = loadBalancer;
           initializeCreateMode();
         } else {
-          $scope.loadBalancer = awsLoadBalancerTransformer.convertLoadBalancerForEditing(loadBalancer);
+          $scope.loadBalancer = awsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(loadBalancer);
           initializeEditMode();
         }
         if (isNew) {
@@ -150,7 +150,7 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.create.controller
           delete $scope.loadBalancer.name;
         }
       } else {
-        $scope.loadBalancer = awsLoadBalancerTransformer.constructNewLoadBalancerTemplate(application);
+        $scope.loadBalancer = awsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(application);
       }
       if (isNew) {
         updateLoadBalancerNames();

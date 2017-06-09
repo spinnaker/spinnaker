@@ -218,6 +218,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroupCommandBuilder.serv
             .map((process) => process.processName)
             .filter((name) => !enabledProcesses.includes(name)),
           tags: serverGroup.tags || {},
+          targetGroups: serverGroup.targetGroups,
           useAmiBlockDeviceMappings: useAmiBlockDeviceMappings,
           copySourceCustomBlockDeviceMappings: !useAmiBlockDeviceMappings,
           viewState: {

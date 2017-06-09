@@ -23,6 +23,7 @@ import {
 } from '@spinnaker/core';
 
 import { IAmazonApplicationLoadBalancer, IAmazonLoadBalancer, ITargetGroup } from 'amazon';
+import { LoadBalancerTypes } from '../configure/choice/LoadBalancerTypes';
 
 export interface ILoadBalancerFromStateParams {
   accountId: string;
@@ -65,9 +66,11 @@ export class AwsLoadBalancerDetailsController {
   }
 
   public editLoadBalancer(): void {
+    const wizard = LoadBalancerTypes.find(t => t.type === this.loadBalancer.loadBalancerType);
+
     this.$uibModal.open({
-      templateUrl: require('../configure/editLoadBalancer.html'),
-      controller: 'awsCreateLoadBalancerCtrl as ctrl',
+      templateUrl: wizard.editTemplateUrl,
+      controller: `${wizard.controller} as ctrl`,
       size: 'lg',
       resolve: {
         application: () => this.app,

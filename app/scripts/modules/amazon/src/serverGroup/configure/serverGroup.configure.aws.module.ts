@@ -4,6 +4,7 @@ import { AZ_REBALANCE_SELECTOR } from './wizard/zones/azRebalanceSelector.compon
 import { CAPACITY_SELECTOR } from './wizard/capacity/capacitySelector.component';
 import { HEALTH_PERCENT_SELECTOR } from './wizard/capacity/targetHealthyPercentageSelector.component';
 import { LOAD_BALANCER_SELECTOR } from './wizard/loadBalancers/loadBalancerSelector.component';
+import { TARGET_GROUP_SELECTOR } from './wizard/targetGroups/targetGroupSelector.component';
 import { SECURITY_GROUPS_REMOVED } from './wizard/securityGroups/securityGroupsRemoved.component';
 
 import { AWS_SERVER_GROUP_TRANSFORMER } from 'amazon/serverGroup/serverGroup.transformer';
@@ -15,6 +16,7 @@ module(SERVER_GROUP_CONFIGURE_MODULE, [
   CAPACITY_SELECTOR,
   HEALTH_PERCENT_SELECTOR,
   LOAD_BALANCER_SELECTOR,
+  TARGET_GROUP_SELECTOR,
   SECURITY_GROUPS_REMOVED,
   require('./wizard/templateSelection/deployInitializer.controller.js'),
   require('./wizard/location/ServerGroupBasicSettings.controller.js'),

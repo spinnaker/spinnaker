@@ -1,13 +1,14 @@
 'use strict';
 
 import { APPLICATION_MODEL_BUILDER } from '@spinnaker/core';
-import { AWSProviderSettings } from '../../aws.settings';
 
-describe('Controller: awsCreateLoadBalancerCtrl', function () {
+import { AWSProviderSettings } from 'amazon/aws.settings';
+
+describe('Controller: awsCreateClassicLoadBalancerCtrl', function () {
   // load the controller's module
   beforeEach(
     window.module(
-      require('./createLoadBalancer.controller'),
+      require('./createClassicLoadBalancer.controller'),
       APPLICATION_MODEL_BUILDER
     )
   );
@@ -22,9 +23,9 @@ describe('Controller: awsCreateLoadBalancerCtrl', function () {
     const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
     this.initialize = (loadBalancer = null) => {
       if (loadBalancer) {
-        spyOn(awsLoadBalancerTransformer, 'convertLoadBalancerForEditing').and.returnValue(loadBalancer);
+        spyOn(awsLoadBalancerTransformer, 'convertClassicLoadBalancerForEditing').and.returnValue(loadBalancer);
       }
-      this.ctrl = $controller('awsCreateLoadBalancerCtrl', {
+      this.ctrl = $controller('awsCreateClassicLoadBalancerCtrl', {
         $scope: this.$scope,
         $uibModalInstance: {dismiss: angular.noop, result: {then: angular.noop}},
         infrastructureCaches: { get: () => { return {getStats: () => {return {}; } }; } },

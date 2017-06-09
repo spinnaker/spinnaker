@@ -1,5 +1,5 @@
 <form name="form" class="form-horizontal" novalidate>
-  <v2-modal-wizard heading="{{forPipelineConfig ? 'Configure Load Balancer' : 'Create New Load Balancer'}}"
+  <v2-modal-wizard heading="{{forPipelineConfig ? 'Configure Application Load Balancer' : 'Create New Application Load Balancer'}}"
                    task-monitor="taskMonitor"
                    dismiss="$dismiss()">
     <v2-wizard-page key="Location" label="Location">
@@ -8,15 +8,15 @@
     <v2-wizard-page key="Security Groups" label="Security Groups" render="false" done="true">
       <ng-include src="pages.securityGroups"></ng-include>
     </v2-wizard-page>
+    <v2-wizard-page key="Target Groups" label="Target Groups" done="true">
+      <ng-include src="pages.targetGroups"></ng-include>
+    </v2-wizard-page>
     <v2-wizard-page key="Listeners" label="Listeners" done="true">
       <ng-include src="pages.listeners"></ng-include>
     </v2-wizard-page>
-    <v2-wizard-page key="Health Check" label="Health Check" done="true">
-      <ng-include src="pages.healthCheck"></ng-include>
-    </v2-wizard-page>
-    <v2-wizard-page key="Advanced Settings" label="Advanced Settings" done="true">
-      <ng-include src="pages.advancedSettings"></ng-include>
-    </v2-wizard-page>
+    <!--<v2-wizard-page key="Rules" label="Rules" done="true">
+      <ng-include src="pages.rules"></ng-include>
+    </v2-wizard-page>-->
   </v2-modal-wizard>
   <div class="modal-footer">
     <button ng-disabled="taskMonitor.submitting" class="btn btn-default"

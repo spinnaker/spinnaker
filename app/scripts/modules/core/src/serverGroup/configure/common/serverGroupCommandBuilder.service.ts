@@ -18,7 +18,7 @@ export interface IServerGroupCommandDirty {
   amiName?: boolean;
   instanceType?: string;
   keyPair?: boolean;
-  loadBalancers?: ILoadBalancer[];
+  loadBalancers?: string[];
   region?: boolean;
   securityGroups?: ISecurityGroup[];
   subnetType?: boolean;

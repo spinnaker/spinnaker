@@ -75,6 +75,7 @@ export class AwsServerGroupTransformer {
     command.availabilityZones = {};
     command.availabilityZones[command.region] = base.availabilityZones;
     command.loadBalancers = (base.loadBalancers || []).concat(base.vpcLoadBalancers || []);
+    command.targetGroups = base.targetGroups || [];
     command.account = command.credentials;
     command.subnetType = command.subnetType || '';
 

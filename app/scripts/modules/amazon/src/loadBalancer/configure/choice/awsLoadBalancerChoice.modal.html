@@ -1,0 +1,29 @@
+<div modal-page>
+  <modal-close dismiss="$dismiss()"></modal-close>
+  <div class="modal-header">
+    <h3>Select Type of Load Balancer</h3>
+  </div>
+  <div class="modal-body">
+    <div class="load-balancer-choices">
+      <div class="load-balancer-choice clickable"
+           ng-class="{active: ctrl.choice === choice}"
+           ng-repeat="choice in ctrl.choices"
+           ng-click="ctrl.onChoiceSelection(choice)">
+        <h3 class="load-balancer-label">{{choice.label}}</h3>
+        <h3>({{choice.sublabel}})</h3>
+        <div>
+          {{choice.description}}
+        </div>
+      </div>
+    </div>
+    <div class="load-balancer-description">
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary"
+            ng-click="ctrl.choose()">
+      <span>Configure Load Balancer</span>
+      <span class="glyphicon glyphicon-chevron-right"></span>
+    </button>
+  </div>
+</div>

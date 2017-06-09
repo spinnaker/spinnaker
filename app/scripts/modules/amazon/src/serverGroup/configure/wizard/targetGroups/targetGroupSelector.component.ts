@@ -11,12 +11,14 @@ class TargetGroupSelectorController implements IComponentController {
   public refreshing = false;
 
   constructor(private awsServerGroupConfigurationService: AwsServerGroupConfigurationService,
-              private infrastructureCacheService: InfrastructureCacheService) {
+              private infrastructureCaches: InfrastructureCacheService) {
     'ngInject';
+
+    this.setLoadBalancerRefreshTime();
   }
 
   public setLoadBalancerRefreshTime(): void {
-    this.refreshTime = this.infrastructureCacheService.get('loadBalancers').getStats().ageMax;
+    this.refreshTime = this.infrastructureCaches.get('loadBalancers').getStats().ageMax;
   }
 
   public refreshLoadBalancers(): void {
@@ -36,8 +38,8 @@ export class TargetGroupSelectorComponent implements IComponentOptions {
   public templateUrl = require('./targetGroupSelector.component.html');
 }
 
-export const TARGET_GROUP_SELECTOR_COMPONENT = 'spinnaker.amazon.serverGroup.configure.wizard.targetGroups.selector.component';
-module (TARGET_GROUP_SELECTOR_COMPONENT, [
+export const TARGET_GROUP_SELECTOR = 'spinnaker.amazon.serverGroup.configure.wizard.targetGroups.selector.component';
+module (TARGET_GROUP_SELECTOR, [
   AWS_SERVER_GROUP_CONFIGURATION_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE
 ])

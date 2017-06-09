@@ -1,6 +1,6 @@
 'use strict';
 
-import {AWSProviderSettings} from '../../aws.settings';
+import {AWSProviderSettings} from 'amazon/aws.settings';
 
 describe('Service: awsServerGroup', function () {
   beforeEach(

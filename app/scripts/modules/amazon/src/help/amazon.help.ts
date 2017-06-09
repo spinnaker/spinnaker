@@ -67,7 +67,10 @@ const helpContents: {[key: string]: string} = {
         for the selected instance type will be used.</p>`,
   'aws.blockDeviceMappings.useAMI': '<p>Spinnaker will use the block device mappings from the selected AMI when deploying a new server group.</p>',
   'aws.blockDeviceMappings.useDefaults': '<p>Spinnaker will use the <a target="_blank" href="https://github.com/spinnaker/clouddriver/blob/master/clouddriver-aws/src/main/groovy/com/netflix/spinnaker/clouddriver/aws/deploy/BlockDeviceConfig.groovy">default block device mappings</a> for the selected instance type when deploying a new server group.</p>',
-
+  'aws.targetGroup.attributes.deregistrationDelay': 'The amount of time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. The default value is 300 seconds.',
+  'aws.targetGroup.attributes.stickinessEnabled': ' Indicates whether sticky sessions are enabled.',
+  'aws.targetGroup.attributes.stickinessType': 'The type of sticky sessions. The only current possible value is <code>lb_cookie</code>.',
+  'aws.targetGroup.attributes.stickinessDuration': 'The time period, in seconds, during which requests from a client should be routed to the same target. After this time period expires, the load balancer-generated cookie is considered stale. The range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds).'
 };
 
 export const AMAZON_HELP = 'spinnaker.amazon.help.contents';

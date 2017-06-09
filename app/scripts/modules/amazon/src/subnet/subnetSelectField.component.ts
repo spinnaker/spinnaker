@@ -28,6 +28,10 @@ class SubnetSelectFieldController implements ng.IComponentController {
   }
 
   private setClassicLock(): void {
+    if (this.hideClassic) {
+      return;
+    }
+
     const lockoutDate: number = AWSProviderSettings.classicLaunchLockout;
     if (lockoutDate) {
       const appCreationDate: number = Number(get(this.application, 'attributes.createTs', 0));
@@ -67,7 +71,8 @@ class SubnetSelectFieldComponent implements ng.IComponentOptions {
     labelColumns: '@',
     helpKey: '@',
     readOnly: '<',
-    application: '<'
+    application: '<',
+    hideClassic: '<'
   };
   public controller: any = SubnetSelectFieldController;
   public templateUrl: string = require('./subnetSelectField.component.html');

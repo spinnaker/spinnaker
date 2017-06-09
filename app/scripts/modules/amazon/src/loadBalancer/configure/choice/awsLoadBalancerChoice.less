@@ -1,0 +1,35 @@
+@import (reference) "~coreColors";
+
+.load-balancer-choices {
+  display: flex;
+  justify-content: center;
+  .load-balancer-choice {
+    border: 1px solid @mid_light_grey;
+    border-radius: 2px;
+    width: 200px;
+    margin: 15px;
+    padding: 30px 15px;
+    &.active {
+      border: 1px solid @spinnaker-link-color;
+      background-color: @lighter_blue_background;
+      box-shadow: 0 0 5px 0 @spinnaker-link-color;
+      h3 {
+        color: @default_link_hover;
+      }
+    }
+    &:hover {
+      border: 1px solid @spinnaker-link-color;
+    }
+    h3 {
+      &.load-balancer-label {
+        margin-bottom: 1px;
+      }
+      text-align: center;
+      flex: 1 1 auto;
+    }
+    div {
+      text-align: center;
+      flex: 1 1 auto;
+    }
+  }
+}

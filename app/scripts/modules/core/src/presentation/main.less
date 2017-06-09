@@ -614,6 +614,7 @@ body > .container {
 .sm-label-left {
   text-align: left;
 }
+
 .sm-label-right {
   text-align: right;
   @media(max-width: 992px) {
@@ -621,15 +622,19 @@ body > .container {
   }
 }
 
-.form-inline {
-  .form-control {
-    &.inline-number {
-      width: 60px;
-    }
+.form-control {
+  &.inline-number {
+    width: 60px;
+    display: inline-block;
   }
-  .with-space-before {
-    margin-left: 4px;
+  &.inline-text {
+    width: 150px;
+    display: inline-block;
   }
+}
+
+.with-space-before {
+  margin-left: 4px;
 }
 
 .checkbox-padding {

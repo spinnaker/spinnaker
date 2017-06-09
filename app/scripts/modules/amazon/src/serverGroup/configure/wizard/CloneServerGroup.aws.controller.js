@@ -30,6 +30,7 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       templateSelection: overrideRegistry.getTemplate('aws.serverGroup.templateSelection', require('./templateSelection/templateSelection.html')),
       basicSettings: overrideRegistry.getTemplate('aws.serverGroup.basicSettings', require('./location/basicSettings.html')),
       loadBalancers: overrideRegistry.getTemplate('aws.serverGroup.loadBalancers', require('./loadBalancers/loadBalancers.html')),
+      targetGroups: overrideRegistry.getTemplate('aws.serverGroup.targetGroups', require('./targetGroups/targetGroups.html')),
       securityGroups: overrideRegistry.getTemplate('aws.serverGroup.securityGroups', require('./securityGroups/securityGroups.html')),
       instanceType: overrideRegistry.getTemplate('aws.serverGroup.instanceType', require('./instanceType/instanceType.html')),
       capacity: overrideRegistry.getTemplate('aws.serverGroup.capacity', require('./capacity/capacity.html')),
@@ -142,6 +143,9 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
     function processCommandUpdateResult(result) {
       if (result.dirty.loadBalancers) {
         v2modalWizardService.markDirty('load-balancers');
+      }
+      if (result.dirty.targetGroups) {
+        v2modalWizardService.markDirty('target-groups');
       }
       if (result.dirty.securityGroups) {
         v2modalWizardService.markDirty('security-groups');

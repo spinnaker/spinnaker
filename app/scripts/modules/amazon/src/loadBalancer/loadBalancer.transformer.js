@@ -103,9 +103,10 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.transformer', [
       return vpcReader.listVpcs().then(addVpcNameToContainer(loadBalancer));
     }
 
-    function convertLoadBalancerForEditing(loadBalancer) {
+    function convertClassicLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
         editMode: true,
+        loadBalancerType: 'classic',
         region: loadBalancer.region,
         credentials: loadBalancer.account,
         listeners: [],
@@ -165,7 +166,76 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.transformer', [
       return toEdit;
     }
 
-    function constructNewLoadBalancerTemplate(application) {
+    function convertApplicationLoadBalancerForEditing(loadBalancer) {
+      var toEdit = {
+        editMode: true,
+        region: loadBalancer.region,
+        credentials: loadBalancer.account,
+        loadBalancerType: 'application',
+        listeners: [],
+        targetGroups: [],
+        name: loadBalancer.name,
+        regionZones: loadBalancer.availabilityZones
+      };
+
+      if (loadBalancer.elb) {
+        var elb = loadBalancer.elb;
+        toEdit.securityGroups = elb.securityGroups;
+        toEdit.vpcId = elb.vpcid || elb.vpcId;
+
+        // Convert listeners
+        if (elb.listeners) {
+          toEdit.listeners = elb.listeners.map((listener) => {
+            const certificates = [];
+            if (listener.certificates) {
+              listener.certificates.forEach((cert) => {
+                const certArnParts = cert.certificateArn.split(':');
+                const certParts = certArnParts[5].split('/');
+                certificates.push({
+                  type: certArnParts[2],
+                  name: certParts[1]
+                });
+              });
+            }
+
+            return {
+              protocol: listener.protocol,
+              port: listener.port,
+              defaultActions: listener.defaultActions,
+              certificates: certificates,
+              sslPolicy: listener.sslPolicy
+            };
+          });
+        }
+
+        // Convert target groups
+        if (elb.targetGroups) {
+          toEdit.targetGroups = elb.targetGroups.map((targetGroup) => {
+            return {
+              name: targetGroup.targetGroupName,
+              protocol: targetGroup.protocol,
+              port: targetGroup.port,
+              healthCheckProtocol: targetGroup.healthCheckProtocol,
+              healthCheckPort: targetGroup.healthCheckPort,
+              healthCheckPath: targetGroup.healthCheckPath,
+              healthTimeout: targetGroup.healthCheckTimeoutSeconds,
+              healthInterval: targetGroup.healthCheckIntervalSeconds,
+              healthyThreshold: targetGroup.healthyThresholdCount,
+              unhealthyThreshold: targetGroup.unhealthyThresholdCount,
+              attributes: {
+                deregistrationDelay: Number(targetGroup.attributes['deregistration_delay.timeout_seconds']),
+                stickinessEnabled: targetGroup.attributes['stickiness.enabled'] === 'true',
+                stickinessType: targetGroup.attributes['stickiness.type'],
+                stickinessDuration: Number(targetGroup.attributes['stickiness.lb_cookie.duration_seconds']),
+              }
+            };
+          });
+        }
+      }
+      return toEdit;
+    }
+
+    function constructNewClassicLoadBalancerTemplate(application) {
       var defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
           defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
           defaultSubnetType = AWSProviderSettings.defaults.subnetType;
@@ -198,10 +268,63 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.transformer', [
       };
     }
 
+    function constructNewApplicationLoadBalancerTemplate(application) {
+      var defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
+          defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
+          defaultSubnetType = AWSProviderSettings.defaults.subnetType,
+          defaultTargetGroupName = `${application.name}-alb-targetGroup`;
+      return {
+        stack: '',
+        detail: '',
+        loadBalancerType: 'application',
+        isInternal: false,
+        credentials: defaultCredentials,
+        region: defaultRegion,
+        vpcId: null,
+        subnetType: defaultSubnetType,
+        targetGroups: [
+          {
+            name: defaultTargetGroupName,
+            protocol: 'HTTP',
+            port: 7001,
+            healthCheckProtocol: 'HTTP',
+            healthCheckPort: 7001,
+            healthCheckPath: '/healthcheck',
+            healthTimeout: 5,
+            healthInterval: 10,
+            healthyThreshold: 10,
+            unhealthyThreshold: 2,
+            attributes: {
+              deregistrationDelay: 600,
+              stickinessEnabled: false,
+              stickinessType: 'lb_cookie',
+              stickinessDuration: 8400
+            }
+          }
+        ],
+        regionZones: [],
+        securityGroups: [],
+        listeners: [
+          {
+            certificates: [],
+            protocol: 'HTTP',
+            port: 80,
+            defaultActions: [
+              {
+                type: 'forward',
+                targetGroupName: defaultTargetGroupName
+              }
+            ]
+          }
+        ]
+      };
+    }
+
     return {
       normalizeLoadBalancer: normalizeLoadBalancer,
-      convertLoadBalancerForEditing: convertLoadBalancerForEditing,
-      constructNewLoadBalancerTemplate: constructNewLoadBalancerTemplate,
+      convertClassicLoadBalancerForEditing: convertClassicLoadBalancerForEditing,
+      convertApplicationLoadBalancerForEditing: convertApplicationLoadBalancerForEditing,
+      constructNewClassicLoadBalancerTemplate: constructNewClassicLoadBalancerTemplate,
+      constructNewApplicationLoadBalancerTemplate: constructNewApplicationLoadBalancerTemplate,
     };
-
   });

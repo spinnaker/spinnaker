@@ -1,0 +1,48 @@
+@import (reference) "~coreColors";
+
+.wizard-pod {
+  padding-bottom: 15px;
+  > div {
+    border: 1px solid @lighter_grey;
+  }
+  .glyphicon-trash {
+      padding: 0 8px;
+  }
+  .wizard-pod-row {
+    display: flex;
+    padding: 5px;
+    border-bottom: 1px solid @lighter_grey;
+
+    &.header {
+      .wizard-pod-row-title {
+        font-weight: 800;
+      }
+      .wizard-pod-row-contents {
+        flex-wrap: nowrap;
+        label {
+          font-weight: 600;
+        }
+      }
+      background-color: @lighter_grey;
+    }
+    .wizard-pod-row-title {
+      display: flex;
+      align-items: center;
+      max-height: 37px;
+      flex-basis: 120px;
+      flex-direction: row-reverse;
+      font-weight: 600;
+      text-align: right;
+      margin-right: 10px;
+    }
+    .wizard-pod-row-contents {
+      display: flex;
+      width: 100%;
+      align-items: baseline;
+      flex-wrap: wrap;
+      .wizard-pod-content {
+        padding: 5px 10px;
+      }
+    }
+  }
+}
