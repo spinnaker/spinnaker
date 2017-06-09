@@ -240,6 +240,8 @@ class BaseValidateBomDeployer(object):
       install_params.extend(['--repository', options.halyard_repository])
     if options.halyard_version:
       install_params.extend(['--version', options.halyard_version])
+    if options.hal_user:
+      install_params.extend(['--user', options.hal_user])
     if options.spinnaker_repository:
       install_params.extend(
           ['--spinnaker-repository', options.spinnaker_repository])
@@ -540,7 +542,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
           ' {user}@{ip}'
-          ' "sudo ./{script_name}"'
+          ' ./{script_name}'
           .format(user=self.hal_user,
                   ip=self.instance_ip,
                   ssh_key=self.__ssh_key_path,
