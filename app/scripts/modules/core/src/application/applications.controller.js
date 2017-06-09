@@ -65,8 +65,12 @@ module.exports = angular.module('spinnaker.applications.controller', [
     ];
 
     this.filterApplications = function filterApplications() {
-      var filtered = $filter('anyFieldFilter')($scope.applications, {name: $scope.viewState.applicationFilter, email: $scope.viewState.applicationFilter, accounts: $scope.viewState.applicationFilter}),
-        sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
+      const q = $scope.viewState.applicationFilter;
+      const filtered = ($scope.applications || []).filter(a => {
+        const searchable = [a.name, a.email, a.accounts, a.description].filter(f => f).map(f => f.toLowerCase());
+        return searchable.some(f => f.includes(q));
+    });
+      const sorted = $filter('orderBy')(filtered, $scope.viewState.sortModel.key);
       $scope.filteredApplications = sorted;
       this.resetPaginator();
     };

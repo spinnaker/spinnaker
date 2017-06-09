@@ -23,14 +23,15 @@
       <span class="fa fa-cog fa-3x fa-spin"></span>
     </h2>
     <div class="infrastructure-section">
-      <table ng-if="applicationsLoaded" class="table table-hover">
+      <table ng-if="applicationsLoaded" class="table table-hover small">
         <thead>
           <tr>
-            <th width="20%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-            <th width="20%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-            <th width="20%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
-            <th width="25%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="18%" sort-toggle key="name" label="Name" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="15%" sort-toggle key="createTs" label="Created" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="15%" sort-toggle key="updateTs" label="Updated" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="15%" sort-toggle key="email" label="Owner" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
             <th sort-toggle key="accounts" label="Account(s)" sort-model="viewState.sortModel" on-change="ctrl.filterApplications()"></th>
+            <th width="22%">Description</th>
           </tr>
         </thead>
         <tbody>
@@ -51,6 +52,9 @@
             </td>
             <td>
               {{ application.accounts }}
+            </td>
+            <td>
+              {{ application.description }}
             </td>
           </tr>
         </tbody>
