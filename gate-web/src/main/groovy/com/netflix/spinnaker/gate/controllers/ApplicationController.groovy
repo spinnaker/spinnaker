@@ -23,6 +23,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
@@ -54,8 +55,18 @@ class ApplicationController {
 
   @ApiOperation(value = "Retrieve a list of applications")
   @RequestMapping(method = RequestMethod.GET)
-  List<Map> getAllApplications() {
-    applicationService.getAllApplications()
+  List<Map> getAllApplications(
+    @ApiParam(name = "account", required = false, value = "filters results to only include applications deployed in the specified account")
+    @RequestParam(value = "account", required = false) String account) {
+    List<Map> allApplications = applicationService.getAllApplications()
+    if (account) {
+      String lcAccount = account.toLowerCase()
+      return allApplications.findAll { app ->
+        String[] appAccounts = ((String) app.accounts ?: "").toLowerCase().split(",")
+        appAccounts.contains(lcAccount)
+      }
+    }
+    return allApplications
   }
 
   @ApiOperation(value = "Retrieve an application's details")
