@@ -243,17 +243,18 @@ function configure_bash_completion() {
     yes="y"
   fi
 
+  local home=$(getent passwd $HAL_USER | cut -d: -f6)
   completion_script="/etc/bash_completion.d/hal"
   if [ "$yes" = "y" ] || [ "$yes = "Y" ] || [ "$yes = "yes" ] || [ "$yes" = "" ]; then
     local bashrc
     hal --print-bash-completion | tee $completion_script  > /dev/null
     if [ -z "$YES" ]; then
       echo ""
-      read -p "Where is your bash RC? [default=$HOME/.bashrc]: " bashrc
+      read -p "Where is your bash RC? [default=$home/.bashrc]: " bashrc
     fi
     
     if [ -z "$bashrc" ]; then
-      bashrc="$HOME/.bashrc"
+      bashrc="$home/.bashrc"
     fi
 
     if [ -z "$(grep $completion_script $bashrc)" ]; then
@@ -268,38 +269,39 @@ function configure_bash_completion() {
   
 }
 
-function configure_halyard_defaults() {
-  local user _user
-  _user=$(who -m | awk '{print $1;}')
-  echo ""
+function get_user() {
+  local user 
+
+  user=$(who -m | awk '{print $1;}')
   if [ -z "$YES" ]; then
-    if [ "$_user" = "root" ] || [ -z "$_user" ]; then
-      read -p "Halyard will be run as root. If you prefer a different user, please enter that now. [default=root]: " _user
+    if [ "$user" = "root" ] || [ -z "$user" ]; then
+      read -p "Halyard will be run as root. If you prefer a different user, please enter that now. [default=root]: " user
     fi
   else 
-    if [ -z "$_user" ]; then
-      _user="root"
+    if [ -z "$user" ]; then
+      user="root"
     fi
   fi
 
-  user="$_user"
+  echo $user
+}
 
-  echo "Configuring daemon to be run as $user"
+function configure_halyard_defaults() {
+  home=$(getent passwd $HAL_USER | cut -d: -f6)
+  local halconfig_dir="$home/.hal"
 
-  local halconfig="$HOME/.hal"
+  echo "$(tput bold)Halconfig will be stored at $halconfig_dir/config$(tput sgr0)"
 
-  echo "Halconfig will be stored at $halconfig/config"
-
-  mkdir -p $halconfig
-  chown $user $halconfig
+  mkdir -p $halconfig_dir
+  chown $HAL_USER:$HAL_USER $halconfig_dir
 
   mkdir -p /opt/spinnaker/config
-  chown $user /opt/spinnaker/config
+  chown $HAL_USER:$HAL_USER /opt/spinnaker/config
 
   cat > /opt/spinnaker/config/halyard.yml <<EOL
 halyard:
   halconfig:
-    directory: $halconfig
+    directory: $halconfig_dir
 
 spinnaker:
   artifacts:
@@ -308,9 +310,9 @@ spinnaker:
     googleImageProject: $SPINNAKER_GCE_PROJECT
 EOL
 
-  echo $user > /opt/spinnaker/config/halyard-user
+  echo $HAL_USER > /opt/spinnaker/config/halyard-user
 
-  cat > $halconfig/uninstall.sh <<EOL
+  cat > $halconfig_dir/uninstall.sh <<EOL
 #!/usr/bin/env bash
 
 if [[ `/usr/bin/id -u` -ne 0 ]]; then
@@ -330,11 +332,11 @@ apt-get purge spinnaker-halyard
 echo "Deleting halconfig and artifacts"
 rm $staging -rf
 rm /opt/spinnaker/config/halyard* -rf
-rm $halconfig -rf
+rm $halconfig_dir -rf
 EOL
 
-  chmod +x $halconfig/uninstall.sh
-  echo "$(tput bold)Uninstall script is located at $halconfig/uninstall.sh$(tput sgr0)"
+  chmod +x $halconfig_dir/uninstall.sh
+  echo "$(tput bold)Uninstall script is located at $halconfig_dir/uninstall.sh$(tput sgr0)"
 }
 
 process_args "$@"
@@ -353,6 +355,8 @@ fi
 ## Spinnaker
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
+
+HAL_USER=$(get_user)
 
 configure_halyard_defaults
 configure_bash_completion
