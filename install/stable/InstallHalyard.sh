@@ -297,10 +297,10 @@ function configure_halyard_defaults() {
   echo "$(tput bold)Halconfig will be stored at $halconfig_dir/config$(tput sgr0)"
 
   mkdir -p $halconfig_dir
-  chown $HAL_USER:$HAL_USER $halconfig_dir
+  chown $HAL_USER $halconfig_dir
 
   mkdir -p /opt/spinnaker/config
-  chown $HAL_USER:$HAL_USER /opt/spinnaker/config
+  chmod +rx /opt/spinnaker/config
 
   cat > /opt/spinnaker/config/halyard.yml <<EOL
 halyard:
