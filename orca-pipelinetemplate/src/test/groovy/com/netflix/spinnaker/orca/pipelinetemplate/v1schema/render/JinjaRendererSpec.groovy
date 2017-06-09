@@ -38,6 +38,7 @@ class JinjaRendererSpec extends Specification {
       variables.put('stringVar', 'myStringValue')
       variables.put('regions', ['us-east-1', 'us-west-2'])
       variables.put('objectVar', [key1: 'value1', key2: 'value2'])
+      variables.put('isDebugNeeded', false)
       it
     }
 
@@ -74,6 +75,9 @@ class JinjaRendererSpec extends Specification {
 - {{ region }}
 {% endfor %}
 '''                   || List         | ['us-east-1', 'us-west-2']
+    '''
+"${ {{isDebugNeeded}} }".equalsIgnoreCase("True")
+'''                   || String       | '"${ false }".equalsIgnoreCase("True")'
   }
 
 

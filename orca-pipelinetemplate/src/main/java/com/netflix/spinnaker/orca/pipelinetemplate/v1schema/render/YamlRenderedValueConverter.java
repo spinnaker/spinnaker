@@ -16,10 +16,15 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.composer.ComposerException;
+import org.yaml.snakeyaml.parser.ParserException;
 
 public class YamlRenderedValueConverter implements RenderedValueConverter {
+
+  private final Logger log = LoggerFactory.getLogger(getClass());
 
   private Yaml yaml;
 
@@ -31,8 +36,14 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
   public Object convertRenderedValue(String renderedValue) {
     try {
       return yaml.load(renderedValue);
-    } catch (ComposerException e) {
-      throw new TemplateRenderException("template produced invalid yaml", e);
+    } catch (ComposerException ce) {
+      throw new TemplateRenderException("template produced invalid yaml", ce);
+    } catch (ParserException pe) {
+      if (pe.getProblem().contains("expected '<document start>'")) {
+        log.info("YAML parser expected start of document, assuming rendered value is desired state");
+        return renderedValue;
+      }
+      throw pe;
     }
   }
 }
