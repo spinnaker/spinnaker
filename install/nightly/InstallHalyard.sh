@@ -79,6 +79,9 @@ usage: $0 [-y] [--quiet] [--dependencies_only]
     --version <version>             Specify the exact verison of Halyard to 
                                     install.
 
+    --user <user>                   Specify the user to run Halyard as. This
+                                    user must exist.
+
     --dependencies_only             Do not install any Spinnaker services.
                                     Only install the dependencies. This is
                                     intended for development scenarios only.
@@ -125,6 +128,11 @@ function process_args() {
       --spinnaker-gce-project)
         echo "spinnaker-gce-project"
         SPINNAKER_GCE_PROJECT="$1"
+        shift
+        ;;
+      --user)
+        echo "user"
+        HAL_USER="$1"
         shift
         ;;
       --version)
@@ -275,11 +283,7 @@ function get_user() {
   user=$(who -m | awk '{print $1;}')
   if [ -z "$YES" ]; then
     if [ "$user" = "root" ] || [ -z "$user" ]; then
-      read -p "Halyard will be run as root. If you prefer a different user, please enter that now. [default=root]: " user
-    fi
-  else 
-    if [ -z "$user" ]; then
-      user="root"
+      read -p "Please supply a non-root user to run Halyard as: " user
     fi
   fi
 
@@ -341,6 +345,30 @@ EOL
 
 process_args "$@"
 
+if [ -z "$HAL_USER" ]; then 
+  HAL_USER=$(get_user)
+fi
+
+if [ -z "$HAL_USER" ]; then 
+  >&2 echo "You have not supplied a user to run Halyard as."
+  exit 1
+fi
+
+if [ "$HAL_USER" = "root" ]; then
+  >&2 echo "Halyard may not be run as root. Supply a user to run Halyard as: "
+  >&2 echo "  sudo bash $0 --user <user>"
+  exit 1
+fi
+
+set +e
+getent passwd $HAL_USER &> /dev/null
+
+if [ "$?" != "0" ]; then
+  >&2 echo "Supplied user $HAL_USER does not exist"
+  exit 1
+fi
+set -e
+
 echo "$(tput bold)Configuring external apt repos...$(tput sgr0)"
 add_apt_repositories
 
@@ -356,8 +384,6 @@ fi
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
 
-HAL_USER=$(get_user)
-
 configure_halyard_defaults
 configure_bash_completion
 
@@ -369,9 +395,9 @@ set +e
 hal --ready &> /dev/null
 
 while [ "$?" != "0" ]; do
-    printf '.'
-    sleep 2
-    hal --ready &> /dev/null
+  printf '.'
+  sleep 2
+  hal --ready &> /dev/null
 done
 
 echo 
