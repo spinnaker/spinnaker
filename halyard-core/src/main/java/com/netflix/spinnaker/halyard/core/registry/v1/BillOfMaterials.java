@@ -49,6 +49,7 @@ public class BillOfMaterials {
     String debianRepository;
     String dockerRegistry;
     String googleImageProject;
+    String gitPrefix;
   }
 
   @Data
