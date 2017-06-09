@@ -240,8 +240,8 @@ class BaseValidateBomDeployer(object):
       install_params.extend(['--repository', options.halyard_repository])
     if options.halyard_version:
       install_params.extend(['--version', options.halyard_version])
-    if options.hal_user:
-      install_params.extend(['--user', options.hal_user])
+    if self.hal_user:
+      install_params.extend(['--user', self.hal_user])
     if options.spinnaker_repository:
       install_params.extend(
           ['--spinnaker-repository', options.spinnaker_repository])
