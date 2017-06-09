@@ -417,6 +417,7 @@ hal config [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--set-current-deployment`: If supplied, set the current active deployment to the supplied value, creating it if need-be.
 
@@ -455,6 +456,7 @@ hal config ci jenkins [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -473,6 +475,7 @@ hal config ci jenkins disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -487,6 +490,7 @@ hal config ci jenkins enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -502,6 +506,7 @@ hal config ci jenkins master MASTER [parameters] [subcommands]
 
 #### Parameters
 `MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -524,6 +529,7 @@ hal config ci jenkins master add MASTER [parameters]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--address`: (*Required*) The address your jenkins master is reachable at.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
  * `--username`: The username of the jenkins user to authenticate as.
@@ -541,6 +547,7 @@ hal config ci jenkins master delete MASTER [parameters]
 
 #### Parameters
 `MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -557,6 +564,7 @@ hal config ci jenkins master edit MASTER [parameters]
 #### Parameters
 `MASTER`: The name of the master to operate on.
  * `--address`: The address your jenkins master is reachable at.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) The password of the jenkins user to authenticate as.
  * `--username`: The username of the jenkins user to authenticate as.
@@ -574,6 +582,7 @@ hal config ci jenkins master get MASTER [parameters]
 
 #### Parameters
 `MASTER`: The name of the master to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -588,6 +597,7 @@ hal config ci jenkins master list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -602,6 +612,7 @@ hal config deploy [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -622,6 +633,7 @@ hal config deploy edit [parameters]
  * `--consul-address`: The address of a running Consul cluster. See https://www.consul.io/.
 This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--consul-enabled`: Whether or not to use Consul as a service discovery mechanism to deploy Spinnaker.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Flotilla: Deploy Spinnaker with one server group per microservice, and a single shared Redis.
 LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
@@ -640,6 +652,7 @@ hal config features [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -657,6 +670,7 @@ hal config features edit [parameters]
 
 #### Parameters
  * `--chaos`: Enable Chaos Monkey support. For this to work, you'll need a running Chaos Monkey deployment. Currently, Halyard doesn't configure Chaos Monkey for you; read more instructions here https://github.com/Netflix/chaosmonkey/wiki.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--jobs`: Allow Spinnaker to run containers in Kubernetes and Titus as Job stages in pipelines.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
@@ -672,6 +686,7 @@ hal config generate [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -686,6 +701,7 @@ hal config metric-stores [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -705,6 +721,7 @@ hal config metric-stores datadog [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -723,6 +740,7 @@ hal config metric-stores datadog disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -739,6 +757,7 @@ hal config metric-stores datadog edit [parameters]
 #### Parameters
  * `--api-key`: Your datadog API key.
  * `--app-key`: Your datadog app key. This is only required if you want Spinnaker to push pre-configured Spinnaker dashboards to your Datadog account.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -753,6 +772,7 @@ hal config metric-stores datadog enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -767,6 +787,7 @@ hal config metric-stores edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--period`: (*Required*) Set the polling period for the monitoring daemon.
 
@@ -782,6 +803,7 @@ hal config metric-stores prometheus [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -800,6 +822,7 @@ hal config metric-stores prometheus disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -814,6 +837,7 @@ hal config metric-stores prometheus edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--push-gateway`: The endpoint the monitoring Daemon should push metrics to. If you have configured Prometheus to automatically discover all your Spinnaker services and pull metrics from them this is not required.
 
@@ -829,6 +853,7 @@ hal config metric-stores prometheus enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -843,6 +868,7 @@ hal config metric-stores stackdriver [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -861,6 +887,7 @@ hal config metric-stores stackdriver disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -876,6 +903,7 @@ hal config metric-stores stackdriver edit [parameters]
 
 #### Parameters
  * `--credentials-path`: A path to a Google JSON service account that has permission to publish metrics.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The project Spinnaker's metrics should be published to.
  * `--zone`: The zone Spinnaker's metrics should be associated with.
@@ -892,6 +920,7 @@ hal config metric-stores stackdriver enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -927,6 +956,7 @@ hal config provider appengine [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -946,6 +976,7 @@ hal config provider appengine account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -967,6 +998,7 @@ hal config provider appengine account add ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--git-https-password`: (*Sensitive data* - user will be prompted on standard input) A password to be used when connecting with a remote git repository server over HTTPS.
  * `--git-https-username`: A username to be used when connecting with a remote git repository server over HTTPS.
  * `--github-oauth-access-token`: (*Sensitive data* - user will be prompted on standard input) An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
@@ -993,6 +1025,7 @@ hal config provider appengine account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1009,6 +1042,7 @@ hal config provider appengine account edit ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--git-https-password`: (*Sensitive data* - user will be prompted on standard input) A password to be used when connecting with a remote git repository server over HTTPS.
  * `--git-https-username`: A username to be used when connecting with a remote git repository server over HTTPS.
  * `--github-oauth-access-token`: (*Sensitive data* - user will be prompted on standard input) An OAuth token provided by Github for connecting to  a git repository over HTTPS. See https://help.github.com/articles/creating-an-access-token-for-command-line-use for more information.
@@ -1036,6 +1070,7 @@ hal config provider appengine account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1050,6 +1085,7 @@ hal config provider appengine account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1064,6 +1100,7 @@ hal config provider appengine disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1078,6 +1115,7 @@ hal config provider appengine enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1092,6 +1130,7 @@ hal config provider aws [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1112,6 +1151,7 @@ hal config provider aws account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1138,6 +1178,7 @@ hal config provider aws account add ACCOUNT [parameters]
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--default-key-pair`: Provide the name of the AWS key-pair to use. See http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html for more information.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
 Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2 
@@ -1161,6 +1202,7 @@ hal config provider aws account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1183,6 +1225,7 @@ hal config provider aws account edit ACCOUNT [parameters]
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--default-key-pair`: Provide the name of the AWS key-pair to use. See http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html for more information.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--discovery`: The endpoint your Eureka discovery system is reachable at. See https://github.com/Netflix/eureka for more information.
 
 Example: http://{{region}}.eureka.url.to.use:8080/eureka-server/v2 
@@ -1208,6 +1251,7 @@ hal config provider aws account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1222,6 +1266,7 @@ hal config provider aws account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1236,6 +1281,7 @@ hal config provider aws disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1251,6 +1297,7 @@ hal config provider aws edit [parameters]
 
 #### Parameters
  * `--access-key-id`: Your AWS Access Key ID. If not provided, Halyard/Spinnaker will try to find AWS credentials as described at http://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html#credentials-default
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--secret-access-key`: (*Sensitive data* - user will be prompted on standard input) Your AWS Secret Key.
 
@@ -1266,6 +1313,7 @@ hal config provider aws enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1280,6 +1328,7 @@ hal config provider azure [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1300,6 +1349,7 @@ hal config provider azure account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1325,6 +1375,7 @@ hal config provider azure account add ACCOUNT [parameters]
  * `--client-id`: (*Required*) The clientId (also called appId) of your service principal.
  * `--default-key-vault`: (*Required*) The name of a KeyVault that contains the default user name and password used to create VMs
  * `--default-resource-group`: (*Required*) The default resource group to contain any non-application specific resources.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--object-id`: The objectId of your service principal. This is only required if using Packer to bake Windows images.
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
@@ -1346,6 +1397,7 @@ hal config provider azure account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1366,6 +1418,7 @@ hal config provider azure account edit ACCOUNT [parameters]
  * `--client-id`: The clientId (also called appId) of your service principal.
  * `--default-key-vault`: The name of a KeyVault that contains the default user name and password used to create VMs
  * `--default-resource-group`: The default resource group to contain any non-application specific resources.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--object-id`: The objectId of your service principal. This is only required if using Packer to bake Windows images.
  * `--packer-resource-group`: The resource group to use if baking images with Packer.
@@ -1388,6 +1441,7 @@ hal config provider azure account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1402,6 +1456,7 @@ hal config provider azure account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1416,6 +1471,7 @@ hal config provider azure bakery [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1433,6 +1489,7 @@ hal config provider azure bakery base-image [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1454,6 +1511,7 @@ hal config provider azure bakery base-image add BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--detailed-description`: A long description to help human operators identify the image.
  * `--image-version`: The version of your base image. This defaults to 'latest' if not specified.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -1477,6 +1535,7 @@ hal config provider azure bakery base-image delete BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1492,6 +1551,7 @@ hal config provider azure bakery base-image edit BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--detailed-description`: A long description to help human operators identify the image.
  * `--id`: This is the identifier used by your cloud to find this base image.
  * `--image-version`: The version of your base image. This defaults to 'latest' if not specified.
@@ -1516,6 +1576,7 @@ hal config provider azure bakery base-image get BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1530,6 +1591,7 @@ hal config provider azure bakery base-image list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1544,6 +1606,7 @@ hal config provider azure bakery edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1558,6 +1621,7 @@ hal config provider azure disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1572,6 +1636,7 @@ hal config provider azure enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1586,6 +1651,7 @@ hal config provider dcos [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1606,6 +1672,7 @@ hal config provider dcos account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1628,6 +1695,7 @@ hal config provider dcos account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--cluster`: (*Required*) Reference to the name of the cluster from the set of clusters defined for this provider
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--docker-registries`: (*Default*: `[]`) (*Required*) Provide the list of docker registries to use with this DC/OS account
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: Password for a user account
@@ -1648,6 +1716,7 @@ hal config provider dcos account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1665,6 +1734,7 @@ hal config provider dcos account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--add-docker-registry`: Add this docker registry to the list of docker registries to use as a source of images.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--docker-registries`: (*Default*: `[]`) Provide the list of docker registries to use with this DC/OS account
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--remove-credential`: (*Default*: `[]`) Provide the cluster name and uid of credentials to remove: --remove-credential my-cluster my-user
@@ -1687,6 +1757,7 @@ hal config provider dcos account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1701,6 +1772,7 @@ hal config provider dcos account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1716,6 +1788,7 @@ hal config provider dcos cluster CLUSTER [parameters] [subcommands]
 
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1739,6 +1812,7 @@ hal config provider dcos cluster add CLUSTER [parameters]
 `CLUSTER`: The name of the cluster to operate on.
  * `--ca-cert-data`: Root certificate to trust for connections to the cluster
  * `--dcos-url`: (*Required*) URL of the endpoint for the DC/OS cluster's admin router.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--lb-account-secret`: Name of the secret to use for allowing marathon-lb to authenticate with the cluster.  Only necessary for clusters with strict or permissive security.
  * `--lb-image`: Marathon-lb image to use when creating a load balancer with Spinnaker
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -1757,6 +1831,7 @@ hal config provider dcos cluster delete CLUSTER [parameters]
 
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1774,6 +1849,7 @@ hal config provider dcos cluster edit CLUSTER [parameters]
 `CLUSTER`: The name of the cluster to operate on.
  * `--ca-cert-data`: Root certificate to trust for connections to the cluster
  * `--dcos-url`: URL of the endpoint for the DC/OS cluster's admin router.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--lb-account-secret`: Name of the secret to use for allowing marathon-lb to authenticate with the cluster.  Only necessary for clusters with strict or permissive security.
  * `--lb-image`: Marathon-lb image to use when creating a load balancer with Spinnaker
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -1794,6 +1870,7 @@ hal config provider dcos cluster get CLUSTER [parameters]
 
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1809,6 +1886,7 @@ hal config provider dcos cluster list CLUSTER [parameters]
 
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1823,6 +1901,7 @@ hal config provider dcos disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1837,6 +1916,7 @@ hal config provider dcos enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1851,6 +1931,7 @@ hal config provider docker-registry [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1870,6 +1951,7 @@ hal config provider docker-registry account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -1898,6 +1980,7 @@ hal config provider docker-registry account add ACCOUNT [parameters]
   gcr.io              - Google Container Registry (GCR)
   [us|eu|asia].gcr.io - Regional GCR
   localhost           - Locally deployed registry
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: (*Default*: `fake.email@spinnaker.io`) Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
@@ -1919,6 +2002,7 @@ hal config provider docker-registry account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1943,6 +2027,7 @@ hal config provider docker-registry account edit ACCOUNT [parameters]
   gcr.io              - Google Container Registry (GCR)
   [us|eu|asia].gcr.io - Regional GCR
   localhost           - Locally deployed registry
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--email`: Your docker registry email (often this only needs to be well-formed, rather than be a real address)
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: (*Sensitive data* - user will be prompted on standard input) Your docker registry password
@@ -1966,6 +2051,7 @@ hal config provider docker-registry account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1980,6 +2066,7 @@ hal config provider docker-registry account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -1994,6 +2081,7 @@ hal config provider docker-registry disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2008,6 +2096,7 @@ hal config provider docker-registry enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2022,6 +2111,7 @@ hal config provider google [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2042,6 +2132,7 @@ hal config provider google account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2064,6 +2155,7 @@ hal config provider google account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--alpha-listed`: (*Default*: `false`) Enable this flag if your project has access to alpha features and you want Spinnaker to take advantage of them.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--image-projects`: (*Default*: `[]`) A list of Google Cloud Platform projects Spinnaker will be able to cache and deploy images from. When this is omitted, it defaults to the current project. Each project must have granted the IAM role `compute.imageUser` to the service account associated with the json key used by this account, as well as to the 'Google APIs service account' automatically created for the project being managed (should look similar to `12345678912@cloudservices.gserviceaccount.com`). See https://cloud.google.com/compute/docs/images/sharing-images-across-projects for more information about sharing images across GCP projects.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2084,6 +2176,7 @@ hal config provider google account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2101,6 +2194,7 @@ hal config provider google account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--add-image-project`: Add this image project to the list of image projects to cache and deploy images from.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--image-projects`: (*Default*: `[]`) A list of Google Cloud Platform projects Spinnaker will be able to cache and deploy images from. When this is omitted, it defaults to the current project. Each project must have granted the IAM role `compute.imageUser` to the service account associated with the json key used by this account, as well as to the 'Google APIs service account' automatically created for the project being managed (should look similar to `12345678912@cloudservices.gserviceaccount.com`). See https://cloud.google.com/compute/docs/images/sharing-images-across-projects for more information about sharing images across GCP projects.
  * `--json-path`: The path to a JSON service account that Spinnaker will use as credentials. This is only needed if Spinnaker is not deployed on a Google Compute Engine VM, or needs permissions not afforded to the VM it is running on. See https://cloud.google.com/compute/docs/access/service-accounts for more information.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2124,6 +2218,7 @@ hal config provider google account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2138,6 +2233,7 @@ hal config provider google account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2152,6 +2248,7 @@ hal config provider google bakery [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2169,6 +2266,7 @@ hal config provider google bakery base-image [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2190,6 +2288,7 @@ hal config provider google bakery base-image add BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--detailed-description`: A long description to help human operators identify the image.
  * `--is-image-family`: (*Default*: `false`) todo(duftler) I couldn't find a description on the packer website of what this is.
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -2212,6 +2311,7 @@ hal config provider google bakery base-image delete BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2227,6 +2327,7 @@ hal config provider google bakery base-image edit BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--detailed-description`: A long description to help human operators identify the image.
  * `--id`: This is the identifier used by your cloud to find this base image.
  * `--is-image-family`: todo(duftler) I couldn't find a description on the packer website of what this is.
@@ -2250,6 +2351,7 @@ hal config provider google bakery base-image get BASE-IMAGE [parameters]
 
 #### Parameters
 `BASE-IMAGE`: The name of the base image to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2264,6 +2366,7 @@ hal config provider google bakery base-image list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2278,6 +2381,7 @@ hal config provider google bakery edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--network`: Set the default network your images will be baked in.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--use-internal-ip`: Use the internal rather than external IP of the VM baking your image.
@@ -2295,6 +2399,7 @@ hal config provider google disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2309,6 +2414,7 @@ hal config provider google enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2325,6 +2431,7 @@ hal config provider kubernetes [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2347,6 +2454,7 @@ hal config provider kubernetes account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2370,6 +2478,7 @@ hal config provider kubernetes account add ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--context`: The kubernetes context to be managed by Spinnaker. See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
 When no context is configured for an account the 'current-context' in your kubeconfig is assumed.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--docker-registries`: (*Default*: `[]`) (*Required*) A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. These docker registry accounts must be registered in your halconfig before you can add them here.
  * `--kubeconfig-file`: The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical .kube/config location.
  * `--namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account can deploy to and will cache.
@@ -2392,6 +2501,7 @@ hal config provider kubernetes account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2415,6 +2525,7 @@ hal config provider kubernetes account edit ACCOUNT [parameters]
  * `--clear-context`: (*Default*: `false`) Removes the currently configured context, defaulting to 'current-context' in your kubeconfig.See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
  * `--context`: The kubernetes context to be managed by Spinnaker. See http://kubernetes.io/docs/user-guide/kubeconfig-file/#context for more information.
 When no context is configured for an account the 'current-context' in your kubeconfig is assumed.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--docker-registries`: (*Default*: `[]`) A list of the Spinnaker docker registry account names this Spinnaker account can use as image sources. These docker registry accounts must be registered in your halconfig before you can add them here.
  * `--kubeconfig-file`: The path to your kubeconfig file. By default, it will be under the Spinnaker user's home directory in the typical .kube/config location.
  * `--namespaces`: (*Default*: `[]`) A list of namespaces this Spinnaker account can deploy to and will cache.
@@ -2441,6 +2552,7 @@ hal config provider kubernetes account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2455,6 +2567,7 @@ hal config provider kubernetes account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2469,6 +2582,7 @@ hal config provider kubernetes disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2483,6 +2597,7 @@ hal config provider kubernetes edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2497,6 +2612,7 @@ hal config provider kubernetes enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2511,6 +2627,7 @@ hal config provider openstack [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2530,6 +2647,7 @@ hal config provider openstack account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2552,6 +2670,7 @@ hal config provider openstack account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--auth-url`: (*Required*) The auth url of your cloud, usually found in the Horizon console under Compute > Access & Security > API Access > url for Identity. Must be Keystone v3
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--domain-name`: (*Required*) The domain of the cloud. Can be found in the RC file.
  * `--insecure`: (*Default*: `false`) Disable certificate validation on SSL connections. Needed if certificates are self signed. Default false.
  * `--lbaas-poll-interval`: Interval in seconds to poll octavia when an entity is created, updated, or deleted. Default 5.
@@ -2577,6 +2696,7 @@ hal config provider openstack account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2595,6 +2715,7 @@ hal config provider openstack account edit ACCOUNT [parameters]
  * `--add-region`: Add this region to the list of managed regions.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--auth-url`: The auth url of your cloud, usually found in the Horizon console under Compute > Access & Security > API Access > url for Identity. Must be Keystone v3
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--domain-name`: The domain of the cloud. Can be found in the RC file.
  * `--insecure`: Disable certificate validation on SSL connections. Needed if certificates are self signed. Default false.
  * `--lbaas-poll-interval`: Interval in seconds to poll octavia when an entity is created, updated, or deleted. Default 5.
@@ -2623,6 +2744,7 @@ hal config provider openstack account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2637,6 +2759,7 @@ hal config provider openstack account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2651,6 +2774,7 @@ hal config provider openstack disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2665,6 +2789,7 @@ hal config provider openstack enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2679,6 +2804,7 @@ hal config provider oraclebmcs [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2698,6 +2824,7 @@ hal config provider oraclebmcs account ACCOUNT [parameters] [subcommands]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2720,6 +2847,7 @@ hal config provider oraclebmcs account add ACCOUNT [parameters]
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
  * `--compartment-id`: (*Required*) Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--fingerprint`: (*Required*) Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: (*Required*) An Oracle BMCS region (e.g., us-phoenix-1)
@@ -2741,6 +2869,7 @@ hal config provider oraclebmcs account delete ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2758,6 +2887,7 @@ hal config provider oraclebmcs account edit ACCOUNT [parameters]
 `ACCOUNT`: The name of the account to operate on.
  * `--add-required-group-membership`: Add this group to the list of required group memberships.
  * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--fingerprint`: Fingerprint of the public key
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: An Oracle BMCS region (e.g., us-phoenix-1)
@@ -2780,6 +2910,7 @@ hal config provider oraclebmcs account get ACCOUNT [parameters]
 
 #### Parameters
 `ACCOUNT`: The name of the account to operate on.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2794,6 +2925,7 @@ hal config provider oraclebmcs account list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2808,6 +2940,7 @@ hal config provider oraclebmcs disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2822,6 +2955,7 @@ hal config provider oraclebmcs enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2836,6 +2970,7 @@ hal config security [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2855,6 +2990,7 @@ hal config security api [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2873,6 +3009,7 @@ hal config security api edit [parameters]
 
 #### Parameters
  * `--cors-access-pattern`: If you have authentication enabled, are accessing Spinnaker remotely, and are logging in from sources other than the UI, provide a regex matching all URLs authentication redirects may come from.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--override-base-url`: If you are accessing the API server remotely, provide the full base URL of whatever proxy or load balancer is fronting the API requests.
 
@@ -2888,6 +3025,7 @@ hal config security api ssl [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2906,6 +3044,7 @@ hal config security api ssl disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2921,6 +3060,7 @@ hal config security api ssl edit [parameters]
 
 #### Parameters
  * `--client-auth`: (*Sensitive data* - user will be prompted on standard input) Declare 'WANT' when client auth is wanted but not mandatory, or 'NEED', when client auth is mandatory.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--key-alias`: Name of your keystore entry as generated with your keytool.
  * `--keystore`: Path to the keystore holding your security certificates.
  * `--keystore-password`: (*Sensitive data* - user will be prompted on standard input) The password to unlock your keystore. Due to a limitation in Tomcat, this must match your key's password in the keystore.
@@ -2942,6 +3082,7 @@ hal config security api ssl enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -2956,6 +3097,7 @@ hal config security authn [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2973,6 +3115,7 @@ hal config security authn oauth2 [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -2991,6 +3134,7 @@ hal config security authn oauth2 disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3007,6 +3151,7 @@ hal config security authn oauth2 edit [parameters]
 #### Parameters
  * `--client-id`: The OAuth client ID you have configured with your OAuth provider.
  * `--client-secret`: The OAuth client secret you have configured with your OAuth provider.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--pre-established-redirect-uri`: The externally accessible URL for Gate. For use with load balancers that do any kind of address manipulation for Gate traffic, such as an SSL terminating load balancer.
  * `--provider`: The OAuth provider handling authentication. The supported options are Google, GitHub, and Azure
@@ -3024,6 +3169,7 @@ hal config security authn oauth2 enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3038,6 +3184,7 @@ hal config security authn saml [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3056,6 +3203,7 @@ hal config security authn saml disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3070,6 +3218,7 @@ hal config security authn saml edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--issuer-id`: The identity of the Spinnaker application registered with the SAML provider.
  * `--keystore`: Path to the keystore that contains this server's private key. This key is used to cryptographically sign SAML AuthNRequest objects.
  * `--keystore-alias`: The name of the alias under which this server's private key is stored in the --keystore file.
@@ -3090,6 +3239,7 @@ hal config security authn saml enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3104,6 +3254,7 @@ hal config security authz [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3124,6 +3275,7 @@ hal config security authz disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3138,6 +3290,7 @@ hal config security authz edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: Set a roles provider type
 
@@ -3153,6 +3306,7 @@ hal config security authz enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3167,6 +3321,7 @@ hal config security authz github [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3185,6 +3340,7 @@ hal config security authz github edit [parameters]
 #### Parameters
  * `--accessToken`: A personal access token of an account with access to your organization's GitHub Teams structure.
  * `--baseUrl`: Used if using GitHub enterprise some other non github.com GitHub installation.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--organization`: The GitHub organization under which to query for GitHub Teams.
 
@@ -3200,6 +3356,7 @@ hal config security authz google [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3218,6 +3375,7 @@ hal config security authz google edit [parameters]
 #### Parameters
  * `--admin-username`: Your role provider's admin username e.g. admin@myorg.net
  * `--credential-path`: A path to a valid json service account that can authenticate against the Google role provider.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--domain`: The domain your role provider is configured for e.g. myorg.net.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
@@ -3233,6 +3391,7 @@ hal config security ui [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3250,6 +3409,7 @@ hal config security ui edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--override-base-url`: If you are accessing the UI server remotely, provide the full base URL of whatever proxy or load balancer is fronting the UI requests.
 
@@ -3265,6 +3425,7 @@ hal config security ui ssl [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3283,6 +3444,7 @@ hal config security ui ssl disable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3297,6 +3459,7 @@ hal config security ui ssl edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--ssl-certificate-file`: Path to your .crt file.
  * `--ssl-certificate-key-file`: Path to your .key file.
@@ -3314,6 +3477,7 @@ hal config security ui ssl enable [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3328,6 +3492,7 @@ hal config storage [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3348,6 +3513,7 @@ hal config storage azs [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3364,6 +3530,7 @@ hal config storage azs edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--storage-account-key`: The key to access the Azure Storage Account used for Spinnaker's persistent data.
  * `--storage-account-name`: The name of an Azure Storage Account used for Spinnaker's persistent data.
@@ -3381,6 +3548,7 @@ hal config storage edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--type`: (*Required*) The type of the persistent store to use for Spinnaker.
 
@@ -3396,6 +3564,7 @@ hal config storage gcs [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3414,6 +3583,7 @@ hal config storage gcs edit [parameters]
 #### Parameters
  * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
  * `--bucket-location`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that location. See https://cloud.google.com/storage/docs/managing-buckets#manage-class-location.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--json-path`: A path to a JSON service account with permission to read and write to the bucket to be used as a backing store.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--project`: The Google Cloud Platform project you are using to host the GCS bucket as a backing store.
@@ -3431,6 +3601,7 @@ hal config storage oraclebmcs [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3449,6 +3620,7 @@ hal config storage oraclebmcs edit [parameters]
 #### Parameters
  * `--bucket-name`: The bucket name to store persistent state object in
  * `--compartment-id`: Provide the OCID of the Oracle BMCS Compartment to use.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--fingerprint`: Fingerprint of the public key
  * `--namespace`: The namespace the bucket and objects should be created in
  * `--no-validate`: (*Default*: `false`) Skip validation.
@@ -3469,6 +3641,7 @@ hal config storage s3 [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3490,6 +3663,7 @@ hal config storage s3 edit [parameters]
 
 Example: "user/spinnaker" or "role/spinnakerManaged"
  * `--bucket`: The name of a storage bucket that your specified account has access to. If not specified, a random name will be chosen. If you specify a globally unique bucket name that doesn't exist yet, Halyard will create that bucket for you.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--endpoint`: An alternate endpoint that your S3-compatible storage can be found at. This is intended for self-hosted storage services with S3-compatible APIs, e.g. Minio. If supplied, this storage type cannot be validated.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--region`: This is only required if the bucket you specify doesn't exist yet. In that case, the bucket will be created in that region. See http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region.
@@ -3508,6 +3682,7 @@ hal config version [parameters] [subcommands]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 #### Subcommands
@@ -3524,6 +3699,7 @@ hal config version edit [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--version`: (*Required*) Must be either a version number "X.Y.Z" for a specific release of Spinnaker, or "$BRANCH-latest-unvalidated" for the most recently built (unvalidated) Spinnaker on $BRANCH.
 
@@ -3559,6 +3735,7 @@ hal deploy apply [parameters]
 
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--omit-config`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.
 
@@ -3577,6 +3754,7 @@ hal deploy clean [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3591,6 +3769,7 @@ hal deploy collect-logs [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, logs from only the specified services will be collected.
 
@@ -3607,6 +3786,7 @@ hal deploy connect [parameters]
 
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, connections to the specified Spinnaker services are opened. When omitted, connections to the UI & API servers are opened to allow you to interact with Spinnaker in your browser.
 
@@ -3622,6 +3802,7 @@ hal deploy details [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-name`: (*Required*) The name of the service to inspect.
 
@@ -3637,6 +3818,7 @@ hal deploy diff [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3651,6 +3833,7 @@ hal deploy rollback [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
@@ -3719,6 +3902,7 @@ hal version bom VERSION [parameters]
 #### Parameters
 `VERSION`: The version whose Bill of Materials (BOM) to lookup.
  * `--artifact-name`: When supplied, print the version of this artifact only.
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 
@@ -3744,6 +3928,7 @@ hal version list [parameters]
 ```
 
 #### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--no-validate`: (*Default*: `false`) Skip validation.
 
 

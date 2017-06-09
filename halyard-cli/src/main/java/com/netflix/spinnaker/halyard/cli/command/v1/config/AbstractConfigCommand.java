@@ -18,9 +18,12 @@ package com.netflix.spinnaker.halyard.cli.command.v1.config;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.GlobalConfigOptions;
+import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.NestableCommand;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +33,21 @@ abstract public class AbstractConfigCommand extends NestableCommand {
   @Parameter(names = { "--no-validate" }, description = "Skip validation.")
   public boolean noValidate = false;
 
+  @Parameter(names = { "--deployment" }, description = "If supplied, use this Halyard deployment. This will _not_ create a new deployment.")
+  public void setDeployment(String deployment) {
+    GlobalConfigOptions.getGlobalConfigOptions().setDeployment(deployment);
+  }
+
   protected String getCurrentDeployment() {
-    return new OperationHandler<String>()
-        .setFailureMesssage("Failed to get deployment name.")
-        .setOperation(Daemon.getCurrentDeployment())
-        .get();
+    String deployment = GlobalConfigOptions.getGlobalConfigOptions().getDeployment();
+    if (StringUtils.isEmpty(deployment)) {
+      deployment = new OperationHandler<String>()
+          .setFailureMesssage("Failed to get deployment name.")
+          .setOperation(Daemon.getCurrentDeployment())
+          .get();
+    }
+
+    return deployment;
   }
 
   protected static boolean isSet(String s) {
