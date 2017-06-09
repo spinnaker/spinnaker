@@ -158,7 +158,7 @@ class BaseValidateBomDeployer(object):
 
     script.extend(config_script)
     self.add_hal_deploy_script_statements(script)
-    script.append('hal -q --log=info deploy apply')
+    script.append('sudo hal -q --log=info deploy apply')
     self.add_post_deploy_statements(script)
 
     if not self.options.deploy_deploy:
