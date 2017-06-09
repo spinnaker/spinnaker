@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.google.common.hash.Hashing
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.metrics.*
@@ -30,6 +31,7 @@ import redis.clients.jedis.JedisCommands
 import redis.clients.jedis.Transaction
 import redis.clients.util.Pool
 import java.io.IOException
+import java.nio.charset.Charset
 import java.time.Clock
 import java.time.Duration
 import java.time.Duration.ZERO
@@ -79,7 +81,7 @@ class RedisQueue(
 
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
-      val messageHash = message.hashCode().toString()
+      val messageHash = message.hash()
       if (redis.sismember(hashesKey, messageHash)) {
         log.warn("Ignoring message as an identical one is already on the queue: $message")
         fire<MessageDuplicate>()
@@ -163,7 +165,7 @@ class RedisQueue(
 
   private fun Jedis.queueMessage(message: Message, delay: TemporalAmount = ZERO) {
     val id = randomUUID().toString()
-    val hash = message.hashCode().toString()
+    val hash = message.hash()
     multi {
       hset(messagesKey, id, mapper.writeValueAsString(message))
       zadd(queueKey, score(delay), id)
@@ -251,4 +253,10 @@ class RedisQueue(
 
   private fun JedisCommands.hgetInt(key: String, field: String, default: Int = 0) =
     hget(key, field)?.toInt() ?: default
+
+  private fun Message.hash() =
+    Hashing
+      .murmur3_32()
+      .hashString(toString(), Charset.defaultCharset())
+      .toString()
 }
