@@ -20,6 +20,7 @@ import sys
 
 from publish_bom import BomPublisher
 from publish_changelog import ChangelogPublisher
+from reconstruct_source import SourceReconstructor
 
 
 def init_argument_parser(parser):
@@ -34,6 +35,8 @@ def main():
   init_argument_parser(parser)
   options = parser.parse_args()
 
+  reconstructor = SourceReconstructor(options, bom_version=options.rc_version)
+  reconstructor.reconstruct_source_from_bom()
   bom_publisher = BomPublisher(options)
   bom_publisher.unpack_bom()
   gist_uri = bom_publisher.publish_changelog_gist()
