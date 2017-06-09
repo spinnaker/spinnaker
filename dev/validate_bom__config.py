@@ -619,7 +619,7 @@ class KubernetesConfigurator(object):
         '--k8s_account_context',
         help='The kubernetes context for the primary Kubernetes account.')
     parser.add_argument(
-        '--k8s_account_namespaces',
+        '--k8s_account_namespaces', default='validate-bom',
         help='The kubernetes namespaces for the primary Kubernetes account.')
     parser.add_argument(
         '--k8s_account_docker_account', default=None,

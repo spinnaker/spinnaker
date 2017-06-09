@@ -121,8 +121,13 @@ def main():
     if sys.exc_info()[0] is not None:
       logging.error('Caught Exception')
       logging.exception('Caught Exception')
-    deployer.collect_logs()
-    deployer.undeploy()
+    if options.deploy_undeploy or options.deploy_always_collect_logs:
+      deployer.collect_logs()
+    if options.deploy_undeploy:
+      deployer.undeploy()
+    else:
+      logging.info('Skipping undeploy because --deploy_undeploy=false')
+
     summary = build_report(test_controller)
     print summary
 

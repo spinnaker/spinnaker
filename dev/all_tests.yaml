@@ -15,6 +15,7 @@ aliases:
   standard_aws_provider_params:
     spinnaker_aws_account: $aws_account_name
     aws_profile: citest
+    test_aws_security_group_id: $VALIDATE_AWS_SECURITY_GROUP
 
   standard_azure_provider_params:
     spinnaker_azure_account: $azure_account_name
@@ -128,6 +129,7 @@ tests:
     api: gate
     args:
       spinnaker_kubernetes_account: $k8s_account_name
+      test_namespace: $k8s_account_namespaces
 
   aws_kato_test:
     requires:

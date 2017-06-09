@@ -77,6 +77,21 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     agent.default_max_wait_secs = 180
     return agent
 
+  @classmethod
+  def initArgumentParser(cls, parser, defaults=None):
+    """Initialize command line argument parser.
+
+    Args:
+      parser: argparse.ArgumentParser
+    """
+    super(KubeSmokeTestScenario, cls).initArgumentParser(
+        parser, defaults=defaults)
+
+    defaults = defaults or {}
+    parser.add_argument(
+      '--test_namespace', default='default',
+      help='The namespace to manage within the tests.')
+
   def __init__(self, bindings, agent=None):
     """Constructor.
 
@@ -97,7 +112,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
-
+    self.TEST_NAMESPACE = bindings['TEST_NAMESPACE']
     self.pipeline_id = None
 
     # We will deploy two images. One with a tag that we want to find,
@@ -149,13 +164,15 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
             'cloudProvider': 'kubernetes',
-            'availabilityZones': {'default': ['default']},
+            'availabilityZones': {
+                self.TEST_NAMESPACE: [self.TEST_NAMESPACE]
+            },
             'provider': 'kubernetes',
             'stack': bindings['TEST_STACK'],
             'detail': self.__lb_detail,
             'serviceType': 'ClusterIP',
             'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
-            'namespace': 'default',
+            'namespace': self.TEST_NAMESPACE,
             'ports': [{'protocol':'TCP', 'port':80, 'name':'http'}],
             'externalIps': [],
             'sessionAffinity': 'None',
@@ -172,7 +189,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = kube.KubeContractBuilder(self.kube_observer)
     (builder.new_clause_builder('Service Added', retryable_for_secs=15)
-     .get_resources('svc')
+     .get_resources(
+         'svc', extra_args=['--namespace', self.TEST_NAMESPACE])
      .contains_path_value('items/metadata/name', self.__lb_name))
 
     return st.OperationContract(
@@ -192,10 +210,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'type': 'deleteLoadBalancer',
             'cloudProvider': 'kubernetes',
             'loadBalancerName': self.__lb_name,
-            'namespace': 'default',
+            'namespace': self.TEST_NAMESPACE,
             'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
             'credentials': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
-            'regions': ['default'],
+            'regions': [self.TEST_NAMESPACE],
             'user': '[anonymous]'
         }],
         description='Delete Load Balancer: {0} in {1}'.format(
@@ -205,7 +223,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = kube.KubeContractBuilder(self.kube_observer)
     (builder.new_clause_builder('Service Removed', retryable_for_secs=15)
-     .get_resources('svc', no_resource_ok=True))
+     .get_resources(
+         'svc',
+         extra_args=['--namespace', self.TEST_NAMESPACE],
+         no_resource_ok=True))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -231,6 +252,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'cloudProvider': 'kubernetes',
             'application': self.TEST_APP,
             'account': bindings['SPINNAKER_KUBERNETES_ACCOUNT'],
+            'namespace': self.TEST_NAMESPACE,
             'strategy':'',
             'targetSize': 1,
             'containers': [{
@@ -263,7 +285,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'stack': bindings['TEST_STACK'],
             'loadBalancers': [self.__lb_name],
             'type': 'createServerGroup',
-            'region': 'default',
+            'regions': [self.TEST_NAMESPACE],
+            'region': self.TEST_NAMESPACE,
             'user': '[anonymous]'
         }],
         description='Create Server Group in ' + group_name,
@@ -272,7 +295,9 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     builder = kube.KubeContractBuilder(self.kube_observer)
     (builder.new_clause_builder('Replica Set Added',
                                 retryable_for_secs=15)
-     .get_resources('rs', extra_args=[group_name])
+     .get_resources(
+         'rs',
+         extra_args=[group_name, '--namespace', self.TEST_NAMESPACE])
      .contains_path_eq('spec/replicas', 1))
 
     return st.OperationContract(
@@ -287,7 +312,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
       'type': 'findImage',
       'name': 'Find Valid Image',
       'cloudProviderType': 'kubernetes',
-      'namespaces': ['default'],
+      'namespaces': [self.TEST_NAMESPACE],
       'cloudProvider': 'kubernetes',
       'selectionStrategy': 'NEWEST',
       'onlyEnabled': True,
@@ -319,7 +344,7 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           'strategy': '',
           'targetSize': 1,
           'cloudProvider': 'kubernetes',
-          'namespace': 'default',
+          'namespace': self.TEST_NAMESPACE,
           'containers': [
             {
               'name': 'validated',
@@ -346,7 +371,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
           ],
           'volumeSources': [],
           'provider': 'kubernetes',
-          'region': 'default'
+          'regions': [self.TEST_NAMESPACE],
+          'region': self.TEST_NAMESPACE
         }
       ]
     }
@@ -376,13 +402,20 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     )
 
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
+    expect_match = {key: jp.EQUIVALENT(value)
+                    for key, value in pipeline_spec.items()}
+    expect_match['stages'] = jp.LIST_MATCHES(
+      [jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                       for key, value in smoke_stage.items()}),
+       jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                        for key, value in deploy_stage.items()})])
 
     builder = st.HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Pipeline',
                                 retryable_for_secs=5)
         .get_url_path(
           'applications/{app}/pipelineConfigs'.format(app=self.TEST_APP))
-        .contains_path_value(None, pipeline_spec))
+        .contains_match(expect_match))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -409,9 +442,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
             'user': '[anonymous]',
             'serverGroupName': group_name,
             'asgName': group_name,
-            'regions': ['default'],
-            'region': 'default',
-            'zones': ['default'],
+            'regions': [self.TEST_NAMESPACE],
+            'namespace': self.TEST_NAMESPACE,
+            'region': self.TEST_NAMESPACE,
+            'zones': [self.TEST_NAMESPACE],
             'interestingHealthProviderNames': ['KubernetesService']
         }],
         application=self.TEST_APP,
@@ -419,8 +453,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = kube.KubeContractBuilder(self.kube_observer)
     (builder.new_clause_builder('Replica Set Removed')
-     .get_resources('rs', extra_args=[group_name],
-                    no_resource_ok=True)
+     .get_resources(
+         'rs',
+         extra_args=[group_name, '--namespace', self.TEST_NAMESPACE],
+         no_resource_ok=True)
      .contains_path_eq('targetSize', 0))
 
     return st.OperationContract(
@@ -443,7 +479,8 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     builder = kube.KubeContractBuilder(self.kube_observer)
     (builder.new_clause_builder('Replica Set Added',
                                 retryable_for_secs=15)
-     .get_resources('rs', extra_args=[group_name])
+     .get_resources(
+         'rs', extra_args=[group_name, '--namespace', self.TEST_NAMESPACE])
      .contains_path_eq(
          'spec/template/spec/containers/image',
          self.__desired_image_id))
