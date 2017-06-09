@@ -4,11 +4,12 @@ import { CORE_MODULE } from '@spinnaker/core';
 import { DOCKER_MODULE } from '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
 import { APPENGINE_MODULE } from './modules/appengine/appengine.module';
+import { GOOGLE_MODULE } from '@spinnaker/google';
 
 module('netflix.spinnaker', [
   CORE_MODULE,
   AMAZON_MODULE,
-  require('./modules/google/gce.module.js'),
+  GOOGLE_MODULE,
   require('./modules/cloudfoundry/cf.module.js'),
   require('./modules/azure/azure.module.js'),
   require('./modules/kubernetes/kubernetes.module.js'),

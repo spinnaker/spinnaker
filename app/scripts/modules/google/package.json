@@ -1,0 +1,10 @@
+{
+  "name": "@spinnaker/google",
+  "version": "0.0.1",
+  "main": "lib/lib.js",
+  "typings": "lib/index.d.ts",
+  "scripts": {
+    "lib": "../../../../node_modules/typescript/bin/tsc && node ../../../../node_modules/webpack/bin/webpack.js",
+    "prepublish": "npm run lib"
+  }
+}

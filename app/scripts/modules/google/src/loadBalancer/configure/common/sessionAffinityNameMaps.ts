@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-interface StringMap {
+export interface StringMap {
   [key: string]: string;
 }
 

@@ -15,7 +15,6 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('./backendService/backendService.component.js'),
   require('./basicSettings/basicSettings.component.js'),
   GCE_CACHE_REFRESH,
-  require('core/modal/wizard/wizardSubFormValidation.service.js'),
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   require('./commandBuilder.service.js'),

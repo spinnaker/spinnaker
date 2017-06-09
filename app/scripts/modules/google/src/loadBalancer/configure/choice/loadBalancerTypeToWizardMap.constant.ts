@@ -1,6 +1,6 @@
 import {module} from 'angular';
 
-interface IGceLoadBalancerWizardConfig {
+export interface IGceLoadBalancerWizardConfig {
   label: string;
   createTemplateUrl: string;
   editTemplateUrl: string;

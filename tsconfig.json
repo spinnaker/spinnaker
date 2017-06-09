@@ -29,7 +29,10 @@
       "docker": ["docker/src"],
       "@spinnaker/amazon": ["amazon/src"],
       "amazon/*": ["amazon/src/*"],
-      "amazon": ["amazon/src"]
+      "amazon": ["amazon/src"],
+      "@spinnaker/google": ["google/src"],
+      "google/*": ["google/src/*"],
+      "google": ["google/src"]
     },
     "pretty": true,
     "removeComments": true,

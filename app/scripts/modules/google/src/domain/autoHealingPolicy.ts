@@ -4,7 +4,7 @@ export interface IGceAutoHealingPolicy {
   maxUnavailable?: IMaxUnavailable;
 }
 
-interface IMaxUnavailable {
+export interface IMaxUnavailable {
   fixed?: number;
   percent?: number;
 }

@@ -6,12 +6,8 @@ import { Application, InfrastructureCacheService } from '@spinnaker/core';
 
 import { IGceLoadBalancer } from 'google/domain/loadBalancer';
 
-interface IPrivateScope extends IScope {
-  $$destroyed: boolean;
-}
-
 export class CommonGceLoadBalancerCtrl {
-  constructor (public $scope: IPrivateScope,
+  constructor (public $scope: IScope,
                public application: Application,
                public $uibModalInstance: any,
                private $state: StateService,

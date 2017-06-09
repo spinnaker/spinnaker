@@ -1,8 +1,6 @@
-'use strict';
+import { module } from 'angular';
 
-const angular = require('angular');
-
-import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry, CloudProviderRegistry } from '@spinnaker/core';
 
 import { GCE_LOAD_BALANCER_CHOICE_MODAL } from './loadBalancer/configure/choice/gceLoadBalancerChoice.modal';
 import { GCE_INTERNAL_LOAD_BALANCER_CTRL } from './loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
@@ -13,12 +11,13 @@ import { GCE_HELP } from './help/gce.help';
 import './logo/gce.logo.less';
 
 // load all templates into the $templateCache
-var templates = require.context('./', true, /\.html$/);
+const templates = require.context('./', true, /\.html$/);
 templates.keys().forEach(function(key) {
   templates(key);
 });
 
-module.exports = angular.module('spinnaker.gce', [
+export const GOOGLE_MODULE = 'spinnaker.gce';
+module(GOOGLE_MODULE, [
   CLOUD_PROVIDER_REGISTRY,
   LOAD_BALANCER_SET_TRANSFORMER,
   GCE_INTERNAL_LOAD_BALANCER_CTRL,
@@ -60,7 +59,7 @@ module.exports = angular.module('spinnaker.gce', [
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
 ])
-  .config(function(cloudProviderRegistryProvider) {
+  .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('gce', {
       name: 'Google',
       logo: {
@@ -108,7 +107,7 @@ module.exports = angular.module('spinnaker.gce', [
         renderer: 'gceSubnetRenderer',
       },
       snapshotsEnabled: true,
-      applicationProviderFields:{
+      applicationProviderFields: {
         templateUrl: require('./applicationProviderFields/gceFields.html'),
       },
     });

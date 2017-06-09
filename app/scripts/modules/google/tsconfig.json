@@ -1,0 +1,53 @@
+{
+  "buildOnSave": false,
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": "./src",
+    "declaration": true,
+    "declarationDir": "lib",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "lib": [
+      "es2016",
+      "dom"
+    ],
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "noEmitHelpers": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "lib",
+    "pretty": true,
+    "removeComments": false,
+    "rootDir": "./src",
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "strictNullChecks": false,
+    "target": "es6",
+    "typeRoots": [
+      "../../../../node_modules/@types"
+    ],
+    "paths": {
+      "@spinnaker/core": ["../../core/lib"],
+      "google/*": ["*"],
+      "google": ["."]
+    }
+  },
+  "awesomeTypescriptLoaderOptions": {
+    "useBabel": true,
+    "useCache": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ],
+  "exclude": [
+    "./lib",
+    "**/*.spec.ts"
+  ]
+}
