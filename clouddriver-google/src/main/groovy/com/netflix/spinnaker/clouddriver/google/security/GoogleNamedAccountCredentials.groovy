@@ -273,15 +273,35 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   private static Map<String, Map> queryInstanceTypes(Compute compute,
                                                      String project,
                                                      Map<String, List<String>> regionToZonesMap) {
-    MachineTypeAggregatedList instanceTypeList = fetchInstanceTypes(compute, project)
-    return convertInstanceTypeListToMap(instanceTypeList, regionToZonesMap)
+    MachineTypeAggregatedList instanceTypeList = compute.machineTypes().aggregatedList(project).execute()
+    String nextPageToken = instanceTypeList.getNextPageToken()
+    Map<String, Map> zoneToInstanceTypesMap = convertInstanceTypeListToMap(instanceTypeList)
+
+    while (nextPageToken) {
+      instanceTypeList = compute.machineTypes().aggregatedList(project).setPageToken(nextPageToken).execute()
+      nextPageToken = instanceTypeList.getNextPageToken()
+
+      Map<String, Map> subsequentZoneToInstanceTypesMap = convertInstanceTypeListToMap(instanceTypeList)
+
+      subsequentZoneToInstanceTypesMap.each { zone, instanceTypes ->
+        if (zone in zoneToInstanceTypesMap) {
+          zoneToInstanceTypesMap[zone].instanceTypes += instanceTypes.instanceTypes
+          zoneToInstanceTypesMap[zone].vCpuMax = Math.max(zoneToInstanceTypesMap[zone].vCpuMax, instanceTypes.vCpuMax)
+        } else {
+          zoneToInstanceTypesMap[zone] = instanceTypes
+        }
+      }
+    }
+
+    populateRegionInstanceTypes(zoneToInstanceTypesMap, regionToZonesMap)
+
+    return zoneToInstanceTypesMap
   }
 
   @VisibleForTesting
-  static Map<String, Map> convertInstanceTypeListToMap(MachineTypeAggregatedList instanceTypeList,
-                                                       Map<String, List<String>> regionToZonesMap) {
+  static Map<String, Map> convertInstanceTypeListToMap(MachineTypeAggregatedList instanceTypeList) {
     // Populate zone to instance types mappings.
-    def locationToInstanceTypesMap = instanceTypeList.items.collectEntries { zone, machineTypesScopedList ->
+    def zoneToInstanceTypesMap = instanceTypeList.items.collectEntries { zone, machineTypesScopedList ->
       zone = GCEUtil.getLocalName(zone)
 
       if (machineTypesScopedList.machineTypes) {
@@ -290,13 +310,15 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
           vCpuMax      : machineTypesScopedList.machineTypes.max { it.guestCpus }.guestCpus
         ]]
       } else {
-        return [(zone): [
-          instanceTypes: [],
-          vCpuMax      : 0
-        ]]
+        return [:]
       }
     }
 
+    return zoneToInstanceTypesMap
+  }
+
+  static void populateRegionInstanceTypes(Map<String, Map> locationToInstanceTypesMap,
+                                          Map<String, List<String>> regionToZonesMap) {
     // Populate region to instance types mappings.
     regionToZonesMap.each { region, zoneNames ->
       // The RMIG will deploy to the last 3 zones (after sorting by zone name).
@@ -323,16 +345,6 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
           vCpuMax: vCpuMaxInRegion
         ]
       }
-    }
-
-    return locationToInstanceTypesMap
-  }
-
-  private static MachineTypeAggregatedList fetchInstanceTypes(Compute compute, String project) {
-    try {
-      return compute.machineTypes().aggregatedList(project).execute()
-    } catch (IOException ioe) {
-      throw new RuntimeException("Failed loading instance types for " + project, ioe)
     }
   }
 }

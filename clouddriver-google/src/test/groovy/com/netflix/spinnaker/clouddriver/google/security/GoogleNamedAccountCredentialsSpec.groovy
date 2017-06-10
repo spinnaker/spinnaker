@@ -51,7 +51,8 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
       MachineTypeAggregatedList instanceTypeList = new ObjectMapper().convertValue(INSTANCE_TYPE_LIST, MachineTypeAggregatedList)
 
     when:
-      def map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+      def map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
+      GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
     then:
       'us-central1-a' in map
@@ -93,7 +94,8 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
       // Rebuild the map.
       instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
-      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
+      GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
     then:
       'europe-west1-b' in map
@@ -114,7 +116,8 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
       // Rebuild the map.
       instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
-      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
+      GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
     then:
       'europe-west1-b' in map
@@ -140,7 +143,8 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
 
       // Rebuild the map.
       instanceTypeList = new ObjectMapper().convertValue(instanceTypeListCopy, MachineTypeAggregatedList)
-      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList, REGION_TO_ZONES)
+      map = GoogleNamedAccountCredentials.convertInstanceTypeListToMap(instanceTypeList)
+      GoogleNamedAccountCredentials.populateRegionInstanceTypes(map, REGION_TO_ZONES)
 
     then:
       'europe-west1-b' in map
