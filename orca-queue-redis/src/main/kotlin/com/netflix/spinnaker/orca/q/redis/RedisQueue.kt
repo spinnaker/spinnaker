@@ -63,19 +63,16 @@ class RedisQueue(
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
-      redis.apply {
-        zrangeByScore(queueKey, 0.0, score(), 0, 1)
-          .firstOrNull()
-          ?.takeIf { id -> acquireLock(id) }
-          ?.also { id ->
-            readMessage(id) { message ->
-              callback.invoke(message) {
-                ackMessage(id)
-              }
-            }
+      redis.zrangeByScore(queueKey, 0.0, score(), 0, 1)
+        .firstOrNull()
+        ?.takeIf { id -> redis.acquireLock(id) }
+        ?.also { id ->
+          val ack = this::ackMessage.curry(id)
+          redis.readMessage(id) { message ->
+            callback(message, ack)
           }
-        fire<QueuePolled>()
-      }
+        }
+      fire<QueuePolled>()
     }
   }
 
@@ -95,39 +92,40 @@ class RedisQueue(
   @Scheduled(fixedDelayString = "\${queue.retry.frequency.ms:10000}")
   override fun retry() {
     pool.resource.use { redis ->
-      redis.apply {
-        zrangeByScore(unackedKey, 0.0, score())
-          .let { ids ->
-            if (ids.size > 0) {
-              ids.map { "$locksKey:$it" }.let { del(*it.toTypedArray()) }
-            }
+      redis
+        .zrangeByScore(unackedKey, 0.0, score())
+        .let { ids ->
+          if (ids.size > 0) {
+            ids
+              .map { "$locksKey:$it" }
+              .let { redis.del(*it.toTypedArray()) }
+          }
 
-            ids.forEach { id ->
-              val attempts = hgetInt(attemptsKey, id)
-              if (attempts >= Queue.maxRetries) {
-                readMessage(id) { message ->
-                  log.warn("Message $id with payload $message exceeded max retries")
-                  handleDeadMessage(message)
-                  removeMessage(id)
-                }
-                fire<MessageDead>()
+          ids.forEach { id ->
+            val attempts = redis.hgetInt(attemptsKey, id)
+            if (attempts >= Queue.maxRetries) {
+              redis.readMessage(id) { message ->
+                log.warn("Message $id with payload $message exceeded max retries")
+                handleDeadMessage(message)
+                redis.removeMessage(id)
+              }
+              fire<MessageDead>()
+            } else {
+              if (redis.sismember(hashesKey, redis.hget(hashKey, id))) {
+                log.warn("Not retrying message $id because an identical message is already on the queue")
+                redis.removeMessage(id)
+                fire<MessageDuplicate>()
               } else {
-                if (sismember(hashesKey, hget(hashKey, id))) {
-                  log.warn("Not retrying message $id because an identical message is already on the queue")
-                  removeMessage(id)
-                  fire<MessageDuplicate>()
-                } else {
-                  log.warn("Retrying message $id after $attempts attempts")
-                  requeueMessage(id)
-                  fire<MessageRetried>()
-                }
+                log.warn("Retrying message $id after $attempts attempts")
+                redis.requeueMessage(id)
+                fire<MessageRetried>()
               }
             }
           }
-          .also {
-            fire<RetryPolled>()
-          }
-      }
+        }
+        .also {
+          fire<RetryPolled>()
+        }
     }
   }
 
@@ -259,4 +257,6 @@ class RedisQueue(
       .murmur3_32()
       .hashString(toString(), Charset.defaultCharset())
       .toString()
+
+  private fun <T, R> ((T) -> R).curry(t: T): () -> R = { this(t) }
 }
