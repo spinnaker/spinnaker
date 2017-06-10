@@ -103,9 +103,16 @@ class S3StorageConfiguratorHelper(object):
         help='The name for the AWS S3 bucket to use.'
              ' This is only used if --spinnaker_storage=s3.')
     parser.add_argument(
+        '--storage_s3_assume_role', default='role/spinnakerManaged',
+        help='Use AWS SecurityToken Service to assume this role.')
+
+    parser.add_argument(
         '--storage_s3_region', choices=cls.REGIONS,
         help='The name for the AWS region to create the bucket in.'
              ' This is only used if the bucket does not already exist.')
+
+    parser.add_argument(
+        '--storage_s3_endpoint', help='The s3 endpoint.')
 
     parser.add_argument(
         '--storage_s3_access_key_id', default=None,
@@ -140,8 +147,12 @@ class S3StorageConfiguratorHelper(object):
       command.extend(['--access-key-id', options.storage_s3_access_key_id])
     if options.storage_s3_bucket:
       command.extend(['--bucket', options.storage_s3_bucket])
+    if options.storage_s3_assume_role:
+      command.extend(['--assume-role', options.storage_s3_assume_role])
     if options.storage_s3_region:
       command.extend(['--region', options.storage_s3_region])
+    if options.storage_s3_endpoint:
+      command.extend(['--endpoint', options.storage_s3_endpoint])
     if options.storage_s3_credentials:
       command.extend(['--secret-access-key < {file}'.format(
           file=os.path.basename(options.storage_s3_credentials))])
@@ -284,7 +295,7 @@ class AwsConfigurator(object):
         help=' The account will assume this role.')
 
     parser.add_argument(
-        '--aws_account_regions', default='us-east-1',
+        '--aws_account_regions', default='us-east-1,us-west-2',
         help='The AWS account regions the account will manage.')
     parser.add_argument(
         '--aws_account_pem_path', default=None,

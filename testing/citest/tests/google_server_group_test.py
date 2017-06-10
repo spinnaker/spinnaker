@@ -377,9 +377,9 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     job = [{
       "loadBalancerName": self.__lb_name,
       "networkLoadBalancerName": self.__lb_name,
-      "region": "us-central1",
+      "region": self.TEST_REGION,
       "type": "deleteLoadBalancer",
-      "regions": ["us-central1"],
+      "regions": [self.TEST_REGION],
       "credentials": self.bindings['SPINNAKER_GOOGLE_ACCOUNT'],
       "cloudProvider": "gce",
       "user": "integration-tests"

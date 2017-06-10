@@ -149,6 +149,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
       vpc_id = bindings['TEST_AWS_VPC_ID']
 
       # Not really sure how to determine this value in general.
+      security_groups = [bindings['TEST_AWS_SECURITY_GROUP_ID']]
       security_groups = ['default']
 
       # The resulting load balancer will only be available in the zone of
@@ -327,6 +328,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     avail_zones = [region + 'a', region + 'b']
 
     test_security_group_id = bindings['TEST_AWS_SECURITY_GROUP_ID']
+    test_security_group_id = 'default'
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=[{
@@ -347,7 +349,7 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
             'terminationPolicies': ['Default'],
 
             'availabilityZones': {region: avail_zones},
-            'keyPair': bindings['SPINNAKER_AWS_ACCOUNT'] + '-keypair',
+            'keyPair': bindings['TEST_AWS_KEYPAIR'],
             'suspendedProcesses': [],
             # TODO(ewiseblatt): Inquiring about how this value is determined.
             # It seems to be the "Name" tag value of one of the VPCs
