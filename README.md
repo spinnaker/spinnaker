@@ -4,6 +4,8 @@
 
 A tool for configuring, installing, and updating Spinnaker.
 
+![](./demo.gif)
+
 ## Installation
 
 > __NOTICE:__ This tool is in Beta - some behavior may still change. Please
