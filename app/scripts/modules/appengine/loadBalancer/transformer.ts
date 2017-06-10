@@ -82,7 +82,7 @@ export class AppengineLoadBalancerTransformer {
       serverGroup.region = loadBalancer.region;
 
       if (serverGroup.detachedInstances) {
-        serverGroup.detachedInstances = serverGroup.detachedInstances.map((id: string) => ({id}));
+        serverGroup.detachedInstances = (serverGroup.detachedInstances as any).map((id: string) => ({id}));
       }
       serverGroup.instances = serverGroup.instances
         .concat(serverGroup.detachedInstances || [])

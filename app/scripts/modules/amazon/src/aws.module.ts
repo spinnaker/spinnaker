@@ -48,7 +48,6 @@ module(AMAZON_MODULE, [
   AWS_SERVER_GROUP_TRANSFORMER,
   require('./serverGroup/configure/wizard/CloneServerGroup.aws.controller'),
   require('./instance/awsInstanceType.service'),
-  require('./loadBalancer/loadBalancer.transformer'),
   AWS_LOAD_BALANCER_MODULE,
   require('./instance/details/instance.details.controller'),
   AWS_SECURITY_GROUP_MODULE,

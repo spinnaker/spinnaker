@@ -15,7 +15,7 @@ export interface ILoadBalancer extends ITaggedEntity {
   provider?: string;
   region?: string;
   securityGroups?: string[];
-  serverGroups?: any[];
+  serverGroups?: IServerGroup[];
   stack?: string;
   type?: string;
   vpcId?: string;

@@ -16,13 +16,14 @@ import {
 } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
+import { AWS_LOAD_BALANCER_TRANFORMER } from 'amazon/loadBalancer/loadBalancer.transformer';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
 
 module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.controller', [
   require('@uirouter/angularjs').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
-  require('../../loadBalancer.transformer.js'),
+  AWS_LOAD_BALANCER_TRANFORMER,
   SECURITY_GROUP_READER,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
