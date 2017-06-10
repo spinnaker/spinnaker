@@ -533,7 +533,7 @@ class OperationsControllerSpec extends Specification {
 
   def "should call webhookService and return correct information"() {
     given:
-    def preconfiguredProperties = ["url", "headers", "method", "payload", "waitForCompletion", "statusUrlResolution",
+    def preconfiguredProperties = ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution",
       "statusUrlJsonPath", "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
 
     when:
@@ -551,11 +551,11 @@ class OperationsControllerSpec extends Specification {
   }
 
   static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(def label, def description, def type) {
-    def headers = new HttpHeaders()
-    headers.put("header", ["value1"])
+    def customHeaders = new HttpHeaders()
+    customHeaders.put("header", ["value1"])
     return new PreconfiguredWebhookProperties.PreconfiguredWebhook(
       label: label, description: description, type: type,
-      url: "a", headers: headers, method: HttpMethod.POST, payload: "b",
+      url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
       waitForCompletion: true, statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.webhookResponse,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h"
     )

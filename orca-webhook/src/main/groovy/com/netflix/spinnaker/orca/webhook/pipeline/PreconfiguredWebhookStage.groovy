@@ -44,13 +44,13 @@ class PreconfiguredWebhookStage extends WebhookStage {
       throw new PreconfiguredWebhookNotFoundException((String) stage.type)
     }
 
-    stage.setContext(overrideIfNotSetInContext(stage.context, preconfiguredWebhook))
+    stage.setContext(overrideIfNotSetInContextAndOverrideDefault(stage.context, preconfiguredWebhook))
     super.taskGraph(stage, builder)
   }
 
-  private Map<String, Object> overrideIfNotSetInContext(Map<String, Object> context, PreconfiguredWebhook preconfiguredWebhook) {
+  private Map<String, Object> overrideIfNotSetInContextAndOverrideDefault(Map<String, Object> context, PreconfiguredWebhook preconfiguredWebhook) {
     fields.each {
-      if (context[it] == null) {
+      if (context[it] == null || preconfiguredWebhook[it] != null) {
         context[it] = preconfiguredWebhook[it]
       }
     }

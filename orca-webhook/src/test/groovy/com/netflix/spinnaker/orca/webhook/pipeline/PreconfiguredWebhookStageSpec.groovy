@@ -46,11 +46,11 @@ class PreconfiguredWebhookStageSpec extends Specification {
     1 * webhookService.preconfiguredWebhooks >> [createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1")]
     stage.context == [
       url: "a",
-      headers: ["header": ["value1"]],
+      customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,
       payload: "b",
       waitForCompletion: true,
-      statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.webhookResponse,
+      statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.locationHeader,
       statusUrlJsonPath: "c",
       statusJsonPath: "d",
       progressJsonPath: "e",
@@ -64,7 +64,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
     given:
     def stage = new Stage<Pipeline>(new Pipeline(), "webhook_1", [
       url: "a",
-      headers: ["header": ["value1"]],
+      customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,
       payload: "b",
       waitForCompletion: true,
@@ -84,7 +84,7 @@ class PreconfiguredWebhookStageSpec extends Specification {
     1 * webhookService.preconfiguredWebhooks >> [new PreconfiguredWebhookProperties.PreconfiguredWebhook(label: "Webhook #1", description: "Description #1", type: "webhook_1")]
     stage.context == [
       url: "a",
-      headers: ["header": ["value1"]],
+      customHeaders: ["header": ["value1"]],
       method: HttpMethod.POST,
       payload: "b",
       waitForCompletion: true,
@@ -98,49 +98,12 @@ class PreconfiguredWebhookStageSpec extends Specification {
     ]
   }
 
-  def "Should prioritize user context to preconfigured context to allow overriding values in advanced use cases"() {
-    given:
-    def stage = new Stage<Pipeline>(new Pipeline(), "webhook_1", [
-      url: "fromContext",
-      headers: ["fromContext": ["fromContext"]],
-      method: HttpMethod.POST,
-      waitForCompletion: false,
-      statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.locationHeader,
-      statusUrlJsonPath: "fromContext",
-      statusJsonPath: "fromContext",
-      progressJsonPath: "fromContext",
-      successStatuses: "fromContext",
-      canceledStatuses: "fromContext",
-      terminalStatuses: "fromContext"
-    ])
-
-    when:
-    preconfiguredWebhookStage.taskGraph(stage, builder)
-
-    then:
-    1 * webhookService.preconfiguredWebhooks >> [createPreconfiguredWebhook("Webhook #1", "Description #1", "webhook_1")]
-    stage.context == [
-      url: "fromContext",
-      headers: ["fromContext": ["fromContext"]],
-      method: HttpMethod.POST,
-      payload: "b",
-      waitForCompletion: false,
-      statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.locationHeader,
-      statusUrlJsonPath: "fromContext",
-      statusJsonPath: "fromContext",
-      progressJsonPath: "fromContext",
-      successStatuses: "fromContext",
-      canceledStatuses: "fromContext",
-      terminalStatuses: "fromContext"
-    ]
-  }
-
   static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook(def label, def description, def type) {
-    def headers = new HttpHeaders()
-    headers.add("header", "value1")
+    def customHeaders = new HttpHeaders()
+    customHeaders.add("header", "value1")
     return new PreconfiguredWebhookProperties.PreconfiguredWebhook(
-      label: label, description: description, type: type, url: "a", headers: headers, method: HttpMethod.POST, payload: "b",
-      waitForCompletion: true, statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.webhookResponse,
+      label: label, description: description, type: type, url: "a", customHeaders: customHeaders, method: HttpMethod.POST, payload: "b",
+      waitForCompletion: true, statusUrlResolution: PreconfiguredWebhookProperties.StatusUrlResolution.locationHeader,
       statusUrlJsonPath: "c", statusJsonPath: "d", progressJsonPath: "e", successStatuses: "f", canceledStatuses: "g", terminalStatuses: "h"
     )
   }

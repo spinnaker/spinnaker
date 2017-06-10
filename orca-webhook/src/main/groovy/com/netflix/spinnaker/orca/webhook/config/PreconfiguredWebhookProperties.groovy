@@ -40,7 +40,7 @@ class PreconfiguredWebhookProperties {
 
     // Stage configuration fields (all optional):
     String url
-    Map<String, List<String>> headers
+    Map<String, List<String>> customHeaders
     HttpMethod method
     String payload
     Boolean waitForCompletion
@@ -62,7 +62,7 @@ class PreconfiguredWebhookProperties {
       } else if (waitForCompletion) {
         return getPreconfiguredProperties().size() >= ALL_FIELDS.size() - (statusUrlResolution == StatusUrlResolution.webhookResponse ? 0 : 1)
       } else {
-        return ["url", "headers", "method", "payload"].every { this[it] != null }
+        return ["url", "customHeaders", "method", "payload"].every { this[it] != null }
       }
     }
   }

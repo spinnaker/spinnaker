@@ -34,7 +34,7 @@ class PreconfiguredWebhookSpec extends Specification {
     def fields = preconfiguredWebhook.preconfiguredProperties
 
     then:
-    fields == ["url", "headers", "method", "payload", "waitForCompletion", "statusUrlResolution", "statusUrlJsonPath",
+    fields == ["url", "customHeaders", "method", "payload", "waitForCompletion", "statusUrlResolution", "statusUrlJsonPath",
       "statusJsonPath", "progressJsonPath", "successStatuses", "canceledStatuses", "terminalStatuses"]
   }
 
@@ -78,10 +78,10 @@ class PreconfiguredWebhookSpec extends Specification {
   }
 
   static PreconfiguredWebhookProperties.PreconfiguredWebhook createPreconfiguredWebhook() {
-    def headers = new HttpHeaders()
-    headers.put("header", ["value1", "value2"])
+    def customHeaders = new HttpHeaders()
+    customHeaders.put("header", ["value1", "value2"])
     return new PreconfiguredWebhookProperties.PreconfiguredWebhook(
-      url: "url", headers: headers, method: HttpMethod.POST, payload: "payload",
+      url: "url", customHeaders: customHeaders, method: HttpMethod.POST, payload: "payload",
       waitForCompletion: true, statusUrlResolution: webhookResponse,
       statusUrlJsonPath: "statusUrlJsonPath", statusJsonPath: "statusJsonPath", progressJsonPath: "progressJsonPath",
       successStatuses: "successStatuses", canceledStatuses: "canceledStatuses", terminalStatuses: "terminalStatuses"
