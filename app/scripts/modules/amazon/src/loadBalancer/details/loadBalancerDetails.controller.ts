@@ -22,7 +22,13 @@ import {
   SubnetReader
 } from '@spinnaker/core';
 
-import { IAmazonApplicationLoadBalancer, IAmazonLoadBalancer, ITargetGroup } from 'amazon';
+import { IAmazonApplicationLoadBalancer,
+  IAmazonLoadBalancer,
+  IAmazonLoadBalancerSourceData,
+  IApplicationLoadBalancerSourceData,
+  IClassicLoadBalancerSourceData,
+  ITargetGroup
+} from 'amazon';
 import { LoadBalancerTypes } from '../configure/choice/LoadBalancerTypes';
 
 export interface ILoadBalancerFromStateParams {
@@ -127,17 +133,17 @@ export class AwsLoadBalancerDetailsController {
 
     if (appLoadBalancer) {
       const detailsLoader = this.loadBalancerReader.getLoadBalancerDetails('aws', this.loadBalancerFromParams.accountId, this.loadBalancerFromParams.region, this.loadBalancerFromParams.name);
-      return detailsLoader.then((details) => {
+      return detailsLoader.then((details: IAmazonLoadBalancerSourceData[]) => {
         this.loadBalancer = appLoadBalancer;
         this.state.loading = false;
         const securityGroups: IApplicationSecurityGroup[] = [];
         if (details.length) {
-          this.loadBalancer.elb = details[0] as IAmazonLoadBalancer;
+          this.loadBalancer.elb = details[0];
           this.loadBalancer.elb.vpcId = this.loadBalancer.elb.vpcId || this.loadBalancer.elb.vpcid;
           this.loadBalancer.account = this.loadBalancerFromParams.accountId;
 
-          if (details[0].loadBalancerType === 'application') {
-            const elb = details[0] as IAmazonApplicationLoadBalancer;
+          if ((details[0] as IApplicationLoadBalancerSourceData).loadBalancerType === 'application') {
+            const elb = details[0] as IApplicationLoadBalancerSourceData;
             if (elb.listeners && elb.listeners.length) {
               this.elbProtocol = 'http:';
               if (elb.listeners.some((l: any) => l.protocol === 'HTTPS')) {
@@ -161,9 +167,10 @@ export class AwsLoadBalancerDetailsController {
             }
           } else {
             // Classic
-            if (details[0].listenerDescriptions) {
+            const elb = details[0] as IClassicLoadBalancerSourceData;
+            if (elb.listenerDescriptions) {
               this.elbProtocol = 'http:';
-              if (details[0].listenerDescriptions.some((l: any) => l.listener.protocol === 'HTTPS')) {
+              if (elb.listenerDescriptions.some((l: any) => l.listener.protocol === 'HTTPS')) {
                 this.elbProtocol = 'https:';
               }
             }

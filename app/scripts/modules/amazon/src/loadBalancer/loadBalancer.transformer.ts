@@ -1,11 +1,20 @@
-import { IALBListener, IALBListenerCertificate, IClassicListener } from './../domain/IAmazonLoadBalancer';
 import { IPromise, module } from 'angular';
 import { chain, filter, flatten, map } from 'lodash';
 
 import { IHealth, IServerGroup, IInstance, IVpc, Application } from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonApplicationLoadBalancer, IAmazonClassicLoadBalancer, IAmazonLoadBalancer, ITargetGroup } from 'amazon/domain';
+import { IAmazonApplicationLoadBalancer,
+  IALBListenerCertificate,
+  IAmazonClassicLoadBalancer,
+  IAmazonLoadBalancer,
+  IApplicationLoadBalancerSourceData,
+  IClassicListenerCommand,
+  IClassicLoadBalancerSourceData,
+  IUpsertAmazonApplicationLoadBalancerCommand,
+  IUpsertAmazonClassicLoadBalancerCommand,
+  ITargetGroup
+} from 'amazon/domain';
 import { VPC_READ_SERVICE, VpcReader } from 'amazon/vpc/vpc.read.service';
 
 export class AwsLoadBalancerTransformer {
@@ -108,33 +117,36 @@ export class AwsLoadBalancerTransformer {
     return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs));
   }
 
-  public convertClassicLoadBalancerForEditing(loadBalancer: IAmazonClassicLoadBalancer): IAmazonClassicLoadBalancer {
-    const toEdit = {
-      editMode: true,
+  public convertClassicLoadBalancerForEditing(loadBalancer: IAmazonClassicLoadBalancer): IUpsertAmazonClassicLoadBalancerCommand {
+    const toEdit: IUpsertAmazonClassicLoadBalancerCommand = {
+      availabilityZones: undefined,
+      isInternal: loadBalancer.isInternal,
       region: loadBalancer.region,
       credentials: loadBalancer.account,
-      listeners: [] as IClassicListener[],
+      listeners: [],
       loadBalancerType: 'classic',
       name: loadBalancer.name,
       regionZones: loadBalancer.availabilityZones,
-      securityGroups: [] as string[],
-      vpcId: undefined as string,
-      healthTimeout: undefined as number,
-      healthInterval: undefined as number,
-      healthyThreshold: undefined as number,
-      unhealthyThreshold: undefined as number,
-      healthCheckProtocol: undefined as string,
-      healthCheckPort: undefined as number,
-      healthCheckPath: undefined as string,
+      securityGroups: [],
+      vpcId: undefined,
+      healthCheck: undefined,
+      healthTimeout: undefined,
+      healthInterval: undefined,
+      healthyThreshold: undefined,
+      unhealthyThreshold: undefined,
+      healthCheckProtocol: undefined,
+      healthCheckPort: undefined,
+      healthCheckPath: undefined,
+      subnetType: loadBalancer.subnetType,
     };
 
     if (loadBalancer.elb) {
-      const elb = loadBalancer.elb;
+      const elb = loadBalancer.elb as IClassicLoadBalancerSourceData;
       toEdit.securityGroups = elb.securityGroups;
       toEdit.vpcId = elb.vpcid || elb.vpcId;
 
       if (elb.listenerDescriptions) {
-        toEdit.listeners = elb.listenerDescriptions.map((description: any): IClassicListener => {
+        toEdit.listeners = elb.listenerDescriptions.map((description: any): IClassicListenerCommand => {
           const listener = description.listener;
           if (listener.sslcertificateId) {
             const splitCertificateId = listener.sslcertificateId.split('/');
@@ -149,7 +161,7 @@ export class AwsLoadBalancerTransformer {
             sslCertificateId: listener.sslcertificateId,
             sslCertificateName: listener.sslcertificateId,
             sslCertificateType: listener.sslCertificateType
-          } as IClassicListener;
+          };
         });
       }
 
@@ -159,7 +171,7 @@ export class AwsLoadBalancerTransformer {
         toEdit.healthyThreshold = elb.healthCheck.healthyThreshold;
         toEdit.unhealthyThreshold = elb.healthCheck.unhealthyThreshold;
 
-        const healthCheck = loadBalancer.elb.healthCheck.target;
+        const healthCheck = elb.healthCheck.target;
         const protocolIndex = healthCheck.indexOf(':');
         let pathIndex = healthCheck.indexOf('/');
 
@@ -169,10 +181,10 @@ export class AwsLoadBalancerTransformer {
 
         if (protocolIndex !== -1) {
           toEdit.healthCheckProtocol = healthCheck.substring(0, protocolIndex);
-          toEdit.healthCheckPort = healthCheck.substring(protocolIndex + 1, pathIndex);
+          const healthCheckPort = Number(healthCheck.substring(protocolIndex + 1, pathIndex));
           toEdit.healthCheckPath = healthCheck.substring(pathIndex);
-          if (!isNaN(toEdit.healthCheckPort)) {
-            toEdit.healthCheckPort = Number(toEdit.healthCheckPort);
+          if (!isNaN(healthCheckPort)) {
+            toEdit.healthCheckPort = healthCheckPort;
           }
         }
       }
@@ -180,23 +192,25 @@ export class AwsLoadBalancerTransformer {
     return toEdit;
   }
 
-  public convertApplicationLoadBalancerForEditing(loadBalancer: IAmazonApplicationLoadBalancer): IAmazonApplicationLoadBalancer {
+  public convertApplicationLoadBalancerForEditing(loadBalancer: IAmazonApplicationLoadBalancer): IUpsertAmazonApplicationLoadBalancerCommand {
     // Since we build up toEdit as we go, much easier to declare as any, then cast at return time.
-    const toEdit = {
-      editMode: true,
+    const toEdit: IUpsertAmazonApplicationLoadBalancerCommand = {
+      availabilityZones: undefined,
+      isInternal: loadBalancer.isInternal,
       region: loadBalancer.region,
       loadBalancerType: 'application',
       credentials: loadBalancer.account,
-      listeners: [] as IALBListener[],
-      targetGroups: [] as ITargetGroup[],
+      listeners: [],
+      targetGroups: [],
       name: loadBalancer.name,
       regionZones: loadBalancer.availabilityZones,
-      securityGroups: [] as string[],
-      vpcId: undefined as string,
+      securityGroups: [],
+      subnetType: loadBalancer.subnetType,
+      vpcId: undefined,
     };
 
     if (loadBalancer.elb) {
-      const elb = loadBalancer.elb;
+      const elb = loadBalancer.elb as IApplicationLoadBalancerSourceData;
       toEdit.securityGroups = elb.securityGroups;
       toEdit.vpcId = elb.vpcid || elb.vpcId;
 
@@ -209,6 +223,7 @@ export class AwsLoadBalancerTransformer {
               const certArnParts = cert.certificateArn.split(':');
               const certParts = certArnParts[5].split('/');
               certificates.push({
+                certificateArn: cert.certificateArn,
                 type: certArnParts[2],
                 name: certParts[1]
               });
@@ -251,14 +266,16 @@ export class AwsLoadBalancerTransformer {
         });
       }
     }
-    return toEdit as IAmazonApplicationLoadBalancer;
+    return toEdit;
   }
 
-  public constructNewClassicLoadBalancerTemplate(application: Application): IAmazonClassicLoadBalancer {
+  public constructNewClassicLoadBalancerTemplate(application: Application): IUpsertAmazonClassicLoadBalancerCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
         defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
         defaultSubnetType = AWSProviderSettings.defaults.subnetType;
     return {
+      availabilityZones: undefined,
+      name: undefined,
       stack: '',
       detail: '',
       loadBalancerType: 'classic',
@@ -267,6 +284,7 @@ export class AwsLoadBalancerTransformer {
       region: defaultRegion,
       vpcId: null,
       subnetType: defaultSubnetType,
+      healthCheck: undefined,
       healthCheckProtocol: 'HTTP',
       healthCheckPort: 7001,
       healthCheckPath: '/healthcheck',
@@ -278,22 +296,23 @@ export class AwsLoadBalancerTransformer {
       securityGroups: [],
       listeners: [
         {
-          internalProtocol: 'HTTP',
-          internalPort: 7001,
-          externalProtocol: 'HTTP',
           externalPort: 80,
-          sslCertificateType: 'iam'
+          externalProtocol: 'HTTP',
+          internalPort: 7001,
+          internalProtocol: 'HTTP'
         }
       ]
     };
   }
 
-  public constructNewApplicationLoadBalancerTemplate(application: Application): IAmazonApplicationLoadBalancer {
+  public constructNewApplicationLoadBalancerTemplate(application: Application): IUpsertAmazonApplicationLoadBalancerCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
         defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
         defaultSubnetType = AWSProviderSettings.defaults.subnetType,
         defaultTargetGroupName = `${application.name}-alb-targetGroup`;
     return {
+      name: undefined,
+      availabilityZones: undefined,
       stack: '',
       detail: '',
       loadBalancerType: 'application',
@@ -308,10 +327,10 @@ export class AwsLoadBalancerTransformer {
           protocol: 'HTTP',
           port: 7001,
           healthCheckProtocol: 'HTTP',
-          healthCheckPort: 7001,
+          healthCheckPort: '7001',
           healthCheckPath: '/healthcheck',
-          healthTimeout: 5,
-          healthInterval: 10,
+          healthCheckTimeout: 5,
+          healthCheckInterval: 10,
           healthyThreshold: 10,
           unhealthyThreshold: 2,
           attributes: {

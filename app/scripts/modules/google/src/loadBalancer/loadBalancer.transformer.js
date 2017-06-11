@@ -70,7 +70,6 @@ module.exports = angular.module('spinnaker.gce.loadBalancer.transformer', [])
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
         provider: 'gce',
-        editMode: true,
         region: loadBalancer.region,
         credentials: loadBalancer.account,
         listeners: [],

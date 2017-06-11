@@ -3,6 +3,13 @@ import { IServerGroup } from './IServerGroup';
 import { IInstanceCounts } from './IInstanceCounts';
 import { IInstance } from './IInstance';
 
+export interface ILoadBalancerSourceData {
+  cloudProvider?: string;
+  name?: string;
+  provider?: string;
+  type?: string;
+}
+
 export interface ILoadBalancer extends ITaggedEntity {
   account?: string;
   cloudProvider?: string;
@@ -17,10 +24,10 @@ export interface ILoadBalancer extends ITaggedEntity {
   securityGroups?: string[];
   serverGroups?: IServerGroup[];
   stack?: string;
-  type?: string;
   vpcId?: string;
   vpcName?: string;
   searchField?: string;
+  type?: string;
   listenerDescriptions?: any[];
 }
 
@@ -30,4 +37,12 @@ export interface ILoadBalancerGroup {
   serverGroups?: IServerGroup[];
   subgroups?: ILoadBalancerGroup[];
   searchField?: string;
+}
+
+export interface IUpsertLoadBalancerCommand {
+  credentials: string;
+  detail?: string;
+  name: string;
+  region: string;
+  stack?: string;
 }

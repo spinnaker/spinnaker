@@ -34,7 +34,6 @@ module.exports = angular.module('spinnaker.azure.loadBalancer.transformer', [
 
     function convertLoadBalancerForEditing(loadBalancer) {
       var toEdit = {
-        editMode: true,
         region: loadBalancer.region,
         credentials: loadBalancer.account,
         name: loadBalancer.name,
