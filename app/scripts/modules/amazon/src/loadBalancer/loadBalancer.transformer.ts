@@ -43,7 +43,9 @@ export class AwsLoadBalancerTransformer {
   }
 
   private transformInstance(instance: IInstance, provider: string, account: string, region: string): void {
-    const health: IHealth = (instance.health && instance.health.length > 0) ? instance.health[0] : {} as IHealth;
+    // instance in this case should be some form if instance source data, but force to 'any' type to fix
+    // instnace health in load balancers until we can actually shape this bit properly
+    const health: IHealth = (instance.health as any) || {} as IHealth;
     if (health.state === 'healthy') {
       // Target groups use 'healthy' instead of 'InService' and a lot of deck expects InService
       // to surface health in the UI; just set it as InService since we don't really care the
