@@ -1,5 +1,5 @@
 import { ILogService, module } from 'angular';
-import { chain, find, forOwn, groupBy, includes, map, some, sortBy, without } from 'lodash';
+import { chain, find, forOwn, groupBy, includes, intersection, map, some, sortBy, values, without } from 'lodash';
 import { Debounce } from 'lodash-decorators';
 import { Subject } from 'rxjs';
 import autoBindMethods from 'class-autobind-decorator';
@@ -200,11 +200,18 @@ export class LoadBalancerFilterService {
     const loadBalancers = this.filterLoadBalancersForDisplay(application.loadBalancers.data);
     const grouped = groupBy(loadBalancers, 'account');
 
-    forOwn(grouped, (group, key) => {
-      const subGroupings = groupBy(group, 'name'),
+    forOwn(grouped, (group, account) => {
+      const groupedByType = values(groupBy(group, 'loadBalancerType'));
+      const namesByType = groupedByType.map((g) => g.map((lb) => lb.name));
+      const crossTypeLoadBalancerNames = namesByType.length > 1 ? intersection(...namesByType).reduce<{[key: string]: boolean}>((acc, name) => {
+        acc[name] = true;
+        return acc;
+      }, {}) : {};
+      const subGroupings = groupBy(group, (lb) => `${lb.name}:${lb.loadBalancerType}`),
             subGroups: ILoadBalancerGroup[] = [];
 
-      forOwn(subGroupings, (subGroup, subKey) => {
+      forOwn(subGroupings, (subGroup, nameAndType) => {
+        const [ name, type ] = nameAndType.split(':');
         const subSubGroups: ILoadBalancerGroup[] = [];
         subGroup.forEach((loadBalancer) => {
           subSubGroups.push({
@@ -213,13 +220,15 @@ export class LoadBalancerFilterService {
             serverGroups: this.filterServerGroups(loadBalancer),
           });
         });
+
+        const heading = `${name}${crossTypeLoadBalancerNames[name] && type ? ` (${type})` : ''}`;
         subGroups.push({
-          heading: subKey,
+          heading,
           subgroups: sortBy(subSubGroups, 'heading'),
         });
       });
 
-      groups.push( { heading: key, subgroups: sortBy(subGroups, 'heading') } );
+      groups.push( { heading: account, subgroups: sortBy(subGroups, 'heading') } );
 
     });
 
