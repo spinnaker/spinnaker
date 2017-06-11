@@ -1,15 +1,7 @@
 import {module} from 'angular';
 
 import {API_SERVICE, Api} from 'core/api/api.service';
-
-export interface ICloudMetricDescriptor {
-  name: string;
-}
-
-export interface ICloudMetricStatistics {
-  unit: string;
-  datapoints: any[];
-}
+import { ICloudMetricDescriptor, ICloudMetricStatistics } from 'core/domain';
 
 export class CloudMetricsReader {
   public constructor(private API: Api) { 'ngInject'; }

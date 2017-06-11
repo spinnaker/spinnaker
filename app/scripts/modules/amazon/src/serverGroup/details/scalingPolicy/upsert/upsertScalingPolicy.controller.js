@@ -5,12 +5,13 @@ const angular = require('angular');
 import { TASK_MONITOR_BUILDER } from '@spinnaker/core';
 
 import { STEP_POLICY_ACTION } from './step/stepPolicyAction.component';
+import { SCALING_POLICY_WRITE_SERVICE } from '../scalingPolicy.write.service';
 
 import './upsertScalingPolicy.modal.less';
 
 module.exports = angular
   .module('spinnaker.amazon.serverGroup.details.scalingPolicy.upsertScalingPolicy.controller', [
-    require('../scalingPolicy.write.service.js'),
+    SCALING_POLICY_WRITE_SERVICE,
     require('exports-loader?"n3-line-chart"!n3-charts/build/LineChart.js'),
     require('./simple/simplePolicyAction.component.js'),
     STEP_POLICY_ACTION,

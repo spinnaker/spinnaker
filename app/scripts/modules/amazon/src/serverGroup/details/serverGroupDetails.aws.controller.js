@@ -32,7 +32,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
   SERVER_GROUP_WRITER,
   require('./scalingProcesses/autoScalingProcess.service.js'),
   require('../configure/serverGroupCommandBuilder.service.js'),
-  require('./scalingPolicy/scalingPolicySummary.component.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('./scalingPolicy/addScalingPolicyButton.component.js'),

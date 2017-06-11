@@ -1,6 +1,7 @@
 export * from './IBuild';
 export * from './IBuildInfo';
 
+export * from './ICloudMetric';
 export * from './ICluster';
 export * from './ICredentials';
 

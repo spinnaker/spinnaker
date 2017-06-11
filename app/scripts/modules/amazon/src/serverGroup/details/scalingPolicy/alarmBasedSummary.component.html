@@ -1,3 +1,4 @@
+<span class="label label-default">{{$ctrl.policy.policyType | robotToHuman | uppercase }}</span>
 <div ng-repeat="alarm in $ctrl.policy.alarms track by $index">
   <div uib-popover-template="$ctrl.popoverTemplate"
        popover-placement="left"

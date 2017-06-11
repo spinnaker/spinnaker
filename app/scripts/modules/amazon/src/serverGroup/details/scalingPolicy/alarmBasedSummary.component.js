@@ -5,22 +5,23 @@ const angular = require('angular');
 import { CONFIRMATION_MODAL_SERVICE } from '@spinnaker/core';
 
 import { SCALING_POLICY_POPOVER } from './popover/scalingPolicyPopover.component';
+import { SCALING_POLICY_WRITE_SERVICE } from './scalingPolicy.write.service';
 
 import './scalingPolicySummary.component.less';
 
-module.exports = angular.module('spinnaker.amazon.serverGroup.details.scalingPolicy.component', [
-  require('./scalingPolicy.write.service.js'),
-  require('./upsert/upsertScalingPolicy.controller.js'),
+module.exports = angular.module('spinnaker.amazon.serverGroup.details.scalingPolicy.alarmBasedSummary.component', [
+  SCALING_POLICY_WRITE_SERVICE,
+  require('./upsert/upsertScalingPolicy.controller'),
   SCALING_POLICY_POPOVER,
   CONFIRMATION_MODAL_SERVICE,
 ])
-  .component('scalingPolicySummary', {
+  .component('alarmBasedSummary', {
       bindings: {
         policy: '=',
         serverGroup: '=',
         application: '=',
       },
-      templateUrl: require('./scalingPolicySummary.component.html'),
+      templateUrl: require('./alarmBasedSummary.component.html'),
       controller: function($uibModal, scalingPolicyWriter, confirmationModalService) {
         this.popoverTemplate = require('./popover/scalingPolicyDetails.popover.html');
 
