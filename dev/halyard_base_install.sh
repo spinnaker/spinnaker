@@ -69,7 +69,7 @@ function setup_spinnaker_user() {
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
-  bash InstallHalyard.sh -y
+  bash InstallHalyard.sh -y --user ubuntu
 
   rm -f InstallHalyard.sh
 
