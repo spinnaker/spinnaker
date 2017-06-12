@@ -33,7 +33,8 @@ import {
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IALBListener,
   IAmazonApplicationLoadBalancer,
-  IAmazonApplicationLoadBalancerUpsertCommand
+  IAmazonApplicationLoadBalancerUpsertCommand,
+  IAmazonLoadBalancer
 } from 'amazon/domain';
 import { AWS_LOAD_BALANCER_TRANFORMER, AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
@@ -70,6 +71,7 @@ class CreateApplicationLoadBalancerCtrl {
   };
 
   public existingLoadBalancerNames: string[];
+  public existingTargetGroupNames: string[];
   public viewState: ICreateApplicationLoadBalancerViewState;
   private accounts: IAccount[];
   private allSecurityGroups: IGroupsByAccount;
@@ -265,15 +267,27 @@ class CreateApplicationLoadBalancerCtrl {
           region = this.loadBalancerCommand.region;
 
     const accountLoadBalancersByRegion: { [region: string]: string[] } = {};
+    const accountTargetGroupsByRegion: { [region: string]: string[] } = {};
     this.application.getDataSource('loadBalancers').refresh(true).then(() => {
-      this.application.getDataSource('loadBalancers').data.forEach((loadBalancer) => {
+      this.application.getDataSource('loadBalancers').data.forEach((loadBalancer: IAmazonLoadBalancer) => {
         if (loadBalancer.account === account) {
           accountLoadBalancersByRegion[loadBalancer.region] = accountLoadBalancersByRegion[loadBalancer.region] || [];
           accountLoadBalancersByRegion[loadBalancer.region].push(loadBalancer.name);
+
+          if (loadBalancer.loadBalancerType === 'application') {
+            const lb = loadBalancer as IAmazonApplicationLoadBalancer;
+            if (!this.loadBalancer || lb.name !== this.loadBalancer.name) {
+              lb.targetGroups.forEach((targetGroup) => {
+                accountTargetGroupsByRegion[loadBalancer.region] = accountTargetGroupsByRegion[loadBalancer.region] ||  [];
+                accountTargetGroupsByRegion[loadBalancer.region].push(targetGroup.name);
+              });
+            }
+          }
         }
       });
 
       this.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
+      this.existingTargetGroupNames = accountTargetGroupsByRegion[region] || [];
     });
   }
 

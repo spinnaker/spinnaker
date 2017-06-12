@@ -6,9 +6,13 @@
           <div class="wizard-pod-row header">
             <div class="wizard-pod-row-title">GROUP NAME</div>
             <div class="wizard-pod-row-contents">
-              <input class="form-control input-sm"
+              <input class="form-control input-sm target-group-name"
                           type="text"
                           ng-model="targetGroup.name"
+                          ng-model-options="{ allowInvalid: true }"
+                          validate-unique="ctrl.existingTargetGroupNames"
+                          validate-ignore-case="true"
+                          name="targetGroupName{{$index}}"
                           required/>
               <a href class="sm-label" ng-click="ctrl.removeTargetGroup($index)"><span class="glyphicon glyphicon-trash"></span></a>
             </div>

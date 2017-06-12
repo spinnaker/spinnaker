@@ -17,16 +17,16 @@ class AwsLoadBalancerChoiceCtrl implements IComponentController {
     'ngInject';
   }
 
-  public $onInit (): void {
+  public $onInit(): void {
     this.choices = LoadBalancerTypes;
     this.choice = this.choices[0];
   }
 
-  public onChoiceSelection (choice: IAwsLoadBalancerConfig): void {
+  public onChoiceSelection(choice: IAwsLoadBalancerConfig): void {
     this.choice = choice;
   }
 
-  public choose (): void {
+  public choose(): void {
     this.$uibModalInstance.dismiss();
     this.$uibModal.open({
       templateUrl: this.choice.createTemplateUrl,
