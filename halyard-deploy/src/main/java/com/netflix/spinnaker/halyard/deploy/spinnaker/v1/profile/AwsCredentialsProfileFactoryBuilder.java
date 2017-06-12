@@ -19,12 +19,12 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.providers.aws.AwsProvider;
 import com.netflix.spinnaker.halyard.deploy.services.v1.ArtifactService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +37,17 @@ public class AwsCredentialsProfileFactoryBuilder {
   @Autowired
   protected ArtifactService artifactService;
 
-  public AwsCredentialsProfileFactory build(SpinnakerArtifact artifact) {
-    return new AwsCredentialsProfileFactory(artifact);
+  @Setter
+  private String accessKeyId;
+
+  @Setter
+  private String secretAccessKey;
+
+  @Setter
+  private SpinnakerArtifact artifact;
+
+  public AwsCredentialsProfileFactory build() {
+    return new AwsCredentialsProfileFactory(artifact, accessKeyId, secretAccessKey);
   }
 
   public String getOutputFile(String spinnakerHome) {
@@ -48,10 +57,16 @@ public class AwsCredentialsProfileFactoryBuilder {
   @EqualsAndHashCode(callSuper = false)
   @Data
   public class AwsCredentialsProfileFactory extends TemplateBackedProfileFactory {
-    public AwsCredentialsProfileFactory(SpinnakerArtifact artifact) {
+    public AwsCredentialsProfileFactory(SpinnakerArtifact artifact, String accessKeyId, String secretAccessKey) {
       super();
+      this.accessKeyId = accessKeyId;
+      this.secretAccessKey = secretAccessKey;
       this.artifact = artifact;
     }
+
+    final private String accessKeyId;
+
+    final private String secretAccessKey;
 
     @Override
     protected ArtifactService getArtifactService() {
@@ -66,10 +81,9 @@ public class AwsCredentialsProfileFactoryBuilder {
 
     @Override
     protected Map<String, String> getBindings(DeploymentConfiguration deploymentConfiguration, SpinnakerRuntimeSettings endpoints) {
-      AwsProvider awsProvider = deploymentConfiguration.getProviders().getAws();
       Map<String, String> result = new HashMap<>();
-      result.put("accessKeyId", awsProvider.getAccessKeyId());
-      result.put("secretAccessKey", awsProvider.getSecretAccessKey());
+      result.put("accessKeyId", accessKeyId);
+      result.put("secretAccessKey", secretAccessKey);
       return result;
     }
 

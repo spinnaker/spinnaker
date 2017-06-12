@@ -85,7 +85,11 @@ abstract public class ClouddriverService extends SpringService<ClouddriverServic
         && !StringUtils.isEmpty(awsProvider.getAccessKeyId())
         && !StringUtils.isEmpty(awsProvider.getSecretAccessKey())) {
       String outputFile = awsCredentialsProfileFactoryBuilder.getOutputFile(spinnakerHome);
-      return Optional.of(awsCredentialsProfileFactoryBuilder.build(SpinnakerArtifact.CLOUDDRIVER)
+      return Optional.of(awsCredentialsProfileFactoryBuilder
+          .setArtifact(SpinnakerArtifact.CLOUDDRIVER)
+          .setAccessKeyId(awsProvider.getAccessKeyId())
+          .setSecretAccessKey(awsProvider.getSecretAccessKey())
+          .build()
           .getProfile("aws/clouddriver-credentials", outputFile, deploymentConfiguration, endpoints));
     } else {
       return Optional.empty();

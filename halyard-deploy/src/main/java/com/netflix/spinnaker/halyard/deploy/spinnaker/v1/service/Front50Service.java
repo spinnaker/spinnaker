@@ -18,9 +18,7 @@
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service;
 
 
-import com.netflix.spinnaker.front50.model.S3StorageService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
-import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStore;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.S3PersistentStore;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerArtifact;
@@ -85,7 +83,11 @@ abstract public class Front50Service extends SpringService<Front50Service.Front5
         && !StringUtils.isEmpty(store.getAccessKeyId())
         && !StringUtils.isEmpty(store.getSecretAccessKey())) {
       String outputFile = awsCredentialsProfileFactoryBuilder.getOutputFile(spinnakerHome);
-      return Optional.of(awsCredentialsProfileFactoryBuilder.build(SpinnakerArtifact.FRONT50)
+      return Optional.of(awsCredentialsProfileFactoryBuilder
+          .setArtifact(SpinnakerArtifact.FRONT50)
+          .setAccessKeyId(store.getAccessKeyId())
+          .setSecretAccessKey(store.getSecretAccessKey())
+          .build()
           .getProfile("aws/front50-credentials", outputFile, deploymentConfiguration, endpoints));
     } else {
       return Optional.empty();
