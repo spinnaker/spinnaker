@@ -16,6 +16,7 @@
  * [**hal admin publish version**](#hal-admin-publish-version)
  * [**hal backup**](#hal-backup)
  * [**hal backup create**](#hal-backup-create)
+ * [**hal backup restore**](#hal-backup-restore)
  * [**hal config**](#hal-config)
  * [**hal config ci**](#hal-config-ci)
  * [**hal config ci jenkins**](#hal-config-ci-jenkins)
@@ -227,7 +228,7 @@ hal [parameters] [subcommands]
  * `-h, --help`: (*Default*: `false`) Display help text about this command.
  * `-l, --log`: Set the log level of the CLI.
  * `-o, --output`: Format the CLIs output.
- * `-q, --quiet`: Show no task information or messages. When disabled, ANSI formatting will be disabled too.
+ * `-q, --quiet`: Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.
 
 #### Parameters
  * `--docs`: (*Default*: `false`) Print markdown docs for the hal CLI.
@@ -385,7 +386,7 @@ hal admin publish version [parameters]
 ---
 ## hal backup
 
-This is used to periodically checkpoint your configured Spinnaker installation as well as allow you to remotely store all aspects of your configured Spinnaker installation.
+This is used to periodically checkpoint your configured Spinnaker installation as well as allow you to store all aspects of your configured Spinnaker installation, to be picked up by an installation of Halyard on another machine.
 
 #### Usage
 ```
@@ -393,17 +394,32 @@ hal backup [subcommands]
 ```
 
 #### Subcommands
- * `create`: Create a backup.
+ * `create`: Create a backup of Halyard's state.
+ * `restore`: Restore an existing backup.
 
 ---
 ## hal backup create
 
-Create a backup.
+This will create a tarball of your halconfig directory, being careful to rewrite file paths, so when the tarball is expanded by Halyard on another machine it will still be able to reference any files you have explicitly linked with your halconfig - e.g. --kubeconfig-file for Kubernetes, or --json-path for GCE.
 
 #### Usage
 ```
 hal backup create
 ```
+
+
+---
+## hal backup restore
+
+Restore an existing backup. This backup does _not_ necessarily have to come from the machine it is being restored on - since all files referenced by your halconfig are included in the halconfig backup. As a result of this, keep in mind that after restoring a backup, all your required files are now in $halconfig/.backup/required-files.
+
+#### Usage
+```
+hal backup restore [parameters]
+```
+
+#### Parameters
+ * `--backup-path`: (*Required*) This is the path to the .tar file created by running `hal backup create`.
 
 
 ---

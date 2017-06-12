@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.cli.command.v1;
 
 import com.beust.jcommander.Parameters;
 import com.netflix.spinnaker.halyard.cli.command.v1.backup.CreateBackupCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.backup.RestoreBackupCommand;
 import lombok.AccessLevel;
 import lombok.Getter;
 
@@ -33,11 +34,12 @@ public class BackupCommand extends NestableCommand {
 
   @Getter(AccessLevel.PUBLIC)
   private String longDescription = String.join(" ", "This is used to periodically checkpoint your configured Spinnaker installation as well as",
-      "allow you to remotely store all aspects of your configured Spinnaker installation.");
+      "allow you to store all aspects of your configured Spinnaker installation, to be picked up by an installation of Halyard on another machine.");
 
 
   public BackupCommand() {
     registerSubcommand(new CreateBackupCommand());
+    registerSubcommand(new RestoreBackupCommand());
   }
 
   @Override

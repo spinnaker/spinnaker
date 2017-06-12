@@ -20,6 +20,7 @@ package com.netflix.spinnaker.halyard.config.config.v1;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,7 @@ import java.nio.file.Paths;
 @Component
 public class HalconfigDirectoryStructure {
   @Autowired
+  @Getter
   String halconfigDirectory;
 
   public Path getLogsPath(String deploymentName) {

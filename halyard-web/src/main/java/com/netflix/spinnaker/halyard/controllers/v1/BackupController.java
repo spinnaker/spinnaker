@@ -21,12 +21,15 @@ package com.netflix.spinnaker.halyard.controllers.v1;
 import com.netflix.spinnaker.halyard.backup.services.v1.BackupService;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.core.DaemonResponse.StaticRequestBuilder;
+import com.netflix.spinnaker.halyard.core.StringBodyRequest;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTask;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import retrofit.http.Body;
 
 /**
  * Reports the entire contents of ~/.hal/config
@@ -38,12 +41,19 @@ public class BackupController {
   BackupService backupService;
 
   @RequestMapping(value = "/create", method = RequestMethod.PUT)
-  DaemonTask<Halconfig, Void> create() {
+  DaemonTask<Halconfig, StringBodyRequest> create() {
+    StaticRequestBuilder<StringBodyRequest> builder = new StaticRequestBuilder<>();
+    builder.setBuildResponse(() -> new StringBodyRequest(backupService.create()));
+    return DaemonTaskHandler.submitTask(builder::build, "Create backup");
+  }
+
+  @RequestMapping(value = "/restore", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> restore(@RequestParam String backupPath) {
     StaticRequestBuilder<Void> builder = new StaticRequestBuilder<>();
     builder.setBuildResponse(() -> {
-      backupService.create();
+      backupService.restore(backupPath);
       return null;
     });
-    return DaemonTaskHandler.submitTask(builder::build, "Generate backup");
+    return DaemonTaskHandler.submitTask(builder::build, "Restore backup");
   }
 }

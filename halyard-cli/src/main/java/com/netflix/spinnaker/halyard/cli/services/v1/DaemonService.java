@@ -44,7 +44,12 @@ public interface DaemonService {
   <C, T> DaemonTask<C, T> getTask(@Path("uuid") String uuid);
 
   @PUT("/v1/backup/create")
-  DaemonTask<Halconfig, Void> createBackup(@Body String _ignore);
+  DaemonTask<Halconfig, Object> createBackup(@Body String _ignore);
+
+  @PUT("/v1/backup/restore")
+  DaemonTask<Halconfig, Void> restoreBackup(
+      @Query("backupPath") String backupPath,
+      @Body String _ignore);
 
   @GET("/v1/config/")
   DaemonTask<Halconfig, Halconfig> getHalconfig();

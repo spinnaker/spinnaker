@@ -30,4 +30,6 @@ public class StringBodyRequest {
   public StringBodyRequest(@JsonProperty("value") String value) {
     this.value = value;
   }
+
+  public StringBodyRequest() {}
 }

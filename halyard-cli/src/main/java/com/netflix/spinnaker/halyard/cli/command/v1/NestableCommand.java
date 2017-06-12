@@ -62,7 +62,7 @@ public abstract class NestableCommand {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
-  @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages. When disabled, ANSI formatting will be disabled too.")
+  @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.")
   public void setQuiet(boolean quiet) {
     GlobalOptions.getGlobalOptions().setQuiet(quiet);
     GlobalOptions.getGlobalOptions().setColor(!quiet);
@@ -117,10 +117,10 @@ public abstract class NestableCommand {
           AnsiUi.warning(((DeprecatedCommand) this).getDeprecatedWarning());
         }
 
-        if (this instanceof ProtectedCommand) {
+        if (this instanceof ProtectedCommand && !GlobalOptions.getGlobalOptions().isQuiet()) {
           String prompt = ((ProtectedCommand) this).getPrompt();
           Console console = System.console();
-          String input = console.readLine(prompt+ " Do you want to continue? (Y/n) ");
+          String input = console.readLine(prompt + " Do you want to continue? (Y/n) ");
           if (!input.equalsIgnoreCase("y")) {
             AnsiUi.raw("Aborted.");
             return;

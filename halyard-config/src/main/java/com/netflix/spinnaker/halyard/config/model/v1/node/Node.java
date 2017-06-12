@@ -334,6 +334,44 @@ abstract public class Node implements Validatable {
     return result;
   }
 
+  private void swapLocalFilePrefixes(String to, String from) {
+    Consumer<Node> fileFinder = n -> n.localFiles().forEach(f -> {
+      try {
+        f.setAccessible(true);
+        String fPath = (String) f.get(n);
+        if (fPath == null) {
+          return;
+        }
+
+        if (fPath.startsWith(to)) {
+          log.info("File " + f.getName() + " was already in correct format " + fPath);
+          return;
+        }
+
+        if (!fPath.startsWith(from)) {
+          throw new HalException(FATAL, "Local file: " + fPath + " has incorrect prefix - must match " + from);
+        }
+
+        fPath = to + fPath.substring(from.length());
+        f.set(n, fPath);
+      } catch (IllegalAccessException e) {
+        throw new RuntimeException("Failed to get local files for node " + n.getNodeName(), e);
+      } finally {
+        f.setAccessible(false);
+      }
+    });
+
+    recursiveConsume(fileFinder);
+  }
+
+  public void makeLocalFilesRelative(String halconfigPath) {
+    swapLocalFilePrefixes(LocalFile.RELATIVE_PATH_PLACEHOLDER, halconfigPath);
+  }
+
+  public void makeLocalFilesAbsolute(String halconfigPath) {
+    swapLocalFilePrefixes(halconfigPath, LocalFile.RELATIVE_PATH_PLACEHOLDER);
+  }
+
   public List<String> backupLocalFiles(String outputPath) {
     List<String> files = new ArrayList<>();
 
