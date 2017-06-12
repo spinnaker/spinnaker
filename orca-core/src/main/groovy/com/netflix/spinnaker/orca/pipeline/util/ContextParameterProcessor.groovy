@@ -325,6 +325,7 @@ class ContextFunctionConfiguration {
   }
 }
 
+@Slf4j
 abstract class ContextUtilities {
 
   @PackageScope static final AtomicReference<ContextFunctionConfiguration> contextFunctionConfiguration = new AtomicReference<>(new ContextFunctionConfiguration())
@@ -350,8 +351,13 @@ abstract class ContextUtilities {
   }
 
   static String fromUrl(String url) {
-    URL u = contextFunctionConfiguration.get().urlRestrictions.validateURI(url).toURL()
-    return u.getText()
+    try {
+      URL u = contextFunctionConfiguration.get().urlRestrictions.validateURI(url).toURL()
+      return HttpClientUtils.httpGetAsString(u.toString())
+    } catch (Exception e) {
+      log.error("Failed getting content from url {}", url, e)
+      throw e
+    }
   }
 
   static Object readJson(String text) {
