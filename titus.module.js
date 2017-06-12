@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { TITUS_MIGRATION_CONFIG_COMPONENT } from './migration/titusMigrationConfig.component';
 import { TITUS_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
@@ -66,3 +66,5 @@ module.exports = angular.module('spinnaker.titus', [
       }
     });
   });
+
+DeploymentStrategyRegistry.registerProvider('titus', ['custom', 'redblack']);
