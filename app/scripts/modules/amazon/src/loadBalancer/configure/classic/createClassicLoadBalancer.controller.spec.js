@@ -49,7 +49,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', function () {
       healthCheckProtocol: 'HTTP'
     };
 
-    this.$scope.loadBalancer = loadBalancer;
+    this.ctrl.loadBalancerCommand = loadBalancer;
 
     expect(this.ctrl.requiresHealthCheckPath()).toBe(true);
 
@@ -70,7 +70,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', function () {
       listeners: [],
     };
 
-    this.$scope.loadBalancer = loadBalancer;
+    this.ctrl.loadBalancerCommand = loadBalancer;
 
     expect(this.ctrl.showSslCertificateNameField()).toBe(false);
 
@@ -121,78 +121,78 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', function () {
       AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = true;
       this.initialize();
 
-      expect(this.$scope.loadBalancer.isInternal).toBe(undefined);
-      expect(this.$scope.state.hideInternalFlag).toBe(true);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(undefined);
+      expect(this.ctrl.viewState.hideInternalFlag).toBe(true);
     });
 
     it('should set the flag based on purpose when subnet is updated', function () {
       this.initialize();
 
-      this.$scope.subnets = [
+      this.ctrl.subnets = [
         { purpose: 'internal/old', vpcIds: [], availabilityZones: ['us-east-1c'] },
         { purpose: 'internal/new', vpcIds: [], availabilityZones: ['us-east-1c'] },
         { purpose: 'external', vpcIds: [], availabilityZones: ['us-east-1c'] }
       ];
-      this.$scope.loadBalancer.subnetType = 'internal/old';
+      this.ctrl.loadBalancerCommand.subnetType = 'internal/old';
       this.ctrl.subnetUpdated();
-      expect(this.$scope.loadBalancer.isInternal).toBe(true);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(true);
 
-      this.$scope.loadBalancer.subnetType = 'external';
+      this.ctrl.loadBalancerCommand.subnetType = 'external';
       this.ctrl.subnetUpdated();
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
 
-      this.$scope.loadBalancer.subnetType = 'internal/new';
+      this.ctrl.loadBalancerCommand.subnetType = 'internal/new';
       this.ctrl.subnetUpdated();
-      expect(this.$scope.loadBalancer.isInternal).toBe(true);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(true);
     });
 
     it('should leave the flag once it has been toggled', function () {
       this.initialize();
 
-      this.$scope.subnets = [
+      this.ctrl.subnets = [
         { purpose: 'internal/old', vpcIds: [], availabilityZones: ['us-east-1c'] },
         { purpose: 'internal/new', vpcIds: [], availabilityZones: ['us-east-1c'] },
         { purpose: 'external', vpcIds: [], availabilityZones: ['us-east-1c'] }
       ];
-      this.$scope.loadBalancer.isInternal = false;
-      this.$scope.state.internalFlagToggled = true;
+      this.ctrl.loadBalancerCommand.isInternal = false;
+      this.ctrl.viewState.internalFlagToggled = true;
 
-      this.$scope.loadBalancer.subnetType = 'internal/old';
+      this.ctrl.loadBalancerCommand.subnetType = 'internal/old';
       this.ctrl.subnetUpdated();
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
 
-      this.$scope.loadBalancer.subnetType = 'external';
+      this.ctrl.loadBalancerCommand.subnetType = 'external';
       this.ctrl.subnetUpdated();
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
 
-      this.$scope.loadBalancer.subnetType = 'internal/new';
+      this.ctrl.loadBalancerCommand.subnetType = 'internal/new';
       this.ctrl.subnetUpdated();
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
     });
 
     it('should leave the flag and not set a state value if inferInternalFlagFromSubnet is false or not defined', function () {
       AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = true;
 
       this.initialize();
-      expect(this.$scope.loadBalancer.isInternal).toBe(undefined);
-      expect(this.$scope.state.hideInternalFlag).toBe(true);
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(undefined);
+      expect(this.ctrl.viewState.hideInternalFlag).toBe(true);
 
       AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet = false;
       this.initialize();
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
-      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
+      expect(this.ctrl.viewState.hideInternalFlag).toBe(false);
 
       delete AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet;
       this.initialize();
 
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
-      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
+      expect(this.ctrl.viewState.hideInternalFlag).toBe(false);
 
       delete AWSProviderSettings.loadBalancers;
       this.initialize();
 
-      expect(this.$scope.loadBalancer.isInternal).toBe(false);
-      expect(this.$scope.state.hideInternalFlag).toBeUndefined();
+      expect(this.ctrl.loadBalancerCommand.isInternal).toBe(false);
+      expect(this.ctrl.viewState.hideInternalFlag).toBe(false);
     });
   });
 
@@ -222,7 +222,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', function () {
       spyOn(this.subnetReader, 'listSubnets').and.returnValue(this.$q.when([{account: 'test', region: 'us-east-1', vpcId: 'vpc-1'}]));
       this.initialize(existingLoadBalancer);
       this.$scope.$digest();
-      expect(this.$scope.availableSecurityGroups.map(g => g.name)).toEqual(['d', 'a', 'b', 'c']);
+      expect(this.ctrl.availableSecurityGroups.map(g => g.name)).toEqual(['d', 'a', 'b', 'c']);
     });
 
     it('should put default security groups in the front of the available list', function () {
@@ -249,7 +249,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', function () {
       ]));
       this.initialize();
       this.$scope.$digest();
-      expect(this.$scope.availableSecurityGroups.map(g => g.name)).toEqual(['sg-a', 'a', 'b', 'c', 'd']);
+      expect(this.ctrl.availableSecurityGroups.map(g => g.name)).toEqual(['sg-a', 'a', 'b', 'c', 'd']);
     });
   });
 

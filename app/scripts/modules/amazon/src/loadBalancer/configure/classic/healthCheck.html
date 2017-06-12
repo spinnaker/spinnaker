@@ -10,15 +10,15 @@
       </thead>
       <tbody>
       <tr>
-        <td><select class="form-control input-sm" ng-model="loadBalancer.healthCheckProtocol" required
+        <td><select class="form-control input-sm" ng-model="ctrl.loadBalancerCommand.healthCheckProtocol" required
                     ng-options="protocol for protocol in ['HTTP', 'HTTPS', 'SSL', 'TCP']"></select></td>
-        <td><input class="form-control input-sm" type="number" ng-model="loadBalancer.healthCheckPort"
+        <td><input class="form-control input-sm" type="number" ng-model="ctrl.loadBalancerCommand.healthCheckPort"
                    required min="0"/></td>
         <td><input ng-if="ctrl.requiresHealthCheckPath()"
                    class="form-control input-sm no-spel"
                    type="text"
-                   ng-change="loadBalancer.healthCheckPath = ctrl.prependForwardSlash(loadBalancer.healthCheckPath)"
-                   ng-model="loadBalancer.healthCheckPath"
+                   ng-change="ctrl.loadBalancerCommand.healthCheckPath = ctrl.prependForwardSlash(ctrl.loadBalancerCommand.healthCheckPath)"
+                   ng-model="ctrl.loadBalancerCommand.healthCheckPath"
                    required/>
         </td>
       </tr>

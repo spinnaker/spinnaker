@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
 import { find, map } from 'lodash';
 
 import { Application } from '@spinnaker/core';
@@ -12,8 +13,8 @@ class GceLoadBalancerChoiceCtrl implements ng.IComponentController {
   public choices: string[];
   public choice = 'Network';
 
-  constructor(public $uibModal: any,
-              public $uibModalInstance: any,
+  constructor(public $uibModal: IModalService,
+              public $uibModalInstance: IModalInstanceService,
               private application: Application,
               private loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap) {
     'ngInject';

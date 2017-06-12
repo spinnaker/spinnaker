@@ -9,10 +9,10 @@ import { IAmazonApplicationLoadBalancer,
   IAmazonClassicLoadBalancer,
   IAmazonLoadBalancer,
   IApplicationLoadBalancerSourceData,
-  IClassicListenerCommand,
+  IClassicListenerDescription,
   IClassicLoadBalancerSourceData,
-  IUpsertAmazonApplicationLoadBalancerCommand,
-  IUpsertAmazonClassicLoadBalancerCommand,
+  IAmazonApplicationLoadBalancerUpsertCommand,
+  IAmazonClassicLoadBalancerUpsertCommand,
   ITargetGroup
 } from 'amazon/domain';
 import { VPC_READ_SERVICE, VpcReader } from 'amazon/vpc/vpc.read.service';
@@ -119,11 +119,12 @@ export class AwsLoadBalancerTransformer {
     return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs));
   }
 
-  public convertClassicLoadBalancerForEditing(loadBalancer: IAmazonClassicLoadBalancer): IUpsertAmazonClassicLoadBalancerCommand {
-    const toEdit: IUpsertAmazonClassicLoadBalancerCommand = {
+  public convertClassicLoadBalancerForEditing(loadBalancer: IAmazonClassicLoadBalancer): IAmazonClassicLoadBalancerUpsertCommand {
+    const toEdit: IAmazonClassicLoadBalancerUpsertCommand = {
       availabilityZones: undefined,
       isInternal: loadBalancer.isInternal,
       region: loadBalancer.region,
+      cloudProvider: loadBalancer.cloudProvider,
       credentials: loadBalancer.account,
       listeners: [],
       loadBalancerType: 'classic',
@@ -148,7 +149,7 @@ export class AwsLoadBalancerTransformer {
       toEdit.vpcId = elb.vpcid || elb.vpcId;
 
       if (elb.listenerDescriptions) {
-        toEdit.listeners = elb.listenerDescriptions.map((description: any): IClassicListenerCommand => {
+        toEdit.listeners = elb.listenerDescriptions.map((description: any): IClassicListenerDescription => {
           const listener = description.listener;
           if (listener.sslcertificateId) {
             const splitCertificateId = listener.sslcertificateId.split('/');
@@ -194,13 +195,14 @@ export class AwsLoadBalancerTransformer {
     return toEdit;
   }
 
-  public convertApplicationLoadBalancerForEditing(loadBalancer: IAmazonApplicationLoadBalancer): IUpsertAmazonApplicationLoadBalancerCommand {
+  public convertApplicationLoadBalancerForEditing(loadBalancer: IAmazonApplicationLoadBalancer): IAmazonApplicationLoadBalancerUpsertCommand {
     // Since we build up toEdit as we go, much easier to declare as any, then cast at return time.
-    const toEdit: IUpsertAmazonApplicationLoadBalancerCommand = {
+    const toEdit: IAmazonApplicationLoadBalancerUpsertCommand = {
       availabilityZones: undefined,
       isInternal: loadBalancer.isInternal,
       region: loadBalancer.region,
       loadBalancerType: 'application',
+      cloudProvider: loadBalancer.cloudProvider,
       credentials: loadBalancer.account,
       listeners: [],
       targetGroups: [],
@@ -244,8 +246,6 @@ export class AwsLoadBalancerTransformer {
 
       // Convert target groups
       if (elb.targetGroups) {
-        // elb.targetGroups is an array of target groups exactly as returned from clouddriver...
-        // we should probably create new type patterns for ObjectForCreation and RawObject and ObjectForView
         toEdit.targetGroups = elb.targetGroups.map((targetGroup: any) => {
           return {
             name: targetGroup.targetGroupName,
@@ -271,7 +271,7 @@ export class AwsLoadBalancerTransformer {
     return toEdit;
   }
 
-  public constructNewClassicLoadBalancerTemplate(application: Application): IUpsertAmazonClassicLoadBalancerCommand {
+  public constructNewClassicLoadBalancerTemplate(application: Application): IAmazonClassicLoadBalancerUpsertCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
         defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
         defaultSubnetType = AWSProviderSettings.defaults.subnetType;
@@ -282,6 +282,7 @@ export class AwsLoadBalancerTransformer {
       detail: '',
       loadBalancerType: 'classic',
       isInternal: false,
+      cloudProvider: 'aws',
       credentials: defaultCredentials,
       region: defaultRegion,
       vpcId: null,
@@ -307,7 +308,7 @@ export class AwsLoadBalancerTransformer {
     };
   }
 
-  public constructNewApplicationLoadBalancerTemplate(application: Application): IUpsertAmazonApplicationLoadBalancerCommand {
+  public constructNewApplicationLoadBalancerTemplate(application: Application): IAmazonApplicationLoadBalancerUpsertCommand {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
         defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
         defaultSubnetType = AWSProviderSettings.defaults.subnetType,
@@ -319,6 +320,7 @@ export class AwsLoadBalancerTransformer {
       detail: '',
       loadBalancerType: 'application',
       isInternal: false,
+      cloudProvider: 'aws',
       credentials: defaultCredentials,
       region: defaultRegion,
       vpcId: null,

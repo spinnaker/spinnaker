@@ -1,14 +1,15 @@
-import {flatten} from 'lodash';
-import {module} from 'angular';
+import { flatten } from 'lodash';
+import { IComponentController, IPromise, IQService, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {Application} from 'core/application/application.model';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { Application } from 'core/application/application.model';
 import {
   APPLICATION_READ_SERVICE, ApplicationReader,
   IApplicationSummary
 } from 'core/application/service/application.read.service';
-import {COPY_STAGE_CARD_COMPONENT} from './copyStageCard.component';
-import {IPipeline, IStage, IStrategy} from 'core/domain';
+import { COPY_STAGE_CARD_COMPONENT } from './copyStageCard.component';
+import { IPipeline, IStage, IStrategy } from 'core/domain';
 
 import './copyStage.modal.less';
 
@@ -18,7 +19,7 @@ interface IStageWrapper {
   stage: IStage;
 }
 
-class CopyStageModalCtrl implements ng.IComponentController {
+class CopyStageModalCtrl implements IComponentController {
   public applications: IApplicationSummary[];
   public stages: IStageWrapper[];
   public viewState = { loading: true, error: false };
@@ -26,11 +27,11 @@ class CopyStageModalCtrl implements ng.IComponentController {
 
   private uncopiableStageTypes: Set<string> = new Set(['deploy']);
 
-  constructor (private $q: ng.IQService,
+  constructor (private $q: IQService,
                private API: Api,
                public application: Application,
                private applicationReader: ApplicationReader,
-               private $uibModalInstance: any,
+               private $uibModalInstance: IModalInstanceService,
                private forStrategyConfig: boolean) {
     'ngInject';
   }
@@ -74,7 +75,7 @@ class CopyStageModalCtrl implements ng.IComponentController {
     this.$uibModalInstance.close(this.selectedStage.stage);
   }
 
-  private getStagesForApplication (applicationName: string): ng.IPromise<IStageWrapper[]> {
+  private getStagesForApplication (applicationName: string): IPromise<IStageWrapper[]> {
     const configType = this.forStrategyConfig ? 'strategyConfigs' : 'pipelineConfigs';
 
     return this.API.one('applications')

@@ -1,8 +1,8 @@
 <div class="container-fluid form-horizontal">
-  <div ng-if="!state.accountsLoaded" style="height: 200px">
+  <div ng-if="!ctrl.viewState.accountsLoaded" style="height: 200px">
     <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
   </div>
-  <div class="modal-body" ng-if="state.accountsLoaded">
+  <div class="modal-body" ng-if="ctrl.viewState.accountsLoaded">
     <div class="form-group">
       <div class="col-md-12 well" ng-class="{'alert-danger': form.loadBalancerName.$error.validateUnique, 'alert-info': !form.loadBalancerName.$error.validateUnique}">
         <strong>Your load balancer will be named:</strong>
@@ -12,26 +12,26 @@
                style="display: none"
                ng-maxlength="32"
                class="form-control input-sm no-spel"
-               ng-model="loadBalancer.name"
-               validate-unique="existingLoadBalancerNames"
+               ng-model="ctrl.loadBalancerCommand.name"
+               validate-unique="ctrl.existingLoadBalancerNames"
                validate-ignore-case="true"
                name="loadBalancerName"/>
-        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{loadBalancer.credentials}}:{{loadBalancer.region}} with that name."></validation-error>
+        <validation-error ng-if="form.loadBalancerName.$error.validateUnique" message="There is already a load balancer in {{ctrl.loadBalancerCommand.credentials}}:{{ctrl.loadBalancerCommand.region}} with that name."></validation-error>
       </div>
     </div>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Account</div>
       <div class="col-md-7">
-        <account-select-field component="loadBalancer" field="credentials" accounts="accounts" provider="'aws'" on-change="ctrl.accountUpdated()"></account-select-field>
+        <account-select-field component="ctrl.loadBalancerCommand" field="credentials" accounts="ctrl.accounts" provider="'aws'" on-change="ctrl.accountUpdated()"></account-select-field>
       </div>
     </div>
-    <region-select-field label-columns="3" component="loadBalancer" field="region" account="loadBalancer.credentials" provider="'aws'" on-change="ctrl.regionUpdated()" regions="regions"></region-select-field>
+    <region-select-field label-columns="3" component="ctrl.loadBalancerCommand" field="region" account="ctrl.loadBalancerCommand.credentials" provider="'aws'" on-change="ctrl.regionUpdated()" regions="ctrl.regions"></region-select-field>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
       <div class="col-md-3">
         <input type="text"
                class="form-control input-sm no-spel"
-               ng-model="loadBalancer.stack"
+               ng-model="ctrl.loadBalancerCommand.stack"
                name="stackName"
                ng-change="ctrl.updateName()"
                ng-pattern="/^[a-zA-Z0-9]*$/"/>
@@ -42,7 +42,7 @@
         </label>
         <input type="text"
                class="form-control input-sm no-spel"
-               ng-model="loadBalancer.detail"
+               ng-model="ctrl.loadBalancerCommand.detail"
                name="detailName"
                ng-change="ctrl.updateName()"
                ng-pattern="/^[a-zA-Z0-9-]*$/"/>
@@ -62,29 +62,29 @@
     </div>
 
     <load-balancer-availability-zone-selector
-      model="loadBalancer"
-      region="loadBalancer.region"
+      model="ctrl.loadBalancerCommand"
+      region="ctrl.loadBalancerCommand.region"
       availability-zones="availabilityZones"
-      use-preferred-zones="loadBalancer.usePreferredZones"
+      use-preferred-zones="ctrl.loadBalancerCommand.usePreferredZones"
       provider="'aws'" >
     </load-balancer-availability-zone-selector>
 
     <subnet-select-field label-columns="3"
                          help-key="aws.loadBalancer.subnet"
-                         component="loadBalancer"
+                         component="ctrl.loadBalancerCommand"
                          field="subnetType"
                          hide-classic="ctrl.hideClassic"
-                         region="loadBalancer.region"
-                         subnets="subnets"
-                         application="application"
+                         region="ctrl.loadBalancerCommand.region"
+                         subnets="ctrl.subnets"
+                         application="ctrl.application"
                          on-change="ctrl.subnetUpdated()"></subnet-select-field>
     <!--Adding support for public facing elb. Display only for vpc-->
-    <div class="form-group" ng-if="loadBalancer.vpcId && !state.hideInternalFlag">
+    <div class="form-group" ng-if="ctrl.loadBalancerCommand.vpcId && !ctrl.viewState.hideInternalFlag">
       <div class="col-md-3 sm-label-right"><b>Internal</b></div>
       <div class="col-md-7 checkbox">
         <label><input type="checkbox"
                       ng-change="ctrl.internalFlagChanged()"
-                      ng-model="loadBalancer.isInternal"/>
+                      ng-model="ctrl.loadBalancerCommand.isInternal"/>
           Create an internal load balancer
         </label>
       </div>

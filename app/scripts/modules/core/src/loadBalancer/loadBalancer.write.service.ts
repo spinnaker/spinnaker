@@ -5,13 +5,17 @@ import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/c
 import { ITask } from 'core/domain';
 import { IJob, TASK_EXECUTOR, TaskExecutor } from 'core/task/taskExecutor';
 
-export interface ILoadBalancerUpsertDescription extends IJob {
+export interface ILoadBalancerUpsertCommand extends IJob {
   name: string;
   cloudProvider: string;
+  credentials: string;
+  detail?: string;
   healthCheckProtocol?: string;
   healthCheck?: string;
   healthCheckPort?: number;
   healthCheckPath?: string;
+  region: string;
+  stack?: string;
 }
 
 export interface ILoadBalancerDeleteDescription extends IJob {
@@ -40,7 +44,7 @@ export class LoadBalancerWriter {
     });
   }
 
-  public upsertLoadBalancer(command: ILoadBalancerUpsertDescription, application: Application, descriptor: string, params: any = {}): ng.IPromise<ITask> {
+  public upsertLoadBalancer(command: ILoadBalancerUpsertCommand, application: Application, descriptor: string, params: any = {}): ng.IPromise<ITask> {
     Object.assign(command, params);
     command.type = 'upsertLoadBalancer';
 

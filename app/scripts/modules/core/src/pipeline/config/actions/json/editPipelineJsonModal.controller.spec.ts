@@ -1,7 +1,7 @@
-import {mock, IControllerService} from 'angular';
+import { mock, IControllerService } from 'angular';
 
-import {EDIT_PIPELINE_JSON_MODAL_CONTROLLER, EditPipelineJsonModalCtrl} from './editPipelineJsonModal.controller';
-import {IPipeline} from 'core/domain';
+import { EDIT_PIPELINE_JSON_MODAL_CONTROLLER, EditPipelineJsonModalCtrl } from './editPipelineJsonModal.controller';
+import { IPipeline} from 'core/domain';
 
 describe('Controller: editPipelineJsonModal', () => {
 

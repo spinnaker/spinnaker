@@ -1,4 +1,5 @@
 import { IComponentController, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { Application } from '@spinnaker/core';
 
@@ -11,7 +12,7 @@ class AwsLoadBalancerChoiceCtrl implements IComponentController {
   public choice: IAwsLoadBalancerConfig;
 
   constructor(private $uibModal: any,
-              private $uibModalInstance: any,
+              private $uibModalInstance: IModalInstanceService,
               private application: Application) {
     'ngInject';
   }

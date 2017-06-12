@@ -1,4 +1,5 @@
 import { IScope } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import { trimEnd } from 'lodash';
 
@@ -9,7 +10,7 @@ import { IGceLoadBalancer } from 'google/domain/loadBalancer';
 export class CommonGceLoadBalancerCtrl {
   constructor (public $scope: IScope,
                public application: Application,
-               public $uibModalInstance: any,
+               public $uibModalInstance: IModalInstanceService,
                private $state: StateService,
                private infrastructureCaches: InfrastructureCacheService) { }
 

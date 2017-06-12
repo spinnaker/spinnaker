@@ -13,18 +13,18 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="listener in loadBalancer.listeners">
+        <tr ng-repeat="listener in ctrl.loadBalancerCommand.listeners">
           <td><select class="form-control input-sm" ng-model="listener.protocol"
                       ng-change="ctrl.listenerProtocolChanged(listener)"
                       ng-options="protocol for protocol in ['HTTP','HTTPS']"></select></td>
-          <td><input class="form-control input-sm" type="number" min="0" ng-model="listener.port"
+          <td><input class="form-control input-sm" type="text" min="0" ng-model="listener.port"
                      required/></td>
           <td class="small" style="padding-top: 10px;">&rarr;</td>
 
           <td>
             <div ng-repeat="action in listener.defaultActions">
               <select class="form-control input-sm" ng-model="action.targetGroupName"
-                      ng-options="targetGroup.name as targetGroup.name for targetGroup in loadBalancer.targetGroups" required></select>
+                      ng-options="targetGroup.name as targetGroup.name for targetGroup in ctrl.loadBalancerCommand.targetGroups" required></select>
             </div>
           </td>
           <td>

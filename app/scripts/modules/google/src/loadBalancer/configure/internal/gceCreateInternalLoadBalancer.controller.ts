@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
 
@@ -90,7 +91,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
   constructor (public $scope: IPrivateScope,
                public application: Application,
-               public $uibModalInstance: any,
+               public $uibModalInstance: IModalInstanceService,
                private loadBalancer: InternalLoadBalancer,
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,

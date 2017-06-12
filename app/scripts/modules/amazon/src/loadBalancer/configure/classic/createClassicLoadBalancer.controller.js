@@ -42,7 +42,7 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
                                                            application, loadBalancer, isNew, forPipelineConfig) {
 
     var ctrl = this;
-    $scope.pages = {
+    ctrl.pages = {
       location: require('../common/createLoadBalancerLocation.html'),
       securityGroups: require('../common/securityGroups.html'),
       listeners: require('./listeners.html'),
@@ -50,19 +50,24 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
       advancedSettings: require('./advancedSettings.html'),
     };
 
-    $scope.isNew = isNew;
-    $scope.application = application;
+    ctrl.isNew = isNew;
+    ctrl.application = application;
     // if this controller is used in the context of "Create Load Balancer" stage,
     // then forPipelineConfig flag will be true. In that case, the Load Balancer
     // modal dialog will just return the Load Balancer object.
-    $scope.forPipelineConfig = forPipelineConfig;
-    $scope.submitButtonLabel = forPipelineConfig ? (isNew ? 'Add' : 'Done') : (isNew ? 'Create' : 'Update');
+    ctrl.forPipelineConfig = forPipelineConfig;
 
-    $scope.state = {
-      securityGroupsLoaded: false,
+    ctrl.viewState = {
       accountsLoaded: false,
-      submitting: false,
+      currentItems: 25,
+      hideInternalFlag: false,
+      internalFlagToggled: false,
+      refreshingSecurityGroups: false,
       removedSecurityGroups: [],
+      securityGroupRefreshTime: infrastructureCaches.get('securityGroups').getStats().ageMax,
+      securityGroupsLoaded: false,
+      submitButtonLabel: forPipelineConfig ? (isNew ? 'Add' : 'Done') : (isNew ? 'Create' : 'Update'),
+      submitting: false,
     };
 
     function onApplicationRefresh() {
@@ -72,10 +77,10 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
       }
       $uibModalInstance.close();
       var newStateParams = {
-        name: $scope.loadBalancer.name,
-        accountId: $scope.loadBalancer.credentials,
-        region: $scope.loadBalancer.region,
-        vpcId: $scope.loadBalancer.vpcId,
+        name: ctrl.loadBalancerCommand.name,
+        accountId: ctrl.loadBalancerCommand.credentials,
+        region: ctrl.loadBalancerCommand.region,
+        vpcId: ctrl.loadBalancerCommand.vpcId,
         provider: 'aws',
       };
 
@@ -91,7 +96,7 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
       application.loadBalancers.onNextRefresh($scope, onApplicationRefresh);
     }
 
-    $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
+    ctrl.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: (isNew ? 'Creating ' : 'Updating ') + 'your load balancer',
       modalInstance: $uibModalInstance,
@@ -102,9 +107,9 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
         defaultSecurityGroups = [];
 
     function initializeEditMode() {
-      if ($scope.loadBalancer.vpcId) {
+      if (ctrl.loadBalancerCommand.vpcId) {
         preloadSecurityGroups().then(function() {
-          updateAvailableSecurityGroups([$scope.loadBalancer.vpcId]);
+          updateAvailableSecurityGroups([ctrl.loadBalancerCommand.vpcId]);
         });
       }
     }
@@ -116,13 +121,13 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
           defaultSecurityGroups = AWSProviderSettings.defaultSecurityGroups;
         }
         if (AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.inferInternalFlagFromSubnet) {
-          delete $scope.loadBalancer.isInternal;
-          $scope.state.hideInternalFlag = true;
+          delete ctrl.loadBalancerCommand.isInternal;
+          ctrl.viewState.hideInternalFlag = true;
         }
       }
       accountService.listAccounts('aws').then(function (accounts) {
-        $scope.accounts = accounts;
-        $scope.state.accountsLoaded = true;
+        ctrl.accounts = accounts;
+        ctrl.viewState.accountsLoaded = true;
         ctrl.accountUpdated();
       });
     }
@@ -130,7 +135,7 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     function preloadSecurityGroups() {
       return securityGroupReader.getAllSecurityGroups().then(function (securityGroups) {
         allSecurityGroups = securityGroups;
-        $scope.state.securityGroupsLoaded = true;
+        ctrl.viewState.securityGroupsLoaded = true;
       });
     }
 
@@ -138,20 +143,20 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
       setSecurityGroupRefreshTime();
       if (loadBalancer) {
         if (forPipelineConfig) {
-          $scope.loadBalancer = loadBalancer;
+          ctrl.loadBalancerCommand = loadBalancer;
           initializeCreateMode();
         } else {
-          $scope.loadBalancer = awsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(loadBalancer);
+          ctrl.loadBalancerCommand = awsLoadBalancerTransformer.convertClassicLoadBalancerForEditing(loadBalancer);
           initializeEditMode();
         }
         if (isNew) {
-          var nameParts = namingService.parseLoadBalancerName($scope.loadBalancer.name);
-          $scope.loadBalancer.stack = nameParts.stack;
-          $scope.loadBalancer.detail = nameParts.freeFormDetails;
-          delete $scope.loadBalancer.name;
+          var nameParts = namingService.parseLoadBalancerName(ctrl.loadBalancerCommand.name);
+          ctrl.loadBalancerCommand.stack = nameParts.stack;
+          ctrl.loadBalancerCommand.detail = nameParts.freeFormDetails;
+          delete ctrl.loadBalancerCommand.name;
         }
       } else {
-        $scope.loadBalancer = awsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(application);
+        ctrl.loadBalancerCommand = awsLoadBalancerTransformer.constructNewClassicLoadBalancerTemplate(application);
       }
       if (isNew) {
         updateLoadBalancerNames();
@@ -168,39 +173,39 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
           return 1;
         }
       }
-      return $scope.loadBalancer.securityGroups.includes(a.id) ? -1 :
-        $scope.loadBalancer.securityGroups.includes(b.id) ? 1 :
+      return ctrl.loadBalancerCommand.securityGroups.includes(a.id) ? -1 :
+        ctrl.loadBalancerCommand.securityGroups.includes(b.id) ? 1 :
           0;
     }
 
     function updateAvailableSecurityGroups(availableVpcIds) {
-      var account = $scope.loadBalancer.credentials,
-        region = $scope.loadBalancer.region;
+      var account = ctrl.loadBalancerCommand.credentials,
+        region = ctrl.loadBalancerCommand.region;
 
       if (account && region && allSecurityGroups[account] && allSecurityGroups[account].aws[region]) {
-        $scope.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
+        ctrl.availableSecurityGroups = _.filter(allSecurityGroups[account].aws[region], function(securityGroup) {
           return availableVpcIds.includes(securityGroup.vpcId);
         }).sort(availableGroupsSorter); // push existing groups to top
-        $scope.existingSecurityGroupNames = _.map($scope.availableSecurityGroups, 'name');
+        ctrl.existingSecurityGroupNames = _.map(ctrl.availableSecurityGroups, 'name');
         var existingNames = defaultSecurityGroups.filter(function(defaultName) {
-          return $scope.existingSecurityGroupNames.includes(defaultName);
+          return ctrl.existingSecurityGroupNames.includes(defaultName);
         });
-        $scope.loadBalancer.securityGroups.forEach(function(securityGroup) {
-          if (!$scope.existingSecurityGroupNames.includes(securityGroup)) {
-            var matches = _.filter($scope.availableSecurityGroups, {id: securityGroup});
+        ctrl.loadBalancerCommand.securityGroups.forEach(function(securityGroup) {
+          if (!ctrl.existingSecurityGroupNames.includes(securityGroup)) {
+            var matches = _.filter(ctrl.availableSecurityGroups, {id: securityGroup});
             if (matches.length) {
               existingNames.push(matches[0].name);
             } else {
               if (!defaultSecurityGroups.includes(securityGroup)) {
-                $scope.state.removedSecurityGroups.push(securityGroup);
+                ctrl.viewState.removedSecurityGroups.push(securityGroup);
               }
             }
           } else {
             existingNames.push(securityGroup);
           }
         });
-        $scope.loadBalancer.securityGroups = _.uniq(existingNames);
-        if ($scope.state.removedSecurityGroups.length) {
+        ctrl.loadBalancerCommand.securityGroups = _.uniq(existingNames);
+        if (ctrl.viewState.removedSecurityGroups.length) {
           v2modalWizardService.markDirty('Security Groups');
         }
       } else {
@@ -209,8 +214,8 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     }
 
     function updateLoadBalancerNames() {
-      var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
+      var account = ctrl.loadBalancerCommand.credentials,
+          region = ctrl.loadBalancerCommand.region;
 
       const accountLoadBalancersByRegion = {};
       application.getDataSource('loadBalancers').refresh(true).then(() => {
@@ -221,13 +226,13 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
           }
         });
 
-        $scope.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
+        ctrl.existingLoadBalancerNames = accountLoadBalancersByRegion[region] || [];
       });
     }
 
     function getAvailableSubnets() {
-      var account = $scope.loadBalancer.credentials,
-          region = $scope.loadBalancer.region;
+      var account = ctrl.loadBalancerCommand.credentials,
+          region = ctrl.loadBalancerCommand.region;
       return subnetReader.listSubnets().then(function(subnets) {
         return _.chain(subnets)
           .filter({account: account, region: region})
@@ -237,14 +242,14 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     }
 
     function updateAvailabilityZones() {
-      var selected = $scope.regions ?
-        $scope.regions.filter(function(region) { return region.name === $scope.loadBalancer.region; }) :
+      var selected = ctrl.regions ?
+        ctrl.regions.filter(function(region) { return region.name === ctrl.loadBalancerCommand.region; }) :
         [];
       if (selected.length) {
-        $scope.loadBalancer.regionZones = angular.copy(selected[0].availabilityZones);
-        $scope.availabilityZones = selected[0].availabilityZones;
+        ctrl.loadBalancerCommand.regionZones = angular.copy(selected[0].availabilityZones);
+        ctrl.availabilityZones = selected[0].availabilityZones;
       } else {
-        $scope.availabilityZones = [];
+        ctrl.availabilityZones = [];
       }
     }
 
@@ -264,29 +269,29 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
 
         setSubnetTypeFromVpc(subnetOptions);
 
-        if (_.findIndex(subnetOptions, {purpose: $scope.loadBalancer.subnetType}).length === 0) {
-          $scope.loadBalancer.subnetType = '';
+        if (_.findIndex(subnetOptions, {purpose: ctrl.loadBalancerCommand.subnetType}).length === 0) {
+          ctrl.loadBalancerCommand.subnetType = '';
         }
-        $scope.subnets = _.values(subnetOptions);
+        ctrl.subnets = _.values(subnetOptions);
         ctrl.subnetUpdated();
       });
     }
 
     function setSubnetTypeFromVpc(subnetOptions) {
-      if ($scope.loadBalancer.vpcId) {
+      if (ctrl.loadBalancerCommand.vpcId) {
         var currentSelection = _.find(subnetOptions, function(option) {
-          return option.vpcIds.includes($scope.loadBalancer.vpcId);
+          return option.vpcIds.includes(ctrl.loadBalancerCommand.vpcId);
         });
         if (currentSelection) {
-          $scope.loadBalancer.subnetType = currentSelection.purpose;
+          ctrl.loadBalancerCommand.subnetType = currentSelection.purpose;
         }
-        delete $scope.loadBalancer.vpcId;
+        delete ctrl.loadBalancerCommand.vpcId;
       }
     }
 
     function clearSecurityGroups() {
-      $scope.availableSecurityGroups = [];
-      $scope.existingSecurityGroupNames = [];
+      ctrl.availableSecurityGroups = [];
+      ctrl.existingSecurityGroupNames = [];
     }
 
     function certificateIdAsARN(accountId, certificateId, region, certificateType) {
@@ -303,43 +308,41 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     }
 
     let formatListeners = () => {
-      return accountService.getAccountDetails($scope.loadBalancer.credentials).then((account) => {
-        $scope.loadBalancer.listeners.forEach((listener) => {
+      return accountService.getAccountDetails(ctrl.loadBalancerCommand.credentials).then((account) => {
+        ctrl.loadBalancerCommand.listeners.forEach((listener) => {
           listener.sslCertificateId = certificateIdAsARN(account.accountId, listener.sslCertificateName,
-            $scope.loadBalancer.region, listener.sslCertificateType || this.certificateTypes[0]);
+            ctrl.loadBalancerCommand.region, listener.sslCertificateType || ctrl.certificateTypes[0]);
         });
       });
     };
 
-    this.certificateTypes = AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.certificateTypes || ['iam', 'acm'];
+    ctrl.certificateTypes = AWSProviderSettings.loadBalancers && AWSProviderSettings.loadBalancers.certificateTypes || ['iam', 'acm'];
 
     initializeController();
 
     // Controller API
 
     this.refreshSecurityGroups = function () {
-      $scope.state.refreshingSecurityGroups = true;
+      ctrl.viewState.refreshingSecurityGroups = true;
       cacheInitializer.refreshCache('securityGroups').then(function() {
-        $scope.state.refreshingSecurityGroups = false;
+        ctrl.viewState.refreshingSecurityGroups = false;
         setSecurityGroupRefreshTime();
         preloadSecurityGroups().then(function() {
-          updateAvailableSecurityGroups($scope.loadBalancer.vpcId);
+          updateAvailableSecurityGroups(ctrl.loadBalancerCommand.vpcId);
         });
       });
     };
 
     function setSecurityGroupRefreshTime() {
-      ctrl.securityGroupRefreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
+      ctrl.viewState.securityGroupRefreshTime = infrastructureCaches.get('securityGroups').getStats().ageMax;
     }
 
-    this.addItems = () => this.currentItems += 25;
+    this.addItems = () => ctrl.viewState.currentItems += 25;
 
-    this.resetCurrentItems = () => this.currentItems = 25;
-
-    this.currentItems = 25;
+    this.resetCurrentItems = () => ctrl.viewState.currentItems = 25;
 
     this.requiresHealthCheckPath = function () {
-      return $scope.loadBalancer.healthCheckProtocol && $scope.loadBalancer.healthCheckProtocol.indexOf('HTTP') === 0;
+      return ctrl.loadBalancerCommand.healthCheckProtocol && ctrl.loadBalancerCommand.healthCheckProtocol.indexOf('HTTP') === 0;
     };
 
     this.prependForwardSlash = (text) => {
@@ -347,18 +350,18 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     };
 
     this.updateName = function() {
-      $scope.loadBalancer.name = this.getName();
+      ctrl.loadBalancerCommand.name = this.getName();
     };
 
     this.getName = function() {
-      var elb = $scope.loadBalancer;
+      var elb = ctrl.loadBalancerCommand;
       var elbName = [application.name, (elb.stack || ''), (elb.detail || '')].join('-');
       return _.trimEnd(elbName, '-');
     };
 
     this.accountUpdated = function() {
-      accountService.getRegionsForAccount($scope.loadBalancer.credentials).then(function(regions) {
-        $scope.regions = regions;
+      accountService.getRegionsForAccount(ctrl.loadBalancerCommand.credentials).then(function(regions) {
+        ctrl.regions = regions;
         clearSecurityGroups();
         ctrl.regionUpdated();
       });
@@ -371,38 +374,38 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
       ctrl.updateName();
     };
 
-    this.subnetUpdated = function() {
-      var subnetPurpose = $scope.loadBalancer.subnetType || null,
-          subnet = $scope.subnets.find(function(test) { return test.purpose === subnetPurpose; }),
+    ctrl.subnetUpdated = function() {
+      var subnetPurpose = ctrl.loadBalancerCommand.subnetType || null,
+          subnet = ctrl.subnets.find(function(test) { return test.purpose === subnetPurpose; }),
           availableVpcIds = subnet ? subnet.vpcIds : [];
         updateAvailableSecurityGroups(availableVpcIds);
       if (subnetPurpose) {
-        $scope.loadBalancer.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
-        if (!$scope.state.hideInternalFlag && !$scope.state.internalFlagToggled) {
-          $scope.loadBalancer.isInternal = subnetPurpose.includes('internal');
+        ctrl.loadBalancerCommand.vpcId = availableVpcIds.length ? availableVpcIds[0] : null;
+        if (!ctrl.viewState.hideInternalFlag && !ctrl.viewState.internalFlagToggled) {
+          ctrl.loadBalancerCommand.isInternal = subnetPurpose.includes('internal');
         }
-        $scope.availabilityZones = $scope.subnets
-          .find(o => o.purpose === $scope.loadBalancer.subnetType)
+        ctrl.availabilityZones = ctrl.subnets
+          .find(o => o.purpose === ctrl.loadBalancerCommand.subnetType)
           .availabilityZones
           .sort();
         v2modalWizardService.includePage('Security Groups');
       } else {
         updateAvailabilityZones();
-        $scope.loadBalancer.vpcId = null;
+        ctrl.loadBalancerCommand.vpcId = null;
         v2modalWizardService.excludePage('Security Groups');
       }
     };
 
     this.internalFlagChanged = () => {
-      $scope.state.internalFlagToggled = true;
+      ctrl.viewState.internalFlagToggled = true;
     };
 
     this.removeListener = function(index) {
-      $scope.loadBalancer.listeners.splice(index, 1);
+      ctrl.loadBalancerCommand.listeners.splice(index, 1);
     };
 
     this.addListener = function() {
-      $scope.loadBalancer.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP', externalPort: 80});
+      ctrl.loadBalancerCommand.listeners.push({internalProtocol: 'HTTP', externalProtocol: 'HTTP', externalPort: 80});
     };
 
     this.listenerProtocolChanged = (listener) => {
@@ -415,7 +418,7 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     };
 
     this.showSslCertificateNameField = function() {
-      return $scope.loadBalancer.listeners.some(function(listener) {
+      return ctrl.loadBalancerCommand.listeners.some(function(listener) {
         return listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL';
       });
     };
@@ -423,19 +426,19 @@ module.exports = angular.module('spinnaker.amazon.loadBalancer.classic.create.co
     this.submit = function () {
       var descriptor = isNew ? 'Create' : 'Update';
 
-      if ($scope.forPipelineConfig) {
+      if (ctrl.forPipelineConfig) {
         // don't submit to backend for creation. Just return the loadBalancer object
         formatListeners().then(function () {
-          $uibModalInstance.close($scope.loadBalancer);
+          $uibModalInstance.close(ctrl.loadBalancerCommand);
         });
       } else {
-        $scope.taskMonitor.submit(
+        ctrl.taskMonitor.submit(
           function() {
             return formatListeners().then(function () {
-              setAvailabilityZones($scope.loadBalancer);
-              clearSecurityGroupsIfNotInVpc($scope.loadBalancer);
-              addHealthCheckToCommand($scope.loadBalancer);
-              return loadBalancerWriter.upsertLoadBalancer($scope.loadBalancer, application, descriptor);
+              setAvailabilityZones(ctrl.loadBalancerCommand);
+              clearSecurityGroupsIfNotInVpc(ctrl.loadBalancerCommand);
+              addHealthCheckToCommand(ctrl.loadBalancerCommand);
+              return loadBalancerWriter.upsertLoadBalancer(ctrl.loadBalancerCommand, application, descriptor);
             });
           }
         );

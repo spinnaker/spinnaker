@@ -1,4 +1,5 @@
 import { module, IScope } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
 
@@ -8,7 +9,7 @@ import {
   Application,
   IAccount,
   ICredentials,
-  ILoadBalancerUpsertDescription,
+  ILoadBalancerUpsertCommand,
   IInstance,
   INFRASTRUCTURE_CACHE_SERVICE,
   InfrastructureCacheService,
@@ -36,7 +37,7 @@ interface IListKeyedByAccount {
   [account: string]: string[];
 }
 
-interface ISslLoadBalancerUpsertDescription extends ILoadBalancerUpsertDescription {
+interface ISslLoadBalancerUpsertDescription extends ILoadBalancerUpsertCommand {
   backendService: IGceBackendService;
   loadBalancerName: string;
   instances: IInstance[];
@@ -90,7 +91,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.ICompo
 
   constructor (public $scope: IScope,
                public application: Application,
-               public $uibModalInstance: any,
+               public $uibModalInstance: IModalInstanceService,
                private loadBalancer: SslLoadBalancer,
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,

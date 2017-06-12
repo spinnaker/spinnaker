@@ -38,11 +38,3 @@ export interface ILoadBalancerGroup {
   subgroups?: ILoadBalancerGroup[];
   searchField?: string;
 }
-
-export interface IUpsertLoadBalancerCommand {
-  credentials: string;
-  detail?: string;
-  name: string;
-  region: string;
-  stack?: string;
-}

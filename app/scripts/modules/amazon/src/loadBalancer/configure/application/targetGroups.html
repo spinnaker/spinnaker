@@ -1,7 +1,7 @@
 <div class="container-fluid form-horizontal">
   <div class="form-group">
     <div class="col-md-12">
-      <div class="wizard-pod" ng-repeat="targetGroup in loadBalancer.targetGroups">
+      <div class="wizard-pod" ng-repeat="targetGroup in ctrl.loadBalancerCommand.targetGroups">
         <div>
           <div class="wizard-pod-row header">
             <div class="wizard-pod-row-title">GROUP NAME</div>
@@ -39,10 +39,10 @@
                 <label>Path</label> <input class="form-control input-sm inline-text" ng-model="targetGroup.healthCheckPath" type="text" required/>
               </span>
               <span class="wizard-pod-content">
-                <label>Timeout</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthTimeout" type="text" required/>
+                <label>Timeout</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckTimeout" type="text" required/>
               </span>
               <span class="wizard-pod-content">
-                <label>Interval</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthInterval" type="text" required/>
+                <label>Interval</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckInterval" type="text" required/>
               </span>
             </div>
           </div>
@@ -61,7 +61,7 @@
             <div class="wizard-pod-row-title">ATTRIBUTES</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
-                <label>Dereg. Delay</label><help-field key="aws.targetGroup.attributes.deregistrationDelay"></help-field> <input class="form-control input-sm inline-number" ng-model="targetGroup.attributes.deregistrationDelay" type="number" required/>
+                <label>Dereg. Delay</label><help-field key="aws.targetGroup.attributes.deregistrationDelay"></help-field> <input class="form-control input-sm inline-number" ng-model="targetGroup.attributes.deregistrationDelay" type="number"/>
               </span>
               <span class="wizard-pod-content">
                 <label class="checkbox-inline" style="padding-top: 2px;">
@@ -69,7 +69,7 @@
                 </label>
               </span>
               <span class="wizard-pod-content" ng-if="targetGroup.attributes.stickinessEnabled">
-                <label>Duration</label><help-field key="aws.targetGroup.attributes.stickinessDuration"></help-field> <input class="form-control input-sm inline-number" ng-model="targetGroup.attributes.stickinessDuration" type="number" required/>
+                <label>Duration</label><help-field key="aws.targetGroup.attributes.stickinessDuration"></help-field> <input class="form-control input-sm inline-number" ng-model="targetGroup.attributes.stickinessDuration" type="number"/>
               </span>
             </div>
           </div>

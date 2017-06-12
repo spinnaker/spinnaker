@@ -15,7 +15,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr ng-repeat="listener in loadBalancer.listeners">
+        <tr ng-repeat="listener in ctrl.loadBalancerCommand.listeners">
           <td><select class="form-control input-sm" ng-model="listener.externalProtocol"
                       ng-change="ctrl.listenerProtocolChanged(listener)"
                       ng-options="protocol for protocol in ['HTTP','HTTPS','TCP','SSL']"></select></td>

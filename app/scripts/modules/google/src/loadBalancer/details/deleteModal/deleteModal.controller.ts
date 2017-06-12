@@ -1,4 +1,5 @@
 import { module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import {
   Application,
@@ -40,7 +41,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
                private loadBalancer: any,
                private loadBalancerWriter: LoadBalancerWriter,
                private taskMonitorBuilder: TaskMonitorBuilder,
-               private $uibModalInstance: any) {
+               private $uibModalInstance: IModalInstanceService) {
     'ngInject';
   }
 

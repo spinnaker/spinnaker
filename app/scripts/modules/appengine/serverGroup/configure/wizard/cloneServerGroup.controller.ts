@@ -1,4 +1,5 @@
-import { copy, module } from 'angular';
+import { IScope, copy, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { get, merge } from 'lodash';
 
 import {
@@ -27,8 +28,8 @@ class AppengineCloneServerGroupCtrl {
   };
   public taskMonitor: TaskMonitor;
 
-  constructor(public $scope: any,
-              private $uibModalInstance: any,
+  constructor(public $scope: IScope,
+              private $uibModalInstance: IModalInstanceService,
               public serverGroupCommand: IAppengineServerGroupCommand,
               private application: Application,
               private taskMonitorBuilder: TaskMonitorBuilder,
@@ -53,7 +54,7 @@ class AppengineCloneServerGroupCtrl {
     this.$uibModalInstance.dismiss();
   }
 
-  public submit(): ng.IPromise<any> {
+  public submit(): void {
     const mode = this.$scope.command.viewState.mode;
     if (['editPipeline', 'createPipeline'].includes(mode)) {
       return this.$uibModalInstance.close(this.$scope.command);

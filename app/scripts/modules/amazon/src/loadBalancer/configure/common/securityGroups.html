@@ -1,19 +1,19 @@
 <div class="container-fluid form-horizontal">
-  <div class="modal-body" ng-if="!state.securityGroupsLoaded">
+  <div class="modal-body" ng-if="!ctrl.viewState.securityGroupsLoaded">
     <h3><span us-spinner="{radius:8, width:3, length: 5}"></span></h3>
   </div>
-  <div ng-if="state.securityGroupsLoaded">
-    <div class="form-group" ng-if="state.removedSecurityGroups.length">
+  <div ng-if="ctrl.viewState.securityGroupsLoaded">
+    <div class="form-group" ng-if="ctrl.viewState.removedSecurityGroups.length">
     <div class="col-md-12">
       <div class="alert alert-warning">
         <p><i class="fa fa-exclamation-triangle"></i></span>
           The following security groups could not be found in the selected account/region/VPC and were removed:
         </p>
         <ul>
-          <li ng-repeat="securityGroup in state.removedSecurityGroups">{{securityGroup}}</li>
+          <li ng-repeat="securityGroup in ctrl.viewState.removedSecurityGroups">{{securityGroup}}</li>
         </ul>
         <p class="text-right">
-          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="state.removedSecurityGroups = []; wizard.markClean('Security Groups');">Okay</a>
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="ctrl.viewState.removedSecurityGroups = []; wizard.markClean('Security Groups');">Okay</a>
         </p>
       </div>
     </div>
@@ -22,11 +22,11 @@
       <div class="col-md-3 sm-label-right">Security Groups</div>
       <div class="col-md-9">
         <ui-select multiple
-                   ng-model="loadBalancer.securityGroups"
+                   ng-model="ctrl.loadBalancerCommand.securityGroups"
                    uis-open-close="ctrl.resetCurrentItems()"
                    class="form-control input-sm">
           <ui-select-match>{{$item.name}} ({{$item.id}})</ui-select-match>
-          <ui-select-choices repeat="securityGroup.name as securityGroup in availableSecurityGroups | filter: $select.search | limitTo: ctrl.currentItems"
+          <ui-select-choices repeat="securityGroup.name as securityGroup in ctrl.availableSecurityGroups | filter: $select.search | limitTo: ctrl.currentItems"
                              infinite-scroll="ctrl.addItems()"
                              infinite-scroll-distance="4">
             <span ng-bind-html="securityGroup.name | highlight: $select.search"></span>
@@ -39,10 +39,10 @@
     <div class="form-group small" style="margin-top: 20px">
       <div class="col-md-9 col-md-offset-3">
         <p>
-          <span ng-if="!state.refreshingSecurityGroups"><span class="fa fa-refresh fa-spin"></span></span>
+          <span ng-if="ctrl.viewState.refreshingSecurityGroups"><span class="fa fa-refresh fa-spin"></span></span>
           Security groups
-          <span ng-if="!state.refreshingSecurityGroups">last refreshed {{ ctrl.securityGroupRefreshTime | timestamp }}</span>
-          <span ng-if="state.refreshingSecurityGroups"> refreshing...</span>
+          <span ng-if="!ctrl.viewState.refreshingSecurityGroups">last refreshed {{ ctrl.viewState.securityGroupRefreshTime | timestamp }}</span>
+          <span ng-if="ctrl.viewState.refreshingSecurityGroups"> refreshing...</span>
         </p>
         <p>If you're not finding a security group that was recently added,
           <a href ng-click="ctrl.refreshSecurityGroups()">click here</a> to refresh the list.

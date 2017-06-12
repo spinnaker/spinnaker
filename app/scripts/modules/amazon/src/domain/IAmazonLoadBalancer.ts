@@ -1,5 +1,5 @@
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
-import { ILoadBalancer, IInstance, IInstanceCounts, IServerGroup, ISubnet, IUpsertLoadBalancerCommand } from '@spinnaker/core';
+import { ILoadBalancer, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, IServerGroup, ISubnet } from '@spinnaker/core';
 
 export interface IAmazonLoadBalancer extends ILoadBalancer {
   availabilityZones?: string[];
@@ -90,7 +90,7 @@ export interface ITargetGroup {
   vpcName?: string;
 }
 
-export interface IUpsertAmazonLoadBalancerCommand extends IUpsertLoadBalancerCommand {
+export interface IAmazonLoadBalancerUpsertCommand extends ILoadBalancerUpsertCommand {
   availabilityZones: { [region: string]: string[] };
   isInternal: boolean;
   // If loadBalancerType is not provided, will default to 'classic' for bwc
@@ -101,12 +101,12 @@ export interface IUpsertAmazonLoadBalancerCommand extends IUpsertLoadBalancerCom
   vpcId: string;
 }
 
-export interface IClassicListenerCommand extends IClassicListener {
+export interface IClassicListenerDescription extends IClassicListener {
   sslCertificateId?: string;
   sslCertificateName?: string;
 }
 
-export interface IUpsertAmazonClassicLoadBalancerCommand extends IUpsertAmazonLoadBalancerCommand {
+export interface IAmazonClassicLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
   healthCheck: string;
   healthCheckPath: string;
   healthCheckProtocol: string;
@@ -114,13 +114,17 @@ export interface IUpsertAmazonClassicLoadBalancerCommand extends IUpsertAmazonLo
   healthInterval?: number;
   healthTimeout?: number;
   healthyThreshold?: number;
-  listeners: IClassicListenerCommand[];
+  listeners: IClassicListenerDescription[];
   unhealthyThreshold?: number;
 }
 
-export interface IUpsertAmazonApplicationLoadBalancerCommand extends IUpsertAmazonLoadBalancerCommand {
+export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoadBalancerUpsertCommand {
   listeners: {
-    certificates?: { certificateArn: string }[];
+    certificates?: {
+      certificateArn: string;
+      name?: string; // Only used while creating the description
+      type?: string; // Only used while creating the description
+    }[];
     protocol: 'HTTP' | 'HTTPS';
     port: number;
     sslPolicy?: string;

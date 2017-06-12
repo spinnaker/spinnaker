@@ -1,4 +1,5 @@
 export interface ISubnet {
+  availabilityZone: string;
   id: string;
   name: string;
   account: string;

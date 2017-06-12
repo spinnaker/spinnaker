@@ -1,29 +1,29 @@
 <form name="form" class="form-horizontal" novalidate>
-  <v2-modal-wizard heading="{{forPipelineConfig ? 'Configure Classic Load Balancer' : 'Create New Classic Load Balancer'}}"
-                   task-monitor="taskMonitor"
+  <v2-modal-wizard heading="{{ctrl.forPipelineConfig ? 'Configure Classic Load Balancer' : 'Create New Classic Load Balancer'}}"
+                   task-monitor="ctrl.taskMonitor"
                    dismiss="$dismiss()">
     <v2-wizard-page key="Location" label="Location">
-      <ng-include src="pages.location"></ng-include>
+      <ng-include src="ctrl.pages.location"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="Security Groups" label="Security Groups" render="false" done="true">
-      <ng-include src="pages.securityGroups"></ng-include>
+      <ng-include src="ctrl.pages.securityGroups"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="Listeners" label="Listeners" done="true">
-      <ng-include src="pages.listeners"></ng-include>
+      <ng-include src="ctrl.pages.listeners"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="Health Check" label="Health Check" done="true">
-      <ng-include src="pages.healthCheck"></ng-include>
+      <ng-include src="ctrl.pages.healthCheck"></ng-include>
     </v2-wizard-page>
     <v2-wizard-page key="Advanced Settings" label="Advanced Settings" done="true">
-      <ng-include src="pages.advancedSettings"></ng-include>
+      <ng-include src="ctrl.pages.advancedSettings"></ng-include>
     </v2-wizard-page>
   </v2-modal-wizard>
   <div class="modal-footer">
-    <button ng-disabled="taskMonitor.submitting" class="btn btn-default"
+    <button ng-disabled="ctrl.taskMonitor.submitting" class="btn btn-default"
             ng-click="ctrl.cancel()">Cancel
     </button>
-    <submit-button is-disabled="form.$invalid || taskMonitor.submitting"
-                   submitting="taskMonitor.submitting" on-click="ctrl.submit()"
-                   is-new="isNew" label="submitButtonLabel"></submit-button>
+    <submit-button is-disabled="form.$invalid || ctrl.taskMonitor.submitting"
+                   submitting="ctrl.taskMonitor.submitting" on-click="ctrl.submit()"
+                   is-new="ctrl.isNew" label="ctrl.viewState.submitButtonLabel"></submit-button>
   </div>
 </form>

@@ -6,7 +6,7 @@ import {
   IInstance,
   IInstanceCounts,
   ILoadBalancer,
-  ILoadBalancerUpsertDescription,
+  ILoadBalancerUpsertCommand,
   IServerGroup
 } from '@spinnaker/core';
 
@@ -25,7 +25,7 @@ export interface IAppengineTrafficSplitDescription {
   allocationDescriptions: IAppengineAllocationDescription[];
 }
 
-export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpsertDescription, IAppengineLoadBalancer {
+export class AppengineLoadBalancerUpsertDescription implements ILoadBalancerUpsertCommand, IAppengineLoadBalancer {
   public credentials: string;
   public account: string;
   public loadBalancerName: string;
