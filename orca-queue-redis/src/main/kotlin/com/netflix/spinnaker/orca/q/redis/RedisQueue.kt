@@ -177,7 +177,9 @@ class RedisQueue(
     multi {
       zrem(unackedKey, id)
       zadd(queueKey, score(), id)
-      sadd(hashesKey, hash)
+      if (hash != null) {
+        sadd(hashesKey, hash)
+      }
     }
   }
 
@@ -201,7 +203,9 @@ class RedisQueue(
       hget(messagesKey, id)
       zrem(queueKey, id)
       zadd(unackedKey, score(ackTimeout), id)
-      srem(hashesKey, hash)
+      if (hash != null) {
+        srem(hashesKey, hash)
+      }
       hincrBy(attemptsKey, id, 1)
     }.let {
       val json = it[0] as String?
