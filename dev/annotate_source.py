@@ -150,7 +150,7 @@ class Annotator(object):
     self.__next_tag = next_tag or options.next_tag
     self.__path = path or options.path
     self.__branch = options.branch
-    self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '0')
+    self.__build_number = options.build_number or os.environ.get('BUILD_NUMBER', '')
     self.__force_rebuild = options.force_rebuild
     self.__tags_to_delete = []
     self.__filtered_tags = []
