@@ -28,7 +28,7 @@ class LoggingInstrumentation implements ExecutionInstrumentation {
 
   @Override
   void executionStarted(Agent agent) {
-    logger.info("${agent.providerName}:${agent.agentType} starting")
+    logger.debug("${agent.providerName}:${agent.agentType} starting")
   }
 
   @Override

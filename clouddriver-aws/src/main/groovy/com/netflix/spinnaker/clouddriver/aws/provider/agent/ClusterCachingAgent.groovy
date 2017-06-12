@@ -263,7 +263,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   private AutoScalingGroupsResults loadAutoScalingGroups(AmazonClients clients) {
-    log.info("Describing auto scaling groups in ${agentType}")
+    log.debug("Describing auto scaling groups in ${agentType}")
 
     def request = new DescribeAutoScalingGroupsRequest()
     Long start = account.eddaEnabled ? null : System.currentTimeMillis()
@@ -300,7 +300,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   private Map<String, List<Map>> loadScalingPolicies(AmazonClients clients, String asgName) {
-    log.info("Describing scaling policies in ${agentType}")
+    log.debug("Describing scaling policies in ${agentType}")
 
     def request = new DescribePoliciesRequest()
     if (asgName) {
@@ -336,7 +336,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   private Map<String, List<Map>> loadScheduledActions(AmazonClients clients, String asgName) {
-    log.info("Describing scheduled actions in ${agentType}")
+    log.debug("Describing scheduled actions in ${agentType}")
 
     def request = new DescribeScheduledActionsRequest()
     if (asgName) {
@@ -362,7 +362,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
   }
 
   private Map<String, Map> loadAlarms(AmazonClients clients, List alarmNames) {
-    log.info("Describing alarms in ${agentType}")
+    log.debug("Describing alarms in ${agentType}")
 
     def request = new DescribeAlarmsRequest()
     if (alarmNames.size()) {
@@ -383,7 +383,7 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
 
   @Override
   CacheResult loadData(ProviderCache providerCache) {
-    log.info("Describing items in ${agentType}")
+    log.debug("Describing items in ${agentType}")
 
     def clients = new AmazonClients(amazonClientProvider, account, region, false)
 
@@ -420,13 +420,13 @@ class ClusterCachingAgent implements CachingAgent, OnDemandAgent, AccountAware, 
     CacheResult result = buildCacheResult(asgs, scalingPolicies, scheduledActions, getSubnetToVpcIdMap(clients), usableOnDemandCacheDatas.collectEntries { [it.id, it] }, evictableOnDemandCacheDatas*.id)
     recordDrift(start)
     def cacheResults = result.cacheResults
-    log.info("Caching ${cacheResults[APPLICATIONS.ns]?.size()} applications in ${agentType}")
-    log.info("Caching ${cacheResults[CLUSTERS.ns]?.size()} clusters in ${agentType}")
-    log.info("Caching ${cacheResults[SERVER_GROUPS.ns]?.size()} server groups in ${agentType}")
-    log.info("Caching ${cacheResults[LOAD_BALANCERS.ns]?.size()} load balancers in ${agentType}")
-    log.info("Caching ${cacheResults[TARGET_GROUPS.ns]?.size()} target groups in ${agentType}")
-    log.info("Caching ${cacheResults[LAUNCH_CONFIGS.ns]?.size()} launch configs in ${agentType}")
-    log.info("Caching ${cacheResults[INSTANCES.ns]?.size()} instances in ${agentType}")
+    log.debug("Caching ${cacheResults[APPLICATIONS.ns]?.size()} applications in ${agentType}")
+    log.debug("Caching ${cacheResults[CLUSTERS.ns]?.size()} clusters in ${agentType}")
+    log.debug("Caching ${cacheResults[SERVER_GROUPS.ns]?.size()} server groups in ${agentType}")
+    log.debug("Caching ${cacheResults[LOAD_BALANCERS.ns]?.size()} load balancers in ${agentType}")
+    log.debug("Caching ${cacheResults[TARGET_GROUPS.ns]?.size()} target groups in ${agentType}")
+    log.debug("Caching ${cacheResults[LAUNCH_CONFIGS.ns]?.size()} launch configs in ${agentType}")
+    log.debug("Caching ${cacheResults[INSTANCES.ns]?.size()} instances in ${agentType}")
     if (evictableOnDemandCacheDatas) {
       log.info("Evicting onDemand cache keys (${evictableOnDemandCacheDatas.collect { "${it.id}/${start - it.attributes.cacheTime}ms" }.join(", ")})")
     }
