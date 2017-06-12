@@ -150,9 +150,10 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Version Added', retryable_for_secs=30)
       .inspect_resource('apps.services.versions',
                         group_name,
-                        no_resource_ok=False, 
                         appsId=self.__gcp_project, 
-                        servicesId=self.__lb_name))
+                        servicesId=self.__lb_name)
+     .contains_path_eq('servingStatus', 'SERVING'))
+       
     
     return st.OperationContract(
       self.new_post_operation(
