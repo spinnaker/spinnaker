@@ -34,4 +34,5 @@ class RunKubernetesJobDescription extends KubernetesAtomicOperationDescription {
   Map<String, String> nodeSelector
   KubernetesContainerDescription container
   List<KubernetesVolumeSource> volumeSources
+  Map<String, String> labels
 }
