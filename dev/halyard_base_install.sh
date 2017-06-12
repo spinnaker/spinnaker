@@ -69,7 +69,7 @@ function setup_spinnaker_user() {
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
-  bash InstallHalyard.sh -y
+  bash InstallHalyard.sh -y --user ubuntu
 
   rm -f InstallHalyard.sh
 
@@ -87,6 +87,8 @@ function main() {
   echo "Installing boot script"
   wget https://raw.githubusercontent.com/spinnaker/spinnaker/master/install/first_halyard_boot.sh
   mv first_halyard_boot.sh /var/spinnaker/startup/
+
+  chmod +x first_halyard_boot.sh
 }
 
 process_args "$@"
