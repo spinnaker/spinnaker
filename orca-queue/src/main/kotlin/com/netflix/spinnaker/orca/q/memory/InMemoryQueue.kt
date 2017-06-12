@@ -90,18 +90,16 @@ class InMemoryQueue(
     }
   }
 
+  override fun readState() =
+    QueueState(
+      depth = queue.size,
+      ready = queue.count { it.getDelay(NANOSECONDS) <= 0 },
+      unacked = unacked.size
+    )
+
   private fun ack(messageId: UUID) {
     unacked.removeIf { it.id == messageId }
   }
-
-  override val queueDepth: Int
-    get() = queue.size
-
-  override val unackedDepth: Int
-    get() = unacked.size
-
-  override val readyDepth: Int
-    get() = queue.count { it.getDelay(NANOSECONDS) <= 0 }
 
   private fun <T : Delayed> DelayQueue<T>.pollAll(block: (T) -> Unit) {
     var done = false

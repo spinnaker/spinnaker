@@ -161,27 +161,21 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
     }
   }
 
-  describe("checking queue depth") {
+  describe("checking queue state") {
     afterGroup(::resetMocks)
 
-    val queueDepth = 4
-    val unackedDepth = 2
+    val queueState = QueueState(4, 1, 2, 0)
 
     beforeGroup {
-      whenever(queue.queueDepth) doReturn queueDepth
-      whenever(queue.unackedDepth) doReturn unackedDepth
+      whenever(queue.readState()) doReturn queueState
     }
 
-    on("checking queue depth") {
-      subject.pollQueueDepth()
+    on("checking queue state") {
+      subject.pollQueueState()
     }
 
-    it("updates last known queue depth") {
-      subject.lastQueueDepth shouldEqual queueDepth
-    }
-
-    it("updates last known unacked depth") {
-      subject.lastUnackedDepth shouldEqual unackedDepth
+    it("updates the queue state") {
+      subject.lastState shouldEqual queueState
     }
   }
 })

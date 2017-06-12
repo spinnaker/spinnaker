@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import javax.annotation.PostConstruct
 
@@ -61,27 +60,24 @@ open class AtlasQueueMonitor
   }
 
   @Scheduled(fixedDelayString = "\${queue.depth.metric.frequency:1000}")
-  fun pollQueueDepth() {
-    _lastQueueDepth.set(queue.queueDepth)
-    _lastUnackedDepth.set(queue.unackedDepth)
-    _lastReadyDepth.set(queue.readyDepth)
-    _lastOrphanedMessages.set(queue.orphanedMessages)
+  fun pollQueueState() {
+    _lastState.set(queue.readState())
   }
 
   @PostConstruct fun registerGauges() {
     log.info("Monitorable queue implementation $queue found. Exporting metrics to Atlas.")
 
     registry.gauge("queue.depth", this, {
-      it.lastQueueDepth.toDouble()
+      it.lastState.depth.toDouble()
     })
     registry.gauge("queue.unacked.depth", this, {
-      it.lastUnackedDepth.toDouble()
+      it.lastState.unacked.toDouble()
     })
     registry.gauge("queue.ready.depth", this, {
-      it.lastReadyDepth.toDouble()
+      it.lastState.ready.toDouble()
     })
     registry.gauge("queue.orphaned.messages", this, {
-      it.lastOrphanedMessages.toDouble()
+      it.lastState.orphaned.toDouble()
     })
     registry.gauge("queue.last.poll.age", this, {
       Duration
@@ -111,37 +107,9 @@ open class AtlasQueueMonitor
     get() = _lastRetryPoll.get()
   private val _lastRetryPoll = AtomicReference<Instant>(clock.instant())
 
-  /**
-   * Number of messages on the queue when last measured with
-   * [MonitorableQueue.queueDepth].
-   */
-  val lastQueueDepth: Int
-    get() = _lastQueueDepth.get()
-  private val _lastQueueDepth = AtomicInteger()
-
-  /**
-   * Number of un-acknowledged messages on the queue when last measured with
-   * [MonitorableQueue.unackedDepth].
-   */
-  val lastUnackedDepth: Int
-    get() = _lastUnackedDepth.get()
-  private val _lastUnackedDepth = AtomicInteger()
-
-  /**
-   * Number of ready messages on the queue when last measured with
-   * [MonitorableQueue.readyDepth].
-   */
-  val lastReadyDepth: Int
-    get() = _lastReadyDepth.get()
-  private val _lastReadyDepth = AtomicInteger()
-
-  /**
-   * Number of orphaned messages when last measured with
-   * [MonitorableQueue.orphanedMessages].
-   */
-  val lastOrphanedMessages: Int
-    get() = _lastOrphanedMessages.get()
-  private val _lastOrphanedMessages = AtomicInteger()
+  val lastState: QueueState
+    get() = _lastState.get()
+  private val _lastState = AtomicReference<QueueState>()
 
   /**
    * Count of messages pushed to the queue.

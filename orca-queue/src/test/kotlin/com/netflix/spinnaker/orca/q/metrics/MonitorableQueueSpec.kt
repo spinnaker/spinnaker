@@ -65,15 +65,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
     afterGroup(::resetMocks)
 
     it("reports empty") {
-      queue!!.apply {
-        queueDepth shouldEqual 0
-        unackedDepth shouldEqual 0
-        readyDepth shouldEqual 0
+      with(queue!!.readState()) {
+        depth shouldEqual 0
+        ready shouldEqual 0
+        unacked shouldEqual 0
+        orphaned shouldEqual 0
       }
-    }
-
-    it("reports no orphaned messages") {
-      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -91,15 +88,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
     }
 
     it("reports the updated queue depth") {
-      queue!!.apply {
-        queueDepth shouldEqual 1
-        unackedDepth shouldEqual 0
-        readyDepth shouldEqual 1
+      with(queue!!.readState()) {
+        depth shouldEqual 1
+        unacked shouldEqual 0
+        ready shouldEqual 1
+        orphaned shouldEqual 0
       }
-    }
-
-    it("reports no orphaned messages") {
-      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -121,10 +115,10 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
     }
 
     it("reports an unchanged queue depth") {
-      queue!!.apply {
-        queueDepth shouldEqual 1
-        unackedDepth shouldEqual 0
-        readyDepth shouldEqual 1
+      with(queue!!.readState()) {
+        depth shouldEqual 1
+        unacked shouldEqual 0
+        ready shouldEqual 1
       }
     }
   }
@@ -143,15 +137,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
     }
 
     it("reports the updated queue depth") {
-      queue!!.apply {
-        queueDepth shouldEqual 1
-        unackedDepth shouldEqual 0
-        readyDepth shouldEqual 0
+      with(queue!!.readState()) {
+        depth shouldEqual 1
+        unacked shouldEqual 0
+        ready shouldEqual 0
+        orphaned shouldEqual 0
       }
-    }
-
-    it("reports no orphaned messages") {
-      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -173,15 +164,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
     }
 
     it("reports unacknowledged message depth") {
-      queue!!.apply {
-        queueDepth shouldEqual 0
-        unackedDepth shouldEqual 1
-        readyDepth shouldEqual 0
+      with(queue!!.readState()) {
+        depth shouldEqual 0
+        unacked shouldEqual 1
+        ready shouldEqual 0
+        orphaned shouldEqual 0
       }
-    }
-
-    it("reports no orphaned messages") {
-      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -205,15 +193,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
     }
 
     it("reports an empty queue") {
-      queue!!.apply {
-        queueDepth shouldEqual 0
-        unackedDepth shouldEqual 0
-        readyDepth shouldEqual 0
+      with(queue!!.readState()) {
+        depth shouldEqual 0
+        unacked shouldEqual 0
+        ready shouldEqual 0
+        orphaned shouldEqual 0
       }
-    }
-
-    it("reports no orphaned messages") {
-      queue!!.orphanedMessages shouldEqual 0
     }
   }
 
@@ -260,15 +245,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       }
 
       it("reports the depth with the message re-queued") {
-        queue!!.apply {
-          queueDepth shouldEqual 1
-          unackedDepth shouldEqual 0
-          readyDepth shouldEqual 1
+        with(queue!!.readState()) {
+          depth shouldEqual 1
+          unacked shouldEqual 0
+          ready shouldEqual 1
+          orphaned shouldEqual 0
         }
-      }
-
-      it("reports no orphaned messages") {
-        queue!!.orphanedMessages shouldEqual 0
       }
     }
 
@@ -296,10 +278,10 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       }
 
       it("reports the depth without the message re-queued") {
-        queue!!.apply {
-          queueDepth shouldEqual 1
-          unackedDepth shouldEqual 0
-          readyDepth shouldEqual 1
+        with(queue!!.readState()) {
+          depth shouldEqual 1
+          unacked shouldEqual 0
+          ready shouldEqual 1
         }
       }
     }
@@ -330,15 +312,12 @@ abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
       }
 
       it("reports the depth without the message re-queued") {
-        queue!!.apply {
-          queueDepth shouldEqual 0
-          unackedDepth shouldEqual 0
-          readyDepth shouldEqual 0
+        with(queue!!.readState()) {
+          depth shouldEqual 0
+          unacked shouldEqual 0
+          ready shouldEqual 0
+          orphaned shouldEqual 0
         }
-      }
-
-      it("reports no orphaned messages") {
-        queue!!.orphanedMessages shouldEqual 0
       }
     }
   }
