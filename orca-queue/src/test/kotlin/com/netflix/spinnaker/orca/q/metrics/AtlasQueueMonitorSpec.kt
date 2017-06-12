@@ -39,12 +39,14 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
   val retryCounter: Counter = mock()
   val deadCounter: Counter = mock()
   val duplicateCounter: Counter = mock()
+  val lockFailedCounter: Counter = mock()
   val registry: Registry = mock {
     on { counter("queue.pushed.messages") } doReturn pushCounter
     on { counter("queue.acknowledged.messages") } doReturn ackCounter
     on { counter("queue.retried.messages") } doReturn retryCounter
     on { counter("queue.dead.messages") } doReturn deadCounter
     on { counter("queue.duplicate.messages") } doReturn duplicateCounter
+    on { counter("queue.lock.failed") } doReturn lockFailedCounter
   }
 
   subject(GROUP) {
@@ -157,6 +159,20 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
 
       it("increments a counter") {
         verify(duplicateCounter).increment()
+      }
+    }
+
+    describe("when an instance fails to lock a message") {
+      afterGroup(::resetMocks)
+
+      val event = LockFailed(queue)
+
+      on("receiving a ${event.javaClass.simpleName} event") {
+        subject.onApplicationEvent(event)
+      }
+
+      it("increments a counter") {
+        verify(lockFailedCounter).increment()
       }
     }
   }

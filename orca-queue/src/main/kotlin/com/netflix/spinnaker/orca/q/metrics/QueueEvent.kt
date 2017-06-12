@@ -31,4 +31,5 @@ class MessageAcknowledged(source: MonitorableQueue) : QueueEvent(source)
 class MessageRetried(source: MonitorableQueue) : QueueEvent(source)
 class MessageDead(source: MonitorableQueue) : QueueEvent(source)
 class MessageDuplicate(source: MonitorableQueue) : QueueEvent(source)
+class LockFailed(source: MonitorableQueue) : QueueEvent(source)
 

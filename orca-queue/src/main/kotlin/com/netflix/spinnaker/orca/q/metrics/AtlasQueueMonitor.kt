@@ -55,6 +55,7 @@ open class AtlasQueueMonitor
       is MessageRetried -> retryCounter.increment()
       is MessageDead -> deadMessageCounter.increment()
       is MessageDuplicate -> duplicateMessageCounter.increment()
+      is LockFailed -> lockFailedCounter.increment()
       else -> log.error("Unhandled event $event")
     }
   }
@@ -144,4 +145,11 @@ open class AtlasQueueMonitor
    */
   private val duplicateMessageCounter: Counter
     get() = registry.counter("queue.duplicate.messages")
+
+  /**
+   * Count of attempted message reads that failed to acquire a lock (in other
+   * words, multiple Orca instance tried to read the same message).
+   */
+  private val lockFailedCounter: Counter
+    get() = registry.counter("queue.lock.failed")
 }

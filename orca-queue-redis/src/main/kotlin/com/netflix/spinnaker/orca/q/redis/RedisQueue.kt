@@ -229,7 +229,7 @@ class RedisQueue(
     (set("$locksKey:$id", "\uD83D\uDD12", "NX", "EX", lockTtlSeconds) == "OK")
       .also {
         if (!it) {
-          fire<MessageDuplicate>()
+          fire<LockFailed>()
         }
       }
 
