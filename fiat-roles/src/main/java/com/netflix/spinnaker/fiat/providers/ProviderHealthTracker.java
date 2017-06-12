@@ -19,15 +19,18 @@ package com.netflix.spinnaker.fiat.providers;
 import lombok.Data;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ProviderHealthTracker {
 
   private static int unhealthyThreshold = 5;
 
   private AtomicInteger failureCountSinceLastSuccess = new AtomicInteger(-1);
+  private AtomicLong lastSuccessfulUpdateTimeMs = new AtomicLong(-1);
 
   public void success() {
     failureCountSinceLastSuccess.set(0);
+    lastSuccessfulUpdateTimeMs.set(System.currentTimeMillis());
   }
 
   public boolean isProviderHealthy() {
@@ -51,5 +54,7 @@ public class ProviderHealthTracker {
   class HealthView {
     boolean providerHealthy = ProviderHealthTracker.this.isProviderHealthy();
     int failureCountSinceLastSuccess = ProviderHealthTracker.this.failureCountSinceLastSuccess.get();
+    long msSinceLastSuccess = System.currentTimeMillis() - ProviderHealthTracker.this.lastSuccessfulUpdateTimeMs.get();
+    long lastSuccessfulUpdateTime = ProviderHealthTracker.this.lastSuccessfulUpdateTimeMs.get();
   }
 }
