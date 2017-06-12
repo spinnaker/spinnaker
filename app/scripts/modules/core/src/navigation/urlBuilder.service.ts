@@ -12,6 +12,7 @@ export interface IUrlBuilderInput {
   instanceId?: string;
   loadBalancer?: string;
   name?: string;
+  namespace?: string;
   project?: string;
   provider?: string;
   region?: string;
@@ -211,7 +212,7 @@ class LoadBalancersUrlBuilder implements IUrlBuilder {
       {
         application: input.application,
         name: input.loadBalancer,
-        region: input.region,
+        region: input.region ||  input.namespace,
         accountId: input.account,
         vpcId: input.vpcId,
         provider: input.provider,
