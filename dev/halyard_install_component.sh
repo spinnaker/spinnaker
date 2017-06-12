@@ -75,7 +75,7 @@ function contains() {
 function main() {
   echo "Downloading and Running Halyard Install Script..."
   wget https://raw.githubusercontent.com/spinnaker/halyard/master/install/nightly/InstallHalyard.sh
-  sudo bash InstallHalyard.sh -y
+  sudo bash InstallHalyard.sh -y --user ubuntu
 
   echo "Installing $COMPONENT and optional dependencies..."
   hal config version edit --version $VERSION
