@@ -158,6 +158,10 @@ class BaseValidateBomDeployer(object):
 
     script.extend(config_script)
     self.add_hal_deploy_script_statements(script)
+
+    # Dump the hal config so we log it for posterity
+    script.append('hal -q --log=info config')
+
     script.append('sudo hal -q --log=info deploy apply')
     self.add_post_deploy_statements(script)
 
@@ -600,6 +604,10 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     parser.add_argument(
         '--deploy_aws_ami', default='ami-0b542c1d',  # 14.04 east-1 hvm:ebs
         help='Image ID to run.')
+    parser.add_argument(
+        '--deploy_aws_region', default='us-east-1',
+        help='Region to deploy aws instance into.'
+             ' Need an aws profile with this name')
 
   @classmethod
   def validate_options_helper(cls, options):
@@ -620,9 +628,11 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     if options.deploy_deploy:
       response = run_and_monitor(
           'aws ec2 describe-instances'
+          ' --profile {region}'
           ' --filters "Name=tag:Name,Values={name}'
           ',Name=instance-state-name,Values=running"'
-          .format(name=options.deploy_aws_name),
+          .format(region=options.deploy_aws_region,
+                  name=options.deploy_aws_name),
           echo=False)
       if response.returncode != 0:
         raise ValueError('Could not probe AWS: {0}'.format(response))
@@ -642,10 +652,12 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     options = self.options
     response = run_and_monitor(
         'aws ec2 describe-instances'
+        ' --profile {region}'
         ' --output json'
         ' --filters "Name=tag:Name,Values={name}'
         ',Name=instance-state-name,Values=running"'
-        .format(name=options.deploy_aws_name),
+        .format(region=options.deploy_aws_region,
+                name=options.deploy_aws_name),
         echo=False)
     if response.returncode != 0:
       raise ValueError('Could not determine public IP: {0}'.format(response))
@@ -665,13 +677,15 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
 
     response = check_run_and_monitor(
         'aws ec2 run-instances'
+        ' --profile {region}'
         ' --output json'
         ' --count 1'
         ' --image-id {ami}'
         ' --instance-type {type}'
         ' --key-name {key_pair_name}'
         ' --security-group-ids {sg}'
-        .format(ami=options.deploy_aws_ami,
+        .format(region=options.deploy_aws_region,
+                ami=options.deploy_aws_ami,
                 type='t2.xlarge',  # 4 core x 16G
                 key_pair_name=key_pair_name,
                 sg=options.deploy_aws_security_group),
@@ -682,9 +696,11 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
                  self.__instance_id, options.deploy_aws_name)
     check_run_quick(
         'aws ec2 create-tags'
+        ' --region {region}'
         ' --resources {instance_id}'
         ' --tags "Key=Name,Value={name}"'
-        .format(instance_id=self.__instance_id,
+        .format(region=options.deploy_aws_region,
+                instance_id=self.__instance_id,
                 name=options.deploy_aws_name),
         echo=False)
 
@@ -703,10 +719,12 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
   def __is_ready(self):
     description = check_run_quick(
         'aws ec2 describe-instances'
+        ' --profile {region}'
         ' --output json'
         ' --instance-ids {id}'
         ' --query "Reservations[*].Instances[*]"'
-        .format(id=self.__instance_id),
+        .format(region=self.options.deploy_aws_region,
+                id=self.__instance_id),
         echo=False)
     if description.returncode != 0:
       raise ValueError('Could not determine public IP: {0}'
@@ -760,9 +778,11 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     else:
       lookup_response = run_and_monitor(
           'aws ec2 describe-instances'
+          ' --profile {region}'
           ' --filters "Name=tag:Name,Values={name}'
           ',Name=instance-state-name,Values=running"'
-          .format(name=options.deploy_aws_name),
+          .format(region=options.deploy_aws_region,
+                  name=options.deploy_aws_name),
           echo=False)
       if lookup_response.returncode != 0:
         raise ValueError('Could not lookup instance id: {0}', lookup_response)
@@ -780,8 +800,10 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
       logging.info('Terminating "%s" instanceId=%s',
                    options.deploy_aws_name, instance_id)
       response = run_quick(
-          'aws ec2 terminate-instances --instance-ids {id}'
-          .format(id=instance_id))
+          'aws ec2 terminate-instances'
+          '  --profile {region}'
+          '  --instance-ids {id}'
+          .format(region=options.deploy_aws_region, id=instance_id))
       if response.returncode != 0:
         logging.warning('Failed to delete "%s" instanceId=%s',
                         options.deploy_aws_name, instance_id)

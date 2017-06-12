@@ -135,12 +135,11 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     # Put the instance in zones. Force one zone to be different
     # to ensure we're testing zone placement. We arent bothering
     # with different regions at this time.
-    self.use_instance_zones = [
-        self.bindings['TEST_GCE_ZONE'],
-        'us-central1-b',
-        self.bindings['TEST_GCE_ZONE']]
-    if self.use_instance_zones[0] == self.use_instance_zones[1]:
-      self.use_instance_zones[1] = 'us-central1-c'
+    test_zone = self.bindings['TEST_GCE_ZONE']
+    other_zone = self.bindings['TEST_GCE_REGION'] + (
+        '-b' if test_zone[-1] != 'b' else '-a')
+
+    self.use_instance_zones = [test_zone, other_zone, test_zone]
 
     # Give the instances images and machine types. Again we're forcing
     # one to be different to ensure that we're using the values.

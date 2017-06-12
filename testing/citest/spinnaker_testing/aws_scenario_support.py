@@ -90,6 +90,11 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
         default=defaults.get('TEST_AWS_VPC_ID', None),
         help='Default AWS VpcId to use when creating test resources.')
 
+    builder.add_argument(
+        '--test_aws_keypair',
+        default=defaults.get('TEST_AWS_KEYPAIR', None),
+        help='AWS KeyPair for when one is needed by a test.')
+
   def _make_observer(self):
     """Implements BaseScenarioPlatformSupport interface."""
     bindings = self.scenario.bindings
@@ -120,6 +125,10 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
     if not bindings.get('TEST_AWS_REGION', ''):
       bindings['TEST_AWS_REGION'] = bindings['TEST_AWS_ZONE'][:-1]
 
+    if not bindings.get('TEST_AWS_KEYPAIR', ''):
+      bindings['TEST_AWS_KEYPAIR'] = '{0}-keypair'.format(
+          bindings['SPINNAKER_AWS_ACCOUNT'])
+
     bindings.add_lazy_initializer(
         'TEST_AWS_VPC_ID', self.__lazy_binding_initializer)
     bindings.add_lazy_initializer(
@@ -136,13 +145,21 @@ class AwsScenarioSupport(BaseScenarioPlatformSupport):
       logger.info('Determine default AWS VpcId...')
       if not ec2_client:
         ec2_client = self.observer.make_boto_client('ec2')
+
+      # If we want the name defaultvpc then do this
+      # filters = [{'Name': 'tag:Name', 'Values': ['defaultvpc']}]
+      # I think we want the VPC that is the default
+      # filters = [{'Name': 'isDefault', 'Values': ['true']}]
+      filters = [{'Name': 'tag:Name', 'Values': ['defaultvpc']}]
+
       response = self.observer.call_method(
           ExecutionContext(),
           ec2_client.describe_vpcs,
-          Filters=[{'Name': 'tag:Name', 'Values': ['defaultvpc']}])
+          Filters=filters)
+
       vpc_list = response['Vpcs']
       if not vpc_list:
-        raise ValueError('There is no vpc tagged as "defaultvpc"')
+        raise ValueError('There is no vpc matching filter {0}'.format(filters))
 
       found = vpc_list[0]['VpcId']
       logger.info('Using discovered default VpcId=%s', str(found))
