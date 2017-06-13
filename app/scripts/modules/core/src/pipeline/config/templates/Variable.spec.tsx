@@ -1,11 +1,13 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 import * as React from 'react';
-import {mount} from 'enzyme';
-import {PIPELINE_TEMPLATE_MODULE} from './pipelineTemplate.module';
-import {Variable} from './Variable';
-import {IVariableError} from './inputs/variableInput.service';
-import {VariableType} from './pipelineTemplate.service';
-import {REACT_MODULE} from 'core/reactShims';
+import { mount } from 'enzyme';
+
+import { HELP_CONTENTS, HELP_CONTENTS_REGISTRY, REACT_MODULE } from '@spinnaker/core';
+
+import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
+import { Variable } from './Variable';
+import { IVariableError } from './inputs/variableInput.service';
+import { VariableType } from './pipelineTemplate.service';
 
 describe('Variable component', () => {
   const generateProps = (type: VariableType, value: any) => {
@@ -27,6 +29,8 @@ describe('Variable component', () => {
   beforeEach(
     mock.module(
       PIPELINE_TEMPLATE_MODULE,
+      HELP_CONTENTS_REGISTRY,
+      HELP_CONTENTS,
       REACT_MODULE
     )
   );

@@ -68,8 +68,8 @@ export interface IPipelineTemplatePlanError {
   location: string;
   cause: string;
   suggestion: string;
-  details: string;
-  nestedErrors: string[];
+  details: {[key: string]: string};
+  nestedErrors: IPipelineTemplatePlanError[];
 }
 
 @autoBindMethods

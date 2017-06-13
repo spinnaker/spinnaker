@@ -3,18 +3,28 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { load, dump } from 'js-yaml';
 import autoBindMethods from 'class-autobind-decorator';
 import { without, chain, has } from 'lodash';
+
+import { Application } from 'core/application/application.model';
+import { ReactInjector } from 'core/reactShims';
+
 import {
   PIPELINE_TEMPLATE_SERVICE,
   IVariableMetadata, IPipelineTemplateConfig, IPipelineTemplatePlanResponse, IPipelineTemplate,
   IPipelineTemplatePlanError
 } from './pipelineTemplate.service';
 import { IVariable } from './inputs/variableInput.service';
-import { Application } from 'core/application/application.model';
-import { ReactInjector } from 'core/reactShims';
 
 export interface IVariableMetadataGroup {
   name: string;
   variableMetadata: IVariableMetadata[];
+}
+
+export interface IState {
+  error: boolean;
+  loading: boolean;
+  loadingError: boolean;
+  noVariables: boolean;
+  planErrors: IPipelineTemplatePlanError[];
 }
 
 @autoBindMethods
@@ -23,7 +33,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
   public pipelineName: string;
   public variableMetadataGroups: IVariableMetadataGroup[];
   public variables: IVariable[];
-  public state = {loading: true, error: false, errorMessage: '', noVariables: false};
+  public state: IState = {loading: true, error: false, planErrors: null, loadingError: false, noVariables: false};
   private template: IPipelineTemplate;
   private source: string;
 
@@ -50,7 +60,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
       })
       .then(() => this.state.loading = false)
       .catch(() => {
-        Object.assign(this.state, {loading: false, error: true, errorMessage: 'Could not load pipeline template.'});
+        Object.assign(this.state, {loading: false, error: false, planErrors: null, loadingError: true});
       });
   }
 
@@ -69,44 +79,12 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
         this.$uibModalInstance.close({plan, config});
       })
       .catch((response: IHttpPromiseCallbackArg<IPipelineTemplatePlanResponse>) => {
-        let errorMessage: string;
-        if (has(response, 'data.errors.length')) {
-          errorMessage = response.data.errors.map(this.renderError).join('\n');
-        } else {
-          errorMessage = 'No message provided';
-        }
-        Object.assign(this.state, {loading: false, error: true, errorMessage});
+        Object.assign(this.state, {loading: false, error: true, planErrors: response.data && response.data.errors});
       });
   }
 
-  private renderError(e: IPipelineTemplatePlanError): string {
-    const messages = [];
-    if (e.severity) {
-      messages.push(`Severity: ${e.severity}`);
-    }
-    if (e.message) {
-      messages.push(`Message: ${e.message}`);
-    }
-    if (e.location) {
-      messages.push(`Location: ${e.location}`);
-    }
-    if (e.cause) {
-      messages.push(`Cause: ${e.cause}`);
-    }
-    if (e.suggestion) {
-      messages.push(`Suggestion: ${e.suggestion}`);
-    }
-    if (e.details) {
-      messages.push(`Details: ${e.details}`);
-    }
-    if (e.nestedErrors) {
-      messages.push(`Additional Errors: ${e.nestedErrors.map(nestedError => `${nestedError} <br>`)}`);
-    }
-    return `<ul>${messages.map(m => `<li>${m}</li>`).join('\n')}</ul>`;
-  }
-
   public dismissError(): void {
-    Object.assign(this.state, {error: false, errorMessage: null});
+    Object.assign(this.state, {error: false, planErrors: null, loadingError: false});
   }
 
   public buildConfig(): IPipelineTemplateConfig {
