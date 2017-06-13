@@ -66,12 +66,12 @@ class OracleBMCSSubnetCachingAgentSpec extends Specification {
     creds.region = Region.US_PHOENIX_1.regionId
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
-    def vcn = new Vcn(null, null, null, null, null, "My Network", vcnId, Vcn.LifecycleState.Available, null)
-    def subnet = new Subnet("AD1", null, null, null, "My Subnet", "ocid.subnet.123", Subnet.LifecycleState.Available, null, null, null, vcnId, null, null)
+    def vcn = new Vcn(null, null, null, null, null, "My Network", null, vcnId, Vcn.LifecycleState.Available, null, null)
+    def subnet = new Subnet("AD1", null, null, null, "My Subnet", null, "ocid.subnet.123", Subnet.LifecycleState.Available, null, null, null, null, vcnId, null, null)
     def subnets = [
       subnet,
-      new Subnet("AD1", null, null, null, "My Subnet 2", "ocid.subnet.234", Subnet.LifecycleState.Terminated, null, null, null, vcnId, null, null),
-      new Subnet("AD1", null, null, null, "My Subnet 3", "ocid.subnet.567", Subnet.LifecycleState.Provisioning, null, null, null, vcnId, null, null)
+      new Subnet("AD1", null, null, null, "My Subnet 2", null, "ocid.subnet.234", Subnet.LifecycleState.Terminated, null, null, null, null, vcnId, null, null),
+      new Subnet("AD1", null, null, null, "My Subnet 3", null, "ocid.subnet.567", Subnet.LifecycleState.Provisioning, null, null, null, null, vcnId, null, null)
     ]
 
     networkClient.listVcns(_) >> ListVcnsResponse.builder().items([vcn]).build()

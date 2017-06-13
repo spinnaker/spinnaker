@@ -11,38 +11,37 @@ package com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.op
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.OracleBMCSWorkRequestPoller
-import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.description.DestroyOracleBMCSServerGroupDescription
-import com.netflix.spinnaker.clouddriver.oraclebmcs.model.OracleBMCSServerGroup
+import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.description.CreateLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.oraclebmcs.security.OracleBMCSNamedAccountCredentials
-import com.netflix.spinnaker.clouddriver.oraclebmcs.service.servergroup.OracleBMCSServerGroupService
 import com.oracle.bmc.loadbalancer.LoadBalancerClient
-import com.oracle.bmc.loadbalancer.responses.DeleteBackendSetResponse
+import com.oracle.bmc.loadbalancer.responses.CreateLoadBalancerResponse
 import spock.lang.Specification
 
-class DestroyOracleBMCSServerGroupAtomicOperationSpec extends Specification {
+class CreateOracleBMCSLoadBalancerAtomicOperationSpec extends Specification {
 
-  def "Triggers destroying of a server group"() {
+  def "Create load balancer"() {
     setup:
-    def destroyDesc = new DestroyOracleBMCSServerGroupDescription()
-    destroyDesc.serverGroupName = "sg1"
+    def desc = new CreateLoadBalancerDescription()
+    desc.application = "foo"
+    desc.stack = "dev"
     def creds = Mock(OracleBMCSNamedAccountCredentials)
     def loadBalancerClient = Mock(LoadBalancerClient)
     creds.loadBalancerClient >> loadBalancerClient
-    destroyDesc.credentials = creds
-    TaskRepository.threadLocalTask.set(Mock(Task))
-    def sgService = Mock(OracleBMCSServerGroupService)
-    DestroyOracleBMCSServerGroupAtomicOperation op = new DestroyOracleBMCSServerGroupAtomicOperation(destroyDesc)
-    op.oracleBMCSServerGroupService = sgService
+    desc.credentials = creds
+    desc.healthCheck = new CreateLoadBalancerDescription.HealthCheck()
+    desc.listener = new CreateLoadBalancerDescription.Listener()
     GroovySpy(OracleBMCSWorkRequestPoller, global: true)
 
+    TaskRepository.threadLocalTask.set(Mock(Task))
+    def op = new CreateOracleBMCSLoadBalancerAtomicOperation(desc)
 
     when:
     op.operate(null)
 
     then:
-    1 * sgService.destroyServerGroup(_, _, "sg1")
-    1 * sgService.getServerGroup(_, _, "sg1") >> new OracleBMCSServerGroup(loadBalancerId: "ocid.lb.oc1..12345")
-    1 * loadBalancerClient.deleteBackendSet(_) >> DeleteBackendSetResponse.builder().opcWorkRequestId("wr1").build()
+
+    1 * loadBalancerClient.createLoadBalancer(_) >> CreateLoadBalancerResponse.builder().opcWorkRequestId("wr1").build()
     1 * OracleBMCSWorkRequestPoller.poll("wr1", _, _, loadBalancerClient) >> null
   }
+
 }

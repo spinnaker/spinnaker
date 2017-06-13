@@ -63,12 +63,12 @@ class OracleBMCSNetworkCachingAgentSpec extends Specification {
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
     def vcnDisplayName = "My Network"
-    def vcn = new Vcn(null, null, null, null, null, vcnDisplayName, vcnId, Vcn.LifecycleState.Available, null)
+    def vcn = new Vcn(null, null, null, null, null, vcnDisplayName, null, vcnId, Vcn.LifecycleState.Available, null, null)
     def vcns = [
       vcn,
-      new Vcn(null, null, null, null, null, "Another network", "ocid.vcn.321", Vcn.LifecycleState.Terminated, null),
-      new Vcn(null, null, null, null, null, "Yet Another network", "ocid.vcn.531", Vcn.LifecycleState.Terminating, null),
-      new Vcn(null, null, null, null, null, "Coming soon network", "ocid.vcn.878", Vcn.LifecycleState.Provisioning, null)
+      new Vcn(null, null, null, null, null, "Another network", null,"ocid.vcn.321", Vcn.LifecycleState.Terminated, null, null),
+      new Vcn(null, null, null, null, null, "Yet Another network", null, "ocid.vcn.531", Vcn.LifecycleState.Terminating, null, null),
+      new Vcn(null, null, null, null, null, "Coming soon network", null, "ocid.vcn.878", Vcn.LifecycleState.Provisioning, null, null)
     ]
 
     networkClient.listVcns(_) >> ListVcnsResponse.builder().items(vcns).build()

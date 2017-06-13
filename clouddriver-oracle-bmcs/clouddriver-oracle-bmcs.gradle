@@ -17,7 +17,7 @@ final File sdkLocation = project.file('build/bmcs-sdk')
 
 // Oracle BMCS SDK isn't published to any maven repo (yet!), so we manually download, unpack and add to compile/runtime deps
 task fetchSdk(type: DownloadTask) {
-  sourceUrl = 'https://github.com/oracle/bmcs-java-sdk/releases/download/v1.2.2/oracle-bmcs-java-sdk.zip'
+  sourceUrl = 'https://github.com/oracle/bmcs-java-sdk/releases/download/v1.2.7/oracle-bmcs-java-sdk.zip'
   target = sdkDownloadLocation
 }
 

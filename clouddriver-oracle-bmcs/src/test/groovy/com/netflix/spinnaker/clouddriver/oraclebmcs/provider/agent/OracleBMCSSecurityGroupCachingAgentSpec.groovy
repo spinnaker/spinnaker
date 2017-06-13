@@ -69,7 +69,7 @@ class OracleBMCSSecurityGroupCachingAgentSpec extends Specification {
     def networkClient = Mock(VirtualNetworkClient)
     def vcnId = "ocid.vcn.123"
     def vcns = [
-      new Vcn(null, null, null, null, null, "My Network", vcnId, Vcn.LifecycleState.Available, null)
+      new Vcn(null, null, null, null, null, "My Network", null, vcnId, Vcn.LifecycleState.Available, null, null)
     ]
     def secLists = [
       new SecurityList(null, "My Frontend SecList", null, "ocid.seclist.123", null, SecurityList.LifecycleState.Available, null, vcnId),

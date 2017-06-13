@@ -25,7 +25,8 @@ class OracleBMCSInfrastructureProvider extends AgentSchedulerAware implements Se
     Namespace.IMAGES.ns,
     Namespace.INSTANCES.ns,
     Namespace.SECURITY_GROUPS.ns,
-    Namespace.SERVER_GROUPS.ns
+    Namespace.SERVER_GROUPS.ns,
+    Namespace.LOADBALANCERS.ns
   ].asImmutable()
 
   final Map<String, String> urlMappingTemplates = [:]

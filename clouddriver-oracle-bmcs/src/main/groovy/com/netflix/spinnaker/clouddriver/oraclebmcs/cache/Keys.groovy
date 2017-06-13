@@ -22,7 +22,8 @@ class Keys {
     SUBNETS,
     IMAGES,
     SECURITY_GROUPS,
-    INSTANCES
+    INSTANCES,
+    LOADBALANCERS
 
     static String provider = OracleBMCSCloudProvider.ID
 
@@ -107,6 +108,14 @@ class Keys {
           account    : parts[5]
         ]
         break
+      case Namespace.LOADBALANCERS.ns:
+        result << [
+          name   : parts[2],
+          id     : parts[3],
+          region : parts[4],
+          account: parts[5]
+        ]
+        break
       default:
         return null
         break
@@ -149,6 +158,13 @@ class Keys {
   static String getServerGroupKey(String account, String region, String serverGroupName) {
     Names names = Names.parseName(serverGroupName)
     "$OracleBMCSCloudProvider.ID:${Namespace.SERVER_GROUPS}:${names.cluster}:${account}:${region}:${serverGroupName}"
+  }
+
+  static String getLoadBalancerKey(String loadBalancerName,
+                              String loadBalancerId,
+                              String region,
+                              String account) {
+    "$OracleBMCSCloudProvider.ID:${Namespace.NETWORKS}:${loadBalancerName}:${loadBalancerId}:${region}:${account}"
   }
 
 }

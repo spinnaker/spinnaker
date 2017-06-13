@@ -8,12 +8,26 @@
  */
 package com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.op
 
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.OracleBMCSWorkRequestPoller
 import com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.description.ResizeOracleBMCSServerGroupDescription
+import com.netflix.spinnaker.clouddriver.oraclebmcs.model.OracleBMCSInstance
+import com.netflix.spinnaker.clouddriver.oraclebmcs.provider.view.OracleBMCSClusterProvider
 import com.netflix.spinnaker.clouddriver.oraclebmcs.service.servergroup.OracleBMCSServerGroupService
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import com.oracle.bmc.core.requests.GetVnicRequest
+import com.oracle.bmc.core.requests.ListVnicAttachmentsRequest
+import com.oracle.bmc.loadbalancer.model.BackendDetails
+import com.oracle.bmc.loadbalancer.model.HealthCheckerDetails
+import com.oracle.bmc.loadbalancer.model.UpdateBackendSetDetails
+import com.oracle.bmc.loadbalancer.requests.GetLoadBalancerRequest
+import com.oracle.bmc.loadbalancer.requests.UpdateBackendSetRequest
 import org.springframework.beans.factory.annotation.Autowired
+
+import java.util.concurrent.TimeUnit
 
 class ResizeOracleBMCSServerGroupAtomicOperation implements AtomicOperation<Void> {
 
@@ -28,6 +42,9 @@ class ResizeOracleBMCSServerGroupAtomicOperation implements AtomicOperation<Void
   @Autowired
   OracleBMCSServerGroupService oracleBMCSServerGroupService
 
+  @Autowired
+  OracleBMCSClusterProvider clusterProvider
+
   ResizeOracleBMCSServerGroupAtomicOperation(ResizeOracleBMCSServerGroupDescription description) {
     this.description = description
   }
@@ -36,6 +53,83 @@ class ResizeOracleBMCSServerGroupAtomicOperation implements AtomicOperation<Void
   Void operate(List priorOutputs) {
     task.updateStatus BASE_PHASE, "Resizing server group: " + description.serverGroupName
     oracleBMCSServerGroupService.resizeServerGroup(task, description.credentials, description.serverGroupName, description.capacity.desired)
+
+    // SL: sync server group instances to backendset if there is one
+    def app = Names.parseName(description.serverGroupName).app
+    def sg = oracleBMCSServerGroupService.getServerGroup(description.credentials, app, description.serverGroupName)
+
+    if (sg.loadBalancerId) {
+
+      // wait for instances to go into running state
+      ServerGroup sgView
+
+      long finishBy = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30)
+      boolean allUp = false
+      while (!allUp && System.currentTimeMillis() < finishBy) {
+        sgView = clusterProvider.getServerGroup(sg.credentials.name, sg.region, sg.name)
+        if (sgView && (sgView.instanceCounts.up == sgView.instanceCounts.total) && (sgView.instanceCounts.total == description.capacity.desired)) {
+          task.updateStatus BASE_PHASE, "All instances are Up"
+          allUp = true
+          break
+        }
+        task.updateStatus BASE_PHASE, "Waiting for server group instances to match desired total"
+        Thread.sleep(5000)
+      }
+      if (!allUp) {
+        task.updateStatus(BASE_PHASE, "Timed out waiting for server group resize")
+        task.fail()
+        return
+      }
+
+      // get their ip addresses
+      task.updateStatus BASE_PHASE, "Looking up instance IP addresses"
+      List<String> ips = []
+      sgView.instances.each { instance ->
+        def vnicAttachRs = description.credentials.computeClient.listVnicAttachments(ListVnicAttachmentsRequest.builder()
+          .compartmentId(description.credentials.compartmentId)
+          .instanceId(((OracleBMCSInstance) instance).id)
+          .build())
+        vnicAttachRs.items.each { vnicAttach ->
+          def vnic = description.credentials.networkClient.getVnic(GetVnicRequest.builder()
+            .vnicId(vnicAttach.vnicId).build()).vnic
+          ips << vnic.privateIp
+        }
+      }
+
+      // get LB
+      task.updateStatus BASE_PHASE, "Getting loadbalancer details"
+      def lb = description.credentials.loadBalancerClient.getLoadBalancer(GetLoadBalancerRequest.builder().loadBalancerId(sg.loadBalancerId).build()).loadBalancer
+
+      // use backend-template to replace/sync backend set
+      def names = Names.parseName(description.serverGroupName)
+      def backendTemplate = lb.backendSets.get("${names.cluster}-template".toString())
+      def backend = UpdateBackendSetRequest.builder()
+        .loadBalancerId(sg.loadBalancerId)
+        .backendSetName(sg.name)
+        .updateBackendSetDetails(UpdateBackendSetDetails.builder()
+        .backends(ips.collect { ip ->
+        BackendDetails.builder().ipAddress(ip).port(backendTemplate.healthChecker.port).build()
+      } as List<BackendDetails>)
+        .healthChecker(HealthCheckerDetails.builder()
+        .protocol(backendTemplate.healthChecker.protocol)
+        .port(backendTemplate.healthChecker.port)
+        .intervalInMillis(backendTemplate.healthChecker.intervalInMillis)
+        .retries(backendTemplate.healthChecker.retries)
+        .timeoutInMillis(backendTemplate.healthChecker.timeoutInMillis)
+        .urlPath(backendTemplate.healthChecker.urlPath)
+        .returnCode(backendTemplate.healthChecker.returnCode)
+        .responseBodyRegex(backendTemplate.healthChecker.responseBodyRegex)
+        .build())
+        .policy(backendTemplate.policy)
+        .build()
+      ).build()
+
+      task.updateStatus BASE_PHASE, "Updating backend set ${sg.name}"
+      def rs = description.credentials.loadBalancerClient.updateBackendSet(backend)
+
+      // wait for backend set to be updated
+      OracleBMCSWorkRequestPoller.poll(rs.getOpcWorkRequestId(), BASE_PHASE, task, description.credentials.loadBalancerClient)
+    }
     task.updateStatus BASE_PHASE, "Completed server group resize"
     return null
   }

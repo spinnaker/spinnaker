@@ -32,6 +32,7 @@ class OracleBMCSServerGroup {
   Map buildInfo
   Boolean disabled = false
   Integer targetSize
+  String loadBalancerId
   OracleBMCSNamedAccountCredentials credentials
 
   @JsonIgnore
@@ -70,7 +71,7 @@ class OracleBMCSServerGroup {
 
     @Override
     Set<String> getLoadBalancers() {
-      return null
+      return [OracleBMCSServerGroup.this.loadBalancerId] as Set
     }
 
     @Override

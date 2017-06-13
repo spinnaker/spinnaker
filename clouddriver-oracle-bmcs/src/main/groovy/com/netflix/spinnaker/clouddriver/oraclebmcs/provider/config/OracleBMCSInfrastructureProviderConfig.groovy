@@ -112,6 +112,10 @@ class OracleBMCSInfrastructureProviderConfig {
           credentials,
           objectMapper)
 
+        newlyAddedAgents << new OracleBMCSLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
+          credentials,
+          objectMapper)
+
         // If there is an agent scheduler, then this provider has been through the AgentController in the past.
         // In that case, we need to do the scheduling here (because accounts have been added to a running system).
         if (oracleBMCSInfrastructureProvider.agentScheduler) {

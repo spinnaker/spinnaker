@@ -8,21 +8,33 @@
  */
 package com.netflix.spinnaker.clouddriver.oraclebmcs.deploy.description
 
-import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
-import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
-import groovy.transform.AutoClone
-import groovy.transform.Canonical
-import groovy.transform.ToString
 
-@AutoClone
-@Canonical
-@ToString(includeSuper = true, includeNames = true)
-class BasicOracleBMCSDeployDescription extends BaseOracleBMCSInstanceDescription implements DeployDescription, ApplicationNameable {
+class CreateLoadBalancerDescription extends AbstractOracleBMCSCredentialsDescription implements ApplicationNameable {
 
   String application
   String stack
-  String freeFormDetails
-  String loadBalancerId
-  ServerGroup.Capacity capacity
+  String shape
+  String policy
+  List<String> subnetIds
+  Listener listener
+  HealthCheck healthCheck
+
+  static class Listener {
+
+    Integer port
+    String protocol
+  }
+
+  static class HealthCheck {
+
+    String protocol
+    Integer port
+    Integer interval
+    Integer retries
+    Integer timeout
+    String url
+    Integer statusCode
+    String responseBodyRegex
+  }
 }
