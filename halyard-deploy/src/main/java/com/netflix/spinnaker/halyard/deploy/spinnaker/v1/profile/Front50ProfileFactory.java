@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.halyard.config.config.v1.RelaxedObjectMapper;
 import com.netflix.spinnaker.halyard.config.model.v1.node.*;
 import com.netflix.spinnaker.halyard.config.model.v1.persistentStorage.RedisPersistentStore;
 import com.netflix.spinnaker.halyard.config.services.v1.AccountService;
@@ -39,7 +39,7 @@ public class Front50ProfileFactory extends SpringProfileFactory {
   AccountService accountService;
 
   @Autowired
-  ObjectMapper objectMapper;
+  RelaxedObjectMapper objectMapper;
 
   @Override
   public SpinnakerArtifact getArtifact() {
