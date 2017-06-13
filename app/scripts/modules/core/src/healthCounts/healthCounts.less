@@ -14,6 +14,11 @@
 
 health-counts {
   display: inherit; // Since health-counts wraps a react component with a .health-counts class that does all the layout now, make this component not have layout
+  &.no-float {
+    .instance-health-counts {
+      float: none;
+    }
+  }
 }
 
 .health-counts {
