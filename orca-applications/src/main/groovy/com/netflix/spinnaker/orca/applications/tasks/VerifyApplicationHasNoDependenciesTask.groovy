@@ -59,7 +59,7 @@ class VerifyApplicationHasNoDependenciesTask implements Task {
         existingDependencyTypes << "security groups"
       }
     } catch (RetrofitError e) {
-      if (e.response.status != 404) {
+      if (e.response?.status != 404) {
         def resp = e.response
         def exception = [statusCode: resp.status, operation: stage.tasks[-1].name, url: resp.url, reason: resp.reason]
         try {

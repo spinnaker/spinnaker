@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.clouddriver.utils;
 
+import java.util.*;
+import java.util.stream.Collectors;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Location;
 import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.TargetServerGroup;
@@ -26,10 +28,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import static java.lang.String.format;
 
 @Component
@@ -123,7 +121,7 @@ public class TrafficGuard {
     try {
       application = front50Service.get(names.getApp());
     } catch (RetrofitError e) {
-      if (e.getResponse().getStatus() == 404) {
+      if (e.getResponse() != null && e.getResponse().getStatus() == 404) {
         application = null;
       } else {
         throw e;

@@ -69,9 +69,9 @@ class WaitForDestroyedServerGroupTask extends AbstractCloudProviderAwareTask imp
       return new TaskResult(ExecutionStatus.RUNNING, [remainingInstances: instances.findResults { it.name }])
     } catch (RetrofitError e) {
       def retrofitErrorResponse = new RetrofitExceptionHandler().handle(stage.name, e)
-      if (e.response.status == 404) {
+      if (e.response?.status == 404) {
         return new TaskResult(ExecutionStatus.SUCCEEDED)
-      } else if (e.response.status >= 500) {
+      } else if (e.response?.status >= 500) {
         log.error("Unexpected retrofit error (${retrofitErrorResponse})")
         return new TaskResult(ExecutionStatus.RUNNING, [lastRetrofitException: retrofitErrorResponse])
       }

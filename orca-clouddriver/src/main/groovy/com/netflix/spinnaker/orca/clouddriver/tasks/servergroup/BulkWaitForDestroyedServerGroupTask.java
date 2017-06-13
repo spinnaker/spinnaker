@@ -87,6 +87,9 @@ public class BulkWaitForDestroyedServerGroupTask extends AbstractCloudProviderAw
   }
 
   private TaskResult handleRetrofitError(Stage stage, RetrofitError e) {
+    if (e.getResponse() == null) {
+      throw e;
+    }
     switch (e.getResponse().getStatus()) {
       case 404:
         return new TaskResult(ExecutionStatus.SUCCEEDED);
