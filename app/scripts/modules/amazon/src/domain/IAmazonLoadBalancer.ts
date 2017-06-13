@@ -93,6 +93,8 @@ export interface ITargetGroup {
 export interface IAmazonLoadBalancerUpsertCommand extends ILoadBalancerUpsertCommand {
   availabilityZones: { [region: string]: string[] };
   isInternal: boolean;
+  // listeners will be overriden and re-typed by extending types (application, classic)
+  listeners: any[];
   // If loadBalancerType is not provided, will default to 'classic' for bwc
   loadBalancerType?: 'classic' | 'application' | 'network';
   regionZones: string[];
