@@ -37,14 +37,7 @@ private var redis: EmbeddedRedis? = null
 private val createQueue = { clock: Clock,
                             deadLetterCallback: DeadMessageCallback,
                             publisher: ApplicationEventPublisher? ->
-  redis = EmbeddedRedis
-    .embed()
-    .apply {
-      pool.resource.use {
-        it.set("test.dedupe", "1")
-      }
-    }
-
+  redis = EmbeddedRedis.embed()
   RedisQueue(
     queueName = "test",
     pool = redis!!.pool,

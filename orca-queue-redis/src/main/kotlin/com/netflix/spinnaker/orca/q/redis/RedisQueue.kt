@@ -80,7 +80,7 @@ class RedisQueue(
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
       val messageHash = message.hash()
-      if (redis.get("$queueName.dedupe") == "1" && redis.sismember(hashesKey, messageHash)) {
+      if (redis.sismember(hashesKey, messageHash)) {
         log.warn("Ignoring message as an identical one is already on the queue: $message")
         fire<MessageDuplicate>()
       } else {
@@ -112,7 +112,7 @@ class RedisQueue(
               }
               fire<MessageDead>()
             } else {
-              if (redis.get("$queueName.dedupe") == "1" && redis.sismember(hashesKey, redis.hget(hashKey, id))) {
+              if (redis.sismember(hashesKey, redis.hget(hashKey, id))) {
                 log.warn("Not retrying message $id because an identical message is already on the queue")
                 redis.removeMessage(id)
                 fire<MessageDuplicate>()
