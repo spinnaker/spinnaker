@@ -4,6 +4,7 @@ DeploymentStrategyRegistry.registerStrategy({
   label: 'Rolling Push (deprecated)',
   description: 'Updates the launch configuration for this server group, then terminates instances incrementally, replacing them with instances launched with the updated configuration',
   key: 'rollingpush',
+  providerRestricted: true,
   additionalFields: ['termination.totalRelaunches', 'termination.concurrentRelaunches', 'termination.order', 'termination.relaunchAllInstances'],
   additionalFieldsTemplateUrl: require('./additionalFields.html'),
   initializationMethod: (command) => {
