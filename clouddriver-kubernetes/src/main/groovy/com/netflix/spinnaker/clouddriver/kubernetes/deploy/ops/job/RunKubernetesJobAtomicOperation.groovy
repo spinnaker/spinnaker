@@ -64,8 +64,9 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
     task.updateStatus BASE_PHASE, "JobStatus name chosen to be ${podName}."
 
     def podLabels = description?.labels ?: [:]
+    def podAnnotations = description?.annotations ?: [:]
 
-    def podBuilder = new PodBuilder().withNewMetadata().withNamespace(namespace).withName(podName).withLabels(podLabels).endMetadata().withNewSpec()
+    def podBuilder = new PodBuilder().withNewMetadata().withNamespace(namespace).withName(podName).withLabels(podLabels).withAnnotations(podAnnotations).endMetadata().withNewSpec()
     podBuilder.withRestartPolicy("Never")
     if (description.volumeSources) {
       List<Volume> volumeSources = description.volumeSources.findResults { volumeSource ->
