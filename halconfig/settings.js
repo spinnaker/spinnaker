@@ -26,6 +26,7 @@ var kubernetes = {
     namespace: '{%kubernetes.default.namespace%}',
     proxy: '{%kubernetes.default.proxy%}',
     internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
+    instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
   }
 };
 var appengine = {

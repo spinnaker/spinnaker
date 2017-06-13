@@ -78,6 +78,7 @@ window.spinnakerSettings = {
         namespace: 'default',
         proxy: 'localhost:8001',
         internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
+        instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
       },
     },
     appengine: {

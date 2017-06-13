@@ -32,6 +32,8 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       standalone: app.isStandalone,
     };
 
+    this.application = app;
+
     this.uiLink = function uiLink() {
       return kubernetesProxyUiService.buildLink($scope.instance.account, 'pod', $scope.instance.region, $scope.instance.name);
     };
@@ -129,6 +131,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
           $scope.instance.imagePullSecrets = pod.spec.imagePullSecrets;
           $scope.instance.containers = pod.spec.containers;
           $scope.instance.containerStatuses = pod.status.containerStatuses;
+          setBaseIpAddress();
         },
           autoClose
         );
@@ -141,6 +144,10 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
 
       return $q.when(null);
     }
+
+    const setBaseIpAddress = () => {
+      this.baseIpAddress = kubernetesProxyUiService.getInstanceLink($scope.instance.account, $scope.instance);
+    };
 
     function autoClose() {
       if ($scope.$$destroyed) {
@@ -267,6 +274,7 @@ module.exports = angular.module('spinnaker.instance.detail.kubernetes.controller
       //     is no point in subscribing to the refresh
       //  2. If this is a standalone instance, there is no application that will refresh
       if (!$scope.$$destroyed && !app.isStandalone) {
+        app.serverGroups.onRefresh($scope, retrieveInstance);
         app.serverGroups.onRefresh($scope, retrieveInstance);
       }
     });

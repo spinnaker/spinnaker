@@ -6,6 +6,7 @@ export interface IKubernetesProviderSettings extends IProviderSettings {
     namespace?: string;
     proxy?: string;
     internalDNSNameTemplate?: string;
+    instanceLinkTemplate?: string;
   };
 }
 
