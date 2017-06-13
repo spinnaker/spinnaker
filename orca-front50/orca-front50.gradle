@@ -16,5 +16,7 @@
 
 dependencies {
   compile project(":orca-retrofit")
+  compile "com.netflix.spinnaker.fiat:fiat-api:0.26.0"
+
   testCompile project(":orca-test")
 }

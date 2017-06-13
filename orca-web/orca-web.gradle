@@ -50,7 +50,6 @@ dependencies {
 
 //  Replace below with this line when fiat becomes stable.
 //  spinnaker.group "fiat"
-  compile "com.netflix.spinnaker.fiat:fiat-api:0.26.0"
   compile "org.springframework.boot:spring-boot-starter-actuator:1.2.8.RELEASE"
   compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
   compile "org.springframework.boot:spring-boot-starter-data-rest:1.2.8.RELEASE"

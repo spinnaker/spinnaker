@@ -32,7 +32,6 @@ class ApplicationSpec extends Specification {
     application.someBoolean = true
     application.someMap = [ a: 'some string', b: 4 ]
     def expected = [
-        requiredGroupMembership: [],
         someBoolean: true,
         someMap: [a: 'some string', b: 4]
     ]
