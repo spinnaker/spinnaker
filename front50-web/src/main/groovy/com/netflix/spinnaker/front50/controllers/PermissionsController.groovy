@@ -18,6 +18,7 @@ package com.netflix.spinnaker.front50.controllers
 
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatService
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
@@ -39,10 +40,10 @@ import retrofit.RetrofitError
 public class PermissionsController {
 
   @Autowired
-  ApplicationPermissionDAO applicationPermissionDAO;
+  ApplicationPermissionDAO applicationPermissionDAO
 
   @Autowired
-  ApplicationDAO applicationDAO;
+  ApplicationDAO applicationDAO
 
   @Autowired(required = false)
   FiatService fiatService
@@ -54,10 +55,10 @@ public class PermissionsController {
   @RequestMapping(method = RequestMethod.GET, value = "/applications")
   Set<Application.Permission> getAllApplicationPermissions() {
     Map<String, Application.Permission> actualPermissions = applicationPermissionDAO
-      .all()
-      .collectEntries { Application.Permission perm ->
-        return [(perm.name.toLowerCase()): perm]
-      }
+        .all()
+        .collectEntries { Application.Permission perm ->
+      return [(perm.name.toLowerCase()): perm]
+    }
 
     applicationDAO.all().each {
       if (!actualPermissions.containsKey(it.name.toLowerCase())) {
@@ -74,42 +75,52 @@ public class PermissionsController {
   @ApiOperation(value = "", notes = "Create an application permission.")
   @RequestMapping(method = RequestMethod.POST, value = "/applications")
   Application.Permission createApplicationPermission(
-      @RequestBody Application.Permission permission) {
-    def perm = applicationPermissionDAO.create(permission.id, permission)
-    syncUsers(perm)
+      @RequestBody Application.Permission newPermission) {
+    def perm = applicationPermissionDAO.create(newPermission.id, newPermission)
+    syncUsers(perm, null)
     return perm
   }
 
   @RequestMapping(method = RequestMethod.PUT, value = "/applications/{appName:.+}")
   Application.Permission updateApplicationPermission(
       @PathVariable String appName,
-      @RequestBody Application.Permission permission) {
-    applicationPermissionDAO.update(appName, permission)
-    def perm = applicationPermissionDAO.findById(appName)
-    syncUsers(perm)
-    return perm
+      @RequestBody Application.Permission newPermission) {
+    try {
+      def oldPermission = applicationPermissionDAO.findById(appName)
+      applicationPermissionDAO.update(appName, newPermission)
+      syncUsers(newPermission, oldPermission)
+    } catch (NotFoundException nfe) {
+      createApplicationPermission(newPermission)
+    }
+    return newPermission
   }
 
   @RequestMapping(method = RequestMethod.DELETE, value = "/applications/{appName:.+}")
   void deleteApplicationPermission(@PathVariable String appName) {
-    def perm = applicationPermissionDAO.findById(appName)
-    applicationPermissionDAO.delete(appName);
-    syncUsers(perm)
+    def oldPermission = applicationPermissionDAO.findById(appName)
+    applicationPermissionDAO.delete(appName)
+    syncUsers(null, oldPermission)
   }
 
-  private void syncUsers(Application.Permission permission) {
-    if (!fiatClientConfigurationProperties.enabled || !fiatService || !permission) {
+  private void syncUsers(Application.Permission newPermission, Application.Permission oldPermission) {
+    if (!fiatClientConfigurationProperties.enabled || !fiatService) {
       return
     }
 
     // Specifically using an empty list here instead of null, because an empty list will update
     // the anonymous user's app list.
-    List<String> roles = []
-    if (permission.requiredGroupMembership) {
-      roles = permission.requiredGroupMembership
+    Set<String> roles = []
+
+    if (newPermission?.permissions?.isRestricted()) {
+      roles += newPermission.permissions.allGroups()
     }
+
+    if (oldPermission?.permissions?.isRestricted()) {
+      roles += oldPermission.permissions.allGroups()
+    }
+
     try {
-      fiatService.sync(roles)
+      fiatService.sync(roles as List)
     } catch (RetrofitError re) {
       log.warn("Error syncing users", re)
     }
