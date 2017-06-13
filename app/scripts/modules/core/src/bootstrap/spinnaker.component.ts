@@ -1,5 +1,6 @@
 import { bootstrapModule } from './bootstrap.module';
 import { OverrideRegistry } from 'core/overrideRegistry';
+import { IFeatures, SETTINGS } from '@spinnaker/core';
 
 const template = `
   <div class="spinnaker-container">
@@ -18,10 +19,12 @@ const template = `
 `;
 
 class SpinnakerController {
-  private spinnakerHeaderTemplate: string;
+  public spinnakerHeaderTemplate: string;
+  public feature: IFeatures;
   constructor (overrideRegistry: OverrideRegistry) {
     'ngInject';
     this.spinnakerHeaderTemplate = overrideRegistry.getTemplate('spinnakerHeader', require('./spinnakerHeader.html'));
+    this.feature = SETTINGS.feature;
   }
 }
 
