@@ -23,8 +23,8 @@ The gradle script does not yet coordinate a complete build, so
 this script fills that gap for the time being. It triggers all
 the subsystem builds and then publishes the resulting artifacts.
 
-Publishing is typically to bintray for debian packages and a docker repository
-for containers.
+Publishing is typically to bintray for debian and redhat packages and
+a docker repository for containers.
 
 Usage:
   export BINTRAY_USER=
@@ -45,6 +45,7 @@ import argparse
 import base64
 import collections
 import datetime
+import fnmatch
 import glob
 import os
 import multiprocessing
@@ -62,10 +63,11 @@ import refresh_source
 from spinnaker.run import check_run_quick
 from spinnaker.run import run_quick
 
-
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
                   'echo', 'rosco', 'gate', 'igor', 'fiat', 'deck', 'spinnaker']
 ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring', 'halyard']
+
+VALID_PLATFORMS = ['debian', 'redhat']
 
 
 class BackgroundProcess(
@@ -117,16 +119,32 @@ def determine_modules_with_debians(gradle_root):
     dirs.append(gradle_root)
   return dirs
 
-def determine_package_version(gradle_root):
-  root = determine_modules_with_debians(gradle_root)
-  if not root:
-    return None
+def determine_modules_with_redhats(gradle_root):
+  dirs = []
+  for dirname, subdirs, files in os.walk(gradle_root):
+    for fname in files:
+      if fnmatch.fnmatch(fname, '*.rpm'):
+        dirs.append( os.path.dirname(os.path.dirname(dirname)) )
+  return dirs
 
-  with open(os.path.join(root[0], 'build', 'debian', 'control')) as f:
-     content = f.read()
-  match = re.search('(?m)^Version: (.*)', content)
-  return match.group(1)
+def determine_package_version(platform, gradle_root):
+  if platform == 'debian':
+    root = determine_modules_with_debians(gradle_root)
+    if not root: return None
+    with open(os.path.join(root[0], 'build', 'debian', 'control')) as f:
+      content = f.read()
+    match = re.search('(?m)^Version: (.*)', content)
+    return match.group(1)
 
+  elif platform == 'redhat':
+    root = determine_modules_with_redhats(gradle_root)
+    if not root: return None
+    comp = os.path.basename(os.path.normpath(gradle_root))
+    build_root = os.getcwd()
+    version_file = '{}-rpm-version.txt'.format(comp)
+    version = open(version_file, 'r').read().rstrip()
+    if re.match('-$', version): version = version + '0'
+    return version
 
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
@@ -150,8 +168,9 @@ class Builder(object):
       self.__project_dir = determine_project_root()
 
   def determine_gradle_root(self, name):
-      gradle_root = (name if name != 'spinnaker'
-              else os.path.join(self.__project_dir, 'experimental/buildDeb'))
+      if self.__options.platform == "debian":
+        gradle_root = (name if name != 'spinnaker'
+                else os.path.join(self.__project_dir, 'experimental/buildDeb'))
       gradle_root = name if name != 'spinnaker' else self.__project_dir
       return gradle_root
 
@@ -231,6 +250,83 @@ class Builder(object):
       logfile='{name}-debian-build.log'.format(name=name)
     )
 
+  def start_rpm_build(self, name):
+    """Start a subprocess to build and publish the designated component.
+
+    This function runs a gradle 'buildRpm' task using the last git tag as the
+    package version and the Bintray configuration passed through arguments. The
+    'buildRpm' task release builds the source, packages the redhat and jar
+    files, and publishes those to the respective Bintray '$org/$repository'.
+
+    The naming of the gradle task is a bit unfortunate because of the
+    terminology used in the Spinnaker product release process. The artifacts
+    produced by this script are not 'release candidate' artifacts, they are
+    pre-validation artifacts. Maybe we can modify the task name at some point.
+
+    The gradle 'buildRpm' task throws a 409 if the package we are trying to
+    publish already exists. We'll publish unique package versions using build
+    numbers. These will be transparent to end users since the only meaningful
+    version is the Spinnaker product version.
+
+    We will use -Prelease.useLastTag=true and ensure the last git tag is the
+    version we want to use. This tag has to be of the form 'X.Y.Z-$build' or
+    'vX.Y.Z-$build for gradle to use the tag as the version. This script will
+    assume that the source has been properly tagged to use the latest tag as the
+    package version for each component.
+
+    Args:
+      name [string]: Name of the subsystem repository.
+
+    Returns:
+      BackgroundProcess
+    """
+    jarRepo = self.__options.jar_repo
+    parts = self.__options.bintray_repo.split('/')
+    if len(parts) != 2:
+      raise ValueError(
+          'Expected --bintray_repo to be in the form <owner>/<repo>')
+    org, packageRepo = parts[0], parts[1]
+    bintray_key = os.environ['BINTRAY_KEY']
+    bintray_user = os.environ['BINTRAY_USER']
+
+    if self.__options.nebula:
+      target = 'buildRpm'
+      extra_args = [
+          '--stacktrace',
+          '-Prelease.useLastTag=true',
+          '-PbintrayPackageBuildNumber={number}'.format(
+              number=self.__build_number),
+          '-PbintrayOrg="{org}"'.format(org=org),
+          '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
+          '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
+          '-PbintrayKey="{key}"'.format(key=bintray_key),
+          '-PbintrayUser="{user}"'.format(user=bintray_user)
+        ]
+    else:
+      target = 'buildRpm'
+      extra_args = [
+          '-PbintrayPackageBuildNumber={number}'.format(
+              number=self.__build_number)
+      ]
+
+    if self.__options.debug_gradle:
+      extra_args.append('--debug')
+
+    if name == 'deck' and not 'CHROME_BIN' in os.environ:
+      extra_args.append('-PskipTests')
+
+    # Currently spinnaker is in a separate location
+    gradle_root = self.determine_gradle_root(name)
+    print 'Building and publishing Redhat for {name}...'.format(name=name)
+    # Note: 'buildRpm' is just the gradle task name. It doesn't indicate
+    # 'release candidate' status for the artifacts created through this build.
+    return BackgroundProcess.spawn(
+      'Building and publishing Redhat for {name}...'.format(name=name),
+      'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
+          gradle_root=gradle_root, extra=' '.join(extra_args), target=target),
+      logfile='{name}-rhel-build.log'.format(name=name)
+    )
+
   def start_container_build(self, name):
     """Start a subprocess to build a container image of the subsystem.
 
@@ -287,8 +383,8 @@ class Builder(object):
           'Expected --bintray_repo to be in the form <owner>/<repo>')
     subject, repo = parts[0], parts[1]
 
-    deb_filename = os.path.basename(path)
-    if (deb_filename.startswith('spinnaker-')
+    pkg_filename = os.path.basename(path)
+    if (pkg_filename.startswith('spinnaker-')
         and not package.startswith('spinnaker')):
       package = 'spinnaker-' + package
 
@@ -391,7 +487,7 @@ class Builder(object):
 
   def publish_install_script(self, source):
     gradle_root = self.determine_gradle_root('spinnaker')
-    version = determine_package_version(gradle_root)
+    version = determine_package_version(self.__options.platform, gradle_root)
 
     self.publish_to_bintray(source, package='spinnaker', version=version,
                             path='InstallSpinnaker.sh')
@@ -403,9 +499,11 @@ class Builder(object):
       source [string]: The path to the source to copy must be local.
     """
     path = os.path.basename(source)
-    debian_tags = ';'.join(['deb_component=spinnaker',
-                            'deb_distribution=trusty,utopic,vivid,wily',
-                            'deb_architecture=all'])
+    debian_tags = ''
+    if self.__options.platform == 'debian':
+      debian_tags = ';'.join(['deb_component=spinnaker',
+                              'deb_distribution=trusty,utopic,vivid,wily',
+                              'deb_architecture=all'])
 
     self.publish_to_bintray(source, package=package, version=version,
                             path=path, debian_tags=debian_tags)
@@ -418,7 +516,7 @@ class Builder(object):
       """
       pids = []
       gradle_root = self.determine_gradle_root(name)
-      version = determine_package_version(gradle_root)
+      version = determine_package_version(self.__options.platform, gradle_root)
       if version is None:
         return []
 
@@ -454,11 +552,62 @@ class Builder(object):
 
       return pids
 
+  def start_copy_redhat_target(self, name):
+      """Copies the redhat package for the specified subsystem.
+
+      Args:
+        name [string]: The name of the subsystem repository.
+      """
+      pids = []
+      gradle_root = self.determine_gradle_root(name)
+      version = determine_package_version(self.__options.platform, gradle_root)
+      if version is None:
+        return []
+
+      for root in determine_modules_with_redhats(gradle_root):
+        rpm_dir = '{root}/build/distributions'.format(root=root)
+
+        non_spinnaker_name = '{name}-{version}.noarch.rpm'.format(
+              name=name, version=version)
+
+        if os.path.exists(os.path.join(rpm_dir,
+                                       'spinnaker-' + non_spinnaker_name)):
+          rpm_file = 'spinnaker-' + non_spinnaker_name
+        elif os.path.exists(os.path.join(rpm_dir, non_spinnaker_name)):
+          rpm_file = non_spinnaker_name
+        else:
+          module_name = os.path.basename(os.path.dirname(
+            os.path.dirname(rpm_dir)))
+          rpm_file = '{module_name}-{version}.noarch.rpm'.format(
+            module_name=module_name, version=version)
+
+        if not os.path.exists(os.path.join(rpm_dir, rpm_file)):
+          error = ('.rpm for name={name} version={version} is not in {dir}\n'
+                   .format(name=name, version=version, dir=rpm_dir))
+          raise AssertionError(error)
+
+        from_path = os.path.join(rpm_dir, rpm_file)
+        print 'Adding {path}'.format(path=from_path)
+        self.__package_list.append(from_path)
+        basename = os.path.basename(from_path)
+        module_name = re.search("^(.*)-{}.noarch.rpm$".format(version), basename).group(1)
+        if self.__options.bintray_repo:
+          self.publish_file(from_path, module_name, version)
+
+      return pids
+
   def __do_build(self, subsys):
-    try:
-      self.start_deb_build(subsys).check_wait()
-    except Exception as ex:
-      self.__build_failures.append(subsys)
+    if self.__options.platform == 'debian':
+      try:
+        self.start_deb_build(subsys).check_wait()
+      except Exception as ex:
+        self.__build_failures.append(subsys)
+
+    elif self.__options.platform == 'redhat':
+      try:
+        self.start_rpm_build(subsys).check_wait()
+      except Exception as ex:
+        self.__build_failures.append(subsys)
 
   def __do_container_build(self, subsys):
     try:
@@ -516,23 +665,35 @@ class Builder(object):
       if self.__options.nebula:
         return
 
+      # Do not choke if there is nothing to copy
       wait_on = set(all_subsystems).difference(set(self.__build_failures))
-      pool = multiprocessing.pool.ThreadPool(processes=len(wait_on))
-      print 'Copying packages...'
-      pool.map(self.__do_copy, wait_on)
+      if len(wait_on) > 0:
+        pool = multiprocessing.pool.ThreadPool(processes=len(wait_on))
+        print 'Copying packages...'
+        pool.map(self.__do_copy, wait_on)
+      else:
+        print 'Nothing to copy.'
       return
 
   def __do_copy(self, subsys):
     print 'Starting to copy {0}...'.format(subsys)
-    pids = self.start_copy_debian_target(subsys)
+    if self.__options.platform == 'debian':
+      pids = self.start_copy_debian_target(subsys)
+
+    elif self.__options.platform == 'redhat':
+      pids = self.start_copy_redhat_target(subsys)
 
     for p in pids:
       p.check_wait()
     print 'Finished copying {0}.'.format(subsys)
 
   @classmethod
-  def init_argument_parser(cls, parser):
+  def init_argument_parser(cls, parser, valid_platforms):
       refresh_source.Refresher.init_argument_parser(parser)
+      parser.add_argument('--platform', default='debian', action='store',
+                          help='Select which platform to build for.'
+                               ' Valid options are: {}.'.format(
+                               ', '.join(valid_platforms)))
       parser.add_argument('--build', default=True, action='store_true',
                           help='Build the sources.')
       parser.add_argument('--debug_gradle', default=False, action='store_true',
@@ -599,6 +760,11 @@ class Builder(object):
       sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
 
+    if options.platform not in VALID_PLATFORMS:
+      sys.stderr.write('ERROR: {} is an invalid --platform. Please us one of {}'
+          .format(options.platform, ', '.join(VALID_PLATFORMS)))
+      return -1
+
     builder = cls(options, build_number=build_number, container_builder=container_builder)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
@@ -633,9 +799,8 @@ class Builder(object):
   @classmethod
   def main(cls):
     parser = argparse.ArgumentParser()
-    cls.init_argument_parser(parser)
+    cls.init_argument_parser(parser, VALID_PLATFORMS)
     options = parser.parse_args()
-    # builds debians only
     cls.do_build(options)
 
 if __name__ == '__main__':
