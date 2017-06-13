@@ -70,11 +70,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 
   @Bean
   RequestQueue requestQueue(RequestQueueConfiguration requestQueueConfiguration, Registry registry) {
-    if (!requestQueueConfiguration.enabled) {
-      return RequestQueue.noop()
-    }
-
-    return RequestQueue.pooled(registry, requestQueueConfiguration.timeoutMillis, requestQueueConfiguration.poolSize)
+    return RequestQueue.forConfig(registry, requestQueueConfiguration);
   }
 
   @Bean

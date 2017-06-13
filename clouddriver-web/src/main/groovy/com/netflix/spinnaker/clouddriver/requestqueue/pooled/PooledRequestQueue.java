@@ -38,6 +38,7 @@ public class PooledRequestQueue implements RequestQueue {
   private final ConcurrentMap<String, Queue<PooledRequest<?>>> partitionedRequests = new ConcurrentHashMap<>();
   private final PollCoordinator pollCoordinator = new PollCoordinator();
 
+  private final long defaultStartWorkTimeout;
   private final long defaultTimeout;
   private final ExecutorService executorService;
   private final BlockingQueue<Runnable> submittedRequests;
@@ -45,7 +46,12 @@ public class PooledRequestQueue implements RequestQueue {
   private final RequestDistributor requestDistributor;
   private final Registry registry;
 
-  public PooledRequestQueue(Registry registry, long defaultTimeout, int requestPoolSize) {
+  public PooledRequestQueue(Registry registry, long defaultStartWorkTimeout, long defaultTimeout, int requestPoolSize) {
+
+    if (defaultStartWorkTimeout <= 0) {
+      throw new IllegalArgumentException("defaultStartWorkTimeout");
+    }
+
     if (defaultTimeout <= 0) {
       throw new IllegalArgumentException("defaultTimeout");
     }
@@ -54,6 +60,7 @@ public class PooledRequestQueue implements RequestQueue {
       throw new IllegalArgumentException("requestPoolSize");
     }
     this.registry = registry;
+    this.defaultStartWorkTimeout = defaultStartWorkTimeout;
     this.defaultTimeout = defaultTimeout;
     this.submittedRequests = new LinkedBlockingQueue<>();
     registry.gauge("pooledRequestQueue.executorQueue.size", submittedRequests, Queue::size);
@@ -80,7 +87,12 @@ public class PooledRequestQueue implements RequestQueue {
   }
 
   @Override
-  public <T> T execute(String partition, Callable<T> operation, long timeout, TimeUnit unit) throws Throwable {
+  public long getDefaultStartWorkTimeoutMillis() {
+    return defaultStartWorkTimeout;
+  }
+
+  @Override
+  public <T> T execute(String partition, Callable<T> operation, long startWorkTimeout, long timeout, TimeUnit unit) throws Throwable {
     final long startTime = System.nanoTime();
     final Queue<PooledRequest<?>> queue;
     if (!partitionedRequests.containsKey(partition)) {
@@ -102,10 +114,9 @@ public class PooledRequestQueue implements RequestQueue {
     queue.offer(request);
     pollCoordinator.notifyItemsAdded();
 
-
     Id id = registry.createId("pooledRequestQueue.totalTime", "partition", partition);
     try {
-      T result = request.getPromise().blockingGetOrThrow(timeout, unit);
+      T result = request.getPromise().blockingGetOrThrow(startWorkTimeout, timeout, unit);
       id = id.withTag("success", "true");
       return result;
     } catch (Throwable t) {

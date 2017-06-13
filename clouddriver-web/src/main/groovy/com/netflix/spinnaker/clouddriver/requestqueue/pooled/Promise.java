@@ -50,23 +50,30 @@ class Promise<T> {
       return result;
     }
   }
+
+  private final CountDownLatch startingLatch = new CountDownLatch(1);
   private final CountDownLatch latch = new CountDownLatch(1);
   private final AtomicReference<Either<T>> result = new AtomicReference<>();
   private final Registry registry;
   private final String partition;
 
-  public Promise(Registry registry, String partition) {
+  Promise(Registry registry, String partition) {
     this.registry = registry;
     this.partition = partition;
   }
 
-  boolean isComplete() {
-    return result.get() != null;
+  boolean shouldStart() {
+    try {
+      return result.get() == null;
+    } finally {
+      startingLatch.countDown();
+    }
   }
 
   void complete(T result) {
     registry.counter(registry.createId("pooledRequestQueue.promise.complete", "partition", partition)).increment();
     this.result.compareAndSet(null, Either.forResult(result));
+    startingLatch.countDown();
     latch.countDown();
   }
 
@@ -74,14 +81,20 @@ class Promise<T> {
     final String cause = Optional.ofNullable(exception).map(Throwable::getClass).map(Class::getSimpleName).orElse("unknown");
     registry.counter(registry.createId("pooledRequestQueue.promise.exception", "partition", partition, "cause", cause)).increment();
     this.result.compareAndSet(null, Either.forException(exception));
+    startingLatch.countDown();
     latch.countDown();
   }
 
-  T blockingGetOrThrow(long timeout, TimeUnit unit) throws Throwable {
+  T blockingGetOrThrow(long startWorkTimeout, long timeout, TimeUnit unit) throws Throwable {
     try {
-      if (!latch.await(timeout, unit)) {
-        registry.counter(registry.createId("pooledRequestQueue.promise.timeout", "partition", partition)).increment();
-        completeWithException(new PromiseTimeoutException());
+      if (startingLatch.await(startWorkTimeout, unit)) {
+        if (!latch.await(timeout, unit)) {
+          registry.counter(registry.createId("pooledRequestQueue.promise.timeout", "partition", partition)).increment();
+          completeWithException(new PromiseTimeoutException());
+        }
+      } else {
+        registry.counter(registry.createId("pooledRequest.promise.notStarted", "partition", partition)).increment();
+        completeWithException(new PromiseNotStartedException());
       }
     } catch (Throwable t) {
       completeWithException(t);

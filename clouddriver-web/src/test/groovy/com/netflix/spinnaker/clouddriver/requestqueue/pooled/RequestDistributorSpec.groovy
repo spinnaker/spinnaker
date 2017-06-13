@@ -53,8 +53,8 @@ class RequestDistributorSpec extends Specification {
     0 * _
 
     reqs.size() == 2
-    reqs[0].getPromise().blockingGetOrThrow(1, TimeUnit.MILLISECONDS) == 0
-    reqs[1].getPromise().blockingGetOrThrow(1, TimeUnit.MILLISECONDS) == 2
+    reqs[0].getPromise().blockingGetOrThrow(1, 1, TimeUnit.MILLISECONDS) == 0
+    reqs[1].getPromise().blockingGetOrThrow(1, 1, TimeUnit.MILLISECONDS) == 2
 
   }
 }

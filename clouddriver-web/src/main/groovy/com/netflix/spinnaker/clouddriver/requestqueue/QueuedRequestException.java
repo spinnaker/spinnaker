@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.clouddriver.requestqueue.pooled;
+package com.netflix.spinnaker.clouddriver.requestqueue;
 
-import com.netflix.spinnaker.clouddriver.requestqueue.QueuedRequestException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-class PromiseTimeoutException extends QueuedRequestException {
-  PromiseTimeoutException() {
+@ResponseStatus(value = HttpStatus.TOO_MANY_REQUESTS)
+public class QueuedRequestException extends RuntimeException {
+  public QueuedRequestException() {
     super();
   }
 }

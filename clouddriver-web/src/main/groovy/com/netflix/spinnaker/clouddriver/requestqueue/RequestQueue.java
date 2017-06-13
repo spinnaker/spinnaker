@@ -28,32 +28,45 @@ import java.util.concurrent.TimeUnit;
 public interface RequestQueue {
 
   long DEFAULT_TIMEOUT_MILLIS = 60000;
+  long DEFAULT_START_WORK_TIMEOUT_MILLIS = 10000;
+
+  static RequestQueue forConfig(Registry registry, RequestQueueConfiguration config) {
+    if (!config.isEnabled()) {
+      return noop();
+    }
+
+    return pooled(registry, config.getStartWorkTimeoutMillis(), config.getTimeoutMillis(), config.getPoolSize());
+  }
 
   static RequestQueue noop() {
     return new NOOP();
   }
 
   static RequestQueue pooled(Registry registry, int poolSize) {
-    return pooled(registry, DEFAULT_TIMEOUT_MILLIS, poolSize);
+    return pooled(registry, DEFAULT_START_WORK_TIMEOUT_MILLIS, DEFAULT_TIMEOUT_MILLIS, poolSize);
   }
 
-  static RequestQueue pooled(Registry registry, long timeoutMillis, int poolSize) {
-    return new PooledRequestQueue(registry, timeoutMillis, poolSize);
+  static RequestQueue pooled(Registry registry, long startWorkTimeoutMillis, long timeoutMillis, int poolSize) {
+    return new PooledRequestQueue(registry, startWorkTimeoutMillis, timeoutMillis, poolSize);
   }
 
   default long getDefaultTimeoutMillis() {
     return DEFAULT_TIMEOUT_MILLIS;
   }
 
-  default <T> T execute(String partition, Callable<T> operation) throws Throwable {
-    return execute(partition, operation, getDefaultTimeoutMillis(), TimeUnit.MILLISECONDS);
+  default long getDefaultStartWorkTimeoutMillis() {
+    return DEFAULT_START_WORK_TIMEOUT_MILLIS;
   }
 
-  <T> T execute(String partition, Callable<T> operation, long timeout, TimeUnit unit) throws Throwable;
+  default <T> T execute(String partition, Callable<T> operation) throws Throwable {
+    return execute(partition, operation, getDefaultStartWorkTimeoutMillis(), getDefaultTimeoutMillis(), TimeUnit.MILLISECONDS);
+  }
+
+  <T> T execute(String partition, Callable<T> operation, long startWorkTimeout, long timeout, TimeUnit unit) throws Throwable;
 
   class NOOP implements RequestQueue {
     @Override
-    public <T> T execute(String partition, Callable<T> operation, long timeout, TimeUnit unit) throws Throwable {
+    public <T> T execute(String partition, Callable<T> operation, long startWorkTimeout, long timeout, TimeUnit unit) throws Throwable {
       return operation.call();
     }
   }

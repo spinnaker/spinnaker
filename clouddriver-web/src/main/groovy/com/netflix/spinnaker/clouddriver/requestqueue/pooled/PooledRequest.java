@@ -48,7 +48,7 @@ class PooledRequest<T> implements Runnable {
     timer.record(System.nanoTime() - startTime, TimeUnit.NANOSECONDS);
     //request may have expired with a timeout prior to this point, lets not
     // issue the work if that is the case as the caller has already moved on
-    if (!result.isComplete()) {
+    if (result.shouldStart()) {
       try {
         result.complete(work.call());
       } catch (Throwable t) {

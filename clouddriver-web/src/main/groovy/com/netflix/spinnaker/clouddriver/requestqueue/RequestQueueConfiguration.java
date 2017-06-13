@@ -21,6 +21,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("requestQueue")
 public class RequestQueueConfiguration {
   private boolean enabled = false;
+  private long startWorkTimeoutMillis = RequestQueue.DEFAULT_START_WORK_TIMEOUT_MILLIS;
   private long timeoutMillis = RequestQueue.DEFAULT_TIMEOUT_MILLIS;
   private int poolSize = 10;
 
@@ -30,6 +31,14 @@ public class RequestQueueConfiguration {
 
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
+  }
+
+  public long getStartWorkTimeoutMillis() {
+    return startWorkTimeoutMillis;
+  }
+
+  public void setStartWorkTimeoutMillis(long startWorkTimeoutMillis) {
+    this.startWorkTimeoutMillis = startWorkTimeoutMillis;
   }
 
   public long getTimeoutMillis() {
