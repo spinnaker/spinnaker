@@ -47,7 +47,7 @@ public class ProfileRegistry {
     JsonFactory jsonFactory = JacksonFactory.getDefaultInstance();
     String applicationName = "Spinnaker/Halyard";
 
-    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, GoogleCredentials.emptyRequestInitializer())
+    return new Storage.Builder(GoogleCredentials.buildHttpTransport(), jsonFactory, GoogleCredentials.retryRequestInitializer())
         .setApplicationName(applicationName)
         .build();
   }

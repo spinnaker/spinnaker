@@ -19,8 +19,10 @@
 package com.netflix.spinnaker.halyard.core.provider.v1.google;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.http.HttpTransport;
+import com.google.api.client.util.ExponentialBackOff;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -36,10 +38,11 @@ public class GoogleCredentials {
     }
   }
 
-  public static HttpRequestInitializer emptyRequestInitializer() {
+  public static HttpRequestInitializer retryRequestInitializer() {
     return request -> {
       request.setConnectTimeout((int) TimeUnit.MINUTES.toMillis(2));
       request.setReadTimeout((int) TimeUnit.MINUTES.toMillis(2));
+      request.setUnsuccessfulResponseHandler(new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff()));
     };
   }
 
