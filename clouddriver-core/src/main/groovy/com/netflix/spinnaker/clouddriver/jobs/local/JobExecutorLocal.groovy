@@ -34,6 +34,12 @@ class JobExecutorLocal implements JobExecutor {
   @Value('${jobs.local.timeoutMinutes:10}')
   long timeoutMinutes
 
+  @Value('${jobs.local.waitForJobStartTimeoutMillis:5000}')
+  long waitForJobStartTimeoutMillis
+
+  @Value('${jobs.local.waitForJobStartPollingIntervalMillis:500}')
+  long waitForJobStartPollingIntervalMillis
+
   Scheduler scheduler = Schedulers.computation()
   Map<String, Map> jobIdToHandlerMap = new ConcurrentHashMap<String, Map>()
 
@@ -98,7 +104,27 @@ class JobExecutorLocal implements JobExecutor {
       }
     )
 
+    def startTime = System.currentTimeMillis()
+    while (System.currentTimeMillis() - startTime < waitForJobStartTimeoutMillis) {
+      if (jobExists(jobId)) {
+        break
+      } else {
+        sleep(waitForJobStartPollingIntervalMillis)
+      }
+    }
+
+    if (!jobExists(jobId)) {
+      throw new IllegalArgumentException("Unable to locate job with id $jobId. Currently" +
+        "${waitForJobStartTimeoutMillis}ms is the configured timeout for the job to start. Consider " +
+        "increasing 'jobs.local.waitForJobStartTimeoutMillis' to wait for more time for the job to start.")
+    }
+
     return jobId
+  }
+
+  @Override
+  boolean jobExists(String jobId) {
+    return jobIdToHandlerMap.containsKey(jobId)
   }
 
   @Override
