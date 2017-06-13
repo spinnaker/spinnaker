@@ -17,10 +17,18 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.services.elasticloadbalancingv2.AmazonElasticLoadBalancing
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteListenerRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DeleteLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteTargetGroupRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersResult
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
+import com.amazonaws.services.elasticloadbalancingv2.model.Listener
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.aws.security.NetflixAmazonCredentials
@@ -47,6 +55,8 @@ class DeleteAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
   void "should perform deletion when invoked"() {
     setup:
     def loadBalancerArn = "foo:test"
+    def listenerArn = "listener:arn"
+    def targetGroupArn = "targetGroup:arn"
     def loadBalancing = Mock(AmazonElasticLoadBalancing)
     def amazonClientProvider = Stub(AmazonClientProvider)
     amazonClientProvider.getAmazonElasticLoadBalancingV2(credz, _, true) >> loadBalancing
@@ -57,6 +67,10 @@ class DeleteAmazonLoadBalancerV2AtomicOperationSpec extends Specification {
 
     then:
     1 * loadBalancing.describeLoadBalancers(new DescribeLoadBalancersRequest(names: [description.loadBalancerName])) >> new DescribeLoadBalancersResult(loadBalancers: [ new LoadBalancer(loadBalancerArn: loadBalancerArn) ])
+    1 * loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancerArn)) >> new DescribeListenersResult(listeners: [ new Listener(listenerArn: listenerArn) ])
+    1 * loadBalancing.deleteListener(new DeleteListenerRequest(listenerArn: listenerArn))
+    1 * loadBalancing.describeTargetGroups((new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancerArn))) >> new DescribeTargetGroupsResult(targetGroups: [ new TargetGroup(targetGroupArn: targetGroupArn) ])
+    1 * loadBalancing.deleteTargetGroup(new DeleteTargetGroupRequest(targetGroupArn: targetGroupArn))
     1 * loadBalancing.deleteLoadBalancer(_) >> { DeleteLoadBalancerRequest req ->
       assert req.loadBalancerArn == loadBalancerArn
     }

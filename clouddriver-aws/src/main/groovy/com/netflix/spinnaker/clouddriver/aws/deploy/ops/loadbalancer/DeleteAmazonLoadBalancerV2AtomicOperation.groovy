@@ -17,10 +17,18 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy.ops.loadbalancer
 
 import com.amazonaws.AmazonServiceException
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteListenerRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DeleteLoadBalancerRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DeleteTargetGroupRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeListenersResult
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.DescribeLoadBalancersResult
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsRequest
+import com.amazonaws.services.elasticloadbalancingv2.model.DescribeTargetGroupsResult
+import com.amazonaws.services.elasticloadbalancingv2.model.Listener
 import com.amazonaws.services.elasticloadbalancingv2.model.LoadBalancer
+import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroup
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.DeleteAmazonLoadBalancerDescription
 import com.netflix.spinnaker.clouddriver.aws.security.AmazonClientProvider
 import com.netflix.spinnaker.clouddriver.data.task.Task
@@ -60,8 +68,40 @@ class DeleteAmazonLoadBalancerV2AtomicOperation implements AtomicOperation<Void>
       }
 
       if (loadBalancer) {
-        DeleteLoadBalancerRequest request = new DeleteLoadBalancerRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
         task.updateStatus BASE_PHASE, "Deleting ${description.loadBalancerName} in ${region} for ${description.credentials.name}."
+
+        // Describe target groups and listeners for the load balancer.
+        // We have to describe them both both first because you cant delete a target group that has a listener associated with it
+        // and if you delete the listener, it loses its association with the load balancer
+        DescribeTargetGroupsResult targetGroupsResult = loadBalancing.describeTargetGroups(new DescribeTargetGroupsRequest(loadBalancerArn: loadBalancer.loadBalancerArn))
+        List<TargetGroup> targetGroups = targetGroupsResult.targetGroups
+        DescribeListenersResult listenersResult = loadBalancing.describeListeners(new DescribeListenersRequest(loadBalancerArn: loadBalancer.loadBalancerArn))
+        List<Listener> listeners = listenersResult.listeners
+
+        // Delete listeners
+        for(Listener listener : listeners) {
+          DeleteListenerRequest deleteListenerRequest = new DeleteListenerRequest(listenerArn: listener.listenerArn)
+          try {
+            loadBalancing.deleteListener(deleteListenerRequest)
+            task.updateStatus BASE_PHASE, "Deleted listener ${listener.listenerArn} in ${region} for ${description.credentials.name}."
+          } catch (AmazonServiceException ignore) {
+            task.updateStatus BASE_PHASE, "Failed deleting listener ${listener.listenerArn} in ${region} for ${description.credentials.name}. Not found."
+          }
+        }
+
+        // Delete target groups
+        for(TargetGroup targetGroup: targetGroups) {
+          DeleteTargetGroupRequest deleteTargetGroupRequest = new DeleteTargetGroupRequest(targetGroupArn: targetGroup.targetGroupArn)
+          try {
+            loadBalancing.deleteTargetGroup(deleteTargetGroupRequest)
+            task.updateStatus BASE_PHASE, "Deleted target group ${targetGroup.targetGroupArn} in ${region} for ${description.credentials.name}."
+          } catch (AmazonServiceException ignore) {
+            task.updateStatus BASE_PHASE, "Failed deleting target group ${targetGroup.targetGroupArn} in ${region} for ${description.credentials.name}. Not found."
+          }
+        }
+
+        // Delete load balancer
+        DeleteLoadBalancerRequest request = new DeleteLoadBalancerRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
         loadBalancing.deleteLoadBalancer(request)
       } else {
         task.updateStatus BASE_PHASE, "Failed deleting ${description.loadBalancerName} in ${region} for ${description.credentials.name}. Not found."
