@@ -29,8 +29,10 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.TimeZone;
 
 @Component
 public class DeploymentConfigurationValidator extends Validator<DeploymentConfiguration> {
@@ -39,6 +41,13 @@ public class DeploymentConfigurationValidator extends Validator<DeploymentConfig
 
   @Override
   public void validate(ConfigProblemSetBuilder p, DeploymentConfiguration n) {
+    String timezone = n.getTimezone();
+
+    if (Arrays.stream(TimeZone.getAvailableIDs()).noneMatch(t -> t.equals(timezone))) {
+      p.addProblem(Problem.Severity.ERROR, "Timezone " + timezone + " does not match any known canonical timezone ID")
+          .setRemediation("Pick a timezone from those listed here: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones");
+    }
+
     String version = n.getVersion();
     Versions versions = versionsService.getVersions();
 

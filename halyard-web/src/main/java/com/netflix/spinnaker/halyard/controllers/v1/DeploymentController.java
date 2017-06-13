@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.controllers.v1;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
@@ -57,6 +58,9 @@ public class DeploymentController {
   DeployService deployService;
 
   @Autowired
+  ObjectMapper objectMapper;
+
+  @Autowired
   HalconfigParser halconfigParser;
 
   @RequestMapping(value = "/{deploymentName:.+}", method = RequestMethod.GET)
@@ -73,6 +77,32 @@ public class DeploymentController {
     }
 
     return DaemonTaskHandler.submitTask(builder::build, "Get deployment configuration");
+  }
+
+  @RequestMapping(value = "/{deploymentName:.+}", method = RequestMethod.PUT)
+  DaemonTask<Halconfig, Void> deploymentConfiguration(@PathVariable String deploymentName,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Severity severity,
+      @RequestBody Object rawDeployment) {
+    DeploymentConfiguration deploymentConfiguration = objectMapper.convertValue(
+        rawDeployment,
+        DeploymentConfiguration.class
+    );
+
+    UpdateRequestBuilder builder = new UpdateRequestBuilder();
+    builder.setSeverity(severity);
+    builder.setUpdate(() -> deploymentService.setDeploymentConfiguration(deploymentName, deploymentConfiguration));
+
+    if (validate) {
+      builder.setValidate(() -> deploymentService.validateDeployment(deploymentName));
+    } else {
+      builder.setValidate(ProblemSet::new);
+    }
+
+    builder.setRevert(() -> halconfigParser.undoChanges());
+    builder.setSave(() -> halconfigParser.saveConfig());
+
+    return DaemonTaskHandler.submitTask(builder::build, "Edit deployment configuration");
   }
 
   @RequestMapping(value = "/", method = RequestMethod.GET)

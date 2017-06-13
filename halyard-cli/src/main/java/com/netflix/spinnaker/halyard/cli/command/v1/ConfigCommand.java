@@ -49,6 +49,7 @@ public class ConfigCommand extends AbstractConfigCommand {
 
   ConfigCommand() {
     registerSubcommand(new DeploymentEnvironmentCommand());
+    registerSubcommand(new EditConfigCommand());
     registerSubcommand(new FeaturesCommand());
     registerSubcommand(new GenerateCommand());
     registerSubcommand(new MetricStoresCommand());

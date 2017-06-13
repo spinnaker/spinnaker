@@ -16,12 +16,15 @@
 
 package com.netflix.spinnaker.halyard.config.services.v1;
 
+import com.netflix.spinnaker.halyard.config.config.v1.HalconfigParser;
 import com.netflix.spinnaker.halyard.config.error.v1.ConfigNotFoundException;
 import com.netflix.spinnaker.halyard.config.error.v1.IllegalConfigException;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Halconfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.PersistentStorage;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemBuilder;
+import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem.Severity;
 import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +45,30 @@ public class DeploymentService {
   private ValidateService validateService;
 
   @Autowired
+  private HalconfigParser halconfigParser;
+
+  @Autowired
   private PersistentStorageService storageService;
+
+  public void setDeploymentConfiguration(String deploymentName, DeploymentConfiguration deploymentConfiguration) {
+    Halconfig halconfig = halconfigParser.getHalconfig();
+    List<DeploymentConfiguration> deploymentConfigurations = halconfig.getDeploymentConfigurations();
+
+    int matchingIndex = -1;
+    for (int i = 0; i < deploymentConfigurations.size(); i++) {
+      DeploymentConfiguration test = deploymentConfigurations.get(i);
+      if (test.getName().equals(deploymentName)) {
+        matchingIndex = i;
+        break;
+      }
+    }
+
+    if (matchingIndex < 0) {
+      throw new HalException(Severity.FATAL, "Could not find a deployment with name " + deploymentName);
+    } else {
+      deploymentConfigurations.set(matchingIndex, deploymentConfiguration);
+    }
+  }
 
   public DeploymentConfiguration getDeploymentConfiguration(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName);

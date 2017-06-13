@@ -59,8 +59,8 @@ public class ClusterController {
 
   @RequestMapping(value = "/", method = RequestMethod.GET)
   DaemonTask<Halconfig, List<Cluster>> clusters(@PathVariable String deploymentName, @PathVariable String providerName,
-                                                    @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
-                                                    @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity) {
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.validate) boolean validate,
+      @RequestParam(required = false, defaultValue = DefaultControllerValues.severity) Problem.Severity severity) {
     DaemonResponse.StaticRequestBuilder<List<Cluster>> builder = new DaemonResponse.StaticRequestBuilder<>();
     builder.setBuildResponse(() -> clusterService.getAllClusters(deploymentName, providerName));
     builder.setSeverity(severity);

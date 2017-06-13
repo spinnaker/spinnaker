@@ -78,6 +78,10 @@ public class Daemon {
     };
   }
 
+  public static Supplier<Void> setDeploymentConfiguration(String deploymentName, boolean validate, DeploymentConfiguration deploymentConfiguration) {
+    return () ->  ResponseUnwrapper.get(getService().setDeployment(deploymentName, validate, deploymentConfiguration));
+  }
+
   public static Supplier<DeploymentEnvironment> getDeploymentEnvironment(String deploymentName, boolean validate) {
     return () -> {
       Object rawDeploymentEnvironment = ResponseUnwrapper.get(getService().getDeploymentEnvironment(deploymentName, validate));

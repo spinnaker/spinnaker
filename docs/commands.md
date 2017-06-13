@@ -30,6 +30,7 @@
  * [**hal config ci jenkins master list**](#hal-config-ci-jenkins-master-list)
  * [**hal config deploy**](#hal-config-deploy)
  * [**hal config deploy edit**](#hal-config-deploy-edit)
+ * [**hal config edit**](#hal-config-edit)
  * [**hal config features**](#hal-config-features)
  * [**hal config features edit**](#hal-config-features-edit)
  * [**hal config generate**](#hal-config-generate)
@@ -440,6 +441,7 @@ hal config [parameters] [subcommands]
 #### Subcommands
  * `ci`: Configure, validate, and view the specified Continuous Integration service.
  * `deploy`: Display the configured Spinnaker deployment.
+ * `edit`: Configure top-level, global configuration parameters.
  * `features`: Display the state of Spinnaker's feature flags.
  * `generate`: Generate the full Spinnaker config for your current deployment.
  * `metric-stores`: Configure Spinnaker's metric stores. This configuration only affects the publishing of metrics against whichever metric stores you enable (it can be more than one).
@@ -655,6 +657,22 @@ This is only required when Spinnaker is being deployed in non-Kubernetes cluster
 LocalhostDebian: Download and run the Spinnaker debians on the machine running the Daemon.
  * `--vault-address`: The address of a running Vault datastore. See https://www.vaultproject.io/.This is only required when Spinnaker is being deployed in non-Kubernetes clustered configuration.
  * `--vault-enabled`: Whether or not to use Vault as a secret storage mechanism to deploy Spinnaker.
+
+
+---
+## hal config edit
+
+Configure top-level, global configuration parameters. The properties edited here affect all Spinnaker subcomponents.
+
+#### Usage
+```
+hal config edit [parameters]
+```
+
+#### Parameters
+ * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--no-validate`: (*Default*: `false`) Skip validation.
+ * `--timezone`: The timezone your Spinnaker instance runs in. This affects what the UI will display as well as how CRON triggers are run.
 
 
 ---

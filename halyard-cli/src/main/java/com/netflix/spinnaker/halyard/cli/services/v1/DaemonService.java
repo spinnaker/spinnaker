@@ -68,6 +68,12 @@ public interface DaemonService {
       @Path("deploymentName") String deploymentName,
       @Query("validate") boolean validate);
 
+  @PUT("/v1/config/deployments/{deploymentName}/")
+  DaemonTask<Halconfig, Void> setDeployment(
+      @Path("deploymentName") String deploymentName,
+      @Query("validate") boolean validate,
+      @Body DeploymentConfiguration deploymentConfiguration);
+
   @POST("/v1/config/deployments/{deploymentName}/generate/")
   DaemonTask<Halconfig, Void> generateDeployment(
       @Path("deploymentName") String deploymentName,
