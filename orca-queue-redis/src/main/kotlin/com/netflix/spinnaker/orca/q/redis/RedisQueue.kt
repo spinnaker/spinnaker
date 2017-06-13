@@ -53,13 +53,13 @@ class RedisQueue(
   }
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-  private val queueKey = queueName + ".queue"
-  private val unackedKey = queueName + ".unacked"
-  private val messagesKey = queueName + ".messages"
-  private val attemptsKey = queueName + ".attempts"
-  private val locksKey = queueName + ".locks"
-  private val hashKey = queueName + ".hash"
-  private val hashesKey = queueName + ".hashes"
+  private val queueKey = "$queueName.queue"
+  private val unackedKey = "$queueName.unacked"
+  private val messagesKey = "$queueName.messages"
+  private val attemptsKey = "$queueName.attempts"
+  private val locksKey = "$queueName.locks"
+  private val hashKey = "$queueName.hash"
+  private val hashesKey = "$queueName.hashes"
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
@@ -79,7 +79,7 @@ class RedisQueue(
   override fun push(message: Message, delay: TemporalAmount) {
     pool.resource.use { redis ->
       val messageHash = message.hash()
-      if (redis.sismember(hashesKey, messageHash)) {
+      if (redis.get("$queueName.dedupe") == "1" && redis.sismember(hashesKey, messageHash)) {
         log.warn("Ignoring message as an identical one is already on the queue: $message")
         fire<MessageDuplicate>()
       } else {
@@ -111,7 +111,7 @@ class RedisQueue(
               }
               fire<MessageDead>()
             } else {
-              if (redis.sismember(hashesKey, redis.hget(hashKey, id))) {
+              if (redis.get("$queueName.dedupe") == "1" && redis.sismember(hashesKey, redis.hget(hashKey, id))) {
                 log.warn("Not retrying message $id because an identical message is already on the queue")
                 redis.removeMessage(id)
                 fire<MessageDuplicate>()

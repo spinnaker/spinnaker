@@ -30,7 +30,14 @@ private fun createQueue(
   clock: Clock,
   deadLetterCallback: DeadMessageCallback
 ): RedisQueue {
-  redis = EmbeddedRedis.embed()
+  redis = EmbeddedRedis
+    .embed()
+    .apply {
+      pool.resource.use {
+        it.set("test.dedupe", "1")
+      }
+    }
+
   return RedisQueue(
     queueName = "test",
     pool = redis!!.pool,
