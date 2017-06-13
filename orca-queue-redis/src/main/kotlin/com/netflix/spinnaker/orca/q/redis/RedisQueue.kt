@@ -22,6 +22,7 @@ import com.google.common.hash.Hashing
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.metrics.*
+import org.funktionale.partials.partially1
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
@@ -67,7 +68,7 @@ class RedisQueue(
         .firstOrNull()
         ?.takeIf { id -> redis.acquireLock(id) }
         ?.also { id ->
-          val ack = this::ackMessage.curry(id)
+          val ack = this::ackMessage.partially1(id)
           redis.readMessage(id) { message ->
             callback(message, ack)
           }
@@ -257,6 +258,4 @@ class RedisQueue(
       .murmur3_32()
       .hashString(toString(), Charset.defaultCharset())
       .toString()
-
-  private fun <T, R> ((T) -> R).curry(t: T): () -> R = { this(t) }
 }

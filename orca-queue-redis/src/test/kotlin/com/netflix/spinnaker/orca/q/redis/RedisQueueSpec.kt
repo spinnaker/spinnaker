@@ -19,17 +19,24 @@ package com.netflix.spinnaker.orca.q.redis
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueSpec
+import com.netflix.spinnaker.orca.q.metrics.MonitorableQueueSpec
+import org.funktionale.partials.invoke
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
-object RedisQueueSpec : QueueSpec<RedisQueue>(::createQueue, ::shutdownCallback)
+object RedisQueueSpec : QueueSpec<RedisQueue>(createQueue(p3 = null), ::shutdownCallback)
+
+object RedisMonitorableQueueSpec : MonitorableQueueSpec<RedisQueue>(
+  createQueue,
+  RedisQueue::retry,
+  ::shutdownCallback
+)
 
 private var redis: EmbeddedRedis? = null
 
-private fun createQueue(
-  clock: Clock,
-  deadLetterCallback: DeadMessageCallback
-): RedisQueue {
+private val createQueue = { clock: Clock,
+                            deadLetterCallback: DeadMessageCallback,
+                            publisher: ApplicationEventPublisher? ->
   redis = EmbeddedRedis
     .embed()
     .apply {
@@ -38,12 +45,12 @@ private fun createQueue(
       }
     }
 
-  return RedisQueue(
+  RedisQueue(
     queueName = "test",
     pool = redis!!.pool,
     clock = clock,
     deadMessageHandler = deadLetterCallback,
-    publisher = ApplicationEventPublisher { }
+    publisher = publisher ?: ApplicationEventPublisher { }
   )
 }
 

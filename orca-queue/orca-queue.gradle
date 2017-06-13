@@ -24,6 +24,7 @@ repositories {
 dependencies {
   compile project(":orca-core")
   compile "org.threeten:threeten-extra:1.0"
+  compile "org.funktionale:funktionale-partials:1.1"
 
   testCompile project(":orca-test")
 }

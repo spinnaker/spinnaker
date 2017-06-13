@@ -54,7 +54,7 @@ abstract class QueueSpec<out Q : Queue>(
   describe("polling the queue") {
     given("there are no messages") {
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback)
+        queue = createQueue(clock, deadLetterCallback)
       }
 
       afterGroup(::stopQueue)
@@ -73,7 +73,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback)
+        queue = createQueue(clock, deadLetterCallback)
         queue!!.push(message)
       }
 
@@ -94,7 +94,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message2 = StartExecution(Pipeline::class.java, "2", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback).apply {
+        queue = createQueue(clock, deadLetterCallback).apply {
           push(message1)
           clock.incrementBy(Duration.ofSeconds(1))
           push(message2)
@@ -124,7 +124,7 @@ abstract class QueueSpec<out Q : Queue>(
         val message = StartExecution(Pipeline::class.java, "1", "foo")
 
         beforeGroup {
-          queue = createQueue.invoke(clock, deadLetterCallback)
+          queue = createQueue(clock, deadLetterCallback)
           queue!!.push(message, delay)
         }
 
@@ -144,7 +144,7 @@ abstract class QueueSpec<out Q : Queue>(
         val message = StartExecution(Pipeline::class.java, "1", "foo")
 
         beforeGroup {
-          queue = createQueue.invoke(clock, deadLetterCallback)
+          queue = createQueue(clock, deadLetterCallback)
           queue!!.push(message, delay)
           clock.incrementBy(delay)
         }
@@ -168,7 +168,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback)
+        queue = createQueue(clock, deadLetterCallback)
         queue!!.apply {
           push(message)
           poll { _, ack ->
@@ -197,7 +197,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback)
+        queue = createQueue(clock, deadLetterCallback)
         queue!!.apply {
           push(message)
           poll { _, _ -> }
@@ -224,7 +224,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback)
+        queue = createQueue(clock, deadLetterCallback)
         queue!!.apply {
           push(message)
           repeat(2) {
@@ -253,7 +253,7 @@ abstract class QueueSpec<out Q : Queue>(
       val message = StartExecution(Pipeline::class.java, "1", "foo")
 
       beforeGroup {
-        queue = createQueue.invoke(clock, deadLetterCallback)
+        queue = createQueue(clock, deadLetterCallback)
         queue!!.apply {
           push(message)
           repeat(maxRetries) {

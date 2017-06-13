@@ -18,14 +18,26 @@ package com.netflix.spinnaker.orca.q.memory
 
 import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueSpec
+import com.netflix.spinnaker.orca.q.metrics.MonitorableQueueSpec
+import org.funktionale.partials.invoke
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
-object InMemoryQueueSpec : QueueSpec<InMemoryQueue>(::createQueue)
+object InMemoryQueueSpec : QueueSpec<InMemoryQueue>(createQueue(p3 = null))
 
-private fun createQueue(clock: Clock, deadLetterCallback: DeadMessageCallback) =
+object InMemoryMonitorableQueueSpec : MonitorableQueueSpec<InMemoryQueue>(
+  createQueue,
+  InMemoryQueue::retry
+)
+
+private val createQueue = {
+  clock: Clock,
+  deadLetterCallback: DeadMessageCallback,
+  publisher: ApplicationEventPublisher? ->
   InMemoryQueue(
     clock = clock,
     deadMessageHandler = deadLetterCallback,
-    publisher = ApplicationEventPublisher { } // no-op for purposes of this test
+    publisher = publisher ?: ApplicationEventPublisher { }
   )
+}
+

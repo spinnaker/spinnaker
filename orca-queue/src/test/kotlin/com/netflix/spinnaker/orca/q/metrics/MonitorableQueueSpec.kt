@@ -34,7 +34,7 @@ import java.time.Clock
 import java.time.Duration
 
 abstract class MonitorableQueueSpec<out Q : MonitorableQueue>(
-  createQueue: (Clock, DeadMessageCallback, ApplicationEventPublisher) -> Q,
+  createQueue: (Clock, DeadMessageCallback, ApplicationEventPublisher?) -> Q,
   triggerRedeliveryCheck: Q.() -> Unit,
   shutdownCallback: (() -> Unit)? = null
 ) : Spek({
