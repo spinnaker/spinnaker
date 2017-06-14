@@ -23,6 +23,7 @@ import groovy.transform.CompileStatic
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
 
+@Deprecated
 @Component
 @CompileStatic
 class PipelineInitializationTask implements Task {

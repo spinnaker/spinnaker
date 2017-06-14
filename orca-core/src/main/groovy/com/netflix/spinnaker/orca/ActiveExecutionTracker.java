@@ -23,8 +23,10 @@ import lombok.Value;
 import org.apache.commons.lang.builder.CompareToBuilder;
 import static java.lang.String.format;
 
+@Deprecated
 public interface ActiveExecutionTracker {
   Map<String, OrcaInstance> activeExecutionsByInstance();
+
   boolean isActiveInstance(String instance);
 
   @Value class OrcaInstance {

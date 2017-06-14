@@ -44,6 +44,7 @@ import static org.springframework.batch.support.PropertiesConverter.stringToProp
  * Orca instances are assumed to have become inactive if they do not update
  * their executions at least every {@link #COUNT_TTL_SECONDS}.
  */
+@Deprecated
 @Component
 @Slf4j
 public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker {

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Component
 import static java.util.Collections.emptyMap
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE
 
+@Deprecated
 @Component
 @Scope(SCOPE_PROTOTYPE)
 @Slf4j

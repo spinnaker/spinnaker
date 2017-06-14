@@ -7,6 +7,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import groovy.transform.CompileStatic;
 import org.springframework.stereotype.Component;
 
+@Deprecated
 @CompileStatic
 @Component
 public class WaitForRequisiteCompletionStage implements StageDefinitionBuilder {

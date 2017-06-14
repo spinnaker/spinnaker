@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.springframework.stereotype.Component;
 
+@Deprecated
 @Component
 class PipelineInitializationStage implements StageDefinitionBuilder {
   @Override

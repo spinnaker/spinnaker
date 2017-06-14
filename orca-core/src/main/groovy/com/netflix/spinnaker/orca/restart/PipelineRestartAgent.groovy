@@ -38,6 +38,7 @@ import static java.util.concurrent.TimeUnit.MINUTES
 /**
  * Detects pipelines that were running on another Orca instance that no longer exists and enqueues them for restart.
  */
+@Deprecated
 @Component
 @ConditionalOnExpression('${pollers.stalePipelines.enabled:false}')
 @Slf4j

@@ -25,6 +25,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import redis.clients.jedis.Jedis;
 import redis.clients.util.Pool;
 
+@Deprecated
 @Configuration
 @ComponentScan(basePackageClasses = ZombiePipelineCleanupConfig.class)
 @EnableScheduling

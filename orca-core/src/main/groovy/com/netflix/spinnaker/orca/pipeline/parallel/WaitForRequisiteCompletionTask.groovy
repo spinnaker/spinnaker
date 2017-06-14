@@ -27,6 +27,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Component
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
 
+@Deprecated
 @Component
 @Slf4j
 @CompileStatic

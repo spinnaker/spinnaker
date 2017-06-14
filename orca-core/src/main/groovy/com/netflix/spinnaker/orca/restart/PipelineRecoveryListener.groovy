@@ -34,6 +34,7 @@ import static com.netflix.spinnaker.orca.ExecutionStatus.RUNNING
 /**
  * Looks for pipelines that were previously running on the current instance before it restarted and resumes them.
  */
+@Deprecated
 @Component
 @ConditionalOnExpression('${pollers.stalePipelines.enabled:true}')
 @Slf4j
