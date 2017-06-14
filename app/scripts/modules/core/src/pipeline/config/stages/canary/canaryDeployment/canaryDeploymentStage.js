@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryDeploymentStage', [])
+module.exports = angular.module('spinnaker.core.pipeline.stage.canary.canaryDeploymentStage', [])
   .config(function(pipelineConfigProvider) {
     pipelineConfigProvider.registerStage({
       synthetic: true,

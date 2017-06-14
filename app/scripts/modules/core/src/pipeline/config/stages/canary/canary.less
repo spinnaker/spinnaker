@@ -1,4 +1,27 @@
-@import (reference) "~core/presentation/less/imports/commonImports.less";
+@import (reference) "~core/presentation/less/imports/colors.less";
+
+div.canary-score {
+  div.progress {
+    border-radius: 0;
+    box-shadow: none;
+    -webkit-box-shadow: none;
+    height: 10px;
+    margin: 20px 0 10px;
+  }
+  div.progress-bar {
+    box-shadow: none;
+    -webkit-box-shadow: none;
+  }
+  div.progress-bar-danger {
+    background-color: @unhealthy_red;
+  }
+  div.progress-bar.progress-bar-warning {
+    background-color: @mid_light_grey;
+  }
+  div.progress-bar.progress-bar-success {
+    background-color: @healthy_green;
+  }
+}
 
 .canary-summary {
   .canary-deployment-row {

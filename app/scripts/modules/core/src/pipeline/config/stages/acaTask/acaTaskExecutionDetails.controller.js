@@ -2,10 +2,10 @@
 
 const angular = require('angular');
 
-import { CLUSTER_FILTER_SERVICE } from '@spinnaker/core';
+import { CLUSTER_FILTER_SERVICE, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.details.controller', [
-  require('angular-ui-router').default,
+module.exports = angular.module('spinnaker.core.pipeline.stage.acaTask.details.controller', [
+  require('@uirouter/angularjs').default,
   CLUSTER_FILTER_SERVICE,
   require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')
 ])
@@ -13,6 +13,8 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTask.detail
                                                        executionDetailsSectionService, canaryDeploymentHistoryService, clusterFilterService) {
 
     $scope.configSections = ['canarySummary', 'canaryConfig', 'canaryAnalysisHistory'];
+
+    $scope.queryListUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.queryListUrl : null;
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;

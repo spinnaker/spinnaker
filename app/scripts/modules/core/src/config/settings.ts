@@ -23,6 +23,7 @@ export interface INotificationSettings {
 }
 
 export interface IFeatures {
+  canary?: boolean;
   entityTags?: boolean;
   fiatEnabled?: boolean;
   pipelines?: boolean;

@@ -2,18 +2,17 @@
 
 const angular = require('angular');
 
-import { ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY } from '@spinnaker/core';
+import { ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY, SETTINGS } from '@spinnaker/core';
 
-import { NetflixSettings } from 'netflix/netflix.settings';
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.acaTaskStage', [
   CLOUD_PROVIDER_REGISTRY,
   require('../canary/canaryExecutionSummary.controller'),
   ACCOUNT_SERVICE,
 ])
   .config(function (pipelineConfigProvider) {
-    if (NetflixSettings.feature.netflixMode) {
+    if (SETTINGS.feature.canary) {
       pipelineConfigProvider.registerStage({
         label: 'ACA Task',
         description: 'Runs a canary task against an existing cluster, asg, or query',
@@ -49,13 +48,11 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.acaTaskStage',
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.notificationHours || [];
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useLookback || false;
     $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.lookbackMins || 0;
-    $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset = $scope.stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset || false;
 
     $scope.stage.canary.canaryDeployments = $scope.stage.canary.canaryDeployments || [{type: 'query', '@class':'.CanaryTaskDeployment'}];
 
     $scope.canaryDeployment = $scope.stage.canary.canaryDeployments[0];
 
-    //TODO: Extract to be reusable with canaryStage [zkt]
     this.recipients = $scope.stage.canary.watchers
       ? angular.isArray($scope.stage.canary.watchers) //if array, convert to comma separated string
         ? $scope.stage.canary.watchers.join(', ')

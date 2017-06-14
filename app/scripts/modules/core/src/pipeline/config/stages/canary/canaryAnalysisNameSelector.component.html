@@ -18,6 +18,7 @@
          class="{{$ctrl.className}}"/>
 
   <a class="btn btn-link"
-     href="http://canary.prod.netflix.net/ui/queryLists"
+     ng-if="$ctrl.queryListUrl"
+     href="{{$ctrl.queryListUrl}}"
      target="_blank">ACA Configurations &nbsp;<i class="fa fa-external-link"></i></a>
 </div>

@@ -7,18 +7,20 @@ import {
   CLOUD_PROVIDER_REGISTRY,
   LIST_EXTRACTOR_SERVICE,
   PIPELINE_CONFIG_PROVIDER,
-  SERVER_GROUP_COMMAND_BUILDER_SERVICE
+  SERVER_GROUP_COMMAND_BUILDER_SERVICE,
+  SETTINGS,
 } from '@spinnaker/core';
 
-import { NetflixSettings } from 'netflix/netflix.settings';
 import { CanaryExecutionLabel } from './CanaryExecutionLabel';
 import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
+import { CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT } from './canaryAnalysisNameSelector.component';
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
   LIST_EXTRACTOR_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,
   CANARY_SCORES_CONFIG_COMPONENT,
+  CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT,
   PIPELINE_CONFIG_PROVIDER
 ])
   .config(function (pipelineConfigProvider) {
@@ -36,15 +38,15 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
       return result;
     }
 
-    if (NetflixSettings.feature.netflixMode) {
+    if (SETTINGS.feature.canary) {
 
       pipelineConfigProvider.registerStage({
         label: 'Canary',
         description: 'Canary tests new changes against a baseline version',
-        extendedDescription: `<a target="_blank" href="https://confluence.netflix.com/display/ENGTOOLS/Canary+Stage">
-          <span class="small glyphicon glyphicon-file"></span> Documentation</a>`,
+        extendedDescription: SETTINGS.canaryDocumentationUrl ? `<a target="_blank" href="${SETTINGS.canaryDocumentationUrl}">
+          <span class="small glyphicon glyphicon-file"></span> Documentation</a>` : undefined,
         key: 'canary',
-        cloudProviders: ['aws', 'titus'],
+        cloudProviders: ['aws'],
         templateUrl: require('./canaryStage.html'),
         executionDetailsUrl: require('./canaryExecutionDetails.html'),
         executionSummaryUrl: require('./canaryExecutionSummary.html'),
@@ -147,7 +149,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
   .controller('CanaryStageCtrl', function ($scope, $uibModal, stage,
                                            namingService, providerSelectionService,
                                            authenticationService, cloudProviderRegistry,
-                                           serverGroupCommandBuilder, titusServerGroupTransformer, awsServerGroupTransformer, accountService, appListExtractorService) {
+                                           serverGroupCommandBuilder, awsServerGroupTransformer, accountService, appListExtractorService) {
 
     $scope.isExpression = function(value) {
       return isString(value) && value.includes('${');
@@ -215,7 +217,6 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           canaryAnalysisIntervalMins: 30,
           useLookback: false,
           lookbackMins: 0,
-          useGlobalDataset: false,
           beginCanaryAnalysisAfterMins: 0
         }
       };
@@ -408,8 +409,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
             },
           }
         }).result.then(function(command) {
-          var transformer = getCloudProvider() === 'aws' ? awsServerGroupTransformer : titusServerGroupTransformer;
-          var baselineCluster = transformer.convertServerGroupCommandToDeployConfiguration(command),
+          var baselineCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command),
             canaryCluster = _.cloneDeep(baselineCluster);
           cleanupClusterConfig(baselineCluster, 'baseline');
           cleanupClusterConfig(canaryCluster, 'canary');
@@ -446,8 +446,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stage.canaryStage', 
           },
         }
       }).result.then(function(command) {
-        var transformer = getCloudProvider() === 'aws' ? awsServerGroupTransformer : titusServerGroupTransformer;
-        var stageCluster = transformer.convertServerGroupCommandToDeployConfiguration(command);
+        var stageCluster = awsServerGroupTransformer.convertServerGroupCommandToDeployConfiguration(command);
         cleanupClusterConfig(stageCluster, type);
         $scope.stage.clusterPairs[index][type.toLowerCase()] = stageCluster;
       });

@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { CLUSTER_FILTER_SERVICE, URL_BUILDER_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.canaryDeployment.details.controller', [
-  require('angular-ui-router').default,
+module.exports = angular.module('spinnaker.core.pipeline.stage.canary.canaryDeployment.details.controller', [
+  require('@uirouter/angularjs').default,
   CLUSTER_FILTER_SERVICE,
   URL_BUILDER_SERVICE,
   require('./canaryDeploymentHistory.service.js')

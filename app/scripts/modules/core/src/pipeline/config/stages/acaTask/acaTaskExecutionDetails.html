@@ -1,4 +1,4 @@
-<div class="canary-details" ng-controller="CanaryExecutionDetailsCtrl as canaryDetailsCtrl">
+<div class="canary-details" ng-controller="acaTaskExecutionDetailsCtrl as canaryDetailsCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
 
   <div class="step-section-details" ng-if="detailsSection === 'canarySummary'">
@@ -11,12 +11,12 @@
         </div>
       </div>
     </div>
+
     <div class="row">
       <div class="col-md-12">
         <table class="table">
           <tbody>
           <tr>
-            <td style="border-top: none !important;"><strong>Deployment</strong></td>
             <td style="border-top: none !important;"><strong>Canary Result</strong></td>
             <td style="border-top: none !important;"><strong>Duration</strong></td>
             <td style="border-top: none !important;"><strong>Report</strong></td>
@@ -24,18 +24,15 @@
           </tr>
           <tr ng-repeat="canaryDeployment in canaryDeployments">
             <td>
-              <strong>{{ canaryDeployment.canaryCluster.region }}</strong>
-            </td>
-            <td>
-              <canary-score result="canaryDeployment.canaryResult.result"
-                            score="canaryDeployment.canaryResult.score"
+              <canary-score result="canaryDeployment.canaryAnalysisResult.result"
+                            score="canaryDeployment.canaryAnalysisResult.score"
                             health="canaryDeployment.health.health"></canary-score>
             </td>
             <td>
-              <span ng-if="canaryDeployment.canaryResult.timeDuration.durationString">
-                {{ canaryDeployment.canaryResult.timeDuration.durationString }}
+              <span ng-if="canaryDeployment.canaryAnalysisResult.timeDuration.durationString">
+                {{ canaryDeployment.canaryAnalysisResult.timeDuration.durationString }}
               </span>
-              <span ng-if="!canaryDeployment.canaryResult.timeDuration.durationString">
+              <span ng-if="!canaryDeployment.canaryAnalysisResult.timeDuration.durationString">
                 -
               </span>
             </td>
@@ -47,7 +44,7 @@
             </td>
             <td>
               <span ng-if="canaryDeployment.canaryAnalysisResult.lastUpdated">
-                {{ canaryDeployment.canaryResult.lastUpdated | timestamp}}
+                {{ canaryDeployment.canaryAnalysisResult.lastUpdated | timestamp}}
               </span>
               <span ng-if="!canaryDeployment.canaryAnalysisResult.lastUpdated">
                 -
@@ -132,9 +129,9 @@
     </div>
     <div class="row">
       <div class="col-md-12 canary-config-section">
-        <div class="row">
-          <div class="col-md-4 sm-label-right compact">Baseline</div>
-          <div class="col-md-6"><account-tag account="baseline.account" pad="right"></account-tag> {{baseline.cluster}}</div>
+        <div class="row" ng-if="canary.canaryDeployments.length > 0">
+          <div class="col-md-4 sm-label-right compact">Account</div>
+          <div class="col-md-6"><account-tag account="canary.canaryDeployments[0].accountName" pad="right"></account-tag></div>
         </div>
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Duration</div>
@@ -148,16 +145,31 @@
           <div class="col-md-4 sm-label-right compact">Result Strategy</div>
           <div class="col-md-6">{{canaryConfig.combinedCanaryResultStrategy | lowercase}}</div>
         </div>
+        <div class="row" ng-if="canary.canaryDeployments.length > 0">
+          <div class="col-md-4 sm-label-right compact">Scope Type</div>
+          <div class="col-md-6">{{canary.canaryDeployments[0].type}}</div>
+        </div>
+        <div class="row" ng-if="canary.canaryDeployments.length > 0">
+          <div class="col-md-4 sm-label-right compact">Baseline</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{canary.canaryDeployments[0].baseline}}</div>
+        </div>
+        <div class="row" ng-if="canary.canaryDeployments.length > 0">
+          <div class="col-md-4 sm-label-right compact">Canary</div>
+          <div class="col-md-8" style="word-wrap: break-word">{{canary.canaryDeployments[0].canary}}</div>
+        </div>
       </div>
       <div class="col-md-12 canary-config-section">
         <h5>Analysis Config</h5>
         <div class="horizontal-rule"></div>
         <div class="row">
           <div class="col-md-4 sm-label-right compact">Config Name</div>
-          <div class="col-md-6">
-            <a href="http://canary.prod.netflix.net/ui/canaryTasks/{{canaryDeployments[0].baselineCluster.accountName}}/{{canaryConfig.canaryAnalysisConfig.name}}" target="_blank">
+          <div class="col-md-8" style="word-wrap: break-word">
+            <a ng-if="queryListUrl" href="{{queryListUrl}}/{{canaryConfig.canaryAnalysisConfig.name}}/edit" target="_blank">
               {{canaryConfig.canaryAnalysisConfig.name}}
             </a>
+            <span ng-if="!queryListUrl">
+              {{canaryConfig.canaryAnalysisConfig.name}}
+            </span>
           </div>
         </div>
         <div class="row">
@@ -186,28 +198,43 @@
           <div class="col-md-4 sm-label-right compact">Minimum Canary Score</div>
           <div class="col-md-6">{{canaryConfig.canaryHealthCheckHandler.minimumCanaryResultScore}}</div>
         </div>
-        <div class="row" ng-if="canaryConfig.actionsForUnhealthyCanary">
-          <div class="col-md-4 sm-label-right compact">Unhealthy Canary Actions</div>
-          <div class="col-md-6">
-            <span ng-repeat="canaryAction in canaryConfig.actionsForUnhealthyCanary">
-              <strong>{{ canaryAction.action }}</strong>
-              <span ng-if="canaryAction.delayBeforeActionInMins <= 0">
-                immediately
-              </span>
-              <span ng-if="!(canaryAction.delayBeforeActionInMins <= 0)">
-                after {{ canaryAction.delayBeforeActionInMins }} minutes
-              </span>
-              <br/>
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   </div>
 
-  <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
+  <div class="step-section-details" ng-if="detailsSection === 'canaryAnalysisHistory'">
     <div class="row">
-      <execution-step-details item="stage"></execution-step-details>
+      <div class="col-md-12">
+        <p class="text-center" ng-if="viewState.loadingHistory">Loading...</p>
+        <p class="text-center" ng-if="!viewState.loadingHistory && viewState.loadingHistoryError">
+          Canary analysis history could not be loaded. <br/>
+          <a href ng-click="loadHistory()">Reload score history</a>
+        </p>
+        <table class="table" ng-if="!viewState.loadingHistory && !viewState.loadingHistoryError">
+          <thead>
+          <tr>
+            <th>Score</th>
+            <th>Score Duration</th>
+            <th>Generated On</th>
+            <th>Report</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr ng-repeat="scoreReport in analysisHistory | orderBy: '-lastUpdated'">
+            <td>
+              <canary-score result="scoreReport.result"
+                            score="scoreReport.score"
+                            health="scoreReport.health"></canary-score>
+            </td>
+            <td>{{ scoreReport.timeDuration.durationString }}</td>
+            <td>{{ scoreReport.lastUpdated | timestamp }}</td>
+            <td><a target="_blank" ng-href="{{scoreReport.canaryReportURL}}">Canary Report</a></td>
+          </tr>
+          </tbody>
+        </table>
+        <p class="text-center" ng-if="!viewState.loadingHistory && !analysisHistory.length">No canary analysis history available</p>
+
+      </div>
     </div>
   </div>
 </div>

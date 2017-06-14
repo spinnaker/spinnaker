@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.status.directive', [])
+module.exports = angular.module('spinnaker.core.pipeline.stages.canary.status.directive', [])
   .directive('canaryStatus', function() {
     return {
       restrict: 'E',
@@ -14,7 +14,7 @@ module.exports = angular.module('spinnaker.netflix.pipeline.stages.canary.status
         function applyLabel() {
           scope.statusLabel = scope.status === 'LAUNCHED' ? 'launched'
             : scope.status === 'RUNNING' ? 'running'
-            : scope.status === 'SUCCEEDED' ? 'completed'
+            : scope.status === 'SUCCEEDED' ? 'succeeded'
             : scope.status === 'FAILED' ? 'failed'
             : scope.status === 'TERMINATED' ? 'terminated'
             : scope.status === 'CANCELED' ? 'canceled'

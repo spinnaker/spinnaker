@@ -5,7 +5,7 @@ const angular = require('angular');
 import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
 import { CANARY_SCORE_COMPONENT } from '../canary/canaryScore.component';
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.genericCanary', [
+module.exports = angular.module('spinnaker.core.pipeline.stage.genericCanary', [
   require('./acaTaskStage'),
   require('./acaTaskExecutionDetails.controller'),
   require('./acaTaskStage.transformer'),

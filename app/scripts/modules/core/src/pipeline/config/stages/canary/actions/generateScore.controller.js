@@ -4,8 +4,8 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.actions.generate.score.controller', [
-  require('angular-ui-router').default,
+module.exports = angular.module('spinnaker.core.pipeline.stage.canary.actions.generate.score.controller', [
+  require('@uirouter/angularjs').default,
 ])
   .controller('GenerateScoreCtrl', function ($scope, $http, $uibModalInstance, canaryId) {
 

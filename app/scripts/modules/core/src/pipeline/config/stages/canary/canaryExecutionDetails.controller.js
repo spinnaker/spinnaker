@@ -2,12 +2,16 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.netflix.pipeline.stage.canary.details.controller', [
-  require('angular-ui-router').default,
+import { SETTINGS } from '@spinnaker/core';
+
+module.exports = angular.module('spinnaker.core.pipeline.stage.canary.details.controller', [
+  require('@uirouter/angularjs').default,
 ])
   .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {
 
     $scope.configSections = ['canarySummary', 'canaryConfig', 'taskStatus'];
+
+    $scope.configUrl = SETTINGS.canaryConfig ? SETTINGS.canaryConfig.analysisConfigUrl : null;
 
     let initialized = () => {
       $scope.detailsSection = $stateParams.details;

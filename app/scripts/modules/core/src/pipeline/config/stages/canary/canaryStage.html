@@ -190,7 +190,7 @@
     </span>
   </stage-config-field>
   <stage-config-field label="Report Email" key="pipeline.config.canary.owner">
-    <input type="email" required ng-model="stage.canary.owner"
+    <input type="text" required ng-model="stage.canary.owner"
            class="form-control input-sm"/>
   </stage-config-field>
   <stage-config-field
@@ -220,17 +220,6 @@
 </div>
 <div class="form-horizontal canary-config-view">
   <h4>Advanced</h4>
-  <div class="form-group">
-    <div class="col-md-11 col-md-offset-1">
-      <div class="checkbox">
-        <label>
-          <input type="checkbox" ng-model="stage.canary.canaryConfig.canaryAnalysisConfig.useGlobalDataset"/>
-          <b>Use Global Atlas Dataset</b>
-          <help-field key="pipeline.config.canary.useGlobalDataset"></help-field>
-        </label>
-      </div>
-    </div>
-  </div>
   <div class="form-group">
     <div class="col-md-11 col-md-offset-1">
       <div ng-if="isExpression(stage.scaleUp.delay) || isExpression(stage.scaleUp.capacity)">

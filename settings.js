@@ -10,6 +10,7 @@ var chaosEnabled = netflixMode || process.env.CHAOS_ENABLED === 'true' ? true : 
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
 var debugEnabled = process.env.DEBUG_ENABLED === 'false' ? false : true;
+var canaryEnabled = process.env.CANARY_ENABLED === 'true';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -113,6 +114,7 @@ window.spinnakerSettings = {
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   feature: {
+    canary: canaryEnabled,
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,
     pipelines: true,
