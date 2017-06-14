@@ -295,12 +295,7 @@ class Builder(object):
           '--stacktrace',
           '-Prelease.useLastTag=true',
           '-PbintrayPackageBuildNumber={number}'.format(
-              number=self.__build_number),
-          '-PbintrayOrg="{org}"'.format(org=org),
-          '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
-          '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
-          '-PbintrayKey="{key}"'.format(key=bintray_key),
-          '-PbintrayUser="{user}"'.format(user=bintray_user)
+              number=self.__build_number)
         ]
     else:
       target = 'buildRpm'
@@ -688,12 +683,12 @@ class Builder(object):
     print 'Finished copying {0}.'.format(subsys)
 
   @classmethod
-  def init_argument_parser(cls, parser, valid_platforms):
+  def init_argument_parser(cls, parser):
       refresh_source.Refresher.init_argument_parser(parser)
       parser.add_argument('--platform', default='debian', action='store',
                           help='Select which platform to build for.'
                                ' Valid options are: {}.'.format(
-                               ', '.join(valid_platforms)))
+                               ', '.join(VALID_PLATFORMS)))
       parser.add_argument('--build', default=True, action='store_true',
                           help='Build the sources.')
       parser.add_argument('--debug_gradle', default=False, action='store_true',
@@ -799,7 +794,7 @@ class Builder(object):
   @classmethod
   def main(cls):
     parser = argparse.ArgumentParser()
-    cls.init_argument_parser(parser, VALID_PLATFORMS)
+    cls.init_argument_parser(parser)
     options = parser.parse_args()
     cls.do_build(options)
 
