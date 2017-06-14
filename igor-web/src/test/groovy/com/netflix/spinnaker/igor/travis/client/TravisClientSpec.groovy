@@ -29,6 +29,7 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import com.squareup.okhttp.mockwebserver.MockResponse
 import com.squareup.okhttp.mockwebserver.MockWebServer
 import retrofit.client.Response
@@ -383,6 +384,152 @@ class TravisClientSpec extends Specification {
         then:
         builds.commits.first().isTag()
 
+    }
+
+    def "Parse builds from the v3 api"() {
+        given:
+        setResponse '''
+{
+    "@type": "builds",
+    "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2",
+    "@representation": "standard",
+    "@pagination": {
+        "limit": 2,
+        "offset": 0,
+        "count": 160,
+        "is_first": true,
+        "is_last": false,
+        "next": {
+            "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2&offset=2",
+            "offset": 2,
+            "limit": 2
+        },
+        "prev": null,
+        "first": {
+            "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2",
+            "offset": 0,
+            "limit": 2
+        },
+        "last": {
+            "@href": "/api/repo/spt-infrastructure%2Forca/builds?branch.name=sch_master&limit=2&offset=158",
+            "offset": 158,
+            "limit": 2
+        }
+    },
+    "builds": [
+        {
+            "@type": "build",
+            "@href": "/api/build/1386282",
+            "@representation": "standard",
+            "@permissions": {
+                "read": true,
+                "cancel": true,
+                "restart": true
+            },
+            "id": 1386282,
+            "number": "389",
+            "state": "passed",
+            "duration": 413,
+            "event_type": "push",
+            "previous_state": "passed",
+            "pull_request_title": null,
+            "pull_request_number": null,
+            "started_at": "2017-06-06T18:06:56Z",
+            "finished_at": "2017-06-06T18:13:49Z",
+            "repository": {
+                "@type": "repository",
+                "@href": "/api/repo/1996",
+                "@representation": "minimal",
+                "id": 1996,
+                "name": "orca",
+                "slug": "spt-infrastructure/orca"
+            },
+            "branch": {
+                "@type": "branch",
+                "@href": "/api/repo/1996/branch/sch_master",
+                "@representation": "minimal",
+                "name": "sch_master"
+            },
+            "commit": {
+                "@type": "commit",
+                "@representation": "minimal",
+                "id": 802307,
+                "sha": "3d38456a3656a65032c4db9c08d3648abb696b58",
+                "ref": "refs/heads/sch_master",
+                "message": "Merge pull request #54 from spt-infrastructure/DOCD-1025\\n\\nDocd 1025",
+                "compare_url": "https://github.schibsted.io/spt-infrastructure/orca/compare/0b373922a733...3d38456a3656",
+                "committed_at": "2017-06-06T18:06:51Z"
+            },
+            "jobs": [
+                {
+                    "@type": "job",
+                    "@href": "/api/job/1386283",
+                    "@representation": "minimal",
+                    "id": 1386283
+                }
+            ]
+        },
+        {
+            "@type": "build",
+            "@href": "/api/build/1384443",
+            "@representation": "standard",
+            "@permissions": {
+                "read": true,
+                "cancel": true,
+                "restart": true
+            },
+            "id": 1384443,
+            "number": "388",
+            "state": "passed",
+            "duration": 717,
+            "event_type": "pull_request",
+            "previous_state": "passed",
+            "pull_request_title": "Docd 1025",
+            "pull_request_number": 54,
+            "started_at": "2017-06-06T13:46:06Z",
+            "finished_at": "2017-06-06T13:58:03Z",
+            "repository": {
+                "@type": "repository",
+                "@href": "/api/repo/1996",
+                "@representation": "minimal",
+                "id": 1996,
+                "name": "orca",
+                "slug": "spt-infrastructure/orca"
+            },
+            "branch": {
+                "@type": "branch",
+                "@href": "/api/repo/1996/branch/sch_master",
+                "@representation": "minimal",
+                "name": "sch_master"
+            },
+            "commit": {
+                "@type": "commit",
+                "@representation": "minimal",
+                "id": 801226,
+                "sha": "40e8099ba9cab03febe17b38a650b8868434a068",
+                "ref": "refs/pull/54/merge",
+                "message": "DOCD-1025 enable pipelineTemplates and add proxy",
+                "compare_url": "https://github.schibsted.io/spt-infrastructure/orca/pull/54",
+                "committed_at": "2017-06-06T13:34:13Z"
+            },
+            "jobs": [
+                {
+                    "@type": "job",
+                    "@href": "/api/job/1384444",
+                    "@representation": "minimal",
+                    "id": 1384444
+                }
+            ]
+        }
+    ]
+}
+'''
+
+        when:
+        V3Builds builds = client.v3builds("someToken", "org/repo","bah", 2)
+
+        then:
+        builds.builds.size() == 2
     }
 
     def "commits, dont mark regular branches as tags"() {

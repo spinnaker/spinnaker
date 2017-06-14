@@ -105,4 +105,20 @@ interface TravisClient {
     @Headers("Travis-API-Version: 3")
     V3Builds builds(@Header("Authorization") String accessToken, @Path('repository_id') int repositoryId, @Query('limit') int limit)
 
+    @GET('/repo/{repository_slug}/builds')
+    @Headers("Travis-API-Version: 3")
+    V3Builds v3builds(@Header("Authorization") String accessToken, @Path('repository_slug') String repositorySlug, @Query('limit') int limit)
+
+    @GET('/repo/{repository_slug}/builds')
+    @Headers("Travis-API-Version: 3")
+    V3Builds v3builds(@Header("Authorization") String accessToken, @Path('repository_slug') String repositorySlug, @Query('branch.name') String branchName, @Query('limit') int limit)
+
+    @GET('/repo/{repository_slug}/builds')
+    @Headers("Travis-API-Version: 3")
+    V3Builds v3builds(@Header("Authorization") String accessToken, @Path('repository_slug') String repositorySlug, @Query('branch.name') String branchName, @Query('event_type') String eventType, @Query('limit') int limit)
+
+    @GET('/repo/{repository_slug}/builds')
+    @Headers("Travis-API-Version: 3")
+    V3Builds v3buildsByEventType(@Header("Authorization") String accessToken, @Path('repository_slug') String repositorySlug, @Query('event_type') String EventType, @Query('limit') int limit)
+
 }

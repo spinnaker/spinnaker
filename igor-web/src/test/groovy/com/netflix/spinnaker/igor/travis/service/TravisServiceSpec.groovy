@@ -23,6 +23,7 @@ import com.netflix.spinnaker.igor.travis.client.model.AccessToken
 import com.netflix.spinnaker.igor.travis.client.model.Build
 import com.netflix.spinnaker.igor.travis.client.model.Builds
 import com.netflix.spinnaker.igor.travis.client.model.Commit
+import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -177,5 +178,20 @@ class TravisServiceSpec extends Specification{
 
         then:
         branchedRepoSlug == "my/slug"
+    }
+
+    @Unroll
+    def "resolve travis build type from input repo slug"() {
+        expect:
+        service.travisBuildTypeFromRepoSlug(inputRepoSlug) == expectedTravisBuildType
+
+        where:
+        inputRepoSlug                     || expectedTravisBuildType
+        "my-org/repo"                     || TravisBuildType.unknown
+        "my-org/repo/branch"              || TravisBuildType.branch
+        "my-org/repo/branch/with/slashes" || TravisBuildType.branch
+        "my-org/repo/pull_request_master" || TravisBuildType.pull_request
+        "m/r/some_pull_request_in_name"   || TravisBuildType.branch
+        "my-org/repo/tags"                || TravisBuildType.tag
     }
 }

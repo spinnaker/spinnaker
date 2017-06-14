@@ -40,8 +40,10 @@ import com.netflix.spinnaker.igor.travis.client.model.Repo
 import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
+import com.netflix.spinnaker.igor.travis.client.model.v3.V3Commit
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -49,6 +51,7 @@ import retrofit.mime.TypedByteArray
 
 @Slf4j
 class TravisService implements BuildService {
+    public static final int TRAVIS_BUILD_RESULT_LIMIT = 25
     final String baseUrl
     final String groupKey
     final GithubAuth gitHubAuth
@@ -160,35 +163,37 @@ class TravisService implements BuildService {
         return builds.builds
     }
 
+    List<GenericBuild> getTagBuilds(String repoSlug) {
+        // Tags are hard to identify, no filters exist.
+        // Increasing the limit to increase the odds for finding some tag builds.
+        V3Builds builds = travisClient.v3buildsByEventType(getAccessToken(), repoSlug, "push", TRAVIS_BUILD_RESULT_LIMIT*2)
+        return builds.builds.findAll { it.commit?.isTag() }.collect { getGenericBuild(it) }
+    }
+
     List<GenericBuild> getBuilds(String inputRepoSlug) {
         String repoSlug = cleanRepoSlug(inputRepoSlug)
         String branch = branchFromRepoSlug(inputRepoSlug)
-        boolean tagsVirtualBranch = branchIsTagsVirtualBranch(inputRepoSlug)
-        Builds builds = travisClient.builds(getAccessToken(), repoSlug)
-        List<GenericBuild> list = new ArrayList<GenericBuild>()
-        builds.builds.each { build ->
-            if (tagsVirtualBranch) {
-                Commit commit = builds.commits.find{
-                    it.id == build.commitId
-                }
-                if (commit?.isTag()) {
-                    list.add(getGenericBuild(build, repoSlug))
-                }
-            } else if (branch.length() == 0) {
-                list.add(getGenericBuild(build, repoSlug))
-            } else {
-                Commit commit = builds.commits.find{
-                    it.id == build.commitId
-                }
-                if (!commit) {
-                    log.info("${groupKey}:${repoSlug}:${build.number} - Could not find commit for build.")
-                    list.add(getGenericBuild(build, repoSlug))
-                } else if (commit.branch.equalsIgnoreCase(branch) && build.pullRequest == branchIsPullRequestVirtualBranch(inputRepoSlug)){
-                    list.add(getGenericBuild(build, repoSlug))
-                }
-            }
+        TravisBuildType travisBuildType = travisBuildTypeFromRepoSlug(inputRepoSlug)
+        V3Builds builds
+
+        switch (travisBuildType) {
+            case TravisBuildType.tag:
+                return getTagBuilds(repoSlug)
+                break
+            case TravisBuildType.branch:
+                builds = travisClient.v3builds(getAccessToken(), repoSlug, branch, "push", TRAVIS_BUILD_RESULT_LIMIT)
+                break
+            case TravisBuildType.pull_request:
+                builds = travisClient.v3builds(getAccessToken(), repoSlug, branch, "pull_request", TRAVIS_BUILD_RESULT_LIMIT)
+                break
+            case TravisBuildType.unknown:
+                builds = travisClient.v3builds(getAccessToken(), repoSlug, TRAVIS_BUILD_RESULT_LIMIT)
+                break
         }
-        return list
+
+        builds.builds.collect {
+            getGenericBuild(it)
+        }
     }
 
     Commit getCommit(String repoSlug, int buildNumber) {
@@ -240,6 +245,19 @@ class TravisService implements BuildService {
         return buildLog
     }
 
+    String getLog(V3Build build) {
+        String buildLog = ""
+        build.job_ids.each {
+            Job job = getJob(it.intValue())
+            if (job.logId) {
+                buildLog += getLog(job.logId)
+            } else {
+                buildLog += getJobLog(job.id)
+            }
+        }
+        return buildLog
+    }
+
     String getLog(int logId) {
         log.debug "fetching log by logId ${logId}"
         Response response = travisClient.log(getAccessToken(), logId)
@@ -264,6 +282,12 @@ class TravisService implements BuildService {
 
     GenericBuild getGenericBuild(Build build, String repoSlug) {
         GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, repoSlug, baseUrl)
+        genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build), artifactRegexes)
+        return genericBuild
+    }
+
+    GenericBuild getGenericBuild(V3Build build) {
+        GenericBuild genericBuild = TravisBuildConverter.genericBuild(build, baseUrl)
         genericBuild.artifacts = ArtifactParser.getArtifactsFromLog(getLog(build), artifactRegexes)
         return genericBuild
     }
@@ -351,6 +375,20 @@ class TravisService implements BuildService {
     }
     protected static boolean branchIsPullRequestVirtualBranch(String inputRepoSlug) {
         return extractBranchFromRepoSlug(inputRepoSlug).startsWith("pull_request_")
+    }
+
+    protected static TravisBuildType travisBuildTypeFromRepoSlug(String inputRepoSlug) {
+        if (branchIsTagsVirtualBranch(inputRepoSlug)) {
+            return TravisBuildType.tag
+        }
+        if (branchIsPullRequestVirtualBranch(inputRepoSlug)) {
+            return TravisBuildType.pull_request
+        }
+        if (branchFromRepoSlug(inputRepoSlug).length() > 0) {
+            return TravisBuildType.branch
+        }
+
+        return TravisBuildType.unknown
     }
 
     private static String extractBranchFromRepoSlug(String inputRepoSlug) {
