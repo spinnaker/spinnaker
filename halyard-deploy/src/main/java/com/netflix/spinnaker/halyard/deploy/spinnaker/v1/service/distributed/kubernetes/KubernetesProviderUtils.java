@@ -167,24 +167,12 @@ class KubernetesProviderUtils {
 
   static void createNamespace(AccountDeploymentDetails<KubernetesAccount> details, String namespace) {
     KubernetesClient client = getClient(details);
-    Map<String, String> annotations = new HashMap<>();
-    annotations.put("net.beta.kubernetes.io/network-policy", "{\"ingress\": {\"isolation\": \"DefaultDeny\"}}");
     if (client.namespaces().withName(namespace).get() == null) {
       client.namespaces().create(new NamespaceBuilder()
           .withNewMetadata()
           .withName(namespace)
-          .withAnnotations(annotations)
           .endMetadata()
           .build());
-    } else {
-      client.namespaces()
-          .withName(namespace)
-          .edit()
-          .withNewMetadata()
-          .withAnnotations(annotations)
-          .withName(namespace)
-          .endMetadata()
-          .done();
     }
   }
 
