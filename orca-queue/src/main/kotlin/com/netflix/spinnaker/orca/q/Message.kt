@@ -192,6 +192,9 @@ data class ResumeStage(
 ) : Message(), StageLevel {
   constructor(source: ExecutionLevel, stageId: String) :
     this(source.executionType, source.executionId, source.application, stageId)
+
+  constructor(source: Stage<*>) :
+    this(source.getExecution().javaClass, source.getExecution().getId(), source.getExecution().getApplication(), source.getId())
 }
 
 data class CancelStage(
@@ -235,6 +238,17 @@ data class ResumeExecution(
 ) : Message(), ExecutionLevel {
   constructor(source: Execution<*>) :
     this(source.javaClass, source.getId(), source.getApplication())
+}
+
+data class CancelExecution(
+  override val executionType: Class<out Execution<*>>,
+  override val executionId: String,
+  override val application: String,
+  val user: String,
+  val reason: String?
+) : Message(), ExecutionLevel {
+  constructor(source: Execution<*>, user: String, reason: String?) :
+    this(source.javaClass, source.getId(), source.getApplication(), user, reason)
 }
 
 /**

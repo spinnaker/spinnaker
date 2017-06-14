@@ -207,8 +207,18 @@ class TaskController {
   @ResponseStatus(HttpStatus.ACCEPTED)
   void cancel(@PathVariable String id, @RequestParam(required = false) String reason,
               @RequestParam(defaultValue = "false") boolean force) {
-    executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
-    zombiePipelineCleanupAgent.ifPresent({ it.slayIfZombie(executionRepository.retrievePipeline(id), force) })
+    executionRepository.retrievePipeline(id).with { pipeline ->
+      if (pipeline.executionEngine == v3) {
+        executionRunners.find {
+          it.engine() == v3
+        }.cancel(pipeline, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
+      } else {
+        executionRepository.cancel(id, AuthenticatedRequest.getSpinnakerUser().orElse("anonymous"), reason)
+        zombiePipelineCleanupAgent.ifPresent({
+          it.slayIfZombie(executionRepository.retrievePipeline(id), force)
+        })
+      }
+    }
   }
 
   @PreAuthorize("hasPermission(this.getPipeline(#id)?.application, 'APPLICATION', 'WRITE')")

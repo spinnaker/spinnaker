@@ -38,4 +38,8 @@ import org.springframework.stereotype.Component
   override fun <T : Execution<T>> unpause(execution: T) {
     queue.push(ResumeExecution(execution))
   }
+
+  override fun <T : Execution<T>> cancel(execution: T, user: String, reason: String?) {
+    queue.push(CancelExecution(execution, user, reason))
+  }
 }
