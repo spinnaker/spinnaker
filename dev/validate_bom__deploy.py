@@ -694,30 +694,32 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     self.__instance_id = doc["Instances"][0]["InstanceId"]
     logging.info('Created instance id=%s to tag as "%s"',
                  self.__instance_id, options.deploy_aws_name)
-    check_run_quick(
-        'aws ec2 create-tags'
-        ' --region {region}'
-        ' --resources {instance_id}'
-        ' --tags "Key=Name,Value={name}"'
-        .format(region=options.deploy_aws_region,
-                instance_id=self.__instance_id,
-                name=options.deploy_aws_name),
-        echo=False)
 
     # It's slow to start up and sometimes there is a race condition
     # in which describe-instances doesnt know about our id even though
-    # create-tags did.
+    # create-tags did, or create-tags doesnt know abut the new id.
     time.sleep(5)
     end_time = time.time() + 10*60
+    did_tag=False
     while time.time() < end_time:
+      if not did_tag:
+        tag_response = run_quick(
+            'aws ec2 create-tags'
+            ' --region {region}'
+            ' --resources {instance_id}'
+            ' --tags "Key=Name,Value={name}"'
+            .format(region=options.deploy_aws_region,
+                    instance_id=self.__instance_id,
+                    name=options.deploy_aws_name),
+            echo=False)
+        did_tag = tag_response.returncode == 0
       if self.__is_ready():
         return
       time.sleep(5)
-
     raise RuntimeError('Giving up waiting for deployment.')
 
   def __is_ready(self):
-    description = check_run_quick(
+    description = run_quick(
         'aws ec2 describe-instances'
         ' --profile {region}'
         ' --output json'
@@ -727,8 +729,9 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
                 id=self.__instance_id),
         echo=False)
     if description.returncode != 0:
-      raise ValueError('Could not determine public IP: {0}'
-                       .format(description))
+      logging.warning('Could not determine public IP: {0}'
+                      .format(description))
+      return False
 
     # result is an array of reservations of ararys of instances.
     # but we only expect one, so fish out the first instance info
