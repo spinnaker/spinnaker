@@ -62,6 +62,11 @@ public class HttpClientUtils {
           int statusCode = response.getStatusLine().getStatusCode();
           HttpUriRequest currentReq = (HttpUriRequest) context.getAttribute(HttpCoreContext.HTTP_REQUEST);
           LOGGER.info("Response code {} for {}", statusCode, currentReq.getURI());
+
+          if (statusCode >= HttpStatus.SC_OK && statusCode <= 299) {
+            return false;
+          }
+
           boolean shouldRetry = (statusCode == 429 || RETRYABLE_500_HTTP_STATUS_CODES.contains(statusCode)) && executionCount <= MAX_RETRIES;
           if (!shouldRetry) {
             throw new RetryRequestException(String.format("Not retrying %s. Count %d, Max %d", currentReq.getURI(), executionCount, MAX_RETRIES));
