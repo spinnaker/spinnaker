@@ -17,7 +17,7 @@
 package com.netflix.kayenta.stackdriver.controllers;
 
 import com.netflix.kayenta.canary.CanaryMetricConfig;
-import com.netflix.kayenta.canary.StackdriverCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -53,8 +53,8 @@ public class StackdriverFetchController {
                              @ApiParam(defaultValue = "compute.googleapis.com/instance/cpu/utilization") @RequestParam String metricType,
                              @RequestParam(required = false) List<String> groupByFields, // metric.label.instance_name
                              @ApiParam(defaultValue = "myapp-v010-") @RequestParam String scope,
-                             @ApiParam(defaultValue = "2017-05-01T15:13:00Z") @RequestParam String intervalStartTimeIso,
-                             @ApiParam(defaultValue = "2017-05-02T15:27:00Z") @RequestParam String intervalEndTimeIso,
+                             @ApiParam(defaultValue = "2017-06-01T15:13:00Z") @RequestParam String intervalStartTimeIso,
+                             @ApiParam(defaultValue = "2017-06-02T15:27:00Z") @RequestParam String intervalEndTimeIso,
                              @ApiParam(defaultValue = "3600") @RequestParam String step) throws IOException {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,

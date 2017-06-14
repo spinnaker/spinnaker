@@ -83,6 +83,7 @@ public class StackdriverFetchTask implements RetryableTask {
                                                                                      accountCredentialsRepository);
     Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedStorageAccountName);
 
+    // TODO(duftler): Use orElseThrow() instead.
     if (storageService.isPresent()) {
       try {
         CanaryConfig canaryConfig =
@@ -92,7 +93,7 @@ public class StackdriverFetchTask implements RetryableTask {
         long startTimeMillis = startTimeInstant.toEpochMilli();
         Instant endTimeInstant = Instant.parse(stackdriverCanaryScope.getIntervalEndTimeIso());
         long endTimeMillis = endTimeInstant.toEpochMilli();
-        stackdriverCanaryScope.setStart(startTimeMillis+ "");
+        stackdriverCanaryScope.setStart(startTimeMillis + "");
         stackdriverCanaryScope.setEnd(endTimeMillis + "");
 
         // TODO(duftler): Fetch _all_ metric sets specified in canaryConfig.getMetrics(), not just the first.

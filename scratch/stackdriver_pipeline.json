@@ -20,8 +20,8 @@
       "canaryConfigId": "MySampleStackdriverCanaryConfig",
       "stackdriverCanaryScope": {
         "scope": "myapp-v010-",
-        "intervalStartTimeIso": "2017-05-01T15:13:00Z",
-        "intervalEndTimeIso": "2017-05-02T15:27:00Z",
+        "intervalStartTimeIso": "2017-06-01T15:13:00Z",
+        "intervalEndTimeIso": "2017-06-02T15:27:00Z",
         "step": "3600"
       }
     },
@@ -37,10 +37,10 @@
       "storageAccountName": "my-account-name-1",
       "canaryConfigId": "MySampleStackdriverCanaryConfig",
       "stackdriverCanaryScope": {
-        "scope": "myapp-v010-",
-        "intervalStartTimeIso": "2017-05-01T15:13:00Z",
-        "intervalEndTimeIso": "2017-05-02T15:27:00Z",
-        "step": "7200"
+        "scope": "myapp-v021-",
+        "intervalStartTimeIso": "2017-06-01T15:13:00Z",
+        "intervalEndTimeIso": "2017-06-02T15:27:00Z",
+        "step": "3600"
       }
     },
     {

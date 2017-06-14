@@ -17,9 +17,9 @@
 package com.netflix.kayenta.atlas.controllers;
 
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
-import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
-import com.netflix.kayenta.canary.AtlasCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
+import com.netflix.kayenta.canary.providers.AtlasCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;

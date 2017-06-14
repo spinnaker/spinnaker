@@ -22,10 +22,8 @@ import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import com.netflix.spinnaker.orca.log.ExecutionLogEntry;
 import com.netflix.spinnaker.orca.log.ExecutionLogRepository;
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
-import com.netflix.spinnaker.orca.q.redis.RedisExecutionLogRepository;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -64,9 +61,6 @@ public class PipelineController {
 
   @Autowired
   ConfigurableApplicationContext context;
-
-  @Autowired
-  Collection<StageDefinitionBuilder> stageDefinitionBuilderCollection;
 
   // TODO(duftler): Expose /inservice and /outofservice endpoints.
   @PostConstruct

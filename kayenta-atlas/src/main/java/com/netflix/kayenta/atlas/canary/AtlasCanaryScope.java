@@ -32,6 +32,10 @@ public class AtlasCanaryScope extends CanaryScope {
   private String type;
 
   public String cq() {
+    if (type == null) {
+      throw new IllegalArgumentException("Atlas canary scope requires 'type' to be application, cluster or node.");
+    }
+
     switch (type) {
       case "application":
       case "cluster":

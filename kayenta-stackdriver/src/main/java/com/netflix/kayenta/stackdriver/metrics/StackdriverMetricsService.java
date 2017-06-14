@@ -23,7 +23,7 @@ import com.google.api.services.monitoring.v3.model.Point;
 import com.google.api.services.monitoring.v3.model.TimeSeries;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.CanaryScope;
-import com.netflix.kayenta.canary.StackdriverCanaryMetricSetQueryConfig;
+import com.netflix.kayenta.canary.providers.StackdriverCanaryMetricSetQueryConfig;
 import com.netflix.kayenta.google.security.GoogleNamedAccountCredentials;
 import com.netflix.kayenta.metrics.MetricSet;
 import com.netflix.kayenta.metrics.MetricsService;
@@ -62,7 +62,7 @@ public class StackdriverMetricsService implements MetricsService {
   }
 
   @Override
-  public List<MetricSet> queryMetrics(String accountName,
+  public List<MetricSet> queryMetrics(String metricsAccountName,
                                       CanaryMetricConfig canaryMetricConfig,
                                       CanaryScope canaryScope) throws IOException {
     if (!(canaryScope instanceof StackdriverCanaryScope)) {
@@ -71,8 +71,8 @@ public class StackdriverMetricsService implements MetricsService {
 
     StackdriverCanaryScope stackdriverCanaryScope = (StackdriverCanaryScope)canaryScope;
     GoogleNamedAccountCredentials credentials = (GoogleNamedAccountCredentials)accountCredentialsRepository
-      .getOne(accountName)
-      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + accountName + "."));
+      .getOne(metricsAccountName)
+      .orElseThrow(() -> new IllegalArgumentException("Unable to resolve account " + metricsAccountName + "."));
     Monitoring monitoring = credentials.getMonitoring();
     StackdriverCanaryMetricSetQueryConfig stackdriverMetricSetQuery = (StackdriverCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     int alignmentPeriodSec = Integer.parseInt(canaryScope.getStep());
@@ -140,7 +140,6 @@ public class StackdriverMetricsService implements MetricsService {
           .map(point -> point.getValue().getDoubleValue())
           .collect(Collectors.toList());
 
-      // TODO: Get the metric set name from the request/canary-config.
       MetricSet.MetricSetBuilder metricSetBuilder =
         MetricSet.builder()
           .name(canaryMetricConfig.getName())

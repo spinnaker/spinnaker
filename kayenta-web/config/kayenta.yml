@@ -45,6 +45,7 @@ swagger:
   description:
   contact:
   patterns:
+    - /canary.*
     - /canaryConfig.*
     - /credentials.*
     - /fetch.*
