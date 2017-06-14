@@ -72,24 +72,23 @@ public class MetricSetMixerServiceTask implements RetryableTask {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
 
-    if (storageService.isPresent()) {
-      List<MetricSet> controlMetricSetList =
-        storageService.get().loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, controlMetricSetListId);
-      List<MetricSet> experimentMetricSetList =
-        storageService.get().loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, experimentMetricSetListId);
-      List<MetricSetPair> metricSetPairList =
-        metricSetMixerService.mixAll(controlMetricSetList, experimentMetricSetList);
-      String metricSetPairListId = UUID.randomUUID() + "";
+    List<MetricSet> controlMetricSetList =
+      storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, controlMetricSetListId);
+    List<MetricSet> experimentMetricSetList =
+      storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, experimentMetricSetListId);
+    List<MetricSetPair> metricSetPairList =
+      metricSetMixerService.mixAll(controlMetricSetList, experimentMetricSetList);
+    String metricSetPairListId = UUID.randomUUID() + "";
 
-      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId, metricSetPairList);
+    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId, metricSetPairList);
 
-      Map outputs = Collections.singletonMap("metricSetPairListId", metricSetPairListId);
+    Map outputs = Collections.singletonMap("metricSetPairListId", metricSetPairListId);
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
-    } else {
-      throw new IllegalArgumentException("No storage service was configured; unable to load metric set lists.");
-    }
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 }

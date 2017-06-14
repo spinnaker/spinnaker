@@ -64,16 +64,14 @@ public class CanaryConfigController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read canary config from bucket."));
 
     canaryConfigId = canaryConfigId.toLowerCase();
 
-    if (storageService.isPresent()) {
-      return storageService.get().loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
-    } else {
-      log.debug("No storage service was configured; skipping placeholder logic to read from bucket.");
-      return null;
-    }
+    return storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
   }
 
   @ApiOperation(value = "Write a canary config to object storage")
@@ -83,7 +81,10 @@ public class CanaryConfigController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write canary config to bucket."));
 
     if (canaryConfig.getCreatedTimestamp() == null) {
       canaryConfig.setCreatedTimestamp(System.currentTimeMillis());
@@ -104,28 +105,22 @@ public class CanaryConfigController {
       canaryServiceConfig.setName(serviceName);
     });
 
-    if (storageService.isPresent()) {
-      String canaryConfigId = canaryConfig.getName().toLowerCase();
+    String canaryConfigId = canaryConfig.getName().toLowerCase();
 
-      if (!canaryConfigIdPattern.matcher(canaryConfigId).matches()) {
-        throw new IllegalArgumentException("Canary config cannot be named '" + canaryConfigId +
-          "'. Names must contain only lowercase letters, numbers, dashes (-) and underscores (_).");
-      }
-
-      try {
-        storageService.get().loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
-      } catch (IllegalArgumentException e) {
-        storageService.get().storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
-
-        return canaryConfigId;
-      }
-
-      throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
-    } else {
-      log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
-
-      return null;
+    if (!canaryConfigIdPattern.matcher(canaryConfigId).matches()) {
+      throw new IllegalArgumentException("Canary config cannot be named '" + canaryConfigId +
+        "'. Names must contain only lowercase letters, numbers, dashes (-) and underscores (_).");
     }
+
+    try {
+      storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    } catch (IllegalArgumentException e) {
+      storageService.storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
+
+      return canaryConfigId;
+    }
+
+    throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
   }
 
   @ApiOperation(value = "Delete a canary config")
@@ -136,9 +131,12 @@ public class CanaryConfigController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete canary config."));
 
-    storageService.get().deleteObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
@@ -149,13 +147,11 @@ public class CanaryConfigController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all canary configs."));
 
-    if (storageService.isPresent()) {
-      return storageService.get().listObjectKeys(resolvedAccountName, ObjectType.CANARY_CONFIG);
-    } else {
-      log.debug("No storage service was configured.");
-      return null;
-    }
+    return storageService.listObjectKeys(resolvedAccountName, ObjectType.CANARY_CONFIG);
   }
 }

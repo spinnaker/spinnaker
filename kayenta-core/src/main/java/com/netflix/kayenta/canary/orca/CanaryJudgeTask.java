@@ -71,19 +71,16 @@ public class CanaryJudgeTask implements RetryableTask {
                                                                               accountCredentialsRepository);
     String canaryConfigId = (String)context.get("canaryConfigId");
     String metricSetPairListId = (String)context.get("metricSetPairListId");
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
 
-    if (storageService.isPresent()) {
-      CanaryConfig canaryConfig =
-        storageService.get().loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
-      List<MetricSetPair> metricSetPairList =
-        storageService.get().loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
-      float canaryScore = canaryJudge.judge(canaryConfig, metricSetPairList);
-      Map outputs = Collections.singletonMap("canaryScore", canaryScore);
+    CanaryConfig canaryConfig = storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+    List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    float canaryScore = canaryJudge.judge(canaryConfig, metricSetPairList);
+    Map outputs = Collections.singletonMap("canaryScore", canaryScore);
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
-    } else {
-      throw new IllegalArgumentException("No storage service was configured; unable to load metric set lists.");
-    }
+    return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }
 }

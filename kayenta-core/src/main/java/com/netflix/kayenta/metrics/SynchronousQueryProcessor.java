@@ -46,27 +46,19 @@ public class SynchronousQueryProcessor {
                              String storageAccountName,
                              CanaryMetricConfig canaryMetricConfig,
                              CanaryScope canaryScope) throws IOException {
-    Optional<MetricsService> metricsService = metricsServiceRepository.getOne(metricsAccountName);
-    List<MetricSet> metricSetList;
+    MetricsService metricsService =
+      metricsServiceRepository
+        .getOne(metricsAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
+    List<MetricSet> metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
 
-    if (metricsService.isPresent()) {
-      metricSetList = metricsService
-        .get()
-        .queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
-    } else {
-      throw new IllegalArgumentException("No metrics service was configured; unable to read from metrics store.");
-    }
-
-    Optional<StorageService> storageService = storageServiceRepository.getOne(storageAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(storageAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list."));
     String metricSetListId = UUID.randomUUID() + "";
 
-    if (storageService.isPresent()) {
-      storageService
-        .get()
-        .storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
-    } else {
-      throw new IllegalArgumentException("No storage service was configured; unable to write metric set list.");
-    }
+    storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
 
     return metricSetListId;
   }

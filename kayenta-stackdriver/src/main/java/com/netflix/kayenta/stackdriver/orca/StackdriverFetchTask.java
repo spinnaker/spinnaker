@@ -81,34 +81,32 @@ public class StackdriverFetchTask implements RetryableTask {
     String resolvedStorageAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                                      AccountCredentials.Type.OBJECT_STORE,
                                                                                      accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedStorageAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedStorageAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load canary config."));
 
-    // TODO(duftler): Use orElseThrow() instead.
-    if (storageService.isPresent()) {
-      try {
-        CanaryConfig canaryConfig =
-          storageService.get().loadObject(resolvedStorageAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
+    try {
+      CanaryConfig canaryConfig =
+        storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
-        Instant startTimeInstant = Instant.parse(stackdriverCanaryScope.getIntervalStartTimeIso());
-        long startTimeMillis = startTimeInstant.toEpochMilli();
-        Instant endTimeInstant = Instant.parse(stackdriverCanaryScope.getIntervalEndTimeIso());
-        long endTimeMillis = endTimeInstant.toEpochMilli();
-        stackdriverCanaryScope.setStart(startTimeMillis + "");
-        stackdriverCanaryScope.setEnd(endTimeMillis + "");
+      Instant startTimeInstant = Instant.parse(stackdriverCanaryScope.getIntervalStartTimeIso());
+      long startTimeMillis = startTimeInstant.toEpochMilli();
+      Instant endTimeInstant = Instant.parse(stackdriverCanaryScope.getIntervalEndTimeIso());
+      long endTimeMillis = endTimeInstant.toEpochMilli();
+      stackdriverCanaryScope.setStart(startTimeMillis + "");
+      stackdriverCanaryScope.setEnd(endTimeMillis + "");
 
-        // TODO(duftler): Fetch _all_ metric sets specified in canaryConfig.getMetrics(), not just the first.
-        String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                        resolvedStorageAccountName,
-                                                                        canaryConfig.getMetrics().get(0),
-                                                                        stackdriverCanaryScope);
-        Map outputs = Collections.singletonMap("metricSetListId", metricSetListId);
+      // TODO(duftler): Fetch _all_ metric sets specified in canaryConfig.getMetrics(), not just the first.
+      String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                      resolvedStorageAccountName,
+                                                                      canaryConfig.getMetrics().get(0),
+                                                                      stackdriverCanaryScope);
+      Map outputs = Collections.singletonMap("metricSetListId", metricSetListId);
 
-        return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      throw new IllegalArgumentException("No storage service was configured; unable to load canary config.");
+      return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 }

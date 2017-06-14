@@ -59,14 +59,12 @@ public class MetricSetListController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to read metric set list from bucket."));
 
-    if (storageService.isPresent()) {
-      return storageService.get().loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
-    } else {
-      log.debug("No storage service was configured; skipping placeholder logic to read from bucket.");
-      return null;
-    }
+    return storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
   }
 
   @ApiOperation(value = "Write a metric set list to object storage")
@@ -76,14 +74,13 @@ public class MetricSetListController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list to bucket."));
     String metricSetListId = UUID.randomUUID() + "";
 
-    if (storageService.isPresent()) {
-      storageService.get().storeObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
-    } else {
-      log.debug("No storage service was configured; skipping placeholder logic to write to bucket.");
-    }
+    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
 
     return metricSetListId;
   }
@@ -96,9 +93,12 @@ public class MetricSetListController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete metric set list."));
 
-    storageService.get().deleteObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
+    storageService.deleteObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, metricSetListId);
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
@@ -109,13 +109,11 @@ public class MetricSetListController {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
-    Optional<StorageService> storageService = storageServiceRepository.getOne(resolvedAccountName);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to list all metric set lists."));
 
-    if (storageService.isPresent()) {
-      return storageService.get().listObjectKeys(resolvedAccountName, ObjectType.METRIC_SET_LIST);
-    } else {
-      log.debug("No storage service was configured.");
-      return null;
-    }
+    return storageService.listObjectKeys(resolvedAccountName, ObjectType.METRIC_SET_LIST);
   }
 }

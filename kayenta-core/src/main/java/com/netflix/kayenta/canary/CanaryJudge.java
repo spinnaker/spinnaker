@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Random;
 
 @Component
+// TODO(duftler): Make the canary judge a pluggable component.
 public class CanaryJudge {
   private Random random = new Random();
 
