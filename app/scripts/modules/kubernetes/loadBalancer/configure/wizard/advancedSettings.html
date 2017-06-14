@@ -62,7 +62,7 @@
           <tfoot>
           <tr>
             <td colspan="1">
-              <button class="add-new col-md-12" ng-click="advancedController.addExternalIp()"><span
+              <button class="add-new btn btn-block btn-sm" ng-click="advancedController.addExternalIp()"><span
                 class="glyphicon glyphicon-plus-sign"></span> Add New External IP
               </button>
             </td>
@@ -72,6 +72,8 @@
       </div>
     </div>
   </div>
-  <kubernetes-annotation-configurer component="loadBalancer" field="serviceAnnotations" label="Service Annotations">
-  </kubernetes-annotation-configurer>
+  <div class="col-md-12">
+    <map-editor model="loadBalancer.serviceAnnotations" label="Service Annotations" add-button-label="Add Annotations" labels-left="true">
+    </map-editor>
+  </div>
 </form>

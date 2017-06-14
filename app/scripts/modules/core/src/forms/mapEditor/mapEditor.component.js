@@ -2,6 +2,8 @@
 
 const angular = require('angular');
 
+import './mapEditor.component.less';
+
 module.exports = angular
   .module('spinnaker.core.forms.mapEditor.component', [
     require('../../validation/validateUnique.directive')
@@ -14,6 +16,8 @@ module.exports = angular
       addButtonLabel: '@',
       allowEmpty: '=?',
       onChange: '&',
+      labelsLeft: '<?',
+      label: '@',
     },
     controller: function($scope) {
       this.backingModel = [];
@@ -24,6 +28,10 @@ module.exports = angular
       this.valueLabel = this.valueLabel || 'Value';
       this.addButtonLabel = this.addButtonLabel || 'Add Field';
       this.allowEmpty = this.allowEmpty || false;
+      this.labelsLeft = this.labelsLeft || false;
+      this.tableClass = (this.label ? '' : 'no-border-top');
+      this.columnCount = (this.labelsLeft ? 5 : 3);
+      this.model = this.model || {};
 
       let modelKeys = () => Object.keys(this.model);
 

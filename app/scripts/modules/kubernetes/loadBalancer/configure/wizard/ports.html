@@ -29,7 +29,7 @@
           <help-field key="kubernetes.service.ports.targetPort"></help-field>
         </div>
         <div class="col-md-2">
-          <input type="number" class="form-control input-sm" name="details" ng-model="port.targetPort" 
+          <input type="number" class="form-control input-sm" name="details" ng-model="port.targetPort"
                  min="1" max="{{portsController.maxPort}}" />
         </div>
       </div>
@@ -57,7 +57,7 @@
         </div>
       </div>
     </div>
-    <button class="add-new col-md-12" ng-click="portsController.addPort()"><span
+    <button class="add-new btn btn-block btn-sm col-md-12" ng-click="portsController.addPort()"><span
       class="glyphicon glyphicon-plus-sign"></span> Add New Port
     </button>
   </div>

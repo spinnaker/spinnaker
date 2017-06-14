@@ -1,7 +1,10 @@
 <form name="mapEditor">
-  <table class="table table-condensed">
+  <div class="sm-label-left" ng-if="$ctrl.label">
+    <b>{{$ctrl.label}}</b>
+  </div>
+  <table class="table table-condensed packed tags {{$ctrl.tableClass}}">
     <thead>
-    <tr>
+    <tr ng-if="!$ctrl.labelsLeft">
       <th ng-bind="$ctrl.keyLabel"></th>
       <th ng-bind="$ctrl.valueLabel"></th>
       <th></th>
@@ -9,12 +12,14 @@
     </thead>
     <tbody>
     <tr ng-repeat="pair in $ctrl.backingModel">
+      <td class="table-label" ng-if="$ctrl.labelsLeft"><b>{{$ctrl.keyLabel}}</b></td>
       <td><input class="form-control input input-sm" type="text"
                  name="{{$index}}"
                  ng-model="pair.key"
                  validate-unique="pair.checkUnique">
         <div class="error-message" ng-if="mapEditor[$index].$error.validateUnique">Duplicate key</div>
       </td>
+      <td class="table-label" ng-if="$ctrl.labelsLeft"><b>{{$ctrl.valueLabel}}</b></td>
       <td><input class="form-control input input-sm" type="text"
                  ng-model="pair.value"></td>
       <td>
@@ -29,7 +34,7 @@
     </tbody>
     <tfoot>
     <tr>
-      <td colspan="3">
+      <td colspan="{{ $ctrl.columnCount }}">
         <button class="btn btn-block btn-sm add-new" ng-click="$ctrl.addField()">
           <span class="glyphicon glyphicon-plus-sign"></span>
           {{ $ctrl.addButtonLabel }}

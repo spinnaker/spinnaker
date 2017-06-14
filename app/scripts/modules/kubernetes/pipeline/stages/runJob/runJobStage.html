@@ -75,6 +75,17 @@
     <kubernetes-container-volumes volume-sources="ctrl.stage.volumeSources" volume-mounts="ctrl.stage.container.volumeMounts">
     </kubernetes-container-volumes>
   </stage-config-field>
+
+  <stage-config-field label="Pod Annotations">
+    <map-editor model="ctrl.stage.annotations" add-button-label="Add Annotations" labels-left="true">
+    </map-editor>
+  </stage-config-field>
+
+  <stage-config-field label="Labels">
+    <map-editor model="ctrl.stage.labels" add-button-label="Add Labels" labels-left="true">
+    </map-editor>
+  </stage-config-field>
+
   <stage-config-field label="Security Context">
     <kubernetes-security-context-selector component="ctrl.stage.container">
     </kubernetes-security-context-selector>

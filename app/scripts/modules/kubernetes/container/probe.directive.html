@@ -1,6 +1,6 @@
 <form ng-controller="kubernetesContainerProbeController as probeController" class="container-fluid form-horizontal" name="containers" novalidate>
   <div class="form-group">
-    <button class="add-new col-md-12" ng-click="probeController.addProbe()" ng-hide="probeController.probe"><span class="glyphicon glyphicon-plus-sign"></span> Enable {{probeController.heading}} Probe</button>
+    <button class="add-new btn btn-block btn-sm" ng-click="probeController.addProbe()" ng-hide="probeController.probe"><span class="glyphicon glyphicon-plus-sign"></span> Enable {{probeController.heading}} Probe</button>
   </div>
 
   <div ng-hide="!probeController.probe">
@@ -25,7 +25,7 @@
     <hr>
     <div class="form-group">
       <div class="col-md-3 sm-label-right">
-        Initial Delay 
+        Initial Delay
         <help-field key="kubernetes.containers.probes.initialDelay"></help-field>
       </div>
       <div class="col-md-2">
@@ -75,7 +75,7 @@
           <table class="table table-condensed packed tags">
             <b>Commands</b>
             <tr ng-repeat="command in probeController.probe.handler.execAction.commands track by $index">
-              <td><input class="form-control input-sm" type="text" 
+              <td><input class="form-control input-sm" type="text"
                 ng-model="probeController.probe.handler.execAction.commands[$index]"></td>
               <td><a class="btn btn-link sm-label"
                      ng-click="probeController.removeCommand($index)"><span
@@ -84,7 +84,7 @@
             <tfoot>
             <tr>
               <td colspan="1">
-                <button class="add-new col-md-12" ng-click="probeController.addCommand()"><span
+                <button class="add-new btn btn-block btn-sm" ng-click="probeController.addCommand()"><span
                   class="glyphicon glyphicon-plus-sign"></span> Add Command
                 </button>
               </td>
@@ -156,7 +156,7 @@
           </div>
         </div>
       </div>
-      <button class="add-new col-md-12"
+      <button class="add-new btn btn-block btn-sm"
               ng-click="probeController.addHttpHeader(probeController.probe.handler.httpGetAction)">
         <span class="glyphicon glyphicon-plus-sign"></span> Add HTTP Header
       </button>

@@ -4,7 +4,6 @@ const angular = require('angular');
 
 import { CLOUD_PROVIDER_REGISTRY, DeploymentStrategyRegistry } from '@spinnaker/core';
 
-import { KUBERNETES_ANNOTATION_CONFIGURER } from './annotation/annotationConfigurer.component';
 import { KUBERNETES_KEY_VALUE_DETAILS } from './common/keyValueDetails.component';
 import { KUBERNETES_SECURITY_CONTEXT_SELECTOR } from './container/securityContext/securityContextSelector.component';
 import { KUBERNETES_HELP } from './help/kubernetes.help';
@@ -26,7 +25,6 @@ module.exports = angular.module('spinnaker.kubernetes', [
   require('./event/event.directive.js'),
   require('./instance/details/details.kubernetes.module.js'),
   CLOUD_PROVIDER_REGISTRY,
-  KUBERNETES_ANNOTATION_CONFIGURER,
   KUBERNETES_KEY_VALUE_DETAILS,
   KUBERNETES_SECURITY_CONTEXT_SELECTOR,
   KUBERNETES_HELP,

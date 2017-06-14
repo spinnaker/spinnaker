@@ -1,13 +1,25 @@
 <ng-form name="advancedSettings">
   <div class="form-group form-horizontal">
-    <kubernetes-annotation-configurer component="command" field="replicaSetAnnotations" label="Replica Set Annotations">
-    </kubernetes-annotation-configurer>
+    <div class="col-md-12">
+      <map-editor model="command.replicaSetAnnotations"
+                  label="Replica Set Annotations"
+                  add-button-label="Add Annotations"
+                  labels-left="true"></map-editor>
+    </div>
 
-    <kubernetes-annotation-configurer component="command" field="podAnnotations" label="Pod Annotations">
-    </kubernetes-annotation-configurer>
+    <div class="col-md-12">
+      <map-editor model="command.podAnnotations"
+                  label="Pod Annotations"
+                  add-button-label="Add Annotations"
+                  labels-left="true"></map-editor>
+    </div>
 
-    <kubernetes-annotation-configurer component="command" field="nodeSelector" label="Node Selector">
-    </kubernetes-annotation-configurer>
+    <div class="col-md-12">
+      <map-editor model="command.nodeSelector"
+                  label="Node Selector"
+                  add-button-label="Add Node Selector"
+                  labels-left="true"></map-editor>
+    </div>
 
     <div class="form-group">
       <div class="col-md-4 sm-label-right">
