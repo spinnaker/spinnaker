@@ -11,11 +11,13 @@ import { EXECUTION_GROUPS_COMPONENT } from './executionGroup/executionGroups.com
 import { EXECUTIONS_COMPONENT } from './executions/executions.component';
 import { STAGE_FAILURE_MESSAGE_COMPONENT } from './stageFailureMessage/stageFailureMessage.component';
 import { EXECUTION_STATUS_COMPONENT } from './status/executionStatus.component';
+import { CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS } from './details/singleExecutionDetails.component';
+
 
 module.exports = angular.module('spinnaker.delivery', [
 
   require('./details/executionDetails.controller.js'),
-  require('./details/singleExecutionDetails.controller.js'),
+  CORE_DELIVERY_DETAILS_SINGLEEXECUTIONDETAILS,
   EXECUTION_COMPONENT,
   EXECUTION_GROUPS_COMPONENT,
   EXECUTION_DETAILS_COMPONENT,

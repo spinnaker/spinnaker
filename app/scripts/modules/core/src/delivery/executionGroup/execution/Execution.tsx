@@ -4,6 +4,7 @@ import { clone } from 'lodash';
 import { $location } from 'ngimport';
 import { Subscription } from 'rxjs';
 import autoBindMethods from 'class-autobind-decorator';
+import * as classNames from 'classnames';
 
 import { Application } from 'core/application/application.model';
 import { IExecution , IRestartDetails } from 'core/domain';
@@ -23,6 +24,7 @@ import './execution.less';
 export interface IExecutionProps {
   application: Application;
   execution: IExecution;
+  showStageDuration?: boolean;
   standalone?: boolean;
   title?: string;
   dataSourceKey?: string;
@@ -62,7 +64,6 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       executionId: execution.id,
       canTriggerPipelineManually: false,
       canConfigure: false,
-      showStageDuration: executionFilterModel.asFilterModel.sortFilter.showStageDuration,
     };
 
     const restartedStage = execution.stages.find(stage => stage.context.restartDetails !== undefined);
@@ -282,8 +283,15 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
       />
     ));
 
+    const className = classNames({
+      'execution': true,
+      'show-details': this.state.showingDetails,
+      'details-hidden': !this.state.showingDetails,
+      'show-durations': this.props.showStageDuration,
+    });
+
     return (
-      <div className={`execution ${this.state.showingDetails ? 'show-details' : 'details-hidden'}`} id={`execution-${this.props.execution.id}`}>
+      <div className={className} id={`execution-${this.props.execution.id}`}>
         <div className={`execution-overview group-by-${this.state.sortFilter.groupBy}`}>
           { this.props.title && (
             <h4 className="execution-name">

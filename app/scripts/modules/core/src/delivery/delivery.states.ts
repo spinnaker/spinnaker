@@ -57,11 +57,7 @@ module(DELIVERY_STATES, [
     name: 'executionDetails',
     url: '/details',
     views: {
-      'pipelines': {
-        templateUrl: require('./details/singleExecutionDetails.html'),
-        controller: 'SingleExecutionDetailsCtrl',
-        controllerAs: 'vm',
-      },
+      'pipelines': 'singleExecutionDetails'
     },
     abstract: true,
     children: [executionDetails],

@@ -1,6 +1,6 @@
 import { IComponentController, IComponentOptions, module } from 'angular';
 
-import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery/filter/executionFilter.model';
+import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery';
 import { IExecution } from 'core/domain';
 import { EXECUTION_USER_FILTER } from './executionUser.filter';
 

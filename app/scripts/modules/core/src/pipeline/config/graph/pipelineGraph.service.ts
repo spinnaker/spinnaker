@@ -6,7 +6,6 @@ export interface IExecutionViewState {
   executionId: string;
   canTriggerPipelineManually: boolean;
   canConfigure: boolean;
-  showStageDuration: boolean;
   section?: string;
   stageIndex?: number;
 }
