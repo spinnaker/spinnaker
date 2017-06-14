@@ -140,7 +140,7 @@ class BomGenerator(Annotator):
     Returns:
       [string] Component version with build number and without 'version-'.
     """
-    version_bump = self.__component_versions[comp]
+    version_bump = dict(self.__component_versions.items() + self.__halyard_version.items())[comp]
     next_tag_with_build = '{0}-{1}'.format(version_bump.version_str,
                                            self.build_number)
     first_dash_idx = next_tag_with_build.index('-')
@@ -199,6 +199,19 @@ class BomGenerator(Annotator):
       config_file = '{0}-docker.yml'.format(comp)
       with open(config_file, 'w') as cfg:
         cfg.write(docker_tag)
+
+  def write_rpm_version_files(self):
+    """Write a file containing the version number for each microservice. Used
+    by build_release.py for rpm builds.
+    """
+    self.determine_and_tag_halyard()
+    for comp in dict(self.__component_versions.items() + self.__halyard_version.items()):
+      if comp == 'spinnaker':
+        pass
+      gradle_version = self.__version_from_tag(comp)
+      version_file = '{0}-rpm-version.txt'.format(comp)
+      with open(version_file, 'w') as ver:
+        ver.write(gradle_version)
 
   def generate_changelog(self):
     """Generate a release changelog and write it to a file.
@@ -368,6 +381,19 @@ class BomGenerator(Annotator):
       self.__component_versions[comp] = version_bump
       self.delete_unwanted_tags()
 
+  def determine_and_tag_halyard(self):
+    """This serves only to generate an rpm version file
+    for halyard
+    """
+    comp = 'halyard'
+    self.__halyard_version = {comp: None}
+    self.path = os.path.join(self.__base_dir, comp)
+    self.parse_git_tree()
+    self.__changelog_start_hashes[comp] = self.current_version.hash
+    version_bump = self.tag_head()
+    self.__halyard_version[comp] = version_bump
+    self.delete_unwanted_tags()
+
   @classmethod
   def main(cls):
     parser = argparse.ArgumentParser()
@@ -379,6 +405,7 @@ class BomGenerator(Annotator):
 
     bom_generator = cls(options)
     bom_generator.determine_and_tag_versions()
+    bom_generator.write_rpm_version_files()
     if options.container_builder == 'gcb':
       bom_generator.write_container_builder_gcr_config()
     elif options.container_builder == 'docker':
