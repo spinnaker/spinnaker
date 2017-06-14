@@ -9,15 +9,15 @@ export interface INotificationCategory {
 
 const NOTIFICATION_CATEGORIES = [
   {
-    id: 'srsBzns',
-    label: 'Security Vulnerability',
+    id: 'security',
+    label: 'Security Vulnerabilities',
     icon: 'fa-lock',
     severity: 2,
   },
 
   {
     id: 'blacklist',
-    label: 'Blacklisted',
+    label: 'Urgent Deprecations',
     icon: 'fa-ban',
     severity: 2,
   },
@@ -31,7 +31,7 @@ const NOTIFICATION_CATEGORIES = [
 
   {
     id: 'default',
-    label: 'Other',
+    label: 'Alerts',
     icon: 'fa-exclamation-circle',
     severity: 0,
   }
