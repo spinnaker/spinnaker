@@ -39,6 +39,8 @@ class DcosAccountCredentials implements AccountCredentials<DcosCredentialMap> {
   final List<DcosRegion> regions
   // Not really a fan of creating this just for use within deck, but it works for now
   final List<DcosClusterInfo> dcosClusters
+
+  @JsonIgnore
   final DcosCredentialMap dcosClusterCredentials
 
   DcosAccountCredentials(String account,
@@ -54,7 +56,7 @@ class DcosAccountCredentials implements AccountCredentials<DcosCredentialMap> {
     this.dockerRegistries = dockerRegistries != null ? dockerRegistries : new ArrayList<>()
     this.requiredGroupMembership = requiredGroupMembership
     this.dcosClusterCredentials = new DcosCredentialMap(clusters)
-    this.dcosClusters = clusters.collect({ new DcosClusterInfo(it.name, it.dockerRegistries) })
+    this.dcosClusters = clusters.collect({ new DcosClusterInfo(it.name, it.dcosUrl, it.dockerRegistries) })
     this.regions = clusters.collect({ new DcosRegion(it.name) })
   }
 
@@ -178,10 +180,12 @@ class DcosAccountCredentials implements AccountCredentials<DcosCredentialMap> {
   // Used only by deck, to make things easier for retrieving the cluster specific docker registry limitations
   private static class DcosClusterInfo {
     final String name
+    final String url
     final List<LinkedDockerRegistryConfiguration> dockerRegistries
 
-    DcosClusterInfo(String name, List<LinkedDockerRegistryConfiguration> dockerRegistries) {
+    DcosClusterInfo(String name, String url, List<LinkedDockerRegistryConfiguration> dockerRegistries) {
       this.name = name
+      this.url = url
       this.dockerRegistries = dockerRegistries
     }
   }
