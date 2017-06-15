@@ -10,12 +10,13 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
   ACCOUNT_SERVICE,
   INSTANCE_TYPE_SERVICE,
   NAMING_SERVICE,
+  require('google/common/xpnNaming.gce.service.js'),
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   require('./wizard/hiddenMetadataKeys.value.js'),
 ])
   .factory('gceServerGroupCommandBuilder', function ($q, accountService, instanceTypeService, namingService,
-                                                     gceCustomInstanceBuilderService,
-                                                     gceServerGroupHiddenMetadataKeys) {
+                                                     gceCustomInstanceBuilderService, gceServerGroupHiddenMetadataKeys,
+                                                     gceXpnNamingService) {
 
     // Two assumptions here:
     //   1) All GCE machine types are represented in the tree of choices.
@@ -35,13 +36,15 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function extractNetworkName(serverGroup) {
+      let projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
       let networkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
-      return networkUrl ? _.last(networkUrl.split('/')) : null;
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     }
 
     function extractSubnetName(serverGroup) {
+      let projectId = gceXpnNamingService.deriveProjectId(serverGroup.launchConfig.instanceTemplate);
       let subnetworkUrl = _.get(serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
-      return subnetworkUrl ? _.last(subnetworkUrl.split('/')) : null;
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, subnetworkUrl);
     }
 
     function determineAssociatePublicIPAddress(serverGroup) {

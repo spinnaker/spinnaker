@@ -32,8 +32,8 @@
       </h3>
     </div>
     <div class="actions">
-      <div class="dropdown" uib-dropdown dropdown-append-to-body>
-        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" ng-disabled="disabled" uib-dropdown-toggle>
+      <div ng-if="!securityGroup.id.includes('/')" class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
           Security Group Actions <span class="caret"></span>
         </button>
         <ul class="dropdown-menu" uib-dropdown-menu role="menu">
@@ -46,6 +46,16 @@
                                   entity-type="securityGroup"
                                   on-update="ctrl.application.securityGroups.refresh()"></add-entity-tag-links>
           </render-if-feature>
+        </ul>
+      </div>
+      <div ng-if="securityGroup.id.includes('/')" class="dropdown" uib-dropdown dropdown-append-to-body>
+        <button type="button" class="btn btn-sm btn-primary dropdown-toggle" uib-dropdown-toggle>
+          Security Group Actions <span class="caret"></span>
+        </button>
+        <ul uib-tooltip="You cannot modify shared VPC host project firewall rules." class="dropdown-menu" uib-dropdown-menu role="menu">
+          <li class="disabled"><a>Edit Inbound Rules</a></li>
+          <li class="disabled"><a>Delete Security Group</a></li>
+          <li class="disabled"><a>Clone Security Group</a></li>
         </ul>
       </div>
     </div>

@@ -75,9 +75,9 @@
           <gce-load-balancer-type load-balancer="loadBalancer"></gce-load-balancer-type>
         </dd>
         <dt ng-if="loadBalancer.network">Network</dt>
-        <dd ng-if="loadBalancer.network">{{loadBalancer.network.split('/').pop()}}</dd>
+        <dd ng-if="loadBalancer.network">{{ctrl.getNetworkId(loadBalancer)}}</dd>
         <dt ng-if="loadBalancer.subnet">Subnet</dt>
-        <dd ng-if="loadBalancer.subnet">{{loadBalancer.subnet.split('/').pop()}}</dd>
+        <dd ng-if="loadBalancer.subnet">{{ctrl.getSubnetId(loadBalancer)}}</dd>
         <dt ng-if="loadBalancer.serverGroups.length">Server Groups</dt>
         <dd ng-if="loadBalancer.serverGroups.length">
           <ul>

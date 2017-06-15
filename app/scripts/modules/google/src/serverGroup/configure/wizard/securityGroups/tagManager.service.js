@@ -33,6 +33,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
     this.inferSecurityGroupIdsFromTags = (commandTags = []) => {
       return _.chain(commandTags)
         .map(t => this.securityGroupObjectsKeyedByTag[t.value])
+        .filter(sg => sg.network === this.command.network)
         .flatten()
         .map('id')
         .compact()
@@ -77,6 +78,10 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
         c = this.command;
 
       if (securityGroupObjectsWithTag) {
+        securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
+      }
+
+      if (securityGroupObjectsWithTag) {
         updateSelectedTagsOnSecurityGroupObjects(securityGroupObjectsWithTag, tagName);
         c.securityGroups = _.map(
           updateSelectedSecurityGroups(getSecurityGroupObjectsFromIds(c.securityGroups), securityGroupObjectsWithTag),
@@ -108,6 +113,10 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
       let c = this.command,
         tags = c.tags,
         securityGroupObjectsWithTag = this.securityGroupObjectsKeyedByTag[tagName];
+
+      if (securityGroupObjectsWithTag) {
+        securityGroupObjectsWithTag = _.filter(securityGroupObjectsWithTag, sg => sg.network === this.command.network);
+      }
 
       if (!_.includes(tags.map(t => t.value), tagName)) {
         tags.push({ value: tagName });
@@ -175,7 +184,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
 
     this.getToolTipContent = (tagName) => {
       let groups = _.get(this, ['securityGroupObjectsKeyedByTag', tagName]),
-        groupIds = groups ? groups.map((sg) => sg.id) : [];
+        groupIds = groups ? groups.filter((sg) => sg.network === this.command.network).map((sg) => sg.id) : [];
 
       return `This tag associates this server group with security group${groupIds.length > 1 ? 's' : ''}
               <em>${groupIds.join(', ')}</em>.`;

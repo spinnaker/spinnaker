@@ -238,7 +238,10 @@ module.exports = angular
     ctrl.updateNetworks = function() {
       networkReader.listNetworksByProvider('gce').then(function(gceNetworks) {
         var account = $scope.securityGroup.credentials || $scope.securityGroup.accountName;
-        $scope.securityGroup.backingData.networks = _.map(_.filter(gceNetworks, { account: account }), 'name');
+        $scope.securityGroup.backingData.networks = _(gceNetworks)
+            .filter(n => n.account === account && !n.id.includes('/') )
+            .map(n => n.id)
+            .value();
       });
     };
 

@@ -24,14 +24,15 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
   NETWORK_READ_SERVICE,
   SERVER_GROUP_WRITER,
   CLUSTER_TARGET_BUILDER,
+  require('google/common/xpnNaming.gce.service.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
   require('./autoscalingPolicy/autoscalingPolicy.directive.js'),
-  require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js')
+  require('./autoscalingPolicy/addAutoscalingPolicyButton.component.js'),
 ])
   .controller('gceServerGroupDetailsCtrl', function ($scope, $state, $templateCache, $interpolate, app, serverGroup,
                                                      gceServerGroupCommandBuilder, serverGroupReader, $uibModal, confirmationModalService, serverGroupWriter,
-                                                     serverGroupWarningMessageService, networkReader, clusterTargetBuilder) {
+                                                     serverGroupWarningMessageService, networkReader, clusterTargetBuilder, gceXpnNamingService) {
 
     this.state = {
       loading: true
@@ -91,14 +92,13 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
 
           this.serverGroup.zones.sort();
 
-          this.serverGroup.network = getNetwork();
-          retrieveSubnet();
-          determineAssociatePublicIPAddress();
-
-          var pathSegments = this.serverGroup.launchConfig.instanceTemplate.selfLink.split('/');
-          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
+          var projectId = gceXpnNamingService.deriveProjectId(this.serverGroup.launchConfig.instanceTemplate);
           this.serverGroup.logsLink =
             'https://console.developers.google.com/project/' + projectId + '/logs?advancedFilter=resource.type=(gce_instance_group_manager OR gce_instance OR gce_autoscaler)%0A\"' + this.serverGroup.name + '\"';
+
+          this.serverGroup.network = getNetwork(projectId);
+          retrieveSubnet(projectId);
+          determineAssociatePublicIPAddress();
 
           findStartupScript();
           prepareDiskDescriptions();
@@ -252,15 +252,15 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
       }
     };
 
-    let getNetwork = () => {
+    let getNetwork = (projectId) => {
       let networkUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].network');
-      return networkUrl ? _.last(networkUrl.split('/')) : null;
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     };
 
-    let retrieveSubnet = () => {
+    let retrieveSubnet = (projectId) => {
       networkReader.listNetworksByProvider('gce').then((networks) => {
         let autoCreateSubnets = _.chain(networks)
-          .filter({ account: this.serverGroup.account, name: this.serverGroup.network })
+          .filter({ account: this.serverGroup.account, id: this.serverGroup.network })
           .map('autoCreateSubnets')
           .head()
           .value();
@@ -269,7 +269,7 @@ module.exports = angular.module('spinnaker.serverGroup.details.gce.controller', 
           this.serverGroup.subnet = '(Auto-select)';
         } else {
           let subnetUrl = _.get(this.serverGroup, 'launchConfig.instanceTemplate.properties.networkInterfaces[0].subnetwork');
-          this.serverGroup.subnet = subnetUrl ? _.last(subnetUrl.split('/')) : null;
+          this.serverGroup.subnet = gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, subnetUrl);
         }
       });
     };

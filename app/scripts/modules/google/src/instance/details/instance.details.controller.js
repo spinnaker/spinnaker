@@ -16,6 +16,7 @@ import { GCE_HTTP_LOAD_BALANCER_UTILS } from 'google/loadBalancer/httpLoadBalanc
 module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
   require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
+  require('google/common/xpnNaming.gce.service.js'),
   INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   CONFIRMATION_MODAL_SERVICE,
@@ -25,7 +26,7 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
 ])
   .controller('gceInstanceDetailsCtrl', function ($scope, $state, $uibModal, instanceWriter, confirmationModalService,
                                                   recentHistoryService, cloudProviderRegistry, instanceReader, instance,
-                                                  app, $q, gceHttpLoadBalancerUtils) {
+                                                  app, $q, gceHttpLoadBalancerUtils, gceXpnNamingService) {
 
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('gce', 'instance.detailsTemplateUrl');
@@ -148,16 +149,16 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
           }
 
           $scope.baseIpAddress = $scope.instance.externalIpAddress || $scope.instance.internalIpAddress;
-          $scope.instance.network = getNetwork();
-          $scope.instance.subnet = getSubnet();
+
+          var projectId = gceXpnNamingService.deriveProjectId($scope.instance);
+          $scope.instance.logsLink =
+            'https://console.developers.google.com/project/' + projectId + '/logs?service=gce_instance&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
+
+          $scope.instance.network = getNetwork(projectId);
+          $scope.instance.subnet = getSubnet(projectId);
 
           $scope.instance.sshLink =
             $scope.instance.selfLink.replace(/www.googleapis.com\/compute\/(alpha|beta|v1)/, 'cloudssh.developers.google.com') + '?authuser=0&hl=en_US';
-
-          var pathSegments = $scope.instance.selfLink.split('/');
-          var projectId = pathSegments[pathSegments.indexOf('projects') + 1];
-          $scope.instance.logsLink =
-            'https://console.developers.google.com/project/' + projectId + '/logs?service=gce_instance&minLogLevel=0&filters=text:' + $scope.instance.instanceId;
 
           $scope.instance.gcloudSSHCommand = 'gcloud compute ssh --project ' + projectId + ' --zone ' + $scope.instance.placement.availabilityZone + ' ' + instance.instanceId;
 
@@ -206,14 +207,14 @@ module.exports = angular.module('spinnaker.instance.detail.gce.controller', [
       }
     }
 
-    function getNetwork() {
+    function getNetwork(projectId) {
       let networkUrl = _.get($scope.instance, 'networkInterfaces[0].network');
-      return networkUrl ? _.last(networkUrl.split('/')) : null;
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, networkUrl);
     }
 
-    function getSubnet() {
+    function getSubnet(projectId) {
       let subnetUrl = _.get($scope.instance, 'networkInterfaces[0].subnetwork');
-      return subnetUrl ? _.last(subnetUrl.split('/')) : null;
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(projectId, subnetUrl);
     }
 
     this.canRegisterWithLoadBalancer = function() {

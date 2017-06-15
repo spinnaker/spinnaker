@@ -431,7 +431,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       }
       filteredData.subnets = _.chain(command.backingData.subnets)
         .filter({ account: command.credentials, network: command.network, region: command.region })
-        .map('name')
+        .map('id')
         .value();
 
       if (!_.chain(filteredData.subnets).includes(command.subnet).value()) {
@@ -451,6 +451,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         .value();
     }
 
+    function getXpnHostProjectIfAny(network) {
+      if (network.includes('/')) {
+        return network.split('/')[0] + '/';
+      } else {
+        return '';
+      }
+    }
+
     function configureSecurityGroupOptions(command) {
       var results = { dirty: {} };
       var currentOptions = command.backingData.filtered.securityGroups;
@@ -459,22 +467,18 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         // not initializing - we are actually changing groups
         var currentGroupNames = command.securityGroups.map(function(groupId) {
           var match = _.chain(currentOptions).find({id: groupId}).value();
-          return match ? match.name : groupId;
+          return match ? match.id : groupId;
         });
-
         var matchedGroups = command.securityGroups.map(function(groupId) {
-          var securityGroup = _.chain(currentOptions).find({id: groupId}).value() ||
-              _.chain(currentOptions).find({name: groupId}).value();
-          return securityGroup ? securityGroup.name : null;
+          var securityGroup = _.chain(currentOptions).find({id: groupId}).value();
+          return securityGroup ? securityGroup.id : null;
         }).map(function(groupName) {
-          return _.chain(newSecurityGroups).find({name: groupName}).value();
+          return _.chain(newSecurityGroups).find({id: groupName}).value();
         }).filter(function(group) {
           return group;
         });
-
-        var matchedGroupNames = _.map(matchedGroups, 'name');
-        var removed = _.xor(currentGroupNames, matchedGroupNames);
         command.securityGroups = _.map(matchedGroups, 'id');
+        var removed = _.xor(currentGroupNames, command.securityGroups);
         if (removed.length) {
           results.dirty.securityGroups = removed;
         }
@@ -491,7 +495,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       });
 
       // Only include explicitly-selected security groups in the body of the command.
-      command.securityGroups = _.difference(command.securityGroups, _.map(command.implicitSecurityGroups, 'id'));
+      var xpnHostProject = getXpnHostProjectIfAny(command.network);
+      var decoratedSecurityGroups = _.map(command.securityGroups, (sg) => !sg.startsWith(xpnHostProject) ? xpnHostProject + sg : sg);
+      command.securityGroups = _.difference(decoratedSecurityGroups, _.map(command.implicitSecurityGroups, 'id'));
 
       return results;
     }
@@ -508,7 +514,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function getNetworkNames(command) {
-      return _.map(_.filter(command.backingData.networks, { account: command.credentials }), 'name');
+      return _.map(_.filter(command.backingData.networks, { account: command.credentials }), 'id');
     }
 
     function refreshNetworks(command) {
@@ -555,6 +561,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         if (command.region) {
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
           angular.extend(result.dirty, configureZones(command).dirty);
+          // TODO: Internal Load Balancers also need to be filtered by network.
           angular.extend(result.dirty, configureLoadBalancerOptions(command).dirty);
           angular.extend(result.dirty, configureImages(command).dirty);
         } else {
@@ -608,19 +615,21 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         var result = { dirty: {} };
 
         command.viewState.autoCreateSubnets = _.chain(command.backingData.networks)
-          .filter({ account: command.credentials, name: command.network })
+          .filter({ account: command.credentials, id: command.network })
           .map('autoCreateSubnets')
           .head()
           .value();
 
         command.viewState.subnets = _.chain(command.backingData.networks)
-          .filter({ account: command.credentials, name: command.network })
+          .filter({ account: command.credentials, id: command.network })
           .map('subnets')
           .head()
           .value();
 
         angular.extend(result.dirty, configureSubnets(command).dirty);
         angular.extend(result.dirty, configureSecurityGroupOptions(command).dirty);
+
+        // TODO: Internal Load Balancers also need to be filtered by network.
 
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(command.viewState.dirty, result.dirty);

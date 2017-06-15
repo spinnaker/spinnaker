@@ -20,7 +20,7 @@ module.exports = angular.module('spinnaker.deck.gce.tagSelectorGenerator.compone
         let { securityGroupId } = scope;
         let securityGroupObject = gceTagManager.securityGroupObjectsKeyedById[securityGroupId];
 
-        if (securityGroupObject.tagsArray.length < 2) {
+        if (securityGroupObject && securityGroupObject.tagsArray.length < 2) {
           securityGroupObject.tagsArray.forEach((tagName) => gceTagManager.addTag(tagName));
           return;
         }

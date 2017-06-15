@@ -16,6 +16,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   ACCOUNT_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   LOAD_BALANCER_READ_SERVICE,
+  require('google/common/xpnNaming.gce.service.js'),
   require('./hostAndPathRules/hostAndPathRulesButton.component.js'),
   require('./loadBalancerType/loadBalancerType.component.js'),
   GCE_HTTP_LOAD_BALANCER_UTILS,
@@ -28,7 +29,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
   .controller('gceLoadBalancerDetailsCtrl', function ($scope, $state, $uibModal, loadBalancer, app,
                                                       accountService, gceHttpLoadBalancerUtils,
                                                       loadBalancerWriter, loadBalancerReader,
-                                                      $q, loadBalancerTypeToWizardMap) {
+                                                      $q, loadBalancerTypeToWizardMap, gceXpnNamingService) {
 
     let application = this.application = app;
 
@@ -78,6 +79,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
 
             resourceTypes = _.join(resourceTypes, ' OR ');
 
+            $scope.loadBalancer.project = accountDetails.project;
             $scope.loadBalancer.logsLink =
               'https://console.developers.google.com/project/' + accountDetails.project + '/logs?advancedFilter=resource.type=(' + resourceTypes + ')%0A\"' + $scope.loadBalancer.name + '\"';
           });
@@ -193,5 +195,13 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
     };
 
     this.isHttpLoadBalancer = (lb) => gceHttpLoadBalancerUtils.isHttpLoadBalancer(lb);
+
+    this.getNetworkId = function getNetworkId(loadBalancer) {
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.network);
+    };
+
+    this.getSubnetId = function getSubnetId(loadBalancer) {
+      return gceXpnNamingService.decorateXpnResourceIfNecessary(loadBalancer.project, loadBalancer.subnet);
+    };
   }
 );

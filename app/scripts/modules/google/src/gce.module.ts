@@ -58,6 +58,7 @@ module(GOOGLE_MODULE, [
   require('./validation/applicationName.validator.js'),
   require('./image/image.reader.js'),
   require('./cache/cacheConfigurer.service.js'),
+  require('./common/xpnNaming.gce.service.js'),
 ])
   .config((cloudProviderRegistryProvider: CloudProviderRegistry) => {
     cloudProviderRegistryProvider.registerProvider('gce', {

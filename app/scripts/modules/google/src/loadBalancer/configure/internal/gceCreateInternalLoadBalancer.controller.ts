@@ -49,6 +49,7 @@ class InternalLoadBalancer implements IGceLoadBalancer {
   public loadBalancerType = 'INTERNAL';
   public credentials: string;
   public account: string;
+  public project: string;
   public network = 'default';
   public subnet: string;
   public cloudProvider = 'gce';
@@ -98,6 +99,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                private accountService: AccountService,
                private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
+               private gceXpnNamingService: any,
                private taskMonitorBuilder: TaskMonitorBuilder,
                $state: StateService,
                infrastructureCaches: InfrastructureCacheService) {
@@ -174,7 +176,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
         return subnet.region === this.loadBalancer.region &&
                (subnet.account === this.loadBalancer.credentials || subnet.account === this.loadBalancer.account) &&
                subnet.network === this.loadBalancer.network;
-      }).map((subnet) => subnet.name);
+      }).map((subnet) => subnet.id);
 
     if (!this.subnetOptions.includes(this.loadBalancer.subnet)) {
       this.loadBalancer.subnet = this.subnetOptions[0];
@@ -199,7 +201,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
     this.networkOptions = this.networks
       .filter((network: IGceNetwork) => network.account === this.loadBalancer.credentials)
-      .map((network) => network.name);
+      .map((network) => network.id);
 
     this.accountService.getRegionsForAccount(this.loadBalancer.credentials)
       .then((regions: IRegion[]) => {
@@ -237,8 +239,8 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
   private initializeEditMode (): void {
     this.loadBalancer.ports = this.loadBalancer.ports.join(', ');
-    this.loadBalancer.subnet = this.loadBalancer.subnet.split('/').pop();
-    this.loadBalancer.network = this.loadBalancer.network.split('/').pop();
+    this.loadBalancer.subnet = this.gceXpnNamingService.decorateXpnResourceIfNecessary(this.loadBalancer.project, this.loadBalancer.subnet);
+    this.loadBalancer.network = this.gceXpnNamingService.decorateXpnResourceIfNecessary(this.loadBalancer.project, this.loadBalancer.network);
     this.viewState = new ViewState(this.sessionAffinityModelToViewMap[this.loadBalancer.backendService.sessionAffinity]);
   }
 }
@@ -250,6 +252,7 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
     GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
     ACCOUNT_SERVICE,
     INFRASTRUCTURE_CACHE_SERVICE,
+    require('google/common/xpnNaming.gce.service.js'),
     LOAD_BALANCER_WRITE_SERVICE,
     TASK_MONITOR_BUILDER,
   ])
