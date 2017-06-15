@@ -75,11 +75,7 @@ class CustomStrategySelectorController implements IComponentController {
         this.state.pipelineParameters = config.parameterConfig;
         this.state.userSuppliedParameters = this.command.pipelineParameters;
         this.state.useDefaultParameters = {};
-        this.state.pipelineParameters.forEach((param: any) => {
-          if (this.command.pipelineParameters[param.name] !== undefined && param.default !== null) {
-            this.state.useDefaultParameters[param.name] = true;
-          }
-        });
+        this.configureParamDefaults();
       } else {
         this.clearParams();
       }
@@ -95,6 +91,19 @@ class CustomStrategySelectorController implements IComponentController {
     } else if (this.state.userSuppliedParameters[parameter]) {
       this.command.pipelineParameters[parameter] = this.state.userSuppliedParameters[parameter];
     }
+  }
+
+  private configureParamDefaults(): void {
+    this.state.pipelineParameters.forEach((param: any) => {
+      const defaultValue = param.default;
+      if (defaultValue !== null && defaultValue !== undefined) {
+        const configuredParamValue = this.command.pipelineParameters[param.name];
+        if (configuredParamValue === undefined || configuredParamValue === defaultValue) {
+          this.state.useDefaultParameters[param.name] = true;
+          this.command.pipelineParameters[param.name] = defaultValue;
+        }
+      }
+    });
   }
 
   private clearParams(): void {
