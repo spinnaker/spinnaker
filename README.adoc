@@ -5,9 +5,9 @@ image:http://join.spinnaker.io/badge.svg[Slack Status,link=http://join.spinnaker
 = Using Spinnaker
 
 If you are only interested in using Spinnaker, please refer to the main
-Spinnaker site and http://www.spinnaker.io/docs/target-deployment-setup[Installation] guide.
+Spinnaker site and https://www.spinnaker.io/setup/[Installation] guide.
 
-If you want more information on how Spinnaker is designed, see the http://www.spinnaker.io/docs/overview[Documentation Overview].
+If you want more information on how Spinnaker is designed, see the https://www.spinnaker.io/concepts/[Documentation Overview].
 
 = Setting Up Spinnaker For Development
 
