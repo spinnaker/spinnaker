@@ -1,10 +1,13 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Overlay, Popover, PopoverProps } from 'react-bootstrap';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+import { Subscription } from 'rxjs/Subscription';
 import autoBindMethods from 'class-autobind-decorator';
 
-import {Placement} from 'core/presentation';
-import {UUIDGenerator} from 'core/utils';
+import { Placement } from 'core/presentation';
+import { UUIDGenerator } from 'core/utils';
 
 export interface IHoverablePopoverProps {
   /** The popover contents (simple mode) */
@@ -22,6 +25,9 @@ export interface IHoverablePopoverProps {
   title?: string;
   id?: string;
 
+  delayShow?: number;
+  delayHide?: number;
+
   onShow?: () => void;
   onHide?: () => void;
 }
@@ -34,12 +40,16 @@ export interface IHoverablePopoverState {
 
 @autoBindMethods
 export class HoverablePopover extends React.Component<IHoverablePopoverProps, IHoverablePopoverState> {
+
   public static defaultProps: Partial<IHoverablePopoverProps> = {
     placement: 'top',
     id: UUIDGenerator.generateUuid(),
+    delayShow: 0,
+    delayHide: 300,
   };
 
-  private popoverCancel: number;
+  private mouseEvents$: Subject<React.SyntheticEvent<any>>;
+  private showHideSubscription: Subscription;
 
   /**
    * Renders a Popover offset to the left or right.
@@ -100,30 +110,37 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
   }
 
   public componentWillUnmount() {
-    this.hidePopover();
+    this.mouseEvents$.unsubscribe();
+    this.showHideSubscription.unsubscribe();
   }
 
-  private showPopover(e: React.MouseEvent<HTMLElement>): void {
-    this.clearPopoverCancel();
-    this.setState({popoverIsOpen: true, target: e.target});
-    this.props.onShow && this.props.onShow();
+  public componentDidMount() {
+    this.mouseEvents$ = new Subject();
+
+    this.showHideSubscription = this.mouseEvents$
+      .map((event: React.MouseEvent<any>) => {
+        const shouldOpen = ['mouseenter', 'mouseover'].includes(event.type);
+        const isChanging = (shouldOpen !== this.state.popoverIsOpen);
+        const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
+        return Observable.of({ shouldOpen, target: event.target }).delay(isChanging ? eventDelay : 0);
+      })
+      .switchMap(result => result)
+      .distinctUntilChanged()
+      .subscribe(({ shouldOpen }) => this.setPopoverOpen(shouldOpen));
   }
 
-  private deferHidePopover(): void {
-    this.popoverCancel = window.setTimeout(() => this.hidePopover(), 300);
+  private setPopoverOpen(popoverIsOpen: boolean): void {
+    this.setState({ popoverIsOpen });
+    const callback = popoverIsOpen ? this.props.onShow : this.props.onHide;
+    callback && callback();
   }
 
-  private hidePopover(): void {
-    this.clearPopoverCancel();
-    this.setState({popoverIsOpen: false});
-    this.props.onHide && this.props.onHide();
+  private handleMouseEvent(e: React.SyntheticEvent<any>): void {
+    this.mouseEvents$.next(e);
   }
 
-  private clearPopoverCancel(): void {
-    if (this.popoverCancel) {
-      window.clearTimeout(this.popoverCancel);
-    }
-    this.popoverCancel = null;
+  private refCallback(ref: any): void {
+    this.setState({ target: ref })
   }
 
   public render() {
@@ -131,13 +148,13 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
     const PopoverRenderer = this.state.PopoverRenderer;
 
     return (
-      <span onMouseEnter={this.showPopover} onMouseLeave={this.deferHidePopover}>
+      <span onMouseEnter={this.handleMouseEvent} onMouseLeave={this.handleMouseEvent} ref={this.refCallback}>
         {this.props.children}
-        <Overlay show={this.state.popoverIsOpen} placement={this.props.placement} onEnter={this.clearPopoverCancel} target={this.state.target}>
+        <Overlay show={this.state.popoverIsOpen} placement={this.props.placement} target={this.state.target}>
           <PopoverRenderer
-            onMouseOver={this.clearPopoverCancel}
-            onMouseLeave={this.hidePopover}
-            onBlur={this.hidePopover}
+            onMouseOver={this.handleMouseEvent}
+            onMouseLeave={this.handleMouseEvent}
+            onBlur={this.handleMouseEvent}
             id={this.props.id}
             title={this.props.title}
             className={this.props.className}

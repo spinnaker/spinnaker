@@ -193,6 +193,7 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     return (
       <span className={`tag-marker small ${className || ''}`} onMouseEnter={this.fireGAEvent}>
         <HoverablePopover
+          delayShow={100}
           placement={placement}
           hOffsetPercent={hOffsetPercent}
           template={Notifications}
