@@ -9,6 +9,7 @@ import { Markdown } from 'core/presentation';
 export interface IMessageNotifications {
   message: string;
   tagline?: string;
+  title?: string;
   notifications: INotification[];
 }
 
@@ -48,8 +49,9 @@ export class GroupedNotificationList extends React.Component<IGroupedNotificatio
 
     return Object.keys(grouped).map(message => ({
       message,
-      // assume all the taglines are the same (for identical messages)
+      // assume all the taglines and titles are the same for identical messages
       tagline: grouped[message][0].entityTag.value.tagline,
+      title: grouped[message][0].entityTag.value.title,
       notifications: grouped[message],
     }));
   }
@@ -111,9 +113,10 @@ class AlertsForMessage extends React.Component<IAlertsForMessageProps, IAlertsFo
   }
 
   public render() {
-    const { alertsForMessage: { notifications, message, tagline } } = this.props;
+    const { alertsForMessage: { notifications, title, message, tagline } } = this.props;
     return (
       <div className="notification-message">
+        {title && <div className="notification-title"><Markdown message={title} /></div>}
         {this.renderServerGroupNames(notifications)}
         <Markdown message={message} />
         <Markdown className="small" message={tagline} />

@@ -23,12 +23,13 @@ export class NotificationList extends React.Component<INotificationListProps, vo
       <div className="notification-list">
         {notifications.map((notification: INotification, idx: number) => {
           const {
-            entityTag: { value: { message, tagline } },
+            entityTag: { value: { title, message, tagline } },
             entityTags: { lastModified },
           } = notification;
 
           return (
             <div className="notification-message" key={idx}>
+              {title && <div className="notification-title"><Markdown message={title} /></div>}
               <Markdown message={message} />
 
               <div className="notification-tagline flex-container-h baseline">
