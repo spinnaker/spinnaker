@@ -69,7 +69,8 @@ export class CategorizedNotifications extends React.Component<ICategorizedNotifi
    * Given a list of alerts, groups into categories (entityTag namespaces, e.g., 'deprecation')
    */
   private categorizeNotifications(allNotifications: INotification[]): ICategoryNotifications[] {
-    const getCategory = (notification: INotification) => notification.entityTag.category || 'default';
+    const getCategory = (notification: INotification) =>
+      NotificationCategories.getCategory(notification.entityTag.category).id;
 
     const makeAlertCategory = (name: string): ICategoryNotifications => {
       const category = NotificationCategories.getCategory(name);

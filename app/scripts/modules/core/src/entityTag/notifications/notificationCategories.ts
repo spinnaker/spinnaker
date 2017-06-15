@@ -9,16 +9,9 @@ export interface INotificationCategory {
 
 const NOTIFICATION_CATEGORIES = [
   {
-    id: 'security',
-    label: 'Security Vulnerabilities',
-    icon: 'fa-lock',
-    severity: 2,
-  },
-
-  {
-    id: 'blacklist',
-    label: 'Urgent Deprecations',
-    icon: 'fa-ban',
+    id: 'urgentissues',
+    label: 'Urgent Issues',
+    icon: 'fa-exclamation',
     severity: 2,
   },
 
@@ -31,7 +24,7 @@ const NOTIFICATION_CATEGORIES = [
 
   {
     id: 'default',
-    label: 'Alerts',
+    label: 'Uncategorized',
     icon: 'fa-exclamation-circle',
     severity: 0,
   }
@@ -48,6 +41,9 @@ export class NotificationCategories {
     if (!categoryName) {
       return BY_NAME['default'];
     }
+
+    // Temporarily coerce 'blacklist' to 'urgentissues'
+    categoryName = (categoryName === 'blacklist' ? 'urgentissues' : categoryName);
 
     return BY_NAME[categoryName] || NotificationCategories.defineCategory(categoryName);
   }

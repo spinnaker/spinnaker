@@ -28,11 +28,11 @@ export class NotificationCategory extends React.Component<INotificationCategoryP
 
     const categoryClass =
       `clickable list-group-item flex-container-h baseline alerts-severity-${category.severity} ` +
-      (this.props.isSelected ? 'selected ' : ' ')
+      (this.props.isSelected ? 'selected ' : ' ');
 
     return (
       <li className={categoryClass} onClick={this.selectCategory} key={category.id}>
-        <i className={`fa ${category.icon}`}/>
+        <i className={`notification-category-icon fa ${category.icon}`}/>
         <span className="notification-category-label flex-grow">{category.label}</span>
         <span className="badge">{notifications.length}</span>
       </li>
