@@ -36,6 +36,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -119,7 +120,7 @@ public class KubernetesAccountValidator extends Validator<KubernetesAccount> {
       }
     } else {
       String currentContext = kubeconfig.getCurrentContext();
-      if (currentContext.isEmpty()) {
+      if (StringUtils.isEmpty(currentContext)) {
         psBuilder.addProblem(ERROR, "You have not specified a Kubernetes context, and your kubeconfig \"" + kubeconfigFile + "\" has no current-context.", "context")
             .setRemediation("Either specify a context in your halconfig, or set a current-context in your kubeconfig.");
         smoketest = false;
