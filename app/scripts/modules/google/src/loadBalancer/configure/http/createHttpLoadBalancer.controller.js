@@ -21,13 +21,13 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
   require('../../details/hostAndPathRules/hostAndPathRulesButton.component.js'),
   require('./healthCheck/healthCheck.component.js'),
   require('./hostRule/hostRule.component.js'),
-  require('./httpLoadBalancer.write.service.js'),
+  require('../common/multipleListenerLoadBalancer.write.service.js'),
   require('./listeners/listener.component.js'),
   require('./transformer.service.js'),
 ])
   .controller('gceCreateHttpLoadBalancerCtrl', function ($scope, $uibModal, $uibModalInstance, application, taskMonitorBuilder,
                                                          loadBalancer, isNew, loadBalancerWriter, taskExecutor,
-                                                         gceHttpLoadBalancerWriter, $state, wizardSubFormValidation,
+                                                         gceMultipleListenerLoadBalancerWriter, $state, wizardSubFormValidation,
                                                          gceHttpLoadBalancerCommandBuilder, gceHttpLoadBalancerTransformer) {
     this.application = application;
     this.isNew = isNew;
@@ -97,7 +97,7 @@ module.exports = angular.module('spinnaker.deck.gce.loadBalancer.createHttp.cont
       let serializedCommands = gceHttpLoadBalancerTransformer.serialize(this.command, loadBalancer);
       let descriptor = this.isNew ? 'Create' : 'Update';
 
-      this.taskMonitor.submit(() => gceHttpLoadBalancerWriter.upsertLoadBalancers(serializedCommands, application, descriptor));
+      this.taskMonitor.submit(() => gceMultipleListenerLoadBalancerWriter.upsertLoadBalancer(serializedCommands, application, descriptor));
     };
 
     this.preview = () => {

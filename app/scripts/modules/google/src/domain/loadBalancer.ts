@@ -43,5 +43,7 @@ export interface IGceListener {
   certificate: string;
   name: string;
   port: string;
+  ports: string[];
   ipAddress: string;
+  subnet: string;
 }
