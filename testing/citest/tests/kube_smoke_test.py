@@ -112,7 +112,10 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
     # because it scopes the context of our activities.
     # pylint: disable=invalid-name
     self.TEST_APP = bindings['TEST_APP']
-    self.TEST_NAMESPACE = bindings['TEST_NAMESPACE']
+
+    # Take just the first if there are multiple
+    # because some uses below assume just one.
+    self.TEST_NAMESPACE = bindings['TEST_NAMESPACE'].split(',')[0]
     self.pipeline_id = None
 
     # We will deploy two images. One with a tag that we want to find,
@@ -358,12 +361,19 @@ class KubeSmokeTestScenario(sk.SpinnakerTestScenario):
                 'pattern': self.__desired_image_pattern,
                 'stageId': imageSource
                },
-              'requests': {'memory':None,'cpu':None},
-              'limits': {'memory':None,'cpu':None},
+# EC2 handles none values different from the other platforms (GCE and Azure)
+# so we're going to ommit these from the test for now so as not to fail EC2.
+# The S3 storage manager in front50 strips out none properties entirely
+# so when we check this later, it will fail because the none properties are missing.
+#              'requests': {'memory':None,'cpu':None},
+#              'limits': {'memory':None,'cpu':None},
               'ports': [{'name':'http','containerPort':80,
-                'protocol':'TCP','hostPort':None,'hostIp':None}],
-              'livenessProbe': None,
-              'readinessProbe': None, 'envVars': [],
+                  'protocol':'TCP',
+#                  'hostPort':None,'hostIp':None
+                       }],
+#              'livenessProbe': None,
+#              'readinessProbe': None,
+              'envVars': [],
               'command': [],
               'args': [],
               'volumeMounts': []

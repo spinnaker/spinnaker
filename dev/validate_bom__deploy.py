@@ -415,8 +415,7 @@ class GenericVmValidateBomDeployer(BaseValidateBomDeployer):
       self.__instance_ip = self.do_determine_instance_ip()
     return self.__instance_ip
 
-  @instance_ip.setter
-  def instance_ip(self, value):
+  def set_instance_ip(self, value):
     """Sets the underlying IP address for the deployed instance."""
     self.__instance_ip = value
 
@@ -743,7 +742,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
       raise ValueError('VM failed: {0}'.format(info))
 
     logging.info('%s is in state %s', self.__instance_id, state)
-    self.instance_ip = info.get('PublicIpAddress')
+    self.set_instance_ip(info.get('PublicIpAddress'))
     # attempt to ssh into it so we know we're accepting connections when
     # we return. It takes time to start
     logging.info('Checking if it is ready for ssh...')
@@ -880,8 +879,8 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
                 rg=options.deploy_azure_resource_group,
                 location=options.deploy_azure_location,
                 ssh_key_path=self.ssh_key_path))
-    self.instance_ip = json.JSONDecoder().decode(
-        response.stdout)['publicIpAddress']
+    self.set_instance_ip(json.JSONDecoder().decode(
+        response.stdout)['publicIpAddress'])
 
   def do_undeploy(self):
     """Implements the BaseBomValidateDeployer interface."""
@@ -892,7 +891,7 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {user}@{ip} sudo hal deploy clean'
+          ' {user}@{ip} sudo hal -q --log=info deploy clean'
           .format(user=self.hal_user,
                   ip=self.instance_ip,
                   ssh_key=self.ssh_key_path))
@@ -1020,7 +1019,7 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
           ' -i {ssh_key}'
           ' -o StrictHostKeyChecking=no'
           ' -o UserKnownHostsFile=/dev/null'
-          ' {user}@{ip} sudo hal deploy clean'
+          ' {user}@{ip} sudo hal -q --log=info deploy clean'
           .format(user=self.hal_user,
                   ip=self.instance_ip,
                   ssh_key=self.ssh_key_path))

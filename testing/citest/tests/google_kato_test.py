@@ -137,7 +137,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     # with different regions at this time.
     test_zone = self.bindings['TEST_GCE_ZONE']
     other_zone = self.bindings['TEST_GCE_REGION'] + (
-        '-b' if test_zone[-1] != 'b' else '-a')
+        '-b' if test_zone[-1] != 'b' else '-c')
 
     self.use_instance_zones = [test_zone, other_zone, test_zone]
 

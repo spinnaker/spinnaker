@@ -605,6 +605,9 @@ class GoogleConfigurator(object):
         '--json-path', os.path.basename(options.google_account_credentials)])
 
     script.append('hal -q --log=info config provider google enable')
+    if options.deploy_google_zone:
+      script.append('hal -q --log=info config provider google bakery edit'
+                    ' --zone {zone}'.format(zone=options.deploy_google_zone))
     script.append(
         'hal -q --log=info config provider google account add {params}'
         .format(params=' '.join(account_params)))
