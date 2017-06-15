@@ -23,6 +23,7 @@ import com.natpryce.hamkrest.hasElement
 import com.natpryce.hamkrest.isEmpty
 import com.natpryce.hamkrest.should.shouldMatch
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -41,6 +42,7 @@ import org.jetbrains.spek.api.dsl.*
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.springframework.context.ApplicationEventPublisher
+import java.lang.RuntimeException
 import java.time.Duration
 
 object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
@@ -48,6 +50,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
+  val exceptionHandler: ExceptionHandler<in Exception> = mock()
   val clock = fixedClock()
   val retryDelay = Duration.ofSeconds(5)
 
@@ -64,16 +67,18 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         rollingPushStage,
         zeroTaskStage,
         stageWithSyntheticAfterAndNoTasks,
-        webhookStage
+        webhookStage,
+        failPlanningStage
       ),
       publisher,
+      listOf(exceptionHandler),
       clock,
       ContextParameterProcessor(),
       retryDelayMs = retryDelay.toMillis()
     )
   }
 
-  fun resetMocks() = reset(queue, repository, publisher)
+  fun resetMocks() = reset(queue, repository, publisher, exceptionHandler)
 
   describe("starting a stage") {
     given("there is a single initial task") {
@@ -583,6 +588,75 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
             isStageEnd shouldEqual true
           }
         })
+      }
+    }
+
+    given("an exception is thrown planning the stage") {
+      val pipeline = pipeline {
+        application = "covfefe"
+        stage {
+          refId = "1"
+          type = failPlanningStage.type
+        }
+      }
+      val message = StartStage(pipeline.stageByRef("1"))
+
+      context("that is not recoverable") {
+        val exceptionDetails = ExceptionHandler.Response(
+          RuntimeException::class.qualifiedName,
+          "o noes",
+          ExceptionHandler.ResponseDetails("o noes"),
+          false
+        )
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(exceptionHandler.handles(any())) doReturn true
+          whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+        }
+
+        afterGroup(::resetMocks)
+
+        on("receiving $message") {
+          subject.handle(message)
+        }
+
+        it("marks the stage as terminal") {
+          verify(queue).push(check<CompleteStage> {
+            it.status shouldEqual TERMINAL
+          })
+        }
+
+        it("attaches the exception to the stage context") {
+          verify(repository).storeStage(check {
+            it.getContext()["exception"] shouldEqual exceptionDetails
+          })
+        }
+      }
+
+      context("that is recoverable") {
+        val exceptionDetails = ExceptionHandler.Response(
+          RuntimeException::class.qualifiedName,
+          "o noes",
+          ExceptionHandler.ResponseDetails("o noes"),
+          true
+        )
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(exceptionHandler.handles(any())) doReturn true
+          whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("re-runs the task") {
+          verify(queue).push(message, retryDelay)
+        }
       }
     }
   }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
+import java.lang.RuntimeException
 
 val singleTaskStage = object : StageDefinitionBuilder {
   override fun getType() = "singleTaskStage"
@@ -146,5 +147,12 @@ val webhookStage = object : StageDefinitionBuilder {
   override fun getType() = "webhook"
   override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
     builder.withTask("createWebhook", DummyTask::class.java)
+  }
+}
+
+val failPlanningStage = object : StageDefinitionBuilder {
+  override fun getType() = "failPlanning"
+  override fun <T : Execution<T>> taskGraph(stage: Stage<T>, builder: Builder) {
+    throw RuntimeException("o noes")
   }
 }

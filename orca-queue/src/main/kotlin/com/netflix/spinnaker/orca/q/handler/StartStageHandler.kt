@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
@@ -40,6 +41,7 @@ open class StartStageHandler
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
   private val publisher: ApplicationEventPublisher,
+  private val exceptionHandlers: Collection<ExceptionHandler<in Exception>>,
   private val clock: Clock,
   private val contextParameterProcessor: ContextParameterProcessor,
   @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
@@ -60,15 +62,28 @@ open class StartStageHandler
         } else if (stage.shouldSkip()) {
           queue.push(CompleteStage(message, SKIPPED))
         } else {
-          stage.plan()
+          try {
+            stage.plan()
 
-          stage.setStatus(RUNNING)
-          stage.setStartTime(clock.millis())
-          repository.storeStage(stage)
+            stage.setStatus(RUNNING)
+            stage.setStartTime(clock.millis())
+            repository.storeStage(stage)
 
-          stage.start()
+            stage.start()
 
-          publisher.publishEvent(StageStarted(this, stage))
+            publisher.publishEvent(StageStarted(this, stage))
+          } catch(e: Exception) {
+            val exceptionDetails = shouldRetry(e, stage)
+            if (exceptionDetails?.shouldRetry ?: false) {
+              log.warn("Error planning ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]")
+              queue.push(message, retryDelay)
+            } else {
+              log.error("Error running ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]", e)
+              stage.getContext()["exception"] = exceptionDetails
+              repository.storeStage(stage)
+              queue.push(CompleteStage(message, TERMINAL))
+            }
+          }
         }
       } else {
         log.warn("Re-queuing $message as upstream stages are not yet complete")
@@ -113,4 +128,10 @@ open class StartStageHandler
 
   private fun Stage<*>.shouldSkip() =
     OptionalStageSupport.isOptional(this, contextParameterProcessor)
+
+
+  private fun shouldRetry(ex: Exception, stage: Stage<*>): ExceptionHandler.Response? {
+    val exceptionHandler = exceptionHandlers.find { it.handles(ex) }
+    return exceptionHandler?.handle(stage.getName(), ex)
+  }
 }
