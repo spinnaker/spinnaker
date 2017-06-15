@@ -61,13 +61,19 @@ class RetrofitExceptionHandler implements ExceptionHandler<RetrofitError> {
       response.details.kind = e.kind
       response.details.status = properties.status ?: null
       response.details.url = properties.url ?: null
-      response.shouldRetry = ((isNetworkError(e) || isGatewayTimeout(e)) && isIdempotentRequest(e))
+      response.shouldRetry = ((isNetworkError(e) || isGatewayTimeout(e) || isThrottle(e)) && isIdempotentRequest(e))
       return response
     }
   }
 
   boolean isGatewayTimeout(RetrofitError e) {
     e.kind == HTTP && e.response.status in [HTTP_BAD_GATEWAY, HTTP_UNAVAILABLE, HTTP_GATEWAY_TIMEOUT]
+  }
+
+  private static final int HTTP_TOO_MANY_REQUESTS = 429
+
+  boolean isThrottle(RetrofitError e) {
+    e.kind == HTTP && e.response.status == HTTP_TOO_MANY_REQUESTS
   }
 
   private boolean isNetworkError(RetrofitError e) {
