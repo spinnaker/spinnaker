@@ -92,6 +92,7 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     HealthCheck existingHealthCheck // Could be any one of Http, Https, Ssl, or Tcp.
 
     // We first devise a plan by setting all of these flags.
+    boolean needToUpdateForwardingRule = false
     boolean needToUpdateBackendService = false
     boolean needToUpdateHealthCheck = false
 
@@ -102,6 +103,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
       throw new GoogleOperationException("There is already a load balancer named " +
         "$description.loadBalancerName (in region ${GCEUtil.getLocalName(existingForwardingRule.region)}). " +
         "Please specify a different name.")
+    } else if (existingForwardingRule && (description.region == GCEUtil.getLocalName(existingForwardingRule.region))) {
+      needToUpdateForwardingRule = description.ports != existingForwardingRule.getPorts()
     }
 
     existingBackendService = safeRetry.doRetry(
@@ -226,45 +229,88 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         null, task, "backend service " + healthCheckName, BASE_PHASE)
     }
 
+    def network = GCEUtil.queryNetwork(description.accountName, description.network, task, BASE_PHASE, googleNetworkProvider)
+    def subnet = GCEUtil.querySubnet(description.accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider)
     if (!existingForwardingRule) {
-      task.updateStatus BASE_PHASE, "Creating forwarding rule $description.loadBalancerName..."
-      def network = GCEUtil.queryNetwork(description.accountName, description.network, task, BASE_PHASE, googleNetworkProvider)
-      def subnet = GCEUtil.querySubnet(description.accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider)
-
       def forwardingRule = new ForwardingRule(
-        name: description.loadBalancerName,
-        loadBalancingScheme: 'INTERNAL',
-        backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
-        IPProtocol: description.ipProtocol,
-        IPAddress: description.ipAddress,
-        network: network.selfLink,
-        subnetwork: subnet.selfLink,
-        ports: description.ports
+          name: description.loadBalancerName,
+          loadBalancingScheme: 'INTERNAL',
+          backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
+          IPProtocol: description.ipProtocol,
+          IPAddress: description.ipAddress,
+          network: network.selfLink,
+          subnetwork: subnet.selfLink,
+          ports: description.ports
       )
-      Operation forwardingRuleOp = safeRetry.doRetry(
-        { timeExecute(
-              compute.forwardingRules().insert(project, region, forwardingRule),
-              "compute.forwardingRules.insert",
+      insertRegionalForwardingRule(compute, project, region, forwardingRule)
+    } else if (existingForwardingRule && needToUpdateForwardingRule) {
+      def updatedForwardingRule = new ForwardingRule(
+          name: description.loadBalancerName,
+          loadBalancingScheme: 'INTERNAL',
+          backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
+          IPProtocol: description.ipProtocol,
+          IPAddress: description.ipAddress,
+          network: network.selfLink,
+          subnetwork: subnet.selfLink,
+          ports: description.ports
+      )
+      deleteRegionalForwardingRule(compute, project, region, existingForwardingRule.getName())
+      insertRegionalForwardingRule(compute, project, region, updatedForwardingRule)
+    }
+
+    // Delete extraneous listeners.
+    description.listenersToDelete?.each { String forwardingRuleName ->
+      deleteRegionalForwardingRule(compute, project, region, forwardingRuleName)
+    }
+
+    task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
+    return [loadBalancers: [(region): [name: description.loadBalancerName]]]
+  }
+
+  private void deleteRegionalForwardingRule(compute, String project, String region, String forwardingRuleName) {
+    task.updateStatus BASE_PHASE, "Deleting listener ${forwardingRuleName}..."
+    Operation deleteForwardingRuleOp = safeRetry.doRetry(
+        {
+          timeExecute(
+              compute.forwardingRules().delete(project, region, forwardingRuleName),
+              "compute.forwardingRules.delete",
               TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
+        "Regional forwarding rule $forwardingRuleName",
+        task,
+        [400, 412],
+        [404],
+        [action: "delete", phase: BASE_PHASE, operation: "compute.forwardingRules.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+        registry
+    ) as Operation
+
+    if (deleteForwardingRuleOp) {
+      googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
+          30, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
+    }
+  }
+
+  private void insertRegionalForwardingRule(compute, String project, String region, forwardingRule) {
+    task.updateStatus BASE_PHASE, "Creating forwarding rule $description.loadBalancerName..."
+    Operation forwardingRuleOp = safeRetry.doRetry(
+        { timeExecute(
+            compute.forwardingRules().insert(project, region, forwardingRule),
+            "compute.forwardingRules.insert",
+            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
         "Regional forwarding rule ${description.loadBalancerName}",
         task,
         [400, 403, 412],
         [],
         [action: "insert", phase: BASE_PHASE, operation: "compute.forwardingRules.insert", (TAG_SCOPE): SCOPE_GLOBAL],
         registry
-      ) as Operation
+    ) as Operation
 
-      // Orca's orchestration for upserting a Google load balancer does not contain a task
-      // to wait for the state of the platform to show that a load balancer was created (for good reason,
-      // that would be a complicated operation). Instead, Orca waits for Clouddriver to execute this operation
-      // and do a force cache refresh. We should wait for the whole load balancer to be created in the platform
-      // before we exit this upsert operation, so we wait for the forwarding rule to be created before continuing
-      // so we _know_ the state of the platform when we do a force cache refresh.
-      googleOperationPoller.waitForRegionalOperation(compute, project, region, forwardingRuleOp.getName(),
-          null, task, "forwarding rule " + description.loadBalancerName, BASE_PHASE)
-    }
-
-    task.updateStatus BASE_PHASE, "Done upserting load balancer $description.loadBalancerName in $region."
-    [loadBalancers: [(region): [name: description.loadBalancerName]]]
+    // Orca's orchestration for upserting a Google load balancer does not contain a task
+    // to wait for the state of the platform to show that a load balancer was created (for good reason,
+    // that would be a complicated operation). Instead, Orca waits for Clouddriver to execute this operation
+    // and do a force cache refresh. We should wait for the whole load balancer to be created in the platform
+    // before we exit this upsert operation, so we wait for the forwarding rule to be created before continuing
+    // so we _know_ the state of the platform when we do a force cache refresh.
+    googleOperationPoller.waitForRegionalOperation(compute, project, region, forwardingRuleOp.getName(),
+        null, task, "forwarding rule " + description.loadBalancerName, BASE_PHASE)
   }
 }

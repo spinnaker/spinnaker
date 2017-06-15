@@ -73,12 +73,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def healthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -121,8 +121,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     then:
       2 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
@@ -159,12 +159,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def healthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -207,8 +207,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     then:
       2 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
@@ -245,12 +245,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def healthCheckOperationGet = Mock(Compute.GlobalOperations.Get)
 
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -293,8 +293,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     then:
       2 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
@@ -329,12 +329,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def backendServiceOperationGet = Mock(Compute.RegionOperations.Get)
 
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -390,8 +390,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     then:
       2 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
@@ -421,12 +421,12 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def forwardingRuleOperationGet = Mock(Compute.RegionOperations.Get)
 
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
       def forwardingRulesDelete = Mock(Compute.ForwardingRules.Delete)
       def forwardingRulesDeleteOp = new Operation(
         name: FORWARDING_RULE_DELETE_OP_NAME,
         status: "DONE")
-      def forwardingRule = new ForwardingRule(backendService: BS_URL)
+      def forwardingRule = new ForwardingRule(backendService: BS_URL, name: LOAD_BALANCER_NAME, region: REGION)
 
       def backendServices = Mock(Compute.RegionBackendServices)
       def backendServicesGet = Mock(Compute.RegionBackendServices.Get)
@@ -482,8 +482,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     then:
       2 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> forwardingRule
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: [forwardingRule]]
       1 * forwardingRules.delete(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesDelete
       1 * forwardingRulesDelete.execute() >> forwardingRulesDeleteOp
 
@@ -509,7 +509,7 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       def computeMock = Mock(Compute)
 
       def forwardingRules = Mock(Compute.ForwardingRules)
-      def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
+      def forwardingRulesList = Mock(Compute.ForwardingRules.List)
 
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
       def description = new DeleteGoogleLoadBalancerDescription(
@@ -533,8 +533,8 @@ class DeleteGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     then:
       1 * computeMock.forwardingRules() >> forwardingRules
-      1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
-      1 * forwardingRulesGet.execute() >> null
+      1 * forwardingRules.list(PROJECT_NAME, REGION) >> forwardingRulesList
+      1 * forwardingRulesList.execute() >> [items: []]
       thrown GoogleResourceNotFoundException
   }
 }

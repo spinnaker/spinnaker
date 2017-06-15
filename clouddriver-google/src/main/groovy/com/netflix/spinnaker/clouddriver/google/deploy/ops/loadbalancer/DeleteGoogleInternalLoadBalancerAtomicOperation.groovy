@@ -75,24 +75,27 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
 
     task.updateStatus BASE_PHASE, "Retrieving forwarding rule $forwardingRuleName in $region..."
 
-    ForwardingRule forwardingRule = safeRetry.doRetry(
-      { timeExecute(
-            compute.forwardingRules().get(project, region, forwardingRuleName),
-            "compute.forwardingRules.get",
-            TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      "Regional forwarding rule $forwardingRuleName",
-      task,
-      [400, 403, 412],
-      [],
-      [action: "get", phase: BASE_PHASE, operation: "compute.forwardingRules.get", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
-      registry
-    ) as ForwardingRule
+    // NOTE: get all the forwarding rule names to resolve which ones to delete later.
+    List<ForwardingRule> projectForwardingRules = timeExecute(
+        compute.forwardingRules().list(project, region),
+        "compute.forwardingRules.list",
+        TAG_SCOPE, SCOPE_GLOBAL).getItems()
+
+    ForwardingRule forwardingRule = projectForwardingRules.find { it.name == forwardingRuleName }
     if (forwardingRule == null) {
       GCEUtil.updateStatusAndThrowNotFoundException("Forwarding rule $forwardingRuleName not found in $region for $project",
         task, BASE_PHASE)
     }
 
     def backendServiceName = GCEUtil.getLocalName(forwardingRule.backendService)
+
+    // Determine which listeners to delete.
+    List<String> listenersToDelete = []
+    projectForwardingRules.each { ForwardingRule rule ->
+      if (GCEUtil.getLocalName(rule.getBackendService()) == backendServiceName) {
+        listenersToDelete << rule.getName()
+      }
+    }
 
     task.updateStatus BASE_PHASE, "Retrieving backend service $backendServiceName in $region..."
 
@@ -148,7 +151,6 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
         break
     }
 
-    // GenericJson is the only base class the health checks share...
     def healthCheck = safeRetry.doRetry(
       healthCheckGet,
       "Health check $healthCheckName",
@@ -166,23 +168,27 @@ class DeleteGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
     // Now delete all the components, waiting for each delete operation to finish.
     def timeoutSeconds = description.deleteOperationTimeoutSeconds
 
-    Operation deleteForwardingRuleOp = safeRetry.doRetry(
-      {
-          timeExecute(
-              compute.forwardingRules().delete(project, region, forwardingRuleName),
-              "compute.forwardingRules.delete",
-              TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
-      "Regional forwarding rule $forwardingRuleName",
-      task,
-      [400, 412],
-      [404],
-      [action: "delete", phase: BASE_PHASE, operation: "compute.forwardingRules.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
-      registry
-    ) as Operation
+    listenersToDelete.each { String ruleName ->
+      task.updateStatus BASE_PHASE, "Deleting listener $ruleName..."
 
-    if (deleteForwardingRuleOp) {
-      googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
-        timeoutSeconds, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
+      Operation deleteForwardingRuleOp = safeRetry.doRetry(
+          {
+            timeExecute(
+                compute.forwardingRules().delete(project, region, ruleName),
+                "compute.forwardingRules.delete",
+                TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region) },
+          "Regional forwarding rule $ruleName",
+          task,
+          [400, 412],
+          [404],
+          [action: "delete", phase: BASE_PHASE, operation: "compute.forwardingRules.delete", (TAG_SCOPE): SCOPE_REGIONAL, (TAG_REGION): region],
+          registry
+      ) as Operation
+
+      if (deleteForwardingRuleOp) {
+        googleOperationPoller.waitForRegionalOperation(compute, project, region, deleteForwardingRuleOp.getName(),
+            timeoutSeconds, task, "Regional forwarding rule $forwardingRuleName", BASE_PHASE)
+      }
     }
 
     Operation deleteBackendServiceOp = GCEUtil.deleteIfNotInUse(
