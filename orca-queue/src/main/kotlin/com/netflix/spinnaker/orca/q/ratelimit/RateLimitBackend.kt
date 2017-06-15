@@ -17,7 +17,13 @@ package com.netflix.spinnaker.orca.q.ratelimit
 
 import java.time.Duration
 
-data class RateLimit(val limiting: Boolean, val duration: Duration)
+data class RateLimit(val limiting: Boolean, val duration: Duration, val enforcing: Boolean)
+
+data class RateLimitContext(
+  val namespace: String,
+  val capacity: Int,
+  val enforcing: Boolean
+)
 
 interface RateLimitBackend {
   /**
@@ -25,9 +31,9 @@ interface RateLimitBackend {
    * an associated duration should be provided for how long the message should
    * be delayed.
    */
-  fun get(application: String): RateLimit
+  fun incrementAndGet(subject: String, context: RateLimitContext): RateLimit
 }
 
 class NoopRateLimitBackend : RateLimitBackend {
-  override fun get(application: String) = RateLimit(false, Duration.ZERO)
+  override fun incrementAndGet(subject: String, context: RateLimitContext) = RateLimit(false, Duration.ZERO, false)
 }

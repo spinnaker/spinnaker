@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.q
 
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -41,11 +42,15 @@ import java.time.temporal.TemporalAmount
   override val ackTimeout = queueImpl.ackTimeout
   override val deadMessageHandler: (Queue, Message) -> Unit = queueImpl.deadMessageHandler
 
-  val pollInterceptors = interceptors.filter { it.supports(InterceptorType.POLL) }
-  val messageInterceptors = interceptors.filter { it.supports(InterceptorType.MESSAGE) }
+  val pollInterceptors = interceptors.filter { it.supports(InterceptorType.POLL) }.sortedBy { it.getPriority() }
+  val messageInterceptors = interceptors.filter { it.supports(InterceptorType.MESSAGE) }.sortedBy { it.getPriority() }
 
-  private val queueInterceptionsId = registry.createId("queue.trafficShapedQueue.queueInterceptions")
-  private val messageInterceptionsId = registry.createId("queue.trafficShapedQueue.messageInterceptions")
+  val queueInterceptionsId: Id = registry.createId("queue.trafficShapedQueue.queueInterceptions")
+  val messageInterceptionsId: Id = registry.createId("queue.trafficShapedQueue.messageInterceptions")
+
+  init {
+    log.info("Starting with interceptors: ${interceptors.map { it.getName() }.joinToString()}")
+  }
 
   override fun poll(callback: QueueCallback) {
     val pollIntercepting = pollInterceptors.filter { it ->
@@ -58,7 +63,6 @@ import java.time.temporal.TemporalAmount
     }.map { it.getName() }
 
     if (pollIntercepting.isNotEmpty()) {
-      log.warn("Queue polling disabled by: ${pollIntercepting.joinToString()}")
       registry.counter(queueInterceptionsId).increment()
       return
     }
@@ -114,6 +118,7 @@ interface TrafficShapingInterceptor {
   fun supports(type: InterceptorType): Boolean
   fun interceptPoll(): Boolean
   fun interceptMessage(message: Message): TrafficShapingInterceptorCallback?
+  fun getPriority(): Int = 0
 }
 
 /**

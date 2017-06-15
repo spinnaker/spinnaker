@@ -13,30 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q.interceptors
+package com.netflix.spinnaker.orca.q.interceptor
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.q.ratelimit.RateLimit
 import com.netflix.spinnaker.orca.q.ratelimit.RateLimitBackend
+import com.netflix.spinnaker.orca.q.ratelimit.RateLimitContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 
 /**
  * Rate limits messages by application. It's up to the backend to determine how to implement the storage and specific
  * rate limiting logic.
  */
-class ApplicationThrottlingQueueInterceptor(
+class ApplicationRateLimitQueueInterceptor(
   val backend: RateLimitBackend,
-  val registry: Registry
+  val registry: Registry,
+  val applicationRateLimitingProperties: TrafficShapingProperties.ApplicationRateLimitingProperties
 ): TrafficShapingInterceptor {
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
   private val throttledMessagesId = registry.createId("queue.trafficShaping.throttledMessages")
 
-  override fun getName() = "applicationThrottling"
+  override fun getName() = "appRateLimit"
   override fun supports(type: InterceptorType) = type == InterceptorType.MESSAGE
   override fun interceptPoll() = false
 
@@ -46,20 +48,30 @@ class ApplicationThrottlingQueueInterceptor(
       else -> {
         val rateLimit: RateLimit
         try {
-          rateLimit = backend.get(message.application)
+          rateLimit = backend.incrementAndGet(
+            message.application,
+            RateLimitContext(
+              getName(),
+              applicationRateLimitingProperties.getCapacity(message.application),
+              applicationRateLimitingProperties.getEnforcing(message.application)
+            )
+          )
         } catch (e: Exception) {
           log.error("Rate limiting backend threw exception, disabling interceptor for message", e);
           return null
         }
         if (rateLimit.limiting) {
-          return { queue, message, ack ->
-            queue.push(message, rateLimit.duration)
-            ack.invoke()
-            registry.counter(throttledMessagesId).increment()
+          if (rateLimit.enforcing) {
+            log.info("Throttling message: $message")
+            return { queue, message, ack ->
+              queue.push(message, rateLimit.duration)
+              ack.invoke()
+              registry.counter(throttledMessagesId).increment()
+            }
           }
-        } else {
-          return null
+          log.info("Would have throttled message for ${message.application}, but learning-mode enabled: $message")
         }
+        return null
       }
     }
   }
