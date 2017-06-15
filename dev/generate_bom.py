@@ -106,6 +106,7 @@ class BomGenerator(Annotator):
     self.__alias = options.bom_alias
     self.__google_image_project = options.google_image_project
     self.__git_prefix = options.git_prefix
+    self.__halyard_version = {'halyard': None}
     super(BomGenerator, self).__init__(options)
 
   @property
@@ -386,7 +387,6 @@ class BomGenerator(Annotator):
     for halyard
     """
     comp = 'halyard'
-    self.__halyard_version = {comp: None}
     self.path = os.path.join(self.__base_dir, comp)
     self.parse_git_tree()
     self.__changelog_start_hashes[comp] = self.current_version.hash
