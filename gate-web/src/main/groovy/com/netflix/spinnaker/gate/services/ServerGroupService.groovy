@@ -57,7 +57,7 @@ class ServerGroupService {
 
         def context = getContext(applicationName, account, region, serverGroupName) + serverGroupContext
         return serverGroupDetails + [
-          "insightActions": insightConfiguration.serverGroup.collect { it.applyContext(context) }
+          "insightActions": insightConfiguration.serverGroup.findResults { it.applyContext(context) }
         ]
       } catch (RetrofitError e) {
         if (e.response?.status == 404) {
