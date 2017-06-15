@@ -28,6 +28,7 @@ class GoogleSecurityGroupSummary implements SecurityGroupSummary {
   String name
   String id
   String network
+  String selfLink
   String sourceTags
   String targetTags
 }

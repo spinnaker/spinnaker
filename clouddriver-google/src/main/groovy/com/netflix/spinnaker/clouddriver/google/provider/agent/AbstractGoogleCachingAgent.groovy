@@ -58,6 +58,10 @@ abstract class AbstractGoogleCachingAgent implements CachingAgent, AccountAware,
     credentials?.project
   }
 
+  String getXpnHostProject() {
+    credentials?.xpnHostProject
+  }
+
   Compute getCompute() {
     credentials?.compute
   }

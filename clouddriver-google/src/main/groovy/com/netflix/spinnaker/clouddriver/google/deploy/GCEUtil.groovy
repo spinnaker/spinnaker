@@ -569,14 +569,6 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/regions/$region/backendServices/$backendServiceName"
   }
 
-  static String buildNetworkUrl(String projectName, String networkName) {
-    return GCE_API_PREFIX + "$projectName/global/networks/${networkName}"
-  }
-
-  static String buildSubnetworkUrl(String projectName, String region, String subnetName) {
-    return GCE_API_PREFIX + "$projectName/regions/${region}/subnetworks/${subnetName}"
-  }
-
   static String buildRegionalServerGroupUrl(String projectName, String region, String serverGroupName) {
     return GCE_API_PREFIX + "$projectName/regions/$region/instanceGroups/$serverGroupName"
   }
@@ -742,6 +734,21 @@ class GCEUtil {
     def urlParts = fullUrl.split("/")
 
     return urlParts[urlParts.length - 1]
+  }
+
+  public static String deriveProjectId(String fullUrl) {
+    if (!fullUrl) {
+      throw new IllegalArgumentException("Attempting to derive project id from empty resource url.")
+    }
+
+    List<String> urlParts = fullUrl.tokenize("/")
+    int indexOfProjectsToken = urlParts.indexOf("projects")
+
+    if (indexOfProjectsToken == -1) {
+      throw new IllegalArgumentException("Attempting to derive project id from resource url that does not contain 'projects': $fullUrl")
+    }
+
+    return urlParts[indexOfProjectsToken + 1]
   }
 
   static def buildHttpHealthCheck(String name, UpsertGoogleLoadBalancerDescription.HealthCheck healthCheckDescription) {

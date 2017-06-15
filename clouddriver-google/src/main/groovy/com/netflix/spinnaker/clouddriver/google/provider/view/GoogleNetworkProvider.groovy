@@ -70,7 +70,7 @@ class GoogleNetworkProvider implements NetworkProvider<GoogleNetwork> {
 
     new GoogleNetwork(
       cloudProvider: this.cloudProvider,
-      id: network.name,
+      id: parts.id,
       name: network.name,
       account: parts.account,
       region: parts.region,

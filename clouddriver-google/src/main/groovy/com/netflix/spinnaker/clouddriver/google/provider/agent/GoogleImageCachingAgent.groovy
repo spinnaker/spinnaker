@@ -30,6 +30,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -138,9 +139,7 @@ class GoogleImageCachingAgent extends AbstractGoogleCachingAgent {
         imageList.addAll(nonDeprecatedImages)
       }
 
-      // selfLinks look like this: https://www.googleapis.com/compute/alpha/projects/ubuntu-os-cloud/global/images
-      def selfLinkTokens = imageListResult.getSelfLink().tokenize("/")
-      def imageProject = selfLinkTokens[selfLinkTokens.size() - 3]
+      def imageProject = GCEUtil.deriveProjectId(imageListResult.getSelfLink())
 
       if (imageListResult.nextPageToken) {
         imageProjectToNextPageTokenMap[imageProject] = imageListResult.nextPageToken

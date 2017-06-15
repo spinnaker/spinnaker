@@ -106,6 +106,7 @@ abstract class AbstractGoogleLoadBalancerCachingAgent extends AbstractGoogleCach
     } else {
       loadBalancerKey = Keys.getLoadBalancerKey(region, accountName, data.loadBalancerName as String)
 
+      // TODO(duftler): Is this right? Seems like this should use a wildcard.
       // No load balancer was found, so need to find identifiers for all load balancers in the region.
       identifiers = providerCache.filterIdentifiers(LOAD_BALANCERS.ns, loadBalancerKey)
     }

@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
-import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
@@ -159,11 +158,16 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                          clouddriverUserAgentApplicationName,
                                          googleConfigurationProperties.baseImageProjects,
                                          this)
-
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
-
     def subnet =
       description.subnet ? GCEUtil.querySubnet(accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider) : null
+
+    // If no subnet is passed and the network is both an xpn host network and an auto-subnet network, then we need to set the subnet ourselves here.
+    // This shouldn't be required, but GCE complains otherwise.
+    if (!subnet && network.id.contains("/") && network.autoCreateSubnets) {
+      // Auto-created subnets have the same name as the containing network.
+      subnet = GCEUtil.querySubnet(accountName, region, network.id, task, BASE_PHASE, googleSubnetProvider)
+    }
 
     def targetPools = []
     def internalLoadBalancers = []

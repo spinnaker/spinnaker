@@ -272,8 +272,15 @@ class Utils {
     return loadBalancer.name in httpLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
   }
 
-  static String getNetworkNameFromInstanceTemplate(InstanceTemplate instanceTemplate) {
-    return getLocalName(instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
+  static String decorateXpnResourceIdIfNeeded(String managedProjectId, String xpnResource) {
+    def xpnResourceProject = GCEUtil.deriveProjectId(xpnResource)
+    def xpnResourceId = GCEUtil.getLocalName(xpnResource)
+
+    if (xpnResourceProject != managedProjectId) {
+      xpnResourceId = "$xpnResourceProject/$xpnResourceId"
+    }
+
+    return xpnResourceId
   }
 
   static boolean determineInternalLoadBalancerDisabledState(GoogleInternalLoadBalancer loadBalancer,

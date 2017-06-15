@@ -42,6 +42,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final GoogleCredentials credentials
 
   final String project
+  final String xpnHostProject
   final String applicationName
   final List<String> imageProjects
   final ComputeVersion computeVersion
@@ -59,6 +60,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     List<String> requiredGroupMembership = []
     Permissions permissions = Permissions.EMPTY
     String project
+    String xpnHostProject
     String applicationName
     List<String> imageProjects = []
     ComputeVersion computeVersion = ComputeVersion.DEFAULT
@@ -192,6 +194,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       }
 
       if (liveLookupsEnabled) {
+        xpnHostProject = compute.projects().getXpnHost(project).execute()?.getName()
         regionToZonesMap = queryRegions(compute, project)
         locationToInstanceTypesMap = queryInstanceTypes(compute, project, regionToZonesMap)
       }
@@ -204,6 +207,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         permissions,
                                         credentials,
                                         project,
+                                        xpnHostProject,
                                         applicationName,
                                         imageProjects,
                                         computeVersion,

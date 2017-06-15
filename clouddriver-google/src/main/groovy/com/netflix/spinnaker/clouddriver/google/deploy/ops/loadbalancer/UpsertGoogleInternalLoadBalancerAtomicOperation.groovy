@@ -29,9 +29,9 @@ import com.netflix.spinnaker.clouddriver.google.deploy.description.UpsertGoogleL
 import com.netflix.spinnaker.clouddriver.google.deploy.exception.GoogleOperationException
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
-import com.netflix.spinnaker.clouddriver.google.model.callbacks.Utils
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSessionAffinity
-
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import org.springframework.beans.factory.annotation.Autowired
 
 class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperation<Map> {
@@ -46,6 +46,12 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
 
   @Autowired
   private GoogleOperationPoller googleOperationPoller
+
+  @Autowired
+  private GoogleNetworkProvider googleNetworkProvider
+
+  @Autowired
+  private GoogleSubnetProvider googleSubnetProvider
 
   private final UpsertGoogleLoadBalancerDescription description
 
@@ -222,14 +228,17 @@ class UpsertGoogleInternalLoadBalancerAtomicOperation extends GoogleAtomicOperat
 
     if (!existingForwardingRule) {
       task.updateStatus BASE_PHASE, "Creating forwarding rule $description.loadBalancerName..."
+      def network = GCEUtil.queryNetwork(description.accountName, description.network, task, BASE_PHASE, googleNetworkProvider)
+      def subnet = GCEUtil.querySubnet(description.accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider)
+
       def forwardingRule = new ForwardingRule(
         name: description.loadBalancerName,
         loadBalancingScheme: 'INTERNAL',
         backendService: GCEUtil.buildRegionBackendServiceUrl(project, region, description.backendService.name),
         IPProtocol: description.ipProtocol,
         IPAddress: description.ipAddress,
-        network: GCEUtil.buildNetworkUrl(project, description.network),
-        subnetwork: GCEUtil.buildSubnetworkUrl(project, region, description.subnet),
+        network: network.selfLink,
+        subnetwork: subnet.selfLink,
         ports: description.ports
       )
       Operation forwardingRuleOp = safeRetry.doRetry(

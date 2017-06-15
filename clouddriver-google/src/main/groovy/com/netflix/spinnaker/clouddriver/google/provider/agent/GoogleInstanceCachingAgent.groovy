@@ -109,6 +109,7 @@ class GoogleInstanceCachingAgent extends AbstractGoogleCachingAgent {
             zone: localZoneName,
             region: credentials.regionFromZone(localZoneName),
             networkInterfaces: instance.networkInterfaces,
+            networkName: Utils.decorateXpnResourceIdIfNeeded(project, instance.networkInterfaces?.getAt(0)?.network),
             metadata: instance.metadata,
             disks: instance.disks,
             serviceAccounts: instance.serviceAccounts,

@@ -470,7 +470,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
     @Override
     void onSuccess(InstanceTemplate instanceTemplate, HttpHeaders responseHeaders) throws IOException {
       serverGroup.with {
-        networkName = Utils.getNetworkNameFromInstanceTemplate(instanceTemplate)
+        networkName = Utils.decorateXpnResourceIdIfNeeded(project, instanceTemplate?.properties?.networkInterfaces?.getAt(0)?.network)
         canIpForward = instanceTemplate?.properties?.canIpForward
         instanceTemplateTags = instanceTemplate?.properties?.tags?.items
         instanceTemplateLabels = instanceTemplate?.properties?.labels

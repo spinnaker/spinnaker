@@ -74,7 +74,11 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String DISK_TYPE = "pd-standard"
   private static final GoogleDisk DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB)
   private static final String DEFAULT_NETWORK_NAME = "default"
+  private static final String DEFAULT_NETWORK_URL =
+          "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/global/networks/$DEFAULT_NETWORK_NAME"
   private static final String SUBNET_NAME = "some-subnet"
+  private static final String SUBNET_URL =
+          "https://www.googleapis.com/compute/v1/projects/$PROJECT_NAME/regions/$REGION/subnetworks/$SUBNET_NAME"
   private static final String ACCESS_CONFIG_NAME = "External NAT"
   private static final String ACCESS_CONFIG_TYPE = "ONE_TO_ONE_NAT"
 
@@ -104,8 +108,8 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).compute(computeMock).build()
 
     sourceImage = new Image(selfLink: IMAGE)
-    network = new GoogleNetwork(selfLink: DEFAULT_NETWORK_NAME)
-    subnet = new GoogleSubnet(selfLink: SUBNET_NAME)
+    network = new GoogleNetwork(selfLink: DEFAULT_NETWORK_URL)
+    subnet = new GoogleSubnet(selfLink: SUBNET_URL)
     attachedDisks = GCEUtil.buildAttachedDisks(PROJECT_NAME,
                                                null,
                                                sourceImage,

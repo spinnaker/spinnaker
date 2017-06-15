@@ -48,6 +48,7 @@ class GoogleInstance {
   List<GoogleLoadBalancerHealth> loadBalancerHealths = []
   ConsulNode consulNode
   List<NetworkInterface> networkInterfaces
+  String networkName
   Metadata metadata
   List<Disk> disks
   List<ServiceAccount> serviceAccounts
@@ -60,11 +61,6 @@ class GoogleInstance {
   String serverGroup
   @JsonIgnore
   List<String> securityGroups = []
-
-  @JsonIgnore
-  String getNetworkName() {
-    return Utils.getLocalName(networkInterfaces?.getAt(0)?.network)
-  }
 
   @JsonIgnore
   View getView() {

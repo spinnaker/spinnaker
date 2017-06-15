@@ -23,11 +23,14 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -38,13 +41,15 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SECU
 @Component
 class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurityGroup> {
 
-  final Cache cacheView
-  final ObjectMapper objectMapper
+  private final AccountCredentialsProvider accountCredentialsProvider
+  private final Cache cacheView
+  private final ObjectMapper objectMapper
 
   final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
-  GoogleSecurityGroupProvider(Cache cacheView, ObjectMapper objectMapper) {
+  GoogleSecurityGroupProvider(AccountCredentialsProvider accountCredentialsProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.accountCredentialsProvider = accountCredentialsProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -107,12 +112,13 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     List<Rule> inboundRules = includeRules ? buildInboundIpRangeRules(firewall) : []
 
     new GoogleSecurityGroup(
-      id: firewall.name,
+      id: deriveResourceId(account, firewall.selfLink),
       name: firewall.name,
       description: firewall.description,
       accountName: account,
       region: region,
-      network: getLocalName(firewall.network),
+      network: deriveResourceId(account, firewall.network),
+      selfLink: firewall.selfLink,
       sourceTags: firewall.sourceTags,
       targetTags: firewall.targetTags,
       inboundRules: inboundRules
@@ -179,16 +185,6 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
     return rangeRules.sort()
   }
 
-  private String getLocalName(String fullUrl) {
-    if (!fullUrl) {
-      return fullUrl
-    }
-
-    def urlParts = fullUrl.split("/")
-
-    return urlParts[urlParts.length - 1]
-  }
-
   static List<String> getMatchingServerGroupNames(String account,
                                                   Set<GoogleSecurityGroup> securityGroups,
                                                   Set<String> tags,
@@ -204,5 +200,23 @@ class GoogleSecurityGroupProvider implements SecurityGroupProvider<GoogleSecurit
 
       accountAndNetworkMatch && (targetTagsEmpty || !targetTagsInCommon.empty) ? securityGroup.name : null
     } ?: []
+  }
+
+  private String deriveResourceId(String account, String resourceLink) {
+    def accountCredentials = accountCredentialsProvider.getCredentials(account)
+
+    if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
+      throw new IllegalArgumentException("Invalid credentials: $account")
+    }
+
+    def project = accountCredentials.project
+    def firewallProject = GCEUtil.deriveProjectId(resourceLink)
+    def firewallId = GCEUtil.getLocalName(resourceLink)
+
+    if (firewallProject != project) {
+      firewallId = "$firewallProject/$firewallId"
+    }
+
+    return firewallId
   }
 }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 
@@ -45,9 +46,19 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<Network> loadNetworks() {
-    timeExecute(compute.networks().list(project),
-                "compute.networks.list", TAG_SCOPE, SCOPE_GLOBAL
-    ).items as List
+    // TODO(duftler): Batch these 2 calls.
+    List<Network> networks =
+      timeExecute(compute.networks().list(project),
+                  "compute.networks.list", TAG_SCOPE, SCOPE_GLOBAL).items as List
+
+    if (xpnHostProject) {
+      List<Network> hostNetworks = timeExecute(compute.networks().list(xpnHostProject),
+                                               "compute.networks.list", TAG_SCOPE, SCOPE_GLOBAL).items as List
+
+      networks = (networks ?: []) + (hostNetworks ?: [])
+    }
+
+    return networks
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Network> networkList) {
@@ -56,7 +67,7 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     networkList.each { Network network ->
-      def networkKey = Keys.getNetworkKey(network.getName(), "global", accountName)
+      def networkKey = Keys.getNetworkKey(deriveNetworkId(network), "global", accountName)
 
       cacheResultBuilder.namespace(NETWORKS.ns).keep(networkKey).with {
         attributes.network = network
@@ -66,5 +77,16 @@ class GoogleNetworkCachingAgent extends AbstractGoogleCachingAgent {
     log.info("Caching ${cacheResultBuilder.namespace(NETWORKS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
+  }
+
+  private String deriveNetworkId(Network network) {
+    def networkProject = GCEUtil.deriveProjectId(network.getSelfLink())
+    def networkId = network.getName()
+
+    if (networkProject != project) {
+      networkId = "$networkProject/$networkId"
+    }
+
+    return networkId
   }
 }

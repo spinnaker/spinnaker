@@ -27,6 +27,10 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.converters.UpsertGoogleLoadBalancerAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.google.model.GoogleHealthCheck
+import com.netflix.spinnaker.clouddriver.google.model.GoogleNetwork
+import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleNetworkProvider
+import com.netflix.spinnaker.clouddriver.google.provider.view.GoogleSubnetProvider
 import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
@@ -88,6 +92,14 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def regionsList = Mock(Compute.Regions.List)
     def regionList = new RegionList(items: [new Region(name: REGION)])
 
+    def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+    def networkKeyPattern = "gce:networks:some-network:$ACCOUNT_NAME:global"
+    def googleNetwork = new GoogleNetwork(selfLink: "projects/$PROJECT_NAME/global/networks/some-network")
+
+    def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+    def subnetKeyPattern = "gce:subnets:some-subnet:$ACCOUNT_NAME:$REGION"
+    def googleSubnet = new GoogleSubnet(selfLink: "projects/$PROJECT_NAME/regions/$REGION/subnetworks/some-subnet")
+
     def forwardingRules = Mock(Compute.ForwardingRules)
     def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
     def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
@@ -116,16 +128,18 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     def input = [
       accountName       : ACCOUNT_NAME,
-      "loadBalancerName": LOAD_BALANCER_NAME,
-      "portRange"       : PORT_RANGE,
-      "region"          : REGION,
-      "backendService"  : [
-        "name"           : DEFAULT_SERVICE,
-        "backends"       : [],
-        "healthCheck"    : hc,
-        "sessionAffinity": "NONE",
+      loadBalancerName  : LOAD_BALANCER_NAME,
+      portRange         : PORT_RANGE,
+      region            : REGION,
+      backendService    : [
+        name            : DEFAULT_SERVICE,
+        backends        : [],
+        healthCheck     : hc,
+        sessionAffinity : "NONE",
       ],
-      "certificate"     : "",
+      certificate       : "",
+      network           : "some-network",
+      subnet            : "some-subnet"
     ]
 
     def description = converter.convertDescription(input)
@@ -137,6 +151,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+    operation.googleNetworkProvider = googleNetworkProviderMock
+    operation.googleSubnetProvider = googleSubnetProviderMock
     operation.registry = registry
     operation.safeRetry = safeRetry
 
@@ -147,6 +163,9 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * computeMock.regions() >> regions
       1 * regions.list(PROJECT_NAME) >> regionsList
       1 * regionsList.execute() >> regionList
+
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]
 
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
@@ -201,6 +220,14 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def regionsList = Mock(Compute.Regions.List)
     def regionList = new RegionList(items: [new Region(name: REGION)])
 
+    def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+    def networkKeyPattern = "gce:networks:some-network:$ACCOUNT_NAME:global"
+    def googleNetwork = new GoogleNetwork(selfLink: "projects/$PROJECT_NAME/global/networks/some-network")
+
+    def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+    def subnetKeyPattern = "gce:subnets:some-subnet:$ACCOUNT_NAME:$REGION"
+    def googleSubnet = new GoogleSubnet(selfLink: "projects/$PROJECT_NAME/regions/$REGION/subnetworks/some-subnet")
+
     def forwardingRules = Mock(Compute.ForwardingRules)
     def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
     def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
@@ -229,16 +256,18 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     def input = [
       accountName       : ACCOUNT_NAME,
-      "loadBalancerName": LOAD_BALANCER_NAME,
-      "portRange"       : PORT_RANGE,
-      "region"          : REGION,
-      "backendService"  : [
-        "name"           : DEFAULT_SERVICE,
-        "backends"       : [],
-        "healthCheck"    : hc,
-        "sessionAffinity": "NONE",
+      loadBalancerName  : LOAD_BALANCER_NAME,
+      portRange         : PORT_RANGE,
+      region            : REGION,
+      backendService    : [
+        name            : DEFAULT_SERVICE,
+        backends        : [],
+        healthCheck     : hc,
+        sessionAffinity : "NONE",
       ],
-      "certificate"     : "",
+      certificate       : "",
+      network           : "some-network",
+      subnet            : "some-subnet"
     ]
 
     def description = converter.convertDescription(input)
@@ -250,6 +279,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+    operation.googleNetworkProvider = googleNetworkProviderMock
+    operation.googleSubnetProvider = googleSubnetProviderMock
     operation.registry = registry
     operation.safeRetry = safeRetry
 
@@ -260,6 +291,9 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * computeMock.regions() >> regions
       1 * regions.list(PROJECT_NAME) >> regionsList
       1 * regionsList.execute() >> regionList
+
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]
 
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet
@@ -314,6 +348,14 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
     def regionsList = Mock(Compute.Regions.List)
     def regionList = new RegionList(items: [new Region(name: REGION)])
 
+    def googleNetworkProviderMock = Mock(GoogleNetworkProvider)
+    def networkKeyPattern = "gce:networks:some-network:$ACCOUNT_NAME:global"
+    def googleNetwork = new GoogleNetwork(selfLink: "projects/$PROJECT_NAME/global/networks/some-network")
+
+    def googleSubnetProviderMock = Mock(GoogleSubnetProvider)
+    def subnetKeyPattern = "gce:subnets:some-subnet:$ACCOUNT_NAME:$REGION"
+    def googleSubnet = new GoogleSubnet(selfLink: "projects/$PROJECT_NAME/regions/$REGION/subnetworks/some-subnet")
+
     def forwardingRules = Mock(Compute.ForwardingRules)
     def forwardingRulesGet = Mock(Compute.ForwardingRules.Get)
     def forwardingRulesInsert = Mock(Compute.ForwardingRules.Insert)
@@ -342,16 +384,18 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
 
     def input = [
       accountName       : ACCOUNT_NAME,
-      "loadBalancerName": LOAD_BALANCER_NAME,
-      "portRange"       : PORT_RANGE,
-      "region"          : REGION,
-      "backendService"  : [
-        "name"           : DEFAULT_SERVICE,
-        "backends"       : [],
-        "healthCheck"    : hc,
-        "sessionAffinity": "NONE",
+      loadBalancerName  : LOAD_BALANCER_NAME,
+      portRange         : PORT_RANGE,
+      region            : REGION,
+      backendService    : [
+        name            : DEFAULT_SERVICE,
+        backends        : [],
+        healthCheck     : hc,
+        sessionAffinity : "NONE",
       ],
-      "certificate"     : "",
+      certificate       : "",
+      network           : "some-network",
+      subnet            : "some-subnet"
     ]
 
     def description = converter.convertDescription(input)
@@ -363,6 +407,8 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
         registry: registry,
         safeRetry: safeRetry
       )
+    operation.googleNetworkProvider = googleNetworkProviderMock
+    operation.googleSubnetProvider = googleSubnetProviderMock
     operation.registry = registry
     operation.safeRetry = safeRetry
 
@@ -373,6 +419,9 @@ class UpsertGoogleInternalLoadBalancerAtomicOperationUnitSpec extends Specificat
       1 * computeMock.regions() >> regions
       1 * regions.list(PROJECT_NAME) >> regionsList
       1 * regionsList.execute() >> regionList
+
+      1 * googleNetworkProviderMock.getAllMatchingKeyPattern(networkKeyPattern) >> [googleNetwork]
+      1 * googleSubnetProviderMock.getAllMatchingKeyPattern(subnetKeyPattern) >> [googleSubnet]
 
       2 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.get(PROJECT_NAME, REGION, LOAD_BALANCER_NAME) >> forwardingRulesGet

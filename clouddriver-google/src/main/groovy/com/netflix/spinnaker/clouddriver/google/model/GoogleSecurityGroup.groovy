@@ -35,6 +35,7 @@ class GoogleSecurityGroup implements SecurityGroup {
   final String accountName
   final String region
   final String network
+  final String selfLink
   // Don't see an elegant way to encapsulate source tags in an inbound rule.
   final List<String> sourceTags
   final List<String> targetTags
@@ -43,6 +44,6 @@ class GoogleSecurityGroup implements SecurityGroup {
 
   @Override
   SecurityGroupSummary getSummary() {
-    new GoogleSecurityGroupSummary(name: name, id: id, network: network, sourceTags: sourceTags, targetTags: targetTags)
+    new GoogleSecurityGroupSummary(name: name, id: id, network: network, selfLink: selfLink, sourceTags: sourceTags, targetTags: targetTags)
   }
 }

@@ -474,4 +474,34 @@ class GCEUtilSpec extends Specification {
       false      | ZONE     |  []                                                                      | []                               | null
       true       | REGION   |  []                                                                      | []                               | null
   }
+
+  @Unroll
+  void "should derive project id from #fullResourceLink"() {
+    expect:
+      GCEUtil.deriveProjectId(fullResourceLink) == "my-test-project"
+
+    where:
+      fullResourceLink << [
+        "https://www.googleapis.com/compute/v1/projects/my-test-project/global/firewalls/name-a",
+        "www.googleapis.com/compute/v1/projects/my-test-project/global/firewalls/name-a",
+        "compute/v1/projects/my-test-project/global/firewalls/name-a",
+        "projects/my-test-project/global/firewalls/name-a"
+      ]
+  }
+
+  @Unroll
+  void "should not derive project id from #fullResourceLink"() {
+    when:
+      GCEUtil.deriveProjectId(fullResourceLink)
+
+    then:
+      thrown IllegalArgumentException
+
+    where:
+      fullResourceLink << [
+        null,
+        "",
+        "https://www.googleapis.com/compute/v1/my-test-project/global/firewalls/name-a"
+      ]
+  }
 }

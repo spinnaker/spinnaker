@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.netflix.spinnaker.clouddriver.model.Subnet
+import groovy.transform.ToString
 
+@ToString(includeNames = true)
 class GoogleSubnet implements Subnet {
   String type
   String id

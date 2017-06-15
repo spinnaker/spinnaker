@@ -41,8 +41,10 @@ class GoogleSecurityGroupCachingAgentSpec extends Specification {
       def credentials = new GoogleNamedAccountCredentials.Builder().project(PROJECT_NAME).name(ACCOUNT_NAME).compute(computeMock).build()
       def firewallsMock = Mock(Compute.Firewalls)
       def firewallsListMock = Mock(Compute.Firewalls.List)
-      def securityGroupA = new Firewall(name: 'name-a')
-      def securityGroupB = new Firewall(name: 'name-b')
+      def securityGroupA = new Firewall(name: 'name-a',
+                                        selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a')
+      def securityGroupB = new Firewall(name: 'name-b',
+                                        selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-b')
       def keyGroupA = Keys.getSecurityGroupKey(securityGroupA.name as String,
                                                securityGroupA.name as String,
                                                REGION,

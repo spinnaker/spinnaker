@@ -17,7 +17,9 @@
 package com.netflix.spinnaker.clouddriver.google.model
 
 import com.netflix.spinnaker.clouddriver.model.Network
+import groovy.transform.ToString
 
+@ToString(includeNames = true)
 class GoogleNetwork implements Network {
   String cloudProvider
   String id

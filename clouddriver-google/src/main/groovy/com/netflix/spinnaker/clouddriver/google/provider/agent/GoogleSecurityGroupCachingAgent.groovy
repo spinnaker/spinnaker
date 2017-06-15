@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -87,7 +88,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     if (firewall) {
       securityGroupKey = Keys.getSecurityGroupKey(
         firewall.name,
-        firewall.name,
+        deriveFirewallId(firewall),
         "global",
         accountName)
     } else {
@@ -97,6 +98,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
         "global",
         accountName)
 
+      // TODO(duftler): Is this right? Seems like this should use a wildcard.
       // No firewall was found, so need to find identifiers for all firewalls in the region.
       identifiers = providerCache.filterIdentifiers(SECURITY_GROUPS.ns, securityGroupKey)
     }
@@ -167,7 +169,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
     def cacheResultBuilder = new CacheResultBuilder(startTime: System.currentTimeMillis())
 
     List<Firewall> firewalls = getFirewalls()
-    def firewallKeys = firewalls.collect { Keys.getSecurityGroupKey(it.getName(), it.getName(), "global", accountName) }
+    def firewallKeys = firewalls.collect { Keys.getSecurityGroupKey(it.getName(), deriveFirewallId(it), "global", accountName) }
 
     providerCache.getAll(ON_DEMAND.ns, firewallKeys).each { CacheData cacheData ->
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
@@ -196,9 +198,17 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
                           "compute.firewalls.get", TAG_SCOPE, SCOPE_GLOBAL
       )] as List<Firewall>
     } else {
-      return timeExecute(compute.firewalls().list(project),
-                         "compute.firewalls.list", TAG_SCOPE, SCOPE_GLOBAL
-      ).items as List<Firewall>
+      List<Firewall> firewalls = timeExecute(compute.firewalls().list(project),
+                                             "compute.firewalls.list", TAG_SCOPE, SCOPE_GLOBAL).items as List
+
+      if (xpnHostProject) {
+        List<Firewall> hostFirewalls = timeExecute(compute.firewalls().list(xpnHostProject),
+                                                   "compute.firewalls.list", TAG_SCOPE, SCOPE_GLOBAL).items as List
+
+        firewalls = (firewalls ?: []) + (hostFirewalls ?: [])
+      }
+
+      return firewalls
     }
   }
 
@@ -213,7 +223,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
 
     firewalls.each { Firewall firewall ->
       def securityGroupKey = Keys.getSecurityGroupKey(firewall.getName(),
-                                                      firewall.getName(),
+                                                      deriveFirewallId(firewall),
                                                       "global",
                                                       accountName)
 
@@ -242,7 +252,7 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
   void moveOnDemandDataToNamespace(CacheResultBuilder cacheResultBuilder, Firewall firewall) {
     def securityGroupKey = Keys.getSecurityGroupKey(
       firewall.getName(),
-      firewall.getName(),
+      deriveFirewallId(firewall),
       "global",
       accountName)
     Map<String, List<MutableCacheData>> onDemandData = objectMapper.readValue(
@@ -257,6 +267,17 @@ class GoogleSecurityGroupCachingAgent extends AbstractGoogleCachingAgent impleme
         cacheResultBuilder.onDemand.toKeep.remove(cacheData.id)
       }
     }
+  }
+
+  private String deriveFirewallId(Firewall firewall) {
+    def firewallProject = GCEUtil.deriveProjectId(firewall.selfLink)
+    def firewallId = GCEUtil.getLocalName(firewall.selfLink)
+
+    if (firewallProject != project) {
+      firewallId = "$firewallProject/$firewallId"
+    }
+
+    return firewallId
   }
 
   // TODO(lwander) this was taken from the netflix cluster caching, and should probably be shared between all providers.

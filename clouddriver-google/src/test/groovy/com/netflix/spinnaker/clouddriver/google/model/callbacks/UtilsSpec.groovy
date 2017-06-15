@@ -120,4 +120,17 @@ class UtilsSpec extends Specification {
       "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpHealthChecks/jake-ilb"  | "httpHealthChecks"
       "https://www.googleapis.com/compute/beta/projects/spinnaker-jtk54/global/httpsHealthChecks/jake-ilb" | "httpsHealthChecks"
   }
+
+  @Unroll
+  void "should decorate xpn resource id"() {
+    expect:
+      Utils.decorateXpnResourceIdIfNeeded(managedProjectId, xpnResource) == decoratedXpnResourceId
+
+    where:
+      managedProjectId | xpnResource                                                            || decoratedXpnResourceId
+      "my-svc-project" | "projects/my-host-project/global/networks/some-network"                || "my-host-project/some-network"
+      "my-svc-project" | "projects/my-host-project/regions/us-central1/subnetworks/some-subnet" || "my-host-project/some-subnet"
+      "my-svc-project" | "projects/my-svc-project/global/networks/some-network"                 || "some-network"
+      "my-svc-project" | "projects/my-svc-project/regions/us-central1/subnetworks/some-subnet"  || "some-subnet"
+  }
 }

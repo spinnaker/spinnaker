@@ -25,7 +25,9 @@ import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSubnet
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.SubnetProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
@@ -34,13 +36,15 @@ import static com.netflix.spinnaker.clouddriver.google.cache.Keys.Namespace.SUBN
 @Component
 class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
 
+  private final AccountCredentialsProvider accountCredentialsProvider
   private final Cache cacheView
-  final ObjectMapper objectMapper
+  private final ObjectMapper objectMapper
 
   final String cloudProvider = GoogleCloudProvider.ID
 
   @Autowired
-  GoogleSubnetProvider(Cache cacheView, ObjectMapper objectMapper) {
+  GoogleSubnetProvider(AccountCredentialsProvider accountCredentialsProvider, Cache cacheView, ObjectMapper objectMapper) {
+    this.accountCredentialsProvider = accountCredentialsProvider
     this.cacheView = cacheView
     this.objectMapper = objectMapper
   }
@@ -71,14 +75,32 @@ class GoogleSubnetProvider implements SubnetProvider<GoogleSubnet> {
 
     new GoogleSubnet(
       type: this.cloudProvider,
-      id: subnet.name,
+      id: parts.id,
       name: subnet.name,
       gatewayAddress: subnet.gatewayAddress,
-      network: GCEUtil.getLocalName(subnet.network),
+      network: deriveNetworkId(parts.account, subnet),
       cidrBlock: subnet.ipCidrRange,
       account: parts.account,
       region: parts.region,
       selfLink: subnet.selfLink
     )
+  }
+
+  private String deriveNetworkId(String account, Subnetwork subnet) {
+    def accountCredentials = accountCredentialsProvider.getCredentials(account)
+
+    if (!(accountCredentials instanceof GoogleNamedAccountCredentials)) {
+      throw new IllegalArgumentException("Invalid credentials: $account")
+    }
+
+    def project = accountCredentials.project
+    def networkProject = GCEUtil.deriveProjectId(subnet.network)
+    def networkId = GCEUtil.getLocalName(subnet.network)
+
+    if (networkProject != project) {
+      networkId = "$networkProject/$networkId"
+    }
+
+    return networkId
   }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.google.cache.CacheResultBuilder
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
+import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import groovy.util.logging.Slf4j
 
@@ -60,10 +61,20 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
   }
 
   List<Subnetwork> loadSubnets() {
-    timeExecute(compute.subnetworks().list(project, region),
-                "compute.subnetworks.list",
-                TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
-    ).items as List
+    // TODO(duftler): Batch these 2 calls.
+    List<Subnetwork> subnets = timeExecute(compute.subnetworks().list(project, region),
+                                           "compute.subnetworks.list",
+                                           TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region).items as List
+
+    if (xpnHostProject) {
+      List<Subnetwork> hostSubnets = timeExecute(compute.subnetworks().list(xpnHostProject, region),
+                                                 "compute.subnetworks.list",
+                                                 TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region).items as List
+
+      subnets = (subnets ?: []) + (hostSubnets ?: [])
+    }
+
+    return subnets
   }
 
   private CacheResult buildCacheResult(ProviderCache _, List<Subnetwork> subnetList) {
@@ -72,7 +83,7 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
     def cacheResultBuilder = new CacheResultBuilder()
 
     subnetList.each { Subnetwork subnet ->
-      def subnetKey = Keys.getSubnetKey(subnet.getName(), region, accountName)
+      def subnetKey = Keys.getSubnetKey(deriveSubnetId(subnet), region, accountName)
 
       cacheResultBuilder.namespace(SUBNETS.ns).keep(subnetKey).with {
         attributes.subnet = subnet
@@ -82,5 +93,16 @@ class GoogleSubnetCachingAgent extends AbstractGoogleCachingAgent {
     log.info("Caching ${cacheResultBuilder.namespace(SUBNETS.ns).keepSize()} items in ${agentType}")
 
     cacheResultBuilder.build()
+  }
+
+  private String deriveSubnetId(Subnetwork subnet) {
+    def subnetProject = GCEUtil.deriveProjectId(subnet.getSelfLink())
+    def subnetId = subnet.getName()
+
+    if (subnetProject != project) {
+      subnetId = "$subnetProject/$subnetId"
+    }
+
+    return subnetId
   }
 }

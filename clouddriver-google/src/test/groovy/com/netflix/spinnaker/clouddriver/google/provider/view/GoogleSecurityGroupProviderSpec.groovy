@@ -22,12 +22,15 @@ import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.mem.InMemoryCache
-import com.netflix.spinnaker.clouddriver.google.GoogleCloudProvider
 import com.netflix.spinnaker.clouddriver.google.cache.Keys
 import com.netflix.spinnaker.clouddriver.google.model.GoogleSecurityGroup
+import com.netflix.spinnaker.clouddriver.google.security.FakeGoogleCredentials
+import com.netflix.spinnaker.clouddriver.google.security.GoogleNamedAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.AddressableRange
 import com.netflix.spinnaker.clouddriver.model.securitygroups.IpRangeRule
 import com.netflix.spinnaker.clouddriver.model.securitygroups.Rule
+import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvider
+import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
@@ -42,7 +45,23 @@ class GoogleSecurityGroupProviderSpec extends Specification {
   ObjectMapper mapper = new ObjectMapper()
 
   def setup() {
-    provider = new GoogleSecurityGroupProvider(cache, mapper)
+    def credentialsRepo = new MapBackedAccountCredentialsRepository()
+    def credentialsProvider = new DefaultAccountCredentialsProvider(credentialsRepo)
+    credentialsRepo.save("test",
+                         new GoogleNamedAccountCredentials
+                           .Builder()
+                           .name("test")
+                           .project("my-project")
+                           .credentials(new FakeGoogleCredentials())
+                           .build())
+    credentialsRepo.save("prod",
+                         new GoogleNamedAccountCredentials
+                           .Builder()
+                           .name("prod")
+                           .project("my-project")
+                           .credentials(new FakeGoogleCredentials())
+                           .build())
+    provider = new GoogleSecurityGroupProvider(credentialsProvider, cache, mapper)
     cache.mergeAll(Keys.Namespace.SECURITY_GROUPS.ns, getAllGroups())
   }
 
@@ -51,7 +70,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       def result = provider.getAll(false)
 
     then:
-      result.size() == 5
+      result.size() == 6
   }
 
   void "getAllByRegion lists only those in supplied region"() {
@@ -59,7 +78,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       def result = provider.getAllByRegion(false, region)
 
     then:
-      result.size() == 5
+      result.size() == 6
       result.each {
         it.region == region
       }
@@ -81,7 +100,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
 
     where:
       account | count
-      'prod'  | 2
+      'prod'  | 3
       'test'  | 3
   }
 
@@ -90,7 +109,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       def result = provider.getAllByAccountAndRegion(false, account, region)
 
     then:
-      result.size() == 2
+      result.size() == 3
       result.each {
         it.accountName == account
         it.region == region
@@ -133,6 +152,24 @@ class GoogleSecurityGroupProviderSpec extends Specification {
       name = 'name-a'
   }
 
+  void "security group id and network id should be decorated with xpn host project id"() {
+    when:
+      def result = provider.get(account, region, name, null)
+
+    then:
+      result != null
+      result.accountName == account
+      result.region == region
+      result.name == name
+      result.id == "some-xpn-host-project/$name"
+      result.network == 'some-xpn-host-project/default'
+
+    where:
+      account = 'prod'
+      region = 'global'
+      name = 'name-c'
+  }
+
   void "should add ipRangeRules with different protocols"() {
     given:
       String account = 'prod'
@@ -146,6 +183,7 @@ class GoogleSecurityGroupProviderSpec extends Specification {
         id: 'name-a',
         name: 'name-a',
         network: 'default',
+        selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a',
         targetTags: ['tag-1', 'tag-2'],
         description: 'a',
         accountName: account,
@@ -264,14 +302,31 @@ class GoogleSecurityGroupProviderSpec extends Specification {
             new Firewall.Allowed(IPProtocol: 'tcp', ports: ['8080']),
             new Firewall.Allowed(IPProtocol: 'udp', ports: ['4040-4042']),
             new Firewall.Allowed(IPProtocol: 'tcp', ports: ['9090']),
-          ]
+          ],
+          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-a'
         ),
-        new Firewall(name: 'b', id: 6614377178691015952),
+        new Firewall(
+          name: 'name-b',
+          id: 6614377178691015952,
+          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/name-b'
+        ),
+        new Firewall(
+          name: 'name-c',
+          id: 6614377178691015954,
+          network: 'https://www.googleapis.com/compute/v1/projects/some-xpn-host-project/global/networks/default',
+          selfLink: 'https://www.googleapis.com/compute/v1/projects/some-xpn-host-project/global/firewalls/name-c'
+        ),
       ]
     ],
     test: [
       'global': [
-        new Firewall(name: 'a', id: 6614377178691015953),
+        new Firewall(
+          name: 'a',
+          id: 6614377178691015953,
+          network: 'https://www.googleapis.com/compute/v1/projects/my-project/global/networks/default',
+          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/a'
+        ),
         new Firewall(
           name: 'b',
           id: 123,
@@ -282,7 +337,8 @@ class GoogleSecurityGroupProviderSpec extends Specification {
             new Firewall.Allowed(IPProtocol: 'icmp'),
             new Firewall.Allowed(IPProtocol: 'tcp', ports: ['1', '2', '3-100']),
             new Firewall.Allowed(IPProtocol: 'udp', ports: ['5050']),
-          ]
+          ],
+          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/b'
         ),
         new Firewall(
           name: 'c',
@@ -293,7 +349,8 @@ class GoogleSecurityGroupProviderSpec extends Specification {
           allowed: [
             new Firewall.Allowed(IPProtocol: 'tcp'),
             new Firewall.Allowed(IPProtocol: 'udp', ports: []),
-          ]
+          ],
+          selfLink: 'https://www.googleapis.com/compute/v1/projects/my-project/global/firewalls/c'
         ),
       ]
     ]
