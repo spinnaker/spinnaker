@@ -122,11 +122,11 @@ export class HoverablePopover extends React.Component<IHoverablePopoverProps, IH
         const shouldOpen = ['mouseenter', 'mouseover'].includes(event.type);
         const isChanging = (shouldOpen !== this.state.popoverIsOpen);
         const eventDelay = shouldOpen ? this.props.delayShow : this.props.delayHide;
-        return Observable.of({ shouldOpen, target: event.target }).delay(isChanging ? eventDelay : 0);
+        return Observable.of(shouldOpen).delay(isChanging ? eventDelay : 0);
       })
       .switchMap(result => result)
       .distinctUntilChanged()
-      .subscribe(({ shouldOpen }) => this.setPopoverOpen(shouldOpen));
+      .subscribe(shouldOpen => this.setPopoverOpen(shouldOpen));
   }
 
   private setPopoverOpen(popoverIsOpen: boolean): void {
