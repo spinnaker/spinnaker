@@ -26,9 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -41,25 +40,30 @@ public class SynchronousQueryProcessor {
   @Autowired
   StorageServiceRepository storageServiceRepository;
 
-  // TODO(duftler): Take List<CanaryMetricConfig> instead, and return List<String>?
-  public String processQuery(String metricsAccountName,
-                             String storageAccountName,
-                             CanaryMetricConfig canaryMetricConfig,
-                             CanaryScope canaryScope) throws IOException {
+  public List<String> processQuery(String metricsAccountName,
+                                   String storageAccountName,
+                                   List<CanaryMetricConfig> canaryMetricConfigs,
+                                   CanaryScope canaryScope) throws IOException {
     MetricsService metricsService =
       metricsServiceRepository
         .getOne(metricsAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No metrics service was configured; unable to read from metrics store."));
-    List<MetricSet> metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
 
     StorageService storageService =
       storageServiceRepository
         .getOne(storageAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write metric set list."));
-    String metricSetListId = UUID.randomUUID() + "";
 
-    storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
+    List<String> metricSetListIds = new ArrayList<>();
 
-    return metricSetListId;
+    for (CanaryMetricConfig canaryMetricConfig : canaryMetricConfigs) {
+      List<MetricSet> metricSetList = metricsService.queryMetrics(metricsAccountName, canaryMetricConfig, canaryScope);
+      String metricSetListId = UUID.randomUUID() + "";
+
+      storageService.storeObject(storageAccountName, ObjectType.METRIC_SET_LIST, metricSetListId, metricSetList);
+      metricSetListIds.add(metricSetListId);
+    }
+
+    return metricSetListIds;
   }
 }

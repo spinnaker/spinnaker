@@ -37,8 +37,8 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class StackdriverFetchTask implements RetryableTask {
@@ -97,12 +97,12 @@ public class StackdriverFetchTask implements RetryableTask {
       stackdriverCanaryScope.setStart(startTimeMillis + "");
       stackdriverCanaryScope.setEnd(endTimeMillis + "");
 
-      // TODO(duftler): Fetch _all_ metric sets specified in canaryConfig.getMetrics(), not just the first.
-      String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                      resolvedStorageAccountName,
-                                                                      canaryConfig.getMetrics().get(0),
-                                                                      stackdriverCanaryScope);
-      Map outputs = Collections.singletonMap("metricSetListId", metricSetListId);
+      List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                             resolvedStorageAccountName,
+                                                                             canaryConfig.getMetrics(),
+                                                                             stackdriverCanaryScope);
+
+      Map outputs = Collections.singletonMap("metricSetListIds", metricSetListIds);
 
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
     } catch (IOException e) {

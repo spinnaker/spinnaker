@@ -18,8 +18,8 @@ package com.netflix.kayenta.atlas.orca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.kayenta.atlas.canary.AtlasCanaryScope;
-import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.canary.CanaryConfig;
+import com.netflix.kayenta.metrics.SynchronousQueryProcessor;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -36,8 +36,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Component
 public class AtlasFetchTask implements RetryableTask {
@@ -89,12 +89,12 @@ public class AtlasFetchTask implements RetryableTask {
       CanaryConfig canaryConfig =
         storageService.loadObject(resolvedStorageAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
-      // TODO(duftler): Fetch _all_ metric sets specified in canaryConfig.getMetrics(), not just the first.
-      String metricSetListId = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
-                                                                      resolvedStorageAccountName,
-                                                                      canaryConfig.getMetrics().get(0),
-                                                                      atlasCanaryScope);
-      Map outputs = Collections.singletonMap("metricSetListId", metricSetListId);
+      List<String> metricSetListIds = synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
+                                                                             resolvedStorageAccountName,
+                                                                             canaryConfig.getMetrics(),
+                                                                             atlasCanaryScope);
+
+      Map outputs = Collections.singletonMap("metricSetListIds", metricSetListIds);
 
       return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
     } catch (IOException e) {

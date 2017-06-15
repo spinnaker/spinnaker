@@ -97,6 +97,9 @@ public class CanaryConfigController {
     canaryConfig.setCreatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getCreatedTimestamp()).toString());
     canaryConfig.setUpdatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
 
+    // TODO(duftler): Since we use a provided canary config name as the unique identifier, we will lose historical
+    // versions of a canary config if a name is reused (will require an explicit DELETE, but there is still a path).
+    // Maybe we should consider serializing the canary config within a canary run?
     if (StringUtils.isEmpty(canaryConfig.getName())) {
       canaryConfig.setName(UUID.randomUUID() + "");
     }

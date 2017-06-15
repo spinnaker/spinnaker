@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -94,7 +95,7 @@ public class StackdriverFetchController {
 
     return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                   resolvedStorageAccountName,
-                                                  canaryMetricConfig,
-                                                  stackdriverCanaryScope);
+                                                  Collections.singletonList(canaryMetricConfig),
+                                                  stackdriverCanaryScope).get(0);
   }
 }

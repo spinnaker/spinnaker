@@ -158,8 +158,8 @@ public class CanaryController {
           .put("requisiteStageRefIds", new ImmutableList.Builder().add("1").add("2").build())
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
-          .put("controlMetricSetListId", "${ #stage('Fetch Baseline from " + serviceType + "')['context']['metricSetListId']}")
-          .put("experimentMetricSetListId", "${ #stage('Fetch Canary from " + serviceType + "')['context']['metricSetListId']}")
+          .put("controlMetricSetListIds", "${ #stage('Fetch Baseline from " + serviceType + "')['context']['metricSetListIds']}")
+          .put("experimentMetricSetListIds", "${ #stage('Fetch Canary from " + serviceType + "')['context']['metricSetListIds']}")
           .build());
 
     Map<String, Object> canaryJudgeContext =

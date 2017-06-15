@@ -33,10 +33,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -67,8 +67,8 @@ public class MetricSetMixerServiceTask implements RetryableTask {
   public TaskResult execute(Stage stage) {
     Map<String, Object> context = stage.getContext();
     String storageAccountName = (String)context.get("storageAccountName");
-    String controlMetricSetListId = (String)context.get("controlMetricSetListId");
-    String experimentMetricSetListId = (String)context.get("experimentMetricSetListId");
+    List<String> controlMetricSetListIds = (List<String>)context.get("controlMetricSetListIds");
+    List<String> experimentMetricSetListIds = (List<String>)context.get("experimentMetricSetListIds");
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(storageAccountName,
                                                                               AccountCredentials.Type.OBJECT_STORE,
                                                                               accountCredentialsRepository);
@@ -77,17 +77,32 @@ public class MetricSetMixerServiceTask implements RetryableTask {
         .getOne(resolvedAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to load metric set lists."));
 
-    List<MetricSet> controlMetricSetList =
-      storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, controlMetricSetListId);
-    List<MetricSet> experimentMetricSetList =
-      storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, experimentMetricSetListId);
-    List<MetricSetPair> metricSetPairList =
-      metricSetMixerService.mixAll(controlMetricSetList, experimentMetricSetList);
-    String metricSetPairListId = UUID.randomUUID() + "";
+    int controlMetricSetListIdsSize = controlMetricSetListIds.size();
+    int experimentMetricSetListIdsSize = experimentMetricSetListIds.size();
 
-    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId, metricSetPairList);
+    if (controlMetricSetListIdsSize != experimentMetricSetListIdsSize) {
+      throw new IllegalArgumentException("Size of controlMetricSetListIds (" + controlMetricSetListIdsSize + ") does not " +
+                                         "match size of experimentMetricSetListIds (" + experimentMetricSetListIdsSize + ").");
+    }
 
-    Map outputs = Collections.singletonMap("metricSetPairListId", metricSetPairListId);
+    List<MetricSetPair> aggregatedMetricSetPairList = new ArrayList<>();
+
+    for (int i = 0; i < controlMetricSetListIdsSize; i++) {
+      List<MetricSet> controlMetricSetList =
+        storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, controlMetricSetListIds.get(i));
+      List<MetricSet> experimentMetricSetList =
+        storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_LIST, experimentMetricSetListIds.get(i));
+      List<MetricSetPair> metricSetPairList =
+        metricSetMixerService.mixAll(controlMetricSetList, experimentMetricSetList);
+
+      aggregatedMetricSetPairList.addAll(metricSetPairList);
+    }
+
+    String aggregatedMetricSetPairListId = UUID.randomUUID() + "";
+
+    storageService.storeObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, aggregatedMetricSetPairListId, aggregatedMetricSetPairList);
+
+    Map outputs = Collections.singletonMap("metricSetPairListId", aggregatedMetricSetPairListId);
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }

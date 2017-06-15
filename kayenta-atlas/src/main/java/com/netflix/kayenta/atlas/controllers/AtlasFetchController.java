@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/fetch/atlas")
@@ -82,7 +83,7 @@ public class AtlasFetchController {
 
     return synchronousQueryProcessor.processQuery(resolvedMetricsAccountName,
                                                   resolvedStorageAccountName,
-                                                  canaryMetricConfig,
-                                                  atlasCanaryScope);
+                                                  Collections.singletonList(canaryMetricConfig),
+                                                  atlasCanaryScope).get(0);
   }
 }

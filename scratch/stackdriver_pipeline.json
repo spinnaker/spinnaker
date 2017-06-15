@@ -53,8 +53,8 @@
       "type": "metricSetMixer",
       "user": "[anonymous]",
       "storageAccountName": "my-account-name-1",
-      "controlMetricSetListId": "${ #stage('Fetch Baseline from Stackdriver')['context']['metricSetListId']}",
-      "experimentMetricSetListId": "${ #stage('Fetch Canary from Stackdriver')['context']['metricSetListId']}"
+      "controlMetricSetListIds": "${ #stage('Fetch Baseline from Stackdriver')['context']['metricSetListIds']}",
+      "experimentMetricSetListIds": "${ #stage('Fetch Canary from Stackdriver')['context']['metricSetListIds']}"
     },
     {
       "name": "Perform Analysis",
