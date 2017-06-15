@@ -2,14 +2,14 @@ import * as React from 'react';
 
 import './canaryScore.component.less';
 
-interface ICanaryScoreProps {
+export interface ICanaryScoreProps {
   score: number | string;
   health?: string;
   result: string;
   inverse: boolean;
 }
 
-interface ICanaryScoreState {
+export interface ICanaryScoreState {
   score: number | string;
   healthLabel: string;
 }
