@@ -73,8 +73,6 @@ function main() {
 
   rm -f InstallHalyard.sh
 
-  echo "spinnaker" > /opt/spinnaker/config/halyard-user
-
   hal config version edit --version $VERSION
 
   hal config deploy edit --type BakeDebian
