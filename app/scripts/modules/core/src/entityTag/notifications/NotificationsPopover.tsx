@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactGA from 'react-ga';
 import autoBindMethods from 'class-autobind-decorator';
-import { uniq } from 'lodash';
+import { uniq, pick } from 'lodash';
 
 import { Application } from 'core/application';
 import { IEntityTags, IEntityTag } from 'core/domain';
@@ -113,13 +113,8 @@ export class NotificationsPopover extends React.Component<INotificationsPopoverP
     const { entity, application, onUpdate } = this.props;
     const { entityTags, entityTag } = notification;
 
-    const tag = {
-      name: entityTag.name,
-      value: {
-        message: entityTag.value['message'],
-        type: entityTag.value['type'],
-      }
-    };
+    const tag = pick(entityTag, 'name', 'namespace', 'category') as IEntityTag;
+    tag.value = Object.assign({}, entityTag.value);
 
     const props: IEntityTagEditorProps = {
       tag: tag,

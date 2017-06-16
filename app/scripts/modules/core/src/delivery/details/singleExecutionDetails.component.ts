@@ -1,6 +1,6 @@
 import { IScope, module } from 'angular';
 import { StateService } from '@uirouter/core';
-import { Subscription } from 'rxjs/Subscription';
+import { Subscription } from 'rxjs';
 
 import { SCHEDULER_FACTORY } from 'core/scheduler';
 import { Application } from 'core/application';
