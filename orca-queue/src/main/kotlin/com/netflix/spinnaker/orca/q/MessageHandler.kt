@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -36,6 +37,11 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
     } else {
       throw IllegalArgumentException("Unsupported message type ${message.javaClass.simpleName}")
     }
+
+  fun Collection<ExceptionHandler>.shouldRetry(ex: Exception, taskName: String?): ExceptionHandler.Response? {
+    val exceptionHandler = find { it.handles(ex) }
+    return exceptionHandler?.handle(taskName ?: "unspecified", ex)
+  }
 
   fun handle(message: M): Unit
 

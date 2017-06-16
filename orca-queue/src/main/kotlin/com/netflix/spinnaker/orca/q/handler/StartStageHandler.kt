@@ -41,7 +41,7 @@ open class StartStageHandler
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
   private val publisher: ApplicationEventPublisher,
-  private val exceptionHandlers: Collection<ExceptionHandler<in Exception>>,
+  private val exceptionHandlers: Collection<ExceptionHandler>,
   private val clock: Clock,
   private val contextParameterProcessor: ContextParameterProcessor,
   @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
@@ -73,7 +73,7 @@ open class StartStageHandler
 
             publisher.publishEvent(StageStarted(this, stage))
           } catch(e: Exception) {
-            val exceptionDetails = shouldRetry(e, stage)
+            val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.getName())
             if (exceptionDetails?.shouldRetry ?: false) {
               log.warn("Error planning ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]")
               queue.push(message, retryDelay)
@@ -128,10 +128,4 @@ open class StartStageHandler
 
   private fun Stage<*>.shouldSkip() =
     OptionalStageSupport.isOptional(this, contextParameterProcessor)
-
-
-  private fun shouldRetry(ex: Exception, stage: Stage<*>): ExceptionHandler.Response? {
-    val exceptionHandler = exceptionHandlers.find { it.handles(ex) }
-    return exceptionHandler?.handle(stage.getName(), ex)
-  }
 }

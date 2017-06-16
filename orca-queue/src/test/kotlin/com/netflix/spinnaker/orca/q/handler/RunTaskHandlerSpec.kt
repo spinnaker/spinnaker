@@ -41,7 +41,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val task: DummyTask = mock()
-  val exceptionHandler: ExceptionHandler<in Exception> = mock()
+  val exceptionHandler: ExceptionHandler = mock()
   val clock = fixedClock()
   val contextParameterProcessor = ContextParameterProcessor()
 
@@ -223,7 +223,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",
-          ExceptionHandler.ResponseDetails("o noes"),
+          ExceptionHandler.responseDetails("o noes"),
           false
         )
 
@@ -258,7 +258,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",
-          ExceptionHandler.ResponseDetails("o noes"),
+          ExceptionHandler.responseDetails("o noes"),
           true
         )
 

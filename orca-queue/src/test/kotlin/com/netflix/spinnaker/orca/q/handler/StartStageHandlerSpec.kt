@@ -50,7 +50,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
   val publisher: ApplicationEventPublisher = mock()
-  val exceptionHandler: ExceptionHandler<in Exception> = mock()
+  val exceptionHandler: ExceptionHandler = mock()
   val clock = fixedClock()
   val retryDelay = Duration.ofSeconds(5)
 
@@ -605,7 +605,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",
-          ExceptionHandler.ResponseDetails("o noes"),
+          ExceptionHandler.responseDetails("o noes"),
           false
         )
 
@@ -638,7 +638,7 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",
-          ExceptionHandler.ResponseDetails("o noes"),
+          ExceptionHandler.responseDetails("o noes"),
           true
         )
 

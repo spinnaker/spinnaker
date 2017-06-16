@@ -21,7 +21,7 @@ import com.google.common.base.Throwables
 import groovy.util.logging.Slf4j
 
 @Slf4j
-class DefaultExceptionHandler implements ExceptionHandler<Exception> {
+class DefaultExceptionHandler implements ExceptionHandler {
   @Override
   boolean handles(Exception e) {
     return true
@@ -29,11 +29,9 @@ class DefaultExceptionHandler implements ExceptionHandler<Exception> {
 
   @Override
   ExceptionHandler.Response handle(String taskName, Exception e) {
-    def exceptionDetails = new ExceptionHandler.ResponseDetails("Unexpected Task Failure", [e.message])
+    def exceptionDetails = ExceptionHandler.responseDetails("Unexpected Task Failure", [e.message])
     exceptionDetails.stackTrace = Throwables.getStackTraceAsString(e)
     log.warn("Error ocurred during task ${taskName}", e)
-    return new ExceptionHandler.Response(
-      exceptionType: e.class.simpleName, operation: taskName, details: exceptionDetails
-    )
+    return new ExceptionHandler.Response(e.class.simpleName, taskName, exceptionDetails, false)
   }
 }

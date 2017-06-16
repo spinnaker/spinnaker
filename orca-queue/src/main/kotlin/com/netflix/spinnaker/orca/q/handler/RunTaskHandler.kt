@@ -49,7 +49,7 @@ open class RunTaskHandler
   override val repository: ExecutionRepository,
   private val tasks: Collection<Task>,
   private val clock: Clock,
-  private val exceptionHandlers: Collection<ExceptionHandler<in Exception>>,
+  private val exceptionHandlers: Collection<ExceptionHandler>,
   private val contextParameterProcessor: ContextParameterProcessor
 ) : MessageHandler<RunTask> {
 
@@ -88,7 +88,7 @@ open class RunTaskHandler
             }
           }
         } catch(e: Exception) {
-          val exceptionDetails = shouldRetry(e, taskModel)
+          val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel?.name)
           if (exceptionDetails?.shouldRetry ?: false) {
             log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
             queue.push(message, task.backoffPeriod())
@@ -190,11 +190,6 @@ open class RunTaskHandler
 
   private fun Stage<*>.shouldContinueOnFailure() =
     getContext()["continuePipeline"] == true
-
-  private fun shouldRetry(ex: Exception, task: com.netflix.spinnaker.orca.pipeline.model.Task?): ExceptionHandler.Response? {
-    val exceptionHandler = exceptionHandlers.find { it.handles(ex) }
-    return exceptionHandler?.handle(task?.name, ex)
-  }
 
   private fun Stage<*>.withMergedContext(): Stage<*> {
     val processed = processEntries(this)

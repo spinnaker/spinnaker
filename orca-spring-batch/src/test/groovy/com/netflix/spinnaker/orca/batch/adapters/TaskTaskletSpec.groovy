@@ -372,7 +372,7 @@ class TaskTaskletSpec extends Specification {
         true
       }
       1 * handle(_, _) >> {
-        return new ExceptionHandler.Response([shouldRetry: shouldRetry])
+        return new ExceptionHandler.Response("foo", "bar", [:], shouldRetry)
       }
     }
 
