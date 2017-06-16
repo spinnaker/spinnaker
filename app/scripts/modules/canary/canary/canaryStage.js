@@ -15,7 +15,7 @@ import { CanaryExecutionLabel } from './CanaryExecutionLabel';
 import { CANARY_SCORES_CONFIG_COMPONENT } from './canaryScores.component';
 import { CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT } from './canaryAnalysisNameSelector.component';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canaryStage', [
+module.exports = angular.module('spinnaker.canary.canaryStage', [
   LIST_EXTRACTOR_SERVICE,
   CLOUD_PROVIDER_REGISTRY,
   SERVER_GROUP_COMMAND_BUILDER_SERVICE,

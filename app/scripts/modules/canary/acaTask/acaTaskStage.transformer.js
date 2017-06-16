@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { ORCHESTRATED_ITEM_TRANSFORMER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.acaTask.transformer', [
+module.exports = angular.module('spinnaker.canary.acaTask.transformer', [
   ORCHESTRATED_ITEM_TRANSFORMER,
 ])
   .service('acaTaskTransformer', function($log, orchestratedItemTransformer) {

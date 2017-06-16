@@ -5,7 +5,7 @@ import _ from 'lodash';
 
 import { ORCHESTRATED_ITEM_TRANSFORMER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.transformer', [
+module.exports = angular.module('spinnaker.canary.transformer', [
   ORCHESTRATED_ITEM_TRANSFORMER,
 ])
   .service('canaryStageTransformer', function($log, orchestratedItemTransformer) {

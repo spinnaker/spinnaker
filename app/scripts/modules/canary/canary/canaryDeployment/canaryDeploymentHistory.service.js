@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { API_SERVICE } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stages.canary.deployment.history.service', [API_SERVICE])
+module.exports = angular.module('spinnaker.canary.deployment.history.service', [API_SERVICE])
   .factory('canaryDeploymentHistoryService', function (API) {
 
     function getAnalysisHistory(canaryDeploymentId) {

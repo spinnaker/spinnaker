@@ -6,7 +6,7 @@ import { ACCOUNT_SERVICE, NAMING_SERVICE } from '@spinnaker/core';
 
 import { CANARY_SCORE_COMPONENT } from './canaryScore.component';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary', [
+module.exports = angular.module('spinnaker.canary.stage', [
   require('./canaryStage.js'),
   require('./canaryExecutionDetails.controller.js'),
   require('./canaryExecutionSummary.controller.js'),

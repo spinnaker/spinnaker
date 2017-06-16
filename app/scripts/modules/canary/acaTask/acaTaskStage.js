@@ -6,7 +6,7 @@ import { ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY, SETTINGS } from '@spinnaker/c
 
 import { CanaryExecutionLabel } from '../canary/CanaryExecutionLabel';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.acaTaskStage', [
+module.exports = angular.module('spinnaker.canary.acaTaskStage', [
   CLOUD_PROVIDER_REGISTRY,
   require('../canary/canaryExecutionSummary.controller'),
   ACCOUNT_SERVICE,

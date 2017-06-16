@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { PIPELINE_CONFIG_PROVIDER } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.summary.controller', [
+module.exports = angular.module('spinnaker.canary.summary.controller', [
   require('@uirouter/angularjs').default,
   require('./actions/generateScore.controller.js'),
   require('./actions/endCanary.controller.js'),

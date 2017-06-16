@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { CLUSTER_FILTER_SERVICE, SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.acaTask.details.controller', [
+module.exports = angular.module('spinnaker.canary.acaTask.details.controller', [
   require('@uirouter/angularjs').default,
   CLUSTER_FILTER_SERVICE,
   require('../canary/canaryDeployment/canaryDeploymentHistory.service.js')

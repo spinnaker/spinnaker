@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.actions.generate.score.controller', [
+module.exports = angular.module('spinnaker.canary.actions.generate.score.controller', [
   require('@uirouter/angularjs').default,
 ])
   .controller('GenerateScoreCtrl', function ($scope, $http, $uibModalInstance, canaryId) {

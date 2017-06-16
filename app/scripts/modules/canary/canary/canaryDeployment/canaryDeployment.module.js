@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.canaryDeployment', [
+module.exports = angular.module('spinnaker.canary.canaryDeployment', [
   require('./canaryDeploymentStage.js'),
   require('./canaryDeploymentExecutionDetails.controller.js'),
 ]);

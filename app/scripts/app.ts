@@ -5,6 +5,7 @@ import { DOCKER_MODULE } from '@spinnaker/docker';
 import { AMAZON_MODULE } from '@spinnaker/amazon';
 import { APPENGINE_MODULE } from './modules/appengine/appengine.module';
 import { GOOGLE_MODULE } from '@spinnaker/google';
+import { CANARY_MODULE } from './modules/canary/canary.module';
 
 module('netflix.spinnaker', [
   CORE_MODULE,
@@ -17,4 +18,5 @@ module('netflix.spinnaker', [
   DOCKER_MODULE,
   require('./modules/oracle/oraclebmcs.module.js'),
   APPENGINE_MODULE,
+  CANARY_MODULE,
 ]);

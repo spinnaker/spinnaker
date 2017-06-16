@@ -4,7 +4,7 @@ const angular = require('angular');
 
 import { SETTINGS } from '@spinnaker/core';
 
-module.exports = angular.module('spinnaker.core.pipeline.stage.canary.details.controller', [
+module.exports = angular.module('spinnaker.canary.details.controller', [
   require('@uirouter/angularjs').default,
 ])
   .controller('CanaryExecutionDetailsCtrl', function ($scope, $stateParams, executionDetailsSectionService) {

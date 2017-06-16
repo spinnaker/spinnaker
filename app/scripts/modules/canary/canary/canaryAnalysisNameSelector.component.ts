@@ -27,6 +27,6 @@ class CanaryAnalysisNameSelectorComponent implements IComponentOptions {
   public templateUrl: string = require('./canaryAnalysisNameSelector.component.html');
 }
 
-export const CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT = 'spinnaker.core.canary.canaryAnalysisNameSelector.component';
+export const CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT = 'spinnaker.canary.canaryAnalysisNameSelector.component';
 module(CANARY_ANALYSIS_NAME_SELECTOR_COMPONENT, [API_SERVICE])
   .component('canaryAnalysisNameSelector', new CanaryAnalysisNameSelectorComponent());

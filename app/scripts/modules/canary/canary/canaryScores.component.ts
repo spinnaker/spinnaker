@@ -99,6 +99,6 @@ class CanaryScoresConfigComponent implements ng.IComponentOptions {
   `;
 }
 
-export const CANARY_SCORES_CONFIG_COMPONENT = 'spinnaker.core.canary.scores.component';
+export const CANARY_SCORES_CONFIG_COMPONENT = 'spinnaker.canary.scores.component';
 module(CANARY_SCORES_CONFIG_COMPONENT, [])
   .component('canaryScores', new CanaryScoresConfigComponent());
