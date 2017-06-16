@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.events;
 
+import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -30,16 +31,18 @@ public class TaskComplete extends ExecutionEvent {
   private final String taskName;
   private final ExecutionStatus status;
 
-  public TaskComplete(Object source,
-                      Class<? extends Execution> executionType,
-                      String executionId,
-                      String stageId,
-                      String stageType,
-                      String stageName,
-                      String taskId,
-                      String taskType,
-                      String taskName,
-                      ExecutionStatus status) {
+  public TaskComplete(
+    @Nonnull Object source,
+    @Nonnull Class<? extends Execution> executionType,
+    @Nonnull String executionId,
+    @Nonnull String stageId,
+    @Nonnull String stageType,
+    @Nonnull String stageName,
+    @Nonnull String taskId,
+    @Nonnull String taskType,
+    @Nonnull String taskName,
+    @Nonnull ExecutionStatus status
+  ) {
     super(source, executionType, executionId);
     this.stageId = stageId;
     this.stageType = stageType;
@@ -50,7 +53,11 @@ public class TaskComplete extends ExecutionEvent {
     this.status = status;
   }
 
-  public TaskComplete(Object source, Stage<? extends Execution<?>> stage, Task task) {
+  public TaskComplete(
+    @Nonnull Object source,
+    @Nonnull Stage<? extends Execution<?>> stage,
+    @Nonnull Task task
+  ) {
     this(
       source,
       stage.getExecution().getClass(),
@@ -65,31 +72,31 @@ public class TaskComplete extends ExecutionEvent {
     );
   }
 
-  public String getStageId() {
+  public @Nonnull String getStageId() {
     return stageId;
   }
 
-  public String getStageType() {
+  public @Nonnull String getStageType() {
     return stageType;
   }
 
-  public String getStageName() {
+  public @Nonnull String getStageName() {
     return stageName;
   }
 
-  public String getTaskId() {
+  public @Nonnull String getTaskId() {
     return taskId;
   }
 
-  public String getTaskType() {
+  public @Nonnull String getTaskType() {
     return taskType;
   }
 
-  public String getTaskName() {
+  public @Nonnull String getTaskName() {
     return taskName;
   }
 
-  public ExecutionStatus getStatus() {
+  public @Nonnull ExecutionStatus getStatus() {
     return status;
   }
 }

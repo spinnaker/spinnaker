@@ -16,10 +16,15 @@
 
 package com.netflix.spinnaker.orca.events;
 
+import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 
 public final class ExecutionStarted extends ExecutionEvent {
-  public ExecutionStarted(Object source, Class<? extends Execution<?>> executionType, String executionId) {
+  public ExecutionStarted(
+    @Nonnull Object source,
+    @Nonnull Class<? extends Execution<?>> executionType,
+    @Nonnull String executionId
+  ) {
     super(source, executionType, executionId);
   }
 }

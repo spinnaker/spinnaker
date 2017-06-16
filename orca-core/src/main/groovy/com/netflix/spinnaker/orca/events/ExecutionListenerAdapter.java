@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.events;
 
+import javax.annotation.Nonnull;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.listeners.DefaultPersister;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
