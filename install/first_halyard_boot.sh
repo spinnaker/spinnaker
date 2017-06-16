@@ -237,6 +237,7 @@ function configure_jenkins() {
 }
 
 function install_spinnaker() {
+  hal config deploy edit --type LocalDebian
   hal deploy apply
 }
 
