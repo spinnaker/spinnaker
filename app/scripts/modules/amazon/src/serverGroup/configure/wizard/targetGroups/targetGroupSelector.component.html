@@ -16,6 +16,9 @@
   <div class="form-group">
     <div class="col-md-3 sm-label-right"><b>Target Groups</b></div>
     <div class="col-md-9">
+      <div class="form-control-static" ng-if="!$ctrl.command.backingData.filtered.targetGroups.length">
+        No target groups found in the selected account/region/VPC
+      </div>
       <ui-select ng-if="$ctrl.command.backingData.filtered.targetGroups.length"
                  multiple
                  ng-model="$ctrl.command.targetGroups"
