@@ -3,6 +3,8 @@ package com.netflix.spinnaker.orca.pipeline.persistence;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
@@ -11,51 +13,59 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import rx.Observable;
 
 public interface ExecutionRepository {
-  void store(Orchestration orchestration);
+  void store(@Nonnull Orchestration orchestration);
 
-  void store(Pipeline pipeline);
+  void store(@Nonnull Pipeline pipeline);
 
-  void storeExecutionContext(String id, Map<String, Object> context);
+  void storeExecutionContext(
+    @Nonnull String id, @Nonnull Map<String, Object> context);
 
-  void storeStage(Stage<? extends Execution> stage);
+  void storeStage(@Nonnull Stage<? extends Execution> stage);
 
-  void updateStageContext(Stage<? extends Execution> stage);
+  void updateStageContext(@Nonnull Stage<? extends Execution> stage);
 
-  void removeStage(Execution execution, String stageId);
+  void removeStage(@Nonnull Execution execution, @Nonnull String stageId);
 
-  void addStage(Stage stage);
+  void addStage(@Nonnull Stage stage);
 
-  void cancel(String id);
+  void cancel(@Nonnull String id);
 
-  void cancel(String id, String user, String reason);
+  void cancel(
+    @Nonnull String id, @Nullable String user, @Nullable String reason);
 
-  void pause(String id, String user);
+  void pause(@Nonnull String id, @Nullable String user);
 
-  void resume(String id, String user);
+  void resume(@Nonnull String id, @Nullable String user);
 
-  void resume(String id, String user, boolean ignoreCurrentStatus);
+  void resume(
+    @Nonnull String id, @Nullable String user, boolean ignoreCurrentStatus);
 
-  boolean isCanceled(String id);
+  boolean isCanceled(@Nonnull String id);
 
-  void updateStatus(String id, ExecutionStatus status);
+  void updateStatus(@Nonnull String id, @Nonnull ExecutionStatus status);
 
-  Pipeline retrievePipeline(String id);
+  @Nonnull Pipeline retrievePipeline(
+    @Nonnull String id) throws ExecutionNotFoundException;
 
-  void deletePipeline(String id);
+  void deletePipeline(@Nonnull String id);
 
-  Observable<Pipeline> retrievePipelines();
+  @Nonnull Observable<Pipeline> retrievePipelines();
 
-  Observable<Pipeline> retrievePipelinesForApplication(String application);
+  @Nonnull Observable<Pipeline> retrievePipelinesForApplication(
+    @Nonnull String application);
 
-  Observable<Pipeline> retrievePipelinesForPipelineConfigId(String pipelineConfigId, ExecutionCriteria criteria);
+  @Nonnull Observable<Pipeline> retrievePipelinesForPipelineConfigId(
+    @Nonnull String pipelineConfigId, @Nonnull ExecutionCriteria criteria);
 
-  Orchestration retrieveOrchestration(String id);
+  @Nonnull Orchestration retrieveOrchestration(
+    @Nonnull String id) throws ExecutionNotFoundException;
 
-  void deleteOrchestration(String id);
+  void deleteOrchestration(@Nonnull String id);
 
-  Observable<Orchestration> retrieveOrchestrations();
+  @Nonnull Observable<Orchestration> retrieveOrchestrations();
 
-  Observable<Orchestration> retrieveOrchestrationsForApplication(String application, ExecutionCriteria criteria);
+  @Nonnull Observable<Orchestration> retrieveOrchestrationsForApplication(
+    @Nonnull String application, @Nonnull ExecutionCriteria criteria);
 
   class ExecutionCriteria {
     public int getLimit() {
@@ -75,6 +85,6 @@ public interface ExecutionRepository {
     }
 
     private int limit;
-    private Collection<String> statuses = new ArrayList();
+    private Collection<String> statuses = new ArrayList<>();
   }
 }

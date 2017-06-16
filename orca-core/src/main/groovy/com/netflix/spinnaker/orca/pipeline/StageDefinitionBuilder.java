@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.pipeline;
 
 import java.util.*;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
@@ -33,31 +35,33 @@ import static java.util.stream.Collectors.toList;
 
 public interface StageDefinitionBuilder {
 
-  default TaskNode.TaskGraph buildTaskGraph(Stage<?> stage) {
+  default @Nonnull TaskNode.TaskGraph buildTaskGraph(@Nonnull Stage<?> stage) {
     Builder graphBuilder = Builder(FULL);
     taskGraph(stage, graphBuilder);
     return graphBuilder.build();
   }
 
-  default <T extends Execution<T>> void taskGraph(Stage<T> stage, Builder builder) {
+  default <T extends Execution<T>> void taskGraph(
+    @Nonnull Stage<T> stage, @Nonnull Builder builder) {
   }
 
-  default <T extends Execution<T>> List<Stage<T>> aroundStages(Stage<T> stage) {
+  default @Nonnull <T extends Execution<T>> List<Stage<T>> aroundStages(
+    @Nonnull Stage<T> stage) {
     return emptyList();
   }
 
   /**
    * @return the stage type this builder handles.
    */
-  default String getType() {
+  default @Nonnull String getType() {
     return StageDefinitionBuilderSupport.getType(this.getClass());
   }
 
   // TODO: simplify signature once v2 is phased out
-  default Stage prepareStageForRestart(
-    ExecutionRepository executionRepository,
-    Stage stage,
-    Collection<StageDefinitionBuilder> allStageBuilders) {
+  default @Nonnull Stage prepareStageForRestart(
+    @Nonnull ExecutionRepository executionRepository,
+    @Nonnull Stage stage,
+    @Nonnull Collection<StageDefinitionBuilder> allStageBuilders) {
     return StageDefinitionBuilderSupport
       .prepareStageForRestart(executionRepository, stage, this, allStageBuilders);
   }
@@ -73,11 +77,12 @@ public interface StageDefinitionBuilder {
      * - marking the halted task as NOT_STARTED and resetting its start and end times
      * - marking the stage as RUNNING
      */
-    public static <T extends Execution<T>> Stage<T> prepareStageForRestart(
-      ExecutionRepository executionRepository,
-      Stage<T> stage,
-      StageDefinitionBuilder self,
-      Collection<StageDefinitionBuilder> allStageBuilders) {
+    public static @Nonnull
+    <T extends Execution<T>> Stage<T> prepareStageForRestart(
+      @Nonnull ExecutionRepository executionRepository,
+      @Nonnull Stage<T> stage,
+      @Nonnull StageDefinitionBuilder self,
+      @Nonnull Collection<StageDefinitionBuilder> allStageBuilders) {
 
       // TODO: all this can go once v2 is phased out
       if (stage.getExecution().getExecutionEngine() == v2) {
@@ -182,12 +187,14 @@ public interface StageDefinitionBuilder {
       return stage;
     }
 
-    public static <E extends Execution<E>> Stage<E> newStage(E execution,
-                                                             String type,
-                                                             String name,
-                                                             Map<String, Object> context,
-                                                             Stage<E> parent,
-                                                             SyntheticStageOwner stageOwner) {
+    public static @Nonnull <E extends Execution<E>> Stage<E> newStage(
+      @Nonnull E execution,
+      @Nonnull String type,
+      @Nullable String name,
+      @Nonnull Map<String, Object> context,
+      @Nullable Stage<E> parent,
+      @Nullable SyntheticStageOwner stageOwner
+    ) {
       Stage<E> stage = new Stage<>(execution, type, name, context);
       if (parent != null) {
         String stageName = Optional.ofNullable(name).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
