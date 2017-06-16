@@ -16,16 +16,15 @@
 
 package com.netflix.spinnaker.fiat.controllers
 
+import com.netflix.hystrix.strategy.HystrixPlugins
 import com.netflix.spinnaker.config.FiatSystemTest
 import com.netflix.spinnaker.config.TestUserRoleProviderConfig.TestUserRoleProvider
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository
-import com.netflix.spinnaker.fiat.providers.ResourceProvider
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
@@ -36,7 +35,6 @@ import spock.lang.Specification
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@DirtiesContext
 @FiatSystemTest
 class RolesControllerSpec extends Specification {
 
@@ -65,6 +63,7 @@ class RolesControllerSpec extends Specification {
   MockMvc mockMvc;
 
   def setup() {
+    HystrixPlugins.reset();
     this.mockMvc = MockMvcBuilders
         .webAppContextSetup(this.wac)
         .defaultRequest(get("/").content().contentType("application/json"))

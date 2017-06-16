@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,15 +46,9 @@ public class DefaultServiceAccountProvider extends BaseProvider<ServiceAccount> 
   @Override
   protected Set<ServiceAccount> loadAll() throws ProviderException {
     try {
-      val returnVal = front50Service
-          .getAllServiceAccounts()
-          .stream()
-          .collect(Collectors.toSet());
-      success();
-      return returnVal;
+      return new HashSet<>(front50Service.getAllServiceAccounts());
     } catch (Exception e) {
-      failure();
-      throw e;
+      throw new ProviderException(this.getClass(), e.getCause());
     }
   }
 

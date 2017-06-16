@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.fiat.providers;
 
+import com.netflix.hystrix.exception.HystrixBadRequestException;
+import com.netflix.hystrix.exception.HystrixRuntimeException;
 import com.netflix.spinnaker.fiat.model.resources.Account;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
@@ -26,6 +28,7 @@ import org.springframework.stereotype.Component;
 import retrofit.RetrofitError;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -43,12 +46,9 @@ public class DefaultAccountProvider extends BaseProvider<Account> implements Res
   @Override
   protected Set<Account> loadAll() throws ProviderException {
     try {
-      val returnVal = clouddriverService.getAccounts().stream().collect(Collectors.toSet());
-      success();
-      return returnVal;
+      return new HashSet<>(clouddriverService.getAccounts());
     } catch (Exception e) {
-      failure();
-      throw e;
+      throw new ProviderException(this.getClass(), e.getCause());
     }
   }
 }

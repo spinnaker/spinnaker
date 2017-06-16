@@ -34,12 +34,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class BaseProvider<R extends Resource> implements ResourceProvider<R>, HealthTrackable {
+public abstract class BaseProvider<R extends Resource> implements ResourceProvider<R> {
 
   private static final Integer CACHE_KEY = 0;
-
-  @Getter
-  private ProviderHealthTracker healthTracker = new ProviderHealthTracker();
 
   private Cache<Integer, Set<R>> cache = buildCache(20);
 
@@ -72,6 +69,9 @@ public abstract class BaseProvider<R extends Resource> implements ResourceProvid
     try {
       return ImmutableSet.copyOf(cache.get(CACHE_KEY, this::loadAll));
     } catch (ExecutionException | UncheckedExecutionException e) {
+      if (e.getCause() instanceof ProviderException) {
+        throw (ProviderException) e.getCause();
+      }
       throw new ProviderException(this.getClass(), e.getCause());
     }
   }
@@ -90,12 +90,4 @@ public abstract class BaseProvider<R extends Resource> implements ResourceProvid
   }
 
   protected abstract Set<R> loadAll() throws ProviderException;
-
-  protected void success() {
-    getHealthTracker().success();
-  }
-
-  protected void failure() {
-    getHealthTracker().failure();
-  }
 }

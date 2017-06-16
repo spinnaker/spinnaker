@@ -20,6 +20,11 @@ public class ProviderException extends RuntimeException {
 
   private Class provider;
 
+  public ProviderException(Class provider, String message) {
+    super(message);
+    this.provider = provider;
+  }
+
   public ProviderException(Class provider, Throwable cause) {
     super(cause);
     this.provider = provider;

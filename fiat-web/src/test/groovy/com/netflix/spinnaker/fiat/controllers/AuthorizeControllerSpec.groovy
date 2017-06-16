@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.hystrix.strategy.HystrixPlugins
 import com.netflix.spinnaker.config.FiatSystemTest
 import com.netflix.spinnaker.config.TestUserRoleProviderConfig
 import com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
@@ -38,7 +38,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@DirtiesContext
 @FiatSystemTest
 class AuthorizeControllerSpec extends Specification {
 
@@ -73,6 +72,7 @@ class AuthorizeControllerSpec extends Specification {
   MockMvc mockMvc;
 
   def setup() {
+    HystrixPlugins.reset();
     this.mockMvc = MockMvcBuilders
         .webAppContextSetup(this.wac)
         .defaultRequest(get("/").content().contentType("application/json"))
@@ -133,7 +133,7 @@ class AuthorizeControllerSpec extends Specification {
                                                 roleAUser.view,
                                                 roleBUser.view,
                                                 roleAroleBUser.view])
-    
+
     then:
     mockMvc.perform(get("/authorize/"))
            .andExpect(status().isOk())
@@ -223,15 +223,15 @@ class AuthorizeControllerSpec extends Specification {
 
     then:
     mockMvc.perform(get("/authorize/roleAUser/roles"))
-            .andExpect(status().isOk())
-            .andExpect(content().json(expected))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
 
     when:
     expected = objectMapper.writeValueAsString(roleAroleBUser.getRoles()*.getView([] as Set))
 
     then:
     mockMvc.perform(get("/authorize/roleAroleBUser/roles"))
-            .andExpect(status().isOk())
-            .andExpect(content().json(expected))
+           .andExpect(status().isOk())
+           .andExpect(content().json(expected))
   }
 }

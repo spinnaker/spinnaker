@@ -23,22 +23,15 @@ class ProviderHealthTrackerSpec extends Specification {
 
   def "should start and remain unhealthy until first success"() {
     setup:
-    @Subject provider = new ProviderHealthTracker(unhealthyThreshold: 2)
+    def staleness = 500 // ms.
+    @Subject provider = new ProviderHealthTracker(staleness)
 
     expect:
     !provider.isProviderHealthy()
-    provider.failure()
-    !provider.isProviderHealthy()
-
     provider.success()
     provider.isProviderHealthy()
 
-    provider.failure()
-    provider.isProviderHealthy()
-    provider.failure()
+    Thread.sleep(2 * staleness)
     !provider.isProviderHealthy()
-
-    provider.success()
-    provider.isProviderHealthy()
   }
 }

@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverApi;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Api;
@@ -26,9 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
 import retrofit.client.OkClient;
@@ -89,6 +92,12 @@ public class ResourcesConfig {
   @Bean
   ClouddriverService clouddriverService(ClouddriverApi clouddriverApi) {
     return new ClouddriverService(clouddriverApi);
+  }
+
+  @Bean
+  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+  ProviderHealthTracker providerHealthTracker(ProviderCacheConfig config) {
+    return new ProviderHealthTracker(config.getMaximumStalenessTimeMs());
   }
 
   private static class Slf4jRetrofitLogger implements RestAdapter.Log {

@@ -17,33 +17,36 @@
 package com.netflix.spinnaker.fiat.providers;
 
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ProviderHealthTracker {
 
-  private static int unhealthyThreshold = 5;
-
-  private AtomicInteger failureCountSinceLastSuccess = new AtomicInteger(-1);
+  /**
+   * Maximum age of stale data before this instance goes unhealthy.
+   */
+  private final long maximumStalenessTimeMs;
   private AtomicLong lastSuccessfulUpdateTimeMs = new AtomicLong(-1);
 
+  @Autowired
+  public ProviderHealthTracker(long maximumStalenessTimeMs) {
+    this.maximumStalenessTimeMs = maximumStalenessTimeMs;
+  }
+
   public void success() {
-    failureCountSinceLastSuccess.set(0);
     lastSuccessfulUpdateTimeMs.set(System.currentTimeMillis());
   }
 
   public boolean isProviderHealthy() {
-    int count = failureCountSinceLastSuccess.get();
-    return 0 <= count && count < unhealthyThreshold;
+    return lastSuccessfulUpdateTimeMs.get() != -1 && getStaleness() < maximumStalenessTimeMs;
   }
 
-  public void failure() {
-    // Increment the failure count only if there has been at least 1 success() call. Otherwise,
-    // leave the default, which is considered unhealthy.
-    if (!failureCountSinceLastSuccess.compareAndSet(-1, -1)) {
-      failureCountSinceLastSuccess.incrementAndGet();
+  private long getStaleness() {
+    if (lastSuccessfulUpdateTimeMs.get() == -1) {
+      return -1;
     }
+    return System.currentTimeMillis() - lastSuccessfulUpdateTimeMs.get();
   }
 
   public HealthView getHealthView() {
@@ -53,8 +56,8 @@ public class ProviderHealthTracker {
   @Data
   class HealthView {
     boolean providerHealthy = ProviderHealthTracker.this.isProviderHealthy();
-    int failureCountSinceLastSuccess = ProviderHealthTracker.this.failureCountSinceLastSuccess.get();
-    long msSinceLastSuccess = System.currentTimeMillis() - ProviderHealthTracker.this.lastSuccessfulUpdateTimeMs.get();
+    long msSinceLastSuccess = ProviderHealthTracker.this.getStaleness();
     long lastSuccessfulUpdateTime = ProviderHealthTracker.this.lastSuccessfulUpdateTimeMs.get();
+    long maximumStalenessTimeMs = ProviderHealthTracker.this.maximumStalenessTimeMs;
   }
 }

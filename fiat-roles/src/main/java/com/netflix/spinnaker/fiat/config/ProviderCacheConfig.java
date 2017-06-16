@@ -24,4 +24,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class ProviderCacheConfig {
 
   private int expiresAfterWriteSeconds = 20;
+
+  private long maximumStalenessTimeMs = Long.MAX_VALUE;
 }

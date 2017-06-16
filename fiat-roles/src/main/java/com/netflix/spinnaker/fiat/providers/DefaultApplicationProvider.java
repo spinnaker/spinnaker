@@ -51,19 +51,16 @@ public class DefaultApplicationProvider extends BaseProvider<Application> implem
           .stream()
           .collect(Collectors.toMap(Application::getName,
                                     Function.identity()));
-      success();
 
       clouddriverService
           .getApplications()
           .stream()
           .filter(app -> !appByName.containsKey(app.getName()))
           .forEach(app -> appByName.put(app.getName(), app));
-      success();
 
       return new HashSet<>(appByName.values());
     } catch (Exception e) {
-      failure();
-      throw e;
+      throw new ProviderException(this.getClass(), e.getCause());
     }
   }
 }
