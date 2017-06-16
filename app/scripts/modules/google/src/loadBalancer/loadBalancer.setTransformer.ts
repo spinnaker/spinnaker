@@ -1,9 +1,9 @@
-import {cloneDeep, groupBy, map, partition} from 'lodash';
-import {module} from 'angular';
+import { module } from 'angular';
+import { cloneDeep, Dictionary, groupBy, map, partition } from 'lodash';
 
-import {GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils} from 'google/loadBalancer/httpLoadBalancerUtils.service';
-import {IGceListener, IGceLoadBalancer, IGceHttpLoadBalancer} from 'google/domain/loadBalancer';
-import {InternalLoadBalancer} from 'google/loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
+import { GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils } from 'google/loadBalancer/httpLoadBalancerUtils.service';
+import { IGceListener, IGceLoadBalancer, IGceHttpLoadBalancer } from 'google/domain/loadBalancer';
+import { InternalLoadBalancer } from 'google/loadBalancer/configure/internal/gceCreateInternalLoadBalancer.controller';
 
 export class GceLoadBalancerSetTransformer {
 
@@ -55,8 +55,8 @@ export class GceLoadBalancerSetTransformer {
 
     const groupedByUrlMap = groupBy(httpLoadBalancers, 'urlMapName');
     const normalizedElSevenLoadBalancers = map(groupedByUrlMap, GceLoadBalancerSetTransformer.normalizeHttpLoadBalancerGroup);
-    const groupedByBackendService = groupBy(internalLoadBalancers, 'backendService');
-    const normalizedInternalLoadBalancers = map(groupedByBackendService, GceLoadBalancerSetTransformer.normalizeInternalLoadBalancerGroup);
+    const groupedByBackendService = groupBy(internalLoadBalancers, 'backendService') as Dictionary<InternalLoadBalancer[]>;
+    const normalizedInternalLoadBalancers: InternalLoadBalancer[] = map(groupedByBackendService, GceLoadBalancerSetTransformer.normalizeInternalLoadBalancerGroup);
 
     return (normalizedElSevenLoadBalancers as IGceLoadBalancer[]).concat(normalizedInternalLoadBalancers as IGceLoadBalancer[]).concat(nonHttpOrInternalLoadBalancers);
   }
