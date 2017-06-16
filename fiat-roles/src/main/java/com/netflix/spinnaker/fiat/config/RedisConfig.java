@@ -67,7 +67,7 @@ public class RedisConfig {
       password = redisConnection.getUserInfo().split(":", 2)[1];
     }
 
-    if (redisPoolConfig != null) {
+    if (redisPoolConfig == null) {
       redisPoolConfig = new GenericObjectPoolConfig();
     }
 
