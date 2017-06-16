@@ -256,7 +256,7 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
     this.loadBalancer.network = this.gceXpnNamingService.decorateXpnResourceIfNecessary(this.loadBalancer.project, this.loadBalancer.network);
 
     this.loadBalancer.listeners.forEach((listener: any) =>  {
-      let { stack, freeFormDetails } = this.namingService.parseLoadBalancerName(listener.name);
+      const { stack, freeFormDetails } = this.namingService.parseLoadBalancerName(listener.name);
       listener.stack = stack;
       listener.detail = freeFormDetails;
       listener.ports = listener.ports.join(', ');
