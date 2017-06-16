@@ -60,7 +60,7 @@ open class AtlasQueueMonitor
     }
   }
 
-  @Scheduled(fixedDelayString = "\${queue.depth.metric.frequency:1000}")
+  @Scheduled(fixedDelayString = "\${queue.depth.metric.frequency:30000}")
   fun pollQueueState() {
     _lastState.set(queue.readState())
   }
@@ -110,7 +110,7 @@ open class AtlasQueueMonitor
 
   val lastState: QueueState
     get() = _lastState.get()
-  private val _lastState = AtomicReference<QueueState>()
+  private val _lastState = AtomicReference<QueueState>(QueueState(0, 0, 0))
 
   /**
    * Count of messages pushed to the queue.
