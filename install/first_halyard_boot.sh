@@ -27,11 +27,6 @@ KUBE_FILE="/home/spinnaker/.kube/config"
 GCR_FILE="/home/spinnaker/.gcp/gce-account.json"
 GCE_FILE="/home/spinnaker/.gcp/gcr-account.json"
 
-DOCKER_ACCOUNT=my-gcr-account
-KUBERNETES_ACCOUNT=my-k8s-account
-GOOGLE_ACCOUNT=my-google-account
-AWS_ACCOUNT=my-aws-account
-
 function get_instance_metadata_attribute() {
   local name="$1"
   local value=$(curl -s -f -H "Metadata-Flavor: Google" \
@@ -44,7 +39,7 @@ function get_instance_metadata_attribute() {
 }
 
 function has_instance_metadata_attribute() {
-  local value=$(get_instance_metadata $1)
+  local value=$(get_instance_metadata_attribute $1)
 
   if [[ "$value" == "" ]]; then
     return 1
@@ -89,38 +84,46 @@ function replace_startup_script() {
   clear_instance_metadata "startup-script"
 }
 
-function install_halyard() {
-  curl -O https://raw.githubusercontent.com/spinnaker/halyard/master/install/stable/InstallHalyard.sh
-  bash InstallHalyard.sh -y
-  rm InstallHalyard.sh
-}
-
 function configure_docker() {
+  local gcr_enabled=$(get_instance_metadata_attribute "gcr_enabled")
+  local gcr_account=$(get_instance_metadata_attribute "gcr_account")
+
+  if [ -z "$gcr_enabled" ]; then
+    return 0;
+  fi
+
   local config_path="$GCR_FILE"
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
-  
-  if clear_metadata_to_file "gcr_cred" $config_path; then
-    if [[ -s $config_path ]]; then
-      chmod 400 $config_path
-      chown spinnaker $config_path
-      echo "Successfully wrote gcr account to $config_path"
-    else
-      echo "Failed to write gcr account to $config_path"
-      rm $config_path
 
-      return 1
-    fi
-  fi
+  local gcr_address=$(get_instance_metadata_attribute "gcr_address")
+  
+  # This service account is enabled with the Compute API.
+  gcr_service_account=$(curl -s -H "Metadata-Flavor: Google" "$METADATA_URL/instance/service-accounts/default/email")
+
+  echo "Extracting GCR credentials for email $gcr_service_account"
+  gcloud iam service-accounts keys create $config_path --iam-account=$gcr_service_account
+
+  echo "Extracted GCR credentials to $config_path"
+
+  chmod 400 $config_path
+  chown spinnaker:spinnaker $config_path
 
   hal config provider docker-registry enable
-  hal config proivder docker-registry account add $DOCKER_ACCOUNT \
+  hal config provider docker-registry account add $gcr_account \
     --password-file $config_path \
     --username _json_key \
-    --address gcr.io
+    --address $gcr_address
 }
 
 function configure_kubernetes() {
+  local kube_enabled=$(get_instance_metadata_attribute "kube_enabled")
+  local kube_account=$(get_instance_metadata_attribute "kube_account")
+
+  if [ -z "$kube_enabled" ]; then
+    return 0;
+  fi
+
   local config_path="$KUBE_FILE"
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
@@ -189,14 +192,15 @@ function configure_kubernetes() {
 }
 
 function configure_google() {
+  local google_account=$(get_instance_metadata_attribute "google_account")
+
   local config_path="$GCE_FILE"
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
-  local project=$(get_instance_metadata_attribute "project")
-  
-  local args="--project $project"
-  if has_instance_metatdata_attribute "gce_cred"; then
-    if clear_metadata_to_file "gce_cred" $config_path; then
+
+  local args="--project $MY_PROJECT"
+  if has_instance_metadata_attribute "gce_creds"; then
+    if clear_metadata_to_file "gce_creds" $config_path; then
       if [[ -s $config_path ]]; then
         args="$args --json-path $config_path"
         chmod 400 $config_path
@@ -211,13 +215,14 @@ function configure_google() {
     fi
   fi
 
-  hal config provider google account add $GOOGLE_ACCOUNT $args
+  hal config provider google account add $google_account $args
 
   hal config provider google enable
 }
 
 function configure_storage() {
-  hal config storage edit --project $MY_PROJECT --bucket spinnaker-$MY_PROJECT
+  hal config storage gcs edit --project $MY_PROJECT --bucket spinnaker-$MY_PROJECT
+  hal config storage edit --type gcs
 }
 
 function configure_jenkins() {
@@ -244,8 +249,6 @@ else
   echo "Not running on Google Cloud Platform."
   exit -1
 fi
-
-install_halyard
 
 configure_docker
 configure_kubernetes
