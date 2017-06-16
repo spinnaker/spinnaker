@@ -38,7 +38,7 @@ class GlobalRateLimitQueueInterceptor(
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-  private val throttledMessagesId = registry.createId("queue.trafficShaping.throttledMessages")
+  private val throttledMessagesId = registry.createId("queue.trafficShaping.globalRateLimit.throttledMessages")
 
   override fun getName() = "globalRateLimit"
   override fun supports(type: InterceptorType): Boolean = type == InterceptorType.MESSAGE
@@ -66,9 +66,10 @@ class GlobalRateLimitQueueInterceptor(
         return { queue, message, ack ->
           queue.push(message, rateLimit.duration)
           ack.invoke()
-          registry.counter(throttledMessagesId).increment()
+          registry.counter(throttledMessagesId.withTag("learning", "false")).increment()
         }
       }
+      registry.counter(throttledMessagesId.withTag("learning", "true")).increment()
       log.info("Would have throttled message, but learning-mode enabled: $message")
     }
 

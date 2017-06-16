@@ -45,8 +45,8 @@ import java.time.temporal.TemporalAmount
   val pollInterceptors = interceptors.filter { it.supports(InterceptorType.POLL) }.sortedBy { it.getPriority() }
   val messageInterceptors = interceptors.filter { it.supports(InterceptorType.MESSAGE) }.sortedBy { it.getPriority() }
 
-  val queueInterceptionsId: Id = registry.createId("queue.trafficShapedQueue.queueInterceptions")
-  val messageInterceptionsId: Id = registry.createId("queue.trafficShapedQueue.messageInterceptions")
+  val queueInterceptionsId: Id = registry.createId("queue.trafficShaping.queueInterceptions")
+  val messageInterceptionsId: Id = registry.createId("queue.trafficShaping.messageInterceptions")
 
   init {
     log.info("Starting with interceptors: ${interceptors.map { it.getName() }.joinToString()}")

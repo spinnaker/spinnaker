@@ -36,7 +36,7 @@ class ApplicationRateLimitQueueInterceptor(
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
-  private val throttledMessagesId = registry.createId("queue.trafficShaping.throttledMessages")
+  private val throttledMessagesId = registry.createId("queue.trafficShaping.appRateLimit.throttledMessages")
 
   override fun getName() = "appRateLimit"
   override fun supports(type: InterceptorType) = type == InterceptorType.MESSAGE
@@ -63,13 +63,14 @@ class ApplicationRateLimitQueueInterceptor(
         if (rateLimit.limiting) {
           if (rateLimit.enforcing) {
             log.info("Throttling message: $message")
-            return { queue, message, ack ->
-              queue.push(message, rateLimit.duration)
+            return { queue, msg, ack ->
+              queue.push(msg, rateLimit.duration)
               ack.invoke()
-              registry.counter(throttledMessagesId).increment()
+              registry.counter(throttledMessagesId.withTag("learning", "false").withTag("application", message.application)).increment()
             }
           }
           log.info("Would have throttled message for ${message.application}, but learning-mode enabled: $message")
+          registry.counter(throttledMessagesId.withTag("learning", "true").withTag("application", message.application)).increment()
         }
         return null
       }

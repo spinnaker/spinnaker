@@ -26,6 +26,16 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
 
+/**
+ * Keys used, all namespaced by the interceptor's name, e.g. "appRateLimit":
+ *
+ * - queue:trafficShaping:{ns}:learning - interceptor flag to enable/disable
+ * - queue:trafficShaping:{ns}:capacity - number of actions per second
+ * - queue:trafficShaping:{ns}:ignoring - a list of ignored subjects
+ * - queue:trafficShaping:{ns}:enforcing - a list of enforced subjects
+ * - queue:trafficShaping:{ns}:{subject}:learning - subject-specific learning flag
+ * - queue:trafficShaping:{ns}:{subject}:capacity - subject-specific capacity
+ */
 class RedisRateLimitBackend(
   private val pool: Pool<Jedis>,
   private val clock: Clock

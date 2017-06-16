@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.orca.q.interceptor
 
-import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.q.StartStage
@@ -33,7 +33,7 @@ import java.time.Duration
 
 object GlobalRateLimitQueueInterceptorSpec : Spek({
   val backend: RateLimitBackend = mock()
-  val registry: Registry = mock()
+  val registry = NoopRegistry()
   val props = TrafficShapingProperties.GlobalRateLimitingProperties()
 
   describe("an application rate limit queue interceptor") {
