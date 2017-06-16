@@ -192,7 +192,7 @@ function configure_kubernetes() {
 }
 
 function configure_google() {
-  local google_account=$(get_instance_metadata_attribute "google_account")
+  local gce_account=$(get_instance_metadata_attribute "gce_account")
 
   local config_path="$GCE_FILE"
   mkdir -p $(dirname $config_path)
@@ -215,7 +215,7 @@ function configure_google() {
     fi
   fi
 
-  hal config provider google account add $google_account $args
+  hal config provider google account add $gce_account $args
 
   hal config provider google enable
 }
