@@ -100,8 +100,18 @@ module.exports = angular
       }
     };
 
+    function permissionsAreValid(permissions) {
+      if (permissions.READ.includes(null) || permissions.WRITE.includes(null)) {
+        return false;
+      }
+      if (permissions.READ.length > 0 && permissions.WRITE.length === 0) {
+        return false;
+      }
+      return true;
+    }
+
     this.handlePermissionsChange = (permissions) => {
-      this.state.permissionsInvalid = permissions.READ.includes(null) || permissions.WRITE.includes(null);
+      this.state.permissionsInvalid = !permissionsAreValid(permissions);
       this.application.permissions = permissions;
       $scope.$digest();
     };

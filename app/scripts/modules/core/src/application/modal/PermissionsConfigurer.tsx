@@ -133,6 +133,12 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     }
   }
 
+  private willApplicationLockoutAllUsers(): boolean {
+    return !!(this.props.permissions) &&
+        compact(this.props.permissions.READ).length > 0 &&
+        compact(this.props.permissions.WRITE).length === 0;
+  }
+
   private handleRoleSelect(rowIndex: number): (option: Select.Option) => void {
     return (option: Select.Option) => {
       const permissionRows = cloneDeep(this.state.permissionRows);
@@ -210,6 +216,15 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
             <div className="alert alert-warning">
               <p><i className="fa fa-exclamation-triangle"/>
                 The permissions you have selected will lock you out of this application.
+              </p>
+            </div>
+          </div>
+        )}
+        {this.willApplicationLockoutAllUsers() && (
+          <div className="col-md-11">
+            <div className="alert alert-warning">
+              <p><i className="fa fa-exclamation-triangle"/>
+                The permissions you have selected will lock ALL users out of this application.
               </p>
             </div>
           </div>

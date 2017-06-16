@@ -92,8 +92,18 @@ module.exports = angular
         );
     };
 
+    function permissionsAreValid(permissions) {
+      if (permissions.READ.includes(null) || permissions.WRITE.includes(null)) {
+        return false;
+      }
+      if (permissions.READ.length > 0 && permissions.WRITE.length === 0) {
+        return false;
+      }
+      return true;
+    }
+
     vm.handlePermissionsChange = (permissions) => {
-      vm.state.permissionsInvalid = permissions.READ.includes(null) || permissions.WRITE.includes(null);
+      vm.state.permissionsInvalid = !permissionsAreValid(permissions);
       vm.applicationAttributes.permissions = permissions;
       delete vm.applicationAttributes.requiredGroupMembership;
       $scope.$digest();
