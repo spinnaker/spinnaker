@@ -27,7 +27,7 @@
                       ng-options="targetGroup.name as targetGroup.name for targetGroup in ctrl.loadBalancerCommand.targetGroups" required></select>
             </div>
           </td>
-          <td>
+          <td ng-if="ctrl.showSslCertificateNameField()">
             <div ng-repeat="certificate in listener.certificates"
                  style="width: 100%;display: flex;flex-direction: row;">
               <select class="form-control input-sm inline-number"

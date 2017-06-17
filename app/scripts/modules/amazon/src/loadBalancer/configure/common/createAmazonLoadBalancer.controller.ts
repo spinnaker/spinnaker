@@ -196,6 +196,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   }
 
   private updateAvailableSecurityGroups(availableVpcIds: string[]): void {
+    this.defaultSecurityGroups = this.defaultSecurityGroups || [];
     const account = this.loadBalancerCommand.credentials,
           region = this.loadBalancerCommand.region;
 

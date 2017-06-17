@@ -254,8 +254,8 @@ export class AwsLoadBalancerTransformer {
             healthCheckProtocol: targetGroup.healthCheckProtocol,
             healthCheckPort: targetGroup.healthCheckPort,
             healthCheckPath: targetGroup.healthCheckPath,
-            healthTimeout: targetGroup.healthCheckTimeoutSeconds,
-            healthInterval: targetGroup.healthCheckIntervalSeconds,
+            healthCheckTimeout: targetGroup.healthCheckTimeoutSeconds,
+            healthCheckInterval: targetGroup.healthCheckIntervalSeconds,
             healthyThreshold: targetGroup.healthyThresholdCount,
             unhealthyThreshold: targetGroup.unhealthyThresholdCount,
             attributes: {
