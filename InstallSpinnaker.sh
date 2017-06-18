@@ -56,7 +56,7 @@ else
   DISTRO=$(uname -s)
 fi
 
-# If not Ubuntu 14.xx.x or higher
+# If not Ubuntu 14.xx.x 
 
 if [[ "$DISTRO" == "Ubuntu" ]]; then
   if [[ "${DISTRIB_RELEASE%%.*}" -ne 14 ]]; then
