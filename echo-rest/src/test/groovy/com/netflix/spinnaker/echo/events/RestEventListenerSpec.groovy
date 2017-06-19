@@ -44,7 +44,7 @@ class RestEventListenerSpec extends Specification {
       [
         client: restService,
         config: [
-          template: '{"myCustomEventField":${event}}',
+          template: '{"myCustomEventField":{{event}} }',
           wrap    : true
         ]
       ]

@@ -34,7 +34,7 @@ class SimpleEventTemplateSpec extends Specification {
 
   void 'renders template with event map'() {
     given:
-    def template = '{"myEventField":${event}}'
+    def template = '{ "myEventField":{{event}} }'
 
     when:
     Map renderedResult = restEventTemplateEngine.render(template, event)

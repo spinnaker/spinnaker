@@ -32,7 +32,7 @@ class SimpleEventTemplateEngine implements RestEventTemplateEngine {
     ObjectMapper objectMapper = new ObjectMapper()
 
     Map render(String templateString, Map eventMap) {
-        String renderedResult = templateString.replace('${event}', objectMapper.writeValueAsString(eventMap))
+        String renderedResult = templateString.replace('{{event}}', objectMapper.writeValueAsString(eventMap))
         return objectMapper.readValue(renderedResult, Map)
     }
 }
