@@ -177,6 +177,26 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return result;
     }
 
+    function configureCpuPlatforms(command) {
+      let result = { dirty: {} };
+      let filteredData = command.backingData.filtered;
+      let locationToCpuPlatformsMap = command.backingData.credentialsKeyedByAccount[command.credentials].locationToCpuPlatformsMap;
+
+      filteredData.cpuPlatforms = ['(Automatic)'];
+
+      let location = command.regional ? command.region : command.zone;
+
+      if (_.has(locationToCpuPlatformsMap, location)) {
+        filteredData.cpuPlatforms = _.concat(filteredData.cpuPlatforms, locationToCpuPlatformsMap[location]);
+      }
+
+      if (!_.includes(filteredData.cpuPlatforms, command.minCpuPlatform)) {
+        delete command.minCpuPlatform;
+        result.dirty.minCpuPlatform = true;
+      }
+      return result;
+    }
+
     function configureStandardInstanceTypes(command) {
       let c = command;
       let result = { dirty: {} };
@@ -561,6 +581,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         if (command.region) {
           angular.extend(result.dirty, configureInstanceTypes(command).dirty);
           angular.extend(result.dirty, configureZones(command).dirty);
+          angular.extend(result.dirty, configureCpuPlatforms(command).dirty);
           // TODO: Internal Load Balancers also need to be filtered by network.
           angular.extend(result.dirty, configureLoadBalancerOptions(command).dirty);
           angular.extend(result.dirty, configureImages(command).dirty);
@@ -645,6 +666,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         command.viewState.dirty = command.viewState.dirty || {};
         angular.extend(command.viewState.dirty, result.dirty);
         angular.extend(command.viewState.dirty, configureInstanceTypes(command).dirty);
+        angular.extend(command.viewState.dirty, configureCpuPlatforms(command).dirty);
         return result;
       };
 

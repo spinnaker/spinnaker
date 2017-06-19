@@ -282,6 +282,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           desired: 1
         },
         backendServiceMetadata: [],
+        minCpuPlatform: '(Automatic)',
         persistentDiskType: 'pd-ssd',
         persistentDiskSizeGb: 10,
         localSSDCount: 1,
@@ -357,6 +358,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         subnet: extractSubnetName(serverGroup),
         associatePublicIpAddress: determineAssociatePublicIPAddress(serverGroup),
         canIpForward: serverGroup.canIpForward,
+        minCpuPlatform: serverGroup.launchConfig.minCpuPlatform || '(Automatic)',
         instanceMetadata: {},
         tags: [],
         labels: {},
@@ -457,6 +459,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
           extendedCommand.backendServiceMetadata = instanceMetadata['backend-service-names']
             ? instanceMetadata['backend-service-names'].split(',')
             : [];
+          extendedCommand.minCpuPlatform = pipelineCluster.minCpuPlatform || '(Automatic)';
           extendedCommand.instanceMetadata = {};
           populateCustomMetadata(instanceMetadata, extendedCommand);
           populateAutoHealingPolicy(pipelineCluster, extendedCommand);

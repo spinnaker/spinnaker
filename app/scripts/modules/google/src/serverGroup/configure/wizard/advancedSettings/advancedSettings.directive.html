@@ -1,5 +1,19 @@
 <div class="form-group">
   <div class="col-md-5 sm-label-right">
+    <b>Minimum CPU Platform</b>
+    <help-field key="gce.serverGroup.minCpuPlatform"></help-field>
+  </div>
+  <div class="col-md-6">
+    <ui-select ng-model="vm.command.minCpuPlatform" class="form-control input-sm" required>
+      <ui-select-match placeholder="Select...">{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="minCpuPlatform in vm.command.backingData.filtered.cpuPlatforms | filter: $select.search">
+        <span ng-bind-html="minCpuPlatform | highlight: $select.search"></span>
+      </ui-select-choices>
+    </ui-select>
+  </div>
+</div>
+<div class="form-group">
+  <div class="col-md-5 sm-label-right">
     <b>Persistent Disk Type</b>
   </div>
   <div class="col-md-6">

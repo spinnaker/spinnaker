@@ -48,6 +48,7 @@ const helpContents: {[key: string]: string} = {
   'gce.serverGroup.scalingPolicy.customMetricUtilizations': 'Autoscaler adds or removes instances to maintain this usage for custom metric.',
   'gce.serverGroup.imageName': '(Required) <b>Image</b> is the Google Compute Engine image. Images are restricted to the account selected.',
   'gce.serverGroup.capacity': 'The number of instances that the instance group manager will attempt to maintain. Deleting or abandoning instances will affect this number, as will resizing the group.',
+  'gce.serverGroup.minCpuPlatform': 'The baseline minimum CPU platform to use for your instances, whenever available. Select "Automatic" unless you have a specific need.',
   'gce.serverGroup.customMetadata': '<b>Custom Metadata</b> will be propagated to the instances in this server group. This is useful for passing in arbitrary values that can be queried by your code on the instance.',
   'gce.serverGroup.userData': '<p>Custom user data will be propagated to the instances in this server group. Key/value pairs can either be newline or comma delimited.</p><strong>Example:</strong><br/> <pre>key=value<br>key2=value2</pre>',
   'gce.serverGroup.customMetadata.load-balancer-names': 'This field is used to "remember" what load balancers this server group is associated with, even if the instances are deregistered.',

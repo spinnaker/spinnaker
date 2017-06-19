@@ -294,6 +294,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
         $scope.command.backingData.filtered.loadBalancerIndex,
         loadBalancerMetadata);
 
+      if ($scope.command.minCpuPlatform === '(Automatic)') {
+        $scope.command.minCpuPlatform = '';
+      }
+
       angular.extend($scope.command.instanceMetadata, loadBalancerMetadata);
 
       var origTags = $scope.command.tags;

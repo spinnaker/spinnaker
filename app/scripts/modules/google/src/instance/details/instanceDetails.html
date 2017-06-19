@@ -72,6 +72,8 @@
         </dd>
         <dt>Type</dt>
         <dd>{{instance.instanceType || '(Unknown)' | customInstanceFilter}}</dd>
+        <dt>CPU Platform</dt>
+        <dd>{{instance.cpuPlatform}}</dd>
         <dt ng-if="instance.serverGroup">Server Group</dt>
         <dd ng-if="instance.serverGroup">
           <a ui-sref="^.serverGroup({region: instance.region,
