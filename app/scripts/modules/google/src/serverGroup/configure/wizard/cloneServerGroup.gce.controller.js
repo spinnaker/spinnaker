@@ -349,6 +349,11 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
 
     this.specialInstanceProfiles = new Set(['custom', 'buildCustom']);
 
+    // This function is called from within React, and without $apply, Angular does not know when it has been called.
+    $scope.command.setCustomInstanceViewState = (customInstanceChoices) => {
+      $scope.$apply(() => $scope.command.viewState.customInstance = customInstanceChoices);
+    };
+
     if (!$scope.state.requiresTemplateSelection) {
       configureCommand();
     } else {

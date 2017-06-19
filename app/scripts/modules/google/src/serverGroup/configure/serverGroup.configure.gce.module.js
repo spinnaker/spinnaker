@@ -2,9 +2,10 @@
 
 const angular = require('angular');
 
-import {GCE_LOAD_BALANCING_POLICY_SELECTOR} from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component';
-import {GCE_AUTOHEALING_POLICY_SELECTOR} from './wizard/autoHealingPolicy/autoHealingPolicySelector.component';
-import {GCE_CACHE_REFRESH} from 'google/cache/cacheRefresh.component';
+import { GCE_LOAD_BALANCING_POLICY_SELECTOR } from './wizard/loadBalancingPolicy/loadBalancingPolicySelector.component';
+import { GCE_AUTOHEALING_POLICY_SELECTOR } from './wizard/autoHealingPolicy/autoHealingPolicySelector.component';
+import { GCE_CACHE_REFRESH } from 'google/cache/cacheRefresh.component';
+import { GCE_CUSTOM_INSTANCE_CONFIGURER } from './wizard/customInstance/customInstanceConfigurer.component';
 
 module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   require('../../autoscalingPolicy/components/basicSettings/basicSettings.component.js'),
@@ -13,6 +14,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce', [
   GCE_AUTOHEALING_POLICY_SELECTOR,
   require('./../../instance/custom/customInstanceBuilder.gce.service.js'),
   GCE_CACHE_REFRESH,
+  GCE_CUSTOM_INSTANCE_CONFIGURER,
   require('../serverGroup.transformer.js'),
   require('./serverGroupConfiguration.service.js'),
   require('./wizard/advancedSettings/advancedSettingsSelector.directive.js'),
