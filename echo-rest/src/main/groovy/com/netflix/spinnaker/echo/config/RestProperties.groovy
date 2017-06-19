@@ -40,6 +40,7 @@ class RestProperties {
     Boolean wrap = false
     @NotEmpty
     String url
+    Boolean insecure = false
     String username
     String password
     Map<String, String> headers

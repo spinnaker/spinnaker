@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.echo.config
 
+import com.netflix.spinnaker.echo.events.RestClientFactory
 import com.netflix.spinnaker.echo.rest.RestService
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -44,12 +45,6 @@ import static retrofit.Endpoints.newFixedEndpoint
 @CompileStatic
 @SuppressWarnings('GStringExpressionWithinString')
 class RestConfig {
-
-  @Bean
-  @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-  Client retrofitClient() {
-    new OkClient()
-  }
 
   @Bean
   LogLevel retrofitLogLevel(@Value('${retrofit.logLevel:BASIC}') String retrofitLogLevel) {
@@ -93,7 +88,7 @@ class RestConfig {
   }
 
   @Bean
-  RestUrls restServices(RestProperties restProperties, Client retrofitClient, LogLevel retrofitLogLevel, RequestInterceptorAttacher requestInterceptorAttacher, HeadersFromFile headersFromFile) {
+  RestUrls restServices(RestProperties restProperties, RestClientFactory clientFactory, LogLevel retrofitLogLevel, RequestInterceptorAttacher requestInterceptorAttacher, HeadersFromFile headersFromFile) {
 
     RestUrls restUrls = new RestUrls()
 
@@ -102,7 +97,7 @@ class RestConfig {
     restProperties.endpoints.each { RestProperties.RestEndpointConfiguration endpoint ->
       RestAdapter.Builder restAdapterBuilder = new RestAdapter.Builder()
         .setEndpoint(newFixedEndpoint(endpoint.url as String))
-        .setClient(retrofitClient)
+        .setClient(clientFactory.getClient(endpoint.insecure))
         .setLogLevel(retrofitLogLevel)
         .setConverter(new JacksonConverter())
 
