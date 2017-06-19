@@ -295,13 +295,15 @@ class Builder(object):
           '--stacktrace',
           '-Prelease.useLastTag=true',
           '-PbintrayPackageBuildNumber={number}'.format(
-              number=self.__build_number)
+              number=self.__build_number),
+          '-PpackageBuildPlatform="redhat"'
         ]
     else:
       target = 'buildRpm'
       extra_args = [
           '-PbintrayPackageBuildNumber={number}'.format(
-              number=self.__build_number)
+              number=self.__build_number),
+          '-PpackageBuildPlatform="redhat"'
       ]
 
     if self.__options.debug_gradle:
