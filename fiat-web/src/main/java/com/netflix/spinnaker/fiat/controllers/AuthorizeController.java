@@ -26,6 +26,8 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +40,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestController
 @RequestMapping("/authorize")
 public class AuthorizeController {
@@ -57,6 +60,7 @@ public class AuthorizeController {
       return null;
     }
 
+    log.debug("UserPermissions requested for all users");
     return permissionsRepository
         .getAllById()
         .values()
@@ -67,7 +71,9 @@ public class AuthorizeController {
 
   @RequestMapping(value = "/{userId:.+}", method = RequestMethod.GET)
   public UserPermission.View getUserPermission(@PathVariable String userId) {
-    return permissionsRepository.get(ControllerSupport.convert(userId))
+    val user = ControllerSupport.convert(userId);
+    log.debug("UserPermission requested for " + user);
+    return permissionsRepository.get(user)
                                 .orElseThrow(NotFoundException::new)
                                 .getView();
   }

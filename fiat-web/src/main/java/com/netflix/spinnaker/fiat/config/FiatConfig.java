@@ -4,13 +4,17 @@ import com.google.common.collect.ImmutableList;
 import com.netflix.spectator.api.Registry;
 import com.netflix.spinnaker.fiat.model.resources.Role;
 import com.netflix.spinnaker.fiat.roles.UserRolesProvider;
+import com.netflix.spinnaker.filters.AuthenticatedRequestFilter;
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor;
+import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -61,5 +65,16 @@ public class FiatConfig extends WebMvcConfigurerAdapter {
         return new ArrayList<>();
       }
     };
+  }
+
+  /**
+   * This AuthenticatedRequestFilter pulls the email and accounts out of the Spring
+   * security context in order to enabling forwarding them to downstream components.
+   */
+  @Bean
+  FilterRegistrationBean authenticatedRequestFilter() {
+    val frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(true));
+    frb.setOrder(Ordered.LOWEST_PRECEDENCE);
+    return frb;
   }
 }

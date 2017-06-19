@@ -20,6 +20,7 @@ dependencies {
   compileOnly spinnaker.dependency("bootWeb")
   compileOnly spinnaker.dependency("frigga")
   compileOnly spinnaker.dependency("korkSecurity")
+  compileOnly spinnaker.dependency("korkWeb")
   compileOnly spinnaker.dependency("lombok")
   compileOnly spinnaker.dependency("okHttp")
   compileOnly spinnaker.dependency("okHttpUrlconnection")

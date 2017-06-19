@@ -24,6 +24,7 @@ import com.netflix.spinnaker.fiat.model.Authorization;
 import com.netflix.spinnaker.fiat.model.UserPermission;
 import com.netflix.spinnaker.fiat.model.resources.Authorizable;
 import com.netflix.spinnaker.fiat.model.resources.ResourceType;
+import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import retrofit.RetrofitError;
 
 import java.io.Serializable;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -130,16 +132,18 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
                                String resourceName,
                                Authorization a) {
     try {
-      fiatService.hasAuthorization(username, resourceType.toString(), resourceName, a.toString());
-    } catch (RetrofitError re) {
+      AuthenticatedRequest.propagate(() ->
+        fiatService.hasAuthorization(username, resourceType.toString(), resourceName, a.toString())
+      ).call();
+    } catch (Exception e) {
       String message = String.format("Fiat authorization failed for user '%s' '%s'-ing '%s' resourceType named '%s'. Cause: %s",
                                      username,
                                      a,
                                      resourceType,
                                      resourceName,
-                                     re.getMessage());
+                                     e.getMessage());
       if (log.isDebugEnabled()) {
-        log.debug(message, re);
+        log.debug(message, e);
       } else {
         log.info(message);
       }
@@ -158,7 +162,7 @@ public class FiatPermissionEvaluator implements PermissionEvaluator, Initializin
       AtomicBoolean cacheHit = new AtomicBoolean(true);
       view = permissionsCache.get(username, () -> {
         cacheHit.set(false);
-        return fiatService.getUserPermission(username);
+        return AuthenticatedRequest.propagate(() -> fiatService.getUserPermission(username)).call();
       });
       log.debug("Fiat permission cache hit: " + cacheHit.get());
     } catch (ExecutionException | UncheckedExecutionException ee) {

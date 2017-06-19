@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.shared;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.okhttp.SpinnakerRequestInterceptor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -53,9 +54,13 @@ public class FiatAuthenticationConfig {
   @Setter
   private RestAdapter.LogLevel retrofitLogLevel = RestAdapter.LogLevel.BASIC;
 
+  @Autowired
+  SpinnakerRequestInterceptor spinnakerRequestInterceptor;
+
   @Bean
   @ConditionalOnMissingBean(FiatService.class) // Allows for override
   public FiatService fiatService(FiatClientConfigurationProperties fiatConfigurationProperties,
+                                 SpinnakerRequestInterceptor interceptor,
                                  OkClient okClient) {
     // New role providers break deserialization if this is not enabled.
     val objectMapper = new ObjectMapper();
@@ -63,6 +68,7 @@ public class FiatAuthenticationConfig {
     objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     return new RestAdapter.Builder()
         .setEndpoint(Endpoints.newFixedEndpoint(fiatConfigurationProperties.getBaseUrl()))
+        .setRequestInterceptor(interceptor)
         .setClient(okClient)
         .setConverter(new JacksonConverter(objectMapper))
         .setLogLevel(retrofitLogLevel)

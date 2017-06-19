@@ -14,9 +14,5 @@ endpoints:
 
 # For options, see com.netflix.spinnaker.fiat.config.FiatServerConfigurationProperties
 
-fiat:
-  permissions:
-    read:
-      - foo
-    write:
-      - bar
+logging:
+  config: classpath:logback-defaults.xml
