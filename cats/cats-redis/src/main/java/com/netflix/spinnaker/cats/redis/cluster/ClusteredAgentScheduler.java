@@ -147,6 +147,7 @@ public class ClusteredAgentScheduler extends CatsModuleAware implements AgentSch
 
     @Override
     public void unschedule(Agent agent) {
+        releaseRunKey(agent.getAgentType(), 0); // Delete lock key now.
         agents.remove(agent.getAgentType());
     }
 
