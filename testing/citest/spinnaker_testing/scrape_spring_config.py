@@ -14,7 +14,9 @@
 
 """Derives a spinnaker subsystem spring configuration."""
 
+import logging
 import re
+import time
 import urllib2
 from json import JSONDecoder
 
@@ -73,7 +75,7 @@ def infer(json):
   return expr_dict
 
 
-def scrape_spring_config(url):
+def scrape_spring_config(url, timeout=60):
   """Construct a config binding dictionary from a running instance's baseUrl.
 
   Args:
@@ -83,7 +85,21 @@ def scrape_spring_config(url):
     urlib2.URLError if url is bad.
   """
   request = urllib2.Request(url=url)
-  response = urllib2.urlopen(request)
+  final_time = time.time() + timeout
+  while True:
+    # Sometimes this is not yet ready, so allow retries
+    try:
+      response = urllib2.urlopen(request, timeout=min(10, timeout))
+      break
+    except Exception as ex:
+      timeout = final_time - time.time()
+      if timeout <= 1:
+        logging.exception('Could not scrape config from url=%s: %s', url, ex)
+        raise
+      else:
+        logging.info('Failed to scrape %s -- try again in 1s: %s', url, ex)
+        time.sleep(1)
+
   http_code = response.getcode()
   content = response.read()
   if http_code < 200 or http_code >= 300:

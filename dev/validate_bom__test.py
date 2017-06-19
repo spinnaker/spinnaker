@@ -429,10 +429,27 @@ class ValidateBomTestController(object):
 
     # Redirect stdout to prevent buffer overflows (at least in k8s)
     # but keep errors for failures.
+    class KeepAlive(threading.Thread):
+      def run(self):
+        while True:
+          try:
+            logging.info('KeepAlive %s polling', service_name)
+            got = urllib2.urlopen('http://localhost:{port}/health'
+                                  .format(port=local_port))
+            logging.info('KeepAlive %s -> %s', service_name, got.getcode())
+          except Exception as ex:
+            logging.info('KeepAlive %s -> %s', service_name, ex)
+
+          time.sleep(20)
+
+    hack = KeepAlive()
+    hack.setDaemon(True)
+    hack.start()
+
     child = subprocess.Popen(
         ' '.join(command) + ' > /dev/null', shell=True,
         stderr=sys.stderr.fileno(),
-        stdout=None,
+        stdout=sys.stdout.fileno(),
         stdin=None)
     return ForwardedPort(child, local_port)
 
@@ -468,7 +485,7 @@ class ValidateBomTestController(object):
       summary.append('PASSED {0}, skipped {1}'.format(num_passed, num_skipped))
     return '\n'.join(summary)
 
-  def wait_on_service(self, service_name, port=None, timeout=120):
+  def wait_on_service(self, service_name, port=None, timeout=240):
     """Wait for the given service to be available on the specified port.
 
     Args:
@@ -500,13 +517,18 @@ class ValidateBomTestController(object):
     # I've only seen this happen once.
     time.sleep(1)
 
+    threadid = hex(threading.current_thread().ident)
     while forwarding.child.poll() is None:
       try:
         # localhost is hardcoded here because we are port forwarding.
+        # timeout=20 is to appease kubectl port forwarding, which will close
+        #            if left idle for 30s
+        logging.info('WaitOn polling %s | %s', service_name, threadid)
         urllib2.urlopen('http://localhost:{port}/health'
-                        .format(port=forwarding.port))
-        logging.info('"%s" is ready on port %d',
-                     service_name, forwarding.port)
+                        .format(port=forwarding.port),
+                        timeout=20)
+        logging.info('"%s" is ready on port %d | %s',
+                     service_name, forwarding.port, threadid)
         return forwarding
       except urllib2.HTTPError as error:
         logging.warning('%s got %s. Ignoring that for now.',
@@ -514,8 +536,9 @@ class ValidateBomTestController(object):
         return forwarding
 
       except (urllib2.URLError, Exception) as error:
+        logging.info('WaitOn got %s | %s', error, threadid)
         if time.time() >= end_time:
-          logging.error('Timing out waiting for %s', service_name)
+          logging.error('Timing out waiting for %s | %s', service_name, threadid)
           raise error
         time.sleep(1.0)
 

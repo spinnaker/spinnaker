@@ -341,6 +341,8 @@ class SpinnakerAgent(service_testing.HttpAgent):
       logger.info('%s is available at %s. Using %s', name, netloc, base_url)
       deployed_config = scrape_spring_config(
           os.path.join(base_url, 'resolvedEnv'))
+      JournalLogger.journal_or_log_detail(
+          '{0} configuration'.format(name), deployed_config)
       spinnaker_agent = cls(base_url, status_factory)
       spinnaker_agent.__deployed_config = deployed_config
       context_relation = 'VALID'
@@ -374,6 +376,9 @@ class SpinnakerAgent(service_testing.HttpAgent):
     logger.info('%s is available at %s', name, base_url)
     env_url = os.path.join(base_url, 'resolvedEnv')
     deployed_config = scrape_spring_config(env_url)
+    JournalLogger.journal_or_log_detail(
+        '{0} configuration'.format(name), deployed_config)
+
     spinnaker_agent = cls(base_url, status_factory)
     spinnaker_agent.__deployed_config = deployed_config
 
