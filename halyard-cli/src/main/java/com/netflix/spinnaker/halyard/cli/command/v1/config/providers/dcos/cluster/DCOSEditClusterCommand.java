@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
@@ -32,22 +33,23 @@ public class DCOSEditClusterCommand extends AbstractClusterCommand {
   )
   String dcosUrl;
 
-  //TODO(willgorman): might be good to support loading from a file
   @Parameter(
-      names = "--ca-cert-data",
-      description = DCOSClusterCommandProperties.CA_CERT_DATA_DESCRIPTION
+      names = "--ca-cert-file",
+      converter = PathExpandingConverter.class,
+      description = DCOSClusterCommandProperties.CA_CERT_FILE_DESCRIPTION
   )
-  String caCertData;
+  String caCertFile;
 
   @Parameter(
-      names = "--remove-ca-cert-data",
-      description = "Remove the CA certificate for this cluster"
+      names = "--remove-ca-cert-file",
+      description = "Remove the CA certificate file for this cluster"
   )
-  Boolean removeCaCertData = false;
+  Boolean removeCaCertFile = false;
 
   @Parameter(
-      names = "--skip-tls-verify",
-      description = DCOSClusterCommandProperties.SKIP_TLS_VERIFY_DESCRIPTION
+      names = "--set-skip-tls-verify",
+      description = DCOSClusterCommandProperties.SKIP_TLS_VERIFY_DESCRIPTION,
+      arity = 1
   )
   Boolean insecureSkipTlsVerify;
 
@@ -86,12 +88,12 @@ public class DCOSEditClusterCommand extends AbstractClusterCommand {
       cluster.setDcosUrl(dcosUrl);
     }
 
-    if (!isStringEmpty(caCertData)) {
-      cluster.setCaCertData(caCertData);
+    if (!isStringEmpty(caCertFile)) {
+      cluster.setCaCertFile(caCertFile);
     }
 
-    if (removeCaCertData) {
-      cluster.setCaCertData(null);
+    if (removeCaCertFile) {
+      cluster.setCaCertFile(null);
     }
 
     if (Objects.nonNull(insecureSkipTlsVerify)) {

@@ -11,6 +11,7 @@ import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSCluster;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DockerRegistryReference;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
+import com.netflix.spinnaker.halyard.config.validate.v1.util.ValidatingFileReader;
 
 import org.springframework.stereotype.Component;
 
@@ -99,17 +100,25 @@ public class DCOSAccountValidator extends Validator<DCOSAccount> {
 
       // TODO(willgorman) once we have the clouddriver-dcos module pulled in we can just validate whether or not
       // we can connect without a password
-      if (Strings.isStringEmpty(c.getPassword()) && Strings.isStringEmpty(c.getServiceKey())) {
+      if (Strings.isStringEmpty(c.getPassword()) && Strings.isStringEmpty(c.getServiceKeyFile())) {
         problems.addProblem(WARNING,
             "Account has no password or service key.  Unless the cluster has security disabled this may be an error")
             .setRemediation("Add a password or service key.");
       }
 
-      if (!Strings.isStringEmpty(c.getPassword()) && !Strings.isStringEmpty(c.getServiceKey())) {
+      if (!Strings.isStringEmpty(c.getPassword()) && !Strings.isStringEmpty(c.getServiceKeyFile())) {
         problems.addProblem(ERROR, "Account has both a password and service key")
             .setRemediation("Remove either the password or service key.");
       }
-    });
 
+      if (!Strings.isStringEmpty(c.getServiceKeyFile())) {
+        String resolvedServiceKey = ValidatingFileReader.contents(problems, c.getServiceKeyFile());
+
+        if (Strings.isStringEmpty(resolvedServiceKey)) {
+          problems.addProblem(ERROR, "The supplied service key file does not exist or is empty.")
+            .setRemediation("Supply a valid service key file.");
+        }
+      }
+    });
   }
 }

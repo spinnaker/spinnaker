@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.Daemon;
 import com.netflix.spinnaker.halyard.cli.services.v1.OperationHandler;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
@@ -30,12 +31,12 @@ public class DCOSAddClusterCommand extends AbstractClusterCommand {
   )
   String dcosUrl;
 
-  //TODO(willgorman): might be good to support loading from a file
   @Parameter(
-      names = "--ca-cert-data",
-      description = DCOSClusterCommandProperties.CA_CERT_DATA_DESCRIPTION
+      names = "--ca-cert-file",
+      converter = PathExpandingConverter.class,
+      description = DCOSClusterCommandProperties.CA_CERT_FILE_DESCRIPTION
   )
-  String caCertData;
+  String caCertFile;
 
   @Parameter(
       names = "--skip-tls-verify",
@@ -62,7 +63,7 @@ public class DCOSAddClusterCommand extends AbstractClusterCommand {
     DCOSCluster cluster = new DCOSCluster();
     cluster.setName(getClusterName())
         .setDcosUrl(dcosUrl)
-        .setCaCertData(caCertData)
+        .setCaCertFile(caCertFile)
         .setInsecureSkipTlsVerify(insecureSkipTlsVerify);
 
     if (nonNull(loadBalancerImage)) {
@@ -71,7 +72,6 @@ public class DCOSAddClusterCommand extends AbstractClusterCommand {
           .setServiceAccountSecret(loadBalancerServiceAccountSecret);
       cluster.setLoadBalancer(loadBalancer);
     }
-
 
     new OperationHandler<Void>()
         .setFailureMesssage("Failed to add cluster " + getClusterName() + " for provider " + getProviderName() + ".")

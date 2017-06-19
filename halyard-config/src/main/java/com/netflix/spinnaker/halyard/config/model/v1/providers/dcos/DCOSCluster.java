@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Cluster;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
@@ -14,7 +15,7 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 public class DCOSCluster extends Cluster {
   String name;
   String dcosUrl;
-  String caCertData;
+  @LocalFile String caCertFile;
   Boolean insecureSkipTlsVerify;
   LoadBalancer loadBalancer;
 

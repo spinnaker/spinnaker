@@ -5,6 +5,10 @@ import lombok.EqualsAndHashCode;
 
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
+import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
+import com.netflix.spinnaker.halyard.config.model.v1.node.Node;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIterator;
+import com.netflix.spinnaker.halyard.config.model.v1.node.NodeIteratorFactory;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Validator;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dockerRegistry.DockerRegistryProvider;
 import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
@@ -22,6 +26,11 @@ public class DCOSAccount extends Account {
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
     v.validate(psBuilder, this);
+  }
+
+  @Override
+  public NodeIterator getChildren() {
+    return NodeIteratorFactory.makeListIterator(clusters.stream().map(c -> (Node) c).collect(Collectors.toList()));
   }
 
   public void removeCredential(String name, String uid) {
@@ -44,11 +53,26 @@ public class DCOSAccount extends Account {
   }
 
   @Data
-  public static class ClusterCredential {
+  public static class ClusterCredential extends Node implements Cloneable {
     private final String name;
     private final String uid;
     private final String password;
-    private final String serviceKey;
+    @LocalFile private final String serviceKeyFile;
+
+    @Override
+    public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {
+      v.validate(psBuilder, this);
+    }
+
+    @Override
+    public String getNodeName() {
+      return name;
+    }
+
+    @Override
+    public NodeIterator getChildren() {
+      return NodeIteratorFactory.makeEmptyIterator();
+    }
   }
 }
 

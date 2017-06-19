@@ -4,6 +4,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.AbstractAddAccountCommand;
+import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.dcos.DCOSAccount;
@@ -44,12 +45,12 @@ public class DCOSAddAccountCommand extends AbstractAddAccountCommand {
   )
   private String cluster;
 
-  //TODO(willgorman): might be good to support loading from a file
   @Parameter(
-      names = "--service-key",
-      description = "Secret key for service account authentication"
+      names = "--service-key-file",
+      converter = PathExpandingConverter.class,
+      description = "Path to a file containing the secret key for service account authentication"
   )
-  private String serviceKey;
+  private String serviceKeyFile;
 
   @Parameter(
       names = "--password",
@@ -62,11 +63,11 @@ public class DCOSAddAccountCommand extends AbstractAddAccountCommand {
     DCOSAccount account = (DCOSAccount) new DCOSAccount().setName(accountName);
     dockerRegistries.forEach(registryName -> account.getDockerRegistries().add(new DockerRegistryReference().setAccountName(registryName)));
 
-    if (!isNull(serviceKey) && !isNull(password)) {
-      throw new IllegalArgumentException("Only one of --service-key or --password may be set");
+    if (!isNull(serviceKeyFile) && !isNull(password)) {
+      throw new IllegalArgumentException("Only one of --service-key-file or --password may be set");
     }
 
-    account.setClusters(Lists.newArrayList(new ClusterCredential(cluster, uid, password, serviceKey)));
+    account.setClusters(Lists.newArrayList(new ClusterCredential(cluster, uid, password, serviceKeyFile)));
 
     return account;
   }

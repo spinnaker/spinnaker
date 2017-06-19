@@ -1734,7 +1734,7 @@ hal config provider dcos account add ACCOUNT [parameters]
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--password`: Password for a user account
  * `--required-group-membership`: (*Default*: `[]`) A user must be a member of at least one specified group in order to make changes to this account's cloud resources.
- * `--service-key`: Secret key for service account authentication
+ * `--service-key-file`: Path to a file containing the secret key for service account authentication
  * `--uid`: (*Required*) User or service account identifier
 
 
@@ -1844,7 +1844,7 @@ hal config provider dcos cluster add CLUSTER [parameters]
 
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
- * `--ca-cert-data`: Root certificate to trust for connections to the cluster
+ * `--ca-cert-file`: Root certificate file to trust for connections to the cluster
  * `--dcos-url`: (*Required*) URL of the endpoint for the DC/OS cluster's admin router.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--lb-account-secret`: Name of the secret to use for allowing marathon-lb to authenticate with the cluster.  Only necessary for clusters with strict or permissive security.
@@ -1881,15 +1881,15 @@ hal config provider dcos cluster edit CLUSTER [parameters]
 
 #### Parameters
 `CLUSTER`: The name of the cluster to operate on.
- * `--ca-cert-data`: Root certificate to trust for connections to the cluster
+ * `--ca-cert-file`: Root certificate file to trust for connections to the cluster
  * `--dcos-url`: URL of the endpoint for the DC/OS cluster's admin router.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--lb-account-secret`: Name of the secret to use for allowing marathon-lb to authenticate with the cluster.  Only necessary for clusters with strict or permissive security.
  * `--lb-image`: Marathon-lb image to use when creating a load balancer with Spinnaker
  * `--no-validate`: (*Default*: `false`) Skip validation.
- * `--remove-ca-cert-data`: (*Default*: `false`) Remove the CA certificate for this cluster
+ * `--remove-ca-cert-file`: (*Default*: `false`) Remove the CA certificate file for this cluster
  * `--remove-lb`: (*Default*: `false`) Remove the load balancer attributes for this cluster
- * `--skip-tls-verify`: Set this flag to disable verification of certificates from the cluster (insecure)
+ * `--set-skip-tls-verify`: Set this flag to disable verification of certificates from the cluster (insecure)
 
 
 ---

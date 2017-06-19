@@ -86,10 +86,11 @@ public class DCOSEditAccountCommand extends AbstractEditAccountCommand<DCOSAccou
       validateCredential(updateServiceCredential);
       final String clusterName = updateServiceCredential.get(0);
       final String uid = updateServiceCredential.get(1);
-      final String serviceKey = updateServiceCredential.get(2);
+      final String serviceKeyFile = updateServiceCredential.get(2);
+
       account.removeCredential(clusterName, uid);
       final DCOSAccount.ClusterCredential credential = new DCOSAccount.ClusterCredential(clusterName,
-          uid, null, serviceKey);
+          uid, null, serviceKeyFile);
       account.getClusters().add(credential);
     }
 
