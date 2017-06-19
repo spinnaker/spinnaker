@@ -1,5 +1,5 @@
 import { module } from 'angular';
-import { cloneDeep, Dictionary, groupBy, map, partition } from 'lodash';
+import { cloneDeep, groupBy, map, partition } from 'lodash';
 
 import {GCE_HTTP_LOAD_BALANCER_UTILS, GceHttpLoadBalancerUtils} from 'google/loadBalancer/httpLoadBalancerUtils.service';
 import {IGceLoadBalancer, IGceHttpLoadBalancer} from 'google/domain/loadBalancer';
