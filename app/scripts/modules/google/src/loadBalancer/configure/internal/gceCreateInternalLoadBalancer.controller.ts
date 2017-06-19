@@ -13,13 +13,12 @@ import {
   InfrastructureCacheService,
   IRegion,
   LOAD_BALANCER_WRITE_SERVICE,
-  NAMING_SERVICE,
-  NamingService,
+  LoadBalancerWriter,
   TASK_MONITOR_BUILDER,
   TaskMonitorBuilder
 } from '@spinnaker/core';
 
-import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet, IGceListener } from 'google/domain/index';
+import { IGceBackendService, IGceHealthCheck, IGceLoadBalancer, IGceNetwork, IGceSubnet } from 'google/domain/index';
 import { GCEProviderSettings } from 'google/gce.settings';
 import { CommonGceLoadBalancerCtrl } from '../common/commonLoadBalancer.controller';
 import {
@@ -40,12 +39,11 @@ interface IPrivateScope extends ng.IScope {
   $$destroyed: boolean;
 }
 
-export class InternalLoadBalancer implements IGceLoadBalancer {
+class InternalLoadBalancer implements IGceLoadBalancer {
   public name: string;
   public stack: string;
   public detail: string;
   public loadBalancerName: string;
-  public listeners: IGceListener[];
   public ports: any;
   public ipProtocol = 'TCP';
   public loadBalancerType = 'INTERNAL';
@@ -63,7 +61,7 @@ export class InternalLoadBalancer implements IGceLoadBalancer {
 class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
   public pages: any = {
     'location': require('./createLoadBalancerProperties.html'),
-    'listener': require('./listeners/listeners.html'),
+    'listener': require('./listener.html'),
     'healthCheck': require('../common/commonHealthCheckPage.html'),
     'advancedSettings': require('../common/commonAdvancedSettingsPage.html'),
   };
@@ -89,7 +87,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
 
   public viewState: ViewState = new ViewState('None');
   public taskMonitor: any;
-  public originalListeners: IGceListener[];
 
   private sessionAffinityModelToViewMap: any = _.invert(this.sessionAffinityViewToModelMap);
 
@@ -100,14 +97,12 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,
                private accountService: AccountService,
-               private namingService: NamingService,
+               private loadBalancerWriter: LoadBalancerWriter,
                private wizardSubFormValidation: any,
                private gceXpnNamingService: any,
                private taskMonitorBuilder: TaskMonitorBuilder,
                $state: StateService,
-               infrastructureCaches: InfrastructureCacheService,
-               private internalLoadBalancerTransformer: any,
-               private gceMultipleListenerLoadBalancerWriter: any) {
+               infrastructureCaches: InfrastructureCacheService) {
     'ngInject';
     super($scope, application, $uibModalInstance, $state, infrastructureCaches);
   }
@@ -119,7 +114,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
         if (!this.isNew) {
           this.initializeEditMode();
         } else {
-          this.originalListeners = [];
           this.loadBalancer = new InternalLoadBalancer(
             GCEProviderSettings
             ? GCEProviderSettings.defaults.region
@@ -138,7 +132,6 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
         this.accounts = backingData.accounts;
         this.networks = backingData.networks;
         this.subnets = backingData.subnets;
-        this.updateSubnetOptions();
         this.existingLoadBalancerNamesByAccount = backingData.existingLoadBalancerNamesByAccount;
         this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthChecksByAccountAndType(backingData.healthChecks as IGceHealthCheck[]);
@@ -174,23 +167,20 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
         const healthCheckNamesToOmit = this.isNew ? [] : [this.loadBalancer.backendService.healthCheck.name];
         this.existingHealthCheckNamesByAccount = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthCheckNamesByAccount(data.healthChecks as IGceHealthCheck[], healthCheckNamesToOmit);
-      })
+      });
   }
 
   public networkUpdated (): void {
-    this.updateSubnetOptions();
+    this.subnetOptions = this.subnets
+      .filter((subnet) => {
+        return subnet.region === this.loadBalancer.region &&
+               (subnet.account === this.loadBalancer.credentials || subnet.account === this.loadBalancer.account) &&
+               subnet.network === this.loadBalancer.network;
+      }).map((subnet) => subnet.id);
+
     if (!this.subnetOptions.includes(this.loadBalancer.subnet)) {
       this.loadBalancer.subnet = this.subnetOptions[0];
     }
-  }
-
-  private updateSubnetOptions (): void {
-    this.subnetOptions = this.subnets
-      .filter(subnet => {
-        return subnet.region === this.loadBalancer.region &&
-            (subnet.account === this.loadBalancer.credentials || subnet.account === this.loadBalancer.account) &&
-            subnet.network === this.loadBalancer.network;
-      }).map((subnet) => subnet.id);
   }
 
   public protocolUpdated (): void {
@@ -228,41 +218,29 @@ class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.I
     this.loadBalancer.loadBalancerName = this.getName(this.loadBalancer, this.application);
   }
 
-  public addListener (): void {
-    this.updateSubnetOptions();
-    this.loadBalancer.listeners = this.loadBalancer.listeners || [];
-    this.loadBalancer.listeners.push({} as IGceListener);
-  }
-
-  public removeListener (index: number): void {
-    this.loadBalancer.listeners.splice(index, 1);
-  }
-
- public setSessionAffinity (viewState: ViewState): void {
+  public setSessionAffinity (viewState: ViewState): void {
     this.loadBalancer.backendService.sessionAffinity = this.sessionAffinityViewToModelMap[viewState.sessionAffinity];
   }
 
   public submit (): void {
-    const serializedLoadBalancers = this.internalLoadBalancerTransformer.serialize(this.loadBalancer, this.originalListeners);
     const descriptor = this.isNew ? 'Create' : 'Update';
+    const toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as any;
+    toSubmitLoadBalancer.ports = toSubmitLoadBalancer.ports.split(',').map((port: string) => port.trim());
+    toSubmitLoadBalancer.cloudProvider = 'gce';
+    toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
+    toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
+    delete toSubmitLoadBalancer.instances;
 
-    this.taskMonitor.submit(() => this.gceMultipleListenerLoadBalancerWriter.upsertLoadBalancer(serializedLoadBalancers, this.application, descriptor));
+    this.taskMonitor.submit(() => this.loadBalancerWriter.upsertLoadBalancer(toSubmitLoadBalancer,
+                                                                             this.application,
+                                                                             descriptor,
+                                                                             { healthCheck: {} }));
   }
 
   private initializeEditMode (): void {
-    this.originalListeners = _.cloneDeep(this.loadBalancer.listeners);
     this.loadBalancer.ports = this.loadBalancer.ports.join(', ');
     this.loadBalancer.subnet = this.gceXpnNamingService.decorateXpnResourceIfNecessary(this.loadBalancer.project, this.loadBalancer.subnet);
     this.loadBalancer.network = this.gceXpnNamingService.decorateXpnResourceIfNecessary(this.loadBalancer.project, this.loadBalancer.network);
-
-    this.loadBalancer.listeners.forEach((listener: any) =>  {
-      const { stack, freeFormDetails } = this.namingService.parseLoadBalancerName(listener.name);
-      listener.stack = stack;
-      listener.detail = freeFormDetails;
-      listener.ports = listener.ports.join(', ');
-      listener.subnet = this.loadBalancer.subnet;
-      listener.created = true;
-    });
     this.viewState = new ViewState(this.sessionAffinityModelToViewMap[this.loadBalancer.backendService.sessionAffinity]);
   }
 }
@@ -273,13 +251,9 @@ module(GCE_INTERNAL_LOAD_BALANCER_CTRL, [
     GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
     GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
     ACCOUNT_SERVICE,
-    NAMING_SERVICE,
     INFRASTRUCTURE_CACHE_SERVICE,
     require('google/common/xpnNaming.gce.service.js'),
     LOAD_BALANCER_WRITE_SERVICE,
     TASK_MONITOR_BUILDER,
-    require('./listeners/listener.component.js'),
-    require('./transformer.service.js'),
-    require('../common/multipleListenerLoadBalancer.write.service.js'),
   ])
   .controller('gceInternalLoadBalancerCtrl', InternalLoadBalancerCtrl);

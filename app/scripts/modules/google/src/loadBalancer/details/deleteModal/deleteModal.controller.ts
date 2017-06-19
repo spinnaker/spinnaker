@@ -37,7 +37,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
 
   constructor (private application: Application,
                private gceHttpLoadBalancerUtils: GceHttpLoadBalancerUtils,
-               private gceMultipleListenerLoadBalancerWriter: any,
+               private gceHttpLoadBalancerWriter: any,
                private loadBalancer: any,
                private loadBalancerWriter: LoadBalancerWriter,
                private taskMonitorBuilder: TaskMonitorBuilder,
@@ -77,10 +77,9 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
   }
 
   private getSubmitMethod (): {(): ng.IPromise<any>} {
-    if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)
-        || ((this.loadBalancer.provider === 'gce' || this.loadBalancer.type === 'gce') && this.loadBalancer.loadBalancerType === 'INTERNAL')) {
+    if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return () => {
-        return this.gceMultipleListenerLoadBalancerWriter.deleteLoadBalancer(this.loadBalancer, this.application, this.params);
+        return this.gceHttpLoadBalancerWriter.deleteLoadBalancers(this.loadBalancer, this.application, this.params);
       };
     } else {
       return () => {
@@ -104,7 +103,7 @@ module(DELETE_MODAL_CONTROLLER, [
     require('angular-ui-bootstrap'),
     TASK_MONITOR_BUILDER,
     LOAD_BALANCER_WRITE_SERVICE,
-    require('../../configure/common/multipleListenerLoadBalancer.write.service.js'),
+    require('../../configure/http/httpLoadBalancer.write.service.js'),
     GCE_HTTP_LOAD_BALANCER_UTILS,
   ])
   .controller('gceLoadBalancerDeleteModalCtrl', DeleteLoadBalancerModalController);

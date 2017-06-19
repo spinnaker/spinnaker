@@ -95,7 +95,7 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
 
     function createDetailsLoader () {
       if (gceHttpLoadBalancerUtils.isHttpLoadBalancer($scope.loadBalancer)) {
-        const detailsPromises = $scope.loadBalancer.listeners.map((listener) => {
+        var detailsPromises = $scope.loadBalancer.listeners.map((listener) => {
           return loadBalancerReader
             .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, listener.name);
         });
@@ -103,9 +103,9 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
         return $q.all(detailsPromises)
           .then((loadBalancers) => {
             loadBalancers = _.flatten(loadBalancers);
-            const representativeLb = loadBalancers[0];
+            var representativeLb = loadBalancers[0];
             representativeLb.dns = loadBalancers.map((loadBalancer) => {
-              let protocol;
+              var protocol;
               if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
                 protocol = 'https:';
               } else {
@@ -118,35 +118,12 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
             return [representativeLb];
           });
 
-      } else if (($scope.loadBalancer.provider === 'gce' || $scope.loadBalancer.type === 'gce') && $scope.loadBalancer.loadBalancerType === 'INTERNAL') {
-        const detailsPromises = $scope.loadBalancer.listeners.map((listener) => {
-          return loadBalancerReader
-            .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, listener.name);
-        });
-
-        return $q.all(detailsPromises)
-          .then((loadBalancers) => {
-            loadBalancers = _.flatten(loadBalancers);
-            const representativeLb = loadBalancers[0];
-            representativeLb.dns = loadBalancers.map((loadBalancer) => {
-              let protocol;
-              if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
-                protocol = 'https:';
-              } else {
-                protocol = 'http:';
-              }
-              return {dnsname: loadBalancer.dnsname, protocol: protocol};
-            });
-            representativeLb.dns = _.uniqBy(representativeLb.dns, 'dnsname');
-            representativeLb.listenerDescriptions = _.flatten(loadBalancers.map((lb) => lb.listenerDescriptions));
-            return [representativeLb];
-          });
       } else {
         return loadBalancerReader
           .getLoadBalancerDetails($scope.loadBalancer.provider, loadBalancer.accountId, $scope.loadBalancer.region, $scope.loadBalancer.name)
           .then((loadBalancerDetails) => {
-            const loadBalancer = loadBalancerDetails[0];
-            let protocol;
+            var loadBalancer = loadBalancerDetails[0];
+            var protocol;
             if (loadBalancer.listenerDescriptions[0].listener.loadBalancerPort === '443') {
               protocol = 'https:';
             } else {
