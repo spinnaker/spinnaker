@@ -33,14 +33,8 @@
                                ng-disabled="!vm.command.viewState.instanceTypeDetails.storage.localSSDSupported"/></div>
 </div>
 <div class="form-group">
-  <div class="sm-label-left">
-    <b>User Data (optional)</b>
-    <help-field key="gce.serverGroup.userData"></help-field>
-  </div>
-</div>
-<div class="form-group">
-  <div class="col-md-3 sm-label-right">User Data Value</div>
-  <div class="col-md-9">
+  <div class="sm-label-left" style="margin-bottom: 5px;">User Data <help-field key="gce.serverGroup.userData"></help-field></div>
+  <div class="col-md-12">
     <textarea class="form-control"
               ng-model="vm.command.userData"
               rows="3"
