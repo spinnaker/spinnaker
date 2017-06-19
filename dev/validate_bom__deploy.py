@@ -699,7 +699,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
     # create-tags did, or create-tags doesnt know abut the new id.
     time.sleep(5)
     end_time = time.time() + 10*60
-    did_tag=False
+    did_tag = False
     while time.time() < end_time:
       if not did_tag:
         tag_response = run_quick(
@@ -728,8 +728,7 @@ class AwsValidateBomDeployer(GenericVmValidateBomDeployer):
                 id=self.__instance_id),
         echo=False)
     if description.returncode != 0:
-      logging.warning('Could not determine public IP: {0}'
-                      .format(description))
+      logging.warning('Could not determine public IP: %s', description)
       return False
 
     # result is an array of reservations of ararys of instances.
@@ -925,9 +924,13 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
                 project=options.deploy_google_project,
                 zone=options.deploy_google_zone,
                 instance=options.deploy_google_instance))
-    # This is the internal network address
-    return json.JSONDecoder().decode(
-        response.stdout)['networkInterfaces'][0]['networkIP']
+    nic = json.JSONDecoder().decode(
+        response.stdout)['networkInterfaces'][0]
+
+    use_internal_ip = options.deploy_google_use_internal_ip
+    if use_internal_ip:
+      return nic['networkIP']
+    return nic['accessConfigs'][0]['natIP']
 
   def __init__(self, options, **kwargs):
     super(GoogleValidateBomDeployer, self).__init__(options, **kwargs)
@@ -950,6 +953,27 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         '--deploy_google_instance',
         default=None,
         help='Google instance to deploy to if --deploy_hal_platform is "gce".')
+
+    parser.add_argument(
+        '--deploy_google_network', default='default',
+        help='The GCP Network to deploy spinnaker into.')
+
+    parser.add_argument(
+        '--deploy_google_use_internal_ip', default=True,
+        action='store_true',
+        help='Force the internal IP to connect to the deployed instance.'
+        ' This is only valid when talking within the same project.')
+    parser.add_argument(
+        '--deploy_google_use_external_ip',
+        dest='deploy_google_use_internal_ip',
+        action='store_false',
+        help='Force the external IP when connecting to the deployed instance.')
+
+    parser.add_argument(
+        '--deploy_google_tags', default='spinnaker-validation-instance',
+        help='A comma-delimited list of GCP network tags to tag'
+             ' the deployed instances with.')
+
     parser.add_argument(
         '--deploy_hal_google_service_account', default=None,
         help='When deploying to gce, this is the service account to use'
@@ -1004,12 +1028,16 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         ' --image-project ubuntu-os-cloud'
         ' --metadata block-project-ssh-keys=TRUE,ssh-keys="{ssh_key}"'
         ' --project {project} --zone {zone}'
+        ' --network {network}'
+        ' --tags {network_tags}'
         ' --scopes {scopes}'
         ' {instance}'
         .format(gcloud_account=options.deploy_hal_google_service_account,
                 project=options.deploy_google_project,
                 zone=options.deploy_google_zone,
                 scopes='compute-rw,storage-full,logging-write,monitoring',
+                network=options.deploy_google_network,
+                network_tags=options.deploy_google_tags,
                 ssh_key=ssh_key,
                 instance=options.deploy_google_instance))
 
