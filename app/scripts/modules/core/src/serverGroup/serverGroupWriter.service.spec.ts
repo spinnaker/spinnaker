@@ -66,7 +66,7 @@ describe('serverGroupWriter', function () {
       }).respond(200, {ref: '/1'});
 
       const application: TestApplication =
-        <TestApplication>applicationModelBuilder.createApplication(applicationDataSourceRegistry.getDataSources());
+        <TestApplication>applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
       application.tasks = {
         refresh: noop
       };
@@ -83,7 +83,7 @@ describe('serverGroupWriter', function () {
     beforeEach(() => {
 
       const application: Application =
-        applicationModelBuilder.createApplication(applicationDataSourceRegistry.getDataSources());
+        applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
       command = {
         viewState: {
           mode: 'create',

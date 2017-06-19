@@ -78,7 +78,7 @@ describe('Controller: openstackCreateLoadBalancerCtrl', function () {
       close: jasmine.createSpy('modal.close')
     };
 
-    this.mockApplication = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: false, data: this.testData.loadBalancerList});
+    this.mockApplication = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: false, data: this.testData.loadBalancerList});
     spyOn(this.mockApplication.loadBalancers, 'refresh').and.callThrough();
     this.mockApplication.loadBalancers.onNextRefresh = jasmine.createSpy('application.loadBalancers.onNextRefresh').and.callFake(function(scope, callback) {
       testSuite.applicationRefreshCallback = callback;

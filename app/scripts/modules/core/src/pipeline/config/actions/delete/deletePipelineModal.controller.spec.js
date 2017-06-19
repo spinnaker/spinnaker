@@ -12,7 +12,7 @@ describe('Controller: deletePipelineModal', function() {
 
   beforeEach(window.inject(function($controller, $rootScope, $log, $q, pipelineConfigService, $state, applicationModelBuilder) {
     this.$q = $q;
-    this.application = applicationModelBuilder.createApplication({
+    this.application = applicationModelBuilder.createApplication('app', {
       key: 'pipelineConfigs',
       lazy: true,
       loader: () => this.$q.when(null),

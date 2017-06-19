@@ -54,7 +54,7 @@ describe('Service: taskMonitorBuilder', () => {
 
       const operation = () => $q.when(task);
       const monitor = taskMonitorBuilder.buildTaskMonitor({
-        application: applicationModelBuilder.createApplication({key: 'runningTasks', lazy: true}),
+        application: applicationModelBuilder.createApplication('app', {key: 'runningTasks', lazy: true}),
         title: 'some task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
         onTaskComplete: () => completeCalled = true,
@@ -87,7 +87,7 @@ describe('Service: taskMonitorBuilder', () => {
       const task = { failureMessage: 'it failed' };
       const operation = () => $q.reject(task);
       const monitor = taskMonitorBuilder.buildTaskMonitor({
-        application: applicationModelBuilder.createApplication({key: 'runningTasks', lazy: true}),
+        application: applicationModelBuilder.createApplication('app', {key: 'runningTasks', lazy: true}),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
         onTaskComplete: () => completeCalled = true,
@@ -111,7 +111,7 @@ describe('Service: taskMonitorBuilder', () => {
 
       const operation = () => $q.when(task);
       const monitor = taskMonitorBuilder.buildTaskMonitor({
-        application: applicationModelBuilder.createApplication({key: 'runningTasks', lazy: true}),
+        application: applicationModelBuilder.createApplication('app', {key: 'runningTasks', lazy: true}),
         title: 'a task',
         modalInstance: { result: $q.defer().promise } as IModalServiceInstance,
         onTaskComplete: () => completeCalled = true,

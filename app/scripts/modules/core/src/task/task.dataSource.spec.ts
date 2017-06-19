@@ -36,7 +36,7 @@ describe('Task Data Source', function () {
 
   function configureApplication() {
     applicationDataSourceRegistry.registerDataSource({key: 'serverGroups'});
-    application = applicationModelBuilder.createApplication(applicationDataSourceRegistry.getDataSources());
+    application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
     application.refresh();
     application.getDataSource('tasks').activate();
     $scope.$digest();

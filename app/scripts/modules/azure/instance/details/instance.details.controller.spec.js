@@ -21,7 +21,7 @@ describe('Controller: azureInstanceDetailsCtrl', function () {
       instanceReader = _instanceReader_;
       $q = _$q_;
 
-      application = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true}, {key: 'serverGroups', lazy: true});
+      application = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true}, {key: 'serverGroups', lazy: true});
 
       this.createController = function(application, instance) {
         controller = $controller('azureInstanceDetailsCtrl', {

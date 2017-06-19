@@ -73,7 +73,7 @@ describe('providerSelectionService: API', () => {
     providers = [];
     delete SETTINGS.defaultProvider;
 
-    application = applicationBuilder.createApplication();
+    application = applicationBuilder.createApplication('app');
     application.attributes = { cloudProviders: 'testProvider' };
 
     config = {

@@ -16,13 +16,13 @@ export class ApplicationModelBuilder {
   }
 
   /**
-   * This is only used in tests
+   * This is mostly used in tests
    */
-  public createApplication(...dataSources: any[]): Application {
+  public createApplication(name: string, ...dataSources: any[]): Application {
     if (Array.isArray(dataSources[0])) {
       dataSources = dataSources[0];
     }
-    const application = new Application('app', this.schedulerFactory.createScheduler(), this.$q, this.$log);
+    const application = new Application(name, this.schedulerFactory.createScheduler(), this.$q, this.$log);
     dataSources.forEach(ds => this.addDataSource(new DataSourceConfig(ds), application));
     return application;
   }

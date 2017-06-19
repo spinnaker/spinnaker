@@ -55,7 +55,7 @@ describe ('Application Model', function () {
     spyOn(securityGroupReader, 'getApplicationSecurityGroups').and.callFake(function(_app: Application, groupsByName: any[]) {
       return $q.when(groupsByName || []);
     });
-    application = applicationModelBuilder.createApplication(applicationDataSourceRegistry.getDataSources());
+    application = applicationModelBuilder.createApplication('app', applicationDataSourceRegistry.getDataSources());
     application.refresh();
     $scope.$digest();
   }

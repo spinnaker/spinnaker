@@ -19,7 +19,7 @@ describe('Controller: tasks', function () {
       taskWriter = _taskWriter_;
 
       this.initializeController = (tasks) => {
-        let application = applicationModelBuilder.createApplication({key: 'tasks', lazy: true});
+        let application = applicationModelBuilder.createApplication('app', {key: 'tasks', lazy: true});
         application.tasks.activate = angular.noop;
         application.tasks.data = tasks || [];
         application.tasks.loaded = true;

@@ -47,7 +47,7 @@ describe('Service: executionFilterService', function () {
   describe('Updating execution groups', function () {
 
     it('limits executions per pipeline', function (done) {
-      const application: Application = modelBuilder.createApplication({key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
+      const application: Application = modelBuilder.createApplication('app', {key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
       application.getDataSource('executions').data = [
         { pipelineConfigId: '1', name: 'pipeline 1', endTime: 1, stages: [] },
         { pipelineConfigId: '1', name: 'pipeline 1', endTime: 2, stages: [] },

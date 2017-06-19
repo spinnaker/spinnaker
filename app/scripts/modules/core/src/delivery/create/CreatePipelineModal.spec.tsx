@@ -39,6 +39,7 @@ describe('CreatePipelineModal', () => {
     $scope = $rootScope.$new();
     initializeComponent = (configs = []) => {
       application = applicationModelBuilder.createApplication(
+        'app',
         {
           key: 'pipelineConfigs',
           lazy: true,

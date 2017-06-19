@@ -32,7 +32,7 @@ describe('Service: loadBalancerFilterService', function () {
   });
 
   beforeEach(function () {
-    app = modelBuilder.createApplication({key: 'loadBalancers', lazy: true});
+    app = modelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true});
     app.getDataSource('loadBalancers').data = [
       { name: 'elb-1', region: 'us-east-1', account: 'test', vpcName: '', serverGroups: [],
         instanceCounts: {down: 0, starting: 0, outOfService: 0 }, usages: {}},

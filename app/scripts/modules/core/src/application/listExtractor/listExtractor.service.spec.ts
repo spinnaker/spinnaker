@@ -10,7 +10,7 @@ describe('appListExtractorService', function () {
       applicationModelBuilder: ApplicationModelBuilder;
 
   const buildApplication = (serverGroups: any[] = []): Application => {
-    const application: Application = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true});
+    const application: Application = applicationModelBuilder.createApplication('app', {key: 'serverGroups', lazy: true});
     application.getDataSource('serverGroups').data = serverGroups;
     return application;
   };

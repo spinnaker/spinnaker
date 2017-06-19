@@ -53,7 +53,7 @@ describe('Controller: ChaosMonkeyExceptions', () => {
 
       initializeController(null);
       $ctrl.application =
-        applicationBuilder.createApplication({key: 'serverGroups', data: [], ready: () => $q.when(null), loaded: true});
+        applicationBuilder.createApplication('app', {key: 'serverGroups', data: [], ready: () => $q.when(null), loaded: true});
       $ctrl.config = new ChaosMonkeyConfig($ctrl.application.attributes.chaosMonkey || {});
 
       $ctrl.$onInit();

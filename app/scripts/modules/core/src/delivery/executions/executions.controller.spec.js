@@ -25,7 +25,7 @@ describe('Controller: pipelineExecutions', function () {
       $timeout = _$timeout_;
       scrollToService = _scrollToService_;
       spyOn(executionFilterModel.asFilterModel, 'applyParamsToUrl').and.callFake(() => {});
-      application = applicationModelBuilder.createApplication({key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
+      application = applicationModelBuilder.createApplication('app', {key: 'executions', lazy: true}, {key: 'pipelineConfigs', lazy: true});
 
       this.initializeController = function (data) {
         scope.application = application;

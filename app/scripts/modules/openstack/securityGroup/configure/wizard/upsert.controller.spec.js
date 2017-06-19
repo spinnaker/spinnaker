@@ -57,7 +57,7 @@ describe('Controller: openstackCreateSecurityGroupCtrl', function() {
       dismiss: jasmine.createSpy(),
       close: jasmine.createSpy()
     };
-    let application = applicationModelBuilder.createApplication({key: 'securityGroups', onLoad: angular.noop, loader: angular.noop});
+    let application = applicationModelBuilder.createApplication('app', {key: 'securityGroups', onLoad: angular.noop, loader: angular.noop});
     application.securityGroups.refresh = jasmine.createSpy();
     application.securityGroups.onNextRefresh = jasmine.createSpy().and.callFake(function (scope, callback) {
       testSuite.applicationRefreshCallback = callback;

@@ -20,7 +20,7 @@ describe('serverGroupWarningMessageService', () => {
                           _applicationModelBuilder_: ApplicationModelBuilder) => {
     service = serverGroupWarningMessageService;
     applicationModelBuilder = _applicationModelBuilder_;
-    app = applicationModelBuilder.createApplication();
+    app = applicationModelBuilder.createApplication('app');
   }));
 
   describe('addDestroyWarningMessage', () => {

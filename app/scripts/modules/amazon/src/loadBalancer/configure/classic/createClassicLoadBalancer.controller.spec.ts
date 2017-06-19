@@ -42,7 +42,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
     securityGroupReader = _securityGroupReader_;
     accountService = _accountService_;
     subnetReader = _subnetReader_;
-    const app = applicationModelBuilder.createApplication({key: 'loadBalancers', lazy: true});
+    const app = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true});
     initialize = (loadBalancer: IAmazonClassicLoadBalancer = null) => {
       if (loadBalancer) {
         spyOn(awsLoadBalancerTransformer, 'convertClassicLoadBalancerForEditing').and.returnValue(loadBalancer);

@@ -14,7 +14,7 @@ describe('Controller: cfServerGroupDetailsCtrl', function () {
   beforeEach(
     window.inject(function ($rootScope, $controller, applicationModelBuilder) {
       scope = $rootScope.$new();
-      let app = applicationModelBuilder.createApplication({key: 'serverGroups', lazy: true}, {key: 'loadBalancers', lazy: true});
+      let app = applicationModelBuilder.createApplication('app', {key: 'serverGroups', lazy: true}, {key: 'loadBalancers', lazy: true});
       controller = $controller('cfServerGroupDetailsCtrl', {
         $scope: scope,
         app: app,

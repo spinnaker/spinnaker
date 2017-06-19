@@ -35,6 +35,7 @@ describe('Service: Cluster', function () {
     ClusterFilterModel = _ClusterFilterModel_;
 
     application = applicationModelBuilder.createApplication(
+      'app',
       {key: 'serverGroups'},
       {key: 'runningExecutions'},
       {key: 'runningTasks'}

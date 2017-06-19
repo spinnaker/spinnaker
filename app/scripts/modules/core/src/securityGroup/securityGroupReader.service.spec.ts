@@ -55,6 +55,7 @@ describe('Service: securityGroupReader', function () {
     let data: any[] = null;
 
     const application: Application = applicationModelBuilder.createApplication(
+      'app',
       {
         key: 'securityGroups',
         data: [],
@@ -100,7 +101,7 @@ describe('Service: securityGroupReader', function () {
 
   it('adds security group names across accounts, falling back to the ID if none found', function () {
     let details: ISecurityGroupDetail = null;
-    const application: Application = applicationModelBuilder.createApplication();
+    const application: Application = applicationModelBuilder.createApplication('app');
     application['securityGroupsIndex'] = {
       test: {'us-east-1': {'sg-2': {name: 'matched'}}},
       prod: {'us-east-1': {'sg-2': {name: 'matched-prod'}}}
@@ -131,6 +132,7 @@ describe('Service: securityGroupReader', function () {
   it('should clear cache, then reload security groups and try again if a security group is not found', function () {
     let data: ISecurityGroup[] = null;
     const application: Application = applicationModelBuilder.createApplication(
+      'app',
       {
         key: 'securityGroups',
       },
