@@ -50,7 +50,7 @@ public class GoogleEditAccountCommand extends AbstractEditAccountCommand<GoogleA
       variableArity = true,
       description = GoogleCommandProperties.IMAGE_PROJECTS_DESCRIPTION
   )
-  private List<String> imageProjects = new ArrayList<>();
+  private List<String> imageProjects;
 
   @Parameter(
       names = "--add-image-project",
