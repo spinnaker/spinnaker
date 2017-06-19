@@ -59,7 +59,9 @@ public interface Deployer<S extends SpinnakerServiceProvider<D>, D extends Deplo
     return serviceProvider.clean(deploymentDetails, runtimeSettings);
   }
 
-  default void flushRedis(Jedis jedis) {
-    jedis.eval("for i, k in ipairs(redis.call('keys', 'com.netflix.spinnaker.clouddriver*')) do redis.call('del', k); end");
-  }
+  void flushInfrastructureCaches(
+      S serviceProvider,
+      D deploymentDetails,
+      SpinnakerRuntimeSettings runtimeSettings
+  );
 }

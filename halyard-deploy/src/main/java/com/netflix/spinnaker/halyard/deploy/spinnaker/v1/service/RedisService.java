@@ -75,6 +75,10 @@ abstract public class RedisService extends SpinnakerService<Jedis> {
     }
   }
 
+  public static void flushKeySpace(Jedis jedis, String pattern) {
+    jedis.eval("for i, k in ipairs(redis.call('keys', '" + pattern + "')) do redis.call('del', k); end");
+  }
+
   @Override
   protected Optional<String> customProfileOutputPath(String profileName) {
     return Optional.empty();

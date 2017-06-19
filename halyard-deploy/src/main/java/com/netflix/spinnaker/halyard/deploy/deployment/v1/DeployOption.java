@@ -22,7 +22,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 public enum DeployOption {
-  OMIT_CONFIG("OMIT_CONFIG");
+  OMIT_CONFIG("OMIT_CONFIG"),
+  FLUSH_INFRASTRUCTURE_CACHES("FLUSH_INFRASTRUCTURE_CACHES");
 
   final String name;
 

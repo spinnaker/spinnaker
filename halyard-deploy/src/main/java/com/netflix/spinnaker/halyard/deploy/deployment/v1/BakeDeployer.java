@@ -87,4 +87,9 @@ public class BakeDeployer implements Deployer<BakeServiceProvider, DeploymentDet
   public RemoteAction connectCommand(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings, List<SpinnakerService.Type> serviceTypes) {
     throw new HalException(Problem.Severity.FATAL, "This type of deployment cannot be run or connected to.");
   }
+
+  @Override
+  public void flushInfrastructureCaches(BakeServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
+    throw new HalException(Problem.Severity.FATAL, "This type of deployment does not have an active redis to flush.");
+  }
 }

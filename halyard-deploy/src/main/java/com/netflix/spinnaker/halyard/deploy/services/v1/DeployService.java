@@ -27,6 +27,7 @@ import com.netflix.spinnaker.halyard.config.services.v1.DeploymentService;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.registry.v1.BillOfMaterials;
+import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.config.v1.ConfigParser;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.*;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
@@ -38,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -204,6 +204,10 @@ public class DeployService {
 
     RemoteAction action = deployer.deploy(serviceProvider, deploymentDetails, resolvedConfiguration, serviceTypes);
     halconfigParser.backupConfig();
+
+    if (deployOptions.contains(DeployOption.FLUSH_INFRASTRUCTURE_CACHES)) {
+      deployer.flushInfrastructureCaches(serviceProvider, deploymentDetails, resolvedConfiguration.getRuntimeSettings());
+    }
 
     if (!action.getScript().isEmpty()) {
       action.commitScript(halconfigDirectoryStructure.getInstallScriptPath(deploymentName));

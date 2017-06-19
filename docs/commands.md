@@ -3770,10 +3770,13 @@ hal deploy apply [parameters]
 #### Parameters
  * `--auto-run`: This command will generate a script to be run on your behalf. By default, the script will run without intervention - if you want to override this, provide "true" or "false" to this flag.
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
+ * `--flush-infrastructure-caches`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.
+
+This flushes infrastructure caches (clouddriver) after the deploy succeeds.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--omit-config`: (*Default*: `false`) WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.
 
- This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
+This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts for later manual configuration.
  * `--service-names`: (*Default*: `[]`) When supplied, only install or update the specified Spinnaker services.
 
 

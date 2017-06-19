@@ -46,6 +46,8 @@ import java.util.Optional;
 @Data
 @Component
 abstract public class ClouddriverService extends SpringService<ClouddriverService.Clouddriver> {
+  public static final String REDIS_KEY_SPACE = "com.netflix.spinnaker.clouddriver*";
+
   @Autowired
   ClouddriverProfileFactory clouddriverProfileFactory;
 

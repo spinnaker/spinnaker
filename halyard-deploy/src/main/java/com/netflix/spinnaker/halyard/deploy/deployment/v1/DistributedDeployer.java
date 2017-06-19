@@ -25,13 +25,10 @@ import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca.ActiveExecutions;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RoscoService.Rosco;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -106,15 +103,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
         .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
 
-    DaemonTaskHandler.message("Flushing redis cache");
-    try {
-      Jedis jedis = (Jedis) serviceProvider
-          .getDeployableService(SpinnakerService.Type.REDIS)
-          .connectToPrimaryService(deploymentDetails, runtimeSettings);
-      flushRedis(jedis);
-    } catch (Exception e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
-    }
   }
 
   @Override
@@ -139,6 +127,18 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     result.setScriptDescription("The generated script will open connections to the API & UI servers using ssh tunnels");
     result.setAutoRun(false);
     return result;
+  }
+
+  @Override
+  public void flushInfrastructureCaches(DistributedServiceProvider<T> serviceProvider, AccountDeploymentDetails<T> deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
+    try {
+      Jedis jedis = (Jedis) serviceProvider
+          .getDeployableService(SpinnakerService.Type.REDIS)
+          .connectToPrimaryService(deploymentDetails, runtimeSettings);
+      RedisService.flushKeySpace(jedis, "com.netflix.spinnaker.clouddriver*");
+    } catch (Exception e) {
+      throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
+    }
   }
 
   @Override
@@ -186,16 +186,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     DaemonTaskHandler.message("Waiting on deployments to complete");
     DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
         .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
-
-    DaemonTaskHandler.message("Flushing redis cache");
-    try {
-      Jedis jedis = (Jedis) serviceProvider
-          .getDeployableService(SpinnakerService.Type.REDIS)
-          .connectToPrimaryService(deploymentDetails, runtimeSettings);
-      flushRedis(jedis);
-    } catch (Exception e) {
-      throw new HalException(Problem.Severity.FATAL, "Failed to flush redis cache: " + e.getMessage());
-    }
 
     reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
     reapRoscoServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ROSCO));

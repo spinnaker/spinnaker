@@ -35,6 +35,8 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
   @Getter(AccessLevel.PUBLIC)
   private String commandName = "apply";
 
+  private final static String deployParamWarning = "WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.\n\n";
+
   @Getter(AccessLevel.PUBLIC)
   private String shortDescription = "Deploy or update the currently configured instance of Spinnaker to a selected environment.";
 
@@ -48,11 +50,18 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
 
   @Parameter(
       names = "--omit-config",
-      description = "WARNING: This is considered an advanced command, and may break your deployment if used incorrectly.\n\n "
+      description = deployParamWarning
           + "This guarantees that no configuration will be generated for this deployment. This is useful for staging artifacts "
           + "for later manual configuration."
   )
   boolean omitConfig;
+
+  @Parameter(
+      names = "--flush-infrastructure-caches",
+      description = deployParamWarning
+          + "This flushes infrastructure caches (clouddriver) after the deploy succeeds."
+  )
+  boolean flushInfrastructureCaches;
 
   @Parameter(
       names = "--service-names",
@@ -66,6 +75,10 @@ public class ApplyDeployCommand extends AbstractRemoteActionCommand {
     List<DeployOption> deployOptions = new ArrayList<>();
     if (omitConfig) {
       deployOptions.add(DeployOption.OMIT_CONFIG);
+    }
+
+    if (flushInfrastructureCaches) {
+      deployOptions.add(DeployOption.FLUSH_INFRASTRUCTURE_CACHES);
     }
 
     return new OperationHandler<RemoteAction>()

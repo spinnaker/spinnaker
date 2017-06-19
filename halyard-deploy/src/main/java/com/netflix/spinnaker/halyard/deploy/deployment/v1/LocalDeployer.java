@@ -21,11 +21,14 @@ import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ClouddriverService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.local.LocalServiceProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 import java.util.HashMap;
 import java.util.List;
@@ -92,5 +95,18 @@ public class LocalDeployer implements Deployer<LocalServiceProvider, DeploymentD
         "",
         "echo \"Spinnaker is installed locally on this machine - no work to do.\""));
     return result;
+  }
+
+  @Override
+  public void flushInfrastructureCaches(LocalServiceProvider serviceProvider, DeploymentDetails deploymentDetails, SpinnakerRuntimeSettings runtimeSettings) {
+    try {
+      Jedis jedis = new Jedis(runtimeSettings
+          .getServiceSettings((SpinnakerService) serviceProvider.getLocalService(SpinnakerService.Type.REDIS))
+          .getBaseUrl());
+
+      RedisService.flushKeySpace(jedis, ClouddriverService.REDIS_KEY_SPACE);
+    } catch (Exception e) {
+      throw new HalException(Problem.Severity.FATAL, "Unable to flush key space: " + e.getMessage(), e);
+    }
   }
 }
