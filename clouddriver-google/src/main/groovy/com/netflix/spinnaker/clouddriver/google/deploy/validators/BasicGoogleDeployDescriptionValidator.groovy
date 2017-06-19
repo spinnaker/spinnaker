@@ -44,6 +44,11 @@ class BasicGoogleDeployDescriptionValidator extends DescriptionValidator<BasicGo
     helper.validateInstanceType(description.instanceType,
                                 description.regional ? description.region : description.zone,
                                 description.credentials)
+
+    if (description.minCpuPlatform) {
+      helper.validateMinCpuPlatform(description.minCpuPlatform, description.zone, description.credentials)
+    }
+
     helper.validateInstanceTypeDisks(googleDeployDefaults.determineInstanceTypeDisk(description.instanceType),
                                      description.disks)
     helper.validateAuthScopes(description.authScopes)

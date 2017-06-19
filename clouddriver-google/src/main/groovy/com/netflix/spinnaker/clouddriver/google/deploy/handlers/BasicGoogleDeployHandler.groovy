@@ -332,6 +332,10 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
                                                     scheduling: scheduling,
                                                     serviceAccounts: serviceAccount)
 
+    if (description.minCpuPlatform) {
+      instanceProperties.minCpuPlatform = description.minCpuPlatform
+    }
+
     def instanceTemplate = new InstanceTemplate(name: instanceTemplateName,
                                                 properties: instanceProperties)
 

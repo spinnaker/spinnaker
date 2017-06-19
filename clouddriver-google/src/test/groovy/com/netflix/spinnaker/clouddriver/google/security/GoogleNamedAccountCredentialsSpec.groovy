@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.clouddriver.google.security
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.model.MachineTypeAggregatedList
 import com.google.api.services.compute.model.Region
 import com.google.api.services.compute.model.RegionList
+import com.google.api.services.compute.model.Zone
+import com.google.api.services.compute.model.ZoneList
 import spock.lang.Specification
 
 class GoogleNamedAccountCredentialsSpec extends Specification implements TestDefaults {
@@ -159,5 +162,63 @@ class GoogleNamedAccountCredentialsSpec extends Specification implements TestDef
       'europe-west1' in map
       map['europe-west1'].instanceTypes?.size() == 21
       map['europe-west1'].vCpuMax == 64
+  }
+
+  def 'zoneList should convert to cpu platforms map'() {
+    setup:
+      List<Zone> zoneItemsList = new ObjectMapper().convertValue(ZONE_ITEMS_LIST, new TypeReference<List<Zone>>() {})
+      ZoneList zoneList = new ZoneList(items: zoneItemsList)
+      Map<String, List<String>> locationToCpuPlatformsMap = new HashMap<>()
+
+    when:
+      GoogleNamedAccountCredentials.populateLocationToCpuPlatformsMap(zoneList, locationToCpuPlatformsMap)
+      GoogleNamedAccountCredentials.populateRegionCpuPlatforms(locationToCpuPlatformsMap, REGION_TO_ZONES)
+
+    then:
+      locationToCpuPlatformsMap['asia-east1-a'] == ["Intel Ivy Bridge", "Intel Broadwell", "Intel Skylake"]
+      locationToCpuPlatformsMap['asia-east1-b'] == ["Intel Ivy Bridge", "Intel Skylake"]
+      locationToCpuPlatformsMap['asia-east1-c'] == ["Intel Ivy Bridge"]
+      locationToCpuPlatformsMap['asia-east1'] == ["Intel Ivy Bridge"]
+
+      locationToCpuPlatformsMap['asia-northeast1-a'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['asia-northeast1-b'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['asia-northeast1-c'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['asia-northeast1'] == ["Intel Broadwell"]
+
+      locationToCpuPlatformsMap['asia-southeast1-a'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['asia-southeast1-b'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['asia-southeast1'] == ["Intel Broadwell"]
+
+      locationToCpuPlatformsMap['europe-west1-b'] == ["Intel Sandy Bridge", "Intel Broadwell", "Intel Skylake"]
+      locationToCpuPlatformsMap['europe-west1-c'] == ["Intel Ivy Bridge", "Intel Broadwell"]
+      locationToCpuPlatformsMap['europe-west1-d'] == ["Intel Haswell", "Intel Skylake"]
+      !locationToCpuPlatformsMap['europe-west1']
+
+      !locationToCpuPlatformsMap['europe-west2-a']
+      !locationToCpuPlatformsMap['europe-west2-b']
+      !locationToCpuPlatformsMap['europe-west2-c']
+      !locationToCpuPlatformsMap['europe-west2']
+
+      locationToCpuPlatformsMap['us-central1-a'] == ["Intel Sandy Bridge", "Intel Broadwell"]
+      locationToCpuPlatformsMap['us-central1-b'] == ["Intel Haswell", "Intel Broadwell", "Intel Skylake"]
+      locationToCpuPlatformsMap['us-central1-c'] == ["Intel Haswell", "Intel Broadwell", "Intel Skylake"]
+      locationToCpuPlatformsMap['us-central1-f'] == ["Intel Ivy Bridge", "Intel Broadwell"]
+      locationToCpuPlatformsMap['us-central1'] == ["Intel Broadwell"]
+
+      !locationToCpuPlatformsMap['us-east1-a']
+      locationToCpuPlatformsMap['us-east1-b'] == ["Intel Haswell", "Intel Broadwell"]
+      locationToCpuPlatformsMap['us-east1-c'] == ["Intel Haswell", "Intel Broadwell"]
+      locationToCpuPlatformsMap['us-east1-d'] == ["Intel Haswell", "Intel Broadwell"]
+      locationToCpuPlatformsMap['us-east1'] == ["Intel Haswell", "Intel Broadwell"]
+
+      locationToCpuPlatformsMap['us-east4-a'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['us-east4-b'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['us-east4-c'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['us-east4'] == ["Intel Broadwell"]
+
+      locationToCpuPlatformsMap['us-west1-a'] == ["Intel Broadwell", "Intel Skylake"]
+      locationToCpuPlatformsMap['us-west1-b'] == ["Intel Broadwell", "Intel Skylake"]
+      locationToCpuPlatformsMap['us-west1-c'] == ["Intel Broadwell"]
+      locationToCpuPlatformsMap['us-west1'] == ["Intel Broadwell"]
   }
 }

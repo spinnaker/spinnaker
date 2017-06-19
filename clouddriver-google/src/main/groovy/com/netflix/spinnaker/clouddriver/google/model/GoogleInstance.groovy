@@ -41,6 +41,7 @@ class GoogleInstance {
 
   String name
   String instanceType
+  String cpuPlatform
   Long launchTime
   String zone
   String region
@@ -76,6 +77,7 @@ class GoogleInstance {
     String name = GoogleInstance.this.name
     String instanceId = GoogleInstance.this.name
     String instanceType = GoogleInstance.this.instanceType
+    String cpuPlatform = GoogleInstance.this.cpuPlatform
     Long launchTime = GoogleInstance.this.launchTime
     String zone = GoogleInstance.this.zone
     String region = GoogleInstance.this.region

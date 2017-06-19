@@ -27,6 +27,7 @@ import groovy.transform.ToString
 class BaseGoogleInstanceDescription extends AbstractGoogleCredentialsDescription {
   String image
   String instanceType
+  String minCpuPlatform
   List<GoogleDisk> disks
   Map<String, String> instanceMetadata
   List<String> tags

@@ -477,6 +477,7 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
         launchConfig.with {
           launchConfigurationName = instanceTemplate?.name
           instanceType = instanceTemplate?.properties?.machineType
+          minCpuPlatform = instanceTemplate?.properties?.minCpuPlatform
         }
       }
       // "instanceTemplate = instanceTemplate" in the above ".with{ }" blocks doesn't work because Groovy thinks it's

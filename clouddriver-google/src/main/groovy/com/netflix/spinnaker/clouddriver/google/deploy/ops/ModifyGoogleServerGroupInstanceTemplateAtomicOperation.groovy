@@ -181,8 +181,8 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
 
       // Override the instance template's machine type if instanceType was specified.
       if (overriddenProperties.instanceType) {
-
         def machineTypeName
+
         if (description.instanceType.startsWith('custom')) {
           machineTypeName = description.instanceType
         } else {
@@ -190,6 +190,11 @@ class ModifyGoogleServerGroupInstanceTemplateAtomicOperation extends GoogleAtomi
         }
 
         instanceTemplateProperties.setMachineType(machineTypeName)
+      }
+
+      // Override the instance template's minCpuPlatform property if it was specified.
+      if (overriddenProperties.minCpuPlatform) {
+        instanceTemplateProperties.setMinCpuPlatform(description.minCpuPlatform)
       }
 
       // Override the instance template's canIpForward property if it was specified.

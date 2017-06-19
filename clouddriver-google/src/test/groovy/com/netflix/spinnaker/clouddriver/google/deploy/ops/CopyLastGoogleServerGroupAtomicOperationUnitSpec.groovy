@@ -51,6 +51,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
   private static final String NEW_SERVER_GROUP_NAME = "$APPLICATION_NAME-$STACK_NAME-v001"
   private static final String IMAGE = "debian-7-wheezy-v20141108"
   private static final String INSTANCE_TYPE = "f1-micro"
+  private static final String MIN_CPU_PLATFORM = "Intel Skylake"
   private static final String INSTANCE_TEMPLATE_NAME = "myapp-dev-v000-${System.currentTimeMillis()}"
   private static final String REGION = "us-central1"
   private static final Map<String, String> INSTANCE_METADATA =
@@ -129,6 +130,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                 onHostMaintenance: "MIGRATE")
     serviceAccount = GCEUtil.buildServiceAccount(SERVICE_ACCOUNT_EMAIL, AUTH_SCOPES)
     instanceProperties = new InstanceProperties(machineType: INSTANCE_TYPE,
+                                                minCpuPlatform: MIN_CPU_PLATFORM,
                                                 disks: attachedDisks,
                                                 networkInterfaces: [networkInterface],
                                                 canIpForward: false,
@@ -160,6 +162,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
                                                          targetSize: targetSize,
                                                          image: "backports-$IMAGE",
                                                          instanceType: "n1-standard-8",
+                                                         minCpuPlatform: "Intel Broadwell",
                                                          disks: [new GoogleDisk(type: "pd-ssd", sizeGb: 250)],
                                                          regional: false,
                                                          region: REGION,
@@ -229,6 +232,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.targetSize = 2
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
+      newDescription.minCpuPlatform = MIN_CPU_PLATFORM
       newDescription.disks = [DISK_PD_STANDARD]
       newDescription.regional = false
       newDescription.region = REGION
@@ -285,6 +289,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.targetSize = 2
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
+      newDescription.minCpuPlatform = MIN_CPU_PLATFORM
       newDescription.disks = [DISK_PD_STANDARD]
       newDescription.regional = false
       newDescription.region = REGION
@@ -340,6 +345,7 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       newDescription.targetSize = 2
       newDescription.image = IMAGE
       newDescription.instanceType = INSTANCE_TYPE
+      newDescription.minCpuPlatform = MIN_CPU_PLATFORM
       newDescription.disks = [DISK_PD_STANDARD]
       newDescription.regional = false
       newDescription.region = REGION

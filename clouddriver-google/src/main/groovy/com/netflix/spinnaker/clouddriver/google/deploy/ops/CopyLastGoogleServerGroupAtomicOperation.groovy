@@ -137,6 +137,11 @@ class CopyLastGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Dep
 
       newDescription.instanceType = description.instanceType ?: ancestorInstanceProperties.machineType
 
+      newDescription.minCpuPlatform =
+          description.minCpuPlatform != null
+          ? description.minCpuPlatform
+          : ancestorInstanceProperties.minCpuPlatform
+
       List<AttachedDisk> attachedDisks = ancestorInstanceProperties?.disks
 
       if (attachedDisks) {

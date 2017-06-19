@@ -328,6 +328,12 @@ class StandardGceAttributeValidator {
     }
   }
 
+  def validateMinCpuPlatform(String minCpuPlatform, String location, GoogleNamedAccountCredentials credentials) {
+    if (!credentials.locationToCpuPlatformsMap[location].contains(minCpuPlatform)) {
+      errors.rejectValue("minCpuPlatform", "${context}.minCpuPlatform.invalid", "CPU platform $minCpuPlatform is not available in $location.")
+    }
+  }
+
   def validateInstanceTypeDisks(GoogleInstanceTypeDisk instanceTypeDisk, List<GoogleDisk> specifiedDisks) {
     // The fields type and sizeGb are required on each disk, and sizeGb must be greater than zero.
     specifiedDisks.eachWithIndex { disk, index ->

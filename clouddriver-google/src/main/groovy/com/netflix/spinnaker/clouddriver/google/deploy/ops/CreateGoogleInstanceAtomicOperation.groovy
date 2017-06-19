@@ -137,6 +137,10 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
                                 scheduling: scheduling,
                                 serviceAccounts: serviceAccount)
 
+    if (description.minCpuPlatform) {
+      instance.minCpuPlatform = description.minCpuPlatform
+    }
+
     task.updateStatus BASE_PHASE, "Creating instance $description.instanceName..."
     timeExecute(compute.instances().insert(project, zone, instance),
         "compute.instances.insert",

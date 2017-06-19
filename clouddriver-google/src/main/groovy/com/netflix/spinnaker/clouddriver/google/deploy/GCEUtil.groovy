@@ -466,6 +466,7 @@ class GCEUtil {
     return new BaseGoogleInstanceDescription(
       image: image,
       instanceType: instanceTemplateProperties.machineType,
+      minCpuPlatform: instanceTemplateProperties.minCpuPlatform,
       disks: disks,
       instanceMetadata: instanceTemplateProperties.metadata?.items?.collectEntries {
         [it.key, it.value]

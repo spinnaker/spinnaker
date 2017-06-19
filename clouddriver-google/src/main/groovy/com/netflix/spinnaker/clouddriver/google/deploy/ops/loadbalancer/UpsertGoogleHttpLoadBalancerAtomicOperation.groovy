@@ -574,6 +574,10 @@ class UpsertGoogleHttpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalanc
         serverGroupName: groupName
       ]
 
+      if (instanceDescription.minCpuPlatform) {
+        templateOpMap.minCpuPlatform = instanceDescription.minCpuPlatform
+      }
+
       def instanceMetadata = templateOpMap?.instanceMetadata
       if (instanceMetadata) {
         List<String> globalLbs = instanceMetadata.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.split(',') ?: []
