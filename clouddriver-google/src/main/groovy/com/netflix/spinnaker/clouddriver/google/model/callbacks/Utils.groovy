@@ -273,6 +273,9 @@ class Utils {
   }
 
   static String decorateXpnResourceIdIfNeeded(String managedProjectId, String xpnResource) {
+    if (!xpnResource) {
+      return xpnResource
+    }
     def xpnResourceProject = GCEUtil.deriveProjectId(xpnResource)
     def xpnResourceId = GCEUtil.getLocalName(xpnResource)
 
