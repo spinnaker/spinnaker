@@ -18,6 +18,12 @@
     </namespace-select-field>
   </stage-config-field>
 
+  <stage-config-field label="Container Name">
+    <div>
+      <input type="text" class="form-control input-sm" ng-model="ctrl.stage.container.name">
+    </div>
+  </stage-config-field>
+
   <stage-config-field label="Image">
     <div class="form-group" ng-if="ctrl.hasDockerPipelineTriggers()">
       <div>

@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.kubernetes.pipeline.stage.runJobStage
     };
 
     if (!_.has(this.stage, 'container.name')) {
-      _.set(this.stage, 'container.name', Date.now().toString());
+      _.set(this.stage, 'container.name', 'job');
     }
 
     if (!_.has(this.stage, 'container.imageDescription.fromTrigger')) {
