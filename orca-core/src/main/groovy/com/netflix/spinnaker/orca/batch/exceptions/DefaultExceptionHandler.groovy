@@ -19,8 +19,11 @@ package com.netflix.spinnaker.orca.batch.exceptions
 
 import com.google.common.base.Throwables
 import groovy.util.logging.Slf4j
+import org.springframework.core.annotation.Order
+import static org.springframework.core.Ordered.LOWEST_PRECEDENCE
 
 @Slf4j
+@Order(LOWEST_PRECEDENCE)
 class DefaultExceptionHandler implements ExceptionHandler {
   @Override
   boolean handles(Exception e) {

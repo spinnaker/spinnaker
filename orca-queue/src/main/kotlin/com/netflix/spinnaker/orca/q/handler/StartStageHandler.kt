@@ -41,7 +41,7 @@ open class StartStageHandler
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
   private val publisher: ApplicationEventPublisher,
-  private val exceptionHandlers: Collection<ExceptionHandler>,
+  private val exceptionHandlers: List<ExceptionHandler>,
   private val clock: Clock,
   private val contextParameterProcessor: ContextParameterProcessor,
   @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long

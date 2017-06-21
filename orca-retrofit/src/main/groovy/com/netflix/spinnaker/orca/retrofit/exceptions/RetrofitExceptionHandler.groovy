@@ -19,13 +19,16 @@ package com.netflix.spinnaker.orca.retrofit.exceptions
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
+import org.springframework.core.annotation.Order
 import retrofit.RetrofitError
 import retrofit.http.RestMethod
 import retrofit.mime.TypedByteArray
 import static java.net.HttpURLConnection.*
+import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE
 import static retrofit.RetrofitError.Kind.HTTP
 import static retrofit.RetrofitError.Kind.NETWORK
 
+@Order(HIGHEST_PRECEDENCE)
 class RetrofitExceptionHandler implements ExceptionHandler {
   @Override
   boolean handles(Exception e) {

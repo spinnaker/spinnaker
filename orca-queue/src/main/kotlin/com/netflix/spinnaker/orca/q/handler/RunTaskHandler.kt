@@ -49,7 +49,7 @@ open class RunTaskHandler
   override val repository: ExecutionRepository,
   private val tasks: Collection<Task>,
   private val clock: Clock,
-  private val exceptionHandlers: Collection<ExceptionHandler>,
+  private val exceptionHandlers: List<ExceptionHandler>,
   private val contextParameterProcessor: ContextParameterProcessor
 ) : MessageHandler<RunTask> {
 
