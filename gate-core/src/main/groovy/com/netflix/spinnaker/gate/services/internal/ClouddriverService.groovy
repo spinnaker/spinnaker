@@ -256,4 +256,10 @@ interface ClouddriverService {
 
   @GET('/tags/{id}')
   Map getEntityTags(@Path('id') String id)
+
+  @GET('/certificates')
+  List<Map> getCertificates()
+
+  @GET('/certificates/{cloudProvider}')
+  List<Map> getCertificates(@Path("cloudProvider") String cloudProvider)
 }
