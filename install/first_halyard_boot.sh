@@ -18,6 +18,14 @@
 # for running Spinnaker when the instance was created with metadata
 # holding configuration information, using Halyard.
 
+### NOTE #####################################################################
+#
+# This script is used for configuring Spinnaker on GCE using instance metadata 
+# at boot time. It's not recommended to be used as a standalone script for
+# configuring Spinnaker.
+#
+### NOTE #####################################################################
+
 set -e
 set -u
 
@@ -31,7 +39,7 @@ GCE_FILE="/home/spinnaker/.gcp/gcr-account.json"
 function get_instance_metadata_attribute() {
   local name="$1"
   local value=$(curl -s -f -H "Metadata-Flavor: Google" \
-                     $INSTANCE_METADATA_URL/attributes/$name)
+                $INSTANCE_METADATA_URL/attributes/$name)
   if [[ $? -eq 0 ]]; then
     echo "$value"
   else
@@ -92,6 +100,8 @@ function configure_docker() {
     return 0;
   fi
 
+  echo "Docker provider enabled"
+
   local config_path="$GCR_FILE"
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
@@ -123,6 +133,8 @@ function configure_kubernetes() {
   if [ -z "$kube_enabled" ]; then
     return 0;
   fi
+
+  echo "Kubernetes provider enabled"
 
   local config_path="$KUBE_FILE"
   mkdir -p $(dirname $config_path)
@@ -174,6 +186,8 @@ function configure_google() {
   mkdir -p $(dirname $config_path)
   chown -R spinnaker:spinnaker $(dirname $config_path)
 
+  echo "Google provider enabled"
+
   local gce_account=$(get_instance_metadata_attribute "gce_account")
 
   local args="--project $MY_PROJECT"
@@ -196,6 +210,31 @@ function configure_google() {
   hal config provider google account add $gce_account $args
 
   hal config provider google enable
+}
+
+function configure_appengine() {
+  local appengine_enabled=$(get_instance_metadata_attribute "appengine_enabled")
+
+  if [ -z "$appengine_enabled" ]; then
+    return 0;
+  fi
+
+  echo "Appengine provider enabled"
+
+  local account_name=$(get_instance_metadata_attribute "appengine_account")
+  local git_https_username=$(get_instance_metadata_attribute "appengine_git_https_username")
+  local git_https_password=$(get_instance_metadata_attribute "appengine_git_https_password")
+
+  hal config provider appengine account add $account_name \
+      --project $MY_PROJECT
+
+  if [ -n "$git_https_password" ] && [ -n "$git_https_username" ]; then
+      echo $git_https_password | hal config provider appengine account edit $account_name \
+          --git-https-username $git_https_username \
+          --git-https-password
+  fi
+
+  hal config provider appengine enable
 }
 
 function configure_storage() {
@@ -230,6 +269,7 @@ set -e
 configure_docker
 configure_kubernetes
 configure_google
+configure_appengine
 configure_storage
 
 install_spinnaker
