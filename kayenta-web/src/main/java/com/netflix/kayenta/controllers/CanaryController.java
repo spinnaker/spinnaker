@@ -82,17 +82,18 @@ public class CanaryController {
   }
 
   @ApiOperation(value = "Initiate a canary pipeline")
-  @RequestMapping(consumes = "application/context+json", method = RequestMethod.POST)
-  public Map<String, String> initiateCanary(@RequestParam(required = false) final String metricsAccountName,
-                                            @RequestParam(required = false) final String storageAccountName,
-                                            @ApiParam(defaultValue = "MySampleStackdriverCanaryConfig") @RequestParam String canaryConfigId,
-                                            @ApiParam(defaultValue = "myapp-v010-") @RequestParam String baselineScope,
-                                            @ApiParam(defaultValue = "myapp-v021-") @RequestParam String canaryScope,
-                                            @ApiParam(defaultValue = "1496329980000") @RequestParam String startTimeMillis,
-                                            @ApiParam(defaultValue = "1496417220000") @RequestParam String endTimeMillis,
-                                            // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
-                                            @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
-                                            @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams) {
+  @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
+  public String initiateCanary(@RequestParam(required = false) final String metricsAccountName,
+                               @RequestParam(required = false) final String storageAccountName,
+                               @ApiParam(defaultValue = "MySampleStackdriverCanaryConfig") @RequestParam String canaryConfigId,
+                               @ApiParam(defaultValue = "myapp-v010-") @RequestParam String baselineScope,
+                               @ApiParam(defaultValue = "myapp-v021-") @RequestParam String canaryScope,
+                               // TODO(duftler): Standardize on ISO timestamps.
+                               @ApiParam(defaultValue = "1496329980000") @RequestParam String startTimeMillis,
+                               @ApiParam(defaultValue = "1496417220000") @RequestParam String endTimeMillis,
+                               // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
+                               @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
+                               @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams) {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -132,6 +133,7 @@ public class CanaryController {
     Map<String, Object> fetchBaselineContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
+          // TODO(duftler): Experiment with using descriptive names for refId.
           .put("refId", "1")
           .put("user", "[anonymous]")
           .put("metricsAccountName", resolvedMetricsAccountName)
@@ -196,7 +198,7 @@ public class CanaryController {
       handleStartupFailure(pipeline, t);
     }
 
-    return Collections.singletonMap("ref", "/pipelines/" + pipeline.getId());
+    return pipeline.getId();
   }
 
   private Pipeline handleStartupFailure(Pipeline pipeline, Throwable failure) {

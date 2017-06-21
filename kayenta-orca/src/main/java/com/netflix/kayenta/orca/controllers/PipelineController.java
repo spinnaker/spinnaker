@@ -35,7 +35,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +69,7 @@ public class PipelineController {
 
   @ApiOperation(value = "Initiate a pipeline execution")
   @RequestMapping(value = "/start", method = RequestMethod.POST)
-  Map start(@RequestBody Map map) throws Exception {
+  String start(@RequestBody Map map) throws Exception {
     return startPipeline(map);
   }
 
@@ -98,13 +97,13 @@ public class PipelineController {
     }
   }
 
-  private Map<String, String> startPipeline(Map config) throws Exception {
+  private String startPipeline(Map config) throws Exception {
     String json = objectMapper.writeValueAsString(config);
 
     log.info("Requested pipeline: {}", json);
 
     Pipeline pipeline = pipelineLauncher.start(json);
 
-    return Collections.singletonMap("ref", "/pipelines/" + pipeline.getId());
+    return pipeline.getId();
   }
 }

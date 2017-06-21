@@ -31,6 +31,7 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
+  // TODO(duftler): Standardize on ISO timestamps.
   public CanaryScope buildCanaryScope(String scope,
                                       String startTimeMillis,
                                       String endTimeMillis,
