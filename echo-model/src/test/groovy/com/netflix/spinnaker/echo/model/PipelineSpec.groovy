@@ -266,4 +266,39 @@ class PipelineSpec extends Specification {
         pipeline.triggers[1].enabled
 
     }
+
+    void 'pipeline config deserialization should work fine for templated pipelines'() {
+        setup:
+        String pipelineJson = ''' {
+            "name": "Testing Templates",
+            "stages": [],
+            "config": {
+                "pipeline": {
+                    "application": "testapp",
+                    "name": "testing",
+                    "pipelineConfigId": "4a522db6-b127-47b2-9c42-9b01b2625ce1",
+                    "template": {
+                        "source": "http://my.source"
+                    },
+                    "variables": {}
+                },
+                "schema": "1"
+            },
+            "triggers": [],
+            "application": "testapp",
+            "index": 1,
+            "id": "68a14710-1ade-11e5-89a8-65c9c7540d0f"
+        }
+        '''
+        when:
+        Pipeline pipeline = objectMapper.readValue(pipelineJson, Pipeline)
+
+        then:
+        noExceptionThrown()
+        pipeline != null
+        pipeline.id == '68a14710-1ade-11e5-89a8-65c9c7540d0f'
+        pipeline.name == 'Testing Templates'
+        pipeline.application == 'testapp'
+        pipeline.config.pipeline.pipelineConfigId == '4a522db6-b127-47b2-9c42-9b01b2625ce1'
+    }
 }

@@ -37,6 +37,9 @@ import java.util.Map;
   @NonNull String application;
 
   @JsonProperty
+  Object config;
+
+  @JsonProperty
   @NonNull String name;
 
   @JsonProperty
@@ -56,6 +59,9 @@ import java.util.Map;
 
   @JsonProperty
   List<Trigger> triggers;
+
+  @JsonProperty
+  String type;
 
   @JsonProperty
   List<Map<String, Object>> stages;
