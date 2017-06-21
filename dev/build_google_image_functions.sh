@@ -121,28 +121,33 @@ function extract_clean_prototype_disk() {
 }
 
 
-# Create TARGET_IMAGE from PROTOTYPE_DISK.
+# Create TARGET_IMAGE from PROTOTYPE_DISK (optionally in TARGET_FAMILY).
 # This will leave the disk instact
 function image_from_prototype_disk() {
   local target_image="$1"
   local prototype_disk="$2"
+  local target_family="$3"
 
   delete_image_if_exists $target_image
+
+  local args="--project $PROJECT --account $ACCOUNT"
+
+  if [ -n "$target_family" ]; then
+    args="$args --family $target_family"
+  fi
 
   echo "`date`: Creating image '$target_image' in project '$PROJECT'"
   if [[ $prototype_disk = gs://*.tar.gz ]]; then
     echo "Creating from URI $prototype_disk"
     gcloud compute images create $target_image \
-        --project $PROJECT \
-        --account $ACCOUNT \
-        --source-uri $prototype_disk
+        --source-uri $prototype_disk \
+        $args
   else
     echo "Creating from source-disk $prototype_disk"
     gcloud compute images create $target_image \
-        --project $PROJECT \
-        --account $ACCOUNT \
         --source-disk $prototype_disk \
-        --source-disk-zone $ZONE
+        --source-disk-zone $ZONE \
+        $args
   fi
 }
 

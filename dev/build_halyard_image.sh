@@ -20,12 +20,13 @@
 #    build_halyard_image.sh \
 #        --project $PROJECT \
 #        --version $VERSION \
+#        --target_image_family $IMAGE_FAMILY \
 #        --target_image $IMAGE
 #
 # Create tarball from an image
 #    build_halyard_image.sh \
 #        --project $PROJECT \
-#        --source_image ${IMAGE}
+#        --source_image ${IMAGE} \
 #        --gz_uri gs://${BUCKET}/${IMAGE}.tar.gz
 
 
@@ -43,6 +44,7 @@ INSTALL_SCRIPT=https://raw.githubusercontent.com/spinnaker/spinnaker/master/dev/
 
 BASE_IMAGE_OR_FAMILY=ubuntu-1404-lts
 IMAGE_PROJECT=
+TARGET_IMAGE_FAMILY=
 TARGET_IMAGE=
 
 # This must always be statically picked, as an alias, e.g. latest, may cause a
@@ -128,7 +130,11 @@ Usage:  $0 [options]
 
    --target_image TARGET_IMAGE
        [$TARGET_IMAGE]
-       Produce the given TARGET_IMAGE. If empty, then do not produce an image.
+       Produce the TARGET_IMAGE image.
+
+   --target_image_family TARGET_IMAGE_FAMILY
+       [$TARGET_IMAGE_FAMILY]
+       Produce an image in the given TARGET_IMAGE_FAMILY.
 
    --gz_uri GZ_URI
        [none]
@@ -165,6 +171,11 @@ function process_args() {
 
         --base_image)
             BASE_IMAGE_OR_FAMILY=$1
+            shift
+            ;;
+
+        --target_image_family)
+            TARGET_IMAGE_FAMILY=$1
             shift
             ;;
 
@@ -432,14 +443,15 @@ ensure_empty_ssh_key
 
 trap cleanup_instances_on_error EXIT
 create_prototype_disk
+
+echo "source disk $BUILD_INSTANCE"
 SOURCE_DISK=$BUILD_INSTANCE
 
 create_cleaner_instance
-extract_clean_prototype_disk \
-    "$SOURCE_DISK" "$CLEANER_INSTANCE" "$GZ_URI"
+extract_clean_prototype_disk "$SOURCE_DISK" "$CLEANER_INSTANCE" "$GZ_URI"
 
-if [[ "$TARGET_IMAGE" != "" ]]; then
-  image_from_prototype_disk "$TARGET_IMAGE" "$SOURCE_DISK"
+if [ -n "$TARGET_IMAGE" ]; then
+  image_from_prototype_disk "$TARGET_IMAGE" "$SOURCE_DISK" "$TARGET_IMAGE_FAMILY"
 fi
 
 trap - EXIT
