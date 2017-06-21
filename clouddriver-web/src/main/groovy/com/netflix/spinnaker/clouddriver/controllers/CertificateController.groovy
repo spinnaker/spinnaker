@@ -29,8 +29,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/certificates")
 class CertificateController {
 
-  @Autowired
-  List<CertificateProvider> certificateProviders
+  @Autowired(required = false)
+  List<CertificateProvider> certificateProviders = []
 
   @RequestMapping(method = RequestMethod.GET)
   List<Certificate> list() {
