@@ -21,6 +21,7 @@ import static com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider.ID
 
 class Keys {
   static enum Namespace {
+    CERTIFICATES,
     SECURITY_GROUPS,
     SUBNETS,
     VPCS,
@@ -66,6 +67,9 @@ class Keys {
       case Namespace.SUBNETS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
         break
+      case Namespace.CERTIFICATES.ns:
+        result << [id: parts[2], account: parts[3], region: parts[4], type: parts[5]]
+        break
       case Namespace.KEY_PAIRS.ns:
         result << [id: parts[2], account: parts[3], region: parts[4]]
         break
@@ -95,6 +99,13 @@ class Keys {
                              String region,
                              String account) {
     "$ID:${Namespace.SUBNETS}:${subnetId}:${account}:${region}"
+  }
+
+  static String getCertificateKey(String certificateId,
+                             String region,
+                             String account,
+                             String certificateType) {
+    "$ID:${Namespace.SUBNETS}:${certificateId}:${account}:${region}:${certificateType}"
   }
 
   static String getVpcKey(String vpcId,

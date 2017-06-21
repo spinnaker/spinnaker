@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 
 @CompileStatic
 public enum Namespace {
+  CERTIFICATES,
   IMAGES,
   NAMED_IMAGES,
   SERVER_GROUPS,

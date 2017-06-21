@@ -96,7 +96,7 @@ class UpsertAmazonLoadBalancerAtomicOperation implements AtomicOperation<UpsertA
             awsListener.withInstanceProtocol(listener.externalProtocol.name())
           }
           if (listener.sslCertificateId) {
-            task.updateStatus BASE_PHASE, "Attaching listener with SSL Certificate: ${listener.sslCertificateId}"
+            task.updateStatus BASE_PHASE, "Attaching listener with SSL ServerCertificate: ${listener.sslCertificateId}"
             awsListener.withSSLCertificateId(listener.sslCertificateId)
           }
           listeners << awsListener
