@@ -36,6 +36,7 @@ import java.util.Map;
 @Component("upsertAmazonLoadBalancerDescription")
 class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
   private void sanitizeInput(Map input) {
+    // default to classic load balancer if no type specified
     if (!input.containsKey("loadBalancerType")) {
       input.put("loadBalancerType", AmazonLoadBalancerType.CLASSIC.toString());
     }
@@ -43,7 +44,6 @@ class UpsertAmazonLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
 
   @Override
   public AtomicOperation convertOperation(Map input) {
-    // default to classic load balancer if no type specified
     this.sanitizeInput(input);
 
     if (input.get("loadBalancerType").equals(AmazonLoadBalancerType.CLASSIC.toString())) {
