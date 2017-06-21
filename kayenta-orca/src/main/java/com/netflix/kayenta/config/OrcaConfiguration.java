@@ -63,7 +63,6 @@ public class OrcaConfiguration {
       log.warn("Failed to determine Kayenta hostname", e);
     }
 
-    // TODO: Will want to figure out how to properly identify this node internal to Netflix.
     String currentInstanceId = UUID.randomUUID() + "@" + hostname;
 
     return currentInstanceId;
