@@ -17,11 +17,13 @@
 package com.netflix.spinnaker.fiat.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.spinnaker.config.HystrixSpectatorConfig;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverApi;
 import com.netflix.spinnaker.fiat.providers.internal.ClouddriverService;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Api;
 import com.netflix.spinnaker.fiat.providers.internal.Front50Service;
+import com.netflix.spinnaker.hystrix.spectator.HystrixSpectatorPublisher;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +33,8 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
 import retrofit.Endpoints;
 import retrofit.RestAdapter;
@@ -39,6 +43,7 @@ import retrofit.converter.JacksonConverter;
 
 @Configuration
 @EnableConfigurationProperties(ProviderCacheConfig.class)
+@DependsOn("hystrixSpectatorPublisher")
 public class ResourcesConfig {
   @Autowired
   @Setter

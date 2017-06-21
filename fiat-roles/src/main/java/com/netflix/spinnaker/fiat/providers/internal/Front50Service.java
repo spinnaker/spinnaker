@@ -23,13 +23,14 @@ import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
-public class Front50Service implements HealthTrackable {
+public class Front50Service implements HealthTrackable, InitializingBean {
 
   private static final String GROUP_KEY = "front50Service";
 
@@ -44,6 +45,17 @@ public class Front50Service implements HealthTrackable {
 
   public Front50Service(Front50Api front50Api) {
     this.front50Api = front50Api;
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    try {
+      // Initialize caches (also indicates service is healthy)
+      getAllApplicationPermissions();
+      getAllServiceAccounts();
+    } catch (Exception e) {
+      log.warn("Cache prime failed: ", e);
+    }
   }
 
   public List<Application> getAllApplicationPermissions() {

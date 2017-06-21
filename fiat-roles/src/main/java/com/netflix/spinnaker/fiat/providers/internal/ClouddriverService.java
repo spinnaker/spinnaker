@@ -23,6 +23,7 @@ import com.netflix.spinnaker.fiat.providers.HealthTrackable;
 import com.netflix.spinnaker.fiat.providers.ProviderHealthTracker;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
@@ -34,7 +35,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * health tracker, which will turn unhealthy after X number of failed cache refreshes.
  */
 @Slf4j
-public class ClouddriverService implements HealthTrackable {
+public class ClouddriverService implements HealthTrackable, InitializingBean {
 
   private static final String GROUP_KEY = "clouddriverService";
 
@@ -49,6 +50,16 @@ public class ClouddriverService implements HealthTrackable {
 
   public ClouddriverService(ClouddriverApi clouddriverApi) {
     this.clouddriverApi = clouddriverApi;
+  }
+
+  @Override
+  public void afterPropertiesSet() throws Exception {
+    try {
+      getAccounts();
+      getApplications();
+    } catch (Exception e) {
+      log.warn("Cache initialization failed: ", e);
+    }
   }
 
   public List<Account> getAccounts() {

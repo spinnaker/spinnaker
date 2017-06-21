@@ -18,13 +18,13 @@ package com.netflix.spinnaker.fiat.permissions
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
 import com.netflix.spinnaker.fiat.model.resources.Account
 import com.netflix.spinnaker.fiat.model.resources.Application
 import com.netflix.spinnaker.fiat.model.resources.Role
 import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
-import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import spock.lang.AutoCleanup
@@ -277,26 +277,26 @@ class RedisPermissionsRepositorySpec extends Specification {
     def result = repo.getAllByRoles(["role1"])
 
     then:
-    result == ["user1": user1.merge(unrestricted),
-               "user2": user2.merge(unrestricted),
+    result == ["user1"       : user1.merge(unrestricted),
+               "user2"       : user2.merge(unrestricted),
                (UNRESTRICTED): unrestricted]
 
     when:
     result = repo.getAllByRoles(["role3", "role4"])
 
     then:
-    result == ["user2": user2.merge(unrestricted),
-               "user4": user4.merge(unrestricted),
+    result == ["user2"       : user2.merge(unrestricted),
+               "user4"       : user4.merge(unrestricted),
                (UNRESTRICTED): unrestricted];
 
     when:
     result = repo.getAllByRoles(null);
 
     then:
-    result == ["user1": user1.merge(unrestricted),
-               "user2": user2.merge(unrestricted),
-               "user3": user3.merge(unrestricted),
-               "user4": user4.merge(unrestricted),
+    result == ["user1"       : user1.merge(unrestricted),
+               "user2"       : user2.merge(unrestricted),
+               "user3"       : user3.merge(unrestricted),
+               "user4"       : user4.merge(unrestricted),
                (UNRESTRICTED): unrestricted]
 
     when:

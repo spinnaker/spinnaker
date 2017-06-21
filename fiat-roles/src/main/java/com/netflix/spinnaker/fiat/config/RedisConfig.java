@@ -1,7 +1,7 @@
 package com.netflix.spinnaker.fiat.config;
 
-import com.netflix.spinnaker.fiat.redis.JedisPoolSource;
-import com.netflix.spinnaker.fiat.redis.JedisSource;
+import com.netflix.spinnaker.cats.redis.JedisPoolSource;
+import com.netflix.spinnaker.cats.redis.JedisSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;

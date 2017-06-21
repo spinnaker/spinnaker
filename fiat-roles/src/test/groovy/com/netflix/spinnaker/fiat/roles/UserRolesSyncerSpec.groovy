@@ -18,6 +18,7 @@ package com.netflix.spinnaker.fiat.roles
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig
 import com.netflix.spinnaker.fiat.model.UserPermission
@@ -27,7 +28,6 @@ import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver
 import com.netflix.spinnaker.fiat.permissions.RedisPermissionsRepository
 import com.netflix.spinnaker.fiat.providers.ResourceProvider
-import com.netflix.spinnaker.fiat.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.boot.actuate.health.Health
 import redis.clients.jedis.Jedis

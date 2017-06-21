@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.config
 
-import com.netflix.spinnaker.fiat.redis.JedisSource
+import com.netflix.spinnaker.cats.redis.JedisSource
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.context.annotation.Bean

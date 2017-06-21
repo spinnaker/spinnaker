@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.fiat.roles;
 
 import com.diffplug.common.base.Functions;
+import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.fiat.config.ResourceProvidersHealthIndicator;
 import com.netflix.spinnaker.fiat.config.UnrestrictedResourceConfig;
 import com.netflix.spinnaker.fiat.model.UserPermission;
@@ -28,6 +29,7 @@ import com.netflix.spinnaker.fiat.permissions.PermissionsRepository;
 import com.netflix.spinnaker.fiat.permissions.PermissionsResolver;
 import com.netflix.spinnaker.fiat.providers.ProviderException;
 import com.netflix.spinnaker.fiat.providers.ResourceProvider;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +49,12 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @ConditionalOnExpression("${fiat.writeMode.enabled:true}")
-public class UserRolesSyncer {
+public class UserRolesSyncer implements RunnableAgent {
+
+  @Getter
+  private final String agentType = "UserRoleSyncer";
+  @Getter
+  private final String providerName = "Fiat";
 
   @Autowired
   @Setter
@@ -69,8 +76,7 @@ public class UserRolesSyncer {
   @Setter
   private long retryIntervalMs;
 
-  @Scheduled(fixedDelayString = "${fiat.writeMode.syncDelayMs:600000}")
-  public void sync() {
+  public void run() {
     syncAndReturn();
   }
 

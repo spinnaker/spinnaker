@@ -24,6 +24,8 @@ dependencies {
   compile spinnaker.dependency("bootActuator")
   compile spinnaker.dependency("bootWeb")
   compile spinnaker.dependency("korkHystrix")
+  // TODO(ttomsu): expose this in spinnaker-dependencies
+  compile "com.netflix.spinnaker.clouddriver:cats-redis:1.643.0"
 
   compile "redis.clients:jedis:2.6.2"
   compile "com.google.api-client:google-api-client:1.21.0"
