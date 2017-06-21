@@ -32,6 +32,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.CacheResult
 import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
+import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.aws.AmazonCloudProvider
 import com.netflix.spinnaker.clouddriver.aws.data.ArnUtils
@@ -67,8 +68,66 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
   @Override
   OnDemandAgent.OnDemandResult handle(ProviderCache providerCache, Map<String, ? extends Object> data) {
-    // TODO: Support OnDemand support for ALBs
-    return null
+    if (!data.containsKey("loadBalancerName")) {
+      return null
+    }
+    if (!data.containsKey("loadBalancerType")) {
+      return null
+    }
+    if (!data.containsKey("account")) {
+      return null
+    }
+    if (!data.containsKey("region")) {
+      return null
+    }
+    if (account.name != data.account) {
+      return null
+    }
+
+    if (region != data.region) {
+      return null
+    }
+
+    List<LoadBalancer> loadBalancers = metricsSupport.readData {
+      def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region, true)
+      try {
+        return loadBalancing.describeLoadBalancers(
+          new DescribeLoadBalancersRequest().withNames([data.loadBalancerName as String])
+        ).loadBalancers
+      } catch (LoadBalancerNotFoundException ignored) {
+        return []
+      }
+    }
+
+    def cacheResult = metricsSupport.transformData { buildCacheResult(loadBalancers, [:], System.currentTimeMillis(), []) }
+    if (cacheResult.cacheResults.values().flatten().isEmpty()) {
+      // avoid writing an empty onDemand cache record (instead delete any that may have previously existed)
+      providerCache.evictDeletedItems(ON_DEMAND.ns, [Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String, data.loadBalancerType as String)])
+    } else {
+      metricsSupport.onDemandStore {
+        def cacheData = new DefaultCacheData(
+          Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, loadBalancers ? loadBalancers[0].getVpcId(): null, data.loadBalancerType as String),
+          10 * 60,
+          [
+            cacheTime   : new Date(),
+            cacheResults: objectMapper.writeValueAsString(cacheResult.cacheResults)
+          ],
+          [:]
+        )
+        providerCache.putCacheData(ON_DEMAND.ns, cacheData)
+      }
+    }
+
+    Map<String, Collection<String>> evictions = loadBalancers ? [:] : [
+      (LOAD_BALANCERS.ns): [
+        Keys.getLoadBalancerKey(data.loadBalancerName as String, account.name, region, data.vpcId as String, data.loadBalancerType as String)
+      ]
+    ]
+
+    log.info("onDemand cache refresh (data: ${data}, evictions: ${evictions})")
+    return new OnDemandAgent.OnDemandResult(
+      sourceAgentType: getAgentType(), cacheResult: cacheResult, evictions: evictions
+    )
   }
 
   @Override
@@ -92,59 +151,6 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
       }
     }
 
-    Map<LoadBalancer, List<Listener>> loadBalancerToListeners = new HashMap<LoadBalancer, ArrayList<Listener>>()
-    for (loadBalancer in allLoadBalancers) {
-      loadBalancerToListeners[loadBalancer] = []
-      if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
-        try {
-          List<Listener> listeners = eddaApi.listeners(loadBalancer.loadBalancerName)
-          loadBalancerToListeners.get(loadBalancer).addAll(listeners)
-        } catch (RetrofitError ignore) {
-          // this is acceptable since we may be waiting for the caches to catch up
-        }
-      } else {
-        try {
-          DescribeListenersRequest describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: loadBalancer.loadBalancerArn)
-          while (true) {
-            DescribeListenersResult result = loadBalancing.describeListeners(describeListenersRequest)
-            loadBalancerToListeners.get(loadBalancer).addAll(result.listeners)
-            if (result.nextMarker) {
-              describeListenersRequest.withMarker(result.nextMarker)
-            } else {
-              break
-            }
-          }
-        } catch (LoadBalancerNotFoundException ignore) {
-          // this is acceptable since we may be waiting for the caches to catch up
-        }
-      }
-    }
-
-    Map<Listener, List<Rule>> listenerToRules = new HashMap<>()
-
-    for (loadBalancer in allLoadBalancers) {
-      List<Listener> listeners = loadBalancerToListeners.get(loadBalancer)
-      if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
-        List<EddaRule> rules = eddaApi.rules(loadBalancer.loadBalancerName)
-        Map<String, Listener> listenerByListenerArn = listeners.collectEntries { [(it.listenerArn): it] }
-        for (EddaRule eddaRule : rules) {
-          Listener listener = listenerByListenerArn.get(eddaRule.listenerArn)
-          listenerToRules.put(listener, eddaRule.rules)
-        }
-      } else {
-        for (listener in listeners) {
-          listenerToRules[listener] = []
-          try {
-            DescribeRulesRequest describeRulesRequest = new DescribeRulesRequest(listenerArn: listener.listenerArn)
-            DescribeRulesResult result = loadBalancing.describeRules(describeRulesRequest)
-            listenerToRules.get(listener).addAll(result.rules)
-          } catch (ListenerNotFoundException ignore) {
-            // should be fine
-          }
-        }
-      }
-    }
-
     if (!start) {
       if (account.eddaEnabled) {
         log.warn("${agentType} did not receive lastModified value in response metadata")
@@ -154,18 +160,25 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
     def evictableOnDemandCacheDatas = []
     def usableOnDemandCacheDatas = []
-    // TODO: Supprt ALBs in ON_DEMAND
+    providerCache.getAll(ON_DEMAND.ns, allLoadBalancers.collect { Keys.getLoadBalancerKey(it.loadBalancerName, account.name, region, it.getVpcId(), it.getType()) }).each {
+      if (it.attributes.cacheTime < start) {
+        evictableOnDemandCacheDatas << it
+      } else {
+        usableOnDemandCacheDatas << it
+      }
+    }
 
-    return buildCacheResult(allLoadBalancers, loadBalancerToListeners, listenerToRules, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
+    return buildCacheResult(allLoadBalancers, usableOnDemandCacheDatas.collectEntries { [it.id, it] }, start, evictableOnDemandCacheDatas)
   }
 
-  private CacheResult buildCacheResult(Collection<LoadBalancer> allLoadBalancers, Map<LoadBalancer, List<Listener>> loadBalancerToListeners, Map<Listener, List<Rule>> listenerToRules, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
+  private CacheResult buildCacheResult(Collection<LoadBalancer> allLoadBalancers, Map<String, CacheData> onDemandCacheDataByLb, long start, Collection<CacheData> evictableOnDemandCacheDatas) {
+    def loadBalancing = amazonClientProvider.getAmazonElasticLoadBalancingV2(account, region)
     Map<String, CacheData> loadBalancers = CacheHelpers.cache()
 
     for (LoadBalancer lb : allLoadBalancers) {
       String loadBalancerKey = Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, lb.type)
 
-      def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[Keys.getLoadBalancerKey(lb.loadBalancerName, account.name, region, lb.vpcId, "application")] : null
+      def onDemandCacheData = onDemandCacheDataByLb ? onDemandCacheDataByLb[loadBalancerKey] : null
       if (onDemandCacheData) {
         log.info("Using onDemand cache value (${onDemandCacheData.id})")
 
@@ -190,16 +203,61 @@ class AmazonApplicationLoadBalancerCachingAgent extends AbstractAmazonLoadBalanc
 
 
         // Add the listeners
+        List<Listener> listenerData = new ArrayList<>()
+        if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
+          try {
+            listenerData = eddaApi.listeners(lb.loadBalancerName)
+          } catch (RetrofitError ignore) {
+            // this is acceptable since we may be waiting for the caches to catch up
+          }
+        } else {
+          try {
+            DescribeListenersRequest describeListenersRequest = new DescribeListenersRequest(loadBalancerArn: lb.loadBalancerArn)
+            while (true) {
+              DescribeListenersResult result = loadBalancing.describeListeners(describeListenersRequest)
+              listenerData.addAll(result.listeners)
+              if (result.nextMarker) {
+                describeListenersRequest.withMarker(result.nextMarker)
+              } else {
+                break
+              }
+            }
+          } catch (LoadBalancerNotFoundException ignore) {
+            // this is acceptable since we may be waiting for the caches to catch up
+          }
+        }
+
+        Map<Listener, List<Rule>> listenerToRules = new HashMap<>()
+        if (account.eddaEnabled && eddaTimeoutConfig.albEnabled) {
+          List<EddaRule> rules = eddaApi.rules(lb.loadBalancerName)
+          Map<String, Listener> listenerByListenerArn = listenerData.collectEntries { [(it.listenerArn): it] }
+          for (EddaRule eddaRule : rules) {
+            Listener listener = listenerByListenerArn.get(eddaRule.listenerArn)
+            listenerToRules.put(listener, eddaRule.rules)
+          }
+        } else {
+          for (listener in listenerData) {
+            listenerToRules[listener] = []
+            try {
+              DescribeRulesRequest describeRulesRequest = new DescribeRulesRequest(listenerArn: listener.listenerArn)
+              DescribeRulesResult result = loadBalancing.describeRules(describeRulesRequest)
+              listenerToRules.get(listener).addAll(result.rules)
+            } catch (ListenerNotFoundException ignore) {
+              // should be fine
+            }
+          }
+        }
+
         def listeners = []
         Set<String> allTargetGroupKeys = []
         String vpcId = Keys.parse(loadBalancerKey).vpcId
-        for (Listener listener : loadBalancerToListeners.get(lb)) {
+        for (Listener listener : listenerData) {
 
           Map<String, Object> listenerAttributes = objectMapper.convertValue(listener, ATTRIBUTES)
           listenerAttributes.loadBalancerName = ArnUtils.extractLoadBalancerName((String)listenerAttributes.loadBalancerArn).get()
           listenerAttributes.remove('loadBalancerArn')
           for (Map<String, Object> action : (List<Map<String, String>>)listenerAttributes.defaultActions) {
-            String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn).get()
+            String targetGroupName = ArnUtils.extractTargetGroupName(action.targetGroupArn as String).get()
             action.targetGroupName = targetGroupName
             action.remove("targetGroupArn")
 
