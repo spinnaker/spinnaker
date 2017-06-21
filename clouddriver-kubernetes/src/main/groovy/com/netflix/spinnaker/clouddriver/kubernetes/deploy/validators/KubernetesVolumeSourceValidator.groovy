@@ -56,8 +56,7 @@ class KubernetesVolumeSourceValidator {
         break
 
       case KubernetesVolumeSourceType.ConfigMap:
-        if (!(helper.validateNotEmpty(source.configMap, "${prefix}.configMap") &&
-            helper.validateNotEmpty(source.configMap.items, "${prefix}.configMap.items"))) {
+        if (! helper.validateNotEmpty(source.configMap, "${prefix}.configMap")) {
           break
         }
         helper.validateNotEmpty(source.configMap.configMapName, "${prefix}.configMap.configMapName")
