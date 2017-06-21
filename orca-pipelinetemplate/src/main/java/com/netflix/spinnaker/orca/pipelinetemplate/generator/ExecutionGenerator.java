@@ -22,5 +22,5 @@ import java.util.Map;
 
 public interface ExecutionGenerator {
 
-  Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration);
+  Map<String, Object> generate(PipelineTemplate template, TemplateConfiguration configuration, String id);
 }

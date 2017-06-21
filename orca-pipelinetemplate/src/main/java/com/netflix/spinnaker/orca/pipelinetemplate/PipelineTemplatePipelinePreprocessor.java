@@ -116,8 +116,7 @@ public class PipelineTemplatePipelinePreprocessor implements PipelinePreprocesso
     graphMutator.mutate(template);
 
     ExecutionGenerator executionGenerator = new V1SchemaExecutionGenerator();
-
-    Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration);
+    Map<String, Object> generatedPipeline = executionGenerator.generate(template, templateConfiguration, (String) pipeline.get("id"));
 
     return generatedPipeline;
   }
