@@ -32,9 +32,9 @@ set -u
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
 
-KUBE_FILE="/home/spinnaker/.kube/config"
-GCR_FILE="/home/spinnaker/.gcp/gce-account.json"
-GCE_FILE="/home/spinnaker/.gcp/gcr-account.json"
+KUBE_FILE="/home/ubuntu/.kube/config"
+GCR_FILE="/home/ubuntu/.gcp/gce-account.json"
+GCE_FILE="/home/ubuntu/.gcp/gcr-account.json"
 
 function get_instance_metadata_attribute() {
   local name="$1"
@@ -118,7 +118,7 @@ function configure_docker() {
   echo "Extracted GCR credentials to $config_path"
 
   chmod 400 $config_path
-  chown spinnaker:spinnaker $config_path
+  chown ubuntu:ubuntu $config_path
 
   hal config provider docker-registry enable
   hal config provider docker-registry account add $gcr_account \
@@ -158,7 +158,7 @@ function configure_kubernetes() {
     if [[ -s $config_path ]]; then
       echo "Kubernetes credentials successfully extracted to $config_path"
       chmod 400 $config_path
-      chown spinnaker:spinnaker $config_path
+      chown ubuntu:ubuntu $config_path
 
       return 0
     else
@@ -196,7 +196,7 @@ function configure_google() {
       if [[ -s $config_path ]]; then
         args="$args --json-path $config_path"
         chmod 400 $config_path
-        chown spinnaker $config_path
+        chown ubuntu:ubuntu $config_path
         echo "Successfully wrote gce credential to $config_path"
       else
         echo "Failed to write gce credential to $config_path"
