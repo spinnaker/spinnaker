@@ -4,7 +4,7 @@
       <div class="wizard-pod" ng-repeat="targetGroup in ctrl.loadBalancerCommand.targetGroups">
         <div>
           <div class="wizard-pod-row header">
-            <div class="wizard-pod-row-title">GROUP NAME</div>
+            <div class="wizard-pod-row-title">Group Name</div>
             <div class="wizard-pod-row-contents">
               <input class="form-control input-sm target-group-name"
                           type="text"
@@ -18,7 +18,7 @@
             </div>
           </div>
           <div class="wizard-pod-row">
-            <div class="wizard-pod-row-title">INCOMING CONNECTION</div>
+            <div class="wizard-pod-row-title">Backend Connection</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
                 <label>Protocol</label> <select class="form-control input-sm inline-number" ng-model="targetGroup.protocol"
@@ -30,7 +30,7 @@
             </div>
           </div>
           <div class="wizard-pod-row">
-            <div class="wizard-pod-row-title">HEALTHCHECK</div>
+            <div class="wizard-pod-row-title">Healthcheck</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
               <label>Protocol</label> <select class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckProtocol"
@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class="wizard-pod-row">
-            <div class="wizard-pod-row-title">HEALTHCHECK THRESHOLD</div>
+            <div class="wizard-pod-row-title">Healthcheck Threshold</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
                 <label>Healthy</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthyThreshold" type="number" required/>
@@ -62,7 +62,7 @@
             </div>
           </div>
           <div class="wizard-pod-row">
-            <div class="wizard-pod-row-title">ATTRIBUTES</div>
+            <div class="wizard-pod-row-title">Attributes</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
                 <label>Dereg. Delay</label><help-field key="aws.targetGroup.attributes.deregistrationDelay"></help-field> <input class="form-control input-sm inline-number" ng-model="targetGroup.attributes.deregistrationDelay" type="number"/>

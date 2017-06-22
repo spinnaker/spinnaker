@@ -23,7 +23,8 @@ import {
   V2_MODAL_WIZARD_SERVICE
 } from '@spinnaker/core';
 
-import { AWS_LOAD_BALANCER_TRANFORMER, AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
+import { AMAZON_CERTIFICATE_READ_SERVICE, AmazonCertificateReader } from 'amazon/certificates/amazon.certificate.read.service';
+import { AWS_LOAD_BALANCER_TRANSFORMER, AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
 import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand, IClassicListenerDescription } from 'amazon/domain';
 import { CreateAmazonLoadBalancerCtrl } from '../common/createAmazonLoadBalancer.controller';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
@@ -45,6 +46,7 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
               protected accountService: AccountService,
               protected awsLoadBalancerTransformer: AwsLoadBalancerTransformer,
               securityGroupReader: SecurityGroupReader,
+              amazonCertificateReader: AmazonCertificateReader,
               cacheInitializer: CacheInitializerService,
               infrastructureCaches: InfrastructureCacheService,
               v2modalWizardService: any,
@@ -57,7 +59,7 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
               protected isNew: boolean,
               protected forPipelineConfig: boolean) {
     'ngInject';
-    super($scope, $uibModalInstance, $state, accountService, securityGroupReader, cacheInitializer, infrastructureCaches, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder, subnetReader, namingService, application, isNew, forPipelineConfig);
+    super($scope, $uibModalInstance, $state, accountService, securityGroupReader, amazonCertificateReader, cacheInitializer, infrastructureCaches, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder, subnetReader, namingService, application, isNew, forPipelineConfig);
   }
 
   protected initializeController(): void {
@@ -116,6 +118,12 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
     });
   }
 
+  public showCertificateSelect(listener: IClassicListenerDescription): boolean {
+    return listener.sslCertificateType === 'iam' &&
+      (listener.externalProtocol === 'HTTPS' || listener.externalProtocol === 'SSL') &&
+      this.certificates && Object.keys(this.certificates).length > 0;
+  }
+
   protected formatCommand(): void {
     this.setAvailabilityZones(this.loadBalancerCommand);
     this.clearSecurityGroupsIfNotInVpc(this.loadBalancerCommand);
@@ -145,8 +153,9 @@ module(AWS_CREATE_CLASSIC_LOAD_BALANCER_CTRL, [
   require('@uirouter/angularjs').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
-  AWS_LOAD_BALANCER_TRANFORMER,
+  AWS_LOAD_BALANCER_TRANSFORMER,
   SECURITY_GROUP_READER,
+  AMAZON_CERTIFICATE_READ_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   SUBNET_READ_SERVICE,

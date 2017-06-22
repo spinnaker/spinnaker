@@ -21,6 +21,7 @@ import {
   TaskMonitor,
 } from '@spinnaker/core';
 
+import { AmazonCertificateReader, IAmazonCertificate } from 'amazon/certificates/amazon.certificate.read.service';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonLoadBalancerUpsertCommand } from 'amazon/domain';
 
@@ -28,9 +29,11 @@ import './configure.less';
 
 export interface ICreateAmazonLoadBalancerViewState {
   accountsLoaded: boolean;
+  certificateRefreshTime: number;
   currentItems: number;
   hideInternalFlag: boolean;
   internalFlagToggled: boolean;
+  refreshingCertificates: boolean;
   refreshingSecurityGroups: boolean;
   removedSecurityGroups: string[];
   securityGroupRefreshTime: number;
@@ -50,6 +53,7 @@ export interface ISubnetOption {
 export abstract class CreateAmazonLoadBalancerCtrl {
   protected abstract pages: { [pageKey: string]: string };
 
+  public certificates: { [accountId: number]: IAmazonCertificate[] };
   public existingLoadBalancerNames: string[];
   public viewState: ICreateAmazonLoadBalancerViewState;
   private accounts: IAccount[];
@@ -69,6 +73,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
               protected $state: StateService,
               protected accountService: AccountService,
               protected securityGroupReader: SecurityGroupReader,
+              protected amazonCertificateReader: AmazonCertificateReader,
               protected cacheInitializer: CacheInitializerService,
               protected infrastructureCaches: InfrastructureCacheService,
               protected v2modalWizardService: any,
@@ -89,9 +94,11 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
     this.viewState = {
       accountsLoaded: false,
+      certificateRefreshTime: this.infrastructureCaches.get('certificates').getStats().ageMax,
       currentItems: 25,
       hideInternalFlag: false,
       internalFlagToggled: false,
+      refreshingCertificates: false,
       refreshingSecurityGroups: false,
       removedSecurityGroups: [],
       securityGroupRefreshTime: this.infrastructureCaches.get('securityGroups').getStats().ageMax,
@@ -153,11 +160,13 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       this.preloadSecurityGroups().then(() => {
         this.updateAvailableSecurityGroups([this.loadBalancerCommand.vpcId]);
       });
+      this.loadCertificates();
     }
   }
 
   protected initializeCreateMode(): void {
     this.preloadSecurityGroups();
+    this.loadCertificates();
     if (AWSProviderSettings) {
       if (AWSProviderSettings.defaultSecurityGroups) {
         this.defaultSecurityGroups = AWSProviderSettings.defaultSecurityGroups;
@@ -178,6 +187,12 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     return this.securityGroupReader.getAllSecurityGroups().then((securityGroups) => {
       this.allSecurityGroups = securityGroups;
       this.viewState.securityGroupsLoaded = true;
+    });
+  }
+
+  private loadCertificates(): IPromise<void> {
+    return this.amazonCertificateReader.listCertificates().then((certificates) => {
+      this.certificates = certificates;
     });
   }
 
@@ -329,9 +344,21 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       });
     });
   };
+  private setCertificateRefreshTime(): void {
+    this.viewState.certificateRefreshTime = this.infrastructureCaches.get('certificates').getStats().ageMax;
+  }
 
   private setSecurityGroupRefreshTime(): void {
     this.viewState.securityGroupRefreshTime = this.infrastructureCaches.get('securityGroups').getStats().ageMax;
+  }
+
+  public refreshCertificates(): void {
+    this.viewState.refreshingCertificates = true;
+    this.cacheInitializer.refreshCache('certificates').then(() => {
+      this.viewState.refreshingCertificates = false;
+      this.setCertificateRefreshTime();
+      this.loadCertificates();
+    });
   }
 
   public addItems(): void {

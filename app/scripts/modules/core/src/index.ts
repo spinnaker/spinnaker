@@ -5,6 +5,7 @@ export * from './authentication';
 
 export * from './cache';
 export * from './cancelModal';
+export * from './certificates';
 export * from './ci';
 export * from './cloudProvider';
 export * from './cluster';

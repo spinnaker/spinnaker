@@ -1,58 +1,81 @@
 <div class="container-fluid form-horizontal">
   <div class="form-group">
     <div class="col-md-12">
+      <div class="wizard-pod" ng-repeat="listener in ctrl.loadBalancerCommand.listeners">
+        <div>
+          <div class="wizard-pod-row header">
+            <div class="wizard-pod-row-title">Listen On</div>
+            <div class="wizard-pod-row-contents spread">
+              <div>
+                <span class="wizard-pod-content">
+                  <label>Protocol</label>
+                  <select class="form-control input-sm inline-number" ng-model="listener.protocol" style="width:80px;"
+                          ng-change="ctrl.listenerProtocolChanged(listener)"
+                          ng-options="protocol for protocol in ['HTTP','HTTPS']"></select>
+                </span>
+                <span class="wizard-pod-content">
+                  <label>Port</label>
+                  <input class="form-control input-sm inline-number" type="text" min="0" ng-model="listener.port"
+                        style="width:80px;" required/>
+                </span>
+              </div>
+              <div>
+                <a href class="sm-label" ng-click="ctrl.removeListener($index)">
+                  <span class="glyphicon glyphicon-trash"></span>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-pod-row" ng-if="ctrl.showSslCertificateNameField()">
+            <div class="wizard-pod-row-title">Certificate</div>
+            <div class="wizard-pod-row-contents">
+              <div ng-repeat="certificate in listener.certificates"
+                 style="width:100%;display:flex;flex-direction:row;">
+                <select class="form-control input-sm inline-number"
+                        style="width:45px;"
+                        ng-model="certificate.type"
+                        ng-options="certificateType for certificateType in ['iam','acm']"></select>
+                <select ng-if="ctrl.showCertificateSelect(certificate)" class="form-control input-sm" ng-model="certificate.name" required
+                        ng-options="certificate.serverCertificateName as certificate.serverCertificateName for certificate in ctrl.certificates[ctrl.loadBalancerCommand.credentials]"></select>
+                <input ng-if="!ctrl.showCertificateSelect(certificate)" class="form-control input-sm no-spel" style="display:inline-block;"
+                       type="text"
+                       ng-model="certificate.name"
+                       required/>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-pod-row">
+            <div class="wizard-pod-row-title" style="height:30px">Rules</div>
+            <div class="wizard-pod-row-contents" style="padding:0;">
+              <table class="table table-condensed packed rules-table">
+                <thead>
+                  <th>If</th>
+                  <th>Then</th>
+                  <th>Target</th>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="action in listener.defaultActions">
+                    <td>Default</td>
+                    <td>forward to</td>
+                    <td>
+                      <select class="form-control input-sm" ng-model="action.targetGroupName"
+                              ng-options="targetGroup.name as targetGroup.name for targetGroup in ctrl.loadBalancerCommand.targetGroups" required></select>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
       <table class="table table-condensed packed">
-        <thead>
         <tr>
-          <th style="width:70px;">Protocol</th>
-          <th style="width:70px;">Port</th>
-          <th></th>
-          <th>Targets</th>
-          <th ng-if="ctrl.showSslCertificateNameField()">Certificates</th>
-          <th></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr ng-repeat="listener in ctrl.loadBalancerCommand.listeners">
-          <td><select class="form-control input-sm" ng-model="listener.protocol"
-                      ng-change="ctrl.listenerProtocolChanged(listener)"
-                      ng-options="protocol for protocol in ['HTTP','HTTPS']"></select></td>
-          <td><input class="form-control input-sm" type="text" min="0" ng-model="listener.port"
-                     required/></td>
-          <td class="small" style="padding-top: 10px;">&rarr;</td>
-
           <td>
-            <div ng-repeat="action in listener.defaultActions">
-              <select class="form-control input-sm" ng-model="action.targetGroupName"
-                      ng-options="targetGroup.name as targetGroup.name for targetGroup in ctrl.loadBalancerCommand.targetGroups" required></select>
-            </div>
-          </td>
-          <td ng-if="ctrl.showSslCertificateNameField()">
-            <div ng-repeat="certificate in listener.certificates"
-                 style="width: 100%;display: flex;flex-direction: row;">
-              <select class="form-control input-sm inline-number"
-                      style="width:45px;"
-                      ng-model="certificate.type"
-                      ng-options="certificateType for certificateType in ['iam','acm']"></select>
-              <input class="form-control input-sm no-spel" style="display:inline-block;"
-                     type="text"
-                     ng-model="certificate.name"
-                     required/>
-            </div>
-          </td>
-          <td><a href class="sm-label" ng-click="ctrl.removeListener($index)"><span
-            class="glyphicon glyphicon-trash"></span></a></td>
-        </tr>
-        </tbody>
-        <tfoot>
-        <tr>
-          <td colspan="{{ctrl.showSslCertificateNameField() ? 6 : 5}}">
             <button class="add-new col-md-12" ng-click="ctrl.addListener()"><span
               class="glyphicon glyphicon-plus-sign"></span> Add new listener
             </button>
           </td>
         </tr>
-        </tfoot>
       </table>
     </div>
   </div>

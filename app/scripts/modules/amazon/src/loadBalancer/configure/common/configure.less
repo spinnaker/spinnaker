@@ -13,14 +13,23 @@
     padding: 5px;
     border-bottom: 1px solid @lighter_grey;
 
+    label {
+      font-weight: 400;
+      padding-right: 5px;
+    }
+
     &.header {
       .wizard-pod-row-title {
         font-weight: 800;
       }
       .wizard-pod-row-contents {
         flex-wrap: nowrap;
+        padding: 0;
         label {
           font-weight: 600;
+        }
+        .wizard-pod-content {
+          padding: 0 10px 0 0;
         }
       }
       background-color: @lighter_grey;
@@ -34,15 +43,45 @@
       font-weight: 600;
       text-align: right;
       margin-right: 10px;
+      width: 100px;
     }
     .wizard-pod-row-contents {
       display: flex;
       width: 100%;
       align-items: baseline;
       flex-wrap: wrap;
-      .wizard-pod-content {
-        padding: 5px 10px;
+      padding: 5px 0;
+      &.spread {
+        justify-content: space-between;
       }
+      .wizard-pod-content {
+        padding: 0 10px 5px 0;
+      }
+      .rules-table {
+        thead {
+          th {
+            font-weight: 600;
+          }
+        }
+        td {
+          vertical-align: middle;
+        }
+        >tbody {
+          >tr:first-child {
+            >td {
+              border-top: none;
+            }
+          }
+        }
+      }
+    }
+  }
+  .wizard-pod-rule {
+    .wizard-pod-rule-conditions {
+      display: inline-block;
+    }
+    .wizard-pod-rule-action {
+      display: inline-block;
     }
   }
 }

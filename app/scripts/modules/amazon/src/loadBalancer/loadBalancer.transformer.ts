@@ -364,8 +364,8 @@ export class AwsLoadBalancerTransformer {
   }
 }
 
-export const AWS_LOAD_BALANCER_TRANFORMER = 'spinnaker.amazon.loadBalancer.transformer';
-module(AWS_LOAD_BALANCER_TRANFORMER, [
+export const AWS_LOAD_BALANCER_TRANSFORMER = 'spinnaker.amazon.loadBalancer.transformer';
+module(AWS_LOAD_BALANCER_TRANSFORMER, [
   VPC_READ_SERVICE
 ])
   .service('awsLoadBalancerTransformer', AwsLoadBalancerTransformer);

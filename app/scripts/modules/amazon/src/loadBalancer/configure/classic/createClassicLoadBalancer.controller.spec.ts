@@ -7,6 +7,7 @@ import { APPLICATION_MODEL_BUILDER,
   SecurityGroupReader
 } from '@spinnaker/core';
 
+import { AMAZON_CERTIFICATE_READ_SERVICE, AmazonCertificateReader } from 'amazon/certificates/amazon.certificate.read.service';
 import { AWSProviderSettings } from 'amazon/aws.settings';
 import { IAmazonClassicLoadBalancer, IAmazonClassicLoadBalancerUpsertCommand } from 'amazon/domain';
 import { AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
@@ -19,10 +20,12 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
       securityGroupReader: SecurityGroupReader,
       accountService: AccountService,
       subnetReader: SubnetReader,
+      amazonCertificateReader: AmazonCertificateReader,
       initialize: (loadBalancer?: IAmazonClassicLoadBalancer) => void;
 
   beforeEach(
     mock.module(
+      AMAZON_CERTIFICATE_READ_SERVICE,
       AWS_CREATE_CLASSIC_LOAD_BALANCER_CTRL,
       APPLICATION_MODEL_BUILDER
     )
@@ -34,6 +37,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
                           _$q_: IQService,
                           _accountService_: AccountService,
                           _subnetReader_: SubnetReader,
+                          _amazonCertificateReader_: AmazonCertificateReader,
                           applicationModelBuilder: ApplicationModelBuilder,
                           _securityGroupReader_: SecurityGroupReader,
                           awsLoadBalancerTransformer: AwsLoadBalancerTransformer) => {
@@ -42,6 +46,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
     securityGroupReader = _securityGroupReader_;
     accountService = _accountService_;
     subnetReader = _subnetReader_;
+    amazonCertificateReader = _amazonCertificateReader_;
     const app = applicationModelBuilder.createApplication('app', {key: 'loadBalancers', lazy: true});
     initialize = (loadBalancer: IAmazonClassicLoadBalancer = null) => {
       if (loadBalancer) {
@@ -58,6 +63,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
         securityGroupReader: securityGroupReader,
         accountService: accountService,
         subnetReader: subnetReader,
+        amazonCertificateReader: amazonCertificateReader,
         awsLoadBalancerTransformer: awsLoadBalancerTransformer,
       });
       controller.$onInit();
@@ -246,6 +252,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
       spyOn(securityGroupReader, 'getAllSecurityGroups').and.returnValue($q.when(availableSecurityGroups));
       spyOn(accountService, 'getAccountDetails').and.returnValue($q.when([{name: 'test'}]));
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([{account: 'test', region: 'us-east-1', vpcId: 'vpc-1'}]));
+      spyOn(amazonCertificateReader, 'listCertificates').and.returnValue($q.when([]));
       initialize(existingLoadBalancer);
       $scope.$digest();
       expect(controller.availableSecurityGroups.map(g => g.name)).toEqual(['d', 'a', 'b', 'c']);
@@ -273,6 +280,7 @@ describe('Controller: awsCreateClassicLoadBalancerCtrl', () => {
       spyOn(subnetReader, 'listSubnets').and.returnValue($q.when([
         {account: 'test', region: 'us-east-1', vpcId: 'vpc-1', purpose: 'external'}
       ]));
+      spyOn(amazonCertificateReader, 'listCertificates').and.returnValue($q.when([]));
       initialize();
       $scope.$digest();
       expect(controller.availableSecurityGroups.map(g => g.name)).toEqual(['sg-a', 'a', 'b', 'c', 'd']);

@@ -24,26 +24,15 @@ import {
 } from '@spinnaker/core';
 
 import { IALBListener,
+  IALBListenerCertificate,
   IAmazonApplicationLoadBalancer,
   IAmazonApplicationLoadBalancerUpsertCommand,
   IAmazonLoadBalancer
 } from 'amazon/domain';
-import { AWS_LOAD_BALANCER_TRANFORMER, AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
-import { CreateAmazonLoadBalancerCtrl } from '../common/createAmazonLoadBalancer.controller';
+import { AMAZON_CERTIFICATE_READ_SERVICE, AmazonCertificateReader } from 'amazon/certificates/amazon.certificate.read.service';
+import { AWS_LOAD_BALANCER_TRANSFORMER, AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
+import { CreateAmazonLoadBalancerCtrl, ICreateAmazonLoadBalancerViewState } from '../common/createAmazonLoadBalancer.controller';
 import { SUBNET_SELECT_FIELD_COMPONENT } from 'amazon/subnet/subnetSelectField.component';
-
-export interface ICreateAmazonLoadBalancerViewState {
-  accountsLoaded: boolean;
-  currentItems: number;
-  hideInternalFlag: boolean;
-  internalFlagToggled: boolean;
-  refreshingSecurityGroups: boolean;
-  removedSecurityGroups: string[];
-  securityGroupRefreshTime: number;
-  securityGroupsLoaded: boolean;
-  submitButtonLabel: string;
-  submitting: boolean;
-}
 
 class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
   protected pages = {
@@ -64,6 +53,7 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
               protected accountService: AccountService,
               protected awsLoadBalancerTransformer: AwsLoadBalancerTransformer,
               securityGroupReader: SecurityGroupReader,
+              amazonCertificateReader: AmazonCertificateReader,
               cacheInitializer: CacheInitializerService,
               infrastructureCaches: InfrastructureCacheService,
               v2modalWizardService: any,
@@ -76,7 +66,7 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
               protected isNew: boolean,
               protected forPipelineConfig: boolean) {
     'ngInject';
-    super($scope, $uibModalInstance, $state, accountService, securityGroupReader, cacheInitializer, infrastructureCaches, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder, subnetReader, namingService, application, isNew, forPipelineConfig);
+    super($scope, $uibModalInstance, $state, accountService, securityGroupReader, amazonCertificateReader, cacheInitializer, infrastructureCaches, v2modalWizardService, loadBalancerWriter, taskMonitorBuilder, subnetReader, namingService, application, isNew, forPipelineConfig);
   }
 
   protected initializeController(): void {
@@ -145,14 +135,36 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
   public listenerProtocolChanged(listener: IALBListener): void {
     if (listener.protocol === 'HTTPS') {
       listener.port = 443;
+      if (!listener.certificates || listener.certificates.length === 0) {
+        this.addListenerCertificate(listener);
+      }
     }
     if (listener.protocol === 'HTTP') {
       listener.port = 80;
     }
   }
 
+  public addListenerCertificate(listener: IALBListener): void {
+    listener.certificates = listener.certificates || [];
+    listener.certificates.push({
+      certificateArn: undefined,
+      type: 'iam',
+      name: undefined,
+    });
+  }
+
+  public removeListenerCertificate(listener: IALBListener, index: number): void {
+    if (listener && listener.certificates && listener.certificates.length > index) {
+      listener.certificates.splice(index, 1);
+    }
+  }
+
   public showSslCertificateNameField(): boolean {
     return this.loadBalancerCommand.listeners.some((listener) => listener.protocol === 'HTTPS');
+  }
+
+  public showCertificateSelect(certificate: IALBListenerCertificate): boolean {
+    return certificate.type === 'iam' && this.certificates && Object.keys(this.certificates).length > 0;
   }
 
   public removeTargetGroup(index: number): void {
@@ -202,8 +214,9 @@ module(AWS_CREATE_APPLICATION_LOAD_BALANCER_CTRL, [
   require('@uirouter/angularjs').default,
   LOAD_BALANCER_WRITE_SERVICE,
   ACCOUNT_SERVICE,
-  AWS_LOAD_BALANCER_TRANFORMER,
+  AWS_LOAD_BALANCER_TRANSFORMER,
   SECURITY_GROUP_READER,
+  AMAZON_CERTIFICATE_READ_SERVICE,
   V2_MODAL_WIZARD_SERVICE,
   TASK_MONITOR_BUILDER,
   SUBNET_READ_SERVICE,
