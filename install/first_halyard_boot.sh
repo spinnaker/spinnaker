@@ -61,6 +61,8 @@ set -u
 
 METADATA_URL="http://metadata.google.internal/computeMetadata/v1"
 INSTANCE_METADATA_URL="$METADATA_URL/instance"
+HALYARD_USER=$(cat /opt/spinnaker/config/halyard-user)
+HALYARD_GROUP=$(cat /opt/spinnaker/config/halyard-user)
 
 KUBE_FILE="/home/ubuntu/.kube/config"
 GCR_FILE="/home/ubuntu/.gcp/gce-account.json"
@@ -94,7 +96,7 @@ function clear_metadata_to_file() {
 
   if [[ $value = *[![:space:]]* ]]; then
      echo "$value" > $path
-     chown spinnaker:spinnaker $path
+     chown $HALYARD_USER:$HALYARD_GROUP $path
      clear_instance_metadata "$key"
      if [[ $? -ne 0 ]]; then
        die "Could not clear metadata from $key"
@@ -134,7 +136,7 @@ function configure_docker() {
 
   local config_path="$GCR_FILE"
   mkdir -p $(dirname $config_path)
-  chown -R spinnaker:spinnaker $(dirname $config_path)
+  chown -R $HALYARD_USER:$HALYARD_GROUP $(dirname $config_path)
 
   local gcr_account=$(get_instance_metadata_attribute "gcr_account")
   local gcr_address=$(get_instance_metadata_attribute "gcr_address")
@@ -148,7 +150,7 @@ function configure_docker() {
   echo "Extracted GCR credentials to $config_path"
 
   chmod 400 $config_path
-  chown ubuntu:ubuntu $config_path
+  chown $HALYARD_USER:$HALYARD_GROUP $config_path
 
   hal config provider docker-registry enable
   hal config provider docker-registry account add $gcr_account \
@@ -168,7 +170,7 @@ function configure_kubernetes() {
 
   local config_path="$KUBE_FILE"
   mkdir -p $(dirname $config_path)
-  chown -R spinnaker:spinnaker $(dirname $config_path)
+  chown -R $HALYARD_USER:$HALYARD_GROUP $(dirname $config_path)
 
   local kube_account=$(get_instance_metadata_attribute "kube_account")
   local kube_cluster=$(get_instance_metadata_attribute "kube_cluster")
@@ -188,7 +190,7 @@ function configure_kubernetes() {
     if [[ -s $config_path ]]; then
       echo "Kubernetes credentials successfully extracted to $config_path"
       chmod 400 $config_path
-      chown ubuntu:ubuntu $config_path
+      chown $HALYARD_USER:$HALYARD_GROUP $config_path
 
       return 0
     else
@@ -214,7 +216,7 @@ function configure_kubernetes() {
 function configure_google() {
   local config_path="$GCE_FILE"
   mkdir -p $(dirname $config_path)
-  chown -R spinnaker:spinnaker $(dirname $config_path)
+  chown -R $HALYARD_USER:$HALYARD_GROUP $(dirname $config_path)
 
   echo "Google provider enabled"
 
@@ -226,7 +228,7 @@ function configure_google() {
       if [[ -s $config_path ]]; then
         args="$args --json-path $config_path"
         chmod 400 $config_path
-        chown ubuntu:ubuntu $config_path
+        chown $HALYARD_USER:$HALYARD_GROUP $config_path
         echo "Successfully wrote gce credential to $config_path"
       else
         echo "Failed to write gce credential to $config_path"
