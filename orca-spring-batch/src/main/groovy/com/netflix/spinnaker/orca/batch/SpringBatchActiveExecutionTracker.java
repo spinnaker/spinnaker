@@ -25,6 +25,7 @@ import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
@@ -90,7 +91,7 @@ public class SpringBatchActiveExecutionTracker implements ActiveExecutionTracker
   @Autowired
   public SpringBatchActiveExecutionTracker(JobOperator jobOperator,
                                            String currentInstance,
-                                           Pool<Jedis> jedisPool) {
+                                           @Qualifier("jedisPool") Pool<Jedis> jedisPool) {
     this.jobOperator = jobOperator;
     this.currentInstance = currentInstance;
     this.jedisPool = jedisPool;

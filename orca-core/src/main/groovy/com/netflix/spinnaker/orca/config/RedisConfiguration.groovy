@@ -16,16 +16,18 @@
 
 package com.netflix.spinnaker.orca.config
 
-import groovy.transform.CompileDynamic
+import com.netflix.spectator.api.Registry
 import groovy.transform.CompileStatic
 import org.apache.commons.pool2.impl.GenericObjectPool
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Protocol
@@ -43,26 +45,29 @@ class RedisConfiguration {
     new GenericObjectPoolConfig(maxTotal: 100, maxIdle: 100, minIdle: 25)
   }
 
-  @Bean
+  @Bean(name="jedisPool")
+  @Primary
   Pool<Jedis> jedisPool(@Value('${redis.connection:redis://localhost:6379}') String connection,
                         @Value('${redis.timeout:2000}') int timeout,
-                        GenericObjectPoolConfig redisPoolConfig) {
-    return createPool(redisPoolConfig, connection, timeout)
+                        GenericObjectPoolConfig redisPoolConfig,
+                        Registry registry) {
+    return createPool(redisPoolConfig, connection, timeout, registry, "jedisPool")
   }
 
-  @Bean
+  @Bean(name="jedisPoolPrevious")
   JedisPool jedisPoolPrevious(@Value('${redis.connection:redis://localhost:6379}') String mainConnection,
                               @Value('${redis.connectionPrevious:#{null}}') String previousConnection,
-                              @Value('${redis.timeout:2000}') int timeout) {
+                              @Value('${redis.timeout:2000}') int timeout,
+                              Registry registry) {
     if (mainConnection == previousConnection || previousConnection == null) {
       return null
     }
 
-    return createPool(null, previousConnection, timeout)
+    return createPool(null, previousConnection, timeout, registry, "jedisPoolPrevious")
   }
 
   @Bean
-  HealthIndicator redisHealth(Pool<Jedis> jedisPool) {
+  HealthIndicator redisHealth(@Qualifier("jedisPool") Pool<Jedis> jedisPool) {
     final Pool<Jedis> src = jedisPool
     final Field poolAccess = Pool.getDeclaredField('internalPool')
     poolAccess.setAccessible(true)
@@ -95,7 +100,7 @@ class RedisConfiguration {
     }
   }
 
-  private static JedisPool createPool(GenericObjectPoolConfig redisPoolConfig, String connection, int timeout) {
+  static JedisPool createPool(GenericObjectPoolConfig redisPoolConfig, String connection, int timeout, Registry registry, String poolName) {
     URI redisConnection = URI.create(connection)
 
     String host = redisConnection.host
@@ -106,6 +111,15 @@ class RedisConfiguration {
 
     String password = redisConnection.userInfo ? redisConnection.userInfo.split(':', 2)[1] : null
 
-    return new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null)
+    JedisPool jedisPool = new JedisPool(redisPoolConfig ?: new GenericObjectPoolConfig(), host, port, timeout, password, database, null)
+    final Field poolAccess = Pool.getDeclaredField('internalPool')
+    poolAccess.setAccessible(true)
+    GenericObjectPool<Jedis> pool = (GenericObjectPool<Jedis>) poolAccess.get(jedisPool)
+    registry.gauge(registry.createId("redis.connectionPool.maxIdle", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMaxIdle()).doubleValue() })
+    registry.gauge(registry.createId("redis.connectionPool.minIdle", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMinIdle()).doubleValue() })
+    registry.gauge(registry.createId("redis.connectionPool.numActive", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getNumActive()).doubleValue() })
+    registry.gauge(registry.createId("redis.connectionPool.numIdle", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMaxIdle()).doubleValue() })
+    registry.gauge(registry.createId("redis.connectionPool.numWaiters", "poolName", poolName), pool, { GenericObjectPool<Jedis> p -> Integer.valueOf(p.getMaxIdle()).doubleValue() })
+    return jedisPool
   }
 }

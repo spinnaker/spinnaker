@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
+import org.springframework.beans.factory.annotation.Qualifier
+
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -73,11 +75,11 @@ class JedisExecutionRepository implements ExecutionRepository {
 
   @Autowired
   JedisExecutionRepository(
-    Registry registry,
-    Pool<Jedis> jedisPool,
-    Optional<Pool<Jedis>> jedisPoolPrevious,
-    @Value('${threadPool.executionRepository:150}') int threadPoolSize,
-    @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
+      Registry registry,
+      @Qualifier("jedisPool") Pool<Jedis> jedisPool,
+      @Qualifier("jedisPoolPrevious") Optional<Pool<Jedis>> jedisPoolPrevious,
+      @Value('${threadPool.executionRepository:150}') int threadPoolSize,
+      @Value('${chunkSize.executionRepository:75}') int threadPoolChunkSize
   ) {
     this(
       jedisPool,

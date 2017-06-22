@@ -27,6 +27,7 @@ import net.greghaines.jesque.client.ClientPoolImpl
 import net.greghaines.jesque.worker.WorkerPool
 import net.lariverosc.jesquespring.SpringWorkerFactory
 import net.lariverosc.jesquespring.SpringWorkerPool
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
@@ -59,7 +60,7 @@ class JesqueConfiguration {
   }
 
   @Bean
-  Client jesqueClient(Config jesqueConfig, Pool<Jedis> jedisPool) {
+  Client jesqueClient(Config jesqueConfig, @Qualifier("jedisPool") Pool<Jedis> jedisPool) {
     new ClientPoolImpl(jesqueConfig, jedisPool)
   }
 

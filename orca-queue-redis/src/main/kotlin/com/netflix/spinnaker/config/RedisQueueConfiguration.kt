@@ -16,9 +16,13 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.config.RedisConfiguration
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher
@@ -32,8 +36,15 @@ import java.time.Clock
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
 @EnableConfigurationProperties(RedisQueueProperties::class)
 open class RedisQueueConfiguration {
+  @Bean(name = arrayOf("queueJedisPool")) open fun queueJedisPool(
+      @Value("\${redis.connection:redis://localhost:6379}") connection: String,
+      @Value("\${redis.timeout:2000}") timeout: Int,
+      redisPoolConfig: GenericObjectPoolConfig,
+      registry: Registry
+  ) = RedisConfiguration.createPool(redisPoolConfig, connection, timeout, registry, "queueJedisPool")
+
   @Bean(name = arrayOf("queueImpl")) open fun redisQueue(
-    @Qualifier("jedisPool") redisPool: Pool<Jedis>,
+    @Qualifier("queueJedisPool") redisPool: Pool<Jedis>,
     redisQueueProperties: RedisQueueProperties,
     clock: Clock,
     deadMessageHandler: DeadMessageHandler,

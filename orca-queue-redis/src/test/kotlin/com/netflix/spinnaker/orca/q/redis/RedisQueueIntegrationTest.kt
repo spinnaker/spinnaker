@@ -21,8 +21,13 @@ import com.netflix.spinnaker.orca.q.QueueIntegrationTest
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import com.netflix.spinnaker.orca.test.redis.EmbeddedRedisConfiguration
 import org.junit.runner.RunWith
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.TestPropertySource
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
+import redis.clients.jedis.Jedis
+import redis.clients.util.Pool
 
 /**
  * This just runs [QueueIntegrationTest] with a [RedisQueue] instead of an
@@ -31,6 +36,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner
 @RunWith(SpringJUnit4ClassRunner::class)
 @ContextConfiguration(classes = arrayOf(
   EmbeddedRedisConfiguration::class,
-  RedisQueueConfiguration::class
+  RedisQueueConfiguration::class,
+  RedisQueuePoolFixery::class
 ))
 class RedisQueueIntegrationTest : QueueIntegrationTest()
+
+
+
+@Configuration
+open class RedisQueuePoolFixery {
+  @Bean(name = arrayOf("queueJedisPool")) open fun redisQueue(pool: Pool<Jedis>) = pool
+}
