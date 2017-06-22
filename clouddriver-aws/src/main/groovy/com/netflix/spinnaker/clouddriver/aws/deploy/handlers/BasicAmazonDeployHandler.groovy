@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy.handlers
 
-import com.amazonaws.AmazonServiceException
 import com.amazonaws.services.autoscaling.model.BlockDeviceMapping
 import com.amazonaws.services.autoscaling.model.DescribeAutoScalingGroupsRequest
 import com.amazonaws.services.autoscaling.model.LaunchConfiguration
@@ -286,7 +285,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
           task, sourceRegionScopedProvider,
           regionScopedProvider.amazonCredentials, description.credentials,
           description.source.asgName, asgName,
-          regionScopedProvider.region, region
+          description.source.region, region
         )
       }
 
@@ -379,7 +378,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
                                               NetflixAmazonCredentials targetCredentials,
                                               String sourceAsgName,
                                               String targetAsgName,
-                                              String sourceRegions,
+                                              String sourceRegion,
                                               String targetRegion) {
     if (!sourceRegionScopedProvider) {
       return
@@ -387,7 +386,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
     def asgReferenceCopier = sourceRegionScopedProvider.getAsgReferenceCopier(targetCredentials, targetRegion)
     scalingPolicyCopier.copyScalingPolicies(task, sourceAsgName, targetAsgName,
-      sourceCredentials, targetCredentials, sourceRegions, targetRegion)
+      sourceCredentials, targetCredentials, sourceRegion, targetRegion)
     asgReferenceCopier.copyScheduledActionsForAsg(task, sourceAsgName, targetAsgName)
   }
 
