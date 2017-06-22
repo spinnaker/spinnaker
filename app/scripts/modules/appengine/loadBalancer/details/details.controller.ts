@@ -8,7 +8,7 @@ import {
   CONFIRMATION_MODAL_SERVICE,
   ConfirmationModalService,
   ILoadBalancer,
-  ILoadBalancerDeleteDescription,
+  ILoadBalancerDeleteCommand,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter
 } from '@spinnaker/core';
@@ -62,7 +62,7 @@ class AppengineLoadBalancerDetailsController {
     };
 
     const submitMethod = () => {
-      const loadBalancer: ILoadBalancerDeleteDescription = {
+      const loadBalancer: ILoadBalancerDeleteCommand = {
         cloudProvider: this.loadBalancer.cloudProvider,
         loadBalancerName: this.loadBalancer.name,
         credentials: this.loadBalancer.account,

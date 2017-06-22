@@ -13,7 +13,7 @@ export const LoadBalancerTypes: IAwsLoadBalancerConfig[] = [
     type: 'application',
     label: 'Application',
     sublabel: 'ALB',
-    description: 'Highly configurable, application-focused balancer.',
+    description: 'Highly configurable, application-focused balancer. HTTP and HTTPS only.',
     createTemplateUrl: require('../application/createApplicationLoadBalancer.html'),
     editTemplateUrl: require('../application/editApplicationLoadBalancer.html'),
     controller: 'awsCreateApplicationLoadBalancerCtrl'
@@ -31,7 +31,7 @@ export const LoadBalancerTypes: IAwsLoadBalancerConfig[] = [
     type: 'classic',
     label: 'Classic',
     sublabel: 'Legacy',
-    description: 'Previous generation balancer.',
+    description: 'Previous generation balancer (ELB).',
     createTemplateUrl: require('../classic/createClassicLoadBalancer.html'),
     editTemplateUrl: require('../classic/editClassicLoadBalancer.html'),
     controller: 'awsCreateClassicLoadBalancerCtrl'

@@ -1,5 +1,5 @@
 import { IAmazonLoadBalancerSourceData } from './IAmazonLoadBalancerSourceData';
-import { ILoadBalancer, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, IServerGroup, ISubnet } from '@spinnaker/core';
+import { ILoadBalancer, ILoadBalancerDeleteCommand, ILoadBalancerUpsertCommand, IInstance, IInstanceCounts, IServerGroup, ISubnet } from '@spinnaker/core';
 
 export interface IAmazonLoadBalancer extends ILoadBalancer {
   availabilityZones?: string[];
@@ -101,6 +101,10 @@ export interface IAmazonLoadBalancerUpsertCommand extends ILoadBalancerUpsertCom
   securityGroups: string[];
   subnetType: string;
   vpcId: string;
+}
+
+export interface IAmazonLoadBalancerDeleteCommand extends ILoadBalancerDeleteCommand {
+  loadBalancerType: string;
 }
 
 export interface IClassicListenerDescription extends IClassicListener {

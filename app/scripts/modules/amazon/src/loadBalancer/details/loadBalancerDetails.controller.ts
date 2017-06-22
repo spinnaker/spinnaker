@@ -9,7 +9,6 @@ import {
   ConfirmationModalService,
   IApplicationSecurityGroup,
   ILoadBalancer,
-  ILoadBalancerDeleteDescription,
   ISecurityGroup,
   ISubnet,
   LOAD_BALANCER_READ_SERVICE,
@@ -24,6 +23,7 @@ import {
 
 import { IAmazonApplicationLoadBalancer,
   IAmazonLoadBalancer,
+  IAmazonLoadBalancerDeleteCommand,
   IAmazonLoadBalancerSourceData,
   IApplicationLoadBalancerSourceData,
   IClassicLoadBalancerSourceData,
@@ -97,9 +97,10 @@ export class AwsLoadBalancerDetailsController {
       title: 'Deleting ' + this.loadBalancerFromParams.name,
     };
 
-    const command: ILoadBalancerDeleteDescription = {
+    const command: IAmazonLoadBalancerDeleteCommand = {
       cloudProvider: this.loadBalancer.cloudProvider,
       loadBalancerName: this.loadBalancer.name,
+      loadBalancerType: this.loadBalancer.loadBalancerType || 'classic',
       regions: [this.loadBalancer.region],
       credentials: this.loadBalancer.account,
       vpcId: get(this.loadBalancer, 'elb.vpcId', null),

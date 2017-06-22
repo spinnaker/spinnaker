@@ -18,7 +18,7 @@ export interface ILoadBalancerUpsertCommand extends IJob {
   stack?: string;
 }
 
-export interface ILoadBalancerDeleteDescription extends IJob {
+export interface ILoadBalancerDeleteCommand extends IJob {
   cloudProvider: string;
   loadBalancerName: string;
   credentials: string;
@@ -32,7 +32,7 @@ export class LoadBalancerWriter {
     'ngInject';
   }
 
-  public deleteLoadBalancer(command: ILoadBalancerDeleteDescription, application: Application): ng.IPromise<ITask> {
+  public deleteLoadBalancer(command: ILoadBalancerDeleteCommand, application: Application): ng.IPromise<ITask> {
     command.type = 'deleteLoadBalancer';
 
     this.infrastructureCaches.clearCache('loadBalancers');

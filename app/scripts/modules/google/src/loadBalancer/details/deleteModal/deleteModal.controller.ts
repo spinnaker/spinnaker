@@ -3,7 +3,7 @@ import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import {
   Application,
-  ILoadBalancerDeleteDescription,
+  ILoadBalancerDeleteCommand,
   LOAD_BALANCER_WRITE_SERVICE,
   LoadBalancerWriter,
   TASK_MONITOR_BUILDER,
@@ -23,7 +23,7 @@ class Params {
   public deleteHealthChecks = false;
 }
 
-interface IGoogleLoadBalancerDeleteOperation extends ILoadBalancerDeleteDescription {
+interface IGoogleLoadBalancerDeleteOperation extends ILoadBalancerDeleteCommand {
   region: string;
   accountName: string;
   deleteHealthChecks: boolean;
