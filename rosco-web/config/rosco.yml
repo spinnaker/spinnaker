@@ -107,6 +107,11 @@ aws:
         instanceType: t2.micro
         sourceAmi: ami-9eaa1cf6
         sshUserName: ubuntu
+      - region: us-east-2
+        virtualizationType: hvm
+        instanceType: t2.micro
+        sourceAmi: ami-b69abcd3
+        sshUserName: ubuntu
       - region: us-west-1
         virtualizationType: hvm
         instanceType: t2.micro
