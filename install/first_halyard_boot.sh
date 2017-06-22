@@ -26,6 +26,36 @@
 #
 ### NOTE #####################################################################
 
+### FLAGS ####################################################################
+# 
+# The following flags can be provided as instance metadata
+#  
+#  gce_account (required) - name of google account to manage
+
+#  gcr_enabled (optional) - non-empty when gcr is enabled
+#  gcr_account (required for gcr) - name of gcr account to manage
+#  gcr_address (required for gcr) - name of gcr address, e.g. gcr.io, eu.gcr.io
+# 
+#  kube_enabled (optional) - non-empty when kubernetes is enabled
+#  kube_account (required for kube) - name of kubernetes account to manage
+#  kube_cluster (required for kube) - name of gke cluster to manage
+#  kube_zone (required for kube) - zone of gke cluster to manage
+# 
+#  appengine_enabled (optional) - non-empty when appengine is enabled
+#  appengine_account (required for appengine) - name of appengine account to manage
+#  appengine_git_https_username (required for appengine) - git username
+#  appengine_git_https_password (required for appengine) - git password
+# 
+#
+# Instance metadata is supplied to gcloud with
+#
+#   gcloud compute instances create <params> \
+#     --metadata key1=value1,key2,value2...
+#
+#   NOTE! This script is typically mounted in
+#         /var/spinnaker/startup/first_halyard_boot.sh, and that will need to be
+#         supplied as instance metadata as well to the startup-script key.
+### FLAGS ####################################################################
 set -e
 set -u
 
