@@ -2,7 +2,7 @@ language: java
 jdk:
 - oraclejdk8
 sudo: false
-script: gradle/testViaTravis.sh
+script: gradle/buildViaTravis.sh
 before_cache: gradle/prepCaches.sh
 cache:
   directories:
