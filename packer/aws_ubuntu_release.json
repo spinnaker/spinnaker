@@ -56,7 +56,7 @@
     "provisioners": [
         {
             "type": "shell",
-            "inline_shebang": "/bin/bash",
+            "inline_shebang": "/bin/bash -e",
             "inline": [
                 "sleep 45",
                 "sudo resize2fs /dev/xvda1",
@@ -80,7 +80,7 @@
         },        
         {
             "type": "shell",
-            "inline_shebang": "/bin/bash",
+            "inline_shebang": "/bin/bash -e",
             "inline": [
                 "sudo chmod 755 /tmp/InstallSpinnaker.sh",
                 "sudo /tmp/InstallSpinnaker.sh --cloud_provider none",
