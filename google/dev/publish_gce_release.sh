@@ -30,6 +30,7 @@
 set -e
 set -u
 set -o pipefail
+set -x
 
 SERVICE_ACCOUNT=${SERVICE_ACCOUNT:-""}
 ORIGINAL_ARTIFACT_REPO_PATH=${ORIGINAL_ARTIFACT_REPO_PATH:-""}
@@ -169,16 +170,16 @@ gcloud compute disks create "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --image "$ORIGINAL_IMAGE"
 
 echo "Publishing image"
-local create_image_args=""
+CREATE_IMAGE_ARGS=""
 if [ -n "$PUBLISH_FAMILY" ]; then
-  create_image_args="--family $PUBLISH_FAMILY"
+  CREATE_IMAGE_ARGS="--family $PUBLISH_FAMILY"
 fi
 
 gcloud compute images create "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --project "$PUBLISH_PROJECT_ID" \
     --source-disk-zone "$ZONE" \
     --source-disk "$PUBLISH_IMAGE" \
-    $create_image_args
+    $CREATE_IMAGE_ARGS
 
 echo "Deleting disk"
 gcloud compute disks delete "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
