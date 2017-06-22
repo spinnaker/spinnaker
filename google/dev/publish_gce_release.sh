@@ -96,6 +96,10 @@ function process_args() {
            PUBLISH_PROJECT_ID="$1"
            shift
            ;;
+         --publish_family)
+           PUBLISH_FAMILY="$1"
+           shift
+           ;;
          --original_repo)
            ORIGINAL_ARTIFACT_REPO_PATH="$1"
            shift
@@ -165,10 +169,16 @@ gcloud compute disks create "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --image "$ORIGINAL_IMAGE"
 
 echo "Publishing image"
+local create_image_args=""
+if [ -n "$PUBLISH_FAMILY" ]; then
+  create_image_args="--family $PUBLISH_FAMILY"
+fi
+
 gcloud compute images create "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
     --project "$PUBLISH_PROJECT_ID" \
     --source-disk-zone "$ZONE" \
-    --source-disk "$PUBLISH_IMAGE"
+    --source-disk "$PUBLISH_IMAGE" \
+    $create_image_args
 
 echo "Deleting disk"
 gcloud compute disks delete "$PUBLISH_IMAGE" $GCLOUD_ACCOUNT_ARG\
