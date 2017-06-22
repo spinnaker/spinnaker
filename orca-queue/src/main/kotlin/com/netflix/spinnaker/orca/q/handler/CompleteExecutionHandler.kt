@@ -22,10 +22,7 @@ import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.q.CancelStage
-import com.netflix.spinnaker.orca.q.CompleteExecution
-import com.netflix.spinnaker.orca.q.MessageHandler
-import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.*
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -76,7 +73,7 @@ open class CompleteExecutionHandler
         block.invoke(TERMINAL)
       } else if (stages.any { it.getStatus() == CANCELED }) {
         block.invoke(CANCELED)
-      } else if (stages.any { it.getStatus() == STOPPED } && stages.none { it.getStatus() == RUNNING }) {
+      } else if (stages.any { it.getStatus() == STOPPED } && !stages.otherBranchesIncomplete()) {
         block.invoke(if (execution.shouldOverrideSuccess()) TERMINAL else SUCCEEDED)
       } else {
         log.warn("Re-queuing $this as the execution is not yet complete")
@@ -92,6 +89,10 @@ open class CompleteExecutionHandler
     getStages()
       .filter { it.getStatus() == STOPPED }
       .any { it.getContext()["completeOtherBranchesThenFail"] == true }
+
+  private fun List<Stage<*>>.otherBranchesIncomplete() =
+    any { it.getStatus() == RUNNING } ||
+      any { it.getStatus() == NOT_STARTED && it.allUpstreamStagesComplete() }
 
   override val messageType = CompleteExecution::class.java
 }

@@ -264,4 +264,53 @@ object CompleteExecutionHandlerSpec : SubjectSpek<CompleteExecutionHandler>({
       verifyZeroInteractions(queue)
     }
   }
+
+  describe("when a branch is stopped and nothing downstream has started yet") {
+    val pipeline = pipeline {
+      application = "covfefe"
+      stage {
+        refId = "1a"
+        status = STOPPED
+        context["completeOtherBranchesThenFail"] = false
+      }
+      stage {
+        refId = "2a"
+        status = SUCCEEDED
+        context["completeOtherBranchesThenFail"] = false
+      }
+      stage {
+        refId = "1b"
+        requisiteStageRefIds = setOf("1a")
+        status = NOT_STARTED
+      }
+      stage {
+        refId = "2b"
+        requisiteStageRefIds = setOf("2a")
+        status = NOT_STARTED
+      }
+    }
+    val message = CompleteExecution(pipeline)
+
+    beforeGroup {
+      whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+    }
+
+    afterGroup(::resetMocks)
+
+    on("receiving $message") {
+      subject.handle(message)
+    }
+
+    it("does not complete the execution") {
+      verify(repository, never()).updateStatus(any(), any())
+    }
+
+    it("publishes no events") {
+      verifyZeroInteractions(publisher)
+    }
+
+    it("re-queues the message") {
+      verify(queue).push(message, retryDelay)
+    }
+  }
 })
