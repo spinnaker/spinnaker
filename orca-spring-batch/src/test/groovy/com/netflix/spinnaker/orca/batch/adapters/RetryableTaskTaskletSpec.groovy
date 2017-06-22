@@ -54,7 +54,7 @@ class RetryableTaskTaskletSpec extends Specification {
   }
 
   @Unroll
-  void "should raise TimeoutException if timeout exceeded"() {
+  void "should raise TimeoutException if timeout exceeded and markSuccessfulOnTimeout is not true"() {
     given:
     def clock = Clock.fixed(Instant.ofEpochMilli(currentTime), UTC)
     def chunkContext = new ChunkContext(
@@ -89,6 +89,9 @@ class RetryableTaskTaskletSpec extends Specification {
     timeout - 1                                | [(STAGE_TIMEOUT_OVERRIDE_KEY): timeout - 2]                                  || true
     RetryableTaskTasklet.MAX_PAUSE_TIME_MS     | [(STAGE_TIMEOUT_OVERRIDE_KEY): RetryableTaskTasklet.MAX_PAUSE_TIME_MS + 100] || false
     RetryableTaskTasklet.MAX_PAUSE_TIME_MS + 1 | [(STAGE_TIMEOUT_OVERRIDE_KEY): RetryableTaskTasklet.MAX_PAUSE_TIME_MS + 100] || true
+    timeout + 1                                | [markSuccessfulOnTimeout: false]                                             || true
+    timeout + 1                                | [markSuccessfulOnTimeout: true]                                              || false
+    timeout                                    | [markSuccessfulOnTimeout: true]                                              || false
   }
 
   void "should mark RUNNING tasks as PAUSED (and vice-versa) when pausing and resuming a pipeline"() {

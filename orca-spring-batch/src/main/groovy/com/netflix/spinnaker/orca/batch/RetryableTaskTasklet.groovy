@@ -91,6 +91,10 @@ class RetryableTaskTasklet extends TaskTasklet {
     def executionTimeMs = determineCurrentExecutionTime(clock, startTime, stage.execution.paused)
     def timeoutMs = (stage.context[STAGE_TIMEOUT_OVERRIDE_KEY] ?: timeoutMs) as long
 
+    if (executionTimeMs > timeoutMs && stage.context['markSuccessfulOnTimeout']) {
+      return new TaskResult(ExecutionStatus.SUCCEEDED)
+    }
+
     checkTimeout(executionTimeMs, timeoutMs)
     return super.doExecuteTask(stage, chunkContext)
   }
@@ -98,8 +102,7 @@ class RetryableTaskTasklet extends TaskTasklet {
   /**
    * In order to accurately determine whether this task has timed out, any time spent in a paused state must be discounted.
    */
-  private
-  static long determineCurrentExecutionTime(Clock clock, long startTime, PausedDetails pausedDetails) {
+  private static long determineCurrentExecutionTime(Clock clock, long startTime, PausedDetails pausedDetails) {
     return clock.millis() - ((pausedDetails?.pausedMs ?: 0) as Long) - startTime
   }
 

@@ -433,6 +433,42 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         }
       }
 
+      given("the execution is marked to succeed on timeout") {
+        val timeout = Duration.ofMinutes(5)
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            context = hashMapOf("markSuccessfulOnTimeout" to true) as Map<String, Any>?
+            task {
+              id = "1"
+              implementingClass = DummyTask::class.qualifiedName
+              status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+            }
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(task.timeout) doReturn timeout.toMillis()
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("marks the task as succeeded") {
+          verify(queue).push(CompleteTask(message, SUCCEEDED))
+        }
+
+        it("does not execute the task") {
+          verify(task, never()).execute(any())
+        }
+      }
+
       given("the execution had been paused") {
         val timeout = Duration.ofMinutes(5)
         val pipeline = pipeline {

@@ -64,7 +64,11 @@ open class RunTaskHandler
         queue.push(PauseTask(message))
       } else if (task.isTimedOut(stage, taskModel)) {
         // TODO: probably want something specific in the execution log
-        queue.push(CompleteTask(message, TERMINAL))
+        if (stage.getContext()["markSuccessfulOnTimeout"] == true) {
+          queue.push(CompleteTask(message, SUCCEEDED))
+        } else {
+          queue.push(CompleteTask(message, TERMINAL))
+        }
       } else {
         try {
           task.executeTask(stage) { result ->
