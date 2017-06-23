@@ -125,6 +125,21 @@ function replace_startup_script() {
   clear_instance_metadata "startup-script"
 }
 
+function enable_apis() {
+  gcloud service-management enable storage-api.googleapis.com
+
+  local gcr_enabled=$(get_instance_metadata_attribute "gcr_enabled")
+  if [ -n "$gcr_enabled" ]; then
+    gcloud service-management enable containerregistry.googleapis.com
+    gcloud service-management enable iam.googleapis.com
+  fi
+
+  local appengine_enabled=$(get_instance_metadata_attribute "appengine_enabled")
+  if [ -n "$appengine_enabled" ]; then
+    gcloud service-management enable appengine.googleapis.com
+  fi
+}
+
 function configure_docker() {
   local gcr_enabled=$(get_instance_metadata_attribute "gcr_enabled")
 
@@ -298,6 +313,7 @@ while [ "$?" != "0" ]; do
 done
 set -e
 
+enable_apis
 configure_docker
 configure_kubernetes
 configure_google
