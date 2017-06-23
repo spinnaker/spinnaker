@@ -233,6 +233,9 @@ class Builder(object):
     if self.__options.debug_gradle:
       extra_args.append('--debug')
 
+    if self.__options.gradle_cache_path:
+      extra_args.append('--gradle_user_home={}'.format(self.__options.gradle_cache_path))
+
     if name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
     elif name == 'halyard':
@@ -306,6 +309,9 @@ class Builder(object):
 
     if self.__options.debug_gradle:
       extra_args.append('--debug')
+
+    if self.__options.gradle_cache_path:
+      extra_args.append('--gradle_user_home={}'.format(self.__options.gradle_cache_path))
 
     if name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
@@ -740,6 +746,9 @@ class Builder(object):
       parser.add_argument(
           '--gcb_service_account', default='',
           help='Google service account to invoke the gcp container builder with.')
+      parser.add_argument(
+          '--gradle_cache_path', default='{home}/.gradle'.format(home=os.environ.get('HOME', '')),
+          help='Path to a gradle cache directory to use for the builds.')
 
 
   def __verify_bintray(self):
