@@ -16,6 +16,9 @@
 
 package com.netflix.spinnaker.orca.notifications.scheduling
 
+import redis.clients.jedis.ScanParams
+import redis.clients.jedis.ScanResult
+
 import java.util.concurrent.atomic.AtomicInteger
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.pipeline.model.Execution
@@ -67,12 +70,11 @@ class TopApplicationExecutionCleanupPollingNotificationAgentSpec extends Specifi
     def pipelines = buildExecutions(startTime, 3, "P1") + buildExecutions(startTime, 5, "P2")
 
     def agent = new TopApplicationExecutionCleanupPollingNotificationAgent(threshold: 2)
-    agent.jedisPool = Mock(Pool) {
-      1 * getResource() >> {
-        return Mock(Jedis) {
-          1 * keys("orchestration:app:*") >> { ["orchestration:app:app1"] }
-          1 * scard("orchestration:app:app1") >> { return orchestrations.size() }
-          0 * _
+    agent.jedisPool = Stub(Pool) {
+      getResource() >> {
+        return Stub(Jedis) {
+          scan("0", _ as ScanParams) >> { new ScanResult<String>("0", ["orchestration:app:app1"]) }
+          scard("orchestration:app:app1") >> { return orchestrations.size() }
         }
       }
     }

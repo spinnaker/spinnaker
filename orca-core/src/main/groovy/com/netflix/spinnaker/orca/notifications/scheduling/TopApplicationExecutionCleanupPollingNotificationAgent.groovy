@@ -23,6 +23,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.transform.PackageScope
+import groovy.transform.stc.ClosureParams
+import groovy.transform.stc.SimpleType
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -30,6 +32,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.context.ApplicationListener
 import org.springframework.stereotype.Component
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.ScanParams
 import redis.clients.util.Pool
 import rx.Observable
 import rx.Scheduler
@@ -93,35 +96,52 @@ class TopApplicationExecutionCleanupPollingNotificationAgent implements Applicat
 
   private void startPolling() {
     subscription = Observable
-      .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
-      .repeat()
-      .subscribe({ Long interval -> tick() })
+        .timer(pollingIntervalMs, TimeUnit.MILLISECONDS, scheduler)
+        .repeat()
+        .subscribe({ Long interval -> tick() })
   }
 
   @PackageScope
   @VisibleForTesting
   void tick() {
-    def jedis = jedisPool.resource
+    def scanParams = new ScanParams().match("orchestration:app:*").count(2000)
+    def cursor = "0"
     try {
-      jedis.keys("orchestration:app:*").each { String id ->
-        if (jedis.scard(id) > threshold) {
-          def (type, ignored, application) = id.split(":")
-          switch (type) {
-            case "orchestration":
-              log.info("Cleaning up orchestration executions (application: ${application}, threshold: ${threshold})")
+      List<String> appOrchestrations = []
+      while (true) {
+        def result = jedis { it.scan(cursor, scanParams) }
+        appOrchestrations.addAll(result.result)
+        cursor = result.stringCursor
+        if (cursor == "0") {
+          break
+        }
+      }
 
-              def executionCriteria = new ExecutionRepository.ExecutionCriteria(limit: Integer.MAX_VALUE)
-              cleanup(executionRepository.retrieveOrchestrationsForApplication(application, executionCriteria), application, "orchestration")
-              break
-            default:
-              log.error("Unable to cleanup executions, unsupported type: ${type}")
-          }
+      List<String> filtered = appOrchestrations.findAll { String id ->
+        jedis { it.scard(id) > threshold }
+      }
+
+      filtered.each { String id ->
+        def (type, ignored, application) = id.split(":")
+        switch (type) {
+          case "orchestration":
+            log.info("Cleaning up orchestration executions (application: ${application}, threshold: ${threshold})")
+
+            def executionCriteria = new ExecutionRepository.ExecutionCriteria(limit: Integer.MAX_VALUE)
+            cleanup(executionRepository.retrieveOrchestrationsForApplication(application, executionCriteria), application, "orchestration")
+            break
+          default:
+            log.error("Unable to cleanup executions, unsupported type: ${type}")
         }
       }
     } catch (Exception e) {
       log.error("Cleanup failed", e)
-    } finally {
-      jedisPool.returnResource(jedis)
+    }
+  }
+
+  private <T> T jedis(@ClosureParams(value = SimpleType, options = ['redis.clients.jedis.Jedis']) Closure<T> work) {
+    jedisPool.resource.withCloseable { Jedis jedis ->
+      work.call(jedis)
     }
   }
 
