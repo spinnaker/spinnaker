@@ -1,0 +1,12 @@
+[
+  {
+    "updatedTimestampIso": "2017-06-22T21:46:56.661Z",
+    "name": "mysampleatlascanaryconfig",
+    "updatedTimestamp": 1498168016661
+  },
+  {
+    "updatedTimestamp": 1496759532855,
+    "name": "mysamplestackdrivercanaryconfig",
+    "updatedTimestampIso": "2017-06-06T14:32:12.855Z"
+  }
+]

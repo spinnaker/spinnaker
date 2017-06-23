@@ -1,0 +1,40 @@
+{
+  "configVersion": "1.0",
+  "updatedTimestampIso": "2017-06-06T14:32:11.752Z",
+  "description": "Example Automated Canary Analysis (ACA) Configuration using Stackdriver",
+  "updatedTimestamp": 1496759531752,
+  "createdTimestamp": 1496759531752,
+  "metrics": [
+    {
+      "serviceName": "stackdriver",
+      "name": "cpu",
+      "groups": [
+        "system"
+      ],
+      "analysisConfigurations": {
+        "canary": {}
+      },
+      "query": {
+        "metricType": "compute.googleapis.com/instance/cpu/utilization",
+        "type": "stackdriver"
+      }
+    }
+  ],
+  "createdTimestampIso": "2017-06-06T14:32:11.752Z",
+  "classifier": {
+    "groupWeights": {
+      "system": 100
+    },
+    "scoreThresholds": {
+      "marginal": 75,
+      "pass": 95
+    }
+  },
+  "services": {
+    "stackdriver": {
+      "name": "stackdriver",
+      "type": "stackdriver"
+    }
+  },
+  "name": "MySampleStackdriverCanaryConfig"
+}

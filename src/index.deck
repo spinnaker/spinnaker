@@ -1,0 +1,138 @@
+<!doctype html>
+<html class="no-js" ng-app="netflix.spinnaker">
+<head>
+  <title>Spinnaker</title>
+  <meta charset="utf-8">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width">
+
+  <!-- Sample loading styles -->
+  <style>
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes glowing {
+      0% { opacity: 1; }
+      50% { opacity: .3; }
+      100% { opacity: 1; }
+    }
+
+    body {
+      margin: 0;
+    }
+
+    .loading-placeholder {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      animation: fade-in 0.5s steps(30) 1;
+      background-color: #F8F8F8;
+      text-align: center;
+      margin: 0;
+      padding: 100px 0 0 0;
+      color: #333333;
+    }
+
+    .loading-placeholder h1, .loading-placeholder h2 {
+      font-family: "Helvetic Neue", Helvetica, Arial, sans-serif;
+      font-weight: 300;
+      margin: 10px 0;
+      font-size: 30px;
+      line-height: 30px;
+      position: relative;
+      top: 0;
+      animation: fade-in 0.5s steps(30) 1;
+    }
+
+    .loading-placeholder svg {
+      animation: glowing 3.5s steps(30) infinite;
+    }
+    spinnaker > .spinnaker-container {
+      animation: fade-in 0.5s steps(30) 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sample loading styles -->
+  <div ng-style="{display: authenticating ? '' : 'none'}" class="loading-placeholder">
+    <svg version="1.1" x="0px" y="0px" width="252px" height="262.8px" viewBox="0 0 252 262.8" enable-background="new 0 0 252 262.8">
+    <linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="483.252" y1="15.4531" x2="782.4482" y2="15.4531" gradientTransform="matrix(-0.3568 0.9342 0.9342 0.3568 358.2632 -455.2441)">
+      <stop  offset="0" style="stop-color:#2B3C90"/>
+      <stop  offset="0.0932" style="stop-color:#29539C"/>
+      <stop  offset="0.2192" style="stop-color:#286DAB"/>
+      <stop  offset="0.3479" style="stop-color:#2884B9"/>
+      <stop  offset="0.4768" style="stop-color:#2699C6"/>
+      <stop  offset="0.6061" style="stop-color:#27A9CF"/>
+      <stop  offset="0.736" style="stop-color:#28B5D6"/>
+      <stop  offset="0.8667" style="stop-color:#27BDDB"/>
+      <stop  offset="1" style="stop-color:#24C1DD"/>
+    </linearGradient>
+    <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#SVGID_1_)" d="M11.072,249.742
+      c109.299,10.811,197.076-53.719,218.97-81.357c21.893-27.637-11.29-159.604-11.29-159.604
+      C182.761,97.007,117.335,230.732,11.072,249.742L11.072,249.742z"/>
+    <linearGradient id="SVGID_2_" gradientUnits="userSpaceOnUse" x1="516.3145" y1="-6.5039" x2="692.2588" y2="-6.5039" gradientTransform="matrix(-0.2988 0.9543 0.9543 0.2988 322.9976 -429.543)">
+      <stop  offset="0" style="stop-color:#2B3C90"/>
+      <stop  offset="0.0932" style="stop-color:#29539C"/>
+      <stop  offset="0.2192" style="stop-color:#286DAB"/>
+      <stop  offset="0.3479" style="stop-color:#2884B9"/>
+      <stop  offset="0.4768" style="stop-color:#2699C6"/>
+      <stop  offset="0.6061" style="stop-color:#27A9CF"/>
+      <stop  offset="0.736" style="stop-color:#28B5D6"/>
+      <stop  offset="0.8667" style="stop-color:#27BDDB"/>
+      <stop  offset="1" style="stop-color:#24C1DD"/>
+    </linearGradient>
+    <path fill-rule="evenodd" clip-rule="evenodd" fill="url(#SVGID_2_)" d="M60.99,213.809c63.75,2.367,112.338-38.172,124.042-54.975
+      c11.707-16.803-6.217-92.497-6.217-92.497C161.097,118.769,111.77,195.18,60.99,213.809L60.99,213.809z"/>
+    </svg>
+    <h1 id="welcome-message" ng-if="!authenticating">Hello!</h1>
+    <h1 style="display: none" ng-style="{display: authenticating ? '' : 'none'}">Authenticating...</h1>
+  </div>
+
+  <!-- Replaces "Welcome!" message periodically with a random quote -->
+  <script>
+    (function() {
+      var messageOptions = [
+          'If I\'m not back in five minutes... just wait longer.', // Ace Ventura: Pet Detective
+          'And that\'s why you always leave a note.', // Arrested Development
+          'Jim never has a second cup of coffee at home.', // Airplane!
+          'This is WZAZ in Chicago, where disco lives forever.', // Airplane!
+          'Carpe dentum. Seize the teeth.', // Mrs. Doubtfire
+          'Ah! Norman Bates!', // Airplane! (it was a really good movie)
+          'I am the walrus.', // The Big Lebowski
+          'And a good day to you, sir!', // The Big Lebowski (also a really good movie)
+          'Do you want ants? Because that\'s how you get ants!', // Archer
+          'Kids you can literally fly!', // Key and Peele
+          'Goats are the only animals with an innate sense of democracy. That\'s why they\'re called "Nature\'s President".',
+          'Goats are stupid, mean, and hardheaded animals. That\'s why they\'re called "Nature\'s President".', // Mr. Show
+          'I\'d like to add you to my professional network',
+          'Reticulating splines', // Simcity 2000
+          'They mostly come at night. Mostly.' // Aliens
+      ];
+
+      if (Math.random() < 0.02) {
+        var idx = Math.floor(Math.random() * messageOptions.length);
+        document.querySelector('#welcome-message').innerHTML = messageOptions[idx];
+      }
+    })();
+  </script>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  </script>
+
+  <!-- Actually injects our application -->
+  <spinnaker ng-if="!authenticating"></spinnaker>
+
+</body>
+</html>
