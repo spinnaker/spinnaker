@@ -1,11 +1,15 @@
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.model.TaskId
 import com.netflix.spinnaker.orca.kato.pipeline.support.SourceResolver
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
+import retrofit.mime.TypedString
 import spock.lang.Specification
 
 class CleanUpTagsTaskSpec extends Specification {
@@ -57,8 +61,21 @@ class CleanUpTagsTaskSpec extends Specification {
       ]
     ]
 
+    def serverGroup = new TypedByteArray('application/json', new ObjectMapper().writeValueAsBytes([
+      launchConfig: [
+        imageId: "imageId"
+      ]
+    ]))
+
+    Response oortResponse = new Response('http://oort', 200, 'OK', [], serverGroup);
+
     List<Map> operations = []
+    task.objectMapper = new ObjectMapper();
     task.oortService = Mock(OortService) {
+      1* getServerGroup("app","test", "app", "app-v00", "us-east-1", "aws") >> {
+        oortResponse
+      }
+
       1* getEntityTags("aws", "servergroup", "app-v00", "test", "us-east-1") >> {
         tags
       }
