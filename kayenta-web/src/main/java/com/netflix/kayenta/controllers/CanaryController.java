@@ -16,7 +16,6 @@
 
 package com.netflix.kayenta.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -62,7 +61,6 @@ public class CanaryController {
   private final AccountCredentialsRepository accountCredentialsRepository;
   private final StorageServiceRepository storageServiceRepository;
   private final List<CanaryScopeFactory> canaryScopeFactories;
-  private final ObjectMapper objectMapper;
 
   @Autowired
   public CanaryController(String currentInstanceId,
@@ -70,15 +68,13 @@ public class CanaryController {
                           ExecutionRepository executionRepository,
                           AccountCredentialsRepository accountCredentialsRepository,
                           StorageServiceRepository storageServiceRepository,
-                          List<CanaryScopeFactory> canaryScopeFactories,
-                          ObjectMapper objectMapper) {
+                          List<CanaryScopeFactory> canaryScopeFactories) {
     this.currentInstanceId = currentInstanceId;
     this.pipelineLauncher = pipelineLauncher;
     this.executionRepository = executionRepository;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
     this.canaryScopeFactories = canaryScopeFactories;
-    this.objectMapper = objectMapper;
   }
 
   @ApiOperation(value = "Initiate a canary pipeline")
@@ -86,8 +82,8 @@ public class CanaryController {
   public String initiateCanary(@RequestParam(required = false) final String metricsAccountName,
                                @RequestParam(required = false) final String storageAccountName,
                                @ApiParam(defaultValue = "MySampleStackdriverCanaryConfig") @RequestParam String canaryConfigId,
-                               @ApiParam(defaultValue = "myapp-v010-") @RequestParam String baselineScope,
-                               @ApiParam(defaultValue = "myapp-v021-") @RequestParam String canaryScope,
+                               @ApiParam(defaultValue = "myapp-v010-") @RequestParam String controlScope,
+                               @ApiParam(defaultValue = "myapp-v021-") @RequestParam String experimentScope,
                                // TODO(duftler): Standardize on ISO timestamps.
                                @ApiParam(defaultValue = "1496329980000") @RequestParam String startTimeMillis,
                                @ApiParam(defaultValue = "1496417220000") @RequestParam String endTimeMillis,
@@ -125,12 +121,12 @@ public class CanaryController {
         .filter((f) -> f.handles(serviceType)).findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary scope factory for '" + serviceType + "'."));
 
-    CanaryScope baselineScopeModel =
-      canaryScopeFactory.buildCanaryScope(baselineScope, startTimeMillis, endTimeMillis, step, extendedScopeParams);
-    CanaryScope canaryScopeModel =
-      canaryScopeFactory.buildCanaryScope(canaryScope, startTimeMillis, endTimeMillis, step, extendedScopeParams);
+    CanaryScope controlScopeModel =
+      canaryScopeFactory.buildCanaryScope(controlScope, startTimeMillis, endTimeMillis, step, extendedScopeParams);
+    CanaryScope experimentScopeModel =
+      canaryScopeFactory.buildCanaryScope(experimentScope, startTimeMillis, endTimeMillis, step, extendedScopeParams);
 
-    Map<String, Object> fetchBaselineContext =
+    Map<String, Object> fetchControlContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
           // TODO(duftler): Experiment with using descriptive names for refId.
@@ -139,10 +135,10 @@ public class CanaryController {
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
           .put("canaryConfigId", canaryConfigId)
-          .put(serviceType + "CanaryScope", baselineScopeModel)
+          .put(serviceType + "CanaryScope", controlScopeModel)
           .build());
 
-    Map<String, Object> fetchCanaryContext =
+    Map<String, Object> fetchExperimentContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
           .put("refId", "2")
@@ -150,7 +146,7 @@ public class CanaryController {
           .put("metricsAccountName", resolvedMetricsAccountName)
           .put("storageAccountName", resolvedStorageAccountName)
           .put("canaryConfigId", canaryConfigId)
-          .put(serviceType + "CanaryScope", canaryScopeModel)
+          .put(serviceType + "CanaryScope", experimentScopeModel)
           .build());
 
     Map<String, Object> mixMetricSetsContext =
@@ -160,8 +156,8 @@ public class CanaryController {
           .put("requisiteStageRefIds", new ImmutableList.Builder().add("1").add("2").build())
           .put("user", "[anonymous]")
           .put("storageAccountName", resolvedStorageAccountName)
-          .put("controlMetricSetListIds", "${ #stage('Fetch Baseline from " + serviceType + "')['context']['metricSetListIds']}")
-          .put("experimentMetricSetListIds", "${ #stage('Fetch Canary from " + serviceType + "')['context']['metricSetListIds']}")
+          .put("controlMetricSetListIds", "${ #stage('Fetch Control from " + serviceType + "')['context']['metricSetListIds']}")
+          .put("experimentMetricSetListIds", "${ #stage('Fetch Experiment from " + serviceType + "')['context']['metricSetListIds']}")
           .build());
 
     Map<String, Object> canaryJudgeContext =
@@ -171,7 +167,7 @@ public class CanaryController {
           .put("requisiteStageRefIds", Collections.singletonList("3"))
           .put("user", "[anonymous]")
           .put("canaryConfigId", canaryConfigId)
-          .put("metricSetPairListId", "${ #stage('Mix Baseline and Canary Results')['context']['metricSetPairListId']}")
+          .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
           .build());
 
     Pipeline pipeline =
@@ -180,9 +176,9 @@ public class CanaryController {
         .withApplication("kayenta-" + currentInstanceId)
         .withName("Standard Canary Pipeline")
         .withPipelineConfigId(UUID.randomUUID() + "")
-        .withStage(serviceType + "Fetch", "Fetch Baseline from " + serviceType, fetchBaselineContext)
-        .withStage(serviceType + "Fetch", "Fetch Canary from " + serviceType, fetchCanaryContext)
-        .withStage("metricSetMixer", "Mix Baseline and Canary Results", mixMetricSetsContext)
+        .withStage(serviceType + "Fetch", "Fetch Control from " + serviceType, fetchControlContext)
+        .withStage(serviceType + "Fetch", "Fetch Experiment from " + serviceType, fetchExperimentContext)
+        .withStage("metricSetMixer", "Mix Control and Experiment Results", mixMetricSetsContext)
         .withStage("canaryJudge", "Perform Analysis", canaryJudgeContext)
         .withParallel(true)
         .withLimitConcurrent(false)
