@@ -1,4 +1,4 @@
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;

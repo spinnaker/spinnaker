@@ -14,37 +14,29 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Singular;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryJudgeResult {
+public class CanaryJudgeScore {
 
   @NotNull
   @Getter
-  private Map<String, CanaryAnalysisResult> results;
+  private double score;
 
   @NotNull
   @Getter
-  private List<CanaryJudgeGroupScore> groupScores;
+  private String classification;
 
   @NotNull
   @Getter
-  private CanaryJudgeSummary summary;
+  private String classificationReason;
 }
-

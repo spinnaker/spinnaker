@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
@@ -26,17 +26,12 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryJudgeScore {
+public class CanaryJudgeGroupScore {
+  @NotNull
+  @Getter
+  private String name;
 
   @NotNull
   @Getter
-  private double score;
-
-  @NotNull
-  @Getter
-  private String classification;
-
-  @NotNull
-  @Getter
-  private String classificationReason;
+  private CanaryJudgeScore score;
 }

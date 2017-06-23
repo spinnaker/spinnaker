@@ -14,32 +14,36 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.canary.results;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryJudgeSummary {
+public class CanaryJudgeResult {
 
   @NotNull
   @Getter
-  private CanaryJudgeScore score;
+  private Map<String, CanaryAnalysisResult> results;
 
-  // Todo: (mgraff) This is only used for freemarker email reports, remove?
   @NotNull
   @Getter
-  private List<CanaryJudgeSummaryClassification> classificationCounts;
+  private List<CanaryJudgeGroupScore> groupScores;
 
-  // Todo: (mgraff) This is only used for freemarker email reports, remove?
+  @NotNull
   @Getter
-  private int metricCount;
+  private CanaryJudgeSummary summary;
 }
 
