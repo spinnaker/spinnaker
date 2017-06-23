@@ -64,6 +64,8 @@ INSTANCE_METADATA_URL="$METADATA_URL/instance"
 HALYARD_USER=$(cat /opt/spinnaker/config/halyard-user)
 HALYARD_GROUP=$(cat /opt/spinnaker/config/halyard-user)
 
+HAL="hal -q --log=info "
+
 KUBE_FILE="/home/ubuntu/.kube/config"
 GCR_FILE="/home/ubuntu/.gcp/gce-account.json"
 GCE_FILE="/home/ubuntu/.gcp/gcr-account.json"
@@ -152,8 +154,8 @@ function configure_docker() {
   chmod 400 $config_path
   chown $HALYARD_USER:$HALYARD_GROUP $config_path
 
-  hal config provider docker-registry enable
-  hal config provider docker-registry account add $gcr_account \
+  $HAL config provider docker-registry enable
+  $HAL config provider docker-registry account add $gcr_account \
     --password-file $config_path \
     --username _json_key \
     --address $gcr_address
@@ -207,8 +209,8 @@ function configure_kubernetes() {
 
   local gcr_account=$(get_instance_metadata_attribute "gcr_account")
 
-  hal config provider kubernetes enable
-  hal config provider kubernetes account add $kube_account \
+  $HAL config provider kubernetes enable
+  $HAL config provider kubernetes account add $kube_account \
     --kubeconfig-path $config_path \
     --docker-registries $gcr_account
 }
@@ -239,9 +241,9 @@ function configure_google() {
     fi
   fi
 
-  hal config provider google account add $gce_account $args
+  $HAL config provider google account add $gce_account $args
 
-  hal config provider google enable
+  $HAL config provider google enable
 }
 
 function configure_appengine() {
@@ -257,26 +259,26 @@ function configure_appengine() {
   local git_https_username=$(get_instance_metadata_attribute "appengine_git_https_username")
   local git_https_password=$(get_instance_metadata_attribute "appengine_git_https_password")
 
-  hal config provider appengine account add $account_name \
+  $HAL config provider appengine account add $account_name \
       --project $MY_PROJECT
 
   if [ -n "$git_https_password" ] && [ -n "$git_https_username" ]; then
-      echo $git_https_password | hal config provider appengine account edit $account_name \
+      echo $git_https_password | $HAL config provider appengine account edit $account_name \
           --git-https-username $git_https_username \
           --git-https-password
   fi
 
-  hal config provider appengine enable
+  $HAL config provider appengine enable
 }
 
 function configure_storage() {
-  hal config storage gcs edit --project $MY_PROJECT --bucket spinnaker-$MY_PROJECT
-  hal config storage edit --type gcs
+  $HAL config storage gcs edit --project $MY_PROJECT --bucket spinnaker-$MY_PROJECT
+  $HAL config storage edit --type gcs
 }
 
 function install_spinnaker() {
-  hal config deploy edit --type LocalDebian
-  hal deploy apply
+  $HAL config deploy edit --type LocalDebian
+  $HAL deploy apply
 }
 
 MY_ZONE=""
@@ -291,10 +293,10 @@ fi
 echo "Waiting for halyard to start running..."
 
 set +e
-hal --ready &> /dev/null
+$HAL --ready &> /dev/null
 
 while [ "$?" != "0" ]; do
-  hal --ready &> /dev/null
+  $HAL --ready &> /dev/null
 done
 set -e
 
