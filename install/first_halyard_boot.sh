@@ -94,7 +94,6 @@ function replace_startup_script() {
 }
 
 function enable_apis() {
-  gcloud service-management enable compute.googleapis.com
   gcloud service-management enable storage-api.googleapis.com
 
   local gcr_enabled=$(get_instance_metadata_attribute "gcr_enabled")
