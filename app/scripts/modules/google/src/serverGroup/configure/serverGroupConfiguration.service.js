@@ -472,7 +472,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
     }
 
     function getXpnHostProjectIfAny(network) {
-      if (network.includes('/')) {
+      if (network && network.includes('/')) {
         return network.split('/')[0] + '/';
       } else {
         return '';
