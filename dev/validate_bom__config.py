@@ -843,10 +843,60 @@ class MonitoringConfigurator(object):
       raise ValueError('gateway is only applicable to '
                        ' --monitoring_install_which="prometheus"')
 
+  def __inject_prometheus_node_exporter(self, options, script):
+    """Add installation instructions for node_exporter
+
+    Add these to the start of the script so we can monitor installation.
+    """
+    version = '0.14.0'
+    node_version = 'node_exporter-{0}.linux-amd64'.format(version)
+    install_node_exporter = [
+        'curl -s -S -L -o /tmp/node_exporter.gz'
+        ' https://github.com/prometheus/node_exporter/releases/download'
+        '/v{version}/{node_version}.tar.gz'
+        .format(version=version, node_version=node_version),
+
+        'sudo tar xzf /tmp/node_exporter.gz -C /opt',
+
+        'sudo ln -fs /opt/{node_version}/node_exporter'
+        ' /usr/bin/node_exporter'
+        .format(node_version=node_version),
+
+        'rm /tmp/node_exporter.gz',
+
+        'echo "start on filesystem or runlevel [2345]"'
+        ' | sudo tee /etc/init/node_exporter.conf',
+        'echo "exec /usr/bin/node_exporter 2>&1 /var/log/node_exporter.log"'
+        ' | sudo tee -a /etc/init/node_exporter.conf',
+        'sudo chmod 644 /etc/init/node_exporter.conf',
+
+        'sudo service node_exporter restart'
+      ]
+
+    # Prepend install_node_exporter to the beginning of the list.
+    # This is so we can monitor installation process itself,
+    # at least from this point in the script execution (before halyard install).
+    #
+    # There is no prepend, only individual element insert.
+    # But there is a reverse, so we'll do a bit of manipulation here
+    script.reverse()
+    install_node_exporter.reverse()
+    script.extend(install_node_exporter)
+    script.reverse()
+
   def add_config(self, options, script):
     """Implements interface."""
     if not options.monitoring_install_which:
       return
+
+    # Start up monitoring now so we can monitor these VMs
+    if (options.monitoring_install_which == 'prometheus'
+        and options.deploy_spinnaker_type == 'localdebian'):
+      self.__inject_prometheus_node_exporter(options, script)
+
+    script.append('mkdir -p  ~/.hal/default/service-settings')
+    script.append('echo "host: 0.0.0.0"'
+                  ' > ~/.hal/default/service-settings/monitoring-daemon.yml')
 
     script.append('hal -q --log=info config metric-stores {which} enable'
                   .format(which=options.monitoring_install_which))

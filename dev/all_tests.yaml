@@ -44,6 +44,21 @@ tests:
     requires:
       configuration:
         spinnaker_storage: gcs
+
+        # NOTE (20170622):
+        # Localdebian because for some reason kubectl doesnt work
+        # the port forwarding into front50 will often be reset by peer
+        # I think this is a k8s issue but cant figure it out.
+        #
+        # It is only for front50, only with kubernetes, and very consistent,
+        # though doesnt seem to happen in fresh clusters. Internal pods
+        # are fine (other services use front50 without incident).
+        #
+        # I'm disabling this test in k8s for now. It shouldnt be sensitive to
+        # the deployment environment so gce deployments are sufficient to confirm
+        # front50 working correctly (and other k8s tests use it indirectly).
+        deploy_spinnaker_type: localdebian
+
       services: [front50]
     api: front50
     args:

@@ -904,6 +904,22 @@ class AzureValidateBomDeployer(GenericVmValidateBomDeployer):
         .format(name=options.deploy_azure_name,
                 rg=options.deploy_azure_resource_group))
 
+  def do_determine_instance_ip(self):
+    """Implements GenericVmValidateBomDeployer interface."""
+    options = self.options
+    response = run_and_monitor(
+        'az vm list-ip-addresses --name {name} --resource-group {group}'.format(
+            name=options.deploy_azure_name,
+            group= options.deploy_azure_resource_group),
+        echo=False)
+    if response.returncode != 0:
+      raise ValueError('Could not determine public IP: {0}'.format(response))
+    found = json.JSONDecoder().decode(response.stdout)[0].get('virtualMachine')
+    if not found:
+      raise RuntimeError(
+          '"{0}" is not running'.format(options.deploy_azure_name))
+    return found['network']['publicIpAddresses'][0]['ipAddress']
+
 
 class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
   """Concrete deployer used to deploy Hal onto Google Cloud Platform.
