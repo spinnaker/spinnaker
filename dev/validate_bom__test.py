@@ -518,6 +518,7 @@ class ValidateBomTestController(object):
     time.sleep(1)
 
     threadid = hex(threading.current_thread().ident)
+    count = 0
     while forwarding.child.poll() is None:
       try:
         # localhost is hardcoded here because we are port forwarding.
@@ -536,11 +537,14 @@ class ValidateBomTestController(object):
         return forwarding
 
       except (urllib2.URLError, Exception) as error:
-        logging.info('WaitOn got %s | %s', error, threadid)
+        if count % 5 == 0:
+          # poll every two seconds but only report every 10
+          logging.info('WaitOn got %s | %s', error, threadid)
+        count += 1
         if time.time() >= end_time:
           logging.error('Timing out waiting for %s | %s', service_name, threadid)
           raise error
-        time.sleep(1.0)
+        time.sleep(2.0)
 
     logging.error('It appears %s is no longer available.'
                   ' Perhaps the tunnel closed.',
