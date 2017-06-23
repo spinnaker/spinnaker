@@ -62,6 +62,8 @@ import citest.base
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
 
+from botocore.exceptions import (BotoCoreError, ClientError)
+
 
 class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
   """Defines the scenario for the smoke test.
@@ -245,17 +247,20 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.elb_client.describe_load_balancers,
          LoadBalancerNames=[load_balancer_name])
-     .contains_path_match(
-         'LoadBalancerDescriptions',
-         {'HealthCheck': jp.DICT_MATCHES({
-             key: jp.EQUIVALENT(value) for key, value in health_check.items()}),
-          'AvailabilityZones': jp.LIST_SIMILAR(avail_zones),
-          'ListenerDescriptions/Listener':
-              jp.DICT_MATCHES(
-                  {key: jp.NUM_EQ(value)
-                   for key, value in listener['Listener'].items()})
-         })
-    )
+     .expect_value_list_contains(
+         jp.DICT_MATCHES({
+             'LoadBalancerDescriptions': jp.LIST_MATCHES([
+               jp.DICT_MATCHES(
+                   {'HealthCheck':
+                    jp.DICT_MATCHES({
+                        key: jp.EQUIVALENT(value) for key, value in health_check.items()}),
+                    'AvailabilityZones': jp.LIST_SIMILAR(avail_zones),
+                    'ListenerDescriptions/Listener':
+                        jp.DICT_MATCHES(
+                            {key: jp.NUM_EQ(value)
+                             for key, value in listener['Listener'].items()})
+                })])
+         })))
 
     title_decorator = '_with_vpc' if use_vpc else '_without_vpc'
     return st.OperationContract(
@@ -300,8 +305,9 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.elb_client.describe_load_balancers,
          LoadBalancerNames=[load_balancer_name])
-     .append_verifier(
-         aws.AwsErrorVerifier('ExpectError', 'LoadBalancerNotFound')))
+     .expect_error_list_contains(
+         jp.ExceptionMatchesPredicate(
+               (BotoCoreError, ClientError), 'LoadBalancerNotFound')))
 
     title_decorator = '_with_vpc' if use_vpc else '_without_vpc'
     return st.OperationContract(
@@ -377,7 +383,11 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.autoscaling_client.describe_auto_scaling_groups,
          AutoScalingGroupNames=[group_name])
-     .contains_path_match('AutoScalingGroups', {'MaxSize': jp.NUM_EQ(2)}))
+     .expect_value_list_contains(
+         jp.DICT_MATCHES(
+             {'AutoScalingGroups': jp.LIST_MATCHES([
+                 jp.DICT_MATCHES({'MaxSize': jp.NUM_EQ(2)})])
+             })))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -413,9 +423,16 @@ class AwsSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Auto Scaling Group Removed')
      .call_method(
          self.autoscaling_client.describe_auto_scaling_groups,
-         AutoScalingGroupNames=[group_name])
-     .append_verifier(
-         aws.AwsErrorVerifier('ExpectError', 'AutoScalingGroupNotFound')))
+        AutoScalingGroupNames=[group_name])
+     .expect_error_list_contains(
+         jp.ExceptionMatchesPredicate(
+               (BotoCoreError, ClientError), 'AutoScalingGroupNotFound'))
+     .or_value_list_contains(
+         jp.DICT_MATCHES(
+             {'AutoScalingGroups': jp.LIST_MATCHES([
+              jp.DICT_MATCHES({'Status': jp.STR_SUBSTR('Delete'),
+                               'MaxSize': jp.NUM_EQ(0)})])
+             })))
 
     return st.OperationContract(
         self.new_post_operation(

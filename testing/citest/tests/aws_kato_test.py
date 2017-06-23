@@ -69,6 +69,8 @@ import citest.service_testing as st
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
 
+from botocore.exceptions import (BotoCoreError, ClientError)
+
 
 class AwsKatoTestScenario(sk.SpinnakerTestScenario):
   """Defines the scenario for the test.
@@ -157,19 +159,20 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.elb_client.describe_load_balancers,
          LoadBalancerNames=[self.__use_lb_name])
-     .contains_path_match(
-         'LoadBalancerDescriptions', {
-             'HealthCheck': jp.DICT_MATCHES(
-                 {key: jp.EQUIVALENT(value)
-                  for key, value in health_check.items()}),
-             'AvailabilityZones':
-                 jp.LIST_MATCHES([jp.STR_SUBSTR(zone) for zone in avail_zones]),
-             'ListenerDescriptions/Listener': jp.DICT_MATCHES(
-                 {key: jp.EQUIVALENT(value)
-                  for key, value in listener['Listener'].items()})
-             })
-    )
-
+     .expect_value_list_contains(
+         jp.DICT_MATCHES({
+             'LoadBalancerDescriptions': jp.LIST_MATCHES([
+               jp.DICT_MATCHES({
+                   'HealthCheck': jp.DICT_MATCHES(
+                       {key: jp.EQUIVALENT(value)
+                        for key, value in health_check.items()}),
+                   'AvailabilityZones':
+                       jp.LIST_MATCHES([jp.STR_SUBSTR(zone) for zone in avail_zones]),
+                   'ListenerDescriptions/Listener': jp.DICT_MATCHES(
+                       {key: jp.EQUIVALENT(value)
+                        for key, value in listener['Listener'].items()})
+                   })
+               ])})))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -196,8 +199,9 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.elb_client.describe_load_balancers,
          LoadBalancerNames=[self.__use_lb_name])
-     .append_verifier(
-         aws.AwsErrorVerifier('ExpectError', 'LoadBalancerNotFound')))
+     .expect_error_list_contains(
+         jp.ExceptionMatchesPredicate(
+               (BotoCoreError, ClientError), 'LoadBalancerNotFound')))
 
     return st.OperationContract(
         self.new_post_operation(
