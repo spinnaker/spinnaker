@@ -1,0 +1,83 @@
+import java.nio.file.Paths
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+apply plugin: 'nebula'
+apply plugin: 'nebula.nebula-release'
+apply plugin: 'netflix.ospackage'
+apply plugin: 'com.moowork.node'
+
+buildscript {
+  repositories {
+    jcenter()
+    maven { url "https://plugins.gradle.org/m2/" }
+  }
+  dependencies {
+    classpath 'com.moowork.gradle:gradle-node-plugin:1.1.1'
+  }
+}
+
+node {
+    // Pulls node and npm versions from package.json.
+    def packageSlurper = new JsonSlurper()
+    def packageJson = packageSlurper.parse file('package.json')
+
+    version = packageJson.engines.node
+    npmVersion = packageJson.engines.npm
+    yarnVersion = packageJson.engines.yarn
+
+    // Enabled the automatic download. False is the default (for now).
+    download = true
+}
+
+task webpack(type: NodeTask) {
+  dependsOn 'yarn'
+  workingDir '.'
+  script = file('node_modules/webpack/bin/webpack.js')
+  environment = [
+    "GATE_HOST": "api-prestaging.spinnaker.mgmt.netflix.net",
+  ]
+}
+
+task karma(type: NodeTask) {
+  script = file('node_modules/karma/bin/karma')
+  args = ["start", "--single-run", "--reporters", "progress,mocha"]
+}
+
+task generateVersionFile << {
+  'git update-index --assume-unchanged version.json'.execute()
+  def packageSlurper = new JsonSlurper()
+  def corePackage = packageSlurper.parse file('node_modules/@spinnaker/core/package.json')
+  def amazonPackage = packageSlurper.parse file('node_modules/@spinnaker/amazon/package.json')
+  def buildInfo = [
+    version: System.getenv("BUILD_NUMBER") ?: "n/a",
+    created: new Date().getTime(),
+    coreVersion: corePackage.version,
+    amazonVersion: amazonPackage.version,
+  ]
+  def buildJson = JsonOutput.prettyPrint(JsonOutput.toJson(buildInfo))
+  new File(Paths.get("build", "webpack").toString()).mkdirs()
+  new File(Paths.get("build", "webpack", "version.json").toString()).write(buildJson)
+  new File("version.json").write(buildJson)
+}
+
+webpack.outputs.dir file('build/webpack')
+
+generateVersionFile.dependsOn 'yarn'
+webpack.dependsOn 'generateVersionFile'
+karma.dependsOn 'webpack'
+buildDeb.dependsOn 'karma'
+tasks.build.dependsOn 'buildDeb'
+tasks.release.dependsOn tasks.buildDebPublish
+
+ospackage {
+  requires('spinnaker-common')
+  requires('prana-release')
+  packageName = "deck"
+  from "build/webpack"
+  into "/apps/apache/htdocs"
+  os = LINUX
+
+  postInstall "sed -i -e 's/proxy_enabled=.*/proxy_enabled=false/' /etc/default/nflx-httpd"
+}
+

@@ -1,0 +1,34 @@
+# OS Generated Files #
+*.swp
+.DS_Store
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# IDE Files
+*.ipr
+*.iws
+*.iml
+.idea/
+
+# Node Files #
+npm-debug.log
+node_modules/
+test/google/node_modules/
+
+# Build Files
+.cache-loader/
+.awcache/
+.gradle/
+.happypack/
+build/
+dist/
+lib/
+transpiled/
+
+# Test Results
+test-results.xml
+
+#gradle wrapper symlinks
+/gradle
+/gradlew

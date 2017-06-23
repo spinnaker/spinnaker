@@ -1,0 +1,52 @@
+{
+  "buildOnSave": false,
+  "compileOnSave": true,
+  "compilerOptions": {
+    "allowJs": false,
+    "baseUrl": "src",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "jsx": "react",
+    "lib": [
+      "es2016",
+      "dom"
+    ],
+    "moduleResolution": "node",
+    "module": "commonjs",
+    "noEmitHelpers": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false, // should really get to a place where we can turn this on
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "transpiled",
+    "paths": {
+      "rxjs": ["../node_modules/rxjs"] // only needed when using npm link
+    },
+    "pretty": true,
+    "removeComments": true,
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strictNullChecks": false, // should really get to a place where we can turn this on
+    "target": "es6",
+    "typeRoots": [
+      "node_modules/@types"
+    ]
+  },
+  "awesomeTypescriptLoaderOptions": {
+    "useBabel": true,
+    "useCache": true
+  },
+  "exclude": [
+    "build",
+    "node",
+    "node_modules",
+    "transpiled"
+  ],
+  "include": [
+    "test/helpers/custom-matchers.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
+}
