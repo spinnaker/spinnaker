@@ -44,6 +44,5 @@ public class CanaryJudgeResult {
 
   @NotNull
   @Getter
-  private CanaryJudgeSummary summary;
+  private CanaryJudgeScore score;
 }
-

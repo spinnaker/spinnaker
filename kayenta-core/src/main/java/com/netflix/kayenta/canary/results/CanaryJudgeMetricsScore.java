@@ -20,26 +20,20 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Builder
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CanaryJudgeSummary {
+public class CanaryJudgeMetricsScore {
 
   @NotNull
   @Getter
-  private CanaryJudgeScore score;
+  private String classification;
 
-  // Todo: (mgraff) This is only used for freemarker email reports, remove?
   @NotNull
   @Getter
-  private List<CanaryJudgeSummaryClassification> classificationCounts;
-
-  // Todo: (mgraff) This is only used for freemarker email reports, remove?
-  @Getter
-  private int metricCount;
+  private String classificationReason;
 }
 
