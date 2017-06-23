@@ -442,9 +442,12 @@ class ValidateBomTestController(object):
 
           time.sleep(20)
 
-    hack = KeepAlive()
-    hack.setDaemon(True)
-    hack.start()
+    if self.options.deploy_spinnaker_type == 'distributed':
+      # For now, distributed deployments are k8s
+      # and K8s port forwarding with kubectl requires keep alive.
+      hack = KeepAlive()
+      hack.setDaemon(True)
+      hack.start()
 
     child = subprocess.Popen(
         ' '.join(command) + ' > /dev/null', shell=True,

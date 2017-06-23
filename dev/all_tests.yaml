@@ -30,6 +30,7 @@ tests:
       services: [clouddriver, echo, front50, gate, igor, orca, rosco]
     quota:
       google_cpu: 1
+      google_forwarding_rules: 1
     api: gate
     args:
       alias: [standard_google_provider_params]
@@ -73,6 +74,10 @@ tests:
         google_account_enabled: true
       services: [clouddriver]
     api: clouddriver
+    quota:
+      google_cpu: 1
+      google_backend_services: 1
+      google_forwarding_rules: 2
     args:
       alias: [standard_google_provider_params]
 
@@ -83,6 +88,7 @@ tests:
       services: [clouddriver, front50, gate, orca]
     quota:
       google_cpu: 3
+      google_forwarding_rules: 1
     path: citest/tests/google_server_group_test.py
     api: gate
     args:
@@ -95,6 +101,7 @@ tests:
       services: [clouddriver, front50, gate, orca]
     quota:
       google_cpu: 3
+      google_forwarding_rules: 1
     path: citest/tests/google_server_group_test.py
     api: gate
     args:
@@ -108,6 +115,7 @@ tests:
       services: [clouddriver, front50, gate, orca]
     quota:
       google_cpu: 2
+      google_forwarding_rules: 1
     api: gate
     args:
       alias: [standard_google_provider_params]
