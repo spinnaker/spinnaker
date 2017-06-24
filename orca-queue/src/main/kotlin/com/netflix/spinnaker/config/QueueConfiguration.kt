@@ -37,7 +37,7 @@ import java.time.Clock
 import java.util.concurrent.Executor
 
 @Configuration
-@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log"))
+@ComponentScan(basePackages = arrayOf("com.netflix.spinnaker.orca.q", "com.netflix.spinnaker.orca.log", "com.netflix.spinnaker.orca.q.trafficshaping"))
 @EnableScheduling
 open class QueueConfiguration {
   @Bean @ConditionalOnMissingBean(Clock::class)

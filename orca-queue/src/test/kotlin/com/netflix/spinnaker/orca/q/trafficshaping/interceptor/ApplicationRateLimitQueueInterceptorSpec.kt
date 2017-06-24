@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q.interceptor
+package com.netflix.spinnaker.orca.q.trafficshaping.interceptor
 
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.q.StartStage
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimit
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitBackend
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimit
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
@@ -35,10 +36,11 @@ object ApplicationRateLimitQueueInterceptorSpec : Spek({
   val backend: RateLimitBackend = mock()
   val registry = NoopRegistry()
   val props = TrafficShapingProperties.ApplicationRateLimitingProperties()
+  val timeShapedId: Id = mock()
 
   describe("an application rate limit queue interceptor") {
     val message = StartStage(Pipeline::class.java, "1", "foo", "1")
-    val subject = ApplicationRateLimitQueueInterceptor(backend, registry, props)
+    val subject = ApplicationRateLimitQueueInterceptor(backend, registry, props, timeShapedId)
 
     describe("when learning") {
       describe("when limited no callback is returned") {

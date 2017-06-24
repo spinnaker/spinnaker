@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q.interceptor
+package com.netflix.spinnaker.orca.q.trafficshaping.interceptor
 
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TrafficShapingProperties
-import com.netflix.spinnaker.orca.q.*
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimit
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitBackend
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitContext
+import com.netflix.spinnaker.orca.q.ApplicationAware
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.trafficshaping.InterceptorType
+import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptorCallback
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimit
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -29,9 +34,10 @@ import org.slf4j.LoggerFactory
  * rate limiting logic.
  */
 class ApplicationRateLimitQueueInterceptor(
-  val backend: RateLimitBackend,
-  val registry: Registry,
-  val applicationRateLimitingProperties: TrafficShapingProperties.ApplicationRateLimitingProperties
+  private val backend: RateLimitBackend,
+  private val registry: Registry,
+  private val applicationRateLimitingProperties: TrafficShapingProperties.ApplicationRateLimitingProperties,
+  private val timeShapedId: Id
 ): TrafficShapingInterceptor {
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -41,6 +47,7 @@ class ApplicationRateLimitQueueInterceptor(
   override fun getName() = "appRateLimit"
   override fun supports(type: InterceptorType) = type == InterceptorType.MESSAGE
   override fun interceptPoll() = false
+  override fun getPriority() = applicationRateLimitingProperties.priority
 
   override fun interceptMessage(message: Message): TrafficShapingInterceptorCallback? {
     when (message) {
@@ -66,11 +73,12 @@ class ApplicationRateLimitQueueInterceptor(
             return { queue, msg, ack ->
               queue.push(msg, rateLimit.duration)
               ack.invoke()
-              registry.counter(throttledMessagesId.withTag("learning", "false").withTag("application", message.application)).increment()
+              registry.counter(throttledMessagesId.withTags("learning", "false", "application", message.application)).increment()
+              registry.counter(timeShapedId.withTags("application", message.application, "interceptor", getName())).increment(rateLimit.duration.toMillis())
             }
           }
           log.info("Would have throttled message for ${message.application}, but learning-mode enabled: $message")
-          registry.counter(throttledMessagesId.withTag("learning", "true").withTag("application", message.application)).increment()
+          registry.counter(throttledMessagesId.withTags("learning", "true", "application", message.application)).increment()
         }
         return null
       }

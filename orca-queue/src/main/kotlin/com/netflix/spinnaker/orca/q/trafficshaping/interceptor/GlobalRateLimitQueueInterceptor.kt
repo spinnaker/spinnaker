@@ -13,17 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q.interceptor
+package com.netflix.spinnaker.orca.q.trafficshaping.interceptor
 
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TrafficShapingProperties
-import com.netflix.spinnaker.orca.q.InterceptorType
 import com.netflix.spinnaker.orca.q.Message
-import com.netflix.spinnaker.orca.q.TrafficShapingInterceptor
-import com.netflix.spinnaker.orca.q.TrafficShapingInterceptorCallback
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimit
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitBackend
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitContext
+import com.netflix.spinnaker.orca.q.trafficshaping.InterceptorType
+import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptorCallback
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimit
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -33,7 +34,8 @@ import org.slf4j.LoggerFactory
 class GlobalRateLimitQueueInterceptor(
   private val backend: RateLimitBackend,
   private val registry: Registry,
-  private val properties: TrafficShapingProperties.GlobalRateLimitingProperties
+  private val properties: TrafficShapingProperties.GlobalRateLimitingProperties,
+  private val timeShapedId: Id
 ) : TrafficShapingInterceptor {
 
   private val log: Logger = LoggerFactory.getLogger(javaClass)
@@ -43,6 +45,7 @@ class GlobalRateLimitQueueInterceptor(
   override fun getName() = "globalRateLimit"
   override fun supports(type: InterceptorType): Boolean = type == InterceptorType.MESSAGE
   override fun interceptPoll(): Boolean = false
+  override fun getPriority() = properties.priority
 
   override fun interceptMessage(message: Message): TrafficShapingInterceptorCallback? {
     val rateLimit: RateLimit
@@ -67,6 +70,7 @@ class GlobalRateLimitQueueInterceptor(
           queue.push(message, rateLimit.duration)
           ack.invoke()
           registry.counter(throttledMessagesId.withTag("learning", "false")).increment()
+          registry.counter(timeShapedId.withTags("interceptor", getName())).increment(rateLimit.duration.toMillis())
         }
       }
       registry.counter(throttledMessagesId.withTag("learning", "true")).increment()

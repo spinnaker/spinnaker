@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q
+package com.netflix.spinnaker.orca.q.trafficshaping
 
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.QueueCallback
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,7 +52,7 @@ import java.time.temporal.TemporalAmount
   val messageInterceptionsId: Id = registry.createId("queue.trafficShaping.messageInterceptions")
 
   init {
-    log.info("Starting with interceptors: ${interceptors.map { it.getName() }.joinToString()}")
+    log.info("Starting with interceptors: ${interceptors.sortedBy { it.getPriority() }.map { it.getName() }.joinToString()}")
   }
 
   override fun poll(callback: QueueCallback) {

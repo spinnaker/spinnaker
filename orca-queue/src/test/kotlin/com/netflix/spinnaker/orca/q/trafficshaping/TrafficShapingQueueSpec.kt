@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.orca.q
+package com.netflix.spinnaker.orca.q.trafficshaping
 
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.QueueCallback
+import com.netflix.spinnaker.orca.q.StartStage
 import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import com.nhaarman.mockito_kotlin.*
 import org.jetbrains.spek.api.dsl.describe

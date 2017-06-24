@@ -15,13 +15,18 @@
  */
 package com.netflix.spinnaker.config
 
+import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.q.NoopTrafficShapingInterceptor
-import com.netflix.spinnaker.orca.q.TrafficShapingInterceptor
-import com.netflix.spinnaker.orca.q.interceptor.ApplicationRateLimitQueueInterceptor
-import com.netflix.spinnaker.orca.q.interceptor.GlobalRateLimitQueueInterceptor
-import com.netflix.spinnaker.orca.q.ratelimit.NoopRateLimitBackend
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitBackend
+import com.netflix.spinnaker.orca.q.trafficshaping.NoopTrafficShapingInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.capacity.ConstantPrioritizationStrategy
+import com.netflix.spinnaker.orca.q.trafficshaping.capacity.PrioritizationStrategy
+import com.netflix.spinnaker.orca.q.trafficshaping.capacity.PriorityCapacityRepository
+import com.netflix.spinnaker.orca.q.trafficshaping.interceptor.ApplicationRateLimitQueueInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.interceptor.GlobalRateLimitQueueInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.interceptor.PriorityCapacityQueueInterceptor
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.NoopRateLimitBackend
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -33,9 +38,13 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(
   TrafficShapingProperties::class,
   TrafficShapingProperties.GlobalRateLimitingProperties::class,
-  TrafficShapingProperties.ApplicationRateLimitingProperties::class
+  TrafficShapingProperties.ApplicationRateLimitingProperties::class,
+  TrafficShapingProperties.PriorityCapacityProperties::class
 )
 open class TrafficShapingConfiguration {
+
+  @Bean
+  open fun timeShapedId(registry: Registry): Id = registry.createId("queue.trafficShaping.time")
 
   @Bean
   @ConditionalOnMissingBean(RateLimitBackend::class)
@@ -45,16 +54,31 @@ open class TrafficShapingConfiguration {
   @Bean @ConditionalOnProperty("queue.trafficShaping.globalRateLimiting.enabled")
   open fun globalRateLimitQueueInterceptor(rateLimitBackend: RateLimitBackend,
                                            registry: Registry,
-                                           globalRateLimitingProperties: TrafficShapingProperties.GlobalRateLimitingProperties
+                                           globalRateLimitingProperties: TrafficShapingProperties.GlobalRateLimitingProperties,
+                                           timeShapedId: Id
   ): TrafficShapingInterceptor
-    = GlobalRateLimitQueueInterceptor(rateLimitBackend, registry, globalRateLimitingProperties)
+    = GlobalRateLimitQueueInterceptor(rateLimitBackend, registry, globalRateLimitingProperties, timeShapedId)
 
   @Bean @ConditionalOnProperty("queue.trafficShaping.applicationRateLimiting.enabled")
   open fun applicationRateLimitQueueInterceptor(rateLimitBackend: RateLimitBackend,
                                                 registry: Registry,
-                                                applicationRateLimitingProperties: TrafficShapingProperties.ApplicationRateLimitingProperties
+                                                applicationRateLimitingProperties: TrafficShapingProperties.ApplicationRateLimitingProperties,
+                                                timeShapedId: Id
   ): TrafficShapingInterceptor
-    = ApplicationRateLimitQueueInterceptor(rateLimitBackend, registry, applicationRateLimitingProperties)
+    = ApplicationRateLimitQueueInterceptor(rateLimitBackend, registry, applicationRateLimitingProperties, timeShapedId)
+
+  @Bean
+  @ConditionalOnMissingBean(PrioritizationStrategy::class)
+  @ConditionalOnProperty("queue.trafficShaping.priorityCapacity.enabled")
+  open fun constantPrioritizationStrategy() = ConstantPrioritizationStrategy()
+
+  @Bean @ConditionalOnProperty("queue.trafficShaping.priorityCapacity.enabled")
+  open fun priorityCapacityQueueInterceptor(priorityCapacityRepository: PriorityCapacityRepository,
+                                            prioritizationStrategy: PrioritizationStrategy,
+                                            registry: Registry,
+                                            properties: TrafficShapingProperties.PriorityCapacityProperties,
+                                            timeShapedId: Id): TrafficShapingInterceptor
+    = PriorityCapacityQueueInterceptor(priorityCapacityRepository, prioritizationStrategy, registry, properties, timeShapedId)
 
   @Bean @ConditionalOnMissingBean(TrafficShapingInterceptor::class)
   open fun noopTrafficShapingInterceptor() = NoopTrafficShapingInterceptor()

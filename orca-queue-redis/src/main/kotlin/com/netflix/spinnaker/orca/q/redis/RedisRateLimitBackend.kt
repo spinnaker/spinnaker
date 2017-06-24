@@ -15,9 +15,9 @@
  */
 package com.netflix.spinnaker.orca.q.redis
 
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimit
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitBackend
-import com.netflix.spinnaker.orca.q.ratelimit.RateLimitContext
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimit
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
+import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitContext
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock

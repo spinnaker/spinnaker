@@ -22,34 +22,44 @@ import java.util.*
 open class TrafficShapingProperties {
 
   @ConfigurationProperties("queue.trafficShaping.globalRateLimiting")
-  open class GlobalRateLimitingProperties {
-
-    var learning: Boolean = true
-    var capacity: Int = 100
-  }
+  open class GlobalRateLimitingProperties : InterceptorProperties()
 
   @ConfigurationProperties("queue.trafficShaping.applicationRateLimiting")
-  open class ApplicationRateLimitingProperties {
+  open class ApplicationRateLimitingProperties : OverridableCapacityProperties()
 
-    var learning: Boolean = true
-    var capacity: Int = 20
-    var capacityOverrides: List<Override> = listOf()
-    var enforcing: List<String> = listOf()
-    var ignoring: List<String> = listOf()
+  @ConfigurationProperties("queue.trafficShaping.priorityCapacity")
+  open class PriorityCapacityProperties : InterceptorProperties() {
+    override var priority = 100
+    override var capacity = 200
+  }
+}
 
-    fun getCapacity(subject: String): Int
-      = Optional.ofNullable(capacityOverrides.find { (name) ->  name == subject })
-        .map { it.value }.orElse(capacity)
+open class InterceptorProperties {
 
-    fun getEnforcing(subject: String): Boolean {
-      if (enforcing.contains(subject)) {
-        return true
-      }
-      if (ignoring.contains(subject)) {
-        return false
-      }
-      return !learning
+  open var learning: Boolean = true
+  open var priority: Int = 500
+  open var capacity: Int = 100
+}
+
+open class OverridableCapacityProperties : InterceptorProperties() {
+
+  override var capacity: Int = 20
+  var capacityOverrides: List<Override> = listOf()
+  var enforcing: List<String> = listOf()
+  var ignoring: List<String> = listOf()
+
+  fun getCapacity(subject: String): Int
+    = Optional.ofNullable(capacityOverrides.find { (name) ->  name == subject })
+    .map { it.value }.orElse(capacity)
+
+  fun getEnforcing(subject: String): Boolean {
+    if (enforcing.contains(subject)) {
+      return true
     }
+    if (ignoring.contains(subject)) {
+      return false
+    }
+    return !learning
   }
 
   data class Override(

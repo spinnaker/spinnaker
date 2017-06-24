@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.orca.q.handler.DeadMessageHandler
+import com.netflix.spinnaker.orca.q.redis.RedisPriorityCapacityRepository
 import com.netflix.spinnaker.orca.q.redis.RedisQueue
 import com.netflix.spinnaker.orca.q.redis.RedisRateLimitBackend
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,11 +32,18 @@ import java.time.Clock
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true} && \${queue.trafficShaping.enabled:false}")
-open class RedisRateLimitConfiguration {
+open class RedisTrafficShapingConfiguration {
   @Bean open fun redisRateLimitBackend(
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
     clock: Clock
   ) =
     RedisRateLimitBackend(redisPool, clock)
+
+  @Bean open fun redisPriorityCapacityRepository(
+    @Qualifier("jedisPool") redisPool: Pool<Jedis>,
+    clock: Clock,
+    properties: TrafficShapingProperties.PriorityCapacityProperties
+  ) =
+    RedisPriorityCapacityRepository(redisPool, clock, properties)
 
 }
