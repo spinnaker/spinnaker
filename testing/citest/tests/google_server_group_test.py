@@ -447,17 +447,19 @@ class GoogleServerGroupTest(st.AgentTestCase):
     self.run_test_case(self.scenario.create_load_balancer())
 
   def test_b_create_server_group(self):
-    self.run_test_case(self.scenario.create_server_group())
+    self.run_test_case(self.scenario.create_server_group(),
+                       poll_every_secs=3)
 
   def test_c_resize_server_group(self):
     self.run_test_case(self.scenario.resize_server_group())
 
   def test_d_clone_server_group(self):
     self.run_test_case(self.scenario.clone_server_group(),
+                       poll_every_secs=3,
                        # TODO(ewiseblatt): 20160314
                        # There is a lock contention race condition
                        # in clouddriver that causes intermittent failure.
-                      max_retries=5)
+                       max_retries=5)
 
   def test_e_disable_server_group(self):
     self.run_test_case(self.scenario.disable_server_group())
@@ -466,10 +468,12 @@ class GoogleServerGroupTest(st.AgentTestCase):
     self.run_test_case(self.scenario.enable_server_group())
 
   def test_g_destroy_server_group_v000(self):
-    self.run_test_case(self.scenario.destroy_server_group('v000'))
+    self.run_test_case(self.scenario.destroy_server_group('v000'),
+                       poll_every_secs=5)
 
   def test_h_destroy_server_group_v001(self):
-    self.run_test_case(self.scenario.destroy_server_group('v001'))
+    self.run_test_case(self.scenario.destroy_server_group('v001'),
+                       poll_every_secs=5)
 
   def test_z_delete_load_balancer(self):
     self.run_test_case(self.scenario.delete_load_balancer())

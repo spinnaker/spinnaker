@@ -54,10 +54,12 @@ class GoogleHttpLoadBalancerServerTest(GoogleHttpLoadBalancerTest):
       GoogleHttpLoadBalancerTestScenario)
 
   def test_f_add_server_group(self):
-    self.run_test_case(self.scenario.add_server_group())
+    self.run_test_case(self.scenario.add_server_group(),
+                       poll_every_secs=5)
 
   def test_n_delete_server_group(self):
-    self.run_test_case(self.scenario.delete_server_group())
+    self.run_test_case(self.scenario.delete_server_group(),
+                       poll_every_secs=5)
 
 
 def main():
