@@ -48,7 +48,7 @@ export class PipelineConfigService {
   }
 
   public deletePipeline(applicationName: string, pipeline: IPipeline, pipelineName: string): IPromise<void> {
-    return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName).remove();
+    return this.API.one(pipeline.strategy ? 'strategies' : 'pipelines').one(applicationName, pipelineName.trim()).remove();
   }
 
   public savePipeline(pipeline: IPipeline): IPromise<void> {
