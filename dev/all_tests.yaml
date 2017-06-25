@@ -58,7 +58,7 @@ tests:
         # I'm disabling this test in k8s for now. It shouldnt be sensitive to
         # the deployment environment so gce deployments are sufficient to confirm
         # front50 working correctly (and other k8s tests use it indirectly).
-        deploy_spinnaker_type: localdebian
+        # deploy_spinnaker_type: localdebian
 
       services: [front50]
     api: front50
