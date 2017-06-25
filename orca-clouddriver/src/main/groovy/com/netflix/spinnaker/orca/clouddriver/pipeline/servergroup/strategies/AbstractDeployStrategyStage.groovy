@@ -65,13 +65,13 @@ abstract class AbstractDeployStrategyStage extends AbstractCloudProviderAwareSta
       .withTask("determineSourceServerGroup", DetermineSourceServerGroupTask)
       .withTask("determineHealthProviders", DetermineHealthProvidersTask)
 
+    correctContext(stage)
     deployStagePreProcessors.findAll { it.supports(stage) }.each {
       it.additionalSteps().each {
         builder.withTask(it.name, it.taskClass)
       }
     }
 
-    correctContext(stage)
     Strategy strategy = (Strategy) strategies.findResult(noStrategy, {
       it.name.equalsIgnoreCase(stage.context.strategy) ? it : null
     })
