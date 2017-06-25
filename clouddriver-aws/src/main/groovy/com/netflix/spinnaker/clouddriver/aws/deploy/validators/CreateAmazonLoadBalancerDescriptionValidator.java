@@ -93,6 +93,13 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
           if (listener.getDefaultActions().size() == 0) {
             errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.missing.defaultAction");
           }
+          for (UpsertAmazonLoadBalancerV2Description.Action action: listener.getDefaultActions()) {
+            String targetGroupName = action.getTargetGroupName();
+            if (!unusedTargetGroupNames.contains(targetGroupName)) {
+              errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
+            }
+            unusedTargetGroupNames.remove(action.getTargetGroupName());
+          }
           for (UpsertAmazonLoadBalancerV2Description.Rule rule : listener.getRules()) {
             for (UpsertAmazonLoadBalancerV2Description.Action action : rule.getActions()) {
               String targetGroupName = action.getTargetGroupName();
