@@ -442,9 +442,12 @@ class ValidateBomTestController(object):
 
           time.sleep(20)
 
-    hack = KeepAlive()
-    hack.setDaemon(True)
-    hack.start()
+    if self.options.deploy_spinnaker_type == 'distributed':
+      # For now, distributed deployments are k8s
+      # and K8s port forwarding with kubectl requires keep alive.
+      hack = KeepAlive()
+      hack.setDaemon(True)
+      hack.start()
 
     child = subprocess.Popen(
         ' '.join(command) + ' > /dev/null', shell=True,
@@ -875,7 +878,8 @@ def init_argument_parser(parser):
       help='Limits how many tests to run at a time. Default is unbounded')
 
   parser.add_argument(
-      '--test_quota', default='google_backend_services=5,google_cpu=20',
+      '--test_quota',
+      default='google_backend_services=3,google_forwarding_rules=3,google_cpu=20',
       help='Comma-delimited name=value list of quota limits. This is used'
            ' to rate-limit tests based on their profiled quota specifications.')
 
