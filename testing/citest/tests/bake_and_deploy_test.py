@@ -644,8 +644,10 @@ class BakeAndDeployTest(st.AgentTestCase):
     if not self.scenario.test_google:
       self.skipTest("--test_google flag not set")
     else:
-      self.run_test_case(self.scenario.run_bake_and_deploy_google_pipeline(
-        self.scenario.google_pipeline_id))
+      self.run_test_case(
+          self.scenario.run_bake_and_deploy_google_pipeline(
+              self.scenario.google_pipeline_id),
+          poll_every_secs=5)
 
   def test_x1_delete_google_pipeline(self):
     if not self.scenario.test_google:
