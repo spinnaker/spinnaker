@@ -76,9 +76,9 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
           errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.empty");
         }
 
-        Set<String> unusedTargetGroupNames = new HashSet<>();
+        Set<String> allTargetGroupNames = new HashSet<>();
         for (UpsertAmazonLoadBalancerV2Description.TargetGroup targetGroup : albDescription.targetGroups) {
-          unusedTargetGroupNames.add(targetGroup.getName());
+          allTargetGroupNames.add(targetGroup.getName());
           if (targetGroup.getName() == null || targetGroup.getName().isEmpty()) {
             errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.name.missing");
           }
@@ -89,13 +89,16 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
             errors.rejectValue("targetGroups", "createAmazonLoadBalancerDescription.targetGroups.port.missing");
           }
         }
+        Set<String> unusedTargetGroupNames = new HashSet<>();
+        unusedTargetGroupNames.addAll(allTargetGroupNames);
+
         for (UpsertAmazonLoadBalancerV2Description.Listener listener : albDescription.listeners) {
           if (listener.getDefaultActions().size() == 0) {
             errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.missing.defaultAction");
           }
           for (UpsertAmazonLoadBalancerV2Description.Action action: listener.getDefaultActions()) {
             String targetGroupName = action.getTargetGroupName();
-            if (!unusedTargetGroupNames.contains(targetGroupName)) {
+            if (!allTargetGroupNames.contains(targetGroupName)) {
               errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
             }
             unusedTargetGroupNames.remove(action.getTargetGroupName());
@@ -103,7 +106,7 @@ class CreateAmazonLoadBalancerDescriptionValidator extends AmazonDescriptionVali
           for (UpsertAmazonLoadBalancerV2Description.Rule rule : listener.getRules()) {
             for (UpsertAmazonLoadBalancerV2Description.Action action : rule.getActions()) {
               String targetGroupName = action.getTargetGroupName();
-              if (!unusedTargetGroupNames.contains(targetGroupName)) {
+              if (!allTargetGroupNames.contains(targetGroupName)) {
                 errors.rejectValue("listeners", "createAmazonLoadBalancerDescription.listeners.invalid.targetGroup");
               }
               unusedTargetGroupNames.remove(action.getTargetGroupName());
