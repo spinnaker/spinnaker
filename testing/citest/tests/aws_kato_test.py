@@ -64,10 +64,14 @@ import citest.base
 import citest.aws_testing as aws
 import citest.json_predicate as jp
 import citest.service_testing as st
+from citest.json_contract import ObservationPredicateFactory
+ov_factory = ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
+
+from botocore.exceptions import (BotoCoreError, ClientError)
 
 
 class AwsKatoTestScenario(sk.SpinnakerTestScenario):
@@ -157,19 +161,19 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.elb_client.describe_load_balancers,
          LoadBalancerNames=[self.__use_lb_name])
-     .contains_path_match(
-         'LoadBalancerDescriptions', {
-             'HealthCheck': jp.DICT_MATCHES(
-                 {key: jp.EQUIVALENT(value)
-                  for key, value in health_check.items()}),
-             'AvailabilityZones':
-                 jp.LIST_MATCHES([jp.STR_SUBSTR(zone) for zone in avail_zones]),
-             'ListenerDescriptions/Listener': jp.DICT_MATCHES(
-                 {key: jp.EQUIVALENT(value)
-                  for key, value in listener['Listener'].items()})
-             })
-    )
-
+     .EXPECT(ov_factory.value_list_path_contains(
+         'LoadBalancerDescriptions',
+          jp.LIST_MATCHES([jp.DICT_MATCHES({
+               'HealthCheck': jp.DICT_MATCHES(
+                   {key: jp.EQUIVALENT(value)
+                    for key, value in health_check.items()}),
+               'AvailabilityZones':
+                   jp.LIST_MATCHES([jp.STR_SUBSTR(zone) for zone in avail_zones]),
+               'ListenerDescriptions/Listener': jp.DICT_MATCHES(
+                   {key: jp.EQUIVALENT(value)
+                    for key, value in listener['Listener'].items()})
+          })]))
+      ))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -196,8 +200,9 @@ class AwsKatoTestScenario(sk.SpinnakerTestScenario):
      .call_method(
          self.elb_client.describe_load_balancers,
          LoadBalancerNames=[self.__use_lb_name])
-     .append_verifier(
-         aws.AwsErrorVerifier('ExpectError', 'LoadBalancerNotFound')))
+     .EXPECT(ov_factory.error_list_contains(
+         jp.ExceptionMatchesPredicate(
+               (BotoCoreError, ClientError), 'LoadBalancerNotFound'))))
 
     return st.OperationContract(
         self.new_post_operation(
