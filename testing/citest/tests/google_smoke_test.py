@@ -392,7 +392,8 @@ class GoogleSmokeTest(st.AgentTestCase):
     # because it might be waiting on confirmation
     # but we'll continue anyway because side effects
     # should have still taken place.
-    self.run_test_case(self.scenario.create_server_group(), timeout_ok=True)
+    self.run_test_case(self.scenario.create_server_group(), timeout_ok=True,
+                       poll_every_secs=3)
 
   def test_d_upsert_http_load_balancer(self):
     self.run_test_case(GoogleHttpLoadBalancerTestScenario(self.scenario.bindings)
@@ -403,7 +404,8 @@ class GoogleSmokeTest(st.AgentTestCase):
                        .delete_http_load_balancer())
 
   def test_x_delete_server_group(self):
-    self.run_test_case(self.scenario.delete_server_group(), max_retries=5)
+    self.run_test_case(self.scenario.delete_server_group(),
+                       poll_every_secs=3, max_retries=5)
 
   def test_y_delete_load_balancer(self):
     self.run_test_case(self.scenario.delete_load_balancer(),
