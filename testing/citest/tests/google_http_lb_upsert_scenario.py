@@ -23,10 +23,13 @@ import time
 import citest.gcp_testing as gcp
 import citest.json_predicate as jp
 import citest.service_testing as st
+from citest.json_contract import ObservationPredicateFactory
+ov_factory = ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.gate as gate
+
 
 SCOPES = [gcp.COMPUTE_READ_WRITE_SCOPE]
 GCE_URL_PREFIX = 'https://www.googleapis.com/compute/v1/projects/'
@@ -188,23 +191,24 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
                                              retryable_for_secs=30)
                          .list_resource('httpHealthChecks'))
     for hc in health_checks:
-      hc_clause_builder.contains_match({
-          'name': jp.STR_EQ(hc['name']),
-          'requestPath': jp.STR_EQ(hc['requestPath']),
-          'port': jp.NUM_EQ(hc['port'])})
+      hc_clause_builder.AND(
+          ov_factory.value_list_contains(jp.DICT_MATCHES({
+              'name': jp.STR_EQ(hc['name']),
+              'requestPath': jp.STR_EQ(hc['requestPath']),
+              'port': jp.NUM_EQ(hc['port'])})))
 
     bs_clause_builder = (contract_builder.
                          new_clause_builder('Backend Services Created',
                                             retryable_for_secs=30).
                          list_resource('backendServices'))
     for bs in backend_services:
-      bs_clause_builder.contains_match({
+      bs_clause_builder.AND(ov_factory.value_list_contains(jp.DICT_MATCHES({
           'name': jp.STR_EQ(bs['name']),
           'portName': jp.STR_EQ('http'),
           'healthChecks':
               jp.LIST_MATCHES([
                   jp.STR_EQ(self._get_hc_link(bs['healthCheck']['name']))])
-        })
+        })))
 
     url_map_clause_builder = (contract_builder
                               .new_clause_builder('Url Map Created',
@@ -228,15 +232,17 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
         'pathRules':  jp.LIST_MATCHES(path_rules_spec)
         }
 
-      url_map_clause_builder.contains_match({
-          'name': jp.STR_EQ(self.__lb_name),
-          'defaultService':
-              jp.STR_EQ(self._get_bs_link(upsert['defaultService']['name'])),
-          'hostRules/hosts':
-              jp.LIST_MATCHES([jp.STR_SUBSTR(host)
-                               for host in hr['hostPatterns']]),
-          'pathMatchers': jp.LIST_MATCHES([jp.DICT_MATCHES(path_matchers_spec)]),
-          })
+      url_map_clause_builder.AND(
+          ov_factory.value_list_contains(jp.DICT_MATCHES({
+              'name': jp.STR_EQ(self.__lb_name),
+              'defaultService':
+                  jp.STR_EQ(self._get_bs_link(upsert['defaultService']['name'])),
+              'hostRules/hosts':
+                  jp.LIST_MATCHES([jp.STR_SUBSTR(host)
+                                   for host in hr['hostPatterns']]),
+              'pathMatchers':
+                  jp.LIST_MATCHES([jp.DICT_MATCHES(path_matchers_spec)]),
+          })))
 
     port_string = '443-443'
     if upsert['certificate'] == '':
@@ -245,10 +251,10 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     (contract_builder.new_clause_builder('Forwarding Rule Created',
                                          retryable_for_secs=30)
      .list_resource('globalForwardingRules')
-     .contains_match({
+     .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
           'name': jp.STR_EQ(self.__lb_name),
           'portRange': jp.STR_EQ(port_string)
-          }))
+          }))))
 
     proxy_clause_builder = contract_builder.new_clause_builder(
       'Target Proxy Created', retryable_for_secs=30)
@@ -260,11 +266,13 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     if certificate:
       target_proxy_name = target_proxy_name % (self.__lb_name, 'https')
       (proxy_clause_builder.list_resource('targetHttpsProxies')
-       .contains_path_eq('name', target_proxy_name))
+       .EXPECT(ov_factory.value_list_path_contains(
+           'name', jp.STR_EQ(target_proxy_name))))
     else:
       target_proxy_name = target_proxy_name % (self.__lb_name, 'http')
       (proxy_clause_builder.list_resource('targetHttpProxies')
-       .contains_path_eq('name', target_proxy_name))
+       .EXPECT(ov_factory.value_list_path_contains(
+           'name', jp.STR_EQ(target_proxy_name))))
 
 
   def upsert_full_load_balancer(self):
@@ -337,17 +345,20 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     (contract_builder.new_clause_builder('Health Check Removed',
                                          retryable_for_secs=30)
      .list_resource('httpHealthChecks')
-     .excludes_path_value('name', self.__proto_hc['name'])
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.__proto_hc['name'])))
     )
     (contract_builder.new_clause_builder('Url Map Removed',
                                          retryable_for_secs=30)
      .list_resource('urlMaps')
-     .excludes_path_value('name', self.__lb_name)
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.__lb_name)))
     )
     (contract_builder.new_clause_builder('Forwarding Rule Removed',
                                          retryable_for_secs=30)
      .list_resource('globalForwardingRules')
-     .excludes_path_value('name', self.__lb_name)
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.__lb_name)))
     )
 
     return st.OperationContract(
@@ -540,7 +551,8 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Security Group Created',
                                 retryable_for_secs=30)
      .list_resource('firewalls')
-     .contains_path_value('name', self.__lb_name + '-rule'))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'name', jp.STR_SUBSTR(self.__lb_name + '-rule'))))
 
     return st.OperationContract(
       self.new_post_operation(title='create security group',
@@ -571,7 +583,8 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Security Group Deleted',
                                 retryable_for_secs=30)
      .list_resource('firewalls')
-     .excludes_path_value('name', self.__lb_name + '-rule'))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.__lb_name + '-rule'))))
 
     return st.OperationContract(
       self.new_post_operation(title='delete security group',
@@ -638,7 +651,7 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Managed Instance Group Added',
                                 retryable_for_secs=30)
      .inspect_resource('instanceGroupManagers', group_name)
-     .contains_path_eq('targetSize', 1)
+     .EXPECT(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(1)))
     )
 
     return st.OperationContract(
@@ -676,14 +689,16 @@ class GoogleHttpLoadBalancerTestScenario(sk.SpinnakerTestScenario):
 
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Managed Instance Group Removed')
-     .inspect_resource('instanceGroupManagers', group_name,
-                       no_resource_ok=True)
-     .contains_path_eq('targetSize', 0))
+     .inspect_resource('instanceGroupManagers', group_name)
+     .EXPECT(
+         ov_factory.error_list_contains(gcp.HttpErrorPredicate(http_code=404)))
+     .OR(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(0))))
 
     (builder.new_clause_builder('Instances Are Removed',
                                 retryable_for_secs=30)
      .list_resource('instances')
-     .excludes_path_value('name', group_name))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(group_name))))
 
     return st.OperationContract(
       self.new_post_operation(

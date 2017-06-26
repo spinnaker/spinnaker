@@ -27,6 +27,7 @@ import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
+ov_factory = jc.ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -142,14 +143,17 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     (gcs_builder.new_clause_builder('Created Google Cloud Storage File',
                                     retryable_for_secs=5)
      .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
-     .contains_path_value('name', self.TEST_APP))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'name', jp.STR_SUBSTR(self.TEST_APP))))
     (gcs_builder.new_clause_builder('Wrote File Content')
      .retrieve_content(self.BUCKET,
                        '/'.join([self.BASE_PATH, 'applications', self.TEST_APP,
                                  'specification.json']),
                        transform=json.JSONDecoder().decode)
-     .contains_match({key: jp.EQUIVALENT(value)
-                      for key, value in expect.items()}))
+     .EXPECT(ov_factory.value_list_contains(
+         jp.DICT_MATCHES({
+             key: jp.EQUIVALENT(value)
+             for key, value in expect.items()}))))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -167,11 +171,14 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     # are here we will verify that it is also being returned when queried.
     (f50_builder.new_clause_builder('Lists Application')
      .get_url_path('/v2/applications')
-     .contains_path_value('name', self.TEST_APP.upper()))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'name', jp.STR_SUBSTR(self.TEST_APP.upper()))))
     (f50_builder.new_clause_builder('Returns Application')
      .get_url_path('/v2/applications')
-     .contains_match({key: jp.EQUIVALENT(value)
-                      for key, value in self.app_history[0].items()}))
+     .EXPECT(ov_factory.value_list_contains(
+         jp.DICT_MATCHES({
+             key: jp.EQUIVALENT(value)
+             for key, value in self.app_history[0].items()}))))
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -260,19 +267,21 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     f50_builder = st.http_observer.HttpContractBuilder(self.agent)
     (f50_builder.new_clause_builder('Unlists Application')
      .get_url_path('/v2/applications')
-     .excludes_path_value('name', self.TEST_APP.upper()))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.TEST_APP.upper()))))
     (f50_builder.new_clause_builder('Deletes Application')
      .get_url_path(app_url_path, allow_http_error_status=404))
     (f50_builder.new_clause_builder('History Retains Application',
                                     retryable_for_secs=5)
      .get_url_path('/v2/applications/{app}/history'
                    .format(app=self.TEST_APP))
-     .contains_path_match(
-          '[0]', {key: jp.EQUIVALENT(value)
-                  for key, value in self.app_history[0].items()})
-     .contains_path_match(
-          '[1]', {key: jp.EQUIVALENT(value)
-                  for key, value in self.app_history[1].items()}))
+     .EXPECT(ov_factory.value_list_matches([
+         jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                          for key, value in self.app_history[0].items()}),
+         jp.DICT_MATCHES({key: jp.EQUIVALENT(value)
+                          for key, value in self.app_history[1].items()})
+       ])))
+
     for clause in f50_builder.build().clauses:
       contract.add_clause(clause)
 
@@ -280,7 +289,8 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     gcs_builder = gcp.GcpStorageContractBuilder(self.gcs_observer)
     (gcs_builder.new_clause_builder('Deleted File', retryable_for_secs=5)
      .list_bucket(self.BUCKET, '/'.join([self.BASE_PATH, 'applications']))
-     .excludes_path_value('name', self.TEST_APP))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.TEST_APP))))
     for clause in gcs_builder.build().clauses:
       contract.add_clause(clause)
 

@@ -49,6 +49,7 @@ import citest.gcp_testing as gcp
 import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
+ov_factory = jc.ObservationPredicateFactory()
 
 # Spinnaker modules.
 from google_http_lb_upsert_scenario import GoogleHttpLoadBalancerTestScenario
@@ -189,16 +190,19 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Health Check Added',
                                 retryable_for_secs=30)
      .list_resource('httpHealthChecks')
-     .contains_match(hc_match_spec))
+     .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES(hc_match_spec))))
     (builder.new_clause_builder('Target Pool Added',
                                 retryable_for_secs=30)
      .list_resource('targetPools')
-     .contains_path_value('name', '%s-tp' % self.__lb_name))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'name', jp.STR_SUBSTR('%s-tp' % self.__lb_name))))
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
      .list_resource('forwardingRules')
-     .contains_match({'name': jp.STR_SUBSTR(self.__lb_name),
-                      'target': jp.STR_SUBSTR(target_pool_name)}))
+     .EXPECT(ov_factory.value_list_contains(
+        jp.DICT_MATCHES({
+          'name': jp.STR_SUBSTR(self.__lb_name),
+          'target': jp.STR_SUBSTR(target_pool_name)}))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -231,13 +235,16 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed', retryable_for_secs=30)
      .list_resource('httpHealthChecks')
-     .excludes_path_value('name', '%s-hc' % self.__lb_name))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR('%s-hc' % self.__lb_name))))
     (builder.new_clause_builder('TargetPool Removed')
      .list_resource('targetPools')
-     .excludes_path_value('name', '%s-tp' % self.__lb_name))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR('%s-tp' % self.__lb_name))))
     (builder.new_clause_builder('Forwarding Rule Removed')
      .list_resource('forwardingRules')
-     .excludes_path_value('name', self.__lb_name))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.__lb_name))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -290,7 +297,7 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Managed Instance Group Added',
                                 retryable_for_secs=30)
      .inspect_resource('instanceGroupManagers', group_name)
-     .contains_path_eq('targetSize', 2))
+     .EXPECT(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(2))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -327,14 +334,17 @@ class GoogleSmokeTestScenario(sk.SpinnakerTestScenario):
 
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Managed Instance Group Removed')
-     .inspect_resource('instanceGroupManagers', group_name,
-                       no_resource_ok=True)
-     .contains_path_eq('targetSize', 0))
+     .inspect_resource('instanceGroupManagers', group_name)
+     .EXPECT(ov_factory.error_list_contains(
+         gcp.HttpErrorPredicate(http_code=404)))
+     .OR(ov_factory.value_list_path_contains('targetSize', jp.NUM_EQ(0))))
 
     (builder.new_clause_builder('Instances Are Removed',
                                 retryable_for_secs=30)
      .list_resource('instances')
-     .excludes_path_value('name', group_name))
+     .EXPECT(
+         ov_factory.value_list_path_excludes(
+             'name', jp.STR_SUBSTR(group_name))))
 
     return st.OperationContract(
         self.new_post_operation(

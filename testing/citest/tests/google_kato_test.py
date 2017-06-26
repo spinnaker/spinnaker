@@ -40,7 +40,6 @@
 
 
 # Standard python modules.
-import json as json_module
 import logging
 import sys
 
@@ -52,10 +51,14 @@ import citest.base
 import citest.gcp_testing as gcp
 import citest.json_predicate as jp
 import citest.service_testing as st
+from citest.json_contract import ObservationPredicateFactory
+ov_factory = ObservationPredicateFactory()
+
 
 # Spinnaker modules.
 import spinnaker_testing as sk
 import spinnaker_testing.kato as kato
+
 
 
 GCP_STANDARD_IMAGES = {
@@ -170,7 +173,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
       (builder.new_clause_builder(
           'Instance %d Created' % i, retryable_for_secs=90)
             .aggregated_list_resource('instances')
-            .contains_path_value('name', self.use_instance_names[i]))
+            .EXPECT(ov_factory.value_list_path_contains(
+                'name', jp.STR_SUBSTR(self.use_instance_names[i]))))
       if i < 2:
         # Verify the details are what we asked for.
         # Since we've finished the created clause, this already exists.
@@ -190,7 +194,8 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
                              retryable_for_secs=90)
             .inspect_resource('instances', self.use_instance_names[i],
                               zone=self.use_instance_zones[i])
-            .contains_path_eq('status', 'RUNNING'))
+            .EXPECT(ov_factory.value_list_path_contains(
+                'status', jp.STR_EQ('RUNNING'))))
 
     payload = self.agent.make_json_payload_from_object(instance_spec)
 
@@ -223,7 +228,10 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
       # map the constraint over the observation. Otherwise, if dont map it,
       # then we'd expect the constraint to hold somewhere among the observed
       # objects, but not necessarily all of them.
-      clause.add_constraint(jp.IF(name_matches_pred, is_stopping_pred))
+      clause.AND(
+          ov_factory.value_list_matches(
+              [jp.IF(name_matches_pred, is_stopping_pred)],
+              strict=True))
 
     # pylint: disable=bad-continuation
     payload = self.agent.type_to_payload(
@@ -254,10 +262,13 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Server Group Tags Added')
         .inspect_resource('instanceGroupManagers', server_group_name)
-        .contains_match({
-            'name': jp.STR_SUBSTR(server_group_name),
-            'tags/items': jp.LIST_MATCHES(['test-tag-1', 'test-tag-2'])
-            }))
+        .EXPECT(
+            ov_factory.value_list_contains(
+                jp.DICT_MATCHES({
+                    'name': jp.STR_SUBSTR(server_group_name),
+                    jp.build_path('tags', 'items'):
+                        jp.LIST_MATCHES(['test-tag-1', 'test-tag-2'])
+                }))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -326,28 +337,28 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Http Health Check Added')
         .list_resource('httpHealthChecks')
-        .contains_match(hc_match))
+        .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES(hc_match))))
     (builder.new_clause_builder('Global Forwarding Rule Added',
                                 retryable_for_secs=15)
        .list_resource('globalForwardingRules')
-       .contains_match({
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
           'name': jp.STR_SUBSTR(self.__use_http_lb_fr_name),
-          'portRante': jp.STR_EQ(port_range)}))
+          'portRange': jp.STR_EQ(port_range)}))))
     (builder.new_clause_builder('Backend Service Added')
        .list_resource('backendServices')
-       .contains_match({
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
            'name': jp.STR_SUBSTR(self.__use_http_lb_bs_name),
-           'healthChecks': jp.STR_SUBSTR(self.__use_http_lb_hc_name)}))
+           'healthChecks': jp.STR_SUBSTR(self.__use_http_lb_hc_name)}))))
     (builder.new_clause_builder('Url Map Added')
        .list_resource('urlMaps')
-       .contains_match({
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
           'name': jp.STR_SUBSTR(self.__use_http_lb_map_name),
-          'defaultService': jp.STR_SUBSTR(self.__use_http_lb_bs_name)}))
+          'defaultService': jp.STR_SUBSTR(self.__use_http_lb_bs_name)}))))
     (builder.new_clause_builder('Target Http Proxy Added')
        .list_resource('targetHttpProxies')
-       .contains_match({
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
           'name': jp.STR_SUBSTR(self.__use_http_lb_proxy_name),
-          'urlMap': jp.STR_SUBSTR(self.__use_http_lb_map_name)}))
+          'urlMap': jp.STR_SUBSTR(self.__use_http_lb_map_name)}))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -366,19 +377,24 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed')
        .list_resource('httpHealthChecks')
-       .excludes_path_value('name', self.__use_http_lb_hc_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_http_lb_hc_name))))
     (builder.new_clause_builder('Global Forwarding Rules Removed')
        .list_resource('globalForwardingRules')
-       .excludes_path_value('name', self.__use_http_lb_fr_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_http_lb_fr_name))))
     (builder.new_clause_builder('Backend Service Removed')
        .list_resource('backendServices')
-       .excludes_path_value('name', self.__use_http_lb_bs_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_http_lb_bs_name))))
     (builder.new_clause_builder('Url Map Removed')
        .list_resource('urlMaps')
-       .excludes_path_value('name', self.__use_http_lb_map_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_http_lb_map_name))))
     (builder.new_clause_builder('Target Http Proxy Removed')
        .list_resource('targetHttpProxies')
-       .excludes_path_value('name', self.__use_http_lb_proxy_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_http_lb_proxy_name))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -421,11 +437,13 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Forwarding Rules Added',
                                 retryable_for_secs=30)
        .list_resource('forwardingRules')
-       .contains_path_value('name', self.__use_lb_name)
-       .contains_path_value('target', self.__use_lb_target))
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
+           'name': jp.STR_SUBSTR(self.__use_lb_name),
+           'target': jp.STR_SUBSTR(self.__use_lb_target)}))))
     (builder.new_clause_builder('Target Pool Added', retryable_for_secs=15)
        .list_resource('targetPools')
-       .contains_path_value('name', self.__use_lb_tp_name))
+       .EXPECT(ov_factory.value_list_path_contains(
+           'name', jp.STR_SUBSTR(self.__use_lb_tp_name))))
 
      # We list the resources here because the name isnt exact
      # and the list also returns the details we need.
@@ -437,7 +455,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     hc_match['name'] = jp.STR_SUBSTR(self.__use_http_lb_hc_name)
     (builder.new_clause_builder('Health Check Added', retryable_for_secs=15)
        .list_resource('httpHealthChecks')
-       .contains_match(hc_match))
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES(hc_match))))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -457,13 +475,16 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Health Check Removed')
        .list_resource('httpHealthChecks')
-       .excludes_path_value('name', self.__use_lb_hc_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_lb_hc_name))))
     (builder.new_clause_builder('Target Pool Removed')
        .list_resource('targetPools')
-       .excludes_path_value('name', self.__use_lb_tp_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_lb_tp_name))))
     (builder.new_clause_builder('Forwarding Rule Removed')
        .list_resource('forwardingRules')
-       .excludes_path_value('name', self.__use_lb_name))
+       .EXPECT(ov_factory.value_list_path_excludes(
+           'name', jp.STR_SUBSTR(self.__use_lb_name))))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -496,16 +517,18 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder('Instances in Target Pool',
                                 retryable_for_secs=15)
        .list_resource('targetPools')
-       .contains_match({
+       .EXPECT(ov_factory.value_list_contains(jp.DICT_MATCHES({
           'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
           'instances': jp.LIST_MATCHES([
               jp.STR_SUBSTR(self.use_instance_names[0]),
               jp.STR_SUBSTR(self.use_instance_names[1])])
-          })
-       .excludes_match({
-          'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
-          'instances': jp.LIST_MATCHES(
-              [jp.STR_SUBSTR(self.use_instance_names[2])])}))
+          })))
+       .AND(
+           ov_factory.value_list_excludes(jp.DICT_MATCHES({
+              'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
+              'instances': jp.LIST_MATCHES(
+                  [jp.STR_SUBSTR(self.use_instance_names[2])])
+           }))))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -540,12 +563,12 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
                                 retryable_for_secs=30)
        .list_resource(
           'targetPools', region=self.bindings['TEST_GCE_REGION'])
-       .excludes_match({
+       .EXPECT(ov_factory.value_list_excludes(jp.DICT_MATCHES({
           'name': jp.STR_SUBSTR(self.__use_lb_tp_name),
           'instances': jp.LIST_MATCHES([
               jp.STR_SUBSTR(self.use_instance_names[0]),
               jp.STR_SUBSTR(self.use_instance_names[1])])
-          }))
+          }))))
 
     return st.OperationContract(
       self.new_post_operation(
@@ -592,8 +615,11 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     builder = HttpContractBuilder(self.agent)
     (builder.new_clause_builder('Has Expected Images')
        .get_url_path('/gce/images/find')
-       .contains_match([jp.DICT_SUBSET(image_entry) for image_entry in expect_images],
-                       match_kwargs={'strict':True, 'unique':True}))
+       .EXPECT(
+           ov_factory.value_list_matches(
+               [jp.DICT_SUBSET(image_entry) for image_entry in expect_images],
+               strict=True,
+               unique=True)))
 
     return st.OperationContract(
         NoOpOperation('List Available Images'),

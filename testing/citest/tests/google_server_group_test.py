@@ -7,6 +7,8 @@ import sys
 import citest.gcp_testing as gcp
 import citest.json_predicate as jp
 import citest.service_testing as st
+from citest.json_contract import ObservationPredicateFactory
+ov_factory = ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -135,7 +137,8 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
      .list_resource('forwardingRules')
-     .contains_path_value('name', self.__lb_name))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'name', jp.STR_SUBSTR(self.__lb_name))))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - create load balancer',
@@ -180,15 +183,20 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(self.__mig_title + 'Created',
                                 retryable_for_secs=150)
      .list_resource(self.__mig_manager_name, **self.__mig_manager_kwargs)
-     .contains_match({'name': jp.EQUIVALENT(self.__server_group_name)}))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'name', jp.EQUIVALENT(self.__server_group_name))))
 
     (builder.new_clause_builder('Instance template created',
                                 retryable_for_secs=150)
      .list_resource('instanceTemplates')
-     .contains_path_pred('properties/metadata/items',
-                         jp.DICT_MATCHES({
-                             'key': jp.EQUIVALENT(self.__custom_user_data_key),
-                             'value': jp.EQUIVALENT(self.__custom_user_data_value)})))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'properties/metadata/items',
+         jp.LIST_MATCHES([
+             jp.DICT_MATCHES({
+                 'key': jp.EQUIVALENT(self.__custom_user_data_key),
+                 'value': jp.EQUIVALENT(self.__custom_user_data_value)})
+         ])
+     )))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job,
@@ -228,7 +236,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
         self.__mig_title + ' Resized', retryable_for_secs=90)
      .inspect_resource(self.__mig_resource_name, self.__server_group_name,
                        **self.__mig_resource_kwargs)
-     .contains_path_eq('size', 2))
+     .EXPECT(ov_factory.value_list_path_contains('size', jp.NUM_EQ(2))))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - resize to 2 instances',
@@ -276,15 +284,20 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder(self.__mig_title + ' Cloned',
                                 retryable_for_secs=90)
-     .list_resource(self.__mig_manager_name, **self.__mig_manager_kwargs)
-     .contains_path_value('baseInstanceName', self.__cloned_server_group_name))
-
-    (builder.new_clause_builder('Instance template preserved', retryable_for_secs=150)
-          .list_resource('instanceTemplates')
-          .contains_path_pred('properties/metadata/items',
-                              jp.DICT_MATCHES({
-                                  'key': jp.EQUIVALENT(self.__custom_user_data_key),
-                                  'value': jp.EQUIVALENT(self.__custom_user_data_value)})))
+       .list_resource(self.__mig_manager_name, **self.__mig_manager_kwargs)
+       .EXPECT(ov_factory.value_list_path_contains(
+           'baseInstanceName', jp.STR_SUBSTR(self.__cloned_server_group_name))))
+    (builder.new_clause_builder('Instance template preserved',
+                                retryable_for_secs=150)
+       .list_resource('instanceTemplates')
+       .EXPECT(ov_factory.value_list_path_contains(
+           'properties/metadata/items',
+           jp.LIST_MATCHES([
+               jp.DICT_MATCHES({
+                   'key': jp.EQUIVALENT(self.__custom_user_data_key),
+                   'value': jp.EQUIVALENT(self.__custom_user_data_value)})
+           ])))
+    ))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - clone server group',
@@ -314,11 +327,13 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(self.__mig_title + ' Disabled',
                                 retryable_for_secs=90)
      .list_resource(self.__mig_manager_name, **self.__mig_manager_kwargs)
-     .contains_path_value('baseInstanceName', self.__server_group_name)
-     .excludes_match({
-          'baseInstanceName': jp.STR_SUBSTR(self.__server_group_name),
-          'targetPools': jp.LIST_MATCHES([jp.STR_SUBSTR('https')])
-          }))
+     .EXPECT(ov_factory.value_list_path_contains(
+         'baseInstanceName', jp.STR_SUBSTR(self.__server_group_name)))
+     .AND(ov_factory.value_list_excludes(
+         jp.DICT_MATCHES({
+            'baseInstanceName': jp.STR_SUBSTR(self.__server_group_name),
+            'targetPools': jp.LIST_MATCHES([jp.STR_SUBSTR('https')])
+            }))))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - disable server group',
@@ -348,10 +363,11 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(self.__mig_title + ' Enabled',
                                 retryable_for_secs=90)
      .list_resource(self.__mig_manager_name, **self.__mig_manager_kwargs)
-     .contains_match({
-          'baseInstanceName': jp.STR_SUBSTR(self.__server_group_name),
-          'targetPools': jp.LIST_MATCHES([jp.STR_SUBSTR( 'https')])
-          }))
+     .EXPECT(ov_factory.value_list_contains(
+         jp.DICT_MATCHES({
+            'baseInstanceName': jp.STR_SUBSTR(self.__server_group_name),
+            'targetPools': jp.LIST_MATCHES([jp.STR_SUBSTR( 'https')])
+            }))))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - enable server group',
@@ -382,7 +398,8 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     (builder.new_clause_builder(self.__mig_title + ' Destroyed',
                                 retryable_for_secs=90)
      .list_resource(self.__mig_manager_name, **self.__mig_manager_kwargs)
-     .excludes_path_value('baseInstanceName', serverGroupName))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'baseInstanceName', jp.STR_SUBSTR(serverGroupName))))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - destroy server group',
@@ -408,7 +425,8 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
     builder = gcp.GcpContractBuilder(self.gcp_observer)
     (builder.new_clause_builder('Load Balancer Created', retryable_for_secs=30)
      .list_resource('forwardingRules')
-     .excludes_path_value('name', self.__lb_name))
+     .EXPECT(ov_factory.value_list_path_excludes(
+         'name', jp.STR_SUBSTR(self.__lb_name))))
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - delete load balancer',
