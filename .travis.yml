@@ -3,8 +3,8 @@ jdk:
 - oraclejdk8
 dist: trusty
 sudo: false
-#install: gradle/installViaTravis.sh
-script: gradle/testViaTravis.sh
+install: gradle/installViaTravis.sh
+script: gradle/buildViaTravis.sh
 before_cache: gradle/prepCaches.sh
 cache:
   directories:
