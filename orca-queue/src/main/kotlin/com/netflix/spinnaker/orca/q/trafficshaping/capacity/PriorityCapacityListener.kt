@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.q.trafficshaping.capacity
 
+import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionEvent
 import com.netflix.spinnaker.orca.events.ExecutionStarted
@@ -30,17 +31,18 @@ class PriorityCapacityListener(
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
   override fun onApplicationEvent(event: ExecutionEvent) {
-    var priority: Priority
+    when (event) {
+      is ExecutionStarted -> priorityCapacityRepository.incrementExecutions(getPriority(event))
+      is ExecutionComplete -> priorityCapacityRepository.decrementExecutions(getPriority(event))
+    }
+  }
+
+  private fun getPriority(event: ExecutionEvent): Priority {
     try {
-      priority = prioritizationStrategy.getPriority(event)
+      return prioritizationStrategy.getPriority(event)
     } catch (e: Exception) {
       log.error("Could not determine priority of execution, assigning MEDIUM (message: $event)", e)
-      priority = Priority.MEDIUM
-    }
-
-    when (event) {
-      is ExecutionStarted -> priorityCapacityRepository.incrementExecutions(priority)
-      is ExecutionComplete -> priorityCapacityRepository.decrementExecutions(priority)
+      return Priority.MEDIUM
     }
   }
 }

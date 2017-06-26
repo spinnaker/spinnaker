@@ -21,11 +21,9 @@ import com.netflix.spinnaker.orca.q.trafficshaping.capacity.Priority
 import com.netflix.spinnaker.orca.q.trafficshaping.capacity.PriorityCapacityRepository
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
-import java.time.Clock
 
 class RedisPriorityCapacityRepository(
   private val pool: Pool<Jedis>,
-  private val clock: Clock,
   private val properties: TrafficShapingProperties.PriorityCapacityProperties
 ) : PriorityCapacityRepository {
 

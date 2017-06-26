@@ -41,9 +41,8 @@ open class RedisTrafficShapingConfiguration {
 
   @Bean open fun redisPriorityCapacityRepository(
     @Qualifier("jedisPool") redisPool: Pool<Jedis>,
-    clock: Clock,
     properties: TrafficShapingProperties.PriorityCapacityProperties
   ) =
-    RedisPriorityCapacityRepository(redisPool, clock, properties)
+    RedisPriorityCapacityRepository(redisPool, properties)
 
 }
