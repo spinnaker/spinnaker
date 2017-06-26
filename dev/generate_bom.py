@@ -44,11 +44,13 @@ CONSUL_VERSION = '0.7.5'
 REDIS_VERSION = '2:2.8.4-2'
 VAULT_VERSION = '0.7.0'
 
+# The spinnakerrelease/gradle_cache container image contains a populated gradle
+# cache to cut down on network traffic by caching artifacts we need in the builds.
 GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG = {
   'steps': [
     {
-      'name': 'java:8',
-      'env': ['GRADLE_USER_HOME=cache'],
+      'name': 'spinnakerrelease/gradle_cache',
+      'env': ['GRADLE_USER_HOME=/gradle_cache/.gradle'],
       'args': []
     },
     {
