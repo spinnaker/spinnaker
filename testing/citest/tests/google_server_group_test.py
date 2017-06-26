@@ -297,7 +297,7 @@ class GoogleServerGroupTestScenario(sk.SpinnakerTestScenario):
                    'key': jp.EQUIVALENT(self.__custom_user_data_key),
                    'value': jp.EQUIVALENT(self.__custom_user_data_value)})
            ])))
-    ))
+    )
 
     payload = self.agent.make_json_payload_from_kwargs(
         job=job, description=self.__mig_title + ' Test - clone server group',

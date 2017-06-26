@@ -784,7 +784,12 @@ class ValidateBomTestController(object):
 
     citest_log_dir = os.path.join(options.log_dir, 'citest_logs')
     if not os.path.exists(citest_log_dir):
-      os.makedirs(citest_log_dir)
+      try:
+        os.makedirs(citest_log_dir)
+      except:
+        # check for race condition
+        if not os.path.exists(citest_log_dir):
+          raise
 
     command = [
         'python', test_path,
@@ -879,7 +884,7 @@ def init_argument_parser(parser):
 
   parser.add_argument(
       '--test_quota',
-      default='google_backend_services=3,google_forwarding_rules=3,google_cpu=20',
+      default='google_backend_services=3,google_forwarding_rules=3,google_ssl_certificates=2,google_cpu=20',
       help='Comma-delimited name=value list of quota limits. This is used'
            ' to rate-limit tests based on their profiled quota specifications.')
 
