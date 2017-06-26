@@ -100,18 +100,26 @@ export interface IAmazonTargetGroupSourceData {
   vpcId: string;
 }
 
+export interface IApplicationLoadBalancerCertificateSourceData {
+  certificateArn: string;
+}
+
+export interface IApplicationLoadBalancerListenerSourceData {
+  certificates?: IApplicationLoadBalancerCertificateSourceData[];
+  defaultActions: {
+    targetGroupName: string;
+    type: 'forward';
+  }[];
+  listenerArn: string;
+  loadBalancerName: string;
+  port: number;
+  protocol: 'HTTP' | 'HTTPS';
+  sslPolicy?: string;
+}
+
 export interface IApplicationLoadBalancerSourceData extends IAmazonLoadBalancerSourceData {
   ipAddressType: 'ipv4' | 'dualstack';
-  listeners: {
-    defaultActions: {
-      targetGroupName: string;
-      type: 'forward';
-    }[];
-    listenerArn: string;
-    loadBalancerName: string;
-    port: number;
-    protocol: string;
-  }[];
+  listeners: IApplicationLoadBalancerListenerSourceData[];
   loadBalancerArn: string;
   loadBalancerType: 'application' | 'network';
   state: {

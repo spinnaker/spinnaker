@@ -6,14 +6,15 @@
           <div class="wizard-pod-row header">
             <div class="wizard-pod-row-title">Group Name</div>
             <div class="wizard-pod-row-contents">
+              <span class="group-name-prefix">{{ctrl.loadBalancerCommand.name}}-</span>
               <input class="form-control input-sm target-group-name"
-                          type="text"
-                          ng-model="targetGroup.name"
-                          ng-model-options="{ allowInvalid: true }"
-                          validate-unique="ctrl.existingTargetGroupNames"
-                          validate-ignore-case="true"
-                          name="targetGroupName{{$index}}"
-                          required/>
+                     type="text"
+                     ng-model="targetGroup.name"
+                     ng-model-options="{ allowInvalid: true }"
+                     validate-unique="ctrl.existingTargetGroupNames"
+                     validate-ignore-case="true"
+                     name="targetGroupName{{$index}}"
+                     required/>
               <a href class="sm-label" ng-click="ctrl.removeTargetGroup($index)"><span class="glyphicon glyphicon-trash"></span></a>
             </div>
           </div>
@@ -21,11 +22,18 @@
             <div class="wizard-pod-row-title">Backend Connection</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
-                <label>Protocol</label> <select class="form-control input-sm inline-number" ng-model="targetGroup.protocol"
-                          ng-options="protocol for protocol in ['HTTP','HTTPS']"></select>
+                <label>Protocol </label>
+                <select class="form-control input-sm inline-number"
+                        ng-model="targetGroup.protocol"
+                        ng-options="protocol for protocol in ['HTTP','HTTPS']">
+                </select>
               </span>
               <span class="wizard-pod-content">
-                <label>Port</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.port" type="text" required/>
+                <label>Port </label>
+                <input class="form-control input-sm inline-number"
+                       ng-model="targetGroup.port"
+                       type="text"
+                       required/>
               </span>
             </div>
           </div>
@@ -33,20 +41,39 @@
             <div class="wizard-pod-row-title">Healthcheck</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
-              <label>Protocol</label> <select class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckProtocol"
-                        ng-options="protocol for protocol in ['HTTP','HTTPS']"></select>
+                <label>Protocol </label>
+                <select class="form-control input-sm inline-number"
+                        ng-model="targetGroup.healthCheckProtocol"
+                        ng-options="protocol for protocol in ['HTTP','HTTPS']">
+                </select>
               </span>
               <span class="wizard-pod-content">
-                <label>Port</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckPort" type="text" required/>
+                <label>Port </label>
+                <input class="form-control input-sm inline-number"
+                       ng-model="targetGroup.healthCheckPort"
+                       type="text"
+                       required/>
               </span>
               <span class="wizard-pod-content">
-                <label>Path</label> <input class="form-control input-sm inline-text" ng-model="targetGroup.healthCheckPath" type="text" required/>
+                <label>Path </label>
+                <input class="form-control input-sm inline-text"
+                       ng-model="targetGroup.healthCheckPath"
+                       type="text"
+                       required/>
               </span>
               <span class="wizard-pod-content">
-                <label>Timeout</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckTimeout" type="text" required/>
+                <label>Timeout </label>
+                <input class="form-control input-sm inline-number"
+                       ng-model="targetGroup.healthCheckTimeout"
+                       type="text"
+                       required/>
               </span>
               <span class="wizard-pod-content">
-                <label>Interval</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthCheckInterval" type="text" required/>
+                <label>Interval </label>
+                <input class="form-control input-sm inline-number"
+                       ng-model="targetGroup.healthCheckInterval"
+                       type="text"
+                       required/>
               </span>
             </div>
           </div>
@@ -54,10 +81,18 @@
             <div class="wizard-pod-row-title">Healthcheck Threshold</div>
             <div class="wizard-pod-row-contents">
               <span class="wizard-pod-content">
-                <label>Healthy</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.healthyThreshold" type="number" required/>
+                <label>Healthy </label>
+                <input class="form-control input-sm inline-number"
+                       ng-model="targetGroup.healthyThreshold"
+                       type="number"
+                       required/>
               </span>
               <span class="wizard-pod-content">
-                <label>Unhealthy</label> <input class="form-control input-sm inline-number" ng-model="targetGroup.unhealthyThreshold" type="number" required/>
+                <label>Unhealthy </label>
+                <input class="form-control input-sm inline-number"
+                       ng-model="targetGroup.unhealthyThreshold"
+                       type="number"
+                       required/>
               </span>
             </div>
           </div>

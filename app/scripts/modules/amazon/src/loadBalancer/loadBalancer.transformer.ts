@@ -220,10 +220,10 @@ export class AwsLoadBalancerTransformer {
 
       // Convert listeners
       if (elb.listeners) {
-        toEdit.listeners = elb.listeners.map((listener: any) => {
+        toEdit.listeners = elb.listeners.map((listener) => {
           const certificates: IALBListenerCertificate[] = [];
           if (listener.certificates) {
-            listener.certificates.forEach((cert: any) => {
+            listener.certificates.forEach((cert) => {
               const certArnParts = cert.certificateArn.split(':');
               const certParts = certArnParts[5].split('/');
               certificates.push({
@@ -233,6 +233,10 @@ export class AwsLoadBalancerTransformer {
               });
             });
           }
+
+          (listener.defaultActions || []).forEach((action) => {
+            action.targetGroupName = action.targetGroupName.replace(`${loadBalancer.name}-`, '');
+          });
 
           return {
             protocol: listener.protocol,
@@ -248,7 +252,7 @@ export class AwsLoadBalancerTransformer {
       if (elb.targetGroups) {
         toEdit.targetGroups = elb.targetGroups.map((targetGroup: any) => {
           return {
-            name: targetGroup.targetGroupName,
+            name: targetGroup.targetGroupName.replace(`${loadBalancer.name}-`, ''),
             protocol: targetGroup.protocol,
             port: targetGroup.port,
             healthCheckProtocol: targetGroup.healthCheckProtocol,
@@ -312,7 +316,7 @@ export class AwsLoadBalancerTransformer {
     const defaultCredentials = application.defaultCredentials.aws || AWSProviderSettings.defaults.account,
         defaultRegion = application.defaultRegions.aws || AWSProviderSettings.defaults.region,
         defaultSubnetType = AWSProviderSettings.defaults.subnetType,
-        defaultTargetGroupName = `${application.name}-alb-targetGroup`;
+        defaultTargetGroupName = `targetgroup`;
     return {
       name: undefined,
       availabilityZones: undefined,

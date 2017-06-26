@@ -174,7 +174,7 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
   public addTargetGroup(): void {
     const tgLength = this.loadBalancerCommand.targetGroups.length;
     this.loadBalancerCommand.targetGroups.push({
-      name: `${this.application.name}-alb-targetGroup${tgLength ? `-${tgLength}` : ''}`,
+      name: `targetgroup${tgLength ? `${tgLength}` : ''}`,
       protocol: 'HTTP',
       port: 7001,
       healthCheckProtocol: 'HTTP',
@@ -193,19 +193,43 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
     });
   }
 
-  protected formatListeners(): IPromise<void> {
-    return this.accountService.getAccountDetails(this.loadBalancerCommand.credentials).then((account) => {
-      this.loadBalancerCommand.listeners.forEach((listener) => {
-        listener.certificates.forEach((certificate) => {
-          certificate.certificateArn = this.certificateIdAsARN(account.accountId, certificate.name,
-          this.loadBalancerCommand.region, certificate.type || this.certificateTypes[0]);
+  private modifyTargetGroupName(name: string, add: boolean): string {
+    if (add) {
+      return `${this.loadBalancerCommand.name}-${name}`;
+    }
+    return name.replace(`${this.loadBalancerCommand.name}-`, '');
+  }
+
+  private manageTargetGroupNames(command: IAmazonApplicationLoadBalancerUpsertCommand, add: boolean): void {
+    (command.targetGroups || []).forEach((targetGroupDescription) => {
+      targetGroupDescription.name = this.modifyTargetGroupName(targetGroupDescription.name, add);
+    });
+    (command.listeners || []).forEach((listenerDescription) => {
+      listenerDescription.defaultActions.forEach((actionDescription) => {
+        actionDescription.targetGroupName = this.modifyTargetGroupName(actionDescription.targetGroupName, add);
+      });
+      (listenerDescription.rules || []).forEach((ruleDescription) => {
+        ruleDescription.actions.forEach((actionDescription) => {
+          actionDescription.targetGroupName = this.modifyTargetGroupName(actionDescription.targetGroupName, add);
         });
       });
     });
   }
 
-  protected formatCommand(): void {
-    this.setAvailabilityZones(this.loadBalancerCommand);
+  protected formatListeners(command: IAmazonApplicationLoadBalancerUpsertCommand): IPromise<void> {
+    return this.accountService.getAccountDetails(command.credentials).then((account) => {
+      command.listeners.forEach((listener) => {
+        listener.certificates.forEach((certificate) => {
+          certificate.certificateArn = this.certificateIdAsARN(account.accountId, certificate.name,
+          command.region, certificate.type || this.certificateTypes[0]);
+        });
+      });
+    });
+  }
+
+  protected formatCommand(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
+    this.setAvailabilityZones(command);
+    this.manageTargetGroupNames(command, true);
   }
 }
 

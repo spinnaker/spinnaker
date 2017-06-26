@@ -82,11 +82,11 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
     }
   }
 
-  protected formatListeners(): IPromise<void> {
-    return this.accountService.getAccountDetails(this.loadBalancerCommand.credentials).then((account) => {
-      this.loadBalancerCommand.listeners.forEach((listener) => {
+  protected formatListeners(command: IAmazonClassicLoadBalancerUpsertCommand): IPromise<void> {
+    return this.accountService.getAccountDetails(command.credentials).then((account) => {
+      command.listeners.forEach((listener) => {
         listener.sslCertificateId = this.certificateIdAsARN(account.accountId, listener.sslCertificateName,
-          this.loadBalancerCommand.region, listener.sslCertificateType || this.certificateTypes[0]);
+          command.region, listener.sslCertificateType || this.certificateTypes[0]);
       });
     });
   }
@@ -124,10 +124,10 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
       this.certificates && Object.keys(this.certificates).length > 0;
   }
 
-  protected formatCommand(): void {
-    this.setAvailabilityZones(this.loadBalancerCommand);
-    this.clearSecurityGroupsIfNotInVpc(this.loadBalancerCommand);
-    this.addHealthCheckToCommand(this.loadBalancerCommand);
+  protected formatCommand(command: IAmazonClassicLoadBalancerUpsertCommand): void {
+    this.setAvailabilityZones(command);
+    this.clearSecurityGroupsIfNotInVpc(command);
+    this.addHealthCheckToCommand(command);
   }
 
   private clearSecurityGroupsIfNotInVpc(loadBalancer: IAmazonClassicLoadBalancerUpsertCommand): void {

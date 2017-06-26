@@ -1,7 +1,7 @@
 import { IScope, IPromise } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
-import { chain, clone, find, filter, map, trimEnd, uniq, values } from 'lodash';
+import { chain, clone, cloneDeep, find, filter, map, trimEnd, uniq, values } from 'lodash';
 
 import {
   AccountService,
@@ -426,23 +426,24 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
   protected abstract showSslCertificateNameField(): boolean;
 
-  protected abstract formatListeners(): IPromise<void>;
+  protected abstract formatListeners(command: IAmazonLoadBalancerUpsertCommand): IPromise<void>;
 
-  protected abstract formatCommand(): void;
+  protected abstract formatCommand(command: IAmazonLoadBalancerUpsertCommand): void;
 
   public submit(): void {
     const descriptor = this.isNew ? 'Create' : 'Update';
+    const loadBalancerCommandFormatted = cloneDeep(this.loadBalancerCommand);
 
     if (this.forPipelineConfig) {
       // don't submit to backend for creation. Just return the loadBalancerCommand object
-      this.formatListeners().then(() => {
-        this.$uibModalInstance.close(this.loadBalancerCommand);
+      this.formatListeners(loadBalancerCommandFormatted).then(() => {
+        this.$uibModalInstance.close(loadBalancerCommandFormatted);
       });
     } else {
       this.taskMonitor.submit(() => {
-          return this.formatListeners().then(() => {
-            this.formatCommand();
-            return this.loadBalancerWriter.upsertLoadBalancer(this.loadBalancerCommand, this.application, descriptor);
+          return this.formatListeners(loadBalancerCommandFormatted).then(() => {
+            this.formatCommand(loadBalancerCommandFormatted);
+            return this.loadBalancerWriter.upsertLoadBalancer(loadBalancerCommandFormatted, this.application, descriptor);
           });
         }
       );
