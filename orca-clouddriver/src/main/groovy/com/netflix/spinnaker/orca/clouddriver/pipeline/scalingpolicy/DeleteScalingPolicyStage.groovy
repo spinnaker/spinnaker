@@ -31,7 +31,7 @@ class DeleteScalingPolicyStage implements StageDefinitionBuilder {
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
     builder
       .withTask("deleteScalingPolicy", DeleteScalingPolicyTask)
-      .withTask("monitorUpsert", MonitorKatoTask)
+      .withTask("monitorDelete", MonitorKatoTask)
       .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask)
   }
 }
