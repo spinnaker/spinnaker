@@ -112,8 +112,6 @@
     "cache-loader": "^1.0.3",
     "copy-webpack-plugin": "^4.0.1",
     "css-loader": "^0.28.1",
-    "envify": "^1.2.1",
-    "envify-loader": "^0.1.0",
     "enzyme": "^2.8.2",
     "eslint": "^3.17.0",
     "eslint-loader": "^1.6.3",

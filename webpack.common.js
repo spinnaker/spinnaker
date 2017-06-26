@@ -50,7 +50,6 @@ function configure(IS_TEST) {
             'ng-annotate-loader',
             'angular-loader',
             'babel-loader',
-            'envify-loader',
             'eslint-loader'
           ],
           include: inclusionPattern.concat(path.resolve(__dirname, 'settings.js'))
@@ -105,7 +104,7 @@ function configure(IS_TEST) {
         'react2angular', 'react-bootstrap', 'react-dom', 'react-ga', 'ui-router-visualizer', 'ui-select',
         '@uirouter/angularjs'
       ],
-      spinnaker: ['@spinnaker/core', '@spinnaker/google']
+      spinnaker: ['@spinnaker/core', '@spinnaker/google', '@spinnaker/amazon']
     };
 
     config.plugins.push(...[
@@ -114,6 +113,7 @@ function configure(IS_TEST) {
         [
           { from: 'node_modules/@spinnaker/core/lib' },
           { from: 'node_modules/@spinnaker/amazon/lib' },
+          { from: 'node_modules/@spinnaker/google/lib' },
         ],
         { copyUnmodified: false, ignore: ['*.js', '*.ts', '*.map', 'index.html'] }
       ),
@@ -122,7 +122,15 @@ function configure(IS_TEST) {
         template: './src/index.deck',
         favicon: 'src/favicon.ico',
         inject: true,
-      })
+      }),
+      new webpack.EnvironmentPlugin({
+        API_HOST: 'https://api-prestaging.spinnaker.mgmt.netflix.net',
+        ENTITY_TAGS_ENABLED: true,
+        FEEDBACK_URL: 'https://hootch.test.netflix.net/submit',
+        FIAT_ENABLED: false,
+        INFRA_STAGES: false,
+        TIMEZONE: 'America/Los_Angeles',
+      }),
     ]);
   }
 
