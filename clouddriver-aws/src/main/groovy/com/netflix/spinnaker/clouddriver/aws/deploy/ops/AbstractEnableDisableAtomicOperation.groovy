@@ -116,13 +116,19 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withInstanceIds(instanceIds)
         List<Reservation> reservations = []
         while (true) {
-          DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
-          reservations.addAll(describeInstancesResult.getReservations())
-          if (!describeInstancesResult.nextToken) {
-            break
+          try {
+            DescribeInstancesResult describeInstancesResult = regionScopedProvider.amazonEC2.describeInstances(describeInstancesRequest)
+            reservations.addAll(describeInstancesResult.getReservations())
+            if (!describeInstancesResult.nextToken) {
+              break
+            }
+
+            describeInstancesRequest.setNextToken(describeInstancesResult.nextToken)
+          } catch(Exception e) {
+           log.error("Failed to describe one of the instances in  {}", instanceIds, e)
           }
-          describeInstancesRequest.setNextToken(describeInstancesResult.nextToken)
         }
+
         List<String> filteredInstanceIds = []
         for (Reservation reservation : reservations) {
           filteredInstanceIds += reservation.getInstances().findAll {
