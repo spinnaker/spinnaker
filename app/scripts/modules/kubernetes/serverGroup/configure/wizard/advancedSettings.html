@@ -1,5 +1,31 @@
 <ng-form name="advancedSettings">
   <div class="form-group form-horizontal">
+
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        Service Account Name
+      </div>
+      <div class="col-md-7">
+        <input type="text" class="form-control input-sm" ng-model="command.serviceAccountName">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-4 sm-label-right">
+        Termination Grace Period
+        <help-field key="kubernetes.serverGroup.terminationGracePeriodSeconds"></help-field>
+      </div>
+      <div class="col-md-3">
+        <div class="input-group">
+          <input type="number" min="0"
+                 class="form-control input-sm"
+                 name="terminationGracePeriodSeconds"
+                 ng-model="command.terminationGracePeriodSeconds" required/>
+          <span class="input-group-addon">seconds</span>
+        </div>
+      </div>
+    </div>
+
     <div class="col-md-12">
       <map-editor model="command.replicaSetAnnotations"
                   label="Replica Set Annotations"
@@ -19,22 +45,6 @@
                   label="Node Selector"
                   add-button-label="Add Node Selector"
                   labels-left="true"></map-editor>
-    </div>
-
-    <div class="form-group">
-      <div class="col-md-4 sm-label-right">
-        Termination Grace Period
-        <help-field key="kubernetes.serverGroup.terminationGracePeriodSeconds"></help-field>
-      </div>
-      <div class="col-md-3">
-        <div class="input-group">
-          <input type="number" min="0"
-             class="form-control input-sm"
-             name="terminationGracePeriodSeconds"
-             ng-model="command.terminationGracePeriodSeconds" required/>
-          <span class="input-group-addon">seconds</span>
-        </div>
-      </div>
     </div>
 
   </div>

@@ -246,6 +246,10 @@
       </div>
     </collapsible-section>
     <collapsible-section heading="Advanced Settings">
+      <dl ng-if="serverGroup.deployDescription.serviceAccountName">
+        <dt>Service Account Name</dt>
+        <dd>{{serverGroup.deployDescription.serviceAccountName}}</dd>
+      </dl>
       <dl>
         <dt>Termination Grace Period</dt>
         <dd>{{serverGroup.deployDescription.terminationGracePeriodSeconds}}&nbsp;second(s)</dd>

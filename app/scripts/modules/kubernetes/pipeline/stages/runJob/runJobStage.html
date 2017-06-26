@@ -24,6 +24,12 @@
     </div>
   </stage-config-field>
 
+  <stage-config-field label="Service Account Name">
+    <div>
+      <input type="text" class="form-control input-sm" ng-model="ctrl.stage.serviceAccountName">
+    </div>
+  </stage-config-field>
+
   <stage-config-field label="Image">
     <div class="form-group" ng-if="ctrl.hasDockerPipelineTriggers()">
       <div>
