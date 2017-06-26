@@ -16,7 +16,15 @@
 
 rootProject.name="kayenta"
 
-include 'kayenta-atlas', 'kayenta-core', 'kayenta-gcs', 'kayenta-google', 'kayenta-objectstore-memory', 'kayenta-orca', 'kayenta-stackdriver', 'kayenta-web'
+include 'kayenta-atlas'
+include 'kayenta-core'
+include 'kayenta-gcs'
+include 'kayenta-google'
+include 'kayenta-judge-netflix'
+include 'kayenta-objectstore-memory'
+include 'kayenta-orca'
+include 'kayenta-stackdriver'
+include 'kayenta-web'
 
 def setBuildFile(project) {
   project.buildFileName = "${project.name}.gradle"
