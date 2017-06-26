@@ -234,7 +234,7 @@ class Builder(object):
       extra_args.append('--debug')
 
     if self.__options.gradle_cache_path:
-      extra_args.append('--gradle_user_home={}'.format(self.__options.gradle_cache_path))
+      extra_args.append('--gradle-user-home={}'.format(self.__options.gradle_cache_path))
 
     if name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
@@ -311,7 +311,7 @@ class Builder(object):
       extra_args.append('--debug')
 
     if self.__options.gradle_cache_path:
-      extra_args.append('--gradle_user_home={}'.format(self.__options.gradle_cache_path))
+      extra_args.append('--gradle-user-home={}'.format(self.__options.gradle_cache_path))
 
     if name == 'deck' and not 'CHROME_BIN' in os.environ:
       extra_args.append('-PskipTests')
