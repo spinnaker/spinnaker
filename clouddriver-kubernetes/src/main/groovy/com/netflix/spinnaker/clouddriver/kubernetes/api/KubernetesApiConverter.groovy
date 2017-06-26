@@ -624,6 +624,7 @@ class KubernetesApiConverter {
     } ?: []
 
     deployDescription.terminationGracePeriodSeconds = replicaSet?.spec?.template?.spec?.terminationGracePeriodSeconds
+    deployDescription.serviceAccountName = replicaSet?.spec?.template?.spec?.serviceAccountName
 
     deployDescription.nodeSelector = replicaSet?.spec?.template?.spec?.nodeSelector
 
@@ -680,6 +681,7 @@ class KubernetesApiConverter {
     } ?: []
 
     deployDescription.terminationGracePeriodSeconds = replicationController?.spec?.template?.spec?.terminationGracePeriodSeconds
+    deployDescription.serviceAccountName = replicationController.spec?.template?.spec?.serviceAccountName
 
     deployDescription.nodeSelector = replicationController?.spec?.template?.spec?.nodeSelector
 
@@ -907,6 +909,10 @@ class KubernetesApiConverter {
 
     for (def imagePullSecret : description.imagePullSecrets) {
       podTemplateSpecBuilder = podTemplateSpecBuilder.addNewImagePullSecret(imagePullSecret)
+    }
+
+    if (description.serviceAccountName) {
+      podTemplateSpecBuilder = podTemplateSpecBuilder.withServiceAccountName(description.serviceAccountName)
     }
 
     podTemplateSpecBuilder = podTemplateSpecBuilder.withNodeSelector(description.nodeSelector)

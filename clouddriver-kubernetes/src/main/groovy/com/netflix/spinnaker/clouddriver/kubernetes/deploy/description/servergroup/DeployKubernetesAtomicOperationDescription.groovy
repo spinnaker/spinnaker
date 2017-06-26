@@ -45,6 +45,7 @@ class DeployKubernetesAtomicOperationDescription extends KubernetesAtomicOperati
   KubernetesSecurityContext securityContext
   KubernetesDeployment deployment
   Long terminationGracePeriodSeconds
+  String serviceAccountName
   Integer sequence
   KubernetesPodSpecDescription podSpec
 

@@ -80,6 +80,10 @@ class RunKubernetesJobAtomicOperation implements AtomicOperation<DeploymentResul
       podBuilder = podBuilder.addNewImagePullSecret(imagePullSecret)
     }
 
+    if (description.serviceAccountName) {
+      podBuilder = podBuilder.withServiceAccountName(description.serviceAccountName)
+    }
+
     if (description.hostNetwork) {
         podBuilder = podBuilder.withHostNetwork(description.hostNetwork)
     }
