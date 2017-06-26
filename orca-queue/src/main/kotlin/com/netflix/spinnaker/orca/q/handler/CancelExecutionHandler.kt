@@ -37,6 +37,8 @@ open class CancelExecutionHandler
     message.withExecution { execution ->
       repository.cancel(execution.getId(), message.user, message.reason)
 
+      // Resume any paused stages so that their RunTaskHandler gets executed
+      // and handles the `canceled` flag.
       execution
         .getStages()
         .filter { it.getStatus() == PAUSED }
