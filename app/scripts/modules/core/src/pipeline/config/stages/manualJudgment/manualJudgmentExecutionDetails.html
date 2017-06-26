@@ -1,9 +1,9 @@
 <div ng-controller="ManualJudgmentExecutionDetailsCtrl as manualCtrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'manualJudgment'">
-    <dl class="dl-narrow dl-horizontal no-margin">
-      <dt ng-if="stage.context.judgmentStatus || stage.status === 'SKIPPED'">Judgment</dt>
-      <dd ng-if="stage.context.judgmentStatus">{{ stage.context.judgmentStatus | robotToHuman }}</dd>
+    <dl class="no-margin">
+      <dt ng-if-start="stage.context.judgmentStatus || ['SKIPPED', 'SUCCEEDED'].includes(stage.status)">Judgment</dt>
+      <dd ng-if-end>{{ (stage.context.judgmentStatus || 'No judgment made') | robotToHuman }}</dd>
       <dd ng-if="stage.status === 'SKIPPED'">Skipped</dd>
       <dt ng-if="stage.context.lastModifiedBy">Judged By</dt>
       <dd ng-if="stage.context.lastModifiedBy">

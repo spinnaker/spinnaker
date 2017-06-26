@@ -82,7 +82,7 @@ export class ManualJudgmentApproval extends React.Component<IManualJudgmentAppro
     const options: Select.Option[] = (stage.context.judgmentInputs || [])
       .map((o: {value: string}) => { return {value: o.value, label: o.value}; });
 
-    const showOptions = status !== 'SKIPPED' && (!stage.context.judgmentStatus || status === 'RUNNING');
+    const showOptions = !['SKIPPED', 'SUCCEEDED'].includes(status) && (!stage.context.judgmentStatus || status === 'RUNNING');
 
     const hasInstructions = !!stage.context.instructions;
     const { ButtonBusyIndicator } = NgReact;
