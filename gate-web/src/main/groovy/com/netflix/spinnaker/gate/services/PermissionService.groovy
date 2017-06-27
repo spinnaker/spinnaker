@@ -42,6 +42,10 @@ class PermissionService {
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
+  boolean isEnabled() {
+    return fiatConfig.enabled
+  }
+
   void login(String userId) {
     if (fiatConfig.enabled) {
       fiatService.loginUser(userId, "")

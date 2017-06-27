@@ -34,6 +34,7 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication
 import org.springframework.security.oauth2.provider.OAuth2Request
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken
+import retrofit.RetrofitError
 
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
@@ -120,11 +121,16 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
 
   boolean isServiceAccount(Map details) {
     String email = details[userInfoMapping.serviceAccountEmail]
-    if (!email) {
+    if (!email || !permissionService.isEnabled()) {
       return false
     }
-    def serviceAccounts = front50Service.getServiceAccounts()
-    return serviceAccounts.find { email.equalsIgnoreCase(it.name)}
+    try {
+      def serviceAccounts = front50Service.getServiceAccounts()
+      return serviceAccounts.find { email.equalsIgnoreCase(it.name) }
+    } catch (RetrofitError re) {
+      log.warn("Could not get list of service accounts.", re)
+    }
+    return false
   }
 
   boolean hasAllUserInfoRequirements(Map details) {
