@@ -284,13 +284,8 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
      .EXPECT(
          ov_factory.value_list_path_contains(
              jp.build_path('split', 'allocations'),
-             jp.DICT_MATCHES({previous_group_name: jp.NUM_EQ(0.9)})))
-     .AND(
-         ov_factory.value_list_path_contains(
-             jp.build_path('split', 'allocations'),
-             jp.DICT_MATCHES({previous_group_name: jp.NUM_EQ(0.1)}))))
-#     .contains_path_match('split/allocations/', 
-#     .contains_path_match('split/allocations/', {deployed_group_name: jp.NUM_EQ(0.1)}))
+             jp.DICT_MATCHES({previous_group_name: jp.NUM_EQ(0.9),
+                              deployed_group_name: jp.NUM_EQ(0.1)}))))
 
     return st.OperationContract(
         self.new_post_operation(
