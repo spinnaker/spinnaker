@@ -37,6 +37,10 @@ module.exports = angular
         });
     };
 
+    this.hasCache = (cache) => {
+      return infrastructureCaches.get(cache) !== undefined;
+    };
+
     this.getCacheInfo = (cache) => {
       return infrastructureCaches.get(cache).getStats();
     };
