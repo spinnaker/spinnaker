@@ -10,8 +10,8 @@ export interface IExecutionDetailsScope extends IScope {
 
 export class BaseExecutionDetailsCtrl {
   constructor (public $scope: IExecutionDetailsScope,
-               private $stateParams: StateParams,
-               private executionDetailsSectionService: ExecutionDetailsSectionService) {
+               protected $stateParams: StateParams,
+               protected executionDetailsSectionService: ExecutionDetailsSectionService) {
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
   }
 

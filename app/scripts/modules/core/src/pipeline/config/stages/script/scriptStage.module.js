@@ -1,9 +1,9 @@
 'use strict';
 
 const angular = require('angular');
+import { SCRIPT_EXECUTION_DETAILS_CONTROLLER } from './scriptExecutionDetails.controller';
 
 module.exports = angular.module('spinnaker.core.pipeline.stage.script', [
   require('./scriptStage.js'),
-  require('../stage.module.js'),
-  require('../core/stage.core.module.js'),
+  SCRIPT_EXECUTION_DETAILS_CONTROLLER,
 ]);

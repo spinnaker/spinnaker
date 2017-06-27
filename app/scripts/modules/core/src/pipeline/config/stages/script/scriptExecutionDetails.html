@@ -1,4 +1,4 @@
-<div ng-controller="BaseExecutionDetailsCtrl">
+<div ng-controller="ScriptExecutionDetailsCtrl as ctrl">
   <execution-details-section-nav sections="configSections"></execution-details-section-nav>
   <div class="step-section-details" ng-if="detailsSection === 'scriptConfig'">
     <div class="row">
@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <div class="row ng-scope" ng-if="stage.context.buildInfo.url">
+    <div class="row ng-scope" ng-if="!ctrl.scriptRanAndFailed && stage.context.buildInfo.url">
       <div class="col-md-12">
         <div class="well alert alert-info">
           <a ng-if="stage.context.buildInfo.url"
@@ -29,7 +29,18 @@
       </div>
     </div>
 
-    <stage-failure-message stage="stage" message="failureMessage"></stage-failure-message>
+    <div ng-if="ctrl.scriptRanAndFailed">
+      <div class="alert alert-danger">
+        Script execution failed.
+        Check <a ng-if="stage.context.buildInfo.url"
+                 href="{{stage.context.buildInfo.url}}consoleText"
+                 target="_blank">the script results</a> for details.
+      </div>
+    </div>
+
+    <stage-failure-message ng-if="!ctrl.scriptRanAndFailed"
+                           stage="stage"
+                           message="stage.failureMessage"></stage-failure-message>
   </div>
 
   <div class="step-section-details" ng-if="detailsSection === 'taskStatus'">
