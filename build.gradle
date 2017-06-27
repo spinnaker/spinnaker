@@ -17,10 +17,8 @@
 buildscript {
   repositories {
     jcenter()
-    maven { url "http://spinnaker.bintray.com/gradle" }
   }
   dependencies {
-    classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.10.0'
     classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
   }
@@ -28,12 +26,8 @@ buildscript {
 
 allprojects {
   group = "com.netflix.kayenta"
-  apply plugin: 'spinnaker.project'
   apply plugin: 'groovy'
 
-  spinnaker {
-    dependenciesVersion = "0.71.0"
-  }
   test {
     testLogging {
       exceptionFormat = 'full'
@@ -44,9 +38,20 @@ allprojects {
 }
 
 subprojects { project ->
+  repositories {
+    jcenter()
+    maven { url "https://dl.bintray.com/spinnaker/spinnaker"}
+  }
   dependencies {
-    spinnaker.group('test')
-    testCompile spinnaker.dependency('groovy')
+    // spinnaker.group('test')
+    testCompile "org.springframework.boot:spring-boot-starter-test:1.2.8.RELEASE"
+    testCompile "org.spockframework:spock-core:1.1-groovy-2.4-rc-2"
+    testCompile "org.spockframework:spock-spring:1.1-groovy-2.4-rc-2"
+    testCompile "org.springframework:spring-test:4.1.9.RELEASE"
+    testCompile "cglib:cglib-nodep:3.2.0"
+    testCompile "org.objenesis:objenesis:2.1"
+    testCompile "junit:junit:4.11"
+    testCompile "org.hamcrest:hamcrest-core:1.3"
   }
 }
 

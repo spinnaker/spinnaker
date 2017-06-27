@@ -1,7 +1,15 @@
 dependencies {
   compile project(":kayenta-core")
   compile project(":kayenta-google")
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency('lombok')
-  spinnaker.group('google')
+
+  // compile spinnaker.dependency('bootWeb')
+  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
+
+  // compile spinnaker.dependency('lombok')
+  compile "org.projectlombok:lombok:1.16.10"
+
+  // spinnaker.group('google')
+  compile "com.google.apis:google-api-services-compute:alpha-rev44-1.22.0"
+  compile "com.google.http-client:google-http-client-jackson2:1.20.0"
+  compile "com.google.apis:google-api-services-storage:v1-rev86-1.22.0"
 }

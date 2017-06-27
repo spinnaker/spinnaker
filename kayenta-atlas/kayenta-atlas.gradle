@@ -1,12 +1,27 @@
 dependencies {
   compile project(":kayenta-core")
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency('lombok')
+
+  // compile spinnaker.dependency('bootWeb')
+  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
+
+  // compile spinnaker.dependency("korkSwagger")
+  compile "com.netflix.spinnaker.kork:kork-swagger:1.93.0"
+
+  // compile spinnaker.dependency('lombok')
+  compile "org.projectlombok:lombok:1.16.10"
+
   compile 'com.netflix.spinnaker.orca:orca-core:2.8.3'
-  spinnaker.group('retrofitDefault')
+
+  // spinnaker.group('retrofitDefault')
+  compile "com.squareup.retrofit:retrofit:1.9.0"
+  compile "com.squareup.okhttp:okhttp:2.7.0"
+  compile "com.squareup.okhttp:okhttp-urlconnection:2.7.0"
+  compile "com.squareup.okhttp:okhttp-apache:2.7.0"
+  compile "com.squareup.retrofit:converter-jackson:1.9.0"
+  testCompile "com.squareup.retrofit:retrofit-mock:1.9.0"
 
   compile "org.apache.commons:commons-io:1.3.2"
 
-  testCompile spinnaker.dependency('groovy')
+  // testCompile spinnaker.dependency('groovy')
+  testCompile "org.codehaus.groovy:groovy-all:2.4.7"
 }

@@ -4,9 +4,14 @@ dependencies {
   compile 'com.netflix.spinnaker.orca:orca-queue:2.8.3'
   compile 'com.netflix.spinnaker.orca:orca-queue-redis:2.8.3'
 
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency('lombok')
+  // compile spinnaker.dependency('bootWeb')
+  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
+
+  // compile spinnaker.dependency("korkSwagger")
+  compile "com.netflix.spinnaker.kork:kork-swagger:1.93.0"
+
+  // compile spinnaker.dependency('lombok')
+  compile "org.projectlombok:lombok:1.16.10"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
   testCompile 'com.netflix.spinnaker.orca:orca-queue:2.8.3'

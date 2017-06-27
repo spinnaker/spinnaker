@@ -1,5 +1,4 @@
 apply plugin: 'spring-boot'
-apply plugin: 'spinnaker.package'
 
 ext {
   springConfigLocation = System.getProperty('spring.config.location', "${System.getProperty('user.home')}/.kayenta/")
@@ -24,10 +23,17 @@ dependencies {
   compile project(':kayenta-orca')
   compile project(':kayenta-stackdriver')
 
-  compile spinnaker.dependency('bootActuator')
-  compile spinnaker.dependency('bootWeb')
-  compile spinnaker.dependency("korkSwagger")
-  compile spinnaker.dependency("korkWeb")
+  // compile spinnaker.dependency('bootActuator')
+  compile "org.springframework.boot:spring-boot-starter-actuator:1.2.8.RELEASE"
+
+  //compile spinnaker.dependency('bootWeb')
+  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
+
+  //compile spinnaker.dependency("korkSwagger")
+  compile "com.netflix.spinnaker.kork:kork-swagger:1.93.0"
+
+  //compile spinnaker.dependency("korkWeb")
+  compile "com.netflix.spinnaker.kork:kork-web:1.93.0"
 }
 
 tasks.bootRepackage.enabled = project.repackage

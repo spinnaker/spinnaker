@@ -1,4 +1,6 @@
 dependencies {
   compile project(":kayenta-core")
-  compile spinnaker.dependency('lombok')
+
+  // compile spinnaker.dependency('lombok')
+  compile "org.projectlombok:lombok:1.16.10"
 }
