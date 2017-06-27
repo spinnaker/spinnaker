@@ -29,7 +29,10 @@ import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
-import org.jetbrains.spek.api.dsl.*
+import org.jetbrains.spek.api.dsl.describe
+import org.jetbrains.spek.api.dsl.given
+import org.jetbrains.spek.api.dsl.it
+import org.jetbrains.spek.api.dsl.on
 import org.jetbrains.spek.api.lifecycle.CachingMode.GROUP
 import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
@@ -209,6 +212,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
     describe("that throws an exception") {
       val pipeline = pipeline {
         stage {
+          refId = "1"
           type = "whatever"
           task {
             id = "1"
@@ -219,7 +223,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       }
       val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
 
-      context("that is not recoverable") {
+      and("it is not recoverable") {
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,
           "o noes",
@@ -227,33 +231,89 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
           false
         )
 
-        beforeGroup {
-          whenever(task.execute(any())) doThrow RuntimeException("o noes")
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-          whenever(exceptionHandler.handles(any())) doReturn true
-          whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+        and("the task should fail the pipeline") {
+          beforeGroup {
+            whenever(task.execute(any())) doThrow RuntimeException("o noes")
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(exceptionHandler.handles(any())) doReturn true
+            whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+          }
+
+          afterGroup(::resetMocks)
+
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
+
+          it("marks the task as terminal") {
+            verify(queue).push(check<CompleteTask> {
+              it.status shouldEqual TERMINAL
+            })
+          }
+
+          it("attaches the exception to the stage context") {
+            verify(repository).storeStage(check {
+              it.getContext()["exception"] shouldEqual exceptionDetails
+            })
+          }
         }
 
-        afterGroup(::resetMocks)
+        and("the task should not fail the whole pipeline, only the branch") {
+          beforeGroup {
+            pipeline.stageByRef("1").apply {
+              context["failPipeline"] = false
+              context["continuePipeline"] = false
+            }
 
-        action("the handler receives a message") {
-          subject.handle(message)
+            whenever(task.execute(any())) doThrow RuntimeException("o noes")
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(exceptionHandler.handles(any())) doReturn true
+            whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+          }
+
+          afterGroup(::resetMocks)
+          afterGroup { pipeline.stages.first().context.clear() }
+
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
+
+          it("marks the task STOPPED") {
+            verify(queue).push(check<CompleteTask> {
+              it.status shouldEqual STOPPED
+            })
+          }
         }
 
-        it("marks the task as terminal") {
-          verify(queue).push(check<CompleteTask> {
-            it.status shouldEqual TERMINAL
-          })
-        }
+        and("the task should allow the pipeline to proceed") {
+          beforeGroup {
+            pipeline.stageByRef("1").apply {
+              context["failPipeline"] = false
+              context["continuePipeline"] = true
+            }
 
-        it("attaches the exception to the stage context") {
-          verify(repository).storeStage(check {
-            it.getContext()["exception"] shouldEqual exceptionDetails
-          })
+            whenever(task.execute(any())) doThrow RuntimeException("o noes")
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+            whenever(exceptionHandler.handles(any())) doReturn true
+            whenever(exceptionHandler.handle(anyOrNull(), any())) doReturn exceptionDetails
+          }
+
+          afterGroup(::resetMocks)
+          afterGroup { pipeline.stages.first().context.clear() }
+
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
+
+          it("marks the task FAILED_CONTINUE") {
+            verify(queue).push(check<CompleteTask> {
+              it.status shouldEqual FAILED_CONTINUE
+            })
+          }
         }
       }
 
-      context("that is recoverable") {
+      and("it is recoverable") {
         val taskBackoffMs = 30_000L
         val exceptionDetails = ExceptionHandler.Response(
           RuntimeException::class.qualifiedName,

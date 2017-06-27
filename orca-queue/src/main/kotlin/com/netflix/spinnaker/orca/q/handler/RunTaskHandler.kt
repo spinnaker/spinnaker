@@ -80,13 +80,7 @@ open class RunTaskHandler
               SUCCEEDED, REDIRECT ->
                 queue.push(CompleteTask(message, result.status))
               TERMINAL ->
-                if (stage.shouldContinueOnFailure()) {
-                  queue.push(CompleteTask(message, FAILED_CONTINUE))
-                } else if (!stage.shouldFailPipeline()) {
-                  queue.push(CompleteTask(message, STOPPED))
-                } else {
-                  queue.push(CompleteTask(message, result.status))
-                }
+                queue.push(CompleteTask(message, stage.failureStatus()))
               else ->
                 TODO("handle other states such as cancellation, suspension, etc.")
             }
@@ -100,7 +94,7 @@ open class RunTaskHandler
             log.error("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]", e)
             stage.getContext()["exception"] = exceptionDetails
             repository.storeStage(stage)
-            queue.push(CompleteTask(message, TERMINAL))
+            queue.push(CompleteTask(message, stage.failureStatus()))
           }
         }
       }
@@ -188,6 +182,15 @@ open class RunTaskHandler
       )
     }
   }
+
+  private fun Stage<*>.failureStatus() =
+    if (shouldContinueOnFailure()) {
+      FAILED_CONTINUE
+    } else if (shouldFailPipeline()) {
+      TERMINAL
+    } else {
+      STOPPED
+    }
 
   private fun Stage<*>.shouldFailPipeline() =
     getContext()["failPipeline"] in listOf(null, true)
