@@ -61,14 +61,16 @@ open class RestartStageHandler
   }
 
   private fun Stage<*>.reset() {
-    setStatus(NOT_STARTED)
-    setStartTime(null)
-    setEndTime(null)
-    setTasks(emptyList())
-    builder().prepareStageForRestart(repository, this, stageDefinitionBuilders)
-    repository.storeStage(this)
+    if (getStatus().isComplete) {
+      setStatus(NOT_STARTED)
+      setStartTime(null)
+      setEndTime(null)
+      setTasks(emptyList())
+      builder().prepareStageForRestart(repository, this, stageDefinitionBuilders)
+      repository.storeStage(this)
 
-    removeSynthetics()
+      removeSynthetics()
+    }
 
     downstreamStages().forEach { it.reset() }
   }
