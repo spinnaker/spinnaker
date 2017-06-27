@@ -1,3 +1,20 @@
+/*
+ * Copyright 2017 Cerner Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.netflix.spinnaker.clouddriver.dcos.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -51,29 +68,29 @@ class DcosLoadBalancer implements LoadBalancer, Serializable, LoadBalancerProvid
 
     this.serverGroups = serverGroupList?.collect { serverGroup ->
       new LoadBalancerServerGroup(
-              // TODO account not part of this model, but it appears the deck UI uses it when diffing servergroups for a loadbalancer.
-              // Causes a display bug in deck that affects at least kubernetes as well.
-              name: serverGroup?.name,
-              account: serverGroup?.account,
-              region: serverGroup?.region,
-              isDisabled: serverGroup?.isDisabled(),
-              instances: serverGroup?.instances?.findResults { instance ->
-                // TODO once we can do this
-                //if (instance.isAttached(this.name)) {
+        // TODO account not part of this model, but it appears the deck UI uses it when diffing servergroups for a loadbalancer.
+        // Causes a display bug in deck that affects at least kubernetes as well.
+        name: serverGroup?.name,
+        account: serverGroup?.account,
+        region: serverGroup?.region,
+        isDisabled: serverGroup?.isDisabled(),
+        instances: serverGroup?.instances?.findResults { instance ->
+          // TODO once we can do this
+          //if (instance.isAttached(this.name)) {
 
-                return new LoadBalancerInstance(
-                        id: instance.name,
-                        zone: instance.zone,
-                        health: [
-                                state: instance.healthState.toString()
-                        ]
-                )
-                //} else {
-                //  return (LoadBalancerInstance) null // Groovy generics need to be convinced all control flow paths return the same object type
-                //}
-              } as Set,
-              // TODO once we can do this
-              detachedInstances: [])
+          return new LoadBalancerInstance(
+            id: instance.name,
+            zone: instance.zone,
+            health: [
+              state: instance.healthState.toString()
+            ]
+          )
+          //} else {
+          //  return (LoadBalancerInstance) null // Groovy generics need to be convinced all control flow paths return the same object type
+          //}
+        } as Set,
+        // TODO once we can do this
+        detachedInstances: [])
     } as Set
   }
 

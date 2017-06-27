@@ -22,8 +22,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperationConverter
 import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
 
 abstract class AbstractAtomicOperationsCredentialsSupport implements AtomicOperationConverter {
   @Autowired

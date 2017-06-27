@@ -195,11 +195,11 @@ class DcosServerGroup implements ServerGroup, Serializable {
           @Override
           Map<String, Object> getImage() {
             return [
-              container: imageName,
-              registry: bi.imageDesc.registry,
-              tag: bi.imageDesc.tag,
+              container : imageName,
+              registry  : bi.imageDesc.registry,
+              tag       : bi.imageDesc.tag,
               repository: bi.imageDesc.repository,
-              imageId: imageId
+              imageId   : imageId
             ]
           }
         }]

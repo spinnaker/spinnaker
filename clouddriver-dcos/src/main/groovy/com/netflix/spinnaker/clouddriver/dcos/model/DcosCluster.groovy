@@ -15,27 +15,16 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.dcos.deploy.description.loadbalancer
+package com.netflix.spinnaker.clouddriver.dcos.model
 
-import com.netflix.spinnaker.clouddriver.dcos.deploy.description.AbstractDcosCredentialsDescription
+import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
+import com.netflix.spinnaker.clouddriver.model.Cluster
+import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 
-class UpsertDcosLoadBalancerAtomicOperationDescription extends AbstractDcosCredentialsDescription {
+class DcosCluster implements Cluster, Serializable {
   String name
-  String region
-  String app
-  String stack
-  String detail
-  boolean bindHttpHttps
-  double cpus
-  int instances
-  double mem
-  List<String> acceptedResourceRoles
-
-  PortRange portRange
-
-  static class PortRange {
-    String protocol
-    int minPort
-    int maxPort
-  }
+  String type = Keys.PROVIDER
+  String accountName
+  Set<DcosServerGroup> serverGroups = Collections.synchronizedSet(new HashSet<DcosServerGroup>())
+  Set<LoadBalancer> loadBalancers = Collections.synchronizedSet(new HashSet<DcosLoadBalancer>())
 }

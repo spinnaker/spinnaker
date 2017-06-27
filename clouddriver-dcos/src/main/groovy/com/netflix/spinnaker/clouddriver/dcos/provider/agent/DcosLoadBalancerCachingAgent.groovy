@@ -1,3 +1,20 @@
+/*
+ * Copyright 2017 Cerner Corporation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ */
+
 package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 
 import com.fasterxml.jackson.core.type.TypeReference
@@ -11,11 +28,11 @@ import com.netflix.spinnaker.clouddriver.cache.OnDemandAgent
 import com.netflix.spinnaker.clouddriver.cache.OnDemandMetricsSupport
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
-import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerLbId
 import com.netflix.spinnaker.clouddriver.dcos.provider.DcosProvider
 import com.netflix.spinnaker.clouddriver.dcos.provider.MutableCacheData
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import groovy.util.logging.Slf4j
 import mesosphere.dcos.client.DCOS
 import mesosphere.marathon.client.model.v2.App
@@ -34,9 +51,9 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
   final OnDemandMetricsSupport metricsSupport
 
   static final Set<AgentDataType> types = Collections.unmodifiableSet([
-          AUTHORITATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
-          //INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns)
-  ] as Set)
+                                                                        AUTHORITATIVE.forType(Keys.Namespace.LOAD_BALANCERS.ns),
+                                                                        //INFORMATIVE.forType(Keys.Namespace.INSTANCES.ns)
+                                                                      ] as Set)
 
   DcosLoadBalancerCachingAgent(String accountName,
                                String clusterName,
@@ -49,8 +66,8 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
     this.objectMapper = objectMapper
     this.dcosClient = clientProvider.getDcosClient(credentials, clusterName)
     this.metricsSupport = new OnDemandMetricsSupport(registry,
-            this,
-            "$dcosCloudProvider.id:$OnDemandAgent.OnDemandType.LoadBalancer")
+                                                     this,
+                                                     "$dcosCloudProvider.id:$OnDemandAgent.OnDemandType.LoadBalancer")
   }
 
   @Override
@@ -113,15 +130,15 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
     } else {
       metricsSupport.onDemandStore {
         def cacheData = new DefaultCacheData(
-                Keys.getLoadBalancerKey(appId, clusterName),
-                10 * 60, // ttl is 10 minutes
-                [
-                        cacheTime     : System.currentTimeMillis(),
-                        cacheResults  : jsonResult,
-                        processedCount: 0,
-                        processedTime : null
-                ],
-                [:]
+          Keys.getLoadBalancerKey(appId, clusterName),
+          10 * 60, // ttl is 10 minutes
+          [
+            cacheTime     : System.currentTimeMillis(),
+            cacheResults  : jsonResult,
+            processedCount: 0,
+            processedTime : null
+          ],
+          [:]
         )
 
         providerCache.putCacheData(Keys.Namespace.ON_DEMAND.ns, cacheData)
@@ -130,17 +147,17 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
 
     // Evict this load balancer if it no longer exists.
     Map<String, Collection<String>> evictions = loadBalancer ? [:] : [
-            (Keys.Namespace.LOAD_BALANCERS.ns): [
-                    Keys.getLoadBalancerKey(appId, clusterName)
-            ]
+      (Keys.Namespace.LOAD_BALANCERS.ns): [
+        Keys.getLoadBalancerKey(appId, clusterName)
+      ]
     ]
 
     log.info("On demand cache refresh (data: ${data}) succeeded.")
 
     return new OnDemandAgent.OnDemandResult(
-            sourceAgentType: getOnDemandAgentType(),
-            cacheResult: result,
-            evictions: evictions
+      sourceAgentType: getOnDemandAgentType(),
+      cacheResult: result,
+      evictions: evictions
     )
   }
 
@@ -158,10 +175,10 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
 
     return providerCache.getAll(Keys.Namespace.ON_DEMAND.ns, keys).collect {
       [
-              details       : Keys.parse(it.id),
-              cacheTime     : it.attributes.cacheTime,
-              processedCount: it.attributes.processedCount,
-              processedTime : it.attributes.processedTime
+        details       : Keys.parse(it.id),
+        cacheTime     : it.attributes.cacheTime,
+        processedCount: it.attributes.processedCount,
+        processedTime : it.attributes.processedTime
       ]
     }
   }
@@ -180,9 +197,9 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
     List<CacheData> keepInOnDemand = []
 
     providerCache.getAll(Keys.Namespace.ON_DEMAND.ns,
-            loadBalancers.collect {
-              Keys.getLoadBalancerKey(DcosSpinnakerLbId.parse(it.id, accountName).get(), clusterName)
-            }).each {
+                         loadBalancers.collect {
+                           Keys.getLoadBalancerKey(DcosSpinnakerLbId.parse(it.id, accountName).get(), clusterName)
+                         }).each {
       // Ensure that we don't overwrite data that was inserted by the `handle` method while we retrieved the
       // replication controllers. Furthermore, cache data that hasn't been processed needs to be updated in the ON_DEMAND
       // cache, so don't evict data without a processedCount > 0.
@@ -275,11 +292,11 @@ class DcosLoadBalancerCachingAgent implements CachingAgent, AccountAware, OnDema
     log.info("Caching ${cachedLoadBalancers.size()} load balancers in ${agentType}")
 
     return new DefaultCacheResult([
-            (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
-            (Keys.Namespace.ON_DEMAND.ns)     : onDemandKeep.values()
-    ], [
-            (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
-    ])
+                                    (Keys.Namespace.LOAD_BALANCERS.ns): cachedLoadBalancers.values(),
+                                    (Keys.Namespace.ON_DEMAND.ns)     : onDemandKeep.values()
+                                  ], [
+                                    (Keys.Namespace.ON_DEMAND.ns): onDemandEvict,
+                                  ])
   }
 }
 

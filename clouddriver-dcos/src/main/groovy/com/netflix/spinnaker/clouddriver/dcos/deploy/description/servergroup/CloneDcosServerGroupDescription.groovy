@@ -15,27 +15,14 @@
  *
  */
 
-package com.netflix.spinnaker.clouddriver.dcos.deploy.description.loadbalancer
+package com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup
 
-import com.netflix.spinnaker.clouddriver.dcos.deploy.description.AbstractDcosCredentialsDescription
+import groovy.transform.Canonical
 
-class UpsertDcosLoadBalancerAtomicOperationDescription extends AbstractDcosCredentialsDescription {
-  String name
-  String region
-  String app
-  String stack
-  String detail
-  boolean bindHttpHttps
-  double cpus
-  int instances
-  double mem
-  List<String> acceptedResourceRoles
+class CloneDcosServerGroupDescription extends DeployDcosServerGroupDescription {
+  DcosCloneServerGroupSource source
+}
 
-  PortRange portRange
-
-  static class PortRange {
-    String protocol
-    int minPort
-    int maxPort
-  }
+@Canonical
+class DcosCloneServerGroupSource extends AbstractDcosServerGroupDescription {
 }
