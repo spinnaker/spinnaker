@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@types/classnames": "^2.2.0",
-    "@uirouter/angularjs": "^1.0.3",
+    "@uirouter/react-hybrid": "0.0.3",
     "@uirouter/rx": "^0.4.1",
     "@uirouter/visualizer": "^4.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
@@ -87,6 +87,7 @@
     "@types/enzyme": "^2.7.9",
     "@types/jasmine": "2.5.47",
     "@types/jquery": "^2.0.34",
+    "@types/jqueryui": "^1.11.32",
     "@types/js-yaml": "3.5.30",
     "@types/lodash": "^4.14.64",
     "@types/marked": "^0.0.28",

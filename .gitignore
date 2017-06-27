@@ -20,6 +20,8 @@ test/google/node_modules/
 .awcache/
 .gradle/
 .happypack/
+.yalc
+yalc.lock
 build/
 dist/
 lib/

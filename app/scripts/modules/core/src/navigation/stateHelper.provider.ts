@@ -1,12 +1,12 @@
 import { copy, module } from 'angular';
-import { StateProvider } from '@uirouter/angularjs';
+import { StateRegistry, StateDeclaration } from '@uirouter/core';
 import { INestedState } from './state.provider';
 
 export class StateHelper implements ng.IServiceProvider {
 
   private registeredStates: string[] = [];
 
-  constructor(private $stateProvider: StateProvider) { 'ngInject'; }
+  constructor(private $stateRegistryProvider: StateRegistry) { 'ngInject'; }
 
   public setNestedState(state: INestedState, keepOriginalNames = false) {
     const newState: INestedState = copy(state);
@@ -17,7 +17,7 @@ export class StateHelper implements ng.IServiceProvider {
     }
     if (!this.registeredStates.includes(newState.name)) {
       this.registeredStates.push(newState.name);
-      this.$stateProvider.state(newState);
+      this.$stateRegistryProvider.register(newState as StateDeclaration);
     }
 
     if (newState.children && newState.children.length) {

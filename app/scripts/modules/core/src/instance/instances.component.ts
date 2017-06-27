@@ -105,7 +105,7 @@ export class InstancesController implements IComponentController {
 
     this.$element.mouseover((event) => {
       if (!this.tooltipTargets.includes(event.target) && event.target.hasAttribute('data-toggle')) {
-        $(event.target).tooltip({animation: false}).tooltip('show');
+        $(event.target).tooltip({animation: false} as JQueryUI.TooltipOptions).tooltip('show');
         this.tooltipTargets.push(event.target);
       }
     });

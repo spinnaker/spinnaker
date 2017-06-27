@@ -10,8 +10,9 @@ import 'react-select/dist/react-select.css';
 import 'ui-select/dist/select.css';
 
 import UI_ROUTER from '@uirouter/angularjs';
+const UI_ROUTER_STATE_EVENTS_SHIM = 'ui.router.state.events';
 require('@uirouter/angularjs/release/stateEvents');
-const UI_ROUTER_STATE_SHIM = 'ui.router.state.events';
+import { UI_ROUTER_REACT_HYBRID } from '@uirouter/react-hybrid';
 
 // use require instead of import to ensure insertion order is preserved
 require('Select2/select2.css');
@@ -55,7 +56,9 @@ module(CORE_MODULE, [
   require('angular-messages'),
   require('angular-sanitize'),
   UI_ROUTER,
-  UI_ROUTER_STATE_SHIM,
+  UI_ROUTER_STATE_EVENTS_SHIM,
+  UI_ROUTER_REACT_HYBRID,
+  REACT_MODULE, // must precede modules which register states
   require('angular-ui-bootstrap'),
   require('ui-select'),
   require('angular-spinner').angularSpinner.name,
@@ -98,7 +101,6 @@ module(CORE_MODULE, [
   require('./presentation/presentation.module'),
   require('./projects/projects.module'),
 
-  REACT_MODULE,
   REGION_MODULE,
 
   require('./search/search.module'),

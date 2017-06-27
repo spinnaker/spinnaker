@@ -1,14 +1,26 @@
 import { IServiceProvider, module } from 'angular';
 import { isEqual, isPlainObject } from 'lodash';
-import { Ng1StateDeclaration, ParamDeclaration, UrlRouterProvider, UrlService } from '@uirouter/angularjs';
+import {
+  Ng1StateDeclaration, Ng1ViewDeclaration, ParamDeclaration, UrlRouterProvider, UrlService
+} from '@uirouter/angularjs';
 
 import { STATE_HELPER, StateHelper } from './stateHelper.provider';
 import { IFilterConfig } from '../filterModel/IFilterModel';
 
 import './navigation.less';
+import { ReactViewDeclaration } from '@uirouter/react';
 
-export interface INestedState extends Ng1StateDeclaration {
+// Typescript kludge to widen interfaces so INestedState can support both react and angular views
+export interface IReactHybridIntermediate extends Ng1StateDeclaration {
   children?: INestedState[];
+  component?: any;
+  views?: { [key: string]: any };
+}
+
+export interface INestedState extends IReactHybridIntermediate {
+  children?: INestedState[];
+  component?: React.ComponentClass<any> | string;
+  views?: { [key: string]: ReactViewDeclaration | Ng1ViewDeclaration; };
 }
 
 export class StateConfigProvider implements IServiceProvider {

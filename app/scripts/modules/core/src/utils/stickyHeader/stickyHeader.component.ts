@@ -42,7 +42,7 @@ export class StickyHeaderController implements ng.IComponentController {
     // fun thing about modals is they use a CSS transform, which resets position: fixed element placement -
     // but not offset() positioning, so we need to take that into account when calculating the fixed position
     const $modalDialog = this.$element.closest('div.modal-dialog');
-    this.topOffset = $modalDialog.size() > 0 ? parseInt($modalDialog.css('marginTop'), 10) : 0;
+    this.topOffset = $modalDialog.length > 0 ? parseInt($modalDialog.css('marginTop'), 10) : 0;
 
     if (this.stickyIf !== undefined) {
       this.$scope.$watch(this.stickyIf, (sticky: boolean) => this.toggleSticky(sticky));

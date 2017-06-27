@@ -6,6 +6,7 @@ import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from 'core/appli
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
 import { filterModelConfig } from 'core/loadBalancer/filter/loadBalancerFilter.model';
 import { LOAD_BALANCERS_COMPONENT } from 'core/loadBalancer/loadBalancers.component';
+import { LoadBalancers } from 'core/loadBalancer/LoadBalancers';
 
 export const LOAD_BALANCER_STATES = 'spinnaker.core.loadBalancer.states';
 module(LOAD_BALANCER_STATES, [
@@ -69,7 +70,7 @@ module(LOAD_BALANCER_STATES, [
         template: '<load-balancer-filter app="$resolve.app"></load-balancer-filter>',
       },
       'master': {
-        template: '<load-balancers app="$resolve.app" style="display: flex;flex: 1 1 auto"></load-balancers>',
+        component: LoadBalancers, $type: 'react'
       }
     },
     params: stateConfigProvider.buildDynamicParams(filterModelConfig),

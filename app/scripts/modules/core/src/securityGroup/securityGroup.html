@@ -1,6 +1,6 @@
 <div class="pod-subgroup clickable clickable-row clearfix"
-     ng-click="loadDetails($event)"
-     ng-class="{active: $state.includes('**.securityGroupDetails', {region: securityGroup.region, accountId: securityGroup.accountName, name: securityGroup.name, vpcId: securityGroup.vpcId, provider: securityGroup.provider})}">
+     ui-sref=".securityGroupDetails(srefParams)"
+     ui-sref-active="active">
   <sticky-header added-offset-height="36">
     <h6>
       <span class="glyphicon glyphicon-transfer"></span>
