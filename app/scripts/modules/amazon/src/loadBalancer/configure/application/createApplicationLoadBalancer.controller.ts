@@ -195,9 +195,9 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
 
   private modifyTargetGroupName(name: string, add: boolean): string {
     if (add) {
-      return `${this.loadBalancerCommand.name}-${name}`;
+      return `${this.application.name}-${name}`;
     }
-    return name.replace(`${this.loadBalancerCommand.name}-`, '');
+    return name.replace(`${this.application.name}-`, '');
   }
 
   private manageTargetGroupNames(command: IAmazonApplicationLoadBalancerUpsertCommand, add: boolean): void {

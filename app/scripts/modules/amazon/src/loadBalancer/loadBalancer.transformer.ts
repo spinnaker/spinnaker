@@ -1,10 +1,19 @@
 import { IPromise, module } from 'angular';
 import { chain, filter, flatten, map } from 'lodash';
 
-import { IHealth, IServerGroup, IInstance, IVpc, Application } from '@spinnaker/core';
+import {
+  Application,
+  IHealth,
+  IServerGroup,
+  IInstance,
+  IVpc,
+  NAMING_SERVICE,
+  NamingService
+} from '@spinnaker/core';
 
 import { AWSProviderSettings } from 'amazon/aws.settings';
-import { IAmazonApplicationLoadBalancer,
+import {
+  IAmazonApplicationLoadBalancer,
   IALBListenerCertificate,
   IAmazonClassicLoadBalancer,
   IAmazonLoadBalancer,
@@ -18,7 +27,7 @@ import { IAmazonApplicationLoadBalancer,
 import { VPC_READ_SERVICE, VpcReader } from 'amazon/vpc/vpc.read.service';
 
 export class AwsLoadBalancerTransformer {
-  public constructor(private vpcReader: VpcReader) { 'ngInject'; }
+  public constructor(private vpcReader: VpcReader, private namingService: NamingService) { 'ngInject'; }
 
   private updateHealthCounts(serverGroup: IServerGroup | ITargetGroup | IAmazonLoadBalancer): void {
     const instances = serverGroup.instances;
@@ -196,6 +205,8 @@ export class AwsLoadBalancerTransformer {
   }
 
   public convertApplicationLoadBalancerForEditing(loadBalancer: IAmazonApplicationLoadBalancer): IAmazonApplicationLoadBalancerUpsertCommand {
+    const applicationName = this.namingService.parseLoadBalancerName(loadBalancer.name).application;
+
     // Since we build up toEdit as we go, much easier to declare as any, then cast at return time.
     const toEdit: IAmazonApplicationLoadBalancerUpsertCommand = {
       availabilityZones: undefined,
@@ -235,7 +246,7 @@ export class AwsLoadBalancerTransformer {
           }
 
           (listener.defaultActions || []).forEach((action) => {
-            action.targetGroupName = action.targetGroupName.replace(`${loadBalancer.name}-`, '');
+            action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
           });
 
           return {
@@ -252,7 +263,7 @@ export class AwsLoadBalancerTransformer {
       if (elb.targetGroups) {
         toEdit.targetGroups = elb.targetGroups.map((targetGroup: any) => {
           return {
-            name: targetGroup.targetGroupName.replace(`${loadBalancer.name}-`, ''),
+            name: targetGroup.targetGroupName.replace(`${applicationName}-`, ''),
             protocol: targetGroup.protocol,
             port: targetGroup.port,
             healthCheckProtocol: targetGroup.healthCheckProtocol,
@@ -370,6 +381,7 @@ export class AwsLoadBalancerTransformer {
 
 export const AWS_LOAD_BALANCER_TRANSFORMER = 'spinnaker.amazon.loadBalancer.transformer';
 module(AWS_LOAD_BALANCER_TRANSFORMER, [
-  VPC_READ_SERVICE
+  VPC_READ_SERVICE,
+  NAMING_SERVICE
 ])
   .service('awsLoadBalancerTransformer', AwsLoadBalancerTransformer);

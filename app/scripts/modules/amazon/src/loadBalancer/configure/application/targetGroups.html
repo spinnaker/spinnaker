@@ -6,7 +6,7 @@
           <div class="wizard-pod-row header">
             <div class="wizard-pod-row-title">Group Name</div>
             <div class="wizard-pod-row-contents">
-              <span class="group-name-prefix">{{ctrl.loadBalancerCommand.name}}-</span>
+              <span class="group-name-prefix">{{ctrl.application.name}}-</span>
               <input class="form-control input-sm target-group-name"
                      type="text"
                      ng-model="targetGroup.name"
@@ -14,6 +14,7 @@
                      validate-unique="ctrl.existingTargetGroupNames"
                      validate-ignore-case="true"
                      name="targetGroupName{{$index}}"
+                     ng-maxlength="32 - ctrl.application.name.length"
                      required/>
               <a href class="sm-label" ng-click="ctrl.removeTargetGroup($index)"><span class="glyphicon glyphicon-trash"></span></a>
             </div>
