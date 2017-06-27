@@ -106,6 +106,9 @@ export class CreateClassicLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl 
   public listenerProtocolChanged(listener: IClassicListenerDescription): void {
     if (listener.externalProtocol === 'HTTPS') {
       listener.externalPort = 443;
+      if (this.certificateTypes.length === 1) {
+        listener.sslCertificateType = this.certificateTypes[0];
+      }
     }
     if (listener.externalProtocol === 'HTTP') {
       listener.externalPort = 80;
