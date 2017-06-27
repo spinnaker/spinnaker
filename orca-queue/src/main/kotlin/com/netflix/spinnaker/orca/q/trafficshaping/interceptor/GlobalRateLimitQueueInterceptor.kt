@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.trafficshaping.interceptor
 import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TrafficShapingProperties
+import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.trafficshaping.InterceptorType
 import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
@@ -66,11 +67,15 @@ class GlobalRateLimitQueueInterceptor(
     if (rateLimit.limiting) {
       if (rateLimit.enforcing) {
         log.info("Throttling message: $message")
-        return { queue, message, ack ->
+        return { queue, msg, ack ->
           queue.push(message, rateLimit.duration)
           ack.invoke()
-          registry.counter(throttledMessagesId.withTag("learning", "false")).increment()
-          registry.counter(timeShapedId.withTags("interceptor", getName())).increment(rateLimit.duration.toMillis())
+          val app = when (msg) {
+            is ApplicationAware -> msg.application
+            else -> "UNKNOWN"
+          }
+          registry.counter(throttledMessagesId.withTags("learning", "false", "application", app)).increment()
+          registry.counter(timeShapedId.withTags("interceptor", getName(), "application", app)).increment(rateLimit.duration.toMillis())
         }
       }
       registry.counter(throttledMessagesId.withTag("learning", "true")).increment()

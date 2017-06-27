@@ -121,7 +121,11 @@ class PriorityCapacityQueueInterceptor(
   // TODO rz - configuration of throttle duration
   private fun defaultThrottleCallback(): TrafficShapingInterceptorCallback = { queue, msg, ack ->
     queue.push(msg, THROTTLE_TIME)
-    registry.counter(timeShapedId.withTags("interceptor", getName())).increment(THROTTLE_TIME.toMillis())
+    val app = when (msg) {
+      is ApplicationAware -> msg.application
+      else -> "UNKNOWN"
+    }
+    registry.counter(timeShapedId.withTags("interceptor", getName(), "application", app)).increment(THROTTLE_TIME.toMillis())
     ack.invoke()
   }
 
