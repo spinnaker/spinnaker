@@ -90,6 +90,7 @@ class OAuth2SsoConfig {
     String firstName = "given_name"
     String lastName = "family_name"
     String username = "email"
+    String serviceAccountEmail = "email"
   }
 
   @Component

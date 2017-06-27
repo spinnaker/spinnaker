@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
+import com.netflix.spinnaker.fiat.model.resources.ServiceAccount
 import retrofit.client.Response
 import retrofit.http.*
 
@@ -123,4 +124,7 @@ interface Front50Service {
 
   @GET('/snapshots/{id}/history')
   List<Map> getSnapshotHistory(@Path("id") String id, @Query("limit") int limit)
+
+  @GET('/serviceAccounts')
+  List<Map> getServiceAccounts()
 }

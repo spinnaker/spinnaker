@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,6 +66,9 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Autowired
   PermissionService permissionService
 
+  @Autowired
+  Front50Service front50Service
+
   @Override
   OAuth2Authentication loadAuthentication(String accessToken) throws AuthenticationException, InvalidTokenException {
     OAuth2Authentication oAuth2Authentication = userInfoTokenServices.loadAuthentication(accessToken)
@@ -75,7 +79,8 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
       log.debug("UserInfo details: " + new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(details))
     }
 
-    if (!hasAllUserInfoRequirements(details)) {
+    def isServiceAccount = isServiceAccount(details)
+    if (!hasAllUserInfoRequirements(details) && !isServiceAccount) {
       throw new BadCredentialsException("User's info does not have all required fields.")
     }
 
@@ -96,7 +101,10 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
         spinnakerUser.authorities
     )
 
-    permissionService.login(username)
+    // Service accounts are already logged in.
+    if (!isServiceAccount) {
+      permissionService.login(username)
+    }
 
     // impl copied from UserInfoTokenServices
     OAuth2Request storedRequest = new OAuth2Request(null, sso.clientId, null, true /*approved*/,
@@ -108,6 +116,15 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   @Override
   OAuth2AccessToken readAccessToken(String accessToken) {
     return userInfoTokenServices.readAccessToken(accessToken)
+  }
+
+  boolean isServiceAccount(Map details) {
+    String email = details[userInfoMapping.serviceAccountEmail]
+    if (!email) {
+      return false
+    }
+    def serviceAccounts = front50Service.getServiceAccounts()
+    return serviceAccounts.find { email.equalsIgnoreCase(it.name)}
   }
 
   boolean hasAllUserInfoRequirements(Map details) {
