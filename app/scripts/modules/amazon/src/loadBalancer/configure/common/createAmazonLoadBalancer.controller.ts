@@ -29,11 +29,9 @@ import './configure.less';
 
 export interface ICreateAmazonLoadBalancerViewState {
   accountsLoaded: boolean;
-  certificateRefreshTime: number;
   currentItems: number;
   hideInternalFlag: boolean;
   internalFlagToggled: boolean;
-  refreshingCertificates: boolean;
   refreshingSecurityGroups: boolean;
   removedSecurityGroups: string[];
   securityGroupRefreshTime: number;
@@ -94,11 +92,9 @@ export abstract class CreateAmazonLoadBalancerCtrl {
 
     this.viewState = {
       accountsLoaded: false,
-      certificateRefreshTime: this.infrastructureCaches.get('certificates').getStats().ageMax,
       currentItems: 25,
       hideInternalFlag: false,
       internalFlagToggled: false,
-      refreshingCertificates: false,
       refreshingSecurityGroups: false,
       removedSecurityGroups: [],
       securityGroupRefreshTime: this.infrastructureCaches.get('securityGroups').getStats().ageMax,
@@ -344,21 +340,9 @@ export abstract class CreateAmazonLoadBalancerCtrl {
       });
     });
   };
-  private setCertificateRefreshTime(): void {
-    this.viewState.certificateRefreshTime = this.infrastructureCaches.get('certificates').getStats().ageMax;
-  }
 
   private setSecurityGroupRefreshTime(): void {
     this.viewState.securityGroupRefreshTime = this.infrastructureCaches.get('securityGroups').getStats().ageMax;
-  }
-
-  public refreshCertificates(): void {
-    this.viewState.refreshingCertificates = true;
-    this.cacheInitializer.refreshCache('certificates').then(() => {
-      this.viewState.refreshingCertificates = false;
-      this.setCertificateRefreshTime();
-      this.loadCertificates();
-    });
   }
 
   public addItems(): void {
