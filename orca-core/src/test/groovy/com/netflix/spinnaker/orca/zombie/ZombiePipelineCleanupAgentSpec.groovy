@@ -25,6 +25,7 @@ import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 import static com.netflix.spinnaker.orca.ExecutionStatus.*
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2
 import static java.time.Instant.now
 import static rx.Observable.just
 
@@ -139,6 +140,7 @@ class ZombiePipelineCleanupAgentSpec extends Specification {
       .withExecutingInstance(instanceId)
       .withStartTime(startTime)
       .withStatus(status)
+      .withExecutionEngine(v2)
       .build()
   }
 }

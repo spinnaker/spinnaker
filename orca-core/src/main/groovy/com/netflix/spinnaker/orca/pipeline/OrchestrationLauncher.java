@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.util.Pool;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2;
 import static java.lang.String.format;
 
 @Component
@@ -51,7 +51,7 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
     Collection<ExecutionRunner> runners,
     Clock clock,
     @Qualifier("jedisPool") Pool<Jedis> pool,
-    @Value("${orchestration.executionEngine:v2}")
+    @Value("${orchestration.executionEngine:v3}")
       ExecutionEngine executionEngine) {
     super(objectMapper, currentInstanceId, executionRepository, runners);
     this.clock = clock;
@@ -101,7 +101,7 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
 
   private ExecutionEngine executionEngineForApp(String application) {
     try (Jedis redis = pool.getResource()) {
-      return redis.sismember("orchestration.executionEngine.v3", application) ? v3 : executionEngine;
+      return redis.sismember("orchestration.executionEngine.v2", application) ? v2 : executionEngine;
     }
   }
 

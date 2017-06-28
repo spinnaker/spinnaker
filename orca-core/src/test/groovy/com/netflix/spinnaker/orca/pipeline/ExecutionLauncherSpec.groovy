@@ -119,7 +119,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
     0 * v2Runner.start(_)
 
     where:
-    config = [id: "whatever", stages: [], limitConcurrent: true]
+    config = [id: "whatever", stages: [], limitConcurrent: true, executionEngine: "v2"]
     json = objectMapper.writeValueAsString(config)
   }
 
@@ -138,7 +138,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
     1 * startTracker.addToStarted(config.id, _)
 
     where:
-    config = [id: "whatever", stages: []]
+    config = [id: "whatever", stages: [], executionEngine: "v2"]
     json = objectMapper.writeValueAsString(config)
   }
 

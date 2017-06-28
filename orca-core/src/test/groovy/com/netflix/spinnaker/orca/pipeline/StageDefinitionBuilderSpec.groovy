@@ -25,6 +25,7 @@ import groovy.transform.CompileStatic
 import spock.lang.Specification
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED
 import static com.netflix.spinnaker.orca.ExecutionStatus.SUCCEEDED
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2
 
 class StageDefinitionBuilderSpec extends Specification {
 
@@ -34,7 +35,7 @@ class StageDefinitionBuilderSpec extends Specification {
     given:
     def stageBuilder = new TestStage()
 
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline(executionEngine: v2)
     pipeline.stages = [
       new Stage<>(pipeline, "1"),
       new Stage<>(pipeline, "2"),
@@ -87,7 +88,7 @@ class StageDefinitionBuilderSpec extends Specification {
     given:
     def stageBuilder = new TestStage()
 
-    def pipeline = new Pipeline()
+    def pipeline = new Pipeline(executionEngine: v2)
     pipeline.stages = [
       new Stage<>(pipeline, "1"),
     ]

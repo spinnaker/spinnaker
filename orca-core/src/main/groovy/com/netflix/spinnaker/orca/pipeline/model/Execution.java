@@ -24,7 +24,7 @@ import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import lombok.Data;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
-import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v2;
+import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static java.util.Arrays.asList;
 
 @Data
@@ -144,7 +144,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
     }
   }
 
-  public static final ExecutionEngine DEFAULT_EXECUTION_ENGINE = v2;
+  public static final ExecutionEngine DEFAULT_EXECUTION_ENGINE = v3;
 
   public enum ExecutionEngine {
     v1, v2, v3

@@ -26,18 +26,14 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.instance.TerminateInstancesT
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForDownInstanceHealthTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForTerminatedInstancesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.instance.WaitForUpInstanceHealthTask
+import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CaptureParentInterestingHealthProviderNamesTask
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.ServerGroupCacheForceRefreshTask
 import com.netflix.spinnaker.orca.config.JesqueConfiguration
 import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.tasks.DisableInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CheckForRemainingTerminationsTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.CleanUpTagsTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationCandidatesTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.DetermineTerminationPhaseInstancesTask
-import com.netflix.spinnaker.orca.kato.tasks.rollingpush.WaitForNewInstanceLaunchTask
-import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.CaptureParentInterestingHealthProviderNamesTask
+import com.netflix.spinnaker.orca.kato.tasks.rollingpush.*
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
@@ -103,7 +99,7 @@ class RollingPushStageSpec extends Specification {
 
   @Autowired @Qualifier("featuresService") FeaturesService featuresService
 
-  private static final SUCCESS =  TaskResult.SUCCEEDED
+  private static final SUCCESS = TaskResult.SUCCEEDED
   private static final REDIR = new TaskResult(REDIRECT)
 
   def "rolling push loops until completion"() {
@@ -143,13 +139,14 @@ class RollingPushStageSpec extends Specification {
 
     where:
     config = [
-      application: "app",
-      name       : "my-pipeline",
-      stages     : [
+      application    : "app",
+      name           : "my-pipeline",
+      stages         : [
         [type: RollingPushStage.PIPELINE_CONFIG_TYPE, refId: "1"],
         [type: "downstream", refId: "2", requisiteStageRefIds: ["1"]]
       ],
-      version    : 2
+      version        : 2,
+      executionEngine: "v2"
     ]
     configJson = mapper.writeValueAsString(config)
   }
