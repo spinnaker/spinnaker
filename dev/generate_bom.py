@@ -49,12 +49,13 @@ VAULT_VERSION = '0.7.0'
 GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG = {
   'steps': [
     {
-      'name': 'spinnakerrelease/gradle_cache',
-      'env': ['GRADLE_USER_HOME=/gradle_cache/.gradle'],
+      'name': '',
+      'env': [],
       'args': []
     },
     {
       'name': 'gcr.io/cloud-builders/docker',
+      'env': [],
       'args': []
     }
   ],
@@ -109,6 +110,8 @@ class BomGenerator(Annotator):
     self.__google_image_project = options.google_image_project
     self.__git_prefix = options.git_prefix
     self.__halyard_version = {'halyard': None}
+    self.__container_builder_base_image = options.container_builder_base_image
+    self.__container_builder_env_vars = options.container_builder_env_vars
     super(BomGenerator, self).__init__(options)
 
   @property
@@ -126,6 +129,10 @@ class BomGenerator(Annotator):
                         help="Output file to write the changelog to.")
     parser.add_argument('--container_builder', default='gcb',
                         help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
+    parser.add_argument('--container_builder_base_image', default='spinnakerrelease/gradle_cache',
+                        help="Base image to start from in the container builds.")
+    parser.add_argument('--container_builder_env_vars', default='GRADLE_USER_HOME=/gradle_cache/.gradle',
+                        help="Comma-separated list of environment variables to set in the container builds.")
     parser.add_argument('--docker_registry', default='',
                         help="Docker registry to push the container images to.")
     parser.add_argument('--google_image_project', default='marketplace-spinnaker-release',
@@ -168,6 +175,7 @@ class BomGenerator(Annotator):
       else:
         config = dict(GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG)
         gradle_version = self.__version_from_tag(comp)
+        env_vars_list = [env for env in self.__container_builder_env_vars.split(',') if env]
 
         # Gradle complains if the git tag version doesn't match the branch's version, i.e.
         # in patch releases. As a workaround, we checkout the HEAD commit of the
@@ -179,10 +187,13 @@ class BomGenerator(Annotator):
         else:
           gradle_cmd += ' ./gradlew {0}-web:installDist -x test'.format(comp)
         config['steps'][0]['args'] = ['bash', '-c', gradle_cmd]
+        config['steps'][0]['name'] = self.__container_builder_base_image
+        config['steps'][0]['env'] = env_vars_list
         versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
                                                       repo=comp,
                                                       tag=gradle_version)
         config['steps'][1]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile.slim', '.']
+        config['steps'][1]['env'] = env_vars_list
         config['images'] = [versioned_image]
         config_file = '{0}-gcb.yml'.format(comp)
         with open(config_file, 'w') as cfg:
