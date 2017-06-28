@@ -18,6 +18,8 @@ package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.q.StartExecution
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.shouldEqual
 import com.nhaarman.mockito_kotlin.*
@@ -40,12 +42,13 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
   val deadCounter: Counter = mock()
   val duplicateCounter: Counter = mock()
   val lockFailedCounter: Counter = mock()
+
   val registry: Registry = mock {
-    on { counter("queue.pushed.messages") } doReturn pushCounter
+    on { counter(eq("queue.pushed.messages"), anyVararg<String>()) } doReturn pushCounter
     on { counter("queue.acknowledged.messages") } doReturn ackCounter
     on { counter("queue.retried.messages") } doReturn retryCounter
     on { counter("queue.dead.messages") } doReturn deadCounter
-    on { counter("queue.duplicate.messages") } doReturn duplicateCounter
+    on { counter(eq("queue.duplicate.messages"), anyVararg<String>()) } doReturn duplicateCounter
     on { counter("queue.lock.failed") } doReturn lockFailedCounter
   }
 
@@ -95,7 +98,7 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
     describe("when a message is pushed") {
       afterGroup(::resetMocks)
 
-      val event = MessagePushed(queue)
+      val event = MessagePushed(queue, StartExecution(Pipeline::class.java, "1", "covfefe"))
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onApplicationEvent(event)
@@ -151,7 +154,7 @@ object AtlasQueueMonitorSpec : SubjectSpek<AtlasQueueMonitor>({
     describe("when a duplicate message is pushed") {
       afterGroup(::resetMocks)
 
-      val event = MessageDuplicate(queue)
+      val event = MessageDuplicate(queue, StartExecution(Pipeline::class.java, "1", "covfefe"))
 
       on("receiving a ${event.javaClass.simpleName} event") {
         subject.onApplicationEvent(event)

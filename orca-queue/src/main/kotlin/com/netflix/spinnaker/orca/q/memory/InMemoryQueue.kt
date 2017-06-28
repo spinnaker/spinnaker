@@ -64,9 +64,9 @@ class InMemoryQueue(
   override fun push(message: Message, delay: TemporalAmount) {
     if (queue.none { it.payload == message }) {
       queue.put(Envelope(message, clock.instant().plus(delay), clock))
-      fire<MessagePushed>()
+      fire<MessagePushed>(message)
     } else {
-      fire<MessageDuplicate>()
+      fire<MessageDuplicate>(message)
     }
   }
 
@@ -84,7 +84,7 @@ class InMemoryQueue(
           queue.put(message.copy(scheduledTime = now, count = message.count + 1))
           fire<MessageRetried>()
         } else {
-          fire<MessageDuplicate>()
+          fire<MessageDuplicate>(message.payload)
         }
       }
     }

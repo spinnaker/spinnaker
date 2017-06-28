@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.metrics
 
+import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.time.toInstant
 import org.springframework.context.ApplicationEvent
 
@@ -24,12 +25,17 @@ sealed class QueueEvent(source: MonitorableQueue) : ApplicationEvent(source) {
     get() = timestamp.toInstant()
 }
 
+sealed class PayloadQueueEvent(
+  source: MonitorableQueue,
+  val payload: Message
+) : QueueEvent(source)
+
 class QueuePolled(source: MonitorableQueue) : QueueEvent(source)
 class RetryPolled(source: MonitorableQueue) : QueueEvent(source)
-class MessagePushed(source: MonitorableQueue) : QueueEvent(source)
+class MessagePushed(source: MonitorableQueue, payload: Message) : PayloadQueueEvent(source, payload)
 class MessageAcknowledged(source: MonitorableQueue) : QueueEvent(source)
 class MessageRetried(source: MonitorableQueue) : QueueEvent(source)
 class MessageDead(source: MonitorableQueue) : QueueEvent(source)
-class MessageDuplicate(source: MonitorableQueue) : QueueEvent(source)
+class MessageDuplicate(source: MonitorableQueue, payload: Message) : PayloadQueueEvent(source, payload)
 class LockFailed(source: MonitorableQueue) : QueueEvent(source)
 

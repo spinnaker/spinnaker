@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.metrics
 
 import com.netflix.spectator.api.Counter
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.Queue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,8 +42,7 @@ open class AtlasQueueMonitor
   private val queue: MonitorableQueue,
   private val registry: Registry,
   private val clock: Clock
-)
-  : ApplicationListener<QueueEvent> {
+) : ApplicationListener<QueueEvent> {
 
   private val log = LoggerFactory.getLogger(javaClass)
 
@@ -50,13 +50,12 @@ open class AtlasQueueMonitor
     when (event) {
       is QueuePolled -> _lastQueuePoll.set(event.instant)
       is RetryPolled -> _lastRetryPoll.set(event.instant)
-      is MessagePushed -> pushCounter.increment()
-      is MessageAcknowledged -> ackCounter.increment()
-      is MessageRetried -> retryCounter.increment()
-      is MessageDead -> deadMessageCounter.increment()
-      is MessageDuplicate -> duplicateMessageCounter.increment()
-      is LockFailed -> lockFailedCounter.increment()
-      else -> log.error("Unhandled event $event")
+      is MessagePushed -> event.counter.increment()
+      is MessageAcknowledged -> event.counter.increment()
+      is MessageRetried -> event.counter.increment()
+      is MessageDead -> event.counter.increment()
+      is MessageDuplicate -> event.counter.increment()
+      is LockFailed -> event.counter.increment()
     }
   }
 
@@ -115,13 +114,17 @@ open class AtlasQueueMonitor
   /**
    * Count of messages pushed to the queue.
    */
-  private val pushCounter: Counter
-    get() = registry.counter("queue.pushed.messages")
+  private val MessagePushed.counter: Counter
+    get() =
+    when (payload) {
+      is ApplicationAware -> registry.counter("queue.pushed.messages", "application", payload.application)
+      else -> registry.counter("queue.pushed.messages")
+    }
 
   /**
    * Count of messages successfully processed and acknowledged.
    */
-  private val ackCounter: Counter
+  private val MessageAcknowledged.counter: Counter
     get() = registry.counter("queue.acknowledged.messages")
 
   /**
@@ -129,27 +132,28 @@ open class AtlasQueueMonitor
    * messages, so retrying the same message again will still increment this
    * count.
    */
-  private val retryCounter: Counter
+  private val MessageRetried.counter: Counter
     get() = registry.counter("queue.retried.messages")
 
   /**
    * Count of messages that have exceeded [Queue.maxRetries] retry
    * attempts and have been sent to the dead message handler.
    */
-  private val deadMessageCounter: Counter
+  private val MessageDead.counter: Counter
     get() = registry.counter("queue.dead.messages")
 
   /**
    * Count of messages that have been pushed or re-delivered while an identical
    * message is already on the queue.
    */
-  private val duplicateMessageCounter: Counter
-    get() = registry.counter("queue.duplicate.messages")
+  private val MessageDuplicate.counter: Counter
+    get() =
+    registry.counter("queue.duplicate.messages", "type", payload.javaClass.simpleName)
 
   /**
    * Count of attempted message reads that failed to acquire a lock (in other
    * words, multiple Orca instance tried to read the same message).
    */
-  private val lockFailedCounter: Counter
+  private val LockFailed.counter: Counter
     get() = registry.counter("queue.lock.failed")
 }

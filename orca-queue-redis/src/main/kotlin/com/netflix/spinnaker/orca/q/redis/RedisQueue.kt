@@ -82,10 +82,10 @@ class RedisQueue(
       val messageHash = message.hash()
       if (redis.sismember(hashesKey, messageHash)) {
         log.warn("Ignoring message as an identical one is already on the queue: $message")
-        fire<MessageDuplicate>()
+        fire<MessageDuplicate>(message)
       } else {
         redis.queueMessage(message, delay)
-        fire<MessagePushed>()
+        fire<MessagePushed>(message)
       }
     }
   }
@@ -113,9 +113,12 @@ class RedisQueue(
               fire<MessageDead>()
             } else {
               if (redis.sismember(hashesKey, redis.hget(hashKey, id))) {
-                log.warn("Not retrying message $id because an identical message is already on the queue")
-                redis.removeMessage(id)
-                fire<MessageDuplicate>()
+                // we only need to read the message for metrics purposes
+                redis.readMessage(id) { message ->
+                  log.warn("Not retrying message $id because an identical message is already on the queue")
+                  redis.removeMessage(id)
+                  fire<MessageDuplicate>(message)
+                }
               } else {
                 log.warn("Retrying message $id after $attempts attempts")
                 redis.requeueMessage(id)
