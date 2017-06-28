@@ -44,35 +44,6 @@ CONSUL_VERSION = '0.7.5'
 REDIS_VERSION = '2:2.8.4-2'
 VAULT_VERSION = '0.7.0'
 
-# The spinnakerrelease/gradle_cache container image contains a populated gradle
-# cache to cut down on network traffic by caching artifacts we need in the builds.
-GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG = {
-  'steps': [
-    {
-      'name': 'spinnakerrelease/gradle_cache',
-      'env': ['GRADLE_USER_HOME=/gradle_cache/.gradle'],
-      'args': []
-    },
-    {
-      'name': 'gcr.io/cloud-builders/docker',
-      'args': []
-    }
-  ],
-  'images': [],
-  'timeout': '3600s'
-}
-
-GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG = {
-  'steps': [
-    {
-      'name': 'gcr.io/cloud-builders/docker',
-      'dir': 'spinnaker-monitoring-daemon',
-      'args': []
-    }
-  ],
-  'images': [],
-  'timeout': '3600s'
-}
 
 class BomGenerator(Annotator):
   """Provides facilities for generating the Bill of Materials file for the
@@ -109,6 +80,8 @@ class BomGenerator(Annotator):
     self.__google_image_project = options.google_image_project
     self.__git_prefix = options.git_prefix
     self.__halyard_version = {'halyard': None}
+    self.__container_builder_base_image = options.container_builder_base_image
+    self.__container_builder_env_vars = options.container_builder_env_vars
     super(BomGenerator, self).__init__(options)
 
   @property
@@ -126,6 +99,10 @@ class BomGenerator(Annotator):
                         help="Output file to write the changelog to.")
     parser.add_argument('--container_builder', default='gcb',
                         help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
+    parser.add_argument('--container_builder_base_image', default='spinnakerrelease/gradle_cache',
+                        help="Base image to start from in the container builds.")
+    parser.add_argument('--container_builder_env_vars', default='GRADLE_USER_HOME=/gradle_cache/.gradle',
+                        help="Comma-separated list of environment variables to set in the container builds.")
     parser.add_argument('--docker_registry', default='',
                         help="Docker registry to push the container images to.")
     parser.add_argument('--google_image_project', default='marketplace-spinnaker-release',
@@ -153,40 +130,67 @@ class BomGenerator(Annotator):
     """Write a configuration file for producing Container Images with Google Container Builder for each microservice.
     """
     for comp in self.__component_versions:
-      if comp == 'spinnaker-monitoring':
-        config = dict(GOOGLE_CONTAINER_BUILDER_MONITORING_BASE_CONFIG)
-        version = self.__version_from_tag(comp)
-        versioned_image = '{reg}/monitoring-daemon:{tag}'.format(reg=self.__docker_registry,
-                                                                 tag=version)
-        config['steps'][0]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile', '.']
-        config['images'] = [versioned_image]
-        config_file = '{0}-gcb.yml'.format(comp)
-        with open(config_file, 'w') as cfg:
-          yaml.dump(config, cfg, default_flow_style=True)
-      elif comp == 'spinnaker':
+      if comp == 'spinnaker':
         pass
       else:
-        config = dict(GOOGLE_CONTAINER_BUILDER_SERVICE_BASE_CONFIG)
-        gradle_version = self.__version_from_tag(comp)
-
-        # Gradle complains if the git tag version doesn't match the branch's version, i.e.
-        # in patch releases. As a workaround, we checkout the HEAD commit of the
-        # current branch in a 'detached HEAD' state so Gradle doesn't complain about
-        # our branch version and git tag version not matching.
-        gradle_cmd = 'git rev-parse HEAD | xargs git checkout ;'
-        if comp == 'deck':
-          gradle_cmd += ' ./gradlew build -PskipTests'
-        else:
-          gradle_cmd += ' ./gradlew {0}-web:installDist -x test'.format(comp)
-        config['steps'][0]['args'] = ['bash', '-c', gradle_cmd]
-        versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
-                                                      repo=comp,
-                                                      tag=gradle_version)
-        config['steps'][1]['args'] = ['build', '-t', versioned_image, '-f', 'Dockerfile.slim', '.']
-        config['images'] = [versioned_image]
-        config_file = '{0}-gcb.yml'.format(comp)
+        config = self.__generate_gcb_config(comp)
         with open(config_file, 'w') as cfg:
-            yaml.dump(config, cfg, default_flow_style=True)
+          yaml.dump(config, cfg, default_flow_style=True)
+
+
+  def __generate_gcb_config(self, comp):
+    env_vars_list = [env for env in self.__container_builder_env_vars.split(',') if env]
+
+    if comp == 'spinnaker-monitoring':
+      version = self.__version_from_tag(comp)
+      versioned_image = '{reg}/monitoring-daemon:{tag}'.format(reg=self.__docker_registry,
+                                                               tag=version)
+      config = {
+        'images': [versioned_image],
+        'steps': [
+          {
+            'args': ['build', '-t', versioned_image, '-f', 'Dockerfile', '.'],
+            'dir': 'spinnaker-monitoring-daemon',
+            'env': env_vars_list,
+            'name':  'gcr.io/cloud-builders/docker'
+          }
+        ],
+        'timeout': '3600s'
+      }
+    else:
+      gradle_version = self.__version_from_tag(comp)
+
+      # Gradle complains if the git tag version doesn't match the branch's version, i.e.
+      # in patch releases. As a workaround, we checkout the HEAD commit of the
+      # current branch in a 'detached HEAD' state so Gradle doesn't complain about
+      # our branch version and git tag version not matching.
+      gradle_cmd = 'git rev-parse HEAD | xargs git checkout ;'
+      if comp == 'deck':
+        gradle_cmd += ' ./gradlew build -PskipTests'
+      else:
+        gradle_cmd += ' ./gradlew {0}-web:installDist -x test'.format(comp)
+
+      versioned_image = '{reg}/{repo}:{tag}'.format(reg=self.__docker_registry,
+                                                    repo=comp,
+                                                    tag=gradle_version)
+      config = {
+        'images': [versioned_image],
+        'steps': [
+          {
+            'args': ['bash', '-c', gradle_cmd],
+            'env': env_vars_list,
+            'name':  self.__container_builder_base_image
+          },
+          {
+            'args': ['build', '-t', versioned_image, '-f', 'Dockerfile.slim', '.'],
+            'env': env_vars_list,
+            'name':  'gcr.io/cloud-builders/docker'
+          }
+        ],
+        'timeout': '3600s'
+      }
+    return config
+
 
   def write_docker_version_files(self):
     """Write a file containing the full tag for each microservice for Docker.
