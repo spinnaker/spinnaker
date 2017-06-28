@@ -1,13 +1,13 @@
 import * as React from 'react';
-import {IVariableMetadata} from './pipelineTemplate.service';
-import {IVariable, IVariableInputBuilder} from './inputs/variableInput.service';
 import autoBindMethods from 'class-autobind-decorator';
-import {VariableMetadataHelpField} from './VariableMetadataHelpField';
+
 import { ReactInjector } from 'core/reactShims';
 
-import './Variable.less';
+import { IVariableMetadata } from './pipelineTemplate.service';
+import { IVariable, IVariableInputBuilder } from './inputs/variableInput.service';
+import { VariableMetadataHelpField } from './VariableMetadataHelpField';
 
-export interface IVariableState { }
+import './Variable.less';
 
 export interface IVariableProps {
   variableMetadata: IVariableMetadata;
@@ -16,7 +16,7 @@ export interface IVariableProps {
 }
 
 @autoBindMethods
-export class Variable extends React.Component<IVariableProps, IVariableState> {
+export class Variable extends React.Component<IVariableProps, null> {
 
   private getVariableInput(): JSX.Element {
     const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(this.props.variableMetadata.type);
