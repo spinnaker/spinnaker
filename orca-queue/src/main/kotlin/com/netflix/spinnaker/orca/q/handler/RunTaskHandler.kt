@@ -16,11 +16,9 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
-import com.netflix.spinnaker.orca.AuthenticatedStage
+import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.orca.*
 import com.netflix.spinnaker.orca.ExecutionStatus.*
-import com.netflix.spinnaker.orca.RetryableTask
-import com.netflix.spinnaker.orca.Task
-import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -50,7 +48,8 @@ open class RunTaskHandler
   private val tasks: Collection<Task>,
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
-  private val contextParameterProcessor: ContextParameterProcessor
+  private val contextParameterProcessor: ContextParameterProcessor,
+  private val registry: Registry
 ) : MessageHandler<RunTask> {
 
   private val log: Logger = getLogger(javaClass)
@@ -75,12 +74,18 @@ open class RunTaskHandler
             // TODO: rather send this data with CompleteTask message
             stage.processTaskOutput(result)
             when (result.status) {
-              RUNNING ->
+              RUNNING -> {
                 queue.push(message, task.backoffPeriod())
-              SUCCEEDED, REDIRECT ->
+                trackResult(stage, task.javaClass, result.status)
+              }
+              SUCCEEDED, REDIRECT -> {
                 queue.push(CompleteTask(message, result.status))
-              TERMINAL ->
+                trackResult(stage, task.javaClass, result.status)
+              }
+              TERMINAL -> {
                 queue.push(CompleteTask(message, stage.failureStatus()))
+                trackResult(stage, task.javaClass, stage.failureStatus())
+              }
               else ->
                 TODO("handle other states such as cancellation, suspension, etc.")
             }
@@ -90,18 +95,20 @@ open class RunTaskHandler
           if (exceptionDetails?.shouldRetry ?: false) {
             log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
             queue.push(message, task.backoffPeriod())
+            trackResult(stage, task.javaClass, RUNNING)
           } else {
             log.error("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]", e)
             stage.getContext()["exception"] = exceptionDetails
             repository.storeStage(stage)
             queue.push(CompleteTask(message, stage.failureStatus()))
+            trackResult(stage, task.javaClass, stage.failureStatus())
           }
         }
       }
     }
   }
 
-  private fun Task.executeTask(stage: Stage<*>, function: (TaskResult) -> Unit) {
+  private fun Task.executeTask(stage: Stage<*>, callback: (TaskResult) -> Unit) {
     // An AuthenticatedStage can override the default pipeline authentication credentials
     val authenticatedUser = stage
       .ancestors()
@@ -115,8 +122,24 @@ open class RunTaskHandler
     }
 
     propagate({
-      execute(stage.withMergedContext()).let(function)
+      execute(stage.withMergedContext()).let(callback)
     }, false, currentUser).call()
+  }
+
+  private fun trackResult(stage: Stage<*>, taskType: Class<Task>, status: ExecutionStatus) {
+    val id = registry.createId("task.invocations")
+      .withTag("status", status.toString())
+      .withTag("executionType", stage.getExecution().javaClass.simpleName)
+      .withTag("stageType", stage.getType())
+      .withTag("taskType", taskType.simpleName)
+      .withTag("isComplete", status.isComplete.toString())
+      .withTag("sourceApplication", stage.getExecution().getApplication())
+      .let { id ->
+        stage.getContext()["cloudProvider"]?.let {
+          id.withTag("cloudProvider", it.toString())
+        } ?: id
+      }
+    registry.counter(id).increment()
   }
 
   override val messageType = RunTask::class.java

@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
@@ -49,7 +50,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
   val contextParameterProcessor = ContextParameterProcessor()
 
   subject(GROUP) {
-    RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler), contextParameterProcessor)
+    RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler), contextParameterProcessor, NoopRegistry())
   }
 
   fun resetMocks() = reset(queue, repository, task, exceptionHandler)
