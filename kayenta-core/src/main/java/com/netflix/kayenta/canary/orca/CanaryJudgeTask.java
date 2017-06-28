@@ -18,6 +18,7 @@ package com.netflix.kayenta.canary.orca;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
+import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
@@ -77,8 +78,8 @@ public class CanaryJudgeTask implements RetryableTask {
 
     CanaryConfig canaryConfig = storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
     List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
-    float canaryScore = canaryJudge.judge(canaryConfig, metricSetPairList);
-    Map outputs = Collections.singletonMap("canaryScore", canaryScore);
+    CanaryJudgeResult result = canaryJudge.judge(canaryConfig, metricSetPairList);
+    Map<String, CanaryJudgeResult> outputs = Collections.singletonMap("result", result);
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);
   }

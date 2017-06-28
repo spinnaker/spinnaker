@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 Google, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.kayenta.canary;
+package com.netflix.kayenta.judge.netflix
 
-import com.netflix.kayenta.canary.results.CanaryJudgeResult;
-import com.netflix.kayenta.metrics.MetricSetPair;
+import java.util
 
-import java.util.List;
+import com.netflix.kayenta.canary.results.CanaryJudgeResult
+import com.netflix.kayenta.canary.{CanaryConfig, CanaryJudge}
+import com.netflix.kayenta.metrics.MetricSetPair
 
-public interface CanaryJudge {
-  CanaryJudgeResult judge(CanaryConfig canaryConfig, List<MetricSetPair> metricSetPairList);
+class NetflixJudge extends CanaryJudge {
+  override def judge(canaryConfig: CanaryConfig, metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
+    val result = CanaryJudgeResult.builder().build()
+    result
+  }
 }
