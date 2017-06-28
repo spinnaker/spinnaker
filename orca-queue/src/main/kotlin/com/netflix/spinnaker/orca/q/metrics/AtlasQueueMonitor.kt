@@ -115,8 +115,7 @@ open class AtlasQueueMonitor
    * Count of messages pushed to the queue.
    */
   private val MessagePushed.counter: Counter
-    get() =
-    when (payload) {
+    get() = when (payload) {
       is ApplicationAware -> registry.counter("queue.pushed.messages", "application", payload.application)
       else -> registry.counter("queue.pushed.messages")
     }
@@ -147,8 +146,7 @@ open class AtlasQueueMonitor
    * message is already on the queue.
    */
   private val MessageDuplicate.counter: Counter
-    get() =
-    registry.counter("queue.duplicate.messages", "type", payload.javaClass.simpleName)
+    get() = registry.counter("queue.duplicate.messages", "messageType", payload.javaClass.simpleName)
 
   /**
    * Count of attempted message reads that failed to acquire a lock (in other
