@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_AFTER
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner.STAGE_BEFORE
 import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
@@ -295,10 +296,10 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         afterGroup(::resetMocks)
 
         it("attaches the synthetic stage to the pipeline") {
-          argumentCaptor<Stage<Pipeline>>().apply {
-            verify(repository, times(2)).addStage(capture())
-            allValues.map { it.id } shouldEqual listOf("${message.stageId}-1-pre1", "${message.stageId}-2-pre2")
-          }
+          verify(repository, times(2)).addStage(check {
+            it.getParentStageId() shouldEqual message.stageId
+            it.getSyntheticStageOwner() shouldEqual STAGE_BEFORE
+          })
         }
 
         it("raises an event to indicate the synthetic stage is starting") {
@@ -331,10 +332,10 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         }
 
         it("attaches the synthetic stage to the pipeline") {
-          argumentCaptor<Stage<Pipeline>>().apply {
-            verify(repository, times(2)).addStage(capture())
-            allValues.map { it.id } shouldEqual listOf("${message.stageId}-2-post2", "${message.stageId}-1-post1")
-          }
+          verify(repository, times(2)).addStage(check {
+            it.getParentStageId() shouldEqual message.stageId
+            it.getSyntheticStageOwner() shouldEqual STAGE_AFTER
+          })
         }
 
         it("raises an event to indicate the first task is starting") {

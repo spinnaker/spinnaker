@@ -3,7 +3,6 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -143,9 +142,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
     result = 31 * result + id.hashCode();
     return result;
   }
-
-  @JsonIgnore
-  private final AtomicInteger stageCounter = new AtomicInteger(0);
 
   public Task taskById(String taskId) {
     return tasks

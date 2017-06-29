@@ -16,15 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.*;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner;
@@ -77,36 +72,9 @@ public interface StageDefinitionBuilder {
   ) {
     Stage<E> stage = new Stage<>(execution, type, name, context);
     if (parent != null) {
-      String stageName = Optional.ofNullable(name).map(s -> s.replaceAll("[^A-Za-z0-9]", "")).orElse(null);
-      String id = parent.getId() + "-" + parent.getStageCounter().incrementAndGet() + "-" + stageName;
-
-      Optional<Stage<E>> existingStage = execution.getStages().stream().filter(it -> it.getId().equals(id)).findFirst();
-      if (existingStage.isPresent()) {
-        // restarted pipelines will have synthetic stages already built so we
-        // don't want to duplicate them
-        return existingStage.get();
-      } else {
-        stage.setId(id);
-      }
-    }
-
-    stage.setSyntheticStageOwner(stageOwner);
-
-    if (parent != null) {
       stage.setParentStageId(parent.getId());
-
-      // Look upstream until you find the ultimate ancestor parent (parent w/ no parentStageId)
-      Collection<Stage<E>> executionStages = execution.getStages();
-      while (parent.getParentStageId() != null) {
-        String parentStageId = parent.getParentStageId();
-        parent = executionStages
-          .stream()
-          .filter(s -> s.getId().equals(parentStageId))
-          .findFirst()
-          .orElse(null);
-      }
     }
-
+    stage.setSyntheticStageOwner(stageOwner);
     return stage;
   }
 }
