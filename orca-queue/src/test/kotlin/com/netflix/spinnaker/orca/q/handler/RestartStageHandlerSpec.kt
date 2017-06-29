@@ -92,7 +92,7 @@ object RestartStageHandlerSpec : SubjectSpek<RestartStageHandler>({
           verify(repository, never()).store(any<Pipeline>())
         }
 
-        it("runs the stage") {
+        it("does not run the stage") {
           verify(queue, never()).push(any<StartStage>())
         }
 

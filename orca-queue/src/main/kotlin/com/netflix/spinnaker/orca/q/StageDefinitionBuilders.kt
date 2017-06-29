@@ -182,7 +182,7 @@ private fun Stage<out Execution<*>>.buildExecutionWindow(): Stage<*>? {
       is Pipeline -> newStage(
         execution,
         RestrictExecutionDuringTimeWindow.TYPE,
-        RestrictExecutionDuringTimeWindow.TYPE, // TODO: base on stage.name?
+        RestrictExecutionDuringTimeWindow.TYPE,
         getContext().filterKeys { it != "restrictExecutionDuringTimeWindow" },
         this as Stage<Pipeline>,
         STAGE_BEFORE
@@ -190,7 +190,7 @@ private fun Stage<out Execution<*>>.buildExecutionWindow(): Stage<*>? {
       is Orchestration -> newStage(
         execution,
         RestrictExecutionDuringTimeWindow.TYPE,
-        RestrictExecutionDuringTimeWindow.TYPE, // TODO: base on stage.name?
+        RestrictExecutionDuringTimeWindow.TYPE,
         getContext().filterKeys { it != "restrictExecutionDuringTimeWindow" },
         this as Stage<Orchestration>,
         STAGE_BEFORE
