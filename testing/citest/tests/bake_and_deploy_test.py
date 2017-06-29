@@ -429,7 +429,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       parallel=True,
       index=0,
       limitConcurrent=True,
-      executionEngine='v2',
       appConfig={}
     )
     payload = self.agent.make_json_payload_from_kwargs(**pipeline_spec)
@@ -466,7 +465,6 @@ class BakeAndDeployTestScenario(sk.SpinnakerTestScenario):
       stageCounter=4,
       parallel=True,
       limitConcurrent=True,
-      executionEngine='v2',
       appConfig={},
       index=3
     )

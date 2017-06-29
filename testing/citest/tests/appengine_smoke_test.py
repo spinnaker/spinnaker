@@ -240,7 +240,6 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         stageCounter=2,
         parallel=True,
         limitConcurrent=True,
-        executionEngine='v2',
         appConfig={},
         index=0
     )

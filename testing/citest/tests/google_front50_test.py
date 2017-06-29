@@ -117,7 +117,6 @@ class GoogleFront50TestScenario(sk.SpinnakerTestScenario):
     self.initial_pipeline_spec = {
         "keepWaitingPipelines": False,
         "limitConcurrent": True,
-        "executionEngine": "v2",
         "application": self.TEST_APP,
         "parallel": True,
         "lastModifiedBy": "anonymous",
