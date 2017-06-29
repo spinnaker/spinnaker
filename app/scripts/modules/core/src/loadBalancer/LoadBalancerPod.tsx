@@ -1,5 +1,6 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
+import { isEqual, zip } from 'lodash';
 
 import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application/application.model';
@@ -15,6 +16,10 @@ export interface ILoadBalancerPodProps {
   parentHeading: string,
   showServerGroups: boolean,
   showInstances: boolean
+}
+
+function equalForKeys<T>(keys: [keyof T], left: T, right: T): boolean {
+  return keys.reduce((acc, key) => acc && left[key] === right[key], true);
 }
 
 @autoBindMethods
@@ -54,5 +59,23 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps, void
         </div>
       </div>
     );
+  }
+
+  public shouldComponentUpdate(nextProps: ILoadBalancerPodProps) {
+    const simplePropsDiffer = () => !equalForKeys(['application', 'parentHeading', 'showServerGroups', 'showInstances'], nextProps, this.props);
+
+    const loadBalancerGroupsDiffer = (left: ILoadBalancerGroup, right: ILoadBalancerGroup) => {
+      const simpleGroupingPropsDiffer = () => !equalForKeys(['heading', 'loadBalancer', 'searchField'], left, right);
+      const serverGroupsDiffer = () => !isEqual((left.serverGroups || []).map(g => g.name), (right.serverGroups || []).map(g => g.name));
+      const subgroupsDiffer = (): boolean => {
+        const leftSG = left.subgroups || [];
+        const rightSG = right.subgroups || [];
+        return leftSG.length !== rightSG.length || zip(leftSG, rightSG).some(tuple => loadBalancerGroupsDiffer(tuple[0], tuple[1]));
+      };
+
+      return simpleGroupingPropsDiffer() || serverGroupsDiffer() || subgroupsDiffer();
+    };
+
+    return simplePropsDiffer() || loadBalancerGroupsDiffer(nextProps.grouping, this.props.grouping);
   }
 }
