@@ -15,10 +15,22 @@ export default function MetricDetail({ id, metric, changeName }: IMetricDetailPr
   return (
     <form role="form" className="form-horizontal container-fluid">
       <FormRow label="Name">
-        <input type="text" className="form-control" value={metric.name} data-id={id} onChange={changeName}/>
+        <input
+          type="text"
+          className="form-control"
+          value={metric.name}
+          data-id={id}
+          onChange={changeName}
+        />
       </FormRow>
       <FormRow label="Service">
-        <input type="text" disabled={true} className="form-control" value={metric.serviceName} data-id={id}/>
+        <input
+          type="text"
+          className="form-control"
+          value={metric.serviceName}
+          data-id={id}
+          disabled={true}
+        />
       </FormRow>
     </form>
   );
