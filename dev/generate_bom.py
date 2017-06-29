@@ -134,6 +134,7 @@ class BomGenerator(Annotator):
         pass
       else:
         config = self.__generate_gcb_config(comp)
+        config_file = '{0}-gcb.yml'.format(comp)
         with open(config_file, 'w') as cfg:
           yaml.dump(config, cfg, default_flow_style=True)
 
