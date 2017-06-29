@@ -91,6 +91,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup.zones = serverGroupData.attributes["zones"]
     serverGroup.launchConfig = launchConfigs ? launchConfigs.attributes : null
     serverGroup.image = imageConfigs ? imageConfigs.attributes : null
+    serverGroup.buildInfo = getBuildInfoFromImage(imageConfigs)
     serverGroup.asg = asg
     serverGroup.scalingPolicies = serverGroupData.attributes["scalingPolicies"]
     serverGroup.scheduledActions = serverGroupData.attributes["scheduledActions"]
@@ -228,32 +229,11 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     Collection<CacheData> images = cacheView.getAll(IMAGES.ns, allImages.keySet())
     images.each { image ->
       def serverGroupIds = allImages[image.id]
-      Map buildInfo = null
-
-      String appVersionTag = image.attributes.tags?.find { it.key == "appversion" }?.value
-      if (appVersionTag) {
-        def appVersion = AppVersion.parseName(appVersionTag)
-        if (appVersion) {
-          buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
-          if (appVersion.buildJobName) {
-            buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
-          }
-          def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value ?: defaultBuildHost
-          if (buildHost && buildInfo.containsKey("jenkins")) {
-            ((Map) buildInfo.jenkins).host = buildHost
-          }
-          def buildInfoUrl = image.attributes.tags?.find { it.key == "build_info_url" }?.value ?: null
-          if (buildInfoUrl) {
-            buildInfo.buildInfoUrl = buildInfoUrl
-          }
-
-        }
-      }
 
       serverGroupIds.each { serverGroupId ->
         def serverGroup = serverGroups[serverGroupId]
         serverGroup.image = image.attributes
-        serverGroup.buildInfo = buildInfo
+        serverGroup.buildInfo = getBuildInfoFromImage(image)
       }
     }
 
@@ -310,6 +290,31 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
   private Collection<CacheData> resolveRelationshipData(CacheData source, String relationship, Closure<Boolean> relFilter, CacheFilter cacheFilter = null) {
     Collection<String> filteredRelationships = source.relationships[relationship]?.findAll(relFilter)
     filteredRelationships ? cacheView.getAll(relationship, filteredRelationships, cacheFilter) : []
+  }
+
+  private Map getBuildInfoFromImage(CacheData image) {
+
+    Map buildInfo = null
+    String appVersionTag = image.attributes.tags?.find { it.key == "appversion" }?.value
+    if (appVersionTag) {
+      def appVersion = AppVersion.parseName(appVersionTag)
+      if (appVersion) {
+        buildInfo = [package_name: appVersion.packageName, version: appVersion.version, commit: appVersion.commit] as Map<Object, Object>
+        if (appVersion.buildJobName) {
+          buildInfo.jenkins = [name: appVersion.buildJobName, number: appVersion.buildNumber]
+        }
+        def buildHost = image.attributes.tags.find { it.key == "build_host" }?.value ?: defaultBuildHost
+        if (buildHost && buildInfo.containsKey("jenkins")) {
+          ((Map) buildInfo.jenkins).host = buildHost
+        }
+        def buildInfoUrl = image.attributes.tags?.find { it.key == "build_info_url" }?.value ?: null
+        if (buildInfoUrl) {
+          buildInfo.buildInfoUrl = buildInfoUrl
+        }
+      }
+    }
+
+    buildInfo
   }
 
   @Override
