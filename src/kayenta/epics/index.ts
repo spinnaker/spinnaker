@@ -5,7 +5,7 @@ import { getCanaryConfigById } from '../service/canaryConfig.service';
 
 const selectConfigEpic = (action$: Observable<any>) =>
   action$
-    .filter((action: any) => action.type === 'load_config')
+    .filter(action => action.type === 'load_config')
     .concatMap(action => getCanaryConfigById(action.id))
     .map(config => ({ type: 'select_config', config }));
 

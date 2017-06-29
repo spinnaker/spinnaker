@@ -1,26 +1,31 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
+import { ICanaryState } from '../reducers';
 import MetricDetail from './metricDetail';
 
-interface IMetricListProps {
+interface IMetricListStateProps {
   metrics: ICanaryMetricConfig[];
   selectedMetric: ICanaryMetricConfig;
+}
+
+interface IMetricListDispatchProps {
+  changeName: any;
 }
 
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics }: IMetricListProps) {
+function MetricList({ metrics, changeName }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
       <h2>Metrics</h2>
-      <ul>
+      <ul className="list-group">
         {metrics.map((metric, index) => (
           // TODO: put id on metric? name can change by edit, index can change by remove operation
           // unless remove leaves a null entry instead of deleting the index.
-          <li key={index}>
-            <MetricDetail metric={metric}/>
+          <li className="list-group-item" key={index}>
+            <MetricDetail id={index} metric={metric} changeName={changeName}/>
           </li>
         ))}
       </ul>
@@ -28,11 +33,23 @@ function MetricList({ metrics }: IMetricListProps) {
   );
 }
 
-function mapStateToProps(state: any): IMetricListProps {
+function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   return {
     metrics: state.metricList,
     selectedMetric: null
   };
 }
 
-export default connect(mapStateToProps)(MetricList);
+function mapDispatchToProps(dispatch: any): IMetricListDispatchProps {
+  return {
+    changeName: (event: any) => {
+      dispatch({
+        type: 'rename_metric',
+        id: event.target.dataset.id,
+        name: event.target.value
+      });
+    }
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(MetricList);
