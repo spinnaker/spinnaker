@@ -41,7 +41,6 @@ class QuickPatchStageSpec extends Specification {
     oortHelper.getInstancesForCluster(_, null, true, false) >> [:]
 
     expect:
-    !stage.initializationStage
     stage.status == ExecutionStatus.NOT_STARTED
 
     and:

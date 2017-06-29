@@ -93,11 +93,6 @@ public class Stage<T extends Execution<T>> implements Serializable {
   private Map<String, Object> context = new HashMap<>();
 
   /**
-   * Returns a flag indicating if the stage is a parallel initialization stage
-   */
-  private boolean initializationStage = false;
-
-  /**
    * Returns the tasks that are associated with this stage. Tasks are the most granular unit of work in a stage.
    * Because tasks can be dynamically composed, this list is open updated during a stage's execution.
    *

@@ -171,7 +171,6 @@ private fun StageDefinitionBuilder.buildParallelStages(stage: Stage<out Executio
         }
       }
     stage.setName(parallelStageName(stage, parallelContexts.size > 1))
-    stage.setInitializationStage(true)
   }
 }
 

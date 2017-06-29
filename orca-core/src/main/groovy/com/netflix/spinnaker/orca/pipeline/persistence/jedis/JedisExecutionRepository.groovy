@@ -16,8 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline.persistence.jedis
 
-import org.springframework.beans.factory.annotation.Qualifier
-
 import java.util.function.Function
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -33,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
@@ -585,7 +584,6 @@ class JedisExecutionRepository implements ExecutionRepository {
     map["stage.${stage.id}.startTime".toString()] = stage.startTime?.toString()
     map["stage.${stage.id}.endTime".toString()] = stage.endTime?.toString()
     map["stage.${stage.id}.status".toString()] = stage.status.name()
-    map["stage.${stage.id}.initializationStage".toString()] = String.valueOf(stage.initializationStage)
     map["stage.${stage.id}.syntheticStageOwner".toString()] = stage.syntheticStageOwner?.name()
     map["stage.${stage.id}.parentStageId".toString()] = stage.parentStageId
     map["stage.${stage.id}.requisiteStageRefIds".toString()] = stage.requisiteStageRefIds?.join(",")
@@ -663,7 +661,6 @@ class JedisExecutionRepository implements ExecutionRepository {
         stage.startTime = map["stage.${stageId}.startTime".toString()]?.toLong()
         stage.endTime = map["stage.${stageId}.endTime".toString()]?.toLong()
         stage.status = ExecutionStatus.valueOf(map["stage.${stageId}.status".toString()])
-        stage.initializationStage = map["stage.${stageId}.initializationStage".toString()]?.toBoolean()
         stage.syntheticStageOwner = map["stage.${stageId}.syntheticStageOwner".toString()] ? SyntheticStageOwner.valueOf(map["stage.${stageId}.syntheticStageOwner".toString()]) : null
         stage.parentStageId = map["stage.${stageId}.parentStageId".toString()]
         stage.requisiteStageRefIds = map["stage.${stageId}.requisiteStageRefIds".toString()]?.tokenize(",")

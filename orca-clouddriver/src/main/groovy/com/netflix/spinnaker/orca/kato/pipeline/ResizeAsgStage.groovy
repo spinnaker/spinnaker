@@ -58,8 +58,6 @@ class ResizeAsgStage implements StageDefinitionBuilder {
     if (!stage.parentStageId || stage.execution.stages.find {
       it.id == stage.parentStageId
     }.type != stage.type) {
-      stage.initializationStage = true
-
       // mark as SUCCEEDED otherwise a stage w/o child tasks will remain in NOT_STARTED
       stage.status = ExecutionStatus.SUCCEEDED
       return
