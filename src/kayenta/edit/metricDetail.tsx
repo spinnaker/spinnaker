@@ -18,7 +18,7 @@ export default function MetricDetail({ id, metric, changeName }: IMetricDetailPr
         <input type="text" className="form-control" value={metric.name} data-id={id} onChange={changeName}/>
       </FormRow>
       <FormRow label="Service">
-        <input type="text" disabled={true} className="form-control" value={metric.serviceName} data-id={id} onChange={changeName}/>
+        <input type="text" disabled={true} className="form-control" value={metric.serviceName} data-id={id}/>
       </FormRow>
     </form>
   );
