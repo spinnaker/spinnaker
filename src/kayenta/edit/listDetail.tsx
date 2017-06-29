@@ -13,11 +13,11 @@ interface IListDetailProps {
  */
 export default function ListDetail({ className, list, detail }: IListDetailProps) {
   return (
-    <div className={classNames('master-container', 'atlas-hsizer', className)}>
-      <div className="master-list">
+    <div className={classNames('container', className)}>
+      <div className="col-md-3">
         {list}
       </div>
-      <div className="master-detail">
+      <div className="col-md-9">
         {detail}
       </div>
     </div>

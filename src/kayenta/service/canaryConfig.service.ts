@@ -5,6 +5,17 @@ const atlasCanaryConfig = require('kayenta/scratch/atlas_canary_config.json');
 const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_config.json');
 const canaryConfigSummaries = require('kayenta/scratch/canary_config_summaries.json');
 
+export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
+  switch (id) {
+    case 'mysampleatlascanaryconfig':
+      return Promise.resolve(atlasCanaryConfig);
+    case 'mysamplestackdrivercanaryconfig':
+      return Promise.resolve(stackdriverCanaryConfig);
+    default:
+      throw new Error('Whoops - this is a fake service!');
+  }
+}
+
 export class CanaryConfigService {
 
   constructor(private $q: IQService) {
@@ -16,14 +27,9 @@ export class CanaryConfigService {
   }
 
   public getCanaryConfigById(id: string): IPromise<ICanaryConfig> {
-    switch (id) {
-      case 'mysampleatlascanaryconfig':
-        return this.$q.resolve(atlasCanaryConfig);
-      case 'mysamplestackdrivercanaryconfig':
-        return this.$q.resolve(stackdriverCanaryConfig);
-      default:
-        throw new Error('Whoops - this is a fake service!');
-    }
+    // the $q.when typedefs only accept IPromise as an input type which ruins it as a conversion tool;
+    // thus a cast is necessary
+    return this.$q.when(getCanaryConfigById(id)) as IPromise<ICanaryConfig>;
   }
 }
 

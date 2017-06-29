@@ -14,15 +14,9 @@
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@spinnaker/google/-/google-0.0.1.tgz#206e0f6c3d74eca3c35f192b8b8ef98b4ea9e538"
 
-"@types/angular-mocks@^1.5.10":
+"@types/angular-mocks@^1.5.10", "@types/angular-mocks@^1.5.9":
   version "1.5.10"
   resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.10.tgz#bb3728bfc156a3bc35dfbfcc2d332e175284fba6"
-  dependencies:
-    "@types/angular" "*"
-
-"@types/angular-mocks@^1.5.9":
-  version "1.5.9"
-  resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.9.tgz#4d91bb71a5cfb000d02b02133bc98c20f57101fd"
   dependencies:
     "@types/angular" "*"
 
@@ -32,13 +26,7 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@^1.6.15", "@types/angular@^1.6.16", "@types/angular@^1.6.7", "@types/angular@^1.6.9":
-  version "1.6.16"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.16.tgz#f649ef28dd56311a7d8c10be19af879a2a3a9151"
-  dependencies:
-    "@types/jquery" "*"
-
-"@types/angular@^1.6.24":
+"@types/angular@*", "@types/angular@^1.6.15", "@types/angular@^1.6.16", "@types/angular@^1.6.24", "@types/angular@^1.6.7", "@types/angular@^1.6.9":
   version "1.6.24"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.24.tgz#f19510cf4efa5816158fa01b1aa2df94eb7bcde8"
 
@@ -249,7 +237,7 @@
   version "2.5.47"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.47.tgz#bbba9bcf0e95e7890c6f4a47394e8bacaa960eb6"
 
-"@types/jquery@*", "@types/jquery@^2.0.34":
+"@types/jquery@^2.0.34":
   version "2.0.43"
   resolved "https://registry.yarnpkg.com/@types/jquery/-/jquery-2.0.43.tgz#e30d971d56dce22bf0d62e02bd4b28a7ffdba076"
 
@@ -5184,6 +5172,10 @@ reduce-function-call@^1.0.1:
   resolved "https://registry.yarnpkg.com/reduce-function-call/-/reduce-function-call-1.0.2.tgz#5a200bf92e0e37751752fe45b0ab330fd4b6be99"
   dependencies:
     balanced-match "^0.4.2"
+
+redux-observable@^0.14.1:
+  version "0.14.1"
+  resolved "https://registry.yarnpkg.com/redux-observable/-/redux-observable-0.14.1.tgz#9f3d870c69388fdc427ded6770a3e326f3b69693"
 
 redux@*, redux@^3.6.0, redux@^3.7.1:
   version "3.7.1"
