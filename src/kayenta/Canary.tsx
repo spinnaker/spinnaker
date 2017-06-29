@@ -1,62 +1,26 @@
 import * as React from 'react';
 import { createStore, applyMiddleware } from 'redux';
-import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import { Provider, Store } from 'react-redux';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/concat';
 
 import { Application } from '@spinnaker/core';
 
+import { ICanaryState, rootReducer } from './reducers';
+import { epicMiddleware } from './epics';
 import CanaryConfigEdit from './edit/edit';
 import { ICanaryConfig, ICanaryMetricConfig } from './domain/ICanaryConfig';
-import { getCanaryConfigById } from './service/canaryConfig.service';
 
 export interface ICanaryProps {
   application: Application;
 }
 
-interface StoreState {
-  metricList: ICanaryMetricConfig[],
-  selectedMetric: ICanaryMetricConfig
-}
-
-// TODO: better packaging for actions, reducers, epics
-
-const selectConfigEpic = (action$: Observable<any>) =>
-  action$
-    .filter((action: any) => action.type === 'load_config')
-    .concatMap(action => getCanaryConfigById(action.id))
-    .map(config => ({ type: 'select_config', config }));
-
-const rootEpic = combineEpics(
-  selectConfigEpic
-);
-
-const epicMiddleware = createEpicMiddleware(rootEpic);
-
-function rootReducer(state: StoreState, action: any) {
-  switch (action.type) {
-    case 'initialize':
-      return action.state;
-    case 'select_config':
-      return Object.assign({}, state, {
-        selectedConfig: action.config,
-        metricList: action.config.metrics,
-        selectedMetric: null
-      });
-    default:
-      return state;
-  }
-}
-
 export class Canary extends React.Component<ICanaryProps, {}> {
 
-  private store: Store<StoreState>;
+  private store: Store<ICanaryState>;
 
   constructor(props: ICanaryProps) {
     super();
     const configSummaries = props.application.getDataSource('canaryConfigs').data as ICanaryConfig[];
-    this.store = createStore<StoreState>(
+    this.store = createStore<ICanaryState>(
       rootReducer,
       applyMiddleware(epicMiddleware)
     );
