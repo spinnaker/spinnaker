@@ -29,6 +29,9 @@ class Keys {
     EVENTS,
     DEPLOYMENTS,
     ON_DEMAND,
+    SERVICE_ACCOUNTS,
+    CONFIG_MAPS,
+    SECRETS,
 
     static String provider = "kubernetes"
 
@@ -138,11 +141,37 @@ class Keys {
           detail: names.detail,
         ]
         break
+      case Namespace.SERVICE_ACCOUNTS.ns:
+        result << [
+          account: parts[2],
+          namespace: parts[3],
+          region: parts[3],
+          name: parts[4],
+          serviceAccountName: parts[4],
+        ]
+        break
+      case Namespace.CONFIG_MAPS.ns:
+        result << [
+          account: parts[2],
+          namespace: parts[3],
+          region: parts[3],
+          name: parts[4],
+          configMapName: parts[4],
+        ]
+        break
+      case Namespace.SECRETS.ns:
+        result << [
+          account: parts[2],
+          namespace: parts[3],
+          region: parts[3],
+          name: parts[4],
+          secretName: parts[4],
+        ]
+        break
       default:
         return null
         break
     }
-
     result
   }
 
@@ -172,5 +201,17 @@ class Keys {
 
   static String getDeploymentKey(String account, String namespace, String deploymentName) {
     "${Namespace.provider}:${Namespace.DEPLOYMENTS}:${account}:${namespace}:${deploymentName}"
+  }
+
+  static String getServiceAccountKey(String account, String namespace, String serviceAccountName) {
+    "${Namespace.provider}:${Namespace.SERVICE_ACCOUNTS}:${account}:${namespace}:${serviceAccountName}"
+  }
+
+  static String getConfigMapKey(String account, String namespace, String configMapName) {
+    "${Namespace.provider}:${Namespace.CONFIG_MAPS}:${account}:${namespace}:${configMapName}"
+  }
+
+  static String getSecretKey(String account, String namespace, String secretName) {
+    "${Namespace.provider}:${Namespace.SECRETS}:${account}:${namespace}:${secretName}"
   }
 }

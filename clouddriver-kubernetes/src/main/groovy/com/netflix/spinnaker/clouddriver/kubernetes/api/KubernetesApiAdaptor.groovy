@@ -362,8 +362,26 @@ class KubernetesApiAdaptor {
   }
 
   Secret createSecret(String namespace, Secret secret) {
-    exceptionWrapper("secretes.create", "Create Secret $secret", namespace) {
+    exceptionWrapper("secrets.create", "Create Secret $secret", namespace) {
       client.secrets().inNamespace(namespace).create(secret)
+    }
+  }
+
+  List<Secret> getSecrets(String namespace) {
+    exceptionWrapper("secrets.list", "Get Secrets", namespace) {
+      client.secrets().inNamespace(namespace).list().items
+    }
+  }
+
+  List<ServiceAccount> getServiceAccounts(String namespace) {
+    exceptionWrapper("serviceAccounts.list", "Get Service Accounts", namespace) {
+      client.serviceAccounts().inNamespace(namespace).list().items
+    }
+  }
+
+  List<ConfigMap> getConfigMaps(String namespace) {
+   exceptionWrapper("configMaps.list", "Get Config Maps", namespace) {
+      client.configMaps().inNamespace(namespace).list().items
     }
   }
 
