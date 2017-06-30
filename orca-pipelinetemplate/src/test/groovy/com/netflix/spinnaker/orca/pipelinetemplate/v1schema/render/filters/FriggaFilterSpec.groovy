@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
@@ -30,7 +31,7 @@ class FriggaFilterSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
 
-  Renderer renderer = new JinjaRenderer(objectMapper)
+  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service))
 
   @Subject
   ModuleTag subject = new ModuleTag(renderer, objectMapper)

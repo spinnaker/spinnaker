@@ -28,10 +28,12 @@ import com.hubspot.jinjava.interpret.TemplateError.ErrorReason;
 import com.hubspot.jinjava.interpret.TemplateError.ErrorType;
 import com.hubspot.jinjava.interpret.errorcategory.BasicTemplateErrorCategory;
 import com.hubspot.jinjava.loader.ResourceLocator;
+import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.FriggaFilter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.JsonFilter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.ModuleTag;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.PipelineIdTag;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Severity;
@@ -52,11 +54,11 @@ public class JinjaRenderer implements Renderer {
 
   private RenderedValueConverter renderedValueConverter;
 
-  public JinjaRenderer(ObjectMapper pipelineTemplateObjectMapper) {
-    this(new JsonRenderedValueConverter(pipelineTemplateObjectMapper), pipelineTemplateObjectMapper);
+  public JinjaRenderer(ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service) {
+    this(new JsonRenderedValueConverter(pipelineTemplateObjectMapper), pipelineTemplateObjectMapper, front50Service);
   }
 
-  public JinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper) {
+  public JinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service) {
     this.renderedValueConverter = renderedValueConverter;
 
     JinjavaConfig config = new JinjavaConfig();
@@ -64,6 +66,7 @@ public class JinjaRenderer implements Renderer {
     jinja = new Jinjava(config);
     jinja.setResourceLocator(new NoopResourceLocator());
     jinja.getGlobalContext().registerTag(new ModuleTag(this, pipelineTemplateObjectMapper));
+    jinja.getGlobalContext().registerTag(new PipelineIdTag(front50Service));
     jinja.getGlobalContext().registerFilter(new FriggaFilter());
     jinja.getGlobalContext().registerFilter(new JsonFilter(pipelineTemplateObjectMapper));
 

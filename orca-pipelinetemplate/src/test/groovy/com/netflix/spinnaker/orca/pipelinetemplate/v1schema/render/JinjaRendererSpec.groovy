@@ -16,6 +16,7 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate
 import org.yaml.snakeyaml.Yaml
 import spock.lang.Specification
@@ -29,7 +30,7 @@ class JinjaRendererSpec extends Specification {
   RenderedValueConverter renderedValueConverter = new YamlRenderedValueConverter(new Yaml())
 
   @Subject
-  Renderer subject = new JinjaRenderer(renderedValueConverter, objectMapper)
+  Renderer subject = new JinjaRenderer(renderedValueConverter, objectMapper, Mock(Front50Service))
 
   @Unroll
   def 'should render and return correct java type'() {

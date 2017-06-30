@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Clock
 import com.netflix.spectator.api.Registry
 import com.netflix.spectator.api.Timer
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
+import com.netflix.spinnaker.orca.front50.Front50Service
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.FileTemplateSchemeLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer
@@ -37,7 +38,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
 
-  Renderer renderer = new JinjaRenderer(objectMapper)
+  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service))
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {
