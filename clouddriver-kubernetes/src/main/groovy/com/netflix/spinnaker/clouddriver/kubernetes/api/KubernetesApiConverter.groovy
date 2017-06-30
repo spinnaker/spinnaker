@@ -635,7 +635,7 @@ class KubernetesApiConverter {
     description.capacity = new Capacity(min: autoscaler.spec.minReplicas,
                                         max: autoscaler.spec.maxReplicas,
                                         desired: description.targetSize)
-    def cpuUtilization = new KubernetesCpuUtilization(target: autoscaler.spec.cpuUtilization.targetPercentage)
+    def cpuUtilization = new KubernetesCpuUtilization(target: autoscaler.spec.targetCPUUtilizationPercentage)
     description.scalingPolicy = new KubernetesScalingPolicy(cpuUtilization: cpuUtilization)
   }
 
@@ -650,13 +650,11 @@ class KubernetesApiConverter {
       .withNewSpec()
       .withMinReplicas(description.capacity.min)
       .withMaxReplicas(description.capacity.max)
-      .withNewCpuUtilization()
-      .withTargetPercentage(description.scalingPolicy.cpuUtilization.target)
-      .endCpuUtilization()
-      .withNewScaleRef()
+      .withTargetCPUUtilizationPercentage(description.scalingPolicy.cpuUtilization.target)
+      .withNewScaleTargetRef()
       .withKind(resourceKind)
       .withName(resourceName)
-      .endScaleRef()
+      .endScaleTargetRef()
       .endSpec().build()
   }
 

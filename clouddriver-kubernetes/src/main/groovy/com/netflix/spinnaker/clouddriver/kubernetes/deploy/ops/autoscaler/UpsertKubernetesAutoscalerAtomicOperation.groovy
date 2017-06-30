@@ -78,7 +78,7 @@ class UpsertKubernetesAutoscalerAtomicOperation implements AtomicOperation<Void>
       description.scalingPolicy.cpuUtilization = description.scalingPolicy.cpuUtilization ?: new KubernetesCpuUtilization()
       description.scalingPolicy.cpuUtilization.target = description.scalingPolicy.cpuUtilization.target != null ?
         description.scalingPolicy.cpuUtilization.target :
-        autoscaler.spec.cpuUtilization.targetPercentage
+        autoscaler.spec.targetCPUUtilizationPercentage
 
       task.updateStatus BASE_PHASE, "Deleting old autoscaler..."
       credentials.apiAdaptor.deleteAutoscaler(namespace, name)

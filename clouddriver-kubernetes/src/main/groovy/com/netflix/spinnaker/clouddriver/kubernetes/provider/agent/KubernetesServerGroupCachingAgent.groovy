@@ -37,7 +37,7 @@ import groovy.util.logging.Slf4j
 import io.fabric8.kubernetes.api.model.Event
 import io.fabric8.kubernetes.api.model.Pod
 import io.fabric8.kubernetes.api.model.ReplicationController
-import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
+import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet
 
 import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.AUTHORITATIVE

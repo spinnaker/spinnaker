@@ -437,28 +437,28 @@ class KubernetesApiAdaptor {
 
   HorizontalPodAutoscaler createAutoscaler(String namespace, HorizontalPodAutoscaler autoscaler) {
     exceptionWrapper("horizontalPodAutoscalers.create", "Create Autoscaler ${autoscaler?.metadata?.name}", namespace) {
-      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).create(autoscaler)
+      client.autoscaling().horizontalPodAutoscalers().inNamespace(namespace).create(autoscaler)
     }
   }
 
   HorizontalPodAutoscaler getAutoscaler(String namespace, String name) {
     exceptionWrapper("horizontalPodAutoscalers.get", "Get Autoscaler $name", namespace) {
-      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).get()
+      client.autoscaling().horizontalPodAutoscalers().inNamespace(namespace).withName(name).get()
     }
   }
 
   Map<String, HorizontalPodAutoscaler> getAutoscalers(String namespace, String kind) {
     exceptionWrapper("horizontalPodAutoscalers.list", "Get Autoscalers", namespace) {
-      def items = client.extensions().horizontalPodAutoscalers().inNamespace(namespace).list().items ?: []
+      def items = client.autoscaling().horizontalPodAutoscalers().inNamespace(namespace).list().items ?: []
       items.collectEntries { def autoscaler ->
-        autoscaler.spec.scaleRef.kind == kind ? [(autoscaler.metadata.name): autoscaler] : [:]
+        autoscaler.spec.scaleTargetRef.kind == kind ? [(autoscaler.metadata.name): autoscaler] : [:]
       }
     }
   }
 
   boolean deleteAutoscaler(String namespace, String name) {
     exceptionWrapper("horizontalPodAutoscalers.delete", "Destroy Autoscaler $name", namespace) {
-      client.extensions().horizontalPodAutoscalers().inNamespace(namespace).withName(name).delete()
+      client.autoscaling().horizontalPodAutoscalers().inNamespace(namespace).withName(name).delete()
     }
   }
 

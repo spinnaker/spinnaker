@@ -16,7 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.model
 
-import io.fabric8.kubernetes.api.model.extensions.HorizontalPodAutoscaler
+import io.fabric8.kubernetes.api.model.HorizontalPodAutoscaler
 
 class KubernetesAutoscalerStatus {
   Integer currentCpuUtilization
