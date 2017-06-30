@@ -20,13 +20,14 @@ import com.amazonaws.services.autoscaling.model.DisableMetricsCollectionRequest
 import com.amazonaws.services.autoscaling.model.UpdateAutoScalingGroupRequest
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.AmiIdResolver
+import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.ResolvedAmiResult
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import org.springframework.beans.factory.annotation.Autowired
 
 class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
@@ -86,6 +87,28 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
     if (description.securityGroupsAppendOnly) {
       props.securityGroups = settings.securityGroups + description.securityGroups
+    }
+
+    //if we are changing instance types and don't have explicitly supplied block device mappings
+    if (!description.blockDevices && description.instanceType != null && description.instanceType != settings.instanceType) {
+      if (!description.copySourceCustomBlockDeviceMappings) {
+        props.blockDevices = BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
+      } else {
+        def blockDevicesForSourceLaunchConfig = settings.blockDevices.collect {
+          [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
+        }.sort { it.deviceName }
+        def blockDevicesForSourceInstanceType = BlockDeviceConfig.getBlockDevicesForInstanceType(
+            deployDefaults,
+            settings.instanceType
+        ).collect {
+          [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
+        }.sort { it.deviceName }
+
+        if (blockDevicesForSourceLaunchConfig == blockDevicesForSourceInstanceType) {
+          // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
+          props.blockDevices = BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
+        }
+      }
     }
 
     def newSettings = settings.copyWith(props)

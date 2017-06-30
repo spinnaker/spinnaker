@@ -42,4 +42,10 @@ class ModifyAsgLaunchConfigurationDescription extends AbstractAmazonCredentialsD
   List<AmazonBlockDevice> blockDevices
   List<String> securityGroups
   Boolean securityGroupsAppendOnly
+
+  /**
+   * If false, the newly created server group will not pick up block device mapping customizations from an ancestor group
+   */
+  boolean copySourceCustomBlockDeviceMappings = true
+
 }

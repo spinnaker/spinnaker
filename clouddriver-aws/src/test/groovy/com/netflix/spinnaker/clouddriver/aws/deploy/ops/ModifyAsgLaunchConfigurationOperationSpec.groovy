@@ -26,6 +26,8 @@ import com.amazonaws.services.ec2.model.DescribeImagesResult
 import com.amazonaws.services.ec2.model.DescribeVpcClassicLinkResult
 import com.amazonaws.services.ec2.model.Image
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
+import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.amazonaws.services.ec2.model.VpcClassicLink
@@ -350,5 +352,204 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       securityGroups: ['sg-1', 'sg-2']
     )
   }
+
+  void 'should reset non customized block devices when changing instance type'() {
+    setup:
+    def credential = TestCredential.named(account)
+    description.credentials = credential
+    description.region = region
+    description.asgName = asgName
+    description.instanceType = 'm4.xlarge'
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+      assert act == credential
+      assert region == region
+      assert name == existingLc
+
+      existing
+    }
+
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+      assert appName == app
+      assert subnetType == null
+      assert settings.iamRole == existing.iamRole
+      assert settings.suffix == null
+      assert legacyUdf == null
+      assert settings.instanceType == 'm4.xlarge'
+      assert settings.blockDevices == BlockDeviceConfig.getBlockDevicesForInstanceType(defaults, 'm4.xlarge')
+
+      return newLc
+    }
+    1 * autoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest req ->
+      assert req.autoScalingGroupName == asgName
+      assert req.launchConfigurationName == newLc
+    }
+
+    0 * _
+
+    where:
+    account = 'test'
+    app = 'foo'
+    region = 'us-east-1'
+    asgName = "$app-v001".toString()
+    suffix = '20150515'
+    existingLc = "$asgName-$suffix".toString()
+    newLc = "$asgName-20150516".toString()
+    existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+        account: account,
+        environment: 'test',
+        accountType: 'test',
+        region: region,
+        baseName: asgName,
+        suffix: suffix,
+        ami: 'ami-f111f333',
+        iamRole: 'BaseIAMRole',
+        instanceType: 'm3.xlarge',
+        blockDevices: BlockDeviceConfig.getBlockDevicesForInstanceType(defaults, 'm3.xlarge'),
+        keyPair: 'sekret',
+        associatePublicIpAddress: false,
+        ebsOptimized: true,
+        securityGroups: ['sg-12345', 'sg-34567']
+    )
+  }
+
+  void 'should not reset custom block devices when changing instance type'() {
+    setup:
+    def credential = TestCredential.named(account)
+    description.credentials = credential
+    description.region = region
+    description.asgName = asgName
+    description.instanceType = 'm4.xlarge'
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+      assert act == credential
+      assert region == region
+      assert name == existingLc
+
+      existing
+    }
+
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+      assert appName == app
+      assert subnetType == null
+      assert settings.iamRole == existing.iamRole
+      assert settings.suffix == null
+      assert legacyUdf == null
+      assert settings.instanceType == 'm4.xlarge'
+      assert settings.blockDevices == blockDevices
+
+      return newLc
+    }
+    1 * autoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest req ->
+      assert req.autoScalingGroupName == asgName
+      assert req.launchConfigurationName == newLc
+    }
+
+    0 * _
+
+    where:
+    account = 'test'
+    app = 'foo'
+    region = 'us-east-1'
+    asgName = "$app-v001".toString()
+    suffix = '20150515'
+    existingLc = "$asgName-$suffix".toString()
+    newLc = "$asgName-20150516".toString()
+    blockDevices = [new AmazonBlockDevice(deviceName: '/dev/sdb', size: 500)]
+    existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+        account: account,
+        environment: 'test',
+        accountType: 'test',
+        region: region,
+        baseName: asgName,
+        suffix: suffix,
+        ami: 'ami-f111f333',
+        iamRole: 'BaseIAMRole',
+        instanceType: 'm3.xlarge',
+        blockDevices: blockDevices,
+        keyPair: 'sekret',
+        associatePublicIpAddress: false,
+        ebsOptimized: true,
+        securityGroups: ['sg-12345', 'sg-34567']
+    )
+  }
+
+  void 'should reset custom block devices when changing instance type if explicitly requested'() {
+    setup:
+    def credential = TestCredential.named(account)
+    description.credentials = credential
+    description.region = region
+    description.asgName = asgName
+    description.instanceType = 'm4.xlarge'
+    description.copySourceCustomBlockDeviceMappings = false
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(asgName) >> new AutoScalingGroup().withLaunchConfigurationName(existingLc)
+    1 * lcBuilder.buildSettingsFromLaunchConfiguration(_, _, _) >> { act, region, name ->
+      assert act == credential
+      assert region == region
+      assert name == existingLc
+
+      existing
+    }
+
+    1 * lcBuilder.buildLaunchConfiguration(_, _, _, _) >> { appName, subnetType, settings, legacyUdf ->
+      assert appName == app
+      assert subnetType == null
+      assert settings.iamRole == existing.iamRole
+      assert settings.suffix == null
+      assert legacyUdf == null
+      assert settings.instanceType == 'm4.xlarge'
+      assert settings.blockDevices == BlockDeviceConfig.getBlockDevicesForInstanceType(defaults, 'm4.xlarge')
+
+      return newLc
+    }
+    1 * autoScaling.updateAutoScalingGroup(_) >> { UpdateAutoScalingGroupRequest req ->
+      assert req.autoScalingGroupName == asgName
+      assert req.launchConfigurationName == newLc
+    }
+
+    0 * _
+
+    where:
+    account = 'test'
+    app = 'foo'
+    region = 'us-east-1'
+    asgName = "$app-v001".toString()
+    suffix = '20150515'
+    existingLc = "$asgName-$suffix".toString()
+    newLc = "$asgName-20150516".toString()
+    blockDevices = [new AmazonBlockDevice(deviceName: '/dev/sdb', size: 500)]
+    existing = new LaunchConfigurationBuilder.LaunchConfigurationSettings(
+        account: account,
+        environment: 'test',
+        accountType: 'test',
+        region: region,
+        baseName: asgName,
+        suffix: suffix,
+        ami: 'ami-f111f333',
+        iamRole: 'BaseIAMRole',
+        instanceType: 'm3.xlarge',
+        blockDevices: blockDevices,
+        keyPair: 'sekret',
+        associatePublicIpAddress: false,
+        ebsOptimized: true,
+        securityGroups: ['sg-12345', 'sg-34567']
+    )
+  }
+
 
 }
