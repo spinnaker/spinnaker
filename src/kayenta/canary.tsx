@@ -7,19 +7,20 @@ import { Application } from '@spinnaker/core';
 import { ICanaryState, rootReducer } from './reducers';
 import { epicMiddleware } from './epics';
 import CanaryConfigEdit from './edit/edit';
-import { ICanaryConfig, ICanaryMetricConfig } from './domain/ICanaryConfig';
+import { ICanaryConfig, ICanaryConfigSummary, ICanaryMetricConfig } from './domain/index';
+import { ConfigDetailLoadState } from './edit/configDetailLoader';
 
 export interface ICanaryProps {
-  application: Application;
+  app: Application;
 }
 
-export class Canary extends React.Component<ICanaryProps, {}> {
+export default class Canary extends React.Component<ICanaryProps, {}> {
 
   private store: Store<ICanaryState>;
 
   constructor(props: ICanaryProps) {
     super();
-    const configSummaries = props.application.getDataSource('canaryConfigs').data as ICanaryConfig[];
+    const configSummaries = props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[];
     this.store = createStore<ICanaryState>(
       rootReducer,
       applyMiddleware(epicMiddleware)
@@ -29,13 +30,10 @@ export class Canary extends React.Component<ICanaryProps, {}> {
       state: {
         configSummaries,
         selectedConfig: null as ICanaryConfig,
+        configLoadState: ConfigDetailLoadState.Loaded,
         metricList: [] as ICanaryMetricConfig[],
         selectedMetric: null as ICanaryMetricConfig
       }
-    });
-    this.store.dispatch({
-      type: 'load_config',
-      id: 'mysampleatlascanaryconfig'
     });
   }
 
