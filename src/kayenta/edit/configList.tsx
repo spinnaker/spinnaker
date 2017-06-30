@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { ICanaryState } from '../reducers';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 
 interface IConfigListStateProps {
@@ -17,9 +18,9 @@ function ConfigList({ configs, selectConfig }: IConfigListStateProps & IConfigLi
   return (
     <section>
       <h2>Configs</h2>
-      <ul>
+      <ul className="list-group">
         {configs.map(config => (
-          <li key={config.name}>
+          <li key={config.name} className="list-group-item">
             <a data-name={config.name} onClick={selectConfig}>{config.name}</a>
           </li>
         ))}
@@ -28,7 +29,7 @@ function ConfigList({ configs, selectConfig }: IConfigListStateProps & IConfigLi
   );
 }
 
-function mapStateToProps(state: any): IConfigListStateProps {
+function mapStateToProps(state: ICanaryState): IConfigListStateProps {
   return {
     configs: state.configSummaries
   };
@@ -36,7 +37,10 @@ function mapStateToProps(state: any): IConfigListStateProps {
 
 function mapDispatchToProps(dispatch: any): IConfigListDispatchProps {
   return {
-    selectConfig: (event: any) => dispatch({type: 'load_config', id: event.target.dataset.name})
+    selectConfig: (event: any) => dispatch({
+      type: 'load_config',
+      id: event.target.dataset.name
+    })
   }
 }
 
