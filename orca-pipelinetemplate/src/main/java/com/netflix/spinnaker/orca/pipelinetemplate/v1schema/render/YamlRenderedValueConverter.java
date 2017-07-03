@@ -35,7 +35,8 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
   @Override
   public Object convertRenderedValue(String renderedValue) {
     try {
-      return yaml.load(renderedValue);
+      Object converted = yaml.load(renderedValue);
+      return (converted == null || converted instanceof String) ? renderedValue : converted;
     } catch (ComposerException ce) {
       throw new TemplateRenderException("template produced invalid yaml", ce);
     } catch (ParserException pe) {

@@ -79,6 +79,8 @@ class JinjaRendererSpec extends Specification {
     '''
 "${ {{isDebugNeeded}} }".equalsIgnoreCase("True")
 '''                   || String       | '"${ false }".equalsIgnoreCase("True")'
+    '#stage("First Wait")["status"].toString() == "SUCCESS"' || String | '#stage("First Wait")["status"].toString() == "SUCCESS"'
+    '${ #stage("First Wait")["status"].toString() == "SUCCESS" }' || String | '${ #stage("First Wait")["status"].toString() == "SUCCESS" }'
   }
 
 
