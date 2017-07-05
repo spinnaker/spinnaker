@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.gate.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.hystrix.strategy.concurrency.HystrixRequestContext
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
@@ -218,11 +220,16 @@ class GateConfig extends RedisHttpSessionConfiguration {
 
     def client = new EurekaOkClient(okHttpClient, registry, serviceName, eurekaLookupService)
 
+    // New role providers break deserialization if this is not enabled.
+    ObjectMapper objectMapper = new ObjectMapper()
+        .enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL)
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+
     new RestAdapter.Builder()
       .setRequestInterceptor(spinnakerRequestInterceptor)
       .setEndpoint(endpoint)
       .setClient(client)
-      .setConverter(new JacksonConverter())
+      .setConverter(new JacksonConverter(objectMapper))
       .setLogLevel(RestAdapter.LogLevel.valueOf(retrofitLogLevel))
       .setLog(new Slf4jRetrofitLogger(type))
       .build()
