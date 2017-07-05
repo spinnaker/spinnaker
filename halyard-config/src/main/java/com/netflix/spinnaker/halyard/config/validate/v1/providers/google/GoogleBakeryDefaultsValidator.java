@@ -44,6 +44,7 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
 
     String zone = n.getZone();
     String network = n.getNetwork();
+    String networkProjectId = n.getNetworkProjectId();
     List<GoogleBaseImage> baseImages = n.getBaseImages();
 
     if (StringUtils.isEmpty(zone) && StringUtils.isEmpty(network) && CollectionUtils.isEmpty(baseImages)) {
@@ -85,7 +86,8 @@ public class GoogleBakeryDefaultsValidator extends Validator<GoogleBakeryDefault
         GoogleNamedAccountCredentials credentials = credentialsList.get(j);
 
         try {
-          credentials.getCompute().networks().get(credentials.getProject(), network).execute();
+          String project = !StringUtils.isEmpty(networkProjectId) ? networkProjectId : credentials.getProject();
+          credentials.getCompute().networks().get(project, network).execute();
           foundNetwork = true;
         } catch (Exception e) {
         }

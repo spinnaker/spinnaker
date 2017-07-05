@@ -45,6 +45,12 @@ public class GoogleEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsC
   private String network;
 
   @Parameter(
+      names = "--network-project-id",
+      description = "Set the default project id for the network and subnet to use for the VM baking your image."
+  )
+  private String networkProjectId;
+
+  @Parameter(
       names = "--use-internal-ip",
       description = "Use the internal rather than external IP of the VM baking your image.",
       arity = 1
@@ -55,6 +61,7 @@ public class GoogleEditBakeryDefaultsCommand extends AbstractEditBakeryDefaultsC
   protected BakeryDefaults editBakeryDefaults(GoogleBakeryDefaults bakeryDefaults) {
     bakeryDefaults.setZone(isSet(zone) ? zone : bakeryDefaults.getZone());
     bakeryDefaults.setNetwork(isSet(network) ? network : bakeryDefaults.getNetwork());
+    bakeryDefaults.setNetworkProjectId(isSet(networkProjectId) ? networkProjectId : bakeryDefaults.getNetworkProjectId());
     bakeryDefaults.setUseInternalIp(isSet(useInternalIp) ? useInternalIp : bakeryDefaults.isUseInternalIp());
 
     return bakeryDefaults;

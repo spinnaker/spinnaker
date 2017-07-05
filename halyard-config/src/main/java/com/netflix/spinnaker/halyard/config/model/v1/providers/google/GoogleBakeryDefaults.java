@@ -33,5 +33,6 @@ public class GoogleBakeryDefaults extends BakeryDefaults<GoogleBaseImage> {
 
   private String zone;
   private String network;
+  private String networkProjectId;
   private boolean useInternalIp;
 }

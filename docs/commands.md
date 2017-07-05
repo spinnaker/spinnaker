@@ -2417,6 +2417,7 @@ hal config provider google bakery edit [parameters]
 #### Parameters
  * `--deployment`: If supplied, use this Halyard deployment. This will _not_ create a new deployment.
  * `--network`: Set the default network your images will be baked in.
+ * `--network-project-id`: Set the default project id for the network and subnet to use for the VM baking your image.
  * `--no-validate`: (*Default*: `false`) Skip validation.
  * `--use-internal-ip`: Use the internal rather than external IP of the VM baking your image.
  * `--zone`: Set the default zone your images will be baked in.
