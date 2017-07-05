@@ -1,10 +1,10 @@
 import { module } from 'angular';
 
-import { IIndexedSecurityGroups, ISecurityGroup } from '@spinnaker/core';
+import { ISecurityGroupsByAccount, ISecurityGroup } from '@spinnaker/core';
 
 export class AwsSecurityGroupReader {
 
-  public resolveIndexedSecurityGroup(indexedSecurityGroups: IIndexedSecurityGroups, container: ISecurityGroup, securityGroupId: string): ISecurityGroup  {
+  public resolveIndexedSecurityGroup(indexedSecurityGroups: ISecurityGroupsByAccount, container: ISecurityGroup, securityGroupId: string): ISecurityGroup  {
     return indexedSecurityGroups[container.account][container.region][securityGroupId];
   }
 }

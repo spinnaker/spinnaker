@@ -4,7 +4,7 @@ import { Application } from 'core/application/application.model';
 import { ILoadBalancer, ISecurityGroup, ISubnet, IEntityTags } from 'core/domain';
 import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
-import { IGroupsByAccount } from 'core/securityGroup/securityGroupReader.service';
+import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
 import { IRegion, IAggregatedAccounts } from 'core/account/account.service';
 
 export interface IServerGroupCommandBuilderOptions {
@@ -69,7 +69,7 @@ export interface IServerGroupCommandBackingData {
     }
   }
   scalingProcesses: string[];
-  securityGroups: IGroupsByAccount;
+  securityGroups: ISecurityGroupsByAccountSourceData;
 }
 
 export interface IServerGroupCommand extends IServerGroupCommandResult {

@@ -8,10 +8,10 @@ import {
   Application,
   CacheInitializerService,
   IAccount,
-  IGroupsByAccount,
+  ISecurityGroupsByAccountSourceData,
   InfrastructureCacheService,
   IRegion,
-  IRegionAccount,
+  ISecurityGroup,
   ISubnet,
   LoadBalancerWriter,
   NamingService,
@@ -55,8 +55,8 @@ export abstract class CreateAmazonLoadBalancerCtrl {
   public existingLoadBalancerNames: string[];
   public viewState: ICreateAmazonLoadBalancerViewState;
   private accounts: IAccount[];
-  private allSecurityGroups: IGroupsByAccount;
-  public availableSecurityGroups: IRegionAccount[];
+  private allSecurityGroups: ISecurityGroupsByAccountSourceData;
+  public availableSecurityGroups: ISecurityGroup[];
   private availabilityZones: string[];
   protected certificateTypes: string[];
   public defaultSecurityGroups: string[] = [];
@@ -192,7 +192,7 @@ export abstract class CreateAmazonLoadBalancerCtrl {
     });
   }
 
-  private availableGroupsSorter(a: IRegionAccount, b: IRegionAccount): number {
+  private availableGroupsSorter(a: ISecurityGroup, b: ISecurityGroup): number {
     if (this.defaultSecurityGroups) {
       if (this.defaultSecurityGroups.includes(a.name)) {
         return -1;

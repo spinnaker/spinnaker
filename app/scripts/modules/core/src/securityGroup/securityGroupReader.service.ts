@@ -1,53 +1,23 @@
-import {filter, forOwn, has, uniq} from 'lodash';
-import {module, IPromise, ILogService, IQService} from 'angular';
+import { filter, forOwn, has, uniq } from 'lodash';
+import { module, IPromise, ILogService, IQService } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {NAMING_SERVICE, NamingService, IComponentName} from 'core/naming/naming.service';
-import {INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService} from 'core/cache/infrastructureCaches.service';
-import {Application} from 'core/application/application.model';
-import {ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage} from 'core/domain';
-import {SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService} from './securityGroupTransformer.service';
-import {ENTITY_TAGS_READ_SERVICE, EntityTagsReader} from 'core/entityTag/entityTags.read.service';
-import {SETTINGS} from 'core/config/settings';
-import {SEARCH_SERVICE, SearchService, ISearchResults} from 'core/search/search.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { NAMING_SERVICE, NamingService, IComponentName } from 'core/naming/naming.service';
+import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
+import { Application } from 'core/application/application.model';
+import { ISecurityGroup, ILoadBalancer, IServerGroup, IServerGroupUsage } from 'core/domain';
+import { SECURITY_GROUP_TRANSFORMER_SERVICE, SecurityGroupTransformerService } from './securityGroupTransformer.service';
+import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entityTags.read.service';
+import { SETTINGS } from 'core/config/settings';
+import { SEARCH_SERVICE, SearchService, ISearchResults } from 'core/search/search.service';
 import { ISecurityGroupSearchResult } from './SecurityGroupSearchResultFormatter';
 
-export interface IRegionAccount {
-  account: string;
-  accountName: string;
-  id: string;
-  name: string;
-  provider: string;
-  region: string;
-  vpcId: string;
-}
-
-export interface IRegions {
-  [region: string]: IRegionAccount[];
-}
-
-export interface IProviders {
-  [provider: string]: IRegions;
-}
-
-export interface IGroupsByRegion {
-  [region: string]: IRegionAccount[];
-}
-
-export interface IGroupsByProvider {
-  [provider: string]: IGroupsByRegion;
-}
-
-export interface ISecurityGroupsByRegion {
-  [region: string]: IRegionAccount;
-}
-
 export interface ISecurityGroupsByAccount {
-  [account: string]: ISecurityGroupsByRegion;
-}
-
-export interface IIndexedSecurityGroups {
-  [key: string]: ISecurityGroupsByAccount;
+  [account: string]: {
+    [region: string]: {
+      [name: string]: ISecurityGroup;
+    };
+  };
 }
 
 export interface IApplicationSecurityGroup {
@@ -55,23 +25,16 @@ export interface IApplicationSecurityGroup {
 }
 
 export interface IReaderSecurityGroup extends ISecurityGroup {
-  securityGroups: IGroupsByRegion;
-}
-
-export interface ISecurityGroupDetailInboundRule {
-  accountName?: string;
-  id?: string;
-  inferredName?: boolean;
-  name?: string;
-}
-
-export interface IPortRange {
-  startPort: number;
-  endPort: number;
+  securityGroups: {
+    [region: string]: ISecurityGroup[];
+  };
 }
 
 export interface IRangeRule {
-  portRanges: IPortRange[];
+  portRanges: {
+    startPort: number;
+    endPort: number;
+  }[];
   protocol: string;
 }
 
@@ -93,8 +56,18 @@ export interface ISecurityGroupProcessorResult {
   securityGroups: ISecurityGroup[];
 }
 
-export interface IGroupsByAccount {
-  [key: string]: IProviders; // accountName
+export interface ISecurityGroupSummary {
+  id: string;
+  name: string;
+  vpcId: string;
+}
+
+export interface ISecurityGroupsByAccountSourceData {
+  [account: string]: {
+    [provider: string]: {
+      [region: string]: ISecurityGroupSummary[];
+    };
+  };
 }
 
 export interface ISecurityGroupDetail {
@@ -106,19 +79,18 @@ export interface ISecurityGroupDetail {
 
 export class SecurityGroupReader {
 
-  private static indexSecurityGroups(securityGroups: IReaderSecurityGroup[]): IIndexedSecurityGroups {
-
-    const securityGroupIndex: IIndexedSecurityGroups = {};
+  private static indexSecurityGroups(securityGroups: IReaderSecurityGroup[]): ISecurityGroupsByAccount {
+    const securityGroupIndex: ISecurityGroupsByAccount = {};
     securityGroups.forEach((securityGroup: IReaderSecurityGroup) => {
 
       const accountName: string = securityGroup.account;
-      const accountIndex: ISecurityGroupsByAccount = {};
-      securityGroupIndex[accountName] = accountIndex;
-      forOwn(securityGroup.securityGroups, (groups: IRegionAccount[], region: string) => {
+      securityGroupIndex[accountName] = {};
+      const accountIndex = securityGroupIndex[accountName];
+      forOwn(securityGroup.securityGroups, (groups: ISecurityGroup[], region: string) => {
 
-        const regionIndex: ISecurityGroupsByRegion = {};
+        const regionIndex: {[key: string]: ISecurityGroup} = {};
         accountIndex[region] = regionIndex;
-        groups.forEach((group: IRegionAccount) => {
+        groups.forEach((group: ISecurityGroup) => {
           group.accountName = accountName;
           group.region = region;
           regionIndex[group.id] = group;
@@ -174,7 +146,6 @@ export class SecurityGroupReader {
 
   private addNameBasedSecurityGroups(application: Application,
                                      nameBasedSecurityGroups: ISecurityGroup[]): ISecurityGroupProcessorResult {
-
     let notFoundCaught = false;
     const securityGroups: ISecurityGroup[] = [];
     nameBasedSecurityGroups.forEach((securityGroup: ISecurityGroup) => {
@@ -192,7 +163,6 @@ export class SecurityGroupReader {
   }
 
   private addServerGroupSecurityGroups(application: Application): ISecurityGroupProcessorResult {
-
     let notFoundCaught = false;
     const securityGroups: ISecurityGroup[] = [];
     application.getDataSource('serverGroups').data.forEach((serverGroup: IServerGroup) => {
@@ -222,9 +192,8 @@ export class SecurityGroupReader {
 
   private clearCacheAndRetryAttachingSecurityGroups(application: Application,
                                                     nameBasedSecurityGroups: ISecurityGroup[]): IPromise<any[]> {
-
     this.infrastructureCaches.clearCache('securityGroups');
-    return this.loadSecurityGroups().then((refreshedSecurityGroups: IIndexedSecurityGroups) => {
+    return this.loadSecurityGroups().then((refreshedSecurityGroups: ISecurityGroupsByAccount) => {
 
       application['securityGroupsIndex'] = refreshedSecurityGroups;
 
@@ -240,7 +209,6 @@ export class SecurityGroupReader {
   private attachSecurityGroups(application: Application,
                                nameBasedSecurityGroups: ISecurityGroup[],
                                retryIfNotFound: boolean): IPromise<any[]> {
-
     let data: ISecurityGroup[] = [];
     let notFoundCaught = false;
     if (nameBasedSecurityGroups) {
@@ -315,7 +283,7 @@ export class SecurityGroupReader {
     'ngInject';
   }
 
-  public getAllSecurityGroups(): IPromise<IGroupsByAccount> {
+  public getAllSecurityGroups(): IPromise<ISecurityGroupsByAccountSourceData> {
     return this.API.one('securityGroups').useCache(this.infrastructureCaches.get('securityGroups')).get();
   }
 
@@ -323,7 +291,6 @@ export class SecurityGroupReader {
                                      account: string,
                                      region: string,
                                      id: string): IApplicationSecurityGroup {
-
     let result: IApplicationSecurityGroup = null;
     if (has(application['securityGroupsIndex'], [account, region, id])) {
       result = application['securityGroupsIndex'][account][region][id];
@@ -335,7 +302,7 @@ export class SecurityGroupReader {
   public getApplicationSecurityGroups(application: Application,
                                       nameBasedSecurityGroups: ISecurityGroup[]): IPromise<any> {
     return this.loadSecurityGroups()
-      .then((allSecurityGroups: IIndexedSecurityGroups) => {
+      .then((allSecurityGroups: ISecurityGroupsByAccount) => {
         application['securityGroupsIndex'] = allSecurityGroups;
       })
       .then(() => this.$q.all([
@@ -350,7 +317,6 @@ export class SecurityGroupReader {
                                  region: string,
                                  vpcId: string,
                                  id: string): IPromise<ISecurityGroupDetail> {
-
     return this.API
       .one('securityGroups')
       .one(account)
@@ -364,7 +330,7 @@ export class SecurityGroupReader {
           details.ipRangeRules = details.inboundRules.filter((rule: ISecurityGroupRule & IIPRangeRule) => rule.range);
           details.securityGroupRules = details.inboundRules.filter((rule: ISecurityGroupRule) => rule.securityGroup);
           details.securityGroupRules.forEach((inboundRule: ISecurityGroupRule) => {
-            const inboundGroup: ISecurityGroupDetailInboundRule = inboundRule.securityGroup;
+            const inboundGroup = inboundRule.securityGroup;
             if (!inboundGroup.name) {
               const applicationSecurityGroup: IApplicationSecurityGroup = this.getApplicationSecurityGroup(
                 application,
@@ -387,14 +353,13 @@ export class SecurityGroupReader {
       });
   }
 
-  public loadSecurityGroups(): IPromise<IIndexedSecurityGroups> {
-
-    return this.getAllSecurityGroups().then((groupsByAccount: IGroupsByAccount) => {
+  public loadSecurityGroups(): IPromise<ISecurityGroupsByAccount> {
+    return this.getAllSecurityGroups().then((groupsByAccount: ISecurityGroupsByAccountSourceData) => {
       const securityGroups: IReaderSecurityGroup[] = [];
-      forOwn(groupsByAccount, (groupsByProvider: IGroupsByProvider, account: string) => {
-        return forOwn(groupsByProvider, (groupsByRegion: IRegions, provider: string) => {
-          forOwn(groupsByRegion, (groups: IRegionAccount[]) => {
-            groups.forEach((group: IRegionAccount) => {
+      forOwn(groupsByAccount, (groupsByProvider, account) => {
+        return forOwn(groupsByProvider, (groupsByRegion, provider) => {
+          forOwn(groupsByRegion, (groups: ISecurityGroup[]) => {
+            groups.forEach((group) => {
               group.provider = provider;
               group.account = account;
             });
@@ -408,7 +373,6 @@ export class SecurityGroupReader {
   }
 
   public loadSecurityGroupsByApplicationName(applicationName: string): IPromise<ISecurityGroup[]> {
-
     return this.searchService.search<ISecurityGroupSearchResult>({
       q: applicationName,
       type: 'securityGroups',
