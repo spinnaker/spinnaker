@@ -252,7 +252,7 @@ module.exports = angular.module('spinnaker.core.delivery.executionTransformer.se
         } else {
           stage.requisiteStageRefIds.forEach(function (parentId) {
             var parent = _.find(stages, { refId: parentId });
-            if (parent.phase === undefined) {
+            if (!parent || parent.phase === undefined) {
               phaseResolvable = false;
             } else {
               phase = Math.max(phase, parent.phase);

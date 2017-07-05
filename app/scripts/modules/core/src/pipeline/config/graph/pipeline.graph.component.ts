@@ -110,7 +110,8 @@ export class PipelineGraphController implements ng.IComponentController {
     if (!allPhasesResolved) {
       this.applyPhasesAndLink(nodes);
     } else {
-      this.$scope.phaseCount = maxBy(nodes, 'phase').phase;
+      const highestPhaseNode = maxBy(nodes, 'phase');
+      this.$scope.phaseCount = highestPhaseNode ? highestPhaseNode.phase : 0;
       if (this.$scope.phaseCount > 6) {
         this.$scope.nodeRadius = 6;
         this.$scope.labelOffsetX = this.$scope.nodeRadius + 3;
