@@ -349,9 +349,9 @@
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.4.tgz#798b9ec0f2cf58b234cce75fa2634b4698a44aca"
 
-"@uirouter/react-hybrid@0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.3.tgz#78b737d151ccfb3cc4e91f5a47a6a4987522cf62"
+"@uirouter/react-hybrid@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.4.tgz#8678652ed5c6ede9c25c7a6246bc4bb6861390dc"
   dependencies:
     "@uirouter/angularjs" "git://github.com/angular-ui/ui-router#1.0.3-hybrid-2.0.0-5"
     "@uirouter/core" "=5.0.4"
