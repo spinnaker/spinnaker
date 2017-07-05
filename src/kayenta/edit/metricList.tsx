@@ -6,7 +6,6 @@ import MetricDetail from './metricDetail';
 
 interface IMetricListStateProps {
   metrics: ICanaryMetricConfig[];
-  selectedMetric: ICanaryMetricConfig;
 }
 
 interface IMetricListDispatchProps {
@@ -36,7 +35,6 @@ function MetricList({ metrics, changeName }: IMetricListStateProps & IMetricList
 function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   return {
     metrics: state.metricList,
-    selectedMetric: null
   };
 }
 

@@ -12,7 +12,7 @@ export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
     case 'mysamplestackdrivercanaryconfig':
       return Promise.resolve(stackdriverCanaryConfig);
     default:
-      throw new Error('Whoops - this is a fake service!');
+      return Promise.reject('Whoops - this is a fake service!');
   }
 }
 

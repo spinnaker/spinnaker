@@ -6,9 +6,9 @@
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.5.tgz#0121bf83ef28e68ee938ccae5e66c996420a675d"
 
-"@spinnaker/core@0.0.14":
-  version "0.0.14"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.14.tgz#a5e034a9c351b4cc351ef2ca9ee27ef81d2ddb84"
+"@spinnaker/core@0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.29.tgz#a15e970840599e5bd7bc71f8200e79c303fc7718"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
@@ -350,6 +350,12 @@
   dependencies:
     "@uirouter/core" "5.0.3"
 
+"@uirouter/angularjs@git://github.com/angular-ui/ui-router#SNAPSHOT-20170629":
+  version "1.0.5"
+  resolved "git://github.com/angular-ui/ui-router#2c4ccc2b5f544afffa86bd9e4ac182b6907589e1"
+  dependencies:
+    "@uirouter/core" "^5.0.5"
+
 "@uirouter/core@5.0.1":
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.1.tgz#dfcdae07f74feab80b44109c407396d950390799"
@@ -357,6 +363,33 @@
 "@uirouter/core@5.0.3":
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.3.tgz#e2b5b1e45190e20c67ba4e15c013de5d4e0ccab3"
+
+"@uirouter/core@=5.0.5", "@uirouter/core@^5.0.5":
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
+
+"@uirouter/react-hybrid@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.5.tgz#4c325e0076e5cc5c837cfd664403b6c6f4149968"
+  dependencies:
+    "@uirouter/angularjs" "git://github.com/angular-ui/ui-router#SNAPSHOT-20170629"
+    "@uirouter/core" "=5.0.5"
+    "@uirouter/react" "git://github.com/ui-router/react#SNAPSHOT-20170629"
+
+"@uirouter/react@git://github.com/ui-router/react#SNAPSHOT-20170629":
+  version "0.5.0"
+  resolved "git://github.com/ui-router/react#d2f723f88ccd3e7615f5c3893e00b21b4d15c681"
+  dependencies:
+    "@uirouter/core" "^5.0.5"
+    classnames "^2.2.5"
+
+"@uirouter/visualizer@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@uirouter/visualizer/-/visualizer-4.0.0.tgz#9e71bc4fb19a6dd12d18d9e122c16aa4902363ce"
+  dependencies:
+    d3-hierarchy "^1.0.3"
+    d3-interpolate "^1.1.3"
+    preact "^7.2.0"
 
 "Select2@git://github.com/select2/select2.git#3.4.8":
   version "3.4.8"
