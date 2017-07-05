@@ -55,6 +55,7 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
       resolvedBakeryDefaults = new RoscoGoogleConfiguration.GCEBakeryDefaults()
       resolvedBakeryDefaults.baseImages = (gceBakeryDefaults?.baseImages ?: []) + (deprecatedGCEBakeryDefaults?.baseImages ?: [])
       resolvedBakeryDefaults.network = gceBakeryDefaults?.network ?: deprecatedGCEBakeryDefaults?.network
+      resolvedBakeryDefaults.networkProjectId = gceBakeryDefaults?.networkProjectId ?: deprecatedGCEBakeryDefaults?.networkProjectId
       resolvedBakeryDefaults.subnetwork = gceBakeryDefaults?.subnetwork ?: deprecatedGCEBakeryDefaults?.subnetwork
       resolvedBakeryDefaults.templateFile = gceBakeryDefaults?.templateFile ?: deprecatedGCEBakeryDefaults?.templateFile
       resolvedBakeryDefaults.zone = gceBakeryDefaults?.zone ?: deprecatedGCEBakeryDefaults?.zone
@@ -115,6 +116,10 @@ public class GCEBakeHandler extends CloudProviderBakeHandler {
 
     if (managedGoogleAccount.jsonPath) {
       parameterMap.gce_account_file = managedGoogleAccount.jsonPath
+    }
+
+    if (bakeryDefaults?.networkProjectId) {
+      parameterMap.gce_network_project_id = bakeryDefaults.networkProjectId
     }
 
     if (bakeryDefaults?.subnetwork) {

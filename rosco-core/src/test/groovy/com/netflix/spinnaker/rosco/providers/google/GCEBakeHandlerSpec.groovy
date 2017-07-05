@@ -48,71 +48,72 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
   @Shared
   RoscoGoogleConfiguration.GoogleConfigurationProperties googleConfigurationProperties
 
-  void setupSpec() {
-    def gceBakeryDefaultsJson = [
-      zone: "us-central1-a",
-      network: "default",
-      templateFile: "gce_template.json",
-      baseImages: [
-        [
-          baseImage: [
-            id: "precise",
-            packageType: "DEB",
-          ],
-          virtualizationSettings: [
-            sourceImage: SOURCE_PRECISE_IMAGE_NAME
-          ]
+  @Shared
+  def gceBakeryDefaultsJson = [
+    zone: "us-central1-a",
+    network: "default",
+    templateFile: "gce_template.json",
+    baseImages: [
+      [
+        baseImage: [
+          id: "precise",
+          packageType: "DEB",
         ],
-        [
-          baseImage: [
-            id: "trusty",
-            packageType: "DEB",
-          ],
-          virtualizationSettings: [
-            sourceImage: SOURCE_TRUSTY_IMAGE_NAME
-          ]
+        virtualizationSettings: [
+          sourceImage: SOURCE_PRECISE_IMAGE_NAME
+        ]
+      ],
+      [
+        baseImage: [
+          id: "trusty",
+          packageType: "DEB",
         ],
-        [
-          baseImage: [
-            id: "xenial",
-            packageType: "DEB",
-          ],
-          virtualizationSettings: [
-            sourceImageFamily: SOURCE_XENIAL_IMAGE_NAME + "-family"
-          ]
+        virtualizationSettings: [
+          sourceImage: SOURCE_TRUSTY_IMAGE_NAME
+        ]
+      ],
+      [
+        baseImage: [
+          id: "xenial",
+          packageType: "DEB",
         ],
-        [
-          baseImage: [
-            id: "yakkety",
-            packageType: "DEB",
-          ],
-          virtualizationSettings: [
-            sourceImage: SOURCE_YAKKETY_IMAGE_NAME,
-            sourceImageFamily: SOURCE_YAKKETY_IMAGE_NAME + "-family"
-          ]
+        virtualizationSettings: [
+          sourceImageFamily: SOURCE_XENIAL_IMAGE_NAME + "-family"
+        ]
+      ],
+      [
+        baseImage: [
+          id: "yakkety",
+          packageType: "DEB",
         ],
-        [
-          baseImage: [
-            id: "centos",
-            packageType: "RPM",
-          ],
-          virtualizationSettings: [
-            sourceImage: SOURCE_CENTOS_HVM_IMAGE_NAME
-          ]
+        virtualizationSettings: [
+          sourceImage: SOURCE_YAKKETY_IMAGE_NAME,
+          sourceImageFamily: SOURCE_YAKKETY_IMAGE_NAME + "-family"
+        ]
+      ],
+      [
+        baseImage: [
+          id: "centos",
+          packageType: "RPM",
         ],
-        [
-          baseImage: [
-            id: "coyote",
-            packageType: "DEB",
-          ],
-          virtualizationSettings: [
-            sourceImage: null,
-            sourceImageFamily: null
-          ]
+        virtualizationSettings: [
+          sourceImage: SOURCE_CENTOS_HVM_IMAGE_NAME
+        ]
+      ],
+      [
+        baseImage: [
+          id: "coyote",
+          packageType: "DEB",
+        ],
+        virtualizationSettings: [
+          sourceImage: null,
+          sourceImageFamily: null
         ]
       ]
     ]
+  ]
 
+  void setupSpec() {
     gceBakeryDefaults = new ObjectMapper().convertValue(gceBakeryDefaultsJson, RoscoGoogleConfiguration.GCEBakeryDefaults)
 
     def googleConfigurationPropertiesJson = [
@@ -499,6 +500,49 @@ class GCEBakeHandlerSpec extends Specification implements TestDefaults{
         gce_project_id: googleConfigurationProperties.accounts.get(0).project,
         gce_zone: gceBakeryDefaults.zone,
         gce_network: gceBakeryDefaults.network,
+        gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
+        gce_target_image: targetImageName,
+        repository: DEBIAN_REPOSITORY,
+        package_type: DEB_PACKAGE_TYPE.util.packageType,
+        packages: PACKAGES_NAME,
+        configDir: configDir
+      ]
+
+      @Subject
+      GCEBakeHandler gceBakeHandler = new GCEBakeHandler(configDir: configDir,
+                                                         gceBakeryDefaults: gceBakeryDefaults,
+                                                         googleConfigurationProperties: googleConfigurationProperties,
+                                                         imageNameFactory: imageNameFactoryMock,
+                                                         packerCommandFactory: packerCommandFactoryMock,
+                                                         debianRepository: DEBIAN_REPOSITORY)
+
+    when:
+      gceBakeHandler.produceBakeRecipe(REGION, bakeRequest)
+
+    then:
+      1 * imageNameFactoryMock.buildImageName(bakeRequest, osPackages) >> targetImageName
+      1 * imageNameFactoryMock.buildAppVersionStr(bakeRequest, osPackages, DEB_PACKAGE_TYPE) >> null
+      1 * imageNameFactoryMock.buildPackagesParameter(DEB_PACKAGE_TYPE, osPackages) >> PACKAGES_NAME
+      1 * packerCommandFactoryMock.buildPackerCommand("", parameterMap, null, "$configDir/$gceBakeryDefaults.templateFile")
+  }
+
+  void 'produces packer command with all required parameters for trusty, including network project id'() {
+    setup:
+      def imageNameFactoryMock = Mock(ImageNameFactory)
+      def packerCommandFactoryMock = Mock(PackerCommandFactory)
+      def bakeRequest = new BakeRequest(user: "someuser@gmail.com",
+                                        package_name: PACKAGES_NAME,
+                                        base_os: "trusty",
+                                        cloud_provider_type: BakeRequest.CloudProviderType.gce)
+      def osPackages = parseDebOsPackageNames(bakeRequest.package_name)
+      def targetImageName = "kato-x8664-timestamp-trusty"
+      def gceBakeryDefaults = new ObjectMapper().convertValue(gceBakeryDefaultsJson, RoscoGoogleConfiguration.GCEBakeryDefaults)
+      gceBakeryDefaults.networkProjectId = "some-xpn-host-project"
+      def parameterMap = [
+        gce_project_id: googleConfigurationProperties.accounts.get(0).project,
+        gce_zone: gceBakeryDefaults.zone,
+        gce_network: gceBakeryDefaults.network,
+        gce_network_project_id: gceBakeryDefaults.networkProjectId,
         gce_source_image: SOURCE_TRUSTY_IMAGE_NAME,
         gce_target_image: targetImageName,
         repository: DEBIAN_REPOSITORY,

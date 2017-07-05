@@ -60,6 +60,7 @@ class RoscoGoogleConfiguration {
   static class GCEBakeryDefaults {
     String zone
     String network
+    String networkProjectId
     String subnetwork
     Boolean useInternalIp
     String templateFile
