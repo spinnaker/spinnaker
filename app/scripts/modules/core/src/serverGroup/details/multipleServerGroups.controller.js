@@ -1,20 +1,21 @@
 'use strict';
 
-import {CONFIRMATION_MODAL_SERVICE} from 'core/confirmationModal/confirmationModal.service';
-import {SERVER_GROUP_WRITER} from 'core/serverGroup/serverGroupWriter.service';
-
 const angular = require('angular');
+
+import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
+import { CONFIRMATION_MODAL_SERVICE } from 'core/confirmationModal/confirmationModal.service';
+import { SERVER_GROUP_WRITER } from 'core/serverGroup/serverGroupWriter.service';
 
 module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServerGroups.controller', [
     require('@uirouter/angularjs').default,
     SERVER_GROUP_WRITER,
     CONFIRMATION_MODAL_SERVICE,
     require('../../cluster/filter/multiselect.model'),
-    require('../../cloudProvider/serviceDelegate.service.js'),
+    PROVIDER_SERVICE_DELEGATE,
     require('./multipleServerGroup.component'),
   ])
   .controller('MultipleServerGroupsCtrl', function ($scope, $state, confirmationModalService, MultiselectModel,
-                                                    serverGroupWriter, serviceDelegate, app) {
+                                                    serverGroupWriter, providerServiceDelegate, app) {
 
       this.serverGroups = [];
 
@@ -35,8 +36,8 @@ module.exports = angular.module('spinnaker.core.serverGroup.details.multipleServ
             monitorInterval = this.serverGroups.length * 1000;
         let taskMonitors = this.serverGroups.map(serverGroup => {
           let provider = serverGroup.provider || serverGroup.type;
-          let providerParamsMixin = serviceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin') ?
-            serviceDelegate.getDelegate(provider, 'serverGroup.paramsMixin') :
+          let providerParamsMixin = providerServiceDelegate.hasDelegate(provider, 'serverGroup.paramsMixin') ?
+            providerServiceDelegate.getDelegate(provider, 'serverGroup.paramsMixin') :
             {};
 
           let mixinParams = {};

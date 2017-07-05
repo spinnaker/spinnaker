@@ -26,7 +26,7 @@ describe('Service: securityGroupReader', function () {
                           $rootScope: ng.IRootScopeService,
                           _API_: Api,
                           _applicationModelBuilder_: ApplicationModelBuilder,
-                          _serviceDelegate_: any,
+                          _providerServiceDelegate_: any,
                           securityGroupTransformer: SecurityGroupTransformerService,
                           _securityGroupReader_: SecurityGroupReader) {
       reader = _securityGroupReader_;
@@ -41,7 +41,7 @@ describe('Service: securityGroupReader', function () {
         .callFake((securityGroup: ISecurityGroup) => {
           return $q.when(securityGroup);
         });
-      spyOn(_serviceDelegate_, 'getDelegate').and.returnValue(
+      spyOn(_providerServiceDelegate_, 'getDelegate').and.returnValue(
         {
           resolveIndexedSecurityGroup: (idx: any, container: ISecurityGroup, id: string) => {
             return idx[container.account][container.region][id];

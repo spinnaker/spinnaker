@@ -1,8 +1,9 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {TASK_EXECUTOR, TaskExecutor, IJob} from 'core/task/taskExecutor';
-import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
-import {Application} from 'core/application/application.model';
+import { TASK_EXECUTOR, TaskExecutor, IJob } from 'core/task/taskExecutor';
+import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
+import { Application } from 'core/application/application.model';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider/providerService.delegate';
 import { IInstance, IServerGroup, ITask } from 'core/domain';
 
 export interface IMultiInstanceGroup {
@@ -30,7 +31,7 @@ export class InstanceWriter {
 
   public constructor(private taskExecutor: TaskExecutor,
                      private serverGroupReader: ServerGroupReader,
-                     private serviceDelegate: any) {
+                     private providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }
 
@@ -247,10 +248,10 @@ export class InstanceWriter {
   }
 
   private transform(instanceGroup: IMultiInstanceGroup, job: IMultiInstanceJob) {
-    const hasTransformer: boolean = this.serviceDelegate.hasDelegate(
+    const hasTransformer: boolean = this.providerServiceDelegate.hasDelegate(
       instanceGroup.cloudProvider, 'instance.multiInstanceTaskTransformer');
     if (hasTransformer) {
-      const transformer: any = this.serviceDelegate.getDelegate(
+      const transformer: any = this.providerServiceDelegate.getDelegate(
         instanceGroup.cloudProvider, 'instance.multiInstanceTaskTransformer');
       transformer.transform(instanceGroup, job);
     }
@@ -261,5 +262,5 @@ export const INSTANCE_WRITE_SERVICE = 'spinnaker.core.instance.write.service';
 module(INSTANCE_WRITE_SERVICE, [
   TASK_EXECUTOR,
   SERVER_GROUP_READER,
-  require('core/cloudProvider/serviceDelegate.service'),
+  PROVIDER_SERVICE_DELEGATE,
 ]).service('instanceWriter', InstanceWriter);

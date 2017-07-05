@@ -60,12 +60,12 @@ describe('Service: instanceTypeService', function () {
   );
 
   beforeEach(
-    mock.inject(function (_instanceTypeService_: InstanceTypeService, _$q_: ng.IQService, $rootScope: ng.IRootScopeService, serviceDelegate: any) {
+    mock.inject(function (_instanceTypeService_: InstanceTypeService, _$q_: ng.IQService, $rootScope: ng.IRootScopeService, providerServiceDelegate: any) {
       instanceTypeService = _instanceTypeService_;
       $q = _$q_;
       $scope = $rootScope.$new();
 
-      spyOn(serviceDelegate, 'getDelegate').and.returnValue({
+      spyOn(providerServiceDelegate, 'getDelegate').and.returnValue({
         getCategories: () => { return $q.when(categories); }
       });
     })

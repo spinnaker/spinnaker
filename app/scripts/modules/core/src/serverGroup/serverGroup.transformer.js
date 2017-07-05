@@ -2,18 +2,20 @@
 
 const angular = require('angular');
 
+import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
+
 module.exports = angular.module('spinnaker.core.serverGroup.transformer', [
-  require('../cloudProvider/serviceDelegate.service.js'),
+  PROVIDER_SERVICE_DELEGATE,
 ])
-  .factory('serverGroupTransformer', function (serviceDelegate) {
+  .factory('serverGroupTransformer', function (providerServiceDelegate) {
 
     function normalizeServerGroup(serverGroup, application) {
-      return serviceDelegate.getDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer').
+      return providerServiceDelegate.getDelegate(serverGroup.provider || serverGroup.type, 'serverGroup.transformer').
         normalizeServerGroup(serverGroup, application);
     }
 
     function convertServerGroupCommandToDeployConfiguration(base) {
-      var service = serviceDelegate.getDelegate(base.selectedProvider, 'serverGroup.transformer');
+      var service = providerServiceDelegate.getDelegate(base.selectedProvider, 'serverGroup.transformer');
       return service ? service.convertServerGroupCommandToDeployConfiguration(base) : null;
     }
 

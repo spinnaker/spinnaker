@@ -11,6 +11,7 @@ import { ENTITY_TAGS_READ_SERVICE, EntityTagsReader } from 'core/entityTag/entit
 import { SETTINGS } from 'core/config/settings';
 import { SEARCH_SERVICE, SearchService, ISearchResults } from 'core/search/search.service';
 import { ISecurityGroupSearchResult } from './SecurityGroupSearchResultFormatter';
+import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export interface ISecurityGroupsByAccount {
   [account: string]: {
@@ -114,7 +115,8 @@ export class SecurityGroupReader {
   private resolve(index: any,
                   container: ISecurityGroup,
                   securityGroupId: string): any {
-    return this.serviceDelegate.getDelegate(container.provider || container.type || container.cloudProvider, 'securityGroup.reader')
+    return this.providerServiceDelegate
+      .getDelegate<any>(container.provider || container.type || container.cloudProvider, 'securityGroup.reader')
       .resolveIndexedSecurityGroup(index, container, securityGroupId);
 
   }
@@ -278,7 +280,7 @@ export class SecurityGroupReader {
               private API: Api,
               private infrastructureCaches: InfrastructureCacheService,
               private securityGroupTransformer: SecurityGroupTransformerService,
-              private serviceDelegate: any,
+              private providerServiceDelegate: ProviderServiceDelegate,
               private entityTagsReader: EntityTagsReader) {
     'ngInject';
   }
@@ -397,7 +399,7 @@ module(SECURITY_GROUP_READER, [
   NAMING_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   SECURITY_GROUP_TRANSFORMER_SERVICE,
-  require('../cloudProvider/serviceDelegate.service.js'),
+  PROVIDER_SERVICE_DELEGATE,
   API_SERVICE,
   ENTITY_TAGS_READ_SERVICE,
 ])

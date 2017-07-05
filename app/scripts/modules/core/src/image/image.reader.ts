@@ -1,4 +1,6 @@
-import {module} from 'angular';
+import { IPromise, module } from 'angular';
+
+import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export interface IFindImageParams {
   provider: string;
@@ -18,28 +20,28 @@ export interface IFindTagsParams {
 export interface IImage {}
 
 export interface IImageReader {
-  findImages(params: IFindImageParams): ng.IPromise<IImage[]>;
-  getImage(imageName: string, region: string, credentials: string): ng.IPromise<IImage>;
+  findImages(params: IFindImageParams): IPromise<IImage[]>;
+  getImage(imageName: string, region: string, credentials: string): IPromise<IImage>;
 }
 
 export class ImageReader {
 
-  public constructor(private serviceDelegate: any) { 'ngInject'; }
+  public constructor(private providerServiceDelegate: ProviderServiceDelegate) { 'ngInject'; }
 
   private getDelegate(cloudProvider: string): IImageReader {
-    return this.serviceDelegate.getDelegate(cloudProvider, 'image.reader');
+    return this.providerServiceDelegate.getDelegate<IImageReader>(cloudProvider, 'image.reader');
   }
 
-  public findImages(params: IFindImageParams): ng.IPromise<IImage[]> {
+  public findImages(params: IFindImageParams): IPromise<IImage[]> {
     return this.getDelegate(params.provider).findImages(params);
   }
 
-  public getImage(cloudProvider: string, imageName: string, region: string, credentials: string): ng.IPromise<IImage> {
+  public getImage(cloudProvider: string, imageName: string, region: string, credentials: string): IPromise<IImage> {
     return this.getDelegate(cloudProvider).getImage(imageName, region, credentials);
   }
 }
 
 export const IMAGE_READER = 'spinnaker.core.image.reader';
 module(IMAGE_READER, [
-  require('core/cloudProvider/serviceDelegate.service')
+  PROVIDER_SERVICE_DELEGATE,
 ]).service('imageReader', ImageReader);

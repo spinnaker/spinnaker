@@ -48,8 +48,8 @@ export class CacheInitializerService {
           return;
         }
 
-        if (this.serviceDelegate.hasDelegate(provider, 'cache.configurer')) {
-          const providerConfig: any = this.serviceDelegate.getDelegate(provider, 'cache.configurer');
+        if (this.providerServiceDelegate.hasDelegate(provider, 'cache.configurer')) {
+          const providerConfig: any = this.providerServiceDelegate.getDelegate(provider, 'cache.configurer');
           Object.keys(providerConfig).forEach((key: string) => {
             this.setConfigDefaults(key, providerConfig[key]);
             if (!this.cacheConfig[key]) {
@@ -92,7 +92,7 @@ export class CacheInitializerService {
               private securityGroupReader: SecurityGroupReader,
               private cloudProviderRegistry: CloudProviderRegistry,
               private igorService: IgorService,
-              private serviceDelegate: any) {}
+              private providerServiceDelegate: any) {}
 
   public initialize(): ng.IPromise<any[]> {
 

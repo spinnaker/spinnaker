@@ -1,4 +1,6 @@
-import {module} from 'angular';
+import { module, IPromise } from 'angular';
+
+import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 
 export interface IInstanceType {
   account: string;
@@ -45,25 +47,25 @@ export interface IInstanceTypeCategory {
 }
 
 export interface IInstanceTypeService {
-  getCategories(): ng.IPromise<IInstanceTypeCategory[]>;
-  getAllTypesByRegion(): ng.IPromise<IInstanceTypesByRegion>;
-  getAvailableTypesForRegions(instanceTypes: string[], regions: string[]): ng.IPromise<string[]>;
+  getCategories(): IPromise<IInstanceTypeCategory[]>;
+  getAllTypesByRegion(): IPromise<IInstanceTypesByRegion>;
+  getAvailableTypesForRegions(instanceTypes: string[], regions: string[]): IPromise<string[]>;
   getCategoryForInstanceType(instanceType: string): string;
 }
 
 export class InstanceTypeService {
 
-  public constructor(private serviceDelegate: any) { 'ngInject'; }
+  public constructor(private providerServiceDelegate: ProviderServiceDelegate) { 'ngInject'; }
 
-  public getCategories(cloudProvider: string): ng.IPromise<IInstanceTypeCategory[]> {
+  public getCategories(cloudProvider: string): IPromise<IInstanceTypeCategory[]> {
     return this.getDelegate(cloudProvider).getCategories();
   }
 
-  public getAllTypesByRegion(cloudProvider: string): ng.IPromise<IInstanceTypesByRegion> {
+  public getAllTypesByRegion(cloudProvider: string): IPromise<IInstanceTypesByRegion> {
     return this.getDelegate(cloudProvider).getAllTypesByRegion();
   }
 
-  public getAvailableTypesForRegions(cloudProvider: string, instanceTypes: string[], regions: string[]): ng.IPromise<string[]> {
+  public getAvailableTypesForRegions(cloudProvider: string, instanceTypes: string[], regions: string[]): IPromise<string[]> {
     return this.getDelegate(cloudProvider).getAvailableTypesForRegions(instanceTypes, regions);
   }
 
@@ -73,7 +75,7 @@ export class InstanceTypeService {
     });
   }
 
-  public getInstanceTypeDetails(cloudProvider: string, instanceType: string): ng.IPromise<IPreferredInstanceType> {
+  public getInstanceTypeDetails(cloudProvider: string, instanceType: string): IPromise<IPreferredInstanceType> {
     return this.getInstanceTypeCategory(cloudProvider, instanceType).then((category: IInstanceTypeCategory) => {
       if (category && category.families && category.families.length && category.families[0].instanceTypes) {
         return category.families[0].instanceTypes.find(i => i.name === instanceType);
@@ -82,18 +84,18 @@ export class InstanceTypeService {
     });
   }
 
-  private getInstanceTypeCategory(cloudProvider: string, instanceType: string): ng.IPromise<IInstanceTypeCategory> {
+  private getInstanceTypeCategory(cloudProvider: string, instanceType: string): IPromise<IInstanceTypeCategory> {
     return this.getCategories(cloudProvider).then((categories: IInstanceTypeCategory[]) => {
       return (categories || []).find(c => c.families.some(f => f.instanceTypes.some(i => i.name === instanceType || (i.nameRegex && i.nameRegex.test(instanceType)))));
     });
   }
 
   private getDelegate(cloudProvider: string): IInstanceTypeService {
-    return this.serviceDelegate.getDelegate(cloudProvider, 'instance.instanceTypeService');
+    return this.providerServiceDelegate.getDelegate<IInstanceTypeService>(cloudProvider, 'instance.instanceTypeService');
   }
 }
 
 export const INSTANCE_TYPE_SERVICE = 'spinnaker.core.instanceType.service';
 module(INSTANCE_TYPE_SERVICE, [
-  require('core/cloudProvider/serviceDelegate.service.js'),
+  PROVIDER_SERVICE_DELEGATE,
 ]).service('instanceTypeService', InstanceTypeService);

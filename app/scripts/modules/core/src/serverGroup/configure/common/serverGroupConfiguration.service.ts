@@ -1,14 +1,15 @@
 import { IPromise, module } from 'angular';
 
+import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { IServerGroupCommand } from './serverGroupCommandBuilder.service';
 
 export class ServerGroupConfigurationService {
-  constructor(private serviceDelegate: any) {
+  constructor(private providerServiceDelegate: ProviderServiceDelegate) {
     'ngImport';
   }
 
   private getDelegate(provider: string): any {
-    return this.serviceDelegate.getDelegate(provider, 'serverGroup.configurationService');
+    return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.configurationService');
   }
 
   public refreshInstanceTypes(provider: string, command: IServerGroupCommand): IPromise<void> {
@@ -18,6 +19,6 @@ export class ServerGroupConfigurationService {
 
 export const SERVER_GROUP_CONFIGURATION_SERVICE = 'spinnaker.core.serverGroup.configure.common.configure.service';
 module(SERVER_GROUP_CONFIGURATION_SERVICE, [
-  require('core/cloudProvider/serviceDelegate.service.js'),
+  PROVIDER_SERVICE_DELEGATE,
 ])
   .service('serverGroupConfigurationService', ServerGroupConfigurationService);

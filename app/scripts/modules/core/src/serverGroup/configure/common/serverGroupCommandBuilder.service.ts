@@ -6,6 +6,7 @@ import { ICapacity } from 'core/serverGroup/serverGroupWriter.service';
 import { IDeploymentStrategy } from 'core/deploymentStrategy';
 import { ISecurityGroupsByAccountSourceData } from 'core/securityGroup/securityGroupReader.service';
 import { IRegion, IAggregatedAccounts } from 'core/account/account.service';
+import { PROVIDER_SERVICE_DELEGATE, ProviderServiceDelegate } from 'core/cloudProvider';
 
 export interface IServerGroupCommandBuilderOptions {
   account: string;
@@ -117,10 +118,10 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
 export class ServerGroupCommandBuilderService {
 
   private getDelegate(provider: string): any {
-    return this.serviceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
+    return this.providerServiceDelegate.getDelegate(provider, 'serverGroup.commandBuilder');
   }
 
-  constructor(private serviceDelegate: any) { 'ngInject'; }
+  constructor(private providerServiceDelegate: ProviderServiceDelegate) { 'ngInject'; }
 
   public buildNewServerGroupCommand(application: Application,
                                     provider: string,
@@ -150,6 +151,6 @@ export class ServerGroupCommandBuilderService {
 
 export const SERVER_GROUP_COMMAND_BUILDER_SERVICE = 'spinnaker.core.serverGroup.configure.common.service';
 module(SERVER_GROUP_COMMAND_BUILDER_SERVICE, [
-  require('core/cloudProvider/serviceDelegate.service.js')
+  PROVIDER_SERVICE_DELEGATE,
 ])
   .service('serverGroupCommandBuilder', ServerGroupCommandBuilderService);

@@ -1,29 +1,32 @@
 'use strict';
 
-import * as _ from 'lodash';
 const angular = require('angular');
 
+import { chain, flow } from 'lodash';
+
+import { PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
+
 module.exports = angular.module('spinnaker.core.loadBalancer.transformer', [
-  require('../cloudProvider/serviceDelegate.service.js'),
+  PROVIDER_SERVICE_DELEGATE
 ])
-  .factory('loadBalancerTransformer', function (serviceDelegate) {
+  .factory('loadBalancerTransformer', function (providerServiceDelegate) {
 
     function normalizeLoadBalancer(loadBalancer) {
-      return serviceDelegate.getDelegate(loadBalancer.provider || loadBalancer.type, 'loadBalancer.transformer').
+      return providerServiceDelegate.getDelegate(loadBalancer.provider || loadBalancer.type, 'loadBalancer.transformer').
         normalizeLoadBalancer(loadBalancer);
     }
 
     function normalizeLoadBalancerSet(loadBalancers) {
-      let setNormalizers = _.chain(loadBalancers)
-        .filter((lb) => serviceDelegate.hasDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer'))
+      let setNormalizers = chain(loadBalancers)
+        .filter((lb) => providerServiceDelegate.hasDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer'))
         .compact()
-        .map((lb) => serviceDelegate
+        .map((lb) => providerServiceDelegate
           .getDelegate(lb.provider || lb.type, 'loadBalancer.setTransformer').normalizeLoadBalancerSet)
         .uniq()
         .value();
 
       if (setNormalizers.length) {
-        return _.flow(setNormalizers)(loadBalancers);
+        return flow(setNormalizers)(loadBalancers);
       } else {
         return loadBalancers;
       }

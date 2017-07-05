@@ -1,7 +1,8 @@
 import { module, IDeferred, IPromise, IQService } from 'angular';
 import { Observable, Subject } from 'rxjs';
-import { UrlBuilderService, URL_BUILDER_SERVICE } from '../../navigation/urlBuilder.service';
 
+import { UrlBuilderService, URL_BUILDER_SERVICE } from 'core/navigation/urlBuilder.service';
+import { ProviderServiceDelegate, PROVIDER_SERVICE_DELEGATE } from 'core/cloudProvider/providerService.delegate';
 import { getFallbackResults, ISearchResult, ISearchResults, SearchService, SEARCH_SERVICE } from '../search.service';
 import {
   IResultDisplayFormatter,
@@ -18,12 +19,16 @@ export interface ISearchResultSet {
   results: ISearchResult[]
 }
 
+export interface IProviderResultFormatter {
+  [category: string]: IResultDisplayFormatter,
+}
+
 export class InfrastructureSearcher {
 
   private deferred: IDeferred<ISearchResultSet[]>;
   public querySubject: Subject<string> = new Subject<string>();
 
-  constructor(private $q: IQService, private serviceDelegate: any, searchService: SearchService, urlBuilderService: UrlBuilderService) {
+  constructor(private $q: IQService, private providerServiceDelegate: ProviderServiceDelegate, searchService: SearchService, urlBuilderService: UrlBuilderService) {
     this.querySubject.switchMap(
       (query: string) => {
         if (!query || query.trim() === '') {
@@ -81,8 +86,8 @@ export class InfrastructureSearcher {
     }
     let formatter = config.displayFormatter;
 
-    if (this.serviceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
-      const providerFormatter: { [category: string]: IResultDisplayFormatter } = this.serviceDelegate.getDelegate(entry.provider, 'search.resultFormatter');
+    if (this.providerServiceDelegate.hasDelegate(entry.provider, 'search.resultFormatter')) {
+      const providerFormatter: IProviderResultFormatter = this.providerServiceDelegate.getDelegate<IProviderResultFormatter>(entry.provider, 'search.resultFormatter');
       if (providerFormatter[category]) {
         formatter = providerFormatter[category];
       }
@@ -92,10 +97,10 @@ export class InfrastructureSearcher {
 }
 
 export class InfrastructureSearchService {
-  constructor(private $q: IQService, private serviceDelegate: any, private searchService: SearchService, private urlBuilderService: UrlBuilderService) {}
+  constructor(private $q: IQService, private providerServiceDelegate: any, private searchService: SearchService, private urlBuilderService: UrlBuilderService) {}
 
   public getSearcher(): InfrastructureSearcher {
-    return new InfrastructureSearcher(this.$q, this.serviceDelegate, this.searchService, this.urlBuilderService);
+    return new InfrastructureSearcher(this.$q, this.providerServiceDelegate, this.searchService, this.urlBuilderService);
   }
 }
 
@@ -103,5 +108,5 @@ export const INFRASTRUCTURE_SEARCH_SERVICE = 'spinnaker.infrastructure.search.se
 module(INFRASTRUCTURE_SEARCH_SERVICE, [
   SEARCH_SERVICE,
   URL_BUILDER_SERVICE,
-  require('core/cloudProvider/serviceDelegate.service'),
+  PROVIDER_SERVICE_DELEGATE,
 ]).service('infrastructureSearchService', InfrastructureSearchService);
