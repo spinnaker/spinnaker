@@ -180,6 +180,7 @@ public class BackupService {
             .filter(Objects::nonNull)
             .forEach(f -> addFileToTar(tarArchiveOutputStream, f.getAbsolutePath(), tarEntryName));
       } else {
+        tarArchiveOutputStream.closeArchiveEntry();
         log.warn("Unknown file type: " + file + " - skipping addition to tar archive");
       }
     } catch (IOException e) {
