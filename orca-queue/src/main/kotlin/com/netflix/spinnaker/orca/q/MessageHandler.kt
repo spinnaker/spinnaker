@@ -16,10 +16,13 @@
 
 package com.netflix.spinnaker.orca.q
 
+import com.netflix.spinnaker.orca.AuthenticatedStage
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import com.netflix.spinnaker.security.AuthenticatedRequest
+import com.netflix.spinnaker.security.User
 
 /**
  * Implementations handle a single message type from the queue.
@@ -66,7 +69,20 @@ interface MessageHandler<M : Message> : (Message) -> Unit {
           if (stage == null) {
             queue.push(InvalidStageId(this))
           } else {
-            block.invoke(stage)
+            val authenticatedUser = stage
+              .ancestors()
+              .filter { it.stageBuilder is AuthenticatedStage }
+              .firstOrNull()
+              ?.let { (it.stageBuilder as AuthenticatedStage).authenticatedUser(it.stage).orElse(null) }
+
+            val currentUser = authenticatedUser ?: User().apply {
+              email = stage.getExecution().getAuthentication()?.user
+              allowedAccounts = stage.getExecution().getAuthentication()?.allowedAccounts
+            }
+
+            AuthenticatedRequest.propagate({
+              block.invoke(stage)
+            }, false, currentUser).call()
           }
         }
     }
