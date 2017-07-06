@@ -17,13 +17,18 @@ package com.netflix.spinnaker.front50.model.pipeline;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.front50.model.Timestamped;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.PatternSyntaxException;
 
 public class PipelineTemplate extends HashMap<String, Object> implements Timestamped {
+
+  private static final Logger log = LoggerFactory.getLogger(PipelineTemplate.class);
 
   @JsonIgnore
   @SuppressWarnings("unchecked")
@@ -66,6 +71,14 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
       for (String s2 : getScopes()) {
         if (s.equalsIgnoreCase(s2)) {
           return true;
+        }
+
+        try {
+          if (s.matches(s2)) {
+            return true;
+          }
+        } catch (PatternSyntaxException e) {
+          log.warn("Invalid scope matching pattern (scope: '" + s2 + "', template: " + getId() + ")");
         }
       }
     }
