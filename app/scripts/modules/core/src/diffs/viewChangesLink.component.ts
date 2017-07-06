@@ -1,13 +1,15 @@
+import {extend} from 'lodash';
 import {IComponentController, IComponentOptions, module} from 'angular';
 import {IModalInstanceService, IModalService} from 'angular-ui-bootstrap';
 
-import {ICreationMetadata, ICreationMetadataTag} from 'core/domain';
+import {IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IJenkinsInfo} from 'core/domain';
 import {ICommit} from './commitHistory.component';
 import {COMMIT_HISTORY_COMPONENT} from './commitHistory.component';
 import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
 import {JAR_DIFF_COMPONENT, IJarDiff} from './jarDiff.component';
 
 export interface IViewChangesConfig {
+  buildInfo?: IBuildDiffInfo;
   commits?: ICommit[];
   jarDiffs: IJarDiff;
   metadata?: ICreationMetadataTag;
@@ -19,12 +21,30 @@ export interface INameItem {
 
 class ViewChangesModalController {
 
+  public previousBuildLink: string;
+  public currentBuildLink: string;
+
   constructor(private $uibModalInstance: IModalInstanceService,
-              public hasJarChanges: boolean,
+              public buildInfo: IBuildDiffInfo,
               public commits: ICommit[],
+              public hasJarChanges: boolean,
               public jarDiffs: IJarDiff,
               public nameItem: INameItem) {
     'ngInject';
+
+    if (buildInfo.jenkins) {
+      this.previousBuildLink = this.buildJenkinsLink(buildInfo.jenkins, buildInfo.ancestor);
+      this.currentBuildLink = this.buildJenkinsLink(buildInfo.jenkins, buildInfo.target);
+    }
+  }
+
+  public buildJenkinsLink(jenkins: IJenkinsInfo, build: string): string {
+    let result: string;
+    if (build) {
+      result = `${jenkins.host}job/${jenkins.name}/${build}`;
+    }
+
+    return result;
   }
 
   public close(): void {
@@ -68,6 +88,7 @@ class ViewChangesLinkController implements IComponentController {
       const stage: any = details.stages.find((s: any) => s.id === stageId);
       this.jarDiffs = stage.context.jarDiffs;
       this.commits = stage.context.commits;
+      extend(this.changeConfig.buildInfo, stage.context.buildInfo);
       this.setJarDiffs();
 
       if (this.hasJarChanges || this.commits.length) {
@@ -109,8 +130,9 @@ class ViewChangesLinkController implements IComponentController {
       controller: ViewChangesModalController,
       controllerAs: '$ctrl',
       resolve: {
-        hasJarChanges: () => this.hasJarChanges,
+        buildInfo: () => this.changeConfig.buildInfo,
         commits: () => this.commits,
+        hasJarChanges: () => this.hasJarChanges,
         jarDiffs: () => this.jarDiffs,
         nameItem: () => this.nameItem
       }

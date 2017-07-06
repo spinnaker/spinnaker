@@ -154,6 +154,11 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
                 this.changeConfig = {
                   metadata: get(this.serverGroup.entityTags, 'creationMetadata')
                 };
+                if (this.serverGroup.buildInfo.jenkins) {
+                  this.changeConfig.buildInfo = {
+                    jenkins: this.serverGroup.buildInfo.jenkins
+                  };
+                }
               } else {
                 autoClose();
               }

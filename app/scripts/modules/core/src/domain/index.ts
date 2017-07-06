@@ -1,4 +1,5 @@
 export * from './IBuild';
+export * from './IBuildDiffInfo';
 export * from './IBuildInfo';
 
 export * from './ICloudMetric';
@@ -18,6 +19,7 @@ export * from './IInstance';
 export * from './IInstanceCounts';
 
 export * from './IJobConfig';
+export * from './IJenkinsInfo';
 
 export * from './ILoadBalancer';
 
