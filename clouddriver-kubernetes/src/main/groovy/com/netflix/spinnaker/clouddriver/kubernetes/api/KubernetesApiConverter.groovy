@@ -421,6 +421,13 @@ class KubernetesApiConverter {
           } else if (envVar.envSource.fieldRef) {
             def fieldPath = envVar.envSource.fieldRef.fieldPath
             res = res.withNewFieldRef().withFieldPath(fieldPath).endFieldRef()
+          } else if (envVar.envSource.resourceFieldRef) {
+            def resource = envVar.envSource.resourceFieldRef.resource
+            def containerName = envVar.envSource.resourceFieldRef.containerName
+            def divisor = envVar.envSource.resourceFieldRef.divisor
+            res = res.withNewResourceFieldRef().withResource(resource)
+            res = res.withContainerName(containerName)
+            res = res.withNewDivisor(divisor)
           } else {
             return null
           }
@@ -541,6 +548,13 @@ class KubernetesApiConverter {
         } else if (envVar.valueFrom.fieldRef) {
           def fieldPath = envVar.valueFrom.fieldRef.fieldPath;
           source.fieldRef = new KubernetesFieldRefSource(fieldPath: fieldPath)
+        } else if (envVar.valueFrom.resourceFieldRef) {
+          def resource = envVar.valueFrom.resourceFieldRef.resource
+          def containerName = envVar.valueFrom.resourceFieldRef.containerName
+          def divisor = envVar.valueFrom.resourceFieldRef.divisor
+          source.resourceFieldRef = new KubernetesResourceFieldRefSource(resource: resource,
+                                                                         containerName: containerName,
+                                                                         divisor: divisor)
         } else {
           return null
         }

@@ -180,6 +180,15 @@ class KubernetesEnvVarSource {
   KubernetesSecretSource secretSource
   KubernetesConfigMapSource configMapSource
   KubernetesFieldRefSource fieldRef
+  KubernetesResourceFieldRefSource resourceFieldRef
+}
+
+@AutoClone
+@Canonical
+class KubernetesResourceFieldRefSource {
+  String resource
+  String containerName
+  String divisor
 }
 
 @AutoClone
