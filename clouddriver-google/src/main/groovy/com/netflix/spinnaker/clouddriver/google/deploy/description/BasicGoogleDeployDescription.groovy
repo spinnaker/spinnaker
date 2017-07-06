@@ -91,5 +91,6 @@ class BasicGoogleDeployDescription extends BaseGoogleInstanceDescription impleme
     // TODO(duftler): Add accountName/credentials to support cloning from one account to another.
     String region
     String serverGroupName
+    Boolean useSourceCapacity
   }
 }

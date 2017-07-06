@@ -362,6 +362,20 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       }
     }
 
+    if (description.source?.useSourceCapacity && description.source?.region && description.source?.serverGroupName) {
+      task.updateStatus BASE_PHASE, "Looking up server group $description.source.serverGroupName in $description.source.region " +
+                                    "in order to copy the current capacity..."
+
+      // Locate the ancestor server group.
+      def ancestorServerGroup = GCEUtil.queryServerGroup(googleClusterProvider,
+                                                         description.accountName,
+                                                         description.source.region,
+                                                         description.source.serverGroupName)
+
+      description.targetSize = ancestorServerGroup.capacity.desired
+      description.autoscalingPolicy = GCEUtil.buildAutoscalingPolicyDescriptionFromAutoscalingPolicy(ancestorServerGroup.autoscalingPolicy)
+    }
+
     List<InstanceGroupManagerAutoHealingPolicy> autoHealingPolicy =
       description.autoHealingPolicy?.healthCheck
       ? [new InstanceGroupManagerAutoHealingPolicy(
