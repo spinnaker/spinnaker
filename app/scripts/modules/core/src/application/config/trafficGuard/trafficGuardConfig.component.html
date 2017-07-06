@@ -39,7 +39,7 @@
                     ng-change="$ctrl.configChanged()"
                     required
                     ng-if="guard.account">
-              <option ng-repeat="region in $ctrl.regionsByAccount[guard.account]" value="{{region}}">{{region}}</option>
+              <option ng-repeat="location in $ctrl.locationsByAccount[guard.account]" value="{{location}}">{{location}}</option>
             </select>
           </td>
           <td>

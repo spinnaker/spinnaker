@@ -33,6 +33,7 @@ export interface IAccountDetails extends IAccount {
   environment: string;
   primaryAccount: boolean;
   regions: IRegion[];
+  namespaces?: string[];
 }
 
 export interface IAggregatedAccounts {

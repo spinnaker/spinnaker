@@ -1,4 +1,4 @@
-import { module, toJson } from 'angular';
+import { ILogService, module, toJson } from 'angular';
 import { cloneDeep, uniq } from 'lodash';
 
 import {
@@ -23,8 +23,8 @@ export interface ITrafficGuard {
 export class TrafficGuardConfigController {
 
   public application: Application;
+  public locationsByAccount: { [account: string]: string[] };
   public accounts: IAccountDetails[] = [];
-  public regionsByAccount: { [account: string]: string[] };
   public config: ITrafficGuard[];
   public initializing = true;
   public clusterMatches: IClusterMatch[][] = [];
@@ -37,7 +37,9 @@ export class TrafficGuardConfigController {
     isDirty: false,
   };
 
-  public constructor(private accountService: AccountService, private namingService: NamingService) { 'ngInject'; }
+  public constructor(private $log: ILogService,
+                     private accountService: AccountService,
+                     private namingService: NamingService) { 'ngInject'; }
 
   public $onInit(): void {
     if (this.application.notFound) {
@@ -48,13 +50,28 @@ export class TrafficGuardConfigController {
     this.viewState.originalStringVal = toJson(this.viewState.originalConfig);
 
     this.accountService.getCredentialsKeyedByAccount().then((aggregated: IAggregatedAccounts) => {
-      this.accounts = Object.keys(aggregated)
-        .map((name: string) => aggregated[name])
-        .filter((details: IAccountDetails) => details.regions);
-      this.regionsByAccount = {};
-      this.accounts.forEach((details: IAccountDetails) => {
-        this.regionsByAccount[details.name] = ['*'].concat(details.regions.map((region: IRegion) => region.name));
+      const allAccounts = Object.keys(aggregated)
+        .map((name: string) => aggregated[name]);
+      const accountsWithRegionsOnly = allAccounts
+        .filter((details: IAccountDetails) => details.regions && !details.namespaces);
+      const accountsWithNamespacesOnly = allAccounts
+        .filter((details: IAccountDetails) => details.namespaces && !details.regions);
+
+      const unsupportedAccounts = allAccounts.filter((details: IAccountDetails) => details.regions && details.namespaces);
+      if (unsupportedAccounts) {
+        this.$log.warn('Account(s) ', unsupportedAccounts, ' have both namespaces and regions - this is not supported.');
+      }
+
+      this.accounts = accountsWithRegionsOnly.concat(accountsWithNamespacesOnly);
+      this.locationsByAccount = {};
+      accountsWithRegionsOnly.forEach((details: IAccountDetails) => {
+        this.locationsByAccount[details.name] = ['*'].concat(details.regions.map((region: IRegion) => region.name));
       });
+
+      accountsWithNamespacesOnly.forEach((details: IAccountDetails) => {
+        this.locationsByAccount[details.name] = ['*'].concat(details.namespaces);
+      });
+
       this.application.getDataSource('serverGroups').ready().then(() => this.configureMatches());
       this.initializing = false;
     });
