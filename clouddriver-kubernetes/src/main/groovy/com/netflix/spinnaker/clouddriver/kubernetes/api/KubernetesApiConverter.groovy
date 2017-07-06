@@ -427,7 +427,7 @@ class KubernetesApiConverter {
             def divisor = envVar.envSource.resourceFieldRef.divisor
             res = res.withNewResourceFieldRef().withResource(resource)
             res = res.withContainerName(containerName)
-            res = res.withNewDivisor(divisor)
+            res = res.withNewDivisor(divisor).endResourceFieldRef()
           } else {
             return null
           }
