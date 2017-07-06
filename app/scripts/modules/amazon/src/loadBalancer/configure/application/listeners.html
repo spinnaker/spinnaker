@@ -35,8 +35,21 @@
                         style="width:45px;"
                         ng-model="certificate.type"
                         ng-options="certificateType for certificateType in ['iam','acm']"></select>
-                <select ng-if="ctrl.showCertificateSelect(certificate)" class="form-control input-sm" ng-model="certificate.name" required
-                        ng-options="certificate.serverCertificateName as certificate.serverCertificateName for certificate in ctrl.certificates[ctrl.loadBalancerCommand.credentials]"></select>
+
+                <ui-select ng-if="ctrl.showCertificateSelect(certificate)"
+                           class="form-control input-sm"
+                           required
+                           ng-model="certificate.name">
+                  <ui-select-match placeholder="Select...">
+                    <div style="max-width: 390px; text-overflow: ellipsis; overflow-x: hidden">
+                      {{$select.selected.serverCertificateName}}
+                    </div>
+                  </ui-select-match>
+                  <ui-select-choices repeat="certificate.serverCertificateName as certificate in ctrl.certificates[ctrl.loadBalancerCommand.credentials] | filter: $select.search">
+                    {{certificate.serverCertificateName}}
+                  </ui-select-choices>
+                </ui-select>
+
                 <input ng-if="!ctrl.showCertificateSelect(certificate)" class="form-control input-sm no-spel" style="display:inline-block;"
                        type="text"
                        ng-model="certificate.name"
