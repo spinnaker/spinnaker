@@ -8,7 +8,7 @@ export interface IComponentName {
 }
 
 export class NamingService {
-  private VERSION_PATTERN: RegExp = /(v\d{3})/;
+  public static VERSION_PATTERN: RegExp = /(v\d{3})/;
 
   public parseServerGroupName(serverGroupName: string): IComponentName {
     const result: IComponentName = {
@@ -22,7 +22,7 @@ export class NamingService {
       return result;
     }
     const split: string[] = serverGroupName.split('-'),
-          isVersioned = this.VERSION_PATTERN.test(split[split.length - 1]);
+          isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
 
     result.application = split[0];
 
@@ -61,7 +61,7 @@ export class NamingService {
 
   public getClusterNameFromServerGroupName(serverGroupName: string): string {
     const split = serverGroupName.split('-'),
-      isVersioned = this.VERSION_PATTERN.test(split[split.length - 1]);
+      isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
 
     if (isVersioned) {
       split.pop();
@@ -71,7 +71,7 @@ export class NamingService {
 
   public getSequence(serverGroupName: string): string {
     const split = serverGroupName.split('-'),
-      isVersioned = this.VERSION_PATTERN.test(split[split.length - 1]);
+      isVersioned = NamingService.VERSION_PATTERN.test(split[split.length - 1]);
 
     if (isVersioned) {
       return split.pop();

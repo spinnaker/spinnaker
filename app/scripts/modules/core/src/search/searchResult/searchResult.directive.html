@@ -1,5 +1,5 @@
 <span class="search-result">
   <account-tag
-      account="item.account || item.params.account || item.params.accountId || item.params.accountName"></account-tag>
-  {{ item.displayName }}
+      account="::(item.account || item.params.account || item.params.accountId || item.params.accountName)"></account-tag>
+  <span ng-bind-html="::item.displayName"></span>
 </span>

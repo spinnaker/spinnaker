@@ -9,6 +9,7 @@ import {
   ISearchResultFormatter,
   searchResultFormatterRegistry
 } from '../searchResult/searchResultFormatter.registry';
+import { externalSearchRegistry } from '../externalSearch.registry';
 
 export interface ISearchResultSet {
   id: string,
@@ -34,8 +35,14 @@ export class InfrastructureSearcher {
         if (!query || query.trim() === '') {
           return Observable.of(getFallbackResults());
         }
-        return Observable.from(
-          searchService.search({q: query, type: searchResultFormatterRegistry.getSearchCategories()}))
+        return Observable.zip(
+          searchService.search({q: query, type: searchResultFormatterRegistry.getSearchCategories()}),
+          externalSearchRegistry.search(query),
+          (s1, s2) => {
+            s1.results = s1.results.concat(s2);
+            return s1;
+          }
+        )
       })
       .subscribe((result: ISearchResults<ISearchResult>) => {
         const tmp = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {

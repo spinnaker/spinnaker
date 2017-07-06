@@ -1,9 +1,12 @@
-import {isDate, isObject, isUndefined} from 'lodash';
-import {module} from 'angular';
+import { isDate, isObject, isUndefined } from 'lodash';
+import { module } from 'angular';
 
-import {StateService} from '@uirouter/angularjs';
+import { StateService } from '@uirouter/angularjs';
 import { ITask } from 'core/domain';
+import { urlBuilderRegistry } from './urlBuilder.registry';
+import { NamingService } from 'core/naming/naming.service';
 
+// TODO: refactor to marker interface and have input types declare expected fields
 export interface IUrlBuilderInput {
   account?: string;
   application?: string;
@@ -27,8 +30,8 @@ interface IParams {
   [key: string]: any;
 }
 
-interface IUrlBuilder {
-  build: (input: IUrlBuilderInput) => string;
+export interface IUrlBuilder {
+  build: (input: IUrlBuilderInput, $state: StateService) => string;
 }
 
 interface IClusterFilter {
@@ -98,19 +101,17 @@ class UrlBuilderUtils {
 
 class ApplicationsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
+  public build(input: IUrlBuilderInput, $state: StateService) {
 
     let result: string;
     if (input.project) {
-      result = this.$state.href(
+      result = $state.href(
         'home.project.application.insight.clusters',
         {application: input.application, project: input.project},
         {inherit: false}
       );
     } else {
-      result = this.$state.href(
+      result = $state.href(
         'home.applications.application.insight.clusters',
         {
           application: input.application,
@@ -125,9 +126,7 @@ class ApplicationsUrlBuilder implements IUrlBuilder {
 
 class ClustersUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
+  public build(input: IUrlBuilderInput, $state: StateService) {
 
     const filters: IClusterFilter = {
       acct: input.account
@@ -147,7 +146,7 @@ class ClustersUrlBuilder implements IUrlBuilder {
 
     let href: string;
     if (input.project) {
-      href = this.$state.href('home.project.application.insight.clusters',
+      href = $state.href('home.project.application.insight.clusters',
         {
           application: input.application,
           project: input.project,
@@ -155,7 +154,7 @@ class ClustersUrlBuilder implements IUrlBuilder {
         {inherit: false}
       );
     } else {
-      href = this.$state.href(
+      href = $state.href(
         'home.applications.application.insight.clusters',
         {
           application: input.application,
@@ -170,13 +169,11 @@ class ClustersUrlBuilder implements IUrlBuilder {
 
 class InstancesUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
+  public build(input: IUrlBuilderInput, $state: StateService) {
 
     let result: string;
     if (!input.application) {
-      result = this.$state.href('home.instanceDetails',
+      result = $state.href('home.instanceDetails',
         {
           account: input.account,
           region: input.region,
@@ -185,7 +182,7 @@ class InstancesUrlBuilder implements IUrlBuilder {
         }
       );
     } else {
-      const href: string = this.$state.href(
+      const href: string = $state.href(
         'home.applications.application.insight.clusters.instanceDetails',
         {
           application: input.application,
@@ -203,11 +200,9 @@ class InstancesUrlBuilder implements IUrlBuilder {
 
 class LoadBalancersUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
+  public build(input: IUrlBuilderInput, $state: StateService) {
 
-  public build(input: IUrlBuilderInput) {
-
-    const href: string = this.$state.href(
+    const href: string = $state.href(
       'home.applications.application.insight.loadBalancers.loadBalancerDetails',
       {
         application: input.application,
@@ -226,19 +221,15 @@ class LoadBalancersUrlBuilder implements IUrlBuilder {
 
 class ProjectsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
-    return this.$state.href('home.project.dashboard', {project: input.name}, {inherit: false});
+  public build(input: IUrlBuilderInput, $state: StateService) {
+    return $state.href('home.project.dashboard', {project: input.name}, {inherit: false});
   }
 }
 
 class SecurityGroupsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
-    const href: string = this.$state.href(
+  public build(input: IUrlBuilderInput, $state: StateService) {
+    const href: string = $state.href(
       'home.securityGroupDetails',
       {
         accountId: input.account,
@@ -255,11 +246,9 @@ class SecurityGroupsUrlBuilder implements IUrlBuilder {
 
 class ServerGroupsUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
+  public build(input: IUrlBuilderInput, $state: StateService) {
     const baseName: string = input.project ? 'project' : 'applications';
-    const href: string = this.$state.href(
+    const href: string = $state.href(
       `home.${baseName}.application.insight.clusters.serverGroup`,
       {
         application: input.application,
@@ -278,10 +267,8 @@ class ServerGroupsUrlBuilder implements IUrlBuilder {
 
 class TaskUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
-    return this.$state.href(
+  public build(input: IUrlBuilderInput, $state: StateService) {
+    return $state.href(
       'home.applications.application.tasks.taskDetails',
       {
         application: input.application,
@@ -294,10 +281,8 @@ class TaskUrlBuilder implements IUrlBuilder {
 
 class TasksUrlBuilder implements IUrlBuilder {
 
-  constructor(private $state: StateService) {}
-
-  public build(input: IUrlBuilderInput) {
-    return this.$state.href(
+  public build(input: IUrlBuilderInput, $state: StateService) {
+    return $state.href(
       'home.applications.application.tasks',
       {
         application: input.application,
@@ -308,8 +293,6 @@ class TasksUrlBuilder implements IUrlBuilder {
 }
 
 export class UrlBuilderService {
-  private static PUSH_VERSION: RegExp = /-v\d+$/;
-  private registry: Map<string, IUrlBuilder> = new Map<string, IUrlBuilder>();
 
   private createCloneTask(task: ITask): string | boolean {
     const regionAndName: any = task.getValueFor('deploy.server.groups');
@@ -325,14 +308,14 @@ export class UrlBuilderService {
       const asgName: string = regionAndName[region][0];
       if (!asgName) {
         result = false;
-      } else if (!asgName.match(UrlBuilderService.PUSH_VERSION)) {
+      } else if (!asgName.match(NamingService.VERSION_PATTERN)) {
         result = false;
       } else {
         result = this.$state.href(
           'home.applications.application.insight.clusters.serverGroup',
           {
             application: asgName.split('-')[0],
-            cluster: asgName.replace(UrlBuilderService.PUSH_VERSION, ''),
+            cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
             account,
             accountId: account,
             region: regions,
@@ -352,14 +335,14 @@ export class UrlBuilderService {
     let result: string | boolean;
     if (!asgName) {
       result = false;
-    } else if (!asgName.match(UrlBuilderService.PUSH_VERSION)) {
+    } else if (!asgName.match(NamingService.VERSION_PATTERN)) {
       result = '/';
     } else {
       result = this.$state.href(
         'home.applications.application.insight.clusters.serverGroup',
         {
           application: asgName.split('-')[0],
-          cluster: asgName.replace(UrlBuilderService.PUSH_VERSION, ''),
+          cluster: asgName.replace(NamingService.VERSION_PATTERN, ''),
           account,
           accountId: account,
           region: task.getValueFor('regions')[0],
@@ -372,23 +355,14 @@ export class UrlBuilderService {
 
   constructor(private $state: StateService) {
     'ngInject';
-    this.registry.set('applications', new ApplicationsUrlBuilder($state));
-    this.registry.set('clusters', new ClustersUrlBuilder($state));
-    this.registry.set('instances', new InstancesUrlBuilder($state));
-    this.registry.set('loadBalancers', new LoadBalancersUrlBuilder($state));
-    this.registry.set('projects', new ProjectsUrlBuilder($state));
-    this.registry.set('securityGroups', new SecurityGroupsUrlBuilder($state));
-    this.registry.set('serverGroups', new ServerGroupsUrlBuilder($state));
-    this.registry.set('task', new TaskUrlBuilder($state));
-    this.registry.set('tasks', new TasksUrlBuilder($state));
   }
 
   public buildFromMetadata(input: IUrlBuilderInput) {
 
-    const builder: IUrlBuilder = this.registry.get(input.type);
+    const builder: IUrlBuilder = urlBuilderRegistry.getBuilder(input.type);
     let result: string;
     if (builder) {
-      result = builder.build(input);
+      result = builder.build(input, this.$state);
     } else {
       result = '/';
     }
@@ -430,6 +404,16 @@ export class UrlBuilderService {
     return result;
   }
 }
+
+urlBuilderRegistry.register('applications', new ApplicationsUrlBuilder());
+urlBuilderRegistry.register('clusters', new ClustersUrlBuilder());
+urlBuilderRegistry.register('instances', new InstancesUrlBuilder());
+urlBuilderRegistry.register('loadBalancers', new LoadBalancersUrlBuilder());
+urlBuilderRegistry.register('projects', new ProjectsUrlBuilder());
+urlBuilderRegistry.register('securityGroups', new SecurityGroupsUrlBuilder());
+urlBuilderRegistry.register('serverGroups', new ServerGroupsUrlBuilder());
+urlBuilderRegistry.register('task', new TaskUrlBuilder());
+urlBuilderRegistry.register('tasks', new TasksUrlBuilder());
 
 export const URL_BUILDER_SERVICE = 'spinnaker.core.navigation.urlBuilder.service';
 module(URL_BUILDER_SERVICE, [require('@uirouter/angularjs').default])
