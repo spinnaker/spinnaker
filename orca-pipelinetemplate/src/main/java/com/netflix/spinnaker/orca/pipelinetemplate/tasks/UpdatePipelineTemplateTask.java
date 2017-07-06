@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class UpdatePipelineTemplateTask implements RetryableTask {
+public class UpdatePipelineTemplateTask implements RetryableTask, SavePipelineTemplateTask {
 
   @Autowired(required = false)
   private Front50Service front50Service;
@@ -71,6 +71,8 @@ public class UpdatePipelineTemplateTask implements RetryableTask {
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Pipeline template task parameter is not valid", e);
     }
+
+    validate(pipelineTemplate);
 
     Response response = front50Service.updatePipelineTemplate(
       (String) stage.getContext().get("id"),

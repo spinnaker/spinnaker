@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class CreatePipelineTemplateTask implements RetryableTask {
+public class CreatePipelineTemplateTask implements RetryableTask, SavePipelineTemplateTask {
 
   @Autowired(required = false)
   private Front50Service front50Service;
@@ -58,9 +58,7 @@ public class CreatePipelineTemplateTask implements RetryableTask {
       throw new IllegalArgumentException("Pipeline template task parameter is not valid", e);
     }
 
-    if (pipelineTemplate.getId().contains(".")) {
-      throw new IllegalArgumentException("Pipeline Template IDs cannot have dots");
-    }
+    validate(pipelineTemplate);
 
     Response response = front50Service.savePipelineTemplate((Map<String, Object>) stage.getContext().get("pipelineTemplate"));
 
