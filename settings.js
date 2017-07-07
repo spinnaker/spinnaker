@@ -62,6 +62,9 @@ window.spinnakerSettings = {
   authTtl: 600000,
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
+  canary: {
+    liveCalls: false,
+  },
   feature: {
     entityTags: entityTagsEnabled,
     fiatEnabled: fiatEnabled,

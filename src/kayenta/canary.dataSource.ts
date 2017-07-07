@@ -5,16 +5,13 @@ import {
   ApplicationDataSourceRegistry, DataSourceConfig, Application
 } from '@spinnaker/core';
 
-import { CanaryConfigService } from './service/canaryConfig.service';
+import { getCanaryConfigSummaries } from './service/canaryConfig.service';
 import { ICanaryConfigSummary } from './domain/index';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
-  .run(($q: IQService, applicationDataSourceRegistry: ApplicationDataSourceRegistry,
-        canaryConfigService: CanaryConfigService) => {
-    const loadCanaryConfigs = () => {
-      return canaryConfigService.getCanaryConfigSummaries();
-    };
+  .run(($q: IQService, applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
+    const loadCanaryConfigs = () => getCanaryConfigSummaries();
 
     const configsLoaded = (_application: Application, summaries: ICanaryConfigSummary[]) => {
       return $q.resolve(summaries);

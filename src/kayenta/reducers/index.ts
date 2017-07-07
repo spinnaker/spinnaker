@@ -31,6 +31,9 @@ export function rootReducer(state: ICanaryState, action: any): ICanaryState {
     case 'initialize':
       return action.state;
 
+    case 'update_config_summaries':
+      return Object.assign({}, state, { configSummaries: action.configSummaries });
+
     case 'load_config':
       return Object.assign({}, state, { configLoadState: ConfigDetailLoadState.Loading });
 
