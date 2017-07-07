@@ -37,6 +37,7 @@ import citest.json_contract as jc
 import citest.json_predicate as jp
 import citest.service_testing as st
 import citest.base
+ov_factory = jc.ObservationPredicateFactory()
 
 # Spinnaker modules.
 import spinnaker_testing as sk
@@ -123,7 +124,8 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
           '--name', 'applications/'+self.bindings['TEST_APP']+'/application-metadata.json',
           '--account-name', self.bindings['azure_storage_account_name'],
           '--account-key', self.bindings['spinnaker_azure_storage_account_key']])
-      .contains_path_eq('exists',True))
+      .EXPECT(ov_factory.value_list_path_contains(
+          'exists', jp.EQUIVALENT(True))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -157,7 +159,8 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
           '--name', 'applications/'+self.bindings['TEST_APP']+'/application-metadata.json',
           '--account-name', self.bindings['azure_storage_account_name'],
           '--account-key', self.bindings['spinnaker_azure_storage_account_key']])
-      .contains_path_eq('exists',False))
+      .EXPECT(ov_factory.value_list_path_contains(
+          'exists', jp.EQUIVALENT(False))))
 
     return st.OperationContract(
         self.new_post_operation(
@@ -210,17 +213,22 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
     .collect_resources(
          az_resource='network',
          command='nsg',
-         args=['show', '--name', self.TEST_SECURITY_GROUP, '--resource-group', self.TEST_SECURITY_GROUP_RG],
-         no_resources_ok=True)
-    #sec grp name matches expected
-    .contains_match({'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP)})
-    .contains_path_pred(
-        'securityRules', jp.LIST_MATCHES([
-            jp.DICT_MATCHES({
+         args=['show',
+               '--name', self.TEST_SECURITY_GROUP,
+               '--resource-group', self.TEST_SECURITY_GROUP_RG])
+    .EXPECT(ov_factory.error_list_contains(
+        jp.ExceptionMatchesPredicate(
+            klass=st.CliAgentRunError,
+            regex='(?:.* operation: Cannot find .*)|(?:.*\(.*NotFound\).*)')))
+    .OR(ov_factory.value_list_contains(
+        # sec grp name matches expected
+        jp.DICT_MATCHES({
+            'name': jp.STR_SUBSTR(self.TEST_SECURITY_GROUP),
+            'securityRules': jp.LIST_MATCHES([
+                jp.DICT_MATCHES({
                 'protocol': jp.STR_EQ('tcp'),
                 'name': jp.STR_EQ(self.TEST_SECURITY_GROUP_RULE_1)})],
-            strict=True),
-            enumerate_terminals=False
+            strict=True)}))
     ))
 
     payload = self.agent.make_json_payload_from_kwargs(
@@ -263,9 +271,13 @@ class AzureSmokeTestScenario(sk.SpinnakerTestScenario):
      .collect_resources(
          az_resource='network',
          command='nsg',
-         args=['list', '--resource-group', self.TEST_SECURITY_GROUP_RG],
-         no_resources_ok=True)
-     .excludes_path_eq('name', self.TEST_SECURITY_GROUP)
+         args=['list', '--resource-group', self.TEST_SECURITY_GROUP_RG])
+     .EXPECT(ov_factory.error_list_contains(
+         jp.ExceptionMatchesPredicate(
+             klass=st.CliAgentRunError,
+             regex='(?:.* operation: Cannot find .*)|(?:.*\(.*NotFound\).*)')))
+     .OR(ov_factory.value_list_path_excludes(
+         'name', jp.STR_EQ(self.TEST_SECURITY_GROUP)))
     )
      
     return st.OperationContract(
