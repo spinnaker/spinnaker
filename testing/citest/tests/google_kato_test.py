@@ -195,7 +195,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
             .inspect_resource('instances', self.use_instance_names[i],
                               zone=self.use_instance_zones[i])
             .EXPECT(ov_factory.value_list_path_contains(
-                'status', jp.STR_EQ('RUNNING'))))
+                'status', jp.STR_REGEX('RUNNING|PROVISIONING'))))
 
     payload = self.agent.make_json_payload_from_object(instance_spec)
 
