@@ -94,6 +94,8 @@ def main():
   bom_generator.determine_and_tag_versions()
   if options.container_builder == 'gcb':
     bom_generator.write_container_builder_gcr_config()
+  elif options.container_builder == 'gcb-trigger':
+    bom_generator.write_gcb_trigger_version_files()
   elif options.container_builder == 'docker':
     bom_generator.write_docker_version_files()
   else:
