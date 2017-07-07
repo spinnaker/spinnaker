@@ -134,6 +134,11 @@ class KubernetesProviderUtils {
     return new DefaultKubernetesClient(config);
   }
 
+  static void resize(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String replicaSetName, int targetSize) {
+    KubernetesClient client = getClient(details);
+    client.extensions().replicaSets().inNamespace(namespace).withName(replicaSetName).scale(targetSize);
+  }
+
   static void upsertSecret(AccountDeploymentDetails<KubernetesAccount> details, Set<Pair<File, String>> files, String secretName, String namespace) {
     KubernetesClient client = getClient(details);
 

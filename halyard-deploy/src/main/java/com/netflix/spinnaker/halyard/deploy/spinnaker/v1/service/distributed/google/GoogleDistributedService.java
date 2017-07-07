@@ -91,6 +91,13 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
     return Provider.ProviderType.GOOGLE;
   }
 
+  @Override
+  default void resizeVersion(AccountDeploymentDetails<GoogleAccount> details, ServiceSettings serviceSettings, int version, int targetSize) {
+    String name = getVersionedName(version);
+    String zone = serviceSettings.getLocation();
+    GoogleProviderUtils.resize(details, zone, name, targetSize);
+  }
+
   default String getStartupScript() {
     return String.join("\n", "#!/usr/bin/env bash",
         "",

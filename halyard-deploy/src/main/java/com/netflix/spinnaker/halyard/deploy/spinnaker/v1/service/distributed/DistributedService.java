@@ -59,6 +59,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   <S> S connectToService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar);
   String connectCommand(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
   void deleteVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, Integer version);
+  void resizeVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, int version, int targetSize);
   boolean isRequiredToBootstrap();
   DeployPriority getDeployPriority();
   SpinnakerService<T> getService();

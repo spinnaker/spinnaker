@@ -276,16 +276,45 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     List<Integer> allRoscos = new ArrayList<>(executionsByServerGroupVersion.keySet());
     allRoscos.sort(Integer::compareTo);
 
-    int roscoCount = allRoscos.size();
-    if (roscoCount <= MAX_REMAINING_SERVER_GROUPS) {
+    cleanupServerGroups(details, roscoService, roscoSettings, executionsByServerGroupVersion, allRoscos);
+  }
+
+  private <S, T extends Account> void cleanupServerGroups(AccountDeploymentDetails<T> details,
+      DistributedService<S, T> service,
+      ServiceSettings settings,
+      Map<Integer, Integer> workloadByVersion,
+      List<Integer> runningVersions) {
+    int runningVersionCount = runningVersions.size();
+
+    if (runningVersionCount <= 1) {
+      log.info("There are no extra services to cleanup. Running count = " + runningVersionCount);
       return;
     }
 
-    allRoscos = allRoscos.subList(0, roscoCount - MAX_REMAINING_SERVER_GROUPS);
-    for (Integer roscoVersion : allRoscos) {
-      if (executionsByServerGroupVersion.get(roscoVersion) == 0) {
-        DaemonTaskHandler.message("Reaping old rosco server group sequence " + roscoVersion);
-        roscoService.deleteVersion(details, roscoSettings, roscoVersion);
+    /*
+     * To visualize the array slicing below, say we have 5 running
+     * server groups, 3 of which we can destroy, one we can scale down,
+     * and one that's actively serving traffic, as illustrated here:
+     *
+     *
+     *                 |  running - MAX_REMAINING |  MAX_REMAINING  |
+     *                 |      No longer in use    | backup | active |
+     *  server groups: |  v001  |  v002  |  v003  |  v004  |  v005  |
+     */
+    List<Integer> killableVersions = runningVersions.subList(0, runningVersionCount - MAX_REMAINING_SERVER_GROUPS);
+    List<Integer> shrinkableVersions = runningVersions.subList(runningVersionCount - MAX_REMAINING_SERVER_GROUPS, runningVersionCount - 1);
+
+    for (Integer version : killableVersions) {
+      if (workloadByVersion.get(version) == 0) {
+        DaemonTaskHandler.message("Reaping old server group sequence " + version);
+        service.deleteVersion(details, settings, version);
+      }
+    }
+
+    for (Integer version : shrinkableVersions) {
+      if (workloadByVersion.get(version) == 0) {
+        DaemonTaskHandler.message("Shrinking old server group sequence " + version);
+        service.resizeVersion(details, settings, version, 0);
       }
     }
   }
@@ -318,18 +347,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     List<Integer> allOrcas = new ArrayList<>(executionsByServerGroupVersion.keySet());
     allOrcas.sort(Integer::compareTo);
 
-    int orcaCount = allOrcas.size();
-    if (orcaCount <= MAX_REMAINING_SERVER_GROUPS) {
-      return;
-    }
-
-    allOrcas = allOrcas.subList(0, orcaCount - MAX_REMAINING_SERVER_GROUPS);
-    for (Integer orcaVersion : allOrcas) {
-      // TODO(lwander) consult clouddriver to ensure this orca isn't enabled
-      if (executionsByServerGroupVersion.get(orcaVersion) == 0) {
-        DaemonTaskHandler.message("Reaping old orca instance " + orcaVersion);
-        orcaService.deleteVersion(details, orcaSettings, orcaVersion);
-      }
-    }
+    cleanupServerGroups(details, orcaService, orcaSettings, executionsByServerGroupVersion, allOrcas);
   }
 }

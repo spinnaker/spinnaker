@@ -105,6 +105,12 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return availabilityZones;
   }
 
+  default void resizeVersion(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, int version, int targetSize) {
+    String name = getVersionedName(version);
+    String namespace = getNamespace(settings);
+    KubernetesProviderUtils.resize(details, namespace, name, targetSize);
+  }
+
   @Override
   default Map<String, Object> buildRollbackPipeline(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());

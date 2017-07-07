@@ -396,6 +396,15 @@ class GoogleProviderUtils {
     return String.format("projects/%s/global/networks/%s", project, networkName);
   }
 
+  static public void resize(AccountDeploymentDetails<GoogleAccount> details, String zone, String managedInstaceGroupName, int targetSize) {
+    Compute compute = getCompute(details);
+    try {
+      compute.instanceGroupManagers().resize(details.getAccount().getProject(), zone, managedInstaceGroupName, targetSize);
+    } catch (IOException e) {
+      throw new HalException(FATAL, "Unable to resize instance group manager " + managedInstaceGroupName + ": " + e.getMessage(), e);
+    }
+  }
+
   static Compute getCompute(AccountDeploymentDetails<GoogleAccount> details) {
     ConfigProblemSetBuilder problemSetBuilder = new ConfigProblemSetBuilder(null);
     GoogleNamedAccountCredentials credentials = details.getAccount().getNamedAccountCredentials("", problemSetBuilder);
