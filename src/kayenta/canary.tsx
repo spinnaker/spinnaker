@@ -20,7 +20,6 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
 
   constructor(props: ICanaryProps) {
     super();
-    const configSummaries = props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[];
     this.store = createStore<ICanaryState>(
       rootReducer,
       applyMiddleware(epicMiddleware)
@@ -28,12 +27,20 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
     this.store.dispatch({
       type: 'initialize',
       state: {
-        configSummaries,
+        configSummaries: [] as ICanaryConfigSummary[],
         selectedConfig: null as ICanaryConfig,
         configLoadState: ConfigDetailLoadState.Loaded,
         metricList: [] as ICanaryMetricConfig[],
         selectedMetric: null as ICanaryMetricConfig
       }
+    });
+
+    props.app.getDataSource('canaryConfigs').ready().then(() => {
+      const summaries: ICanaryConfigSummary[] = props.app.getDataSource('canaryConfigs').data;
+      this.store.dispatch({
+        type: 'update_config_summaries',
+        configSummaries: summaries,
+      });
     });
   }
 

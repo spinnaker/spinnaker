@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
-    "@spinnaker/core": "0.0.29",
+    "@spinnaker/core": "^0.0.31",
     "@spinnaker/google": "^0.0.1",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.5",
