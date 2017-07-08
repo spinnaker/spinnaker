@@ -66,7 +66,7 @@ open class RunTaskHandler
         if (stage.getContext()["markSuccessfulOnTimeout"] == true) {
           queue.push(CompleteTask(message, SUCCEEDED))
         } else {
-          queue.push(CompleteTask(message, TERMINAL))
+          queue.push(CompleteTask(message, stage.failureStatus()))
         }
       } else {
         try {

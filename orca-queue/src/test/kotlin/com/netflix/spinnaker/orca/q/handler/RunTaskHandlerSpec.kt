@@ -494,6 +494,40 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
         }
       }
 
+      given("the execution was marked to continue") {
+        val timeout = Duration.ofMinutes(5)
+        val pipeline = pipeline {
+          stage {
+            type = "whatever"
+            task {
+              id = "1"
+              implementingClass = DummyTask::class.qualifiedName
+              status = RUNNING
+              startTime = clock.instant().minusMillis(timeout.toMillis() + 1).toEpochMilli()
+            }
+            context["failPipeline"] = false
+            context["continuePipeline"] = true
+          }
+        }
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+
+        beforeGroup {
+          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          whenever(task.timeout) doReturn timeout.toMillis()
+        }
+
+        afterGroup(::resetMocks)
+
+        action("the handler receives a message") {
+          subject.handle(message)
+        }
+
+        it("marks the task as failed but continue") {
+          verify(queue).push(CompleteTask(message, FAILED_CONTINUE))
+        }
+
+      }
+
       given("the execution is marked to succeed on timeout") {
         val timeout = Duration.ofMinutes(5)
         val pipeline = pipeline {
