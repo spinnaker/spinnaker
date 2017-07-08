@@ -339,30 +339,29 @@
     "@types/tapable" "*"
     "@types/uglify-js" "*"
 
-"@uirouter/angularjs@git://github.com/angular-ui/ui-router.git#1.0.3-hybrid-2.0.0-5":
-  version "1.0.3-hybrid-2.0.0-5"
-  resolved "git://github.com/angular-ui/ui-router.git#f429ea3b40fdc85dfdd9e2808ef14c73c071184a"
+"@uirouter/angularjs@git://github.com/angular-ui/ui-router.git#SNAPSHOT-20170629":
+  version "1.0.5"
+  resolved "git://github.com/angular-ui/ui-router.git#2c4ccc2b5f544afffa86bd9e4ac182b6907589e1"
   dependencies:
-    "@uirouter/core" "^5.0.3"
+    "@uirouter/core" "^5.0.5"
 
-"@uirouter/core@=5.0.4", "@uirouter/core@^5.0.3":
-  version "5.0.4"
-  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.4.tgz#798b9ec0f2cf58b234cce75fa2634b4698a44aca"
+"@uirouter/core@=5.0.5", "@uirouter/core@^5.0.5":
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
 
-"@uirouter/react-hybrid@0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.4.tgz#8678652ed5c6ede9c25c7a6246bc4bb6861390dc"
+"@uirouter/react-hybrid@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.6.tgz#4fabba0600e3aa2ce93751067695349651c8c163"
   dependencies:
-    "@uirouter/angularjs" "git://github.com/angular-ui/ui-router#1.0.3-hybrid-2.0.0-5"
-    "@uirouter/core" "=5.0.4"
-    "@uirouter/react" "git://github.com/ui-router/react#0.5.0-react-hybrid-0.0.1"
-    watch "^1.0.2"
+    "@uirouter/angularjs" "git://github.com/angular-ui/ui-router#SNAPSHOT-20170629"
+    "@uirouter/core" "=5.0.5"
+    "@uirouter/react" "git://github.com/ui-router/react#SNAPSHOT-20170629"
 
-"@uirouter/react@git://github.com/ui-router/react.git#0.5.0-react-hybrid-0.0.1":
-  version "0.5.0-react-hybrid-0.0.1"
-  resolved "git://github.com/ui-router/react.git#75c7efb4c475a591d3b451053b20601a83e3fc8c"
+"@uirouter/react@git://github.com/ui-router/react.git#SNAPSHOT-20170629":
+  version "0.5.0"
+  resolved "git://github.com/ui-router/react.git#d2f723f88ccd3e7615f5c3893e00b21b4d15c681"
   dependencies:
-    "@uirouter/core" "^5.0.3"
+    "@uirouter/core" "^5.0.5"
     classnames "^2.2.5"
 
 "@uirouter/rx@^0.4.1":
@@ -2532,12 +2531,6 @@ evp_bytestokey@^1.0.0:
   dependencies:
     create-hash "^1.1.1"
 
-exec-sh@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/exec-sh/-/exec-sh-0.2.0.tgz#14f75de3f20d286ef933099b2ce50a90359cef10"
-  dependencies:
-    merge "^1.1.3"
-
 exit-hook@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/exit-hook/-/exit-hook-1.1.1.tgz#f05ca233b48c05d54fff07765df8507e95c02ff8"
@@ -3916,10 +3909,6 @@ memory-fs@^0.4.0, memory-fs@~0.4.1:
 merge-descriptors@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/merge-descriptors/-/merge-descriptors-1.0.1.tgz#b00aaa556dd8b44568150ec9d1b953f3f90cbb61"
-
-merge@^1.1.3:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/merge/-/merge-1.2.0.tgz#7531e39d4949c281a66b8c5a6e0265e8b05894da"
 
 methods@~1.1.2:
   version "1.1.2"
@@ -6135,13 +6124,6 @@ warning@^3.0.0:
   resolved "https://registry.yarnpkg.com/warning/-/warning-3.0.0.tgz#32e5377cb572de4ab04753bdf8821c01ed605b7c"
   dependencies:
     loose-envify "^1.0.0"
-
-watch@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/watch/-/watch-1.0.2.tgz#340a717bde765726fa0aa07d721e0147a551df0c"
-  dependencies:
-    exec-sh "^0.2.0"
-    minimist "^1.2.0"
 
 watchpack@^1.3.1:
   version "1.3.1"

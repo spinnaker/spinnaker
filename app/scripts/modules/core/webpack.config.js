@@ -24,6 +24,8 @@ module.exports = {
     'root/version.json': 'root/version.json',
     '@uirouter/angularjs': '@uirouter/angularjs',
     '@uirouter/core': '@uirouter/core',
+    '@uirouter/react': '@uirouter/react',
+    '@uirouter/react-hybrid': '@uirouter/react-hybrid',
     '@uirouter/visualizer': '@uirouter/visualizer',
     'angular': 'angular',
     'angular-animate': 'angular-animate',
