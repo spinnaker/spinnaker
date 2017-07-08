@@ -91,7 +91,7 @@ class AmazonClusterProvider implements ClusterProvider<AmazonCluster> {
     serverGroup.zones = serverGroupData.attributes["zones"]
     serverGroup.launchConfig = launchConfigs ? launchConfigs.attributes : null
     serverGroup.image = imageConfigs ? imageConfigs.attributes : null
-    serverGroup.buildInfo = getBuildInfoFromImage(imageConfigs)
+    serverGroup.buildInfo = imageConfigs ? getBuildInfoFromImage(imageConfigs) : null
     serverGroup.asg = asg
     serverGroup.scalingPolicies = serverGroupData.attributes["scalingPolicies"]
     serverGroup.scheduledActions = serverGroupData.attributes["scheduledActions"]
