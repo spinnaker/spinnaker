@@ -1,7 +1,7 @@
 'use strict';
 
 const angular = require('angular');
-import { chain, filter, find, get, isEmpty } from 'lodash';
+import { chain, filter, find, get, has, isEmpty } from 'lodash';
 
 import { AWS_SCHEDULED_ACTION_COMPONENT } from './scheduledAction/scheduledAction.component';
 import { AWS_SERVER_GROUP_TRANSFORMER } from 'amazon/serverGroup/serverGroup.transformer';
@@ -154,7 +154,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
                 this.changeConfig = {
                   metadata: get(this.serverGroup.entityTags, 'creationMetadata')
                 };
-                if (this.serverGroup.buildInfo.jenkins) {
+                if (has(this.serverGroup, 'buildInfo.jenkins')) {
                   this.changeConfig.buildInfo = {
                     jenkins: this.serverGroup.buildInfo.jenkins
                   };
@@ -378,9 +378,9 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
     };
 
     this.buildJenkinsLink = () => {
-      if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.buildInfoUrl) {
+      if (has(this, 'serverGroup.buildInfo.buildInfoUrl')) {
         return this.serverGroup.buildInfo.buildInfoUrl;
-      } else if (this.serverGroup && this.serverGroup.buildInfo && this.serverGroup.buildInfo.jenkins) {
+      } else if (has(this, 'serverGroup.buildInfo.jenkins')) {
         var jenkins = this.serverGroup.buildInfo.jenkins;
         return jenkins.host + 'job/' + jenkins.name + '/' + jenkins.number;
       }
