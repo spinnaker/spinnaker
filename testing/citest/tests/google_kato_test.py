@@ -191,11 +191,11 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
         # to retry this, but not the above, so this way if the
         # above is broken (wrong), we wont retry thinking it isnt there yet.
         (builder.new_clause_builder('Instance %d Is Running' % i,
-                             retryable_for_secs=90)
+                             retryable_for_secs=120)
             .inspect_resource('instances', self.use_instance_names[i],
                               zone=self.use_instance_zones[i])
             .EXPECT(ov_factory.value_list_path_contains(
-                'status', jp.STR_REGEX('RUNNING|PROVISIONING'))))
+                'status', jp.STR_EQ('RUNNING'))))
 
     payload = self.agent.make_json_payload_from_object(instance_spec)
 
@@ -279,21 +279,10 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     logical_http_lb_name = 'katotest-httplb-' + self.test_id
     self.__use_http_lb_name = logical_http_lb_name
 
-    # TODO(ewiseblatt): 20150530
-    # This needs to be abbreviated to hc.
     self.__use_http_lb_hc_name = logical_http_lb_name + '-health-check'
-
-    # TODO(ewiseblatt): 20150530
-    # This needs to be abbreviated to bs.
     self.__use_http_lb_bs_name = logical_http_lb_name + '-backend-service'
     self.__use_http_lb_fr_name = logical_http_lb_name
-
-    # TODO(ewiseblatt): 20150530
-    # This should be abbreviated (um?).
     self.__use_http_lb_map_name = logical_http_lb_name + '-url-map'
-
-    # TODO(ewiseblatt): 20150530
-    # This should be abbreviated (px)?.
     self.__use_http_lb_proxy_name = logical_http_lb_name + '-target-http-proxy'
 
     interval = 231
@@ -301,14 +290,7 @@ class GoogleKatoTestScenario(sk.SpinnakerTestScenario):
     unhealthy = 9
     timeout = 65
     path = '/hello/world'
-
-    # TODO(ewiseblatt): 20150530
-    # This field might be broken. 123-456 still resolves to 80-80
-    # Changing it for now so the test passes.
-    port_range = "80-80"
-
-    # TODO(ewiseblatt): 20150530
-    # Specify explicit backends?
+    port_range = "123-456"
 
     health_check = {
         'checkIntervalSec': interval,
@@ -671,6 +653,7 @@ class GoogleKatoIntegrationTest(st.AgentTestCase):
               [self.scenario.use_instance_names[0],
                self.scenario.use_instance_names[2]],
               self.scenario.use_instance_zones[0]))
+
 
   def test_z_delete_load_balancer(self):
     # TODO(ewiseblatt): 20151220
