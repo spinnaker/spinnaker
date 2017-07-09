@@ -35,6 +35,7 @@ import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.IgorService
+import com.netflix.spinnaker.gate.services.internal.KayentaService
 import com.netflix.spinnaker.gate.services.internal.MineService
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import com.netflix.spinnaker.gate.services.internal.RoscoService
@@ -195,6 +196,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   @ConditionalOnProperty('services.mine.enabled')
   MineService mineService(OkHttpClient okHttpClient) {
     createClient "mine", MineService, okHttpClient
+  }
+
+  @Bean
+  @ConditionalOnProperty('services.kayenta.enabled')
+  KayentaService kayentaService(OkHttpClient okHttpClient) {
+    createClient "kayenta", KayentaService, okHttpClient
   }
 
   private <T> T createClient(String serviceName, Class<T> type, OkHttpClient okHttpClient, String dynamicName = null) {

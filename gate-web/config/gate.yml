@@ -7,6 +7,7 @@ services:
   orca:
     baseUrl: http://localhost:8083
   front50:
+    canaryConfigStore: false
     baseUrl: http://localhost:8080
   clouddriver:
     baseUrl: http://localhost:7002
@@ -43,6 +44,10 @@ services:
     enabled: false
   mahe:
     enabled: false
+  kayenta:
+    enabled: false
+    canaryConfigStore: false
+    baseUrl: http://localhost:8090
 
 redis:
   connection: redis://localhost:6379
