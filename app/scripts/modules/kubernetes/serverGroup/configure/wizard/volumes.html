@@ -26,7 +26,7 @@
         <input type="text" class="form-control input-sm" name="path" ng-model="source.name"/>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'CONFIGMAP'">
+    <div class="form-group" ng-if="source.type === 'CONFIGMAP'">
       <div class="col-md-3 sm-label-right">
         Config Map Name
       </div>
@@ -34,7 +34,7 @@
         <input type="text" class="form-control input-sm" name="path" ng-model="source.configMap.configMapName"/>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'CONFIGMAP'">
+    <div class="form-group" ng-if="source.type === 'CONFIGMAP'">
       <div class="col-md-3 sm-label-right">
         Items
         <help-field key="kubernetes.pod.volume.configMap.items"></help-field>
@@ -69,7 +69,7 @@
         </button>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'EMPTYDIR'">
+    <div class="form-group" ng-if="source.type === 'EMPTYDIR'">
       <div class="col-md-3 sm-label-right">
         Medium
         <help-field key="kubernetes.pod.emptydir.medium"></help-field>
@@ -81,7 +81,7 @@
         </select>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'HOSTPATH'">
+    <div class="form-group" ng-if="source.type === 'HOSTPATH'">
       <div class="col-md-3 sm-label-right">
         Path
         <help-field key="kubernetes.pod.volume.hostpath.path"></help-field>
@@ -90,7 +90,7 @@
         <input type="text" class="form-control input-sm" ng-pattern="volumesController.pathPattern" name="path" ng-model="source.hostPath.path"/>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
+    <div class="form-group" ng-if="source.type === 'PERSISTENTVOLUMECLAIM'">
       <div class="col-md-3 sm-label-right">
         Claim Name
         <help-field key="kubernetes.pod.volume.persistentvolumelclaim.claim"></help-field>
@@ -99,7 +99,7 @@
         <input type="text" class="form-control input-sm" ng-model="source.persistentVolumeClaim.claimName"/>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'PERSISTENTVOLUMECLAIM'">
+    <div class="form-group" ng-if="source.type === 'PERSISTENTVOLUMECLAIM'">
       <div class="col-md-3 sm-label-right">
         Read Only
       </div>
@@ -107,7 +107,7 @@
         <input type="checkbox" ng-model="source.persistentVolumeClaim.readOnly"/>
       </div>
     </div>
-    <div class="form-group" ng-show="source.type === 'SECRET'">
+    <div class="form-group" ng-if="source.type === 'SECRET'">
       <div class="col-md-3 sm-label-right">
         Secret Name
         <help-field key="kubernetes.pod.volume.secret.secretname"></help-field>
@@ -116,7 +116,34 @@
         <input type="text" class="form-control input-sm" name="path" ng-model="source.secret.secretName"/>
       </div>
     </div>
-    <hr ng-show="command.volumeSources.length > 1">
+    <div class="form-group" ng-if="source.type === 'AWSELASTICBLOCKSTORE'">
+      <div class="col-md-3 sm-label-right">
+        Volume ID
+        <help-field key="kubernetes.pod.volume.awsElasticBlockStore.volumeId"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="volumeId" ng-model="source.awsElasticBlockStore.volumeId"/>
+      </div>
+    </div>
+    <div class="form-group" ng-if="source.type === 'AWSELASTICBLOCKSTORE'">
+      <div class="col-md-3 sm-label-right">
+        FS Type
+        <help-field key="kubernetes.pod.volume.awsElasticBlockStore.fsType"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm" name="fsType" ng-model="source.awsElasticBlockStore.fsType"/>
+      </div>
+    </div>
+    <div class="form-group" ng-if="source.type === 'AWSELASTICBLOCKSTORE'">
+      <div class="col-md-3 sm-label-right">
+        Partition
+        <help-field key="kubernetes.pod.volume.awsElasticBlockStore.partition"></help-field>
+      </div>
+      <div class="col-md-4">
+        <input type="number" class="form-control input-sm" name="partition" ng-model="source.awsElasticBlockStore.partition"/>
+      </div>
+    </div>
+    <hr ng-if="command.volumeSources.length > 1">
   </div>
   <div>
     <td colspan="1">
