@@ -75,7 +75,9 @@ public class RenderTransform implements PipelineTemplateVisitor {
         .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
     }
 
-    context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
+    if (templateConfiguration.getPipeline().getVariables() != null) {
+      context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
+    }
 
     // We only render the stages here, whereas modules will be rendered only if used within stages.
     renderStages(filterStages(template.getStages(), false), context, "template");
