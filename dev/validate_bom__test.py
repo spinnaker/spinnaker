@@ -450,10 +450,9 @@ class ValidateBomTestController(object):
       hack.start()
 
     child = subprocess.Popen(
-        ' '.join(command) + ' > /dev/null', shell=True,
+        command,
         stderr=sys.stderr.fileno(),
-        stdout=sys.stdout.fileno(),
-        stdin=None)
+        stdout=None)
     return ForwardedPort(child, local_port)
 
   def build_summary(self):
