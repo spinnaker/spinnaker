@@ -16,6 +16,9 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
 import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors.Error;
 
 import java.util.ArrayList;
@@ -85,5 +88,18 @@ public class RenderUtil {
 
   private static boolean isPrimitive(Object o) {
     return CharSequence.class.isInstance(o) || Number.class.isInstance(o) || Boolean.class.isInstance(o);
+  }
+
+  public static RenderContext createDefaultRenderContext(PipelineTemplate template, TemplateConfiguration configuration, Map<String, Object> trigger) {
+    RenderContext context = new DefaultRenderContext(configuration.getPipeline().getApplication(), template, trigger);
+    if (template != null && template.getVariables() != null) {
+      template.getVariables().stream()
+        .filter(Variable::hasDefaultValue)
+        .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
+    }
+    if (configuration.getPipeline().getVariables() != null) {
+      context.getVariables().putAll(configuration.getPipeline().getVariables());
+    }
+    return context;
   }
 }

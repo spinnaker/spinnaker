@@ -22,10 +22,8 @@ import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderExce
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.PipelineTemplateVisitor;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PartialDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate.Variable;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.StageDefinition;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.TemplateConfiguration;
-import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
@@ -67,17 +65,7 @@ public class RenderTransform implements PipelineTemplateVisitor {
   }
 
   private void render(PipelineTemplate template) {
-    RenderContext context = new DefaultRenderContext(templateConfiguration.getPipeline().getApplication(), template, trigger);
-
-    if (template.getVariables() != null) {
-      template.getVariables().stream()
-        .filter(Variable::hasDefaultValue)
-        .forEach(v -> context.getVariables().put(v.getName(), v.getDefaultValue()));
-    }
-
-    if (templateConfiguration.getPipeline().getVariables() != null) {
-      context.getVariables().putAll(templateConfiguration.getPipeline().getVariables());
-    }
+    RenderContext context = RenderUtil.createDefaultRenderContext(template, templateConfiguration, trigger);
 
     // We only render the stages here, whereas modules will be rendered only if used within stages.
     renderStages(filterStages(template.getStages(), false), context, "template");

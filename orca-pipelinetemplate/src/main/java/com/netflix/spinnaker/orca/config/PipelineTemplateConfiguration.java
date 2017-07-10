@@ -20,12 +20,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.netflix.spinnaker.orca.front50.Front50Service;
+import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.PipelineTemplateModule;
+import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.TemplatedPipelineModelMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.JinjaRenderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderedValueConverter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.YamlRenderedValueConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -53,5 +55,12 @@ public class PipelineTemplateConfiguration {
   @Bean
   Renderer jinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service) {
     return new JinjaRenderer(renderedValueConverter, pipelineTemplateObjectMapper, front50Service);
+  }
+
+  @Bean
+  PipelineModelMutator schemaV1TemplatedPipelineModelMutator(ObjectMapper pipelineTemplateObjectMapper,
+                                                             TemplateLoader templateLoader,
+                                                             Renderer renderer) {
+    return new TemplatedPipelineModelMutator(pipelineTemplateObjectMapper, templateLoader, renderer);
   }
 }

@@ -52,6 +52,9 @@ interface Front50Service {
   @POST("/pipelines")
   Response savePipeline(@Body Map pipeline)
 
+  @PUT("/pipelines/{pipelineId}")
+  Response updatePipeline(@Path("pipelineId") String pipelineId, @Body Map pipeline)
+
   @GET("/strategies/{applicationName}")
   List<Map<String, Object>> getStrategies(@Path("applicationName") String applicationName)
 

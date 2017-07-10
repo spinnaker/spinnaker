@@ -107,11 +107,11 @@ public class TemplateConfiguration implements VersionedSchema {
 
   public static class PipelineConfiguration {
 
-    private List<String> inherit;
-    private Map<String, Object> concurrentExecutions;
-    private List<NamedHashMap> triggers;
-    private List<NamedHashMap> parameters;
-    private List<NamedHashMap> notifications;
+    private List<String> inherit = new ArrayList<>();
+    private Map<String, Object> concurrentExecutions = new HashMap<>();
+    private List<NamedHashMap> triggers = new ArrayList<>();
+    private List<NamedHashMap> parameters = new ArrayList<>();
+    private List<NamedHashMap> notifications = new ArrayList<>();
     private String description;
 
     public List<String> getInherit() {
