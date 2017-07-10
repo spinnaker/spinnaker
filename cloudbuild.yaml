@@ -1,6 +1,6 @@
 steps:
-- name: 'java:8'
-  env: ["GRADLE_USER_HOME=cache"]
+- name: 'spinnakerrelease/gradle_cache'
+  env: ["GRADLE_USER_HOME=/gradle_cache/.gradle"]
   entrypoint: "bash"
   args: [ "-c", "./gradlew echo-web:installDist -x test"]
 - name: 'gcr.io/cloud-builders/docker'
