@@ -22,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
  * For Http(s), balancingMode must be either UTILIZATION or RATE.
  * maxRatePerInstance must be set if RATE, and maxUtilization must be set if UTILIZATION.
  *
- * For Ssl, balancingMode must be either UTILIZATION or CONNECTION.
+ * For Ssl/Tcp, balancingMode must be either UTILIZATION or CONNECTION.
  * maxUtilization must be set if UTILIZATION, maxConnectionsPerInstance if CONNECTION.
  */
 class GoogleHttpLoadBalancingPolicy extends GoogleLoadBalancingPolicy {

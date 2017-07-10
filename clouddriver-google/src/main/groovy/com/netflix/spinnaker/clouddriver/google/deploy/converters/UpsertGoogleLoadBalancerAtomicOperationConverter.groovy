@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGo
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleInternalLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleSslLoadBalancerAtomicOperation
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.loadbalancer.UpsertGoogleTcpLoadBalancerAtomicOperation
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
@@ -45,6 +46,9 @@ class UpsertGoogleLoadBalancerAtomicOperationConverter extends AbstractAtomicOpe
         break
       case GoogleLoadBalancerType.SSL:
         return new UpsertGoogleSslLoadBalancerAtomicOperation(description)
+        break
+      case GoogleLoadBalancerType.TCP:
+        return new UpsertGoogleTcpLoadBalancerAtomicOperation(description)
         break
       default:
         // TODO(jacobkiefer): This is for backwards compatibility for L4 Upsert.

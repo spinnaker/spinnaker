@@ -127,9 +127,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
       1 * instanceTemplatesMock.delete(PROJECT_NAME, INSTANCE_TEMPLATE_NAME) >> instanceTemplatesDeleteMock
       1 * instanceTemplatesDeleteMock.execute()
 
-      2 * computeMock.globalForwardingRules() >> globalForwardingRules
-      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
-      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      3 * computeMock.globalForwardingRules() >> globalForwardingRules
+      3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
@@ -198,9 +198,9 @@ class DestroyGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     then:
       1 * googleClusterProviderMock.getServerGroup(ACCOUNT_NAME, REGION, SERVER_GROUP_NAME) >> serverGroup
 
-      2 * computeMock.globalForwardingRules() >> globalForwardingRules
-      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
-      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      3 * computeMock.globalForwardingRules() >> globalForwardingRules
+      3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList

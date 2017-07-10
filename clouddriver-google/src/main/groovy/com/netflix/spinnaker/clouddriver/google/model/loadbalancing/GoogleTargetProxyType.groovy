@@ -19,5 +19,6 @@ package com.netflix.spinnaker.clouddriver.google.model.loadbalancing
 enum GoogleTargetProxyType {
   HTTP,
   HTTPS,
-  SSL
+  SSL,
+  TCP
 }

@@ -132,7 +132,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
 
       @Override
       void onSuccess(ForwardingRule forwardingRule, HttpHeaders responseHeaders) throws IOException {
-        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL) {
+        if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]) {
           cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
         } else {
           throw new IllegalArgumentException("Not responsible for on demand caching of load balancers without target " +
@@ -146,7 +146,7 @@ class GoogleHttpLoadBalancerCachingAgent extends AbstractGoogleLoadBalancerCachi
       @Override
       void onSuccess(ForwardingRuleList forwardingRuleList, HttpHeaders responseHeaders) throws IOException {
         forwardingRuleList?.items?.each { ForwardingRule forwardingRule ->
-          if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL) {
+          if (forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS]) {
             cacheRemainderOfLoadBalancerResourceGraph(forwardingRule)
           }
         }

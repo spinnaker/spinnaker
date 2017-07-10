@@ -32,6 +32,7 @@ import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBa
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleNetworkLoadBalancer
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleSslLoadBalancer
+import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleTcpLoadBalancer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -189,6 +190,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
         case GoogleLoadBalancerType.SSL:
           loadBalancer = objectMapper.convertValue(it.attributes, GoogleSslLoadBalancer)
           break
+        case GoogleLoadBalancerType.TCP:
+          loadBalancer = objectMapper.convertValue(it.attributes, GoogleTcpLoadBalancer)
+          break
         default:
           loadBalancer = null
           break
@@ -246,6 +250,11 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
       Utils.determineSslLoadBalancerDisabledState(loadBalancer, serverGroup)
     }
 
+    def tcpLoadBalancers = loadBalancers.findAll { it.type == GoogleLoadBalancerType.TCP }
+    def tcpDisabledStates = tcpLoadBalancers.collect { loadBalancer ->
+      Utils.determineTcpLoadBalancerDisabledState(loadBalancer, serverGroup)
+    }
+
     // Health states for Consul.
     def consulNodes = serverGroup.instances?.collect { it.consulNode } ?: []
     def consulDiscoverable = ConsulProviderUtils.consulServerGroupDiscoverable(consulNodes)
@@ -267,6 +276,9 @@ class GoogleClusterProvider implements ClusterProvider<GoogleCluster.View> {
     }
     if (sslDisabledStates) {
       isDisabled &= sslDisabledStates.every { it }
+    }
+    if (tcpDisabledStates) {
+      isDisabled &= tcpDisabledStates.every { it }
     }
     serverGroup.disabled = excludesNetwork ? isDisabled : isDisabled && serverGroup.disabled
 

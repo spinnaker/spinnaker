@@ -86,6 +86,9 @@ class Utils {
       case 'targetSslProxies':
         return GoogleTargetProxyType.SSL
         break
+      case 'targetTcpProxies':
+        return GoogleTargetProxyType.TCP
+        break
       default:
         throw new IllegalFormatException("Target proxy url ${fullUrl} has unknown type.")
         break
@@ -306,6 +309,20 @@ class Utils {
 
     if (loadBalancer.backendService == null) {
       log.warn("Malformed ssl load balancer encountered: ${loadBalancer}")
+    }
+    List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
+    List<String> backendGroupNames = serviceBackends
+      .findAll { serverGroup.region == Utils.getRegionFromGroupUrl(it.serverGroupUrl) }
+      .collect { GCEUtil.getLocalName(it.serverGroupUrl) }
+    return loadBalancer.name in globalLoadBalancersFromMetadata && !(serverGroup.name in backendGroupNames)
+  }
+
+  static boolean determineTcpLoadBalancerDisabledState(GoogleTcpLoadBalancer loadBalancer,
+                                                       GoogleServerGroup serverGroup) {
+    def globalLoadBalancersFromMetadata = serverGroup.asg.get(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)
+
+    if (loadBalancer.backendService == null) {
+      log.warn("Malformed tcp load balancer encountered: ${loadBalancer}")
     }
     List<GoogleLoadBalancedBackend> serviceBackends = loadBalancer?.backendService?.backends
     List<String> backendGroupNames = serviceBackends

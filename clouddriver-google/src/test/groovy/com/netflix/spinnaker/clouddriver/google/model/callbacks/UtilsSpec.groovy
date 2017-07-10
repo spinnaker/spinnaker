@@ -81,9 +81,11 @@ class UtilsSpec extends Specification {
       "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy" | GoogleTargetProxyType.HTTPS
       "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"   | GoogleTargetProxyType.HTTP
       "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"     | GoogleTargetProxyType.SSL
+      "https://www.googleapis.com/compute/v1/projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"     | GoogleTargetProxyType.TCP
       "projects/spinnaker-jtk54/global/targetHttpsProxies/https-proxy"                                       | GoogleTargetProxyType.HTTPS
       "projects/spinnaker-jtk54/global/targetHttpProxies/http-proxy"                                         | GoogleTargetProxyType.HTTP
       "projects/spinnaker-jtk54/global/targetSslProxies/ssl-proxy"                                           | GoogleTargetProxyType.SSL
+      "projects/spinnaker-jtk54/global/targetTcpProxies/tcp-proxy"                                           | GoogleTargetProxyType.TCP
   }
 
   def "should get region from a full group Url"() {

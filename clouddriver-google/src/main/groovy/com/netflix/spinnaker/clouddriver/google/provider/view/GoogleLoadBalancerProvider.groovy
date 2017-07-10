@@ -85,6 +85,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
       case GoogleLoadBalancerType.SSL:
         loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleSslLoadBalancer)
         break
+      case GoogleLoadBalancerType.TCP:
+        loadBalancer = objectMapper.convertValue(loadBalancerCacheData.attributes, GoogleTcpLoadBalancer)
+        break
       default:
         loadBalancer = null
         break
@@ -125,6 +128,11 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           def isDisabledFromSsl = Utils.determineSslLoadBalancerDisabledState(loadBalancer, serverGroup)
           isDisabled = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES) ? // We assume these are L4 load balancers, and the state has been calculated on the way to the cache.
             isDisabledFromSsl && serverGroup.disabled : isDisabledFromSsl
+          break
+        case GoogleLoadBalancerType.TCP:
+          def isDisabledFromTcp = Utils.determineTcpLoadBalancerDisabledState(loadBalancer, serverGroup)
+          isDisabled = serverGroup.asg.get(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES) ? // We assume these are L4 load balancers, and the state has been calculated on the way to the cache.
+            isDisabledFromTcp && serverGroup.disabled : isDisabledFromTcp
           break
         default:
           throw new IllegalStateException("Illegal type ${loadBalancer.type} for load balancer ${loadBalancer.name}")
@@ -196,6 +204,9 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           case (GoogleLoadBalancerType.SSL):
             GoogleSslLoadBalancer.View sslView = view as GoogleSslLoadBalancer.View
             backendServices << sslView.backendService.name
+          case (GoogleLoadBalancerType.TCP):
+            GoogleTcpLoadBalancer.View tcpView = view as GoogleTcpLoadBalancer.View
+            backendServices << tcpView.backendService.name
           default:
             // No backend services to add.
             break
@@ -259,7 +270,11 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
         loadBalancerPort = portString
         break
       case GoogleLoadBalancerType.SSL:
-        instancePort = 'http' // NOTE: This is what occurs in Google Cloud Console, it's not documented and a bit non-sensical.
+        instancePort = Utils.derivePortOrPortRange(view.portRange)
+        loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
+        break
+      case GoogleLoadBalancerType.TCP:
+        instancePort = Utils.derivePortOrPortRange(view.portRange)
         loadBalancerPort = Utils.derivePortOrPortRange(view.portRange)
         break
       default:

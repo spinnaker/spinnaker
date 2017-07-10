@@ -28,7 +28,7 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
-class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalancerAtomicOperation {
+class DeleteGoogleTcpLoadBalancerAtomicOperation extends DeleteGoogleLoadBalancerAtomicOperation {
   private static final String BASE_PHASE = "DELETE_LOAD_BALANCER"
 
   private static Task getTask() {
@@ -43,16 +43,16 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
 
   private DeleteGoogleLoadBalancerDescription description
 
-  DeleteGoogleSslLoadBalancerAtomicOperation(DeleteGoogleLoadBalancerDescription description) {
+  DeleteGoogleTcpLoadBalancerAtomicOperation(DeleteGoogleLoadBalancerDescription description) {
     this.description = description
   }
 
   /**
-   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": true, "loadBalancerType": "SSL"}} ]' localhost:7002/gce/ops
+   * curl -X POST -H "Content-Type: application/json" -d '[ { "deleteLoadBalancer": { "credentials": "my-account-name", "loadBalancerName": "spin-lb", "deleteHealthChecks": true, "loadBalancerType": "TCP"}} ]' localhost:7002/gce/ops
    */
   @Override
   Void operate(List priorOutputs) {
-    task.updateStatus BASE_PHASE, "Initializing deletion of ssl load balancer $description.loadBalancerName..."
+    task.updateStatus BASE_PHASE, "Initializing deletion of tcp load balancer $description.loadBalancerName..."
 
     if (!description.credentials) {
       throw new IllegalArgumentException("Unable to resolve credentials for Google account '${description.accountName}'.")
@@ -78,10 +78,10 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
     }
 
     String targetProxyName = GCEUtil.getLocalName(forwardingRule.getTarget())
-    // Target SSL proxy.
+    // Target TCP proxy.
     task.updateStatus BASE_PHASE, "Retrieving target proxy $targetProxyName..."
 
-    TargetSslProxy retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule, BASE_PHASE, safeRetry, this) as TargetSslProxy
+    TargetTcpProxy retrievedTargetProxy = GCEUtil.getTargetProxyFromRule(compute, project, forwardingRule, BASE_PHASE, safeRetry, this) as TargetTcpProxy
 
     if (!retrievedTargetProxy) {
       GCEUtil.updateStatusAndThrowNotFoundException("Target proxy $targetProxyName not found for $project", task,
@@ -116,8 +116,8 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
         task, BASE_PHASE)
     }
     if (retrievedBackendService?.backends) {
-      task.updateStatus BASE_PHASE, "Server groups still associated with ssl load balancer ${description.loadBalancerName}. Failing..."
-      throw new IllegalStateException("Server groups still associated with ssl load balancer: ${description.loadBalancerName}.")
+      task.updateStatus BASE_PHASE, "Server groups still associated with tcp load balancer ${description.loadBalancerName}. Failing..."
+      throw new IllegalStateException("Server groups still associated with tcp load balancer: ${description.loadBalancerName}.")
     }
 
     def healthCheckName = Utils.getLocalName(retrievedBackendService.getHealthChecks()[0])
@@ -181,7 +181,7 @@ class DeleteGoogleSslLoadBalancerAtomicOperation extends DeleteGoogleLoadBalance
         timeoutSeconds, task, "health check $healthCheckName", BASE_PHASE)
     }
 
-    task.updateStatus BASE_PHASE, "Done deleting ssl load balancer $description.loadBalancerName."
+    task.updateStatus BASE_PHASE, "Done deleting tcp load balancer $description.loadBalancerName."
     null
   }
 }

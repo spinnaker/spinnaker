@@ -343,4 +343,267 @@ class UpsertGoogleLoadBalancerDescriptionValidatorSpec extends Specification {
       hc     | null  | hc
       null   | hc    | hc
   }
+
+  void "(ssl) pass validation with proper description inputs"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : SSL_PROXY_PORT_RANGE,
+        "certificate"     : CERTIFICATE,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "(ssl) fail without a backend service"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : SSL_PROXY_PORT_RANGE,
+        "certificate"     : CERTIFICATE,
+        "backendService"  : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('backendService', _)
+  }
+
+  void "(ssl) fail without a health check for the backend service"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : SSL_PROXY_PORT_RANGE,
+        "certificate"     : CERTIFICATE,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": null,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('backendService.healthCheck', _)
+  }
+
+  void "(ssl) fail if port is not an integer"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : pr,
+        "certificate"     : CERTIFICATE,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('portRange', _)
+
+    where:
+      pr        | _
+      "443-444" | _
+      "abc"     | _
+      null      | _
+  }
+
+  void "(ssl) fail if port is not in the supported list"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : "1234",
+        "certificate"     : CERTIFICATE,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('portRange', _)
+  }
+
+  void "(ssl) fail without a certificate"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.SSL,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : SSL_PROXY_PORT_RANGE,
+        "certificate"     : null,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('certificate', _)
+  }
+
+  void "(tcp) pass validation with proper description inputs"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.TCP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : TCP_PROXY_PORT_RANGE,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+  }
+
+  void "(tcp) fail without a backend service"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.TCP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : TCP_PROXY_PORT_RANGE,
+        "backendService"  : null,
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('backendService', _)
+  }
+
+  void "(tcp) fail without a health check for the backend service"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.TCP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : TCP_PROXY_PORT_RANGE,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": null,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('backendService.healthCheck', _)
+  }
+
+  void "(tcp) fail if port is not an integer"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.TCP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : pr,
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('portRange', _)
+
+    where:
+      pr        | _
+      "443-444" | _
+      "abc"     | _
+      null      | _
+  }
+
+  void "(tcp) fail if port is not in the supported list"() {
+    setup:
+      def input = [
+        accountName       : ACCOUNT_NAME,
+        loadBalancerType  : GoogleLoadBalancerType.TCP,
+        "loadBalancerName": LOAD_BALANCER_NAME,
+        "portRange"       : "1234",
+        "backendService"  : [
+          "name"       : DEFAULT_SERVICE,
+          "backends"   : [],
+          "healthCheck": hc,
+        ],
+      ]
+      def description = converter.convertDescription(input)
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      1 * errors.rejectValue('portRange', _)
+  }
 }

@@ -20,7 +20,10 @@ class UpsertGoogleHttpLoadBalancerTestConstants {
   static final LOAD_BALANCER_NAME = "http-create"
   static final ACCOUNT_NAME = "auto"
   static final PORT_RANGE = "80"
+  static final SSL_PROXY_PORT_RANGE = "443"
+  static final TCP_PROXY_PORT_RANGE = "443"
   static final DEFAULT_SERVICE = "default-service"
   static final DEFAULT_PM_SERVICE = "pm-default-service"
   static final PM_SERVICE = "pm-service"
+  static final CERTIFICATE = "some-cert"
 }

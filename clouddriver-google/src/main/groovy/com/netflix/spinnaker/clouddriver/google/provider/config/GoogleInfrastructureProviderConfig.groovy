@@ -139,6 +139,10 @@ class GoogleInfrastructureProviderConfig {
                                                                  credentials,
                                                                  objectMapper,
                                                                  registry)
+        newlyAddedAgents << new GoogleTcpLoadBalancerCachingAgent(clouddriverUserAgentApplicationName,
+                                                                  credentials,
+                                                                  objectMapper,
+                                                                  registry)
         newlyAddedAgents << new GoogleBackendServiceCachingAgent(clouddriverUserAgentApplicationName,
                                                                  credentials,
                                                                  objectMapper,

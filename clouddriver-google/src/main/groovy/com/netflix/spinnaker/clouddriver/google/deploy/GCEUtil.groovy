@@ -842,7 +842,7 @@ class GCEUtil {
         executor.TAG_SCOPE, executor.SCOPE_GLOBAL
       ).getItems()
       httpLoadBalancersToAddTo = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
-        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL &&
+        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS] &&
           forwardingRule.name in serverGroup.loadBalancers
       }
     }
@@ -944,6 +944,69 @@ class GCEUtil {
     }
   }
 
+  static void addTcpLoadBalancerBackends(Compute compute,
+                                         ObjectMapper objectMapper,
+                                         String project,
+                                         GoogleServerGroup.View serverGroup,
+                                         GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                         Task task,
+                                         String phase,
+                                         GoogleExecutorTraits executor) {
+    String serverGroupName = serverGroup.name
+    Metadata instanceMetadata = serverGroup?.launchConfig?.instanceTemplate?.properties?.metadata
+    Map metadataMap = buildMapFromMetadata(instanceMetadata)
+    def globalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.GLOBAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+    def regionalLoadBalancersInMetadata = metadataMap?.(GoogleServerGroup.View.REGIONAL_LOAD_BALANCER_NAMES)?.tokenize(",") ?: []
+
+    def allFoundLoadBalancers = (globalLoadBalancersInMetadata + regionalLoadBalancersInMetadata) as List<String>
+    def tcpLoadBalancersToAddTo = queryAllLoadBalancers(googleLoadBalancerProvider, allFoundLoadBalancers, task, phase)
+      .findAll { it.loadBalancerType == GoogleLoadBalancerType.TCP }
+    if (!tcpLoadBalancersToAddTo) {
+      log.warn("Cache call missed for tcp load balancer, making a call to GCP")
+      List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
+        compute.globalForwardingRules().list(project),
+        "compute.globalForwardingRules",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
+      tcpLoadBalancersToAddTo = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
+        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.TCP &&
+          forwardingRule.name in serverGroup.loadBalancers
+      }
+    }
+
+    if (tcpLoadBalancersToAddTo) {
+      String policyJson = metadataMap?.(GoogleServerGroup.View.LOAD_BALANCING_POLICY)
+      if (!policyJson) {
+        updateStatusAndThrowNotFoundException("Load Balancing Policy not found for server group ${serverGroupName}", task, phase)
+      }
+      GoogleHttpLoadBalancingPolicy policy = objectMapper.readValue(policyJson, GoogleHttpLoadBalancingPolicy)
+
+      tcpLoadBalancersToAddTo.each { GoogleLoadBalancerView loadBalancerView ->
+        def tcpView = loadBalancerView as GoogleTcpLoadBalancer.View
+        String backendServiceName = tcpView.backendService.name
+        BackendService backendService = executor.timeExecute(
+          compute.backendServices().get(project, backendServiceName),
+          "compute.backendServices",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        Backend backendToAdd = backendFromLoadBalancingPolicy(policy)
+        if (serverGroup.regional) {
+          backendToAdd.setGroup(buildRegionalServerGroupUrl(project, serverGroup.region, serverGroupName))
+        } else {
+          backendToAdd.setGroup(buildZonalServerGroupUrl(project, serverGroup.zone, serverGroupName))
+        }
+        if (backendService.backends == null) {
+          backendService.backends = []
+        }
+        backendService.backends << backendToAdd
+        executor.timeExecute(
+            compute.backendServices().update(project, backendServiceName, backendService),
+            "compute.backendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        task.updateStatus phase, "Enabled backend for server group ${serverGroupName} in tcp load balancer backend service ${backendServiceName}."
+      }
+    }
+  }
+
   /**
    * Build a backend from a load balancing policy. Note that this does not set the group URL, which is mandatory.
    *
@@ -1026,6 +1089,53 @@ class GCEUtil {
     }
   }
 
+  static void destroyTcpLoadBalancerBackends(Compute compute,
+                                             String project,
+                                             GoogleServerGroup.View serverGroup,
+                                             GoogleLoadBalancerProvider googleLoadBalancerProvider,
+                                             Task task,
+                                             String phase,
+                                             GoogleExecutorTraits executor) {
+    def serverGroupName = serverGroup.name
+    def region = serverGroup.region
+    def foundTcpLoadBalancers = googleLoadBalancerProvider.getApplicationLoadBalancers("").findAll {
+      it.name in serverGroup.loadBalancers && it.loadBalancerType == GoogleLoadBalancerType.TCP
+    }
+    if (!foundTcpLoadBalancers) {
+      log.warn("Cache call missed for tcp load balancer, making a call to GCP")
+      List<ForwardingRule> projectGlobalForwardingRules = executor.timeExecute(
+        compute.globalForwardingRules().list(project),
+        "compute.globalForwardingRules.list",
+        executor.TAG_SCOPE, executor.SCOPE_GLOBAL
+      ).getItems()
+      foundTcpLoadBalancers = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
+        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) == GoogleTargetProxyType.TCP &&
+          forwardingRule.name in serverGroup.loadBalancers
+      }
+    }
+    log.debug("Attempting to delete backends for ${serverGroup.name} from the following global load balancers: ${foundTcpLoadBalancers.collect { it.name }}")
+
+    if (foundTcpLoadBalancers) {
+      foundTcpLoadBalancers.each { GoogleLoadBalancerView loadBalancerView ->
+        def tcpView = loadBalancerView as GoogleTcpLoadBalancer.View
+        String backendServiceName = tcpView.backendService.name
+        BackendService backendService = executor.timeExecute(
+          compute.backendServices().get(project, backendServiceName),
+          "compute.backendServices.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        backendService?.backends?.removeAll { Backend backend ->
+          (getLocalName(backend.group) == serverGroupName) &&
+            (Utils.getRegionFromGroupUrl(backend.group) == region)
+        }
+        executor.timeExecute(
+            compute.backendServices().update(project, backendServiceName, backendService),
+            "compute.backendServices.update",
+            executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        task.updateStatus phase, "Deleted backend for server group ${serverGroupName} from tcp load balancer backend service ${backendServiceName}."
+      }
+    }
+  }
+
   static void destroyInternalLoadBalancerBackends(Compute compute,
                                                   String project,
                                                   GoogleServerGroup.View serverGroup,
@@ -1096,7 +1206,7 @@ class GCEUtil {
         executor.TAG_SCOPE, executor.SCOPE_GLOBAL
       ).getItems()
       foundHttpLoadBalancers = projectGlobalForwardingRules.findAll { ForwardingRule forwardingRule ->
-        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) != GoogleTargetProxyType.SSL &&
+        forwardingRule.target && Utils.getTargetProxyType(forwardingRule.target) in [GoogleTargetProxyType.HTTP, GoogleTargetProxyType.HTTPS] &&
           forwardingRule.name in serverGroup.loadBalancers
       }
     }
@@ -1236,6 +1346,14 @@ class GCEUtil {
         }
         operationName = "compute.targetSslProxies.get"
         break
+      case GoogleTargetProxyType.TCP:
+        proxyGet = { executor.timeExecute(
+          compute.targetTcpProxies().get(project, targetProxyName),
+          "compute.targetTcpProxies.get",
+          executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+        }
+        operationName = "compute.targetTcpProxies.get"
+        break
       default:
         log.warn("Unexpected target proxy type for $targetProxyName.")
         return null
@@ -1315,6 +1433,15 @@ class GCEUtil {
               executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
           }
           operation_name = "compute.targetSslProxies.delete"
+          break
+        case GoogleTargetProxyType.TCP:
+          deleteProxyClosure = {
+            executor.timeExecute(
+              compute.targetTcpProxies().delete(project, targetProxyName),
+              "compute.targetTcpProxies.delete",
+              executor.TAG_SCOPE, executor.SCOPE_GLOBAL)
+          }
+          operation_name = "compute.targetTcpProxies.delete"
           break
         default:
           log.warn("Unexpected target proxy type for $targetProxyName.")

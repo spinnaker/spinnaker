@@ -113,6 +113,12 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
 
     destroy(destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Ssl load balancer backends",
             [action: 'destroy', operation: 'destroySslLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
+
+    task.updateStatus BASE_PHASE, "Checking for associated Tcp load balancer backend services..."
+
+    destroy(destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider), "Tcp load balancer backends",
+            [action: 'destroy', operation: 'destroyTcpLoadBalancerBackends', phase: BASE_PHASE, (TAG_SCOPE): SCOPE_GLOBAL])
+
     if (true) {
       // We're putting a nested scope here to define a local tags.
       // The "if true" is because groovy wants to make this a closure to the
@@ -212,6 +218,16 @@ class DestroyGoogleServerGroupAtomicOperation extends GoogleAtomicOperation<Void
                                          GoogleLoadBalancerProvider googleLoadBalancerProvider) {
     return {
       GCEUtil.destroySslLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
+      null
+    }
+  }
+
+  Closure destroyTcpLoadBalancerBackends(Compute compute,
+                                         String project,
+                                         GoogleServerGroup.View serverGroup,
+                                         GoogleLoadBalancerProvider googleLoadBalancerProvider) {
+    return {
+      GCEUtil.destroyTcpLoadBalancerBackends(compute, project, serverGroup, googleLoadBalancerProvider, task, BASE_PHASE, this)
       null
     }
   }

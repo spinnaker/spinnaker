@@ -143,9 +143,9 @@ class DisableGoogleServerGroupAtomicOperationUnitSpec extends Specification {
           new InstanceGroupManagersSetTargetPoolsRequest(targetPools: [])) >> instanceGroupManagersSetTargetPoolsMock
       1 * instanceGroupManagersSetTargetPoolsMock.execute()
 
-      2 * computeMock.globalForwardingRules() >> globalForwardingRules
-      2 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
-      2 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
+      3 * computeMock.globalForwardingRules() >> globalForwardingRules
+      3 * globalForwardingRules.list(PROJECT_NAME) >> globalForwardingRulesList
+      3 * globalForwardingRulesList.execute() >> new ForwardingRuleList(items: [])
 
       1 * computeMock.forwardingRules() >> forwardingRules
       1 * forwardingRules.list(PROJECT_NAME, _) >> forwardingRulesList
