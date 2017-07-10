@@ -154,6 +154,17 @@ class KubernetesApiConverter {
         volume.configMap = res.build()
         break
 
+      case KubernetesVolumeSourceType.AwsElasticBlockStore:
+        def res = new AWSElasticBlockStoreVolumeSourceBuilder().withVolumeID(volumeSource.awsElasticBlockStore.volumeId)
+        res = res.withFsType(volumeSource.awsElasticBlockStore.fsType)
+
+        if (volumeSource.awsElasticBlockStore.partition) {
+          res = res.withPartition(volumeSource.awsElasticBlockStore.partition)
+        }
+
+        volume.awsElasticBlockStore = res.build()
+        break
+
       default:
         return null
     }
@@ -606,6 +617,12 @@ class KubernetesApiConverter {
         new KubernetesKeyToPath(key: item.key, path: item.path)
       }
       res.configMap = new KubernetesConfigMapVolumeSource(configMapName: volume.configMap.name, items: items)
+    } else if (volume.awsElasticBlockStore) {
+      res.type = KubernetesVolumeSourceType.AwsElasticBlockStore
+      def ebs = volume.awsElasticBlockStore
+      res.awsElasticBlockStore = new KubernetesAwsElasticBlockStoreVolumeSource(volumeId: ebs.volumeID,
+                                                                                fsType: ebs.fsType,
+                                                                                partition: ebs.partition)
     } else {
       res.type = KubernetesVolumeSourceType.Unsupported
     }

@@ -235,6 +235,9 @@ enum KubernetesVolumeSourceType {
   @JsonProperty("CONFIGMAP")
   ConfigMap,
 
+  @JsonProperty("AWSELASTICBLOCKSTORE")
+  AwsElasticBlockStore,
+
   @JsonProperty("UNSUPPORTED")
   Unsupported,
 }
@@ -257,6 +260,7 @@ class KubernetesVolumeSource {
   KubernetesPersistentVolumeClaim persistentVolumeClaim
   KubernetesSecretVolumeSource secret
   KubernetesConfigMapVolumeSource configMap
+  KubernetesAwsElasticBlockStoreVolumeSource awsElasticBlockStore
 }
 
 @AutoClone
@@ -265,6 +269,14 @@ class KubernetesConfigMapVolumeSource {
   String configMapName
   List<KubernetesKeyToPath> items
   Integer defaultMode
+}
+
+@AutoClone
+@Canonical
+class KubernetesAwsElasticBlockStoreVolumeSource {
+  String volumeId
+  String fsType
+  Integer partition
 }
 
 @AutoClone
