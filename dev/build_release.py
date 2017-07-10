@@ -217,6 +217,7 @@ class Builder(object):
       target = 'candidate'
       extra_args = [
           '--stacktrace',
+          '--info',
           '-Prelease.useLastTag=true',
           '-PbintrayPackageBuildNumber={number}'.format(
               number=self.__build_number),
