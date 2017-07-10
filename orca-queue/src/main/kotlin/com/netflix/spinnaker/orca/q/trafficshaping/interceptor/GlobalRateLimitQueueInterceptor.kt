@@ -79,7 +79,6 @@ class GlobalRateLimitQueueInterceptor(
         }
       }
       registry.counter(throttledMessagesId.withTag("learning", "true")).increment()
-      log.info("Would have throttled message, but learning-mode enabled: $message")
     }
 
     return null

@@ -85,7 +85,6 @@ class PriorityCapacityQueueInterceptor(
 
     if (callback != null) {
       if (isLearning(cap.learning)) {
-        log.info("Would have throttled message, but learning-mode enabled: $message")
         registry.counter(throttledMessagesId.withTag("learning", "true")).increment()
         return null
       }

@@ -77,7 +77,6 @@ class ApplicationRateLimitQueueInterceptor(
               registry.counter(timeShapedId.withTags("application", message.application, "interceptor", getName())).increment(rateLimit.duration.toMillis())
             }
           }
-          log.info("Would have throttled message for ${message.application}, but learning-mode enabled: $message")
           registry.counter(throttledMessagesId.withTags("learning", "true", "application", message.application)).increment()
         }
         return null
