@@ -79,7 +79,7 @@ public class PipelineTemplate implements VersionedSchema {
 
   public static class Variable implements NamedContent {
     private String name;
-    private String group = "Ungrouped";
+    private String group = "General";
     private String description;
     private String type = "string";
     private Object defaultValue;
