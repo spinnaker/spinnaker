@@ -22,7 +22,6 @@ import rx.Observable
 import rx.Scheduler
 import rx.functions.Action0
 import rx.schedulers.Schedulers
-
 /**
  *  responsible for sending events to classes that implement an EchoEventListener
  */

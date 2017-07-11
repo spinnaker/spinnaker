@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 @Slf4j
 @ConditionalOnProperty('hipchat.enabled')
 @Service
@@ -65,8 +67,8 @@ class HipchatNotificationAgent extends AbstractEventNotificationAgent {
         }
       }
 
-      log.info("Send Hipchat message to" +
-        " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+      log.info('Sending Hipchat message {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
+
 
       String message = ''
 

@@ -30,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
+import static net.logstash.logback.argument.StructuredArguments.*
+
 @RestController
 @Slf4j
 class WebhooksController {
@@ -67,7 +69,7 @@ class WebhooksController {
         }
       } else if (source == 'github') {
         if (event.content.hook_id) {
-          log.info("Webook ping received from github hook_id=${event.content.hook_id} repository=${event.content.repository.full_name}")
+          log.info('Webhook ping received from github {} {} {}', kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name))
           sendEvent = false
         } else {
           event.content.hash = postedEvent.after
@@ -93,7 +95,7 @@ class WebhooksController {
         if (event.content.hash.toString().startsWith('000000000')) {
           sendEvent = false
         }
-        log.info("Webhook event received from ${type} event_type=${event.content.event_type} hook_id=${event.content.hook_id} repository=${event.content.repository.full_name} request_id=${event.content.request_id} branch=${event.content.branch}")
+        log.info('Webhook event received {} {} {} {} {} {}', kv('type', type), kv('event_type', event.content.event_type), kv('hook_id', event.content.hook_id), kv('repository', event.content.repository.full_name), kv('request_id', event.content.request_id), kv('branch', event.content.branch))
       }
     }
 

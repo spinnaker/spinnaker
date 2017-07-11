@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
+import static net.logstash.logback.argument.StructuredArguments.*
+
 
 @Slf4j
 @ConditionalOnProperty('slack.enabled')
@@ -63,8 +65,7 @@ class SlackNotificationAgent extends AbstractEventNotificationAgent {
         }
       }
 
-      log.info("Send Slack message to" +
-        " ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+      log.info('Sending Slack message {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
 
       String body = ''
 

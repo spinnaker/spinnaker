@@ -19,6 +19,7 @@ dependencies {
 
     compile project(":echo-model")
     compile spinnaker.dependency('rxJava')
+    compile spinnaker.dependency('logstashEncoder')
     testCompile spinnaker.dependency('spockSpring')
     testCompile spinnaker.dependency('springTest')
 }

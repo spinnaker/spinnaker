@@ -41,6 +41,8 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
+import static net.logstash.logback.argument.StructuredArguments.*
+
 /**
  * Finds and executes all pipeline triggers that should have run in the last configured time window during startup.
  * This job will wait until the {@link com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache} has run prior to
@@ -112,7 +114,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
   }
 
   void onPipelineCacheError(Throwable t) {
-    log.error("Error waiting for pipeline cache: ${t.message}")
+    log.error("Error waiting for pipeline cache", t)
   }
 
   void triggerMissedExecutions(List<Pipeline> pipelines) {
@@ -149,7 +151,7 @@ class MissedPipelineTriggerCompensationJob implements ApplicationListener<Contex
       expr.timeZone = dateContext.timeZone
 
       if (missedExecution(expr, lastExecution, dateContext.triggerWindowFloor, dateContext.now)) {
-        log.info("Triggering missed execution on pipeline application:${pipeline.application}, pipelineConfigId:${pipeline.id}")
+        log.info('Triggering missed execution on pipeline {} {}', kv('application', pipeline.application), kv('pipelineConfigId', pipeline.id))
         pipelineInitiator.call(pipeline)
       }
     }

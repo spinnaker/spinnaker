@@ -21,7 +21,6 @@ import com.netflix.scheduledactions.ActionsOperator
 import com.netflix.spinnaker.echo.model.Pipeline
 import com.netflix.spinnaker.echo.model.Trigger
 import com.netflix.spinnaker.echo.pipelinetriggers.PipelineCache
-import com.netflix.spinnaker.echo.services.Front50Service
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -29,6 +28,8 @@ import org.springframework.boot.actuate.metrics.CounterService
 import org.springframework.boot.actuate.metrics.GaugeService
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
+
+import static net.logstash.logback.argument.StructuredArguments.*
 
 /**
  * This component does the polling of pipeline configs and does the CRUD operations on scheduled-actions
@@ -204,7 +205,7 @@ class PipelineConfigsPollingAgent extends AbstractPollingAgent {
              */
             ActionInstance actionInstance = PipelineTriggerConverter.toScheduledAction(pipeline, trigger, timeZoneId)
             actionsOperator.registerActionInstance(actionInstance)
-            log.info("Registered scheduled trigger '${actionInstance.id}' for ${trigger} of ${pipeline}")
+            log.info('Registered scheduled trigger {} {} {}', kv('id', actionInstance.id), kv('trigger', trigger), kv('pipeline', pipeline))
             counterService.increment("newTriggers.count")
 
           } catch (Exception e) {

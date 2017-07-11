@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service
 import org.springframework.ui.velocity.VelocityEngineUtils
 import static groovy.json.JsonOutput.prettyPrint
 import static groovy.json.JsonOutput.toJson
+import static net.logstash.logback.argument.StructuredArguments.*
 
 @Slf4j
 @ConditionalOnProperty('mail.enabled')
@@ -70,7 +71,7 @@ class EmailNotificationAgent extends AbstractEventNotificationAgent {
       status == 'complete' ? 'completed successfully' : status
     }"""
 
-    log.info("Send Email: ${preference.address} for ${application} ${config.type} ${status} ${event.content?.execution?.id}")
+    log.info('Sending email {} for {} {} {} {}', kv('address', preference.address), kv('application', application), kv('type', config.type), kv('status', status), kv('executionId', event.content?.execution?.id))
 
     sendMessage(
       preference.address ? [preference.address] as String[] : null,

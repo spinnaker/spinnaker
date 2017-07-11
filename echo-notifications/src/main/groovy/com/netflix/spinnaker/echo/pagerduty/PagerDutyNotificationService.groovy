@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
+import static net.logstash.logback.argument.StructuredArguments.kv
+
 @Slf4j
 @Component
 @ConditionalOnProperty('pagerDuty.enabled')
@@ -58,7 +60,7 @@ class PagerDutyNotificationService implements NotificationService {
         )
       )
 
-      log.info("Sent page (serviceKey: ${it}, message: '${notification.additionalContext.message}')")
+      log.info('Sent page {} {}', kv('serviceKey', it), kv('message', notification.additionalContext.message))
     }
   }
 }
