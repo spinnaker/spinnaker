@@ -29,6 +29,7 @@ dependencies {
   compile spinnaker.dependency("korkStackdriver")
   compile spinnaker.dependency("korkSwagger")
 
+  compile project(':fiat-file')
   compile project(':fiat-github')
   compile project(':fiat-google-groups')
   compile project(':fiat-ldap')

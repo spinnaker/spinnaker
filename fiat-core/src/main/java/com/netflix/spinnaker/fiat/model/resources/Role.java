@@ -36,6 +36,7 @@ public class Role implements Resource, Viewable {
 
   public enum Source {
     EXTERNAL,
+    FILE,
     GOOGLE_GROUPS,
     GITHUB_TEAMS,
     LDAP
