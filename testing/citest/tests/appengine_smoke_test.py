@@ -36,7 +36,12 @@ or
     --native_hostname=host-running-smoke-test
 """
 
+import logging
+import os
+import shutil
+import subprocess
 import sys
+import tempfile
 
 import citest.gcp_testing as gcp
 import citest.json_contract as jc
@@ -72,8 +77,14 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
     """Initialize command line argument parser."""
     super(AppengineSmokeTestScenario, cls).initArgumentParser(
           parser, defaults=defaults)
-    parser.add_argument('--source_repo_url', default=None,
-                        help='URL of a source code repository used by Spinnaker to deploy to App Engine.')
+    parser.add_argument(
+        '--test_gcs_bucket', default=None,
+        help='URL to use for testing appengine deployment from a bucket.'
+             ' The test will write into this bucket'
+             ' then deploy what it writes.')
+
+    parser.add_argument('--git_repo_url', default=None,
+                        help='URL of a GIT source code repository used by Spinnaker to deploy to App Engine.')
     parser.add_argument('--branch', default='master',
                         help='Git branch to be used when deploying from source code repository.')
     parser.add_argument('--app_directory_root', default=None,
@@ -82,8 +93,8 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
   def __init__(self, bindings, agent=None):
     super(AppengineSmokeTestScenario, self).__init__(bindings, agent)
 
-    if not bindings['SOURCE_REPO_URL']:
-      raise ValueError('Must supply value for --source_repo_url')
+    if not bindings['GIT_REPO_URL']:
+      raise ValueError('Must supply value for --git_repo_url')
 
     if not bindings['APP_DIRECTORY_ROOT']:
       raise ValueError('Must supply value for --app_directory_root')
@@ -105,11 +116,40 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
                                   ' - url: /.*',
                                   '   static_dir: .']).format(service=self.__lb_name))
 
-    self.__repo_url = bindings['SOURCE_REPO_URL']
     self.__app_directory_root = bindings['APP_DIRECTORY_ROOT']
     self.__branch = bindings['BRANCH']
-
     self.pipeline_id = None
+
+    test_bucket = bindings['TEST_GCS_BUCKET']
+    if test_bucket:
+      self.__prepare_bucket(test_bucket)
+      self.__test_repository_url = 'gs://' + test_bucket
+    else:
+      self.__test_repository_url = bindings['GIT_REPO_URL']
+
+  def __prepare_bucket(self, bucket):
+    root = self.bindings['APP_DIRECTORY_ROOT']
+    temp = tempfile.mkdtemp()
+    local_path = os.path.join(temp, root)
+
+    branch = self.bindings['BRANCH']
+    git_repo = self.bindings['GIT_REPO_URL']
+    gcs_path = 'gs://{bucket}/{root}'.format(
+        bucket=self.bindings['TEST_GCS_BUCKET'], root=root)
+
+    try:
+      command = 'git clone {repo} -b {branch} {dir}'.format(
+          repo=git_repo, branch=branch, dir=temp)
+      logging.info('Fetching %s', git_repo)
+      subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
+
+      command = 'gsutil -m rsync {local} {gcs}'.format(
+          local=local_path, gcs=gcs_path)
+      logging.info('Preparing %s', gcs_path)
+      subprocess.Popen(command, stderr=sys.stderr, shell=True).wait()
+    finally:
+      shutil.rmtree(local_path)
+
 
   def create_app(self):
     # Not testing create_app, since the operation is well tested elsewhere.
@@ -135,19 +175,24 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         app=self.TEST_APP,
         stack=self.bindings['TEST_STACK'],
         version='v000')
-    payload = self.agent.make_json_payload_from_kwargs(job=[{
+    job_spec = {
         'application': self.TEST_APP,
         'stack': self.TEST_STACK,
         'credentials': self.bindings['SPINNAKER_APPENGINE_ACCOUNT'],
-        'gitCredentialType': 'NONE',
-        'repositoryUrl': self.__repo_url,
+        'repositoryUrl': self.__test_repository_url,
         'applicationDirectoryRoot': self.__app_directory_root,
         'configFiles': [self.__app_yaml],
-        'branch': self.__branch,
         'type': 'createServerGroup',
         'cloudProvider': 'appengine',
         'region': 'us-central'
-      }],
+      }
+    if not self.__test_repository_url.startswith('gs://'):
+      job_spec.update({
+          'gitCredentialType': 'NONE',
+          'branch': self.__branch
+      })
+
+    payload = self.agent.make_json_payload_from_kwargs(job=[job_spec],
       description='Create Server Group in ' + group_name,
       application=self.TEST_APP)
 
@@ -166,22 +211,25 @@ class AppengineSmokeTestScenario(sk.SpinnakerTestScenario):
         contract=builder.build())
 
   def make_deploy_stage(self):
+    cluster_spec = {
+        'account': self.bindings['SPINNAKER_APPENGINE_ACCOUNT'],
+        'applicationDirectoryRoot': self.__app_directory_root,
+        'configFiles': [self.__app_yaml],
+        'application': self.TEST_APP,
+        'cloudProvider': 'appengine',
+        'provider': 'appengine',
+        'region': 'us-central',
+        'repositoryUrl': self.__test_repository_url,
+        'stack': self.TEST_STACK
+    }
+    if not self.__test_repository_url.startswith('gs://'):
+      cluster_spec.update({
+          'gitCredentialType': 'NONE',
+          'branch': self.__branch
+      })
+
     result = {
-        'clusters': [
-         {
-             'account': self.bindings['SPINNAKER_APPENGINE_ACCOUNT'],
-             'applicationDirectoryRoot': self.__app_directory_root,
-             'configFiles': [self.__app_yaml],
-             'application': self.TEST_APP,
-             'branch': self.__branch,
-             'cloudProvider': 'appengine',
-             'gitCredentialType': 'NONE',
-             'provider': 'appengine',
-             'region': 'us-central',
-             'repositoryUrl': self.__repo_url,
-             'stack': self.TEST_STACK
-         }
-      ],
+      'clusters': [cluster_spec],
       'name': 'Deploy',
       'refId': '1',
       'requisiteStageRefIds': [],

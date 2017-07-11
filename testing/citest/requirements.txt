@@ -5,6 +5,11 @@
 # and run pip install -r requirements.txt on its requirements file
 citest
 
+# This is to make gsutil compatible with virtualenv
+# it isnt directly used by any tests, only tests that
+# use gsutil.
+google_compute_engine
+
 # This is needed by the google_http_lb_tests
 pyopenssl
 
