@@ -16,15 +16,17 @@
 
 package com.netflix.spinnaker.config
 
+import com.netflix.spinnaker.kork.web.controllers.GenericErrorController
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
 import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes
 import org.springframework.boot.autoconfigure.web.ErrorAttributes
+import org.springframework.boot.autoconfigure.web.ErrorController
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.context.request.RequestAttributes
 
 @Configuration
 class ErrorConfiguration {
-
   @Bean
   ErrorAttributes errorAttributes() {
     final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes()
@@ -44,5 +46,15 @@ class ErrorConfiguration {
         return defaultErrorAttributes.getError(requestAttributes)
       }
     }
+  }
+
+  @Bean
+  ErrorController genericErrorController(ErrorAttributes errorAttributes) {
+    return new GenericErrorController(errorAttributes)
+  }
+
+  @Bean
+  GenericExceptionHandlers genericExceptionHandlers() {
+    return new GenericExceptionHandlers()
   }
 }
