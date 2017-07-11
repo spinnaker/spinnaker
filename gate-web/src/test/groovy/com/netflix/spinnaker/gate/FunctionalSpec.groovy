@@ -16,9 +16,11 @@
 
 package com.netflix.spinnaker.gate
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.gate.config.ServiceConfiguration
 import com.netflix.spinnaker.gate.controllers.ApplicationController
+import com.netflix.spinnaker.gate.controllers.GenericExceptionHandlers
 import com.netflix.spinnaker.gate.controllers.PipelineController
 import com.netflix.spinnaker.gate.services.AccountLookupService
 import com.netflix.spinnaker.gate.services.ApplicationService
@@ -41,12 +43,15 @@ import org.springframework.context.annotation.Configuration
 import retrofit.RestAdapter
 import retrofit.RetrofitError
 import retrofit.client.OkClient
+import retrofit.mime.TypedInput
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
 
 class FunctionalSpec extends Specification {
+  @Shared
+  ObjectMapper objectMapper = new ObjectMapper()
 
   @Shared
   Api api
@@ -135,6 +140,21 @@ class FunctionalSpec extends Specification {
       name = "foo"
   }
 
+  void "should 429 if ThrottledRequestException is raised"() {
+    when:
+      api.getApplication(name)
+
+    then:
+      1 * applicationService.getApplication(name, true) >> { throw new ThrottledRequestException("throttled!") }
+
+      RetrofitError exception = thrown()
+      exception.response.status == 429
+      toMap(exception.response.body).message == "throttled!"
+
+    where:
+      name = "foo"
+  }
+
   void "should call ApplicationService for an application's tasks"() {
     when:
       api.getTasks(name, null, "RUNNING,TERMINAL")
@@ -179,6 +199,10 @@ class FunctionalSpec extends Specification {
     then:
     1 * orcaService.getPipelines("app", 5, "TERMINAL") >> { throw new IllegalStateException() }
     thrown(ThrottledRequestException)
+  }
+
+  Map toMap(TypedInput typedInput) {
+    return objectMapper.readValue(typedInput.in().text, Map)
   }
 
   @EnableAutoConfiguration(exclude = [SecurityAutoConfiguration, GroovyTemplateAutoConfiguration])
@@ -258,6 +282,11 @@ class FunctionalSpec extends Specification {
     @Bean
     FiatClientConfigurationProperties fiatClientConfigurationProperties() {
       new FiatClientConfigurationProperties(enabled: false)
+    }
+
+    @Bean
+    GenericExceptionHandlers genericExceptionHandlers() {
+      new GenericExceptionHandlers()
     }
   }
 }

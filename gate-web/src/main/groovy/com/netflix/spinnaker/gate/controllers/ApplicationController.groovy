@@ -16,18 +16,17 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.ApplicationService
 import com.netflix.spinnaker.gate.services.ExecutionHistoryService
 import com.netflix.spinnaker.gate.services.TaskService
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
 import org.springframework.http.HttpEntity
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @CompileStatic
@@ -75,7 +74,7 @@ class ApplicationController {
     def result = applicationService.getApplication(application, expand)
     if (!result) {
       log.warn("Application ${application} not found")
-      throw new ApplicationNotFoundException("Application ${application} not found")
+      throw new NotFoundException("Application not found (id: ${application})")
     } else if (!result.name) {
       // applicationService.getApplication() doesn't set the name unless clusters are found. Deck requires the name.
       result.name = application
@@ -203,8 +202,4 @@ class ApplicationController {
     String baseLabel = "release"
     String region = "us-east-1"
   }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class ApplicationNotFoundException extends RuntimeException {}
 }

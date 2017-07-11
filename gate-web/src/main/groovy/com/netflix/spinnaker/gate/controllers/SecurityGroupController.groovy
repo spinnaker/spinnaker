@@ -16,11 +16,10 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.SecurityGroupService
-import groovy.transform.InheritConstructors
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -39,7 +38,7 @@ class SecurityGroupController {
       if (result) {
         result
       } else {
-        throw new SecurityGroupNotFoundException(id)
+        throw new NotFoundException("No security group found (id: ${id})")
       }
     } else {
       securityGroupService.getAll(sourceApp)
@@ -67,8 +66,4 @@ class SecurityGroupController {
       @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     securityGroupService.getSecurityGroup(account, provider, name, region, sourceApp, vpcId)
   }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class SecurityGroupNotFoundException extends RuntimeException {}
 }

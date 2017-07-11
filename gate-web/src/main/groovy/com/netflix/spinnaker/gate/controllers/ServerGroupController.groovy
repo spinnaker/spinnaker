@@ -17,18 +17,16 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.ServerGroupService
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @CompileStatic
@@ -56,13 +54,9 @@ class ServerGroupController {
                             @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
     def serverGroupDetails = serverGroupService.getForApplicationAndAccountAndRegion(applicationName, account, region, serverGroupName, sourceApp)
     if (!serverGroupDetails) {
-      throw new ServerGroupNotFoundException()
+      throw new NotFoundException("Server group now found (id: ${serverGroupName})")
     }
 
     return serverGroupDetails
   }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class ServerGroupNotFoundException extends RuntimeException {}
 }

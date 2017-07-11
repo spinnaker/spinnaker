@@ -16,15 +16,13 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.CanaryConfigService
-import groovy.transform.InheritConstructors
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -48,11 +46,7 @@ class V2CanaryController {
     if (canaryConfigService) {
       return canaryConfigService.getCanaryConfig(id)
     } else {
-      throw new CanaryConfigNotFoundException()
+      throw new NotFoundException("Canary configuration not found (id: ${id})")
     }
   }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class CanaryConfigNotFoundException extends RuntimeException {}
 }

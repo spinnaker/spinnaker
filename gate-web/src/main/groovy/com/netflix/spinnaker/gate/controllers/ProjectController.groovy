@@ -44,23 +44,13 @@ class ProjectController {
 
   @RequestMapping(value = "/{id:.+}", method = RequestMethod.GET)
   Map get(@PathVariable("id") String projectId) {
-    def result = projectService.get(projectId)
-    if (!result) {
-      log.warn("Project not found (projectId: ${projectId}")
-      throw new ProjectNotFoundException("Project not found (projectId: ${projectId})")
-    }
-    result
+    return projectService.get(projectId)
   }
 
   @RequestMapping(value = "/{id}/clusters", method = RequestMethod.GET)
   List<Map> getClusters(@PathVariable("id") String projectId,
                         @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
-    def result = projectService.getClusters(projectId, sourceApp)
-    if (!result) {
-      log.warn("Project not found (projectId: ${projectId}")
-      throw new ProjectNotFoundException("Project not found (projectId: ${projectId})")
-    }
-    result
+    return projectService.getClusters(projectId, sourceApp)
   }
 
   @RequestMapping(value = "/{id:.+}/pipelines", method = RequestMethod.GET)
@@ -69,8 +59,4 @@ class ProjectController {
                                    @RequestParam(value = "statuses", required = false) String statuses) {
     return projectService.getAllPipelines(projectId, limit, statuses)
   }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class ProjectNotFoundException extends RuntimeException {}
 }

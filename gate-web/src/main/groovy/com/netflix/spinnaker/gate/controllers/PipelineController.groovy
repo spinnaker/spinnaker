@@ -17,11 +17,10 @@
 
 package com.netflix.spinnaker.gate.controllers
 
+import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.PipelineService
-import com.netflix.spinnaker.gate.services.PipelineService.PipelineConfigNotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -65,7 +64,7 @@ class PipelineController {
       pipelineService.getPipeline(id)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new PipelineNotFoundException()
+        throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
   }
@@ -83,7 +82,7 @@ class PipelineController {
       pipelineService.getPipelineLogs(id)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new PipelineNotFoundException()
+        throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
   }
@@ -147,7 +146,7 @@ class PipelineController {
     try {
       def body = pipelineService.trigger(application, pipelineNameOrId, trigger)
       new ResponseEntity(body, HttpStatus.ACCEPTED)
-    } catch (PipelineConfigNotFoundException e) {
+    } catch (NotFoundException e) {
       throw e
     } catch (e) {
       log.error("Unable to trigger pipeline (application: ${application}, pipelineName: ${pipelineNameOrId})", e)
@@ -163,14 +162,10 @@ class PipelineController {
       pipelineService.evaluateExpressionForExecution(id, pipelineExpression)
     } catch (RetrofitError e) {
       if (e.response?.status == 404) {
-        throw new PipelineNotFoundException()
+        throw new NotFoundException("Pipeline not found (id: ${id})")
       }
     }
   }
-
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class PipelineNotFoundException extends RuntimeException {}
 
   private ResponseEntity maybePropagateTemplatedPipelineErrors(Map requestBody, Closure<Map> call) {
     try {

@@ -56,8 +56,4 @@ class StrategyService {
   void move(Map moveCommand) {
     front50Service.moveStrategyConfig(moveCommand)
   }
-
-  @InheritConstructors
-  @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "strategy config not found!")
-  static class StrategyConfigNotFoundException extends RuntimeException {}
 }

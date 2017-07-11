@@ -17,17 +17,15 @@
 
 package com.netflix.spinnaker.gate.services
 
+import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.EchoService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
-import org.springframework.web.bind.annotation.ResponseStatus
 
 @CompileStatic
 @Component
@@ -70,7 +68,7 @@ class PipelineService {
   Map trigger(String application, String pipelineNameOrId, Map trigger) {
     def pipelineConfig = applicationService.getPipelineConfigForApplication(application, pipelineNameOrId)
     if (!pipelineConfig) {
-      throw new PipelineConfigNotFoundException()
+      throw new NotFoundException("Pipeline configuration not found (id: ${pipelineNameOrId})")
     }
     pipelineConfig.trigger = trigger
     if (trigger.notifications) {
@@ -122,8 +120,4 @@ class PipelineService {
   Map evaluateExpressionForExecution(String executionId, String pipelineExpression) {
     orcaService.evaluateExpressionForExecution(executionId, pipelineExpression)
   }
-
-  @InheritConstructors
-  @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "pipeline config not found!")
-  static class PipelineConfigNotFoundException extends RuntimeException {}
 }
