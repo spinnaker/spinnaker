@@ -36,7 +36,7 @@ allprojects {
     group = "com.netflix.spinnaker.echo"
 
     ext {
-        spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.99.0'
+        spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.101.0'
     }
 
     def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
