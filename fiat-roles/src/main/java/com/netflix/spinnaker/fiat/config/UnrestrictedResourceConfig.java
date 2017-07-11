@@ -31,7 +31,9 @@ public class UnrestrictedResourceConfig {
   @Bean
   @ConditionalOnExpression("${fiat.writeMode.enabled:true}")
   String addUnrestrictedUser(PermissionsRepository permissionsRepository) {
-    permissionsRepository.put(new UserPermission().setId(UNRESTRICTED_USERNAME));
+    if (!permissionsRepository.get(UNRESTRICTED_USERNAME).isPresent()) {
+      permissionsRepository.put(new UserPermission().setId(UNRESTRICTED_USERNAME));
+    }
     return UNRESTRICTED_USERNAME;
   }
 }
