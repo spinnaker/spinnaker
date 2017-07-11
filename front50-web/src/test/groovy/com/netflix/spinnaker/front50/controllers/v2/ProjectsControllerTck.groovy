@@ -22,6 +22,7 @@ import com.amazonaws.services.s3.AmazonS3Client
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.config.CassandraConfigProps
+import com.netflix.spinnaker.front50.controllers.SimpleExceptionHandlerExceptionResolver
 import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.project.CassandraProjectDAO
@@ -34,6 +35,7 @@ import org.springframework.context.support.StaticMessageSource
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
 import rx.schedulers.Schedulers
 import spock.lang.IgnoreIf
 import spock.lang.Shared
@@ -71,7 +73,16 @@ abstract class ProjectsControllerTck extends Specification {
         projectDAO: dao,
         messageSource: new StaticMessageSource()
     )
-    this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build()
+    this.mockMvc = MockMvcBuilders
+      .standaloneSetup(controller)
+      .setHandlerExceptionResolvers(createExceptionResolver())
+      .build()
+  }
+
+  private static ExceptionHandlerExceptionResolver createExceptionResolver() {
+    def resolver = new SimpleExceptionHandlerExceptionResolver()
+    resolver.afterPropertiesSet()
+    return resolver
   }
 
   abstract ProjectDAO createProjectDAO()
@@ -266,7 +277,7 @@ abstract class ProjectsControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A Project named '+ project.name +' already exists","status":"BAD_REQUEST"}'
+    response.errorMessage == "A Project named ${project.name} already exists"
 
   }
 

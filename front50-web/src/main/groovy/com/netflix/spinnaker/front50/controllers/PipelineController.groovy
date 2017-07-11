@@ -16,26 +16,21 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
+import com.netflix.spinnaker.front50.exceptions.InvalidEntityException
+import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST
-import static org.springframework.http.HttpStatus.UNPROCESSABLE_ENTITY
 
 /**
  * Controller for presets
@@ -72,7 +67,7 @@ class PipelineController {
   @RequestMapping(value = '', method = RequestMethod.POST)
   void save(@RequestBody Pipeline pipeline) {
     if (!pipeline.application || !pipeline.name) {
-      throw new InvalidPipelineDefinition("A pipeline requires name and application fields")
+      throw new InvalidEntityException("A pipeline requires name and application fields")
     }
 
     if (!pipeline.id) {
@@ -110,12 +105,12 @@ class PipelineController {
   Pipeline update(@PathVariable String id, @RequestBody Pipeline pipeline) {
     Pipeline existingPipeline = pipelineDAO.findById(id)
     if (pipeline.id != existingPipeline.id) {
-      throw new InvalidPipelineRequestException("The provided id ${id} doesn't match the pipeline id ${pipeline.id}")
+      throw new InvalidRequestException("The provided id ${id} doesn't match the pipeline id ${pipeline.id}")
     }
 
     if (pipelineDAO.getPipelinesByApplication(pipeline.getApplication()).any {
       it.getName().equalsIgnoreCase(pipeline.getName()) && it.getId() != id }) {
-      throw new DuplicatePipelineNameException("A pipeline with name ${pipeline.getName()} already exists in application ${pipeline.application}")
+      throw new DuplicateEntityException("A pipeline with name ${pipeline.getName()} already exists in application ${pipeline.application}")
     }
 
     pipeline.updateTs = System.currentTimeMillis()
@@ -127,40 +122,7 @@ class PipelineController {
     if (pipelineDAO.getPipelinesByApplication(application).any {
       it.getName().equalsIgnoreCase(name)
     }) {
-      throw new DuplicatePipelineNameException("A pipeline with name ${name} already exists in application ${application}")
+      throw new DuplicateEntityException("A pipeline with name ${name} already exists in application ${application}")
     }
   }
-
-  @ExceptionHandler(DuplicatePipelineNameException)
-  @ResponseStatus(BAD_REQUEST)
-  Map handleDuplicatePipelineNameException(DuplicatePipelineNameException dpe) {
-    return [error: dpe.getMessage(), status: BAD_REQUEST]
-  }
-
-  @ExceptionHandler(InvalidPipelineDefinition)
-  @ResponseStatus(UNPROCESSABLE_ENTITY)
-  Map handleInvalidPipelineDefinition(InvalidPipelineDefinition ipd) {
-    return [error: ipd.getMessage(), status: UNPROCESSABLE_ENTITY]
-  }
-
-  @ExceptionHandler(AccessDeniedException)
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  Map handleAccessDeniedException(AccessDeniedException ade) {
-    return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
-  }
-
-  @ExceptionHandler(InvalidPipelineRequestException)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map handleInvalidPipelineRequestException(InvalidPipelineRequestException ipr) {
-    return [error: ipr.getMessage(), status: HttpStatus.BAD_REQUEST.value()]
-  }
-
-  @InheritConstructors
-  static class DuplicatePipelineNameException extends RuntimeException {}
-
-  @InheritConstructors
-  static class InvalidPipelineDefinition extends RuntimeException {}
-
-  @InheritConstructors
-  static class InvalidPipelineRequestException extends RuntimeException {}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Netflix, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+package com.netflix.spinnaker.front50.exceptions;
 
-package com.netflix.spinnaker.front50.controllers.exception
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import groovy.transform.InheritConstructors
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
-@InheritConstructors
-@ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "No applications found")
-class NoApplicationsFoundException extends RuntimeException {}
+@ResponseStatus(BAD_REQUEST)
+public class DuplicateEntityException extends RuntimeException {
+  public DuplicateEntityException(String message) {
+    super(message);
+  }
+}

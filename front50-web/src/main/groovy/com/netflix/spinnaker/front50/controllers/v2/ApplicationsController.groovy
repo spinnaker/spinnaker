@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.http.HttpStatus
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
@@ -140,12 +139,6 @@ public class ApplicationsController {
       }
     }
     return [error: "Validation Failed.", errors: errorStrings, status: HttpStatus.BAD_REQUEST]
-  }
-
-  @ExceptionHandler(AccessDeniedException)
-  @ResponseStatus(HttpStatus.FORBIDDEN)
-  Map handleAccessDeniedException(AccessDeniedException ade) {
-    return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
   }
 
   private Application getApplication() {

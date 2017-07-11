@@ -16,21 +16,18 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException
+import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
 import com.netflix.spinnaker.front50.model.pipeline.Pipeline
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
-import groovy.transform.InheritConstructors
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -101,12 +98,12 @@ class StrategyController {
     Pipeline update(@PathVariable String id, @RequestBody Pipeline strategy) {
       Pipeline existingStrategy = pipelineStrategyDAO.findById(id)
       if (strategy.id != existingStrategy.id) {
-        throw new InvalidStrategyRequestException("The provided id ${id} doesn't match the strategy id ${strategy.id}")
+        throw new InvalidRequestException("The provided id ${id} doesn't match the strategy id ${strategy.id}")
       }
 
       if (pipelineStrategyDAO.getPipelinesByApplication(strategy.getApplication()).any {
         it.getName().equalsIgnoreCase(strategy.getName()) && it.getId() != id }) {
-        throw new DuplicateStrategyException("A strategy with name ${strategy.getName()} already exists in application ${strategy.getApplication()}")
+        throw new DuplicateEntityException("A strategy with name ${strategy.getName()} already exists in application ${strategy.getApplication()}")
       }
 
       strategy.updateTs = System.currentTimeMillis()
@@ -116,31 +113,7 @@ class StrategyController {
 
     private void checkForDuplicatePipeline(String application, String name) {
         if (pipelineStrategyDAO.getPipelinesByApplication(application).any { it.getName() == name}) {
-            throw new DuplicateStrategyException("A strategy with name ${name} already exists in application ${application}")
+            throw new DuplicateEntityException("A strategy with name ${name} already exists in application ${application}")
         }
     }
-
-    @ExceptionHandler(DuplicateStrategyException)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Map handleDuplicateStrategyNameException(DuplicateStrategyException dpe) {
-        return [error: dpe.getMessage(), status: HttpStatus.BAD_REQUEST]
-    }
-
-    @ExceptionHandler(AccessDeniedException)
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    Map handleAccessDeniedException(AccessDeniedException ade) {
-        return [error: "Access is denied", status: HttpStatus.FORBIDDEN.value()]
-    }
-
-    @ExceptionHandler(InvalidStrategyRequestException)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    Map handleInvalidStrategyRequestException(InvalidStrategyRequestException isr) {
-      return [error: isr.getMessage(), status: HttpStatus.BAD_REQUEST.value()]
-    }
-
-    @InheritConstructors
-    static class InvalidStrategyRequestException extends RuntimeException {}
-
-    @InheritConstructors
-    static class DuplicateStrategyException extends RuntimeException {}
 }

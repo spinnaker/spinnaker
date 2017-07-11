@@ -17,22 +17,19 @@ package com.netflix.spinnaker.front50.controllers;
 
 import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
+import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
+import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("pipelineTemplates")
@@ -63,7 +60,7 @@ public class PipelineTemplateController {
   PipelineTemplate update(@PathVariable String id, @RequestBody PipelineTemplate pipelineTemplate) {
     PipelineTemplate existingPipelineTemplate = getPipelineTemplateDAO().findById(id);
     if (!pipelineTemplate.getId().equals(existingPipelineTemplate.getId())) {
-      throw new InvalidPipelineTemplateRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
+      throw new InvalidRequestException("The provided id " + id + " doesn't match the pipeline template id " + pipelineTemplate.getId());
     }
 
     pipelineTemplate.setLastModified(System.currentTimeMillis());
@@ -78,7 +75,7 @@ public class PipelineTemplateController {
     } catch (NotFoundException e) {
       return;
     }
-    throw new DuplicatePipelineTemplateIdException("A pipeline template with the id " + id + " already exists");
+    throw new DuplicateEntityException("A pipeline template with the id " + id + " already exists");
   }
 
   private PipelineTemplateDAO getPipelineTemplateDAO() {
@@ -87,35 +84,4 @@ public class PipelineTemplateController {
     }
     return pipelineTemplateDAO;
   }
-
-  @ExceptionHandler(InvalidPipelineTemplateRequestException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map handleInvalidPipelineTemplateRequestException(InvalidPipelineTemplateRequestException e) {
-    Map<String, Object> m = new HashMap<>();
-    m.put("error", e.getMessage());
-    m.put("status", HttpStatus.BAD_REQUEST);
-    return m;
-  }
-
-  @ExceptionHandler(DuplicatePipelineTemplateIdException.class)
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map handleDuplicatePipelineTemplateIdException(DuplicatePipelineTemplateIdException e) {
-    Map<String, Object> m = new HashMap<>();
-    m.put("error", e.getMessage());
-    m.put("status", HttpStatus.BAD_REQUEST);
-    return m;
-  }
-
-  static class InvalidPipelineTemplateRequestException extends RuntimeException {
-    InvalidPipelineTemplateRequestException(String message) {
-      super(message);
-    }
-  }
-
-  static class DuplicatePipelineTemplateIdException extends RuntimeException {
-    DuplicatePipelineTemplateIdException(String message) {
-      super(message);
-    }
-  }
-
 }

@@ -21,6 +21,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
 import com.netflix.spinnaker.front50.exception.BadRequestException
+import com.netflix.spinnaker.front50.exceptions.AccessDeniedExceptionHandler
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
@@ -114,6 +115,11 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
     return new HystrixRuntimeExceptionHandler()
   }
 
+  @Bean
+  AccessDeniedExceptionHandler accessDeniedExceptionHandler() {
+    return new AccessDeniedExceptionHandler()
+  }
+
   @ControllerAdvice
   static class HystrixRuntimeExceptionHandler {
     @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
@@ -129,16 +135,6 @@ public class Front50WebConfig extends WebMvcConfigurerAdapter {
           status           : HttpStatus.TOO_MANY_REQUESTS.value(),
           timestamp        : System.currentTimeMillis()
       ]
-    }
-  }
-
-  @ControllerAdvice
-  static class BadRequestExceptionHandler {
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ResponseBody
-    @ExceptionHandler(BadRequestException)
-    void handleBadRequest(BadRequestException exception, HttpServletResponse response) {
-      response.sendError(HttpStatus.BAD_REQUEST.value(), exception.message)
     }
   }
 }

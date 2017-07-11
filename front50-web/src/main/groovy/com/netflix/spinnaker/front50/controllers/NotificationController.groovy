@@ -16,20 +16,17 @@
 
 package com.netflix.spinnaker.front50.controllers
 
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.notification.HierarchicalLevel
 import com.netflix.spinnaker.front50.model.notification.Notification
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -121,19 +118,8 @@ class NotificationController {
     private static HierarchicalLevel getLevel(String type) {
         HierarchicalLevel result = HierarchicalLevel.fromString(type)
         if (!result) {
-            throw new HierarchicalLevelNotFoundException(type: type)
+            throw new NotFoundException("No hierarchical level matches '${type}'")
         }
         result
-    }
-
-    static class HierarchicalLevelNotFoundException extends RuntimeException {
-        String type
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    Map hierarchicalLevelNotFoundExceptionHandler(HierarchicalLevelNotFoundException ex) {
-        def message = messageSource.getMessage("level.not.found", [ex.type] as String[], "No hierarchical level matches '${ex.type}'", LocaleContextHolder.locale)
-        [error: "level.not.found", message: message, status: HttpStatus.NOT_FOUND]
     }
 }

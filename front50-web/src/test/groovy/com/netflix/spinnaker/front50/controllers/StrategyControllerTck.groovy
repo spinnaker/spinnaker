@@ -28,6 +28,7 @@ import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
 import com.netflix.spinnaker.front50.pipeline.StrategyRepository
 import com.netflix.spinnaker.front50.utils.CassandraTestHelper
 import com.netflix.spinnaker.front50.utils.S3TestHelper
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
 import rx.schedulers.Schedulers
 import spock.lang.IgnoreIf
 import spock.lang.Shared
@@ -59,8 +60,16 @@ abstract class StrategyControllerTck extends Specification {
   void setup() {
     this.pipelineStrategyDAO = createPipelineStrategyDAO()
 
-    mockMvc = MockMvcBuilders.standaloneSetup(
-        new StrategyController(pipelineStrategyDAO: pipelineStrategyDAO)).build()
+    mockMvc = MockMvcBuilders
+      .standaloneSetup(new StrategyController(pipelineStrategyDAO: pipelineStrategyDAO))
+      .setHandlerExceptionResolvers(createExceptionResolver())
+      .build()
+  }
+
+  private static ExceptionHandlerExceptionResolver createExceptionResolver() {
+    def resolver = new SimpleExceptionHandlerExceptionResolver()
+    resolver.afterPropertiesSet()
+    return resolver
   }
 
   abstract PipelineStrategyDAO createPipelineStrategyDAO()
@@ -69,26 +78,26 @@ abstract class StrategyControllerTck extends Specification {
   void 'should only (re)generate cron trigger ids for new pipelines'() {
     given:
     def pipeline = [
-        name       : "My Pipeline",
-        application: "test",
-        triggers   : [
-            [type: "cron", id: "original-id"]
-        ]
+      name       : "My Pipeline",
+      application: "test",
+      triggers   : [
+        [type: "cron", id: "original-id"]
+      ]
     ]
     if (lookupPipelineId) {
       pipelineStrategyDAO.create(null, pipeline as Pipeline)
       pipeline.id = pipelineStrategyDAO.findById(
-          pipelineStrategyDAO.getPipelineId("test", "My Pipeline")
+        pipelineStrategyDAO.getPipelineId("test", "My Pipeline")
       ).getId()
     }
 
     when:
     def response = mockMvc.perform(post('/strategies').
-        contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
-        .andReturn().response
+      contentType(MediaType.APPLICATION_JSON).content(new ObjectMapper().writeValueAsString(pipeline)))
+      .andReturn().response
 
     def updatedPipeline = pipelineStrategyDAO.findById(
-        pipelineStrategyDAO.getPipelineId("test", "My Pipeline")
+      pipelineStrategyDAO.getPipelineId("test", "My Pipeline")
     )
 
     then:
@@ -132,7 +141,7 @@ abstract class StrategyControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A strategy with name '+ strategy2.name +' already exists in application '+ strategy2.application +'","status":"BAD_REQUEST"}'
+    response.errorMessage == "A strategy with name ${strategy2.name} already exists in application ${strategy2.application}"
 
     when:
     response = mockMvc.perform(put("/strategies/${strategy1.id}").contentType(MediaType.APPLICATION_JSON)
@@ -140,16 +149,16 @@ abstract class StrategyControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"The provided id '+ strategy1.id +' doesn\'t match the strategy id '+ strategy2.id +'","status":400}'
+    response.errorMessage == "The provided id ${strategy1.id} doesn't match the strategy id ${strategy2.id}"
   }
 
   void 'should delete an existing pipeline by name or id'() {
     given:
     pipelineStrategyDAO.create(null, new Pipeline([
-        name: "pipeline1", application: "test"
+      name: "pipeline1", application: "test"
     ]))
     pipelineStrategyDAO.create(null, new Pipeline([
-        name: "pipeline2", application: "test"
+      name: "pipeline2", application: "test"
     ]))
 
     when:
@@ -171,10 +180,10 @@ abstract class StrategyControllerTck extends Specification {
   void 'should enforce unique names on save operations'() {
     given:
     pipelineStrategyDAO.create(null, new Pipeline([
-            name: "pipeline1", application: "test"
+      name: "pipeline1", application: "test"
     ]))
     pipelineStrategyDAO.create(null, new Pipeline([
-            name: "pipeline2", application: "test"
+      name: "pipeline2", application: "test"
     ]))
 
     when:
@@ -187,13 +196,13 @@ abstract class StrategyControllerTck extends Specification {
 
     when:
     def response = mockMvc.perform(post('/strategies')
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
-            .andReturn().response
+      .contentType(MediaType.APPLICATION_JSON)
+      .content(new ObjectMapper().writeValueAsString([name: "pipeline1", application: "test"])))
+      .andReturn().response
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A strategy with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
+    response.errorMessage == "A strategy with name pipeline1 already exists in application test"
   }
 }
 

@@ -19,10 +19,10 @@ package com.netflix.spinnaker.front50.controllers.v2
 
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.front50.exception.NotFoundException
+import com.netflix.spinnaker.front50.exceptions.InvalidRequestException
 import com.netflix.spinnaker.front50.model.SearchUtils
 import com.netflix.spinnaker.front50.model.project.Project
 import com.netflix.spinnaker.front50.model.project.ProjectDAO
-import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
@@ -30,18 +30,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletResponse
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST
 
 @Slf4j
 @RestController
@@ -107,7 +103,7 @@ public class ProjectsController {
     try {
       if (projectDAO.findByName(project.name).id != projectId) {
         // renamed projects must still be uniquely named
-        throw new ProjectAlreadyExistsException("A Project named ${project.name} already exists")
+        throw new InvalidRequestException("A Project named ${project.name} already exists")
       }
     } catch (NotFoundException ignored) {}
 
@@ -123,7 +119,7 @@ public class ProjectsController {
 
     try {
       projectDAO.findByName(project.name)
-      throw new ProjectAlreadyExistsException()
+      throw new InvalidRequestException("A Project named ${project.name} already exists")
     } catch (NotFoundException ignored) {}
 
     return projectDAO.create(project.id, project)
@@ -186,13 +182,4 @@ public class ProjectsController {
     projectDAO.bulkImport(projects)
     response.setStatus(HttpStatus.ACCEPTED.value())
   }
-
-  @ExceptionHandler(ProjectAlreadyExistsException)
-  @ResponseStatus(BAD_REQUEST)
-  Map handleProjectAlreadyExistsException(ProjectAlreadyExistsException e) {
-    return [error: e.getMessage(), status: BAD_REQUEST]
-  }
-
-  @InheritConstructors
-  static class ProjectAlreadyExistsException extends RuntimeException {}
 }

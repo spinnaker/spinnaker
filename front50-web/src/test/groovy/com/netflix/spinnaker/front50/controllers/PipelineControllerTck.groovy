@@ -19,7 +19,13 @@ package com.netflix.spinnaker.front50.controllers
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.front50.model.S3StorageService
 import com.netflix.spinnaker.front50.model.pipeline.DefaultPipelineDAO
+import com.netflix.spinnaker.kork.web.exceptions.GenericExceptionHandlers
+import org.springframework.web.method.HandlerMethod
+import org.springframework.web.method.annotation.ExceptionHandlerMethodResolver
+import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver
+import org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod
 
+import java.lang.reflect.Method
 import java.util.concurrent.Executors
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.services.s3.AmazonS3Client
@@ -51,8 +57,16 @@ abstract class PipelineControllerTck extends Specification {
   void setup() {
     this.pipelineDAO = createPipelineDAO()
 
-    mockMvc = MockMvcBuilders.standaloneSetup(
-        new PipelineController(pipelineDAO: pipelineDAO)).build()
+    mockMvc = MockMvcBuilders
+      .standaloneSetup(new PipelineController(pipelineDAO: pipelineDAO))
+      .setHandlerExceptionResolvers(createExceptionResolver())
+      .build()
+  }
+
+  private static ExceptionHandlerExceptionResolver createExceptionResolver() {
+    def resolver = new SimpleExceptionHandlerExceptionResolver()
+    resolver.afterPropertiesSet()
+    return resolver
   }
 
   abstract PipelineDAO createPipelineDAO()
@@ -108,7 +122,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A pipeline with name '+ pipeline2.name +' already exists in application '+ pipeline2.application +'","status":"BAD_REQUEST"}'
+    response.errorMessage == "A pipeline with name ${pipeline2.name} already exists in application ${pipeline2.application}"
 
     when:
     response = mockMvc.perform(put("/pipelines/${pipeline2.id}").contentType(MediaType.APPLICATION_JSON)
@@ -116,7 +130,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"The provided id '+ pipeline2.id +' doesn\'t match the pipeline id '+ pipeline1.id +'","status":400}'
+    response.errorMessage == "The provided id ${pipeline2.id} doesn't match the pipeline id ${pipeline1.id}"
   }
 
   @Unroll
@@ -205,7 +219,7 @@ abstract class PipelineControllerTck extends Specification {
 
     then:
     response.status == BAD_REQUEST
-    response.contentAsString == '{"error":"A pipeline with name pipeline1 already exists in application test","status":"BAD_REQUEST"}'
+    response.errorMessage == "A pipeline with name pipeline1 already exists in application test"
   }
 }
 
