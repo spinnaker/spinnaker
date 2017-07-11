@@ -17,8 +17,8 @@
 
 package com.netflix.spinnaker.gate.controllers
 
-import com.netflix.spinnaker.gate.exceptions.NotFoundException
 import com.netflix.spinnaker.gate.services.ServerGroupService
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.CompileStatic
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
