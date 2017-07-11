@@ -19,15 +19,20 @@ import com.amazonaws.services.autoscaling.model.AutoScalingGroup
 import com.amazonaws.services.ec2.model.DescribeInstancesResult
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.InstanceState
+import com.amazonaws.services.ec2.model.InstanceStateName
 import com.amazonaws.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
 import com.amazonaws.services.elasticloadbalancing.model.LoadBalancerNotFoundException
 import com.netflix.spinnaker.clouddriver.aws.TestCredential
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
+import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
+import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
 import retrofit.client.Response
+import spock.lang.Unroll
 
 class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnitSpecSupport {
 
@@ -146,6 +151,76 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     0 * eureka.updateInstanceStatus(*_)
+  }
+
+  @Unroll("Should disable #instancesAffected instances when #percentage percentage is requested")
+  void 'should filter down to a list of instance ids by percentage'() {
+    setup:
+    def asg = Mock(AutoScalingGroup)
+    description.desiredPercentage = percentage
+
+    def reservation = Mock(Reservation)
+    def describeInstancesResult = Mock(DescribeInstancesResult)
+    describeInstancesResult.nextToken = null
+    def runningState = new InstanceState().withName(InstanceStateName.Running).withCode(16)
+
+    and:
+    asgService.getAutoScalingGroup(_) >> asg
+    asg.getInstances() >> [
+      new com.amazonaws.services.autoscaling.model.Instance(instanceId: '00001', lifecycleState: 'InService'),
+      new com.amazonaws.services.autoscaling.model.Instance(instanceId: '00002', lifecycleState: 'InService'),
+      new com.amazonaws.services.autoscaling.model.Instance(instanceId: '00003', lifecycleState: 'InService'),
+      new com.amazonaws.services.autoscaling.model.Instance(instanceId: '00004', lifecycleState: 'InService'),
+    ]
+    eureka.getApplication("kato") >> new EurekaApplication(instances: [
+      new EurekaInstance(instanceId: '00001', asgName: 'kato-main-v000', status: 'Up'),
+      new EurekaInstance(instanceId: '00002', asgName: 'kato-main-v000', status: 'Up'),
+      new EurekaInstance(instanceId: '00003', asgName: 'kato-main-v000', status: 'Unknown'),
+      new EurekaInstance(instanceId: '00004', asgName: 'kato-main-v000', status: 'Down')
+    ])
+    1 * amazonEc2.describeInstances(_) >> describeInstancesResult
+    1 * describeInstancesResult.getReservations() >> [reservation]
+    1 * reservation.getInstances() >> [
+      new com.amazonaws.services.ec2.model.Instance(instanceId: '00001', state: runningState),
+      new com.amazonaws.services.ec2.model.Instance(instanceId: '00002', state: runningState),
+      new com.amazonaws.services.ec2.model.Instance(instanceId: '00003', state: runningState),
+      new com.amazonaws.services.ec2.model.Instance(instanceId: '00004', state: runningState)
+    ]
+    op.discoverySupport = Mock(AwsEurekaSupport)
+
+    when:
+    op.operate([])
+
+    then:
+    1 * op.discoverySupport.updateDiscoveryStatusForInstances(_, _, _, _, { it.size() == instancesAffected })
+
+    where:
+    percentage || instancesAffected
+    75         || 1
+    100        || 2
+    null       || 4
+  }
+
+  @Unroll("Should invoke supend process #invocations times when desiredPercentage is #desiredPercentage")
+  void 'should suspend processes only if desired percentage is null or 100'() {
+    given:
+    def asg = Mock(AutoScalingGroup)
+    description.desiredPercentage = desiredPercentage
+
+    when:
+    op.operate([])
+
+    then:
+    1 * asgService.getAutoScalingGroup(_) >> asg
+    invocations * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
+
+    where:
+    desiredPercentage || invocations
+    null              || 1
+    100               || 1
+    0                 || 0
+    50                || 0
+    99                || 0
   }
 
 }

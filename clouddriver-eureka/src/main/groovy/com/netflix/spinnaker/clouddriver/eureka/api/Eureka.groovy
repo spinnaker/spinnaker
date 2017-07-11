@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.eureka.api
 
+import com.netflix.spinnaker.clouddriver.eureka.model.EurekaApplication
 import retrofit.client.Response
 import retrofit.http.GET
 import retrofit.http.Headers
@@ -37,4 +38,7 @@ interface Eureka {
   @DELETE('/apps/{application}/{instanceId}/status')
   Response resetInstanceStatus(@Path('application') String application, @Path('instanceId') String instanceId, @Query('value') String status)
 
+  @Headers('Accept: application/json')
+  @GET('/apps/{application}')
+  EurekaApplication getApplication(@Path('application') String application)
 }

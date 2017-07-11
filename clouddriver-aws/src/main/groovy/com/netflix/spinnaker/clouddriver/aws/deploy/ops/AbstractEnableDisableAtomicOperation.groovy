@@ -18,7 +18,6 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops
 
 import com.amazonaws.services.ec2.model.DescribeInstancesRequest
 import com.amazonaws.services.ec2.model.DescribeInstancesResult
-import com.amazonaws.services.ec2.model.Filter
 import com.amazonaws.services.ec2.model.InstanceStateName
 import com.amazonaws.services.ec2.model.Reservation
 import com.amazonaws.services.elasticloadbalancing.model.DeregisterInstancesFromLoadBalancerRequest
@@ -30,9 +29,12 @@ import com.amazonaws.services.elasticloadbalancingv2.model.InvalidTargetExceptio
 import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
+import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
+import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
@@ -103,7 +105,9 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
       task.updateStatus phaseName, "${presentParticipling} ASG '$serverGroupName' in $region..."
       if (disable) {
-        asgService.suspendProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
+        if (description.desiredPercentage == null || description.desiredPercentage == 100) {
+          asgService.suspendProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
+        }
       } else {
         asgService.resumeProcesses(serverGroupName, AutoScalingProcessType.getDisableProcesses())
       }
@@ -136,6 +140,22 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
           }*.instanceId
         }
         instanceIds = filteredInstanceIds
+      }
+
+      if (instanceIds && credentials.discoveryEnabled && description.desiredPercentage && disable) {
+        List<EurekaInstance> eurekaInstances = regionScopedProvider.eureka.getApplication(Names.parseName(serverGroupName).app).instances.findAll {
+          it.asgName == serverGroupName
+        }
+        List<String> modified = []
+        List<String> unmodified = []
+        instanceIds.each { instanceId ->
+          if (eurekaInstances.find { it.instanceId == instanceId }?.status == 'Up') {
+            unmodified.add(instanceId)
+          } else {
+            modified.add(instanceId)
+          }
+        }
+        instanceIds = EnableDisablePercentageCategorizer.getInstancesToModify(modified, unmodified, description.desiredPercentage)
       }
 
       if (disable) {
