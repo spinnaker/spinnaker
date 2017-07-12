@@ -16,3 +16,7 @@ endpoints:
 
 logging:
   config: classpath:logback-defaults.xml
+
+hystrix:
+ command:
+   default.execution.isolation.thread.timeoutInMilliseconds: 20000
