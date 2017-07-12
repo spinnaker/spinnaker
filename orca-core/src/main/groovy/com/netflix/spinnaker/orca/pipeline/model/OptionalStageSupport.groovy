@@ -64,9 +64,16 @@ class OptionalStageSupport {
 
     @Override
     boolean evaluate(Stage stage, ContextParameterProcessor contextParameterProcessor) {
+
+      Map context = contextParameterProcessor.buildExecutionContext(stage, true)
+
+      String unquoted = contextParameterProcessor.process([
+        expression: expression
+      ], context, true).expression
+
       String expression = contextParameterProcessor.process([
-        "expression": '${' + expression + '}'
-      ], contextParameterProcessor.buildExecutionContext(stage, true), true).expression
+        "expression": '${' + unquoted + '}'
+      ], context, true).expression
 
       def matcher = expression =~ /\$\{(.*)\}/
       if (matcher.matches()) {
