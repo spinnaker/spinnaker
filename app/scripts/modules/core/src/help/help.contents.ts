@@ -181,7 +181,7 @@ module(HELP_CONTENTS, [])
         <p>Determines the order in which instances will be terminated.
         <ul><li><b>Oldest</b> will terminate the oldest instances first</li>
         <li><b>Newest</b> will terminate those most recently launched.</li></ul></p>`,
-
+    'strategy.rollingRedBlack.targetPercentages': '<p>Rolling red black will slowly scale up the new server group. It will resize the new server group by each percentage defined.</p>',
     'loadBalancers.filter.serverGroups': `
         <p>Displays all server groups configured to use the load balancer.</p>
         <p>If the server group is configured to <em>not</em> add new instances to the load balancer, it will be grayed out.</p>`,
