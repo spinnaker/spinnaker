@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import MetricDetail from './metricDetail';
+import { RENAME_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
   metrics: ICanaryMetricConfig[];
@@ -42,7 +43,7 @@ function mapDispatchToProps(dispatch: any): IMetricListDispatchProps {
   return {
     changeName: (event: any) => {
       dispatch({
-        type: 'rename_metric',
+        type: RENAME_METRIC,
         id: event.target.dataset.id,
         name: event.target.value
       });

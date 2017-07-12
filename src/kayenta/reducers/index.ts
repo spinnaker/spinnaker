@@ -1,6 +1,10 @@
 import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
+import {
+  CONFIG_LOAD_ERROR, INITIALIZE, LOAD_CONFIG,
+  RENAME_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES
+} from '../actions/index';
 
 export interface ICanaryState {
   configSummaries: ICanaryConfigSummary[];
@@ -14,7 +18,7 @@ function reduceMetric(metric: ICanaryMetricConfig, id: string, action: any): ICa
   if (id === action.id) {
     switch (action.type) {
 
-      case 'rename_metric':
+      case RENAME_METRIC:
         return Object.assign({}, metric, { name: action.name });
 
       default:
@@ -28,19 +32,19 @@ function reduceMetric(metric: ICanaryMetricConfig, id: string, action: any): ICa
 
 export function rootReducer(state: ICanaryState, action: any): ICanaryState {
   switch (action.type) {
-    case 'initialize':
+    case INITIALIZE:
       return action.state;
 
-    case 'update_config_summaries':
+    case UPDATE_CONFIG_SUMMARIES:
       return Object.assign({}, state, { configSummaries: action.configSummaries });
 
-    case 'load_config':
+    case LOAD_CONFIG:
       return Object.assign({}, state, { configLoadState: ConfigDetailLoadState.Loading });
 
-    case 'config_load_error':
+    case CONFIG_LOAD_ERROR:
       return Object.assign({}, state, { configLoadState: ConfigDetailLoadState.Error });
 
-    case 'select_config':
+    case SELECT_CONFIG:
       return Object.assign({}, state, {
         selectedConfig: action.config,
         configLoadState: ConfigDetailLoadState.Loaded,
@@ -48,7 +52,7 @@ export function rootReducer(state: ICanaryState, action: any): ICanaryState {
         selectedMetric: null
       });
 
-    case 'rename_metric':
+    case RENAME_METRIC:
       return Object.assign({}, state, {
         metricList: state.metricList.map((metric, index) => reduceMetric(metric, String(index), action))
       });

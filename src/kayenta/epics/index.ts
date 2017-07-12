@@ -2,14 +2,19 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/concat';
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import { getCanaryConfigById } from '../service/canaryConfig.service';
+import {
+  CONFIG_LOAD_ERROR,
+  LOAD_CONFIG,
+  SELECT_CONFIG
+} from '../actions/index';
 
 const selectConfigEpic = (action$: Observable<any>) =>
   action$
-    .filter(action => action.type === 'load_config')
+    .filter(action => action.type === LOAD_CONFIG)
     .concatMap(action =>
       getCanaryConfigById(action.id)
-        .then(config => ({type: 'select_config', config}))
-        .catch(error => ({type: 'config_load_error', error}))
+        .then(config => ({type: SELECT_CONFIG, config}))
+        .catch(error => ({type: CONFIG_LOAD_ERROR, error}))
     );
 
 const rootEpic = combineEpics(

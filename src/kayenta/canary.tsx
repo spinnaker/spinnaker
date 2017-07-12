@@ -9,6 +9,7 @@ import { epicMiddleware } from './epics';
 import CanaryConfigEdit from './edit/edit';
 import { ICanaryConfig, ICanaryConfigSummary, ICanaryMetricConfig } from './domain/index';
 import { ConfigDetailLoadState } from './edit/configDetailLoader';
+import { INITIALIZE, UPDATE_CONFIG_SUMMARIES } from './actions/index';
 
 export interface ICanaryProps {
   app: Application;
@@ -25,7 +26,7 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
       applyMiddleware(epicMiddleware)
     );
     this.store.dispatch({
-      type: 'initialize',
+      type: INITIALIZE,
       state: {
         configSummaries: [] as ICanaryConfigSummary[],
         selectedConfig: null as ICanaryConfig,
@@ -38,7 +39,7 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
     props.app.getDataSource('canaryConfigs').ready().then(() => {
       const summaries: ICanaryConfigSummary[] = props.app.getDataSource('canaryConfigs').data;
       this.store.dispatch({
-        type: 'update_config_summaries',
+        type: UPDATE_CONFIG_SUMMARIES,
         configSummaries: summaries,
       });
     });

@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import ConfigDetailLoadStates from './configDetailLoadStates';
+import { LOAD_CONFIG } from '../actions/index';
 
 interface IConfigLoaderStateParamsProps {
   configNameStream: Observable<string>;
@@ -44,7 +45,7 @@ function mapDispatchToProps(dispatch: any): IConfigLoaderDispatchProps {
   return {
     loadConfig: (configName: string) => {
       dispatch({
-        type: 'load_config',
+        type: LOAD_CONFIG,
         id: configName
       });
     }
