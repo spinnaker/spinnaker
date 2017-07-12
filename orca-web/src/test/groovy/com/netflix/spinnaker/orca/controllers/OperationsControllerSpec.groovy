@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.controllers
 
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.webhook.config.PreconfiguredWebhookProperties
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
@@ -30,7 +31,6 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.json.JsonSlurper
 import org.apache.log4j.MDC
@@ -515,7 +515,7 @@ class OperationsControllerSpec extends Specification {
     controller.orchestrate(pipelineConfig, response)
 
     then:
-    thrown(InvalidPipelineTemplateException)
+    thrown(InvalidRequestException)
     0 * pipelineLauncher.start(_)
   }
 

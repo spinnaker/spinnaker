@@ -32,9 +32,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered
-import org.springframework.security.access.AccessDeniedException
-import org.springframework.web.bind.annotation.ControllerAdvice
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
@@ -81,14 +78,6 @@ class WebConfiguration extends WebMvcConfigurerAdapter {
       public void init(FilterConfig filterConfig) {}
 
       public void destroy() {}
-    }
-  }
-
-  @ControllerAdvice
-  static class AccessDeniedExceptionHanlder {
-    @ExceptionHandler(AccessDeniedException)
-    public void handle(HttpServletResponse response, AccessDeniedException ex) {
-      response.sendError(HttpServletResponse.SC_FORBIDDEN, ex.getMessage())
     }
   }
 }

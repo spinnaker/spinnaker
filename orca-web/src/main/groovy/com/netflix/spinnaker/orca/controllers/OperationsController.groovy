@@ -17,26 +17,23 @@
 package com.netflix.spinnaker.orca.controllers
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.igor.BuildArtifactFilter
 import com.netflix.spinnaker.orca.igor.BuildService
 import com.netflix.spinnaker.orca.pipeline.OrchestrationLauncher
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
-import com.netflix.spinnaker.orca.pipeline.PipelineValidator
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
-import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.InvalidPipelineTemplateException
 import com.netflix.spinnaker.orca.webhook.service.WebhookService
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletResponse
@@ -87,7 +84,7 @@ class OperationsController {
     log.info('received pipeline {}:{}', pipeline.id, json)
 
     if (pipeline.disabled) {
-      throw new DisabledPipelineException("Pipeline is disabled and cannot be started.")
+      throw new InvalidRequestException("Pipeline is disabled and cannot be started.")
     }
 
     def parallel = pipeline.parallel as Boolean
@@ -101,13 +98,13 @@ class OperationsController {
     if (plan) {
       log.info('not starting pipeline (plan: true): {}', pipeline.id)
       if (pipeline.errors != null) {
-        throw new InvalidPipelineTemplateException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
+        throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
       }
       return processedPipeline
     }
 
     if (pipeline.errors != null) {
-      throw new InvalidPipelineTemplateException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
+      throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
     }
 
     startPipeline(processedPipeline)
@@ -234,30 +231,5 @@ class OperationsController {
     log.info('requested task:{}', json)
     def pipeline = orchestrationLauncher.start(json)
     [ref: "/tasks/${pipeline.id}".toString()]
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(InvalidPipelineTemplateException)
-  Map invalidPipelineTemplateHandler(InvalidPipelineTemplateException e) {
-    return [message: e.message, status:HttpStatus.BAD_REQUEST, errors: e.getErrors()]
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(DisabledPipelineException)
-  Map disabledPipelineHandler(DisabledPipelineException e) {
-    return [message: e.message, status: HttpStatus.BAD_REQUEST]
-  }
-
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  @ExceptionHandler(PipelineValidator.PipelineValidationFailed)
-  Map disabledPipelineHandler(PipelineValidator.PipelineValidationFailed e) {
-    return [message: e.message, status: HttpStatus.BAD_REQUEST]
-  }
-
-  @Deprecated
-  static class DisabledPipelineException extends RuntimeException {
-    DisabledPipelineException(String msg) {
-      super(msg)
-    }
   }
 }

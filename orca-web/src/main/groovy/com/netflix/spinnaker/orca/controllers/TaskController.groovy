@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.zombie.ZombiePipelineCleanupAgent
@@ -420,14 +419,7 @@ class TaskController {
     )
   }
 
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  @ExceptionHandler(ExecutionNotFoundException)
-  void notFound() {}
-
   @InheritConstructors
-  private static class FeatureNotEnabledException extends RuntimeException {}
-
   @ResponseStatus(HttpStatus.NOT_IMPLEMENTED)
-  @ExceptionHandler(FeatureNotEnabledException)
-  void featureNotEnabled() {}
+  private static class FeatureNotEnabledException extends RuntimeException {}
 }

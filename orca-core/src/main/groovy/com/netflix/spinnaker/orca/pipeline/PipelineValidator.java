@@ -16,7 +16,10 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
+
+import java.util.Collections;
 
 public interface PipelineValidator {
 
@@ -27,24 +30,9 @@ public interface PipelineValidator {
    */
   void checkRunnable(Pipeline pipeline);
 
-  abstract class PipelineValidationFailed extends RuntimeException {
-    public PipelineValidationFailed() {
-    }
-
+  abstract class PipelineValidationFailed extends ValidationException {
     public PipelineValidationFailed(String message) {
-      super(message);
-    }
-
-    public PipelineValidationFailed(String message, Throwable cause) {
-      super(message, cause);
-    }
-
-    public PipelineValidationFailed(Throwable cause) {
-      super(cause);
-    }
-
-    public PipelineValidationFailed(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-      super(message, cause, enableSuppression, writableStackTrace);
+      super(message, Collections.emptyList());
     }
   }
 }
