@@ -129,6 +129,9 @@
               <a ng-if="metric.healthCheckUrl" target="_blank" href="{{metric.healthCheckUrl}}">Health Check</a>
               <span ng-if="metric.healthCheckUrl && metric.statusPageUrl"> | </span>
               <a ng-if="metric.statusPageUrl" target="_blank" href="{{metric.statusPageUrl}}">Status</a>
+              <span ng-if="metric.type === 'Discovery'"> |
+                <a target="_blank" href="{{ctrl.discoveryInfoLink}}">Discovery Info</a>
+              </span>
             </span>
           </div>
           <div ng-if="metric.type === 'LoadBalancer' && metric.loadBalancers.length" ng-repeat="loadBalancer in metric.loadBalancers">

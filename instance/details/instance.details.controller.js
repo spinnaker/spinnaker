@@ -225,6 +225,7 @@ module.exports = angular.module('spinnaker.instance.detail.titus.controller', [
       return accountService.getAccountDetails(account).then((details) => {
         this.bastionHost = details.bastionHost || 'unknown';
         this.apiEndpoint = filter(details.regions, {name: region})[0].endpoint;
+        this.discoveryInfoLink = `http://discoveryreadonly.${$scope.instance.region}.dyn${details.environment}.netflix.net:7001/discovery/v2/apps/${app.name}/${$scope.instance.instanceId}`;
         this.titusUiEndpoint = this.apiEndpoint.replace('titusapi', 'titus-ui').replace('http', 'https').replace('7101', '7001');
         if (region !== 'us-east-1') {
           this.bastionStack = '-stack ' + this.apiEndpoint.split('.' + region)[0].replace('http://titusapi.', '');
