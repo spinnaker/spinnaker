@@ -2,6 +2,7 @@ import { ReactInjector } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryConfigSummary, ICanaryConfig } from 'kayenta/domain/index';
+import { ICanaryState } from '../reducers/index';
 
 const atlasCanaryConfig = require('kayenta/scratch/atlas_canary_config.json');
 const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_config.json');
@@ -27,5 +28,24 @@ export function getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
     return ReactInjector.API.one('v2/canaryConfig').get();
   } else {
     return Promise.resolve(canaryConfigSummaries);
+  }
+}
+
+export function updateCanaryConfig(config: ICanaryConfig): Promise<string> {
+  if (CanarySettings.liveCalls) {
+    return ReactInjector.API.one('v2/canaryConfig').put(config);
+  } else {
+    return Promise.resolve(config.name);
+  }
+}
+
+// Not sure if this is the right way to go about this. We have pieces of the config
+// living on different parts of the store. Before, e.g., updating the config, we should
+// reconstitute it into a single object that reflects the user's changes.
+export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
+  if (state.selectedConfig) {
+    return Object.assign({}, state.selectedConfig, { metrics: state.metricList });
+  } else {
+    return null;
   }
 }

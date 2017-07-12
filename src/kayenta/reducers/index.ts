@@ -1,10 +1,15 @@
+import { get } from 'lodash';
+
 import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import {
-  CONFIG_LOAD_ERROR, INITIALIZE, LOAD_CONFIG,
-  RENAME_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES
+  CONFIG_LOAD_ERROR, DISMISS_SAVE_CONFIG_ERROR, INITIALIZE, LOAD_CONFIG,
+  RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
+  SELECT_CONFIG,
+  UPDATE_CONFIG_SUMMARIES
 } from '../actions/index';
+import { SaveConfigState } from '../edit/save';
 
 export interface ICanaryState {
   configSummaries: ICanaryConfigSummary[];
@@ -12,6 +17,8 @@ export interface ICanaryState {
   configLoadState: ConfigDetailLoadState;
   metricList: ICanaryMetricConfig[];
   selectedMetric: ICanaryMetricConfig;
+  saveConfigState: SaveConfigState;
+  saveConfigErrorMessage: string;
 }
 
 function reduceMetric(metric: ICanaryMetricConfig, id: string, action: any): ICanaryMetricConfig {
@@ -55,6 +62,29 @@ export function rootReducer(state: ICanaryState, action: any): ICanaryState {
     case RENAME_METRIC:
       return Object.assign({}, state, {
         metricList: state.metricList.map((metric, index) => reduceMetric(metric, String(index), action))
+      });
+
+    case SAVE_CONFIG_SAVING:
+      return Object.assign({}, state, {
+        saveConfigState: SaveConfigState.Saving,
+        saveConfigErrorMessage: null,
+      });
+
+    case SAVE_CONFIG_SAVED:
+      return Object.assign({}, state, {
+        saveConfigState: SaveConfigState.Saved
+      });
+
+    case SAVE_CONFIG_ERROR:
+      return Object.assign({}, state, {
+        saveConfigState: SaveConfigState.Error,
+        saveConfigErrorMessage: get(action, 'error.data.message', null),
+      });
+
+    case DISMISS_SAVE_CONFIG_ERROR:
+      return Object.assign({}, state, {
+        saveConfigState: SaveConfigState.Saved,
+        saveConfigErrorMessage: null
       });
 
     default:

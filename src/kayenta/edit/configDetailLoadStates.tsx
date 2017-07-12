@@ -7,14 +7,14 @@ import { ICanaryState } from '../reducers/index';
 import { ConfigDetailLoadState } from './configDetailLoader';
 import MetricList from './metricList';
 
-interface IConfigLoadOutcomesProps {
+interface IConfigLoadStatesProps {
   configLoadState: ConfigDetailLoadState;
 }
 
 /*
  * Renders appropriate view given the configuration detail's load state.
  */
-function ConfigDetailLoadStates({ configLoadState }: IConfigLoadOutcomesProps) {
+function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
   switch (configLoadState) {
     case ConfigDetailLoadState.Loading:
       return (
@@ -38,7 +38,7 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadOutcomesProps) {
   }
 }
 
-function mapStateToProps(state: ICanaryState): IConfigLoadOutcomesProps {
+function mapStateToProps(state: ICanaryState): IConfigLoadStatesProps {
   return {
     configLoadState: state.configLoadState,
   };

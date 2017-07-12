@@ -7,6 +7,7 @@ import {
   ApplicationStateProvider
 } from '@spinnaker/core';
 import ConfigDetailLoader from './edit/configDetailLoader';
+import CanaryConfigSave from './edit/save';
 import Canary from './canary';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
@@ -18,6 +19,9 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
     views: {
       detail: {
         component: ConfigDetailLoader, $type: 'react'
+      },
+      footer: {
+        component: CanaryConfigSave, $type: 'react',
       }
     },
     resolve: [
