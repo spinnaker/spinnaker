@@ -1,9 +1,11 @@
 package com.netflix.spinnaker.front50.controllers.v2
 
-import com.netflix.spinnaker.front50.events.ApplicationEventListener
 import com.netflix.spinnaker.front50.controllers.exception.InvalidApplicationRequestException
+import com.netflix.spinnaker.front50.events.ApplicationEventListener
+import com.netflix.spinnaker.front50.exception.NotFoundException
 import com.netflix.spinnaker.front50.model.application.Application
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
+import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
 import com.netflix.spinnaker.front50.model.notification.NotificationDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO
 import com.netflix.spinnaker.front50.model.pipeline.PipelineStrategyDAO
@@ -35,6 +37,9 @@ public class ApplicationsController {
 
   @Autowired
   ApplicationDAO applicationDAO
+
+  @Autowired
+  ApplicationPermissionDAO applicationPermissionDAO
 
   @Autowired
   ProjectDAO projectDAO
@@ -111,7 +116,16 @@ public class ApplicationsController {
   @ApiOperation(value = "", notes = "Fetch a single application by name")
   @RequestMapping(method = RequestMethod.GET, value = "/{applicationName:.+}")
   Application get(@PathVariable final String applicationName) {
-    return applicationDAO.findByName(applicationName.toUpperCase())
+    def app = applicationDAO.findByName(applicationName.toUpperCase())
+    try {
+      def perm = applicationPermissionDAO?.findById(app.name)
+      if (perm?.permissions?.isRestricted()) {
+        app.details().put("permissions", perm.permissions)
+      }
+    } catch (NotFoundException nfe) {
+      // ignored.
+    }
+    return app
   }
 
   @PreAuthorize("hasPermission(#applicationName, 'APPLICATION', 'READ')")
