@@ -1,5 +1,6 @@
 dependencies {
   compile project(":kork-security")
+  compile project(":kork-exceptions")
 
   compile spinnaker.dependency('bootWeb')
   compile spinnaker.dependency('springSecurityCore')

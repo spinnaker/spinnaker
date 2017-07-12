@@ -16,8 +16,23 @@
 
 package com.netflix.spinnaker.kork.web.exceptions;
 
-public class NotFoundException extends RuntimeException {
-  public NotFoundException(String message) {
+public class InvalidRequestException extends RuntimeException {
+  public InvalidRequestException() {
+  }
+
+  public InvalidRequestException(String message) {
     super(message);
+  }
+
+  public InvalidRequestException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
+  public InvalidRequestException(Throwable cause) {
+    super(cause);
+  }
+
+  public InvalidRequestException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    super(message, cause, enableSuppression, writableStackTrace);
   }
 }

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -34,10 +35,26 @@ public class GenericExceptionHandlers {
 
   private final DefaultErrorAttributes defaultErrorAttributes = new DefaultErrorAttributes();
 
+  @ExceptionHandler(AccessDeniedException.class)
+  public void handleAccessDeniedException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+    logger.error("Access Denied", e);
+
+    storeException(request, response, e);
+
+    // avoid leaking any information that may be in `e.getMessage()` by returning a static error message
+    response.sendError(HttpStatus.FORBIDDEN.value(), "Access is denied");
+  }
+
   @ExceptionHandler(NotFoundException.class)
   public void handleNotFoundException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     storeException(request, response, e);
     response.sendError(HttpStatus.NOT_FOUND.value(), e.getMessage());
+  }
+
+  @ExceptionHandler(InvalidRequestException.class)
+  public void handleInvalidRequestException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+    storeException(request, response, e);
+    response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
   }
 
   @ExceptionHandler(Exception.class)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-include 'kork-core', 'kork-cassandra', 'kork-jedis-test', 'kork-swagger', 'kork-security', 'kork-web', 'kork-hystrix', 'kork-stackdriver'
+include 'kork-core', 'kork-cassandra', 'kork-jedis-test', 'kork-swagger', 'kork-security', 'kork-web', 'kork-hystrix', 'kork-stackdriver', 'kork-exceptions'
 
 rootProject.name='kork'
 
