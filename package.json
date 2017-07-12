@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@types/classnames": "^2.2.0",
-    "@uirouter/react-hybrid": "0.0.6",
+    "@uirouter/react-hybrid": "0.0.7",
     "@uirouter/rx": "^0.4.1",
     "@uirouter/visualizer": "^4.0.0",
     "Select2": "git://github.com/select2/select2.git#3.4.8",
