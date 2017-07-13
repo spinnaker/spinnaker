@@ -173,7 +173,7 @@ export class ConfigurePipelineTemplateModalController implements IComponentContr
   }
 
   private getInitialVariableValue(variable: IVariableMetadata): any {
-    if (has(this.pipelineTemplateConfig, 'config.pipeline.variables')) {
+    if (has(this.pipelineTemplateConfig, `config.pipeline.variables.${variable.name}`)) {
       let value = this.pipelineTemplateConfig.config.pipeline.variables[variable.name];
       if (variable.type === 'object' && value) {
         value = dump(value);

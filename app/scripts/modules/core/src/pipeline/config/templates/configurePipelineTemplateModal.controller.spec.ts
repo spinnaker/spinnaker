@@ -96,13 +96,14 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     });
   });
 
-  beforeEach(() => {
-    spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
-      return $q.resolve(template);
-    });
-  });
 
   describe('data initialization', () => {
+    beforeEach(() => {
+      spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+        return $q.resolve(template);
+      });
+    });
+
     it('sets `variableMetadataGroups` on the controller, groups by variable metadata `groupName`', () => {
       ctrl.initialize();
       $scope.$digest();
@@ -143,7 +144,92 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
     });
   });
 
+  describe('modal behavior if the underlying template changes', () => {
+    let templateA: any, templateB: any;
+
+    beforeEach(() => {
+      templateA = {
+        variables: [
+          {
+            name: 'letters',
+            group: 'Basic Settings',
+            type: 'list',
+            defaultValue: ['a', 'b', 'c'],
+          }
+        ]
+      };
+
+      templateB = {
+        variables: [
+          {
+            name: 'letters',
+            group: 'Basic Settings',
+            type: 'list',
+            defaultValue: ['a', 'b', 'c'],
+          },
+          {
+            name: 'numbers',
+            group: 'Basic Settings',
+            type: 'list',
+            defaultValue: [1, 2, 3],
+          }
+        ]
+      }
+    });
+
+    // This test should replicate the following steps:
+    // 1). User creates and saves template config using the `templateA` template.
+    // 2). User updates the template to add another variable (now the template is `templateB`).
+    // 3). User reopens the config modal - the new variable should be initialized with its default value.
+    it('initializes a new variable field with its default value', () => {
+      const spy = spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl');
+      spy.and.callFake(() => $q.resolve(templateA));
+
+      ctrl.initialize();
+      $scope.$digest();
+
+      ctrl.pipelineTemplateConfig = ctrl.buildConfig();
+
+      spy.and.callFake(() => $q.resolve(templateB));
+      ctrl.initialize();
+      $scope.$digest();
+
+      expect(ctrl.buildConfig().config.pipeline.variables).toEqual({
+        letters: ['a', 'b', 'c'],
+        numbers: [1, 2, 3],
+      });
+    });
+
+    // This test should replicate the following steps:
+    // 1). User creates and saves template config using the `templateB` template.
+    // 2). User updates the template to remove a variable (now the template is `templateA`).
+    // 3). User reopens the config modal - on save, the removed variable should no longer exist in the config.
+    it('prunes variables from the config if they no longer exist on the template', () => {
+      const spy = spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl');
+      spy.and.callFake(() => $q.resolve(templateB));
+
+      ctrl.initialize();
+      $scope.$digest();
+
+      ctrl.pipelineTemplateConfig = ctrl.buildConfig();
+
+      spy.and.callFake(() => $q.resolve(templateA));
+      ctrl.initialize();
+      $scope.$digest();
+
+      expect(ctrl.buildConfig().config.pipeline.variables).toEqual({
+        letters: ['a', 'b', 'c'],
+      });
+    });
+  });
+
   describe('config creation', () => {
+    beforeEach(() => {
+      spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+        return $q.resolve(template);
+      });
+    });
+
     it('builds map of variables', () => {
       ctrl.initialize();
       $scope.$digest();
@@ -177,6 +263,13 @@ describe('Controller: ConfigurePipelineTemplateModalCtrl', () => {
         name: 'variableName'
       };
     };
+
+    beforeEach(() => {
+      spyOn(ReactInjector.pipelineTemplateService, 'getPipelineTemplateFromSourceUrl').and.callFake(() => {
+        return $q.resolve(template);
+      });
+    });
+
 
     it('verifies that input variables are not empty', () => {
       ctrl.initialize();
