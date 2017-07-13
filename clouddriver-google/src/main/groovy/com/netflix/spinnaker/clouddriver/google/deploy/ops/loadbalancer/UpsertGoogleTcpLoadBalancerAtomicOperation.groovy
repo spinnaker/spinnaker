@@ -278,7 +278,7 @@ class UpsertGoogleTcpLoadBalancerAtomicOperation extends UpsertGoogleLoadBalance
         loadBalancingScheme: 'EXTERNAL',
         IPProtocol: description.ipProtocol,
         IPAddress: description.ipAddress,
-        portRange: description.certificate ? "443" : description.portRange,
+        portRange: description.portRange,
         target: targetProxyUrl,
       )
       Operation ruleOp = safeRetry.doRetry(
