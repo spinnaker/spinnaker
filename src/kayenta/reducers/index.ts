@@ -3,7 +3,7 @@ import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import {
   CONFIG_LOAD_ERROR, INITIALIZE, LOAD_CONFIG,
-  RENAME_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES
+  ADD_METRIC, RENAME_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES
 } from '../actions/index';
 
 export interface ICanaryState {
@@ -50,6 +50,11 @@ export function rootReducer(state: ICanaryState, action: any): ICanaryState {
         configLoadState: ConfigDetailLoadState.Loaded,
         metricList: action.config.metrics,
         selectedMetric: null
+      });
+
+    case ADD_METRIC:
+      return Object.assign({}, state, {
+        metricList: state.metricList.concat([action.metric]),
       });
 
     case RENAME_METRIC:
