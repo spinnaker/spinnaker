@@ -67,11 +67,22 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
       applyConfigurationsFromTemplate(configuration.getConfiguration(), template.getConfiguration(), pipeline);
     }
 
+    mapPipelineConfigId(pipeline, configuration);
+
     pipeline.computeIfAbsent("application", k -> configuration.getPipeline().getApplication());
     pipeline.computeIfAbsent("name", k -> configuration.getPipeline().getName());
 
     applyConfigurations(configuration.getConfiguration(), pipeline);
     renderConfigurations(pipeline, RenderUtil.createDefaultRenderContext(template, configuration, null));
+  }
+
+  @SuppressWarnings("unchecked")
+  private void mapPipelineConfigId(Map<String, Object> pipeline, TemplateConfiguration configuration) {
+    if (pipeline.containsKey("id") && pipeline.get("id") != configuration.getPipeline().getPipelineConfigId()) {
+      Map<String, Object> config = (Map<String, Object>) pipeline.get("config");
+      Map<String, Object> p = (Map<String, Object>) config.get("pipeline");
+      p.put("pipelineConfigId", pipeline.get("id"));
+    }
   }
 
   private void applyConfigurationsFromTemplate(PipelineConfiguration configuration, Configuration templateConfiguration, Map<String, Object> pipeline) {

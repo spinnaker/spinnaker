@@ -114,4 +114,28 @@ class TemplatedPipelineModelMutatorSpec extends Specification {
     pipeline.parallel == null
     pipeline.parameters == null
   }
+
+  def "should map pipeline config id if it is unset"() {
+    given:
+    def pipeline = [
+      id: 'pipeline-id',
+      config: [
+        schema: '1',
+        pipeline: [
+          template: [
+            source: 'static-template'
+          ]
+        ]
+      ]
+    ]
+
+    when:
+    subject.mutate(pipeline)
+
+    then:
+    1 * templateLoader.load(_) >> { [new PipelineTemplate(
+      schema: '1'
+    )] }
+    pipeline.id == pipeline.config.pipeline.pipelineConfigId
+  }
 }

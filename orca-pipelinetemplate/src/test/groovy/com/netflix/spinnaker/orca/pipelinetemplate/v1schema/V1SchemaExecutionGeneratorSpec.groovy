@@ -60,7 +60,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
   }
 
   @Unroll
-  def "should default to pipelineConfigId if pipelineConfigId is set and fall back to the pipelines id if not set"() {
+  def "should fallback to pipelineConfigId if id is not set"() {
     given:
     PipelineTemplate template = getPipelineTemplate()
     TemplateConfiguration configuration = new TemplateConfiguration(
@@ -78,7 +78,7 @@ class V1SchemaExecutionGeneratorSpec extends Specification {
     where:
     pipelineId | pipelineDefinitionData             || expectedId
     "124"  | [application: 'orca',
-              pipelineConfigId: 'pipelineConfigId'] || "pipelineConfigId"
+              pipelineConfigId: 'pipelineConfigId'] || "124"
     null   | [application: 'orca',
               pipelineConfigId: 'pipelineConfigId'] || "pipelineConfigId"
     "124"  | [application: 'orca']                  || "124"
