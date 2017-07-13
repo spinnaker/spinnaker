@@ -36,6 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -243,9 +245,31 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       SpinnakerRuntimeSettings runtimeSettings,
       DistributedService<Rosco, T> roscoService
   ) {
-    Rosco rosco =  roscoService.connectToPrimaryService(details, runtimeSettings);
-    Rosco.AllStatus allStatus = rosco.getAllStatus();
     ServiceSettings roscoSettings = runtimeSettings.getServiceSettings(roscoService.getService());
+    Rosco.AllStatus allStatus;
+
+    try {
+      Rosco rosco = roscoService.connectToPrimaryService(details, runtimeSettings);
+      allStatus = rosco.getAllStatus();
+    } catch (RetrofitError e) {
+      boolean enabled = roscoSettings.getEnabled() != null && roscoSettings.getEnabled();
+      if (enabled) {
+        throw new HalException(Problem.Severity.FATAL, "Rosco is enabled, and no connection to rosco could be established: " + e, e);
+      }
+
+      Response response = e.getResponse();
+      if (response == null) {
+        throw new IllegalStateException("Unknown connection failure: " + e, e);
+      }
+
+      // 404 when the service couldn't be found, 503 when k8s couldn't establish a connection
+      if (response.getStatus() == 404 || response.getStatus() == 503) {
+        log.info("Rosco is not enabled, and there are no server groups to reap");
+        return;
+      } else {
+        throw new HalException(Problem.Severity.FATAL, "Rosco is not enabled, but couldn't be connected to for unknown reason: " + e, e);
+      }
+    }
     RunningServiceDetails roscoDetails = roscoService.getRunningServiceDetails(details, runtimeSettings);
 
     Set<String> activeInstances = new HashSet<>();
@@ -322,9 +346,13 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
   private <T extends Account> void reapOrcaServerGroups(AccountDeploymentDetails<T> details,
       SpinnakerRuntimeSettings runtimeSettings,
       DistributedService<Orca, T> orcaService) {
+    ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
+    boolean enabled = orcaSettings.getEnabled() != null && orcaSettings.getEnabled();
+    if (!enabled) {
+      log.warn("Orca was not updated during this deployment, if no orca instances exist this deployment may fail.");
+    }
     Orca orca = orcaService.connectToPrimaryService(details, runtimeSettings);
     Map<String, ActiveExecutions> executions = orca.getActiveExecutions();
-    ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
     RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details, runtimeSettings);
 
     Map<String, Integer> executionsByInstance = new HashMap<>();
