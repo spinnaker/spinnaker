@@ -39,18 +39,20 @@ class DeployAppengineDescriptionValidator extends DescriptionValidator<DeployApp
       return
     }
 
-    if (!helper.validateGitCredentials(description.credentials.gitCredentials,
-                                       description.gitCredentialType,
-                                       description.credentials.name,
-                                       "gitCredentialType")) {
-      return
+    if (!description.repositoryUrl.startsWith("gs://")) {
+      if (!helper.validateGitCredentials(description.credentials.gitCredentials,
+                                         description.gitCredentialType,
+                                         description.credentials.name,
+                                         "gitCredentialType")) {
+         return
+      }
+      helper.validateNotEmpty(description.branch, "branch")
     }
 
     helper.validateApplication(description.application, "application")
     helper.validateStack(description.stack, "stack")
     helper.validateDetails(description.freeFormDetails, "freeFormDetails")
     helper.validateNotEmpty(description.repositoryUrl, "repositoryUrl")
-    helper.validateNotEmpty(description.branch, "branch")
     if (!(description.configFilepaths || description.configFiles)) {
       helper.validateNotEmpty(description.configFilepaths, "configFilepaths")
       helper.validateNotEmpty(description.configFiles, "configFiles")

@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.appengine.gitClient
 
+import com.netflix.spinnaker.clouddriver.appengine.model.AppengineRepositoryClient
+
 import groovy.transform.TupleConstructor
 import org.eclipse.jgit.api.CloneCommand
 import org.eclipse.jgit.api.FetchCommand
@@ -25,13 +27,13 @@ import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 
 @TupleConstructor
-class AppengineGitRepositoryClient {
+class AppengineGitRepositoryClient implements AppengineRepositoryClient {
   String repositoryUrl
   String targetDirectory
   AppengineGitCredentialType credentialType
   AppengineGitCredentials config
 
-  void cloneRepository() {
+  void initializeLocalDirectory() {
     CloneCommand command = Git.cloneRepository()
       .setURI(repositoryUrl)
       .setDirectory(new File(targetDirectory))
@@ -39,6 +41,11 @@ class AppengineGitRepositoryClient {
     attachCredentials(command)
 
     command.call()
+  }
+
+  void updateLocalDirectoryWithVersion(String version) {
+    fetch();
+    checkout(version);
   }
 
   void fetch() {
