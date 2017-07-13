@@ -39,6 +39,7 @@ open class InterceptorProperties {
   open var learning: Boolean = true
   open var priority: Int = 500
   open var capacity: Int = 100
+  open var durationMs: Long = 5000
 }
 
 open class OverridableCapacityProperties : InterceptorProperties() {

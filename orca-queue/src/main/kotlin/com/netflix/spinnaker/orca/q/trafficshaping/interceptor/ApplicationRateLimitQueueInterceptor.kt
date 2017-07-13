@@ -60,7 +60,8 @@ class ApplicationRateLimitQueueInterceptor(
             RateLimitContext(
               getName(),
               applicationRateLimitingProperties.getCapacity(message.application),
-              applicationRateLimitingProperties.getEnforcing(message.application)
+              applicationRateLimitingProperties.getEnforcing(message.application),
+              applicationRateLimitingProperties.durationMs
             )
           )
         } catch (e: Exception) {

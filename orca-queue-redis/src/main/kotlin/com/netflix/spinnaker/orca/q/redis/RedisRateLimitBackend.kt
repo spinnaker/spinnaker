@@ -24,7 +24,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 /**
  * Keys used, all namespaced by the interceptor's name, e.g. "appRateLimit":
@@ -35,13 +34,12 @@ import java.util.*
  * - queue:trafficShaping:{ns}:enforcing - a list of enforced subjects
  * - queue:trafficShaping:{ns}:{subject}:learning - subject-specific learning flag
  * - queue:trafficShaping:{ns}:{subject}:capacity - subject-specific capacity
+ * - queue:trafficShaping:{ns}:duration - rate limit duration
  */
 class RedisRateLimitBackend(
   private val pool: Pool<Jedis>,
   private val clock: Clock
 ) : RateLimitBackend {
-
-  private val r = Random()
 
   override fun incrementAndGet(subject: String, context: RateLimitContext): RateLimit {
     pool.resource.use { redis ->
@@ -61,7 +59,7 @@ class RedisRateLimitBackend(
         return RateLimit(limiting, Duration.ZERO, false)
       }
 
-      return RateLimit(limiting, Duration.of(jitteredDuration(3000), ChronoUnit.MILLIS), true)
+      return RateLimit(limiting, Duration.of(getDuration(redis, context.namespace, context.duration), ChronoUnit.MILLIS), true)
     }
   }
 
@@ -99,5 +97,12 @@ class RedisRateLimitBackend(
     return default
   }
 
-  private fun jitteredDuration(maxMillis: Int): Long = (r.nextInt(maxMillis + 1 - 10) + maxMillis).toLong()
+  private fun getDuration(redis: Jedis, ns: String, default: Long): Long {
+    val nsDuration: String? = redis.get("queue.trafficShaping:$ns:duration")
+    if (nsDuration != null) {
+      return nsDuration.toLong()
+    }
+
+    return default
+  }
 }

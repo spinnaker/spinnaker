@@ -50,10 +50,6 @@ class PriorityCapacityQueueInterceptor(
   private val timeShapedId: Id
   ) : TrafficShapingInterceptor {
 
-  companion object {
-    private val THROTTLE_TIME = Duration.of(5, ChronoUnit.SECONDS)
-  }
-
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
   private val r: Random = Random()
@@ -117,14 +113,13 @@ class PriorityCapacityQueueInterceptor(
     }
   }
 
-  // TODO rz - configuration of throttle duration
   private fun defaultThrottleCallback(): TrafficShapingInterceptorCallback = { queue, msg, ack ->
-    queue.push(msg, THROTTLE_TIME)
+    queue.push(msg, Duration.of(properties.durationMs, ChronoUnit.MILLIS))
     val app = when (msg) {
       is ApplicationAware -> msg.application
       else -> "UNKNOWN"
     }
-    registry.counter(timeShapedId.withTags("interceptor", getName(), "application", app)).increment(THROTTLE_TIME.toMillis())
+    registry.counter(timeShapedId.withTags("interceptor", getName(), "application", app)).increment(properties.durationMs)
     ack.invoke()
   }
 

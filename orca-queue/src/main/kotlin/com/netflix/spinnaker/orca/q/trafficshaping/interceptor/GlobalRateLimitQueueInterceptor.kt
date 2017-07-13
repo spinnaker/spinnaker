@@ -56,7 +56,8 @@ class GlobalRateLimitQueueInterceptor(
         RateLimitContext(
           getName(),
           properties.capacity,
-          !properties.learning
+          !properties.learning,
+          properties.durationMs
         )
       )
     } catch (e: Exception) {

@@ -22,7 +22,8 @@ data class RateLimit(val limiting: Boolean, val duration: Duration, val enforcin
 data class RateLimitContext(
   val namespace: String,
   val capacity: Int,
-  val enforcing: Boolean
+  val enforcing: Boolean,
+  val duration: Long
 )
 
 interface RateLimitBackend {
