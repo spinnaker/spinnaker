@@ -8,6 +8,15 @@ import './react.uirouter.css';
 export const REACT_UIROUTER = 'spinnaker.core.react.uirouter';
 const hybridModule = module(REACT_UIROUTER, ['ui.router']);
 
+const bindResolves = (WrappedComponent: any) =>
+class BindResolvesToProps extends React.Component<any> {
+  public static WrappedComponent = WrappedComponent;
+  public render() {
+    const { resolves, ...props } = this.props;
+    return React.createElement(WrappedComponent, { ...props, ...resolves });
+  }
+};
+
 // UI-Router React 0.5.0 provides resolve data as a prop called `resolves`.
 // This decorator spreads each individual resolved value to its _own prop_.
 //
@@ -17,13 +26,10 @@ hybridModule.config(['$uiRouterProvider', (router: UIRouter) => {
     'ngNoInject';
     const views = parentDecorator(state);
 
-    const BindResolvesToProps = (Component: any) => ({ resolves, ...props }: any) =>
-        React.createElement(Component, { ...props, ...resolves });
-
     Object.keys(views).forEach(key => {
       const view: ReactViewDeclaration = views[key];
       if (view.$type === 'react' && typeof view.component === 'function') {
-        view.component = BindResolvesToProps(view.component);
+        view.component = bindResolves(view.component);
       }
     });
 

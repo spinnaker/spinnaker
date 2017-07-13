@@ -1,9 +1,12 @@
 import { IServiceProvider, module } from 'angular';
 import { StateParams } from '@uirouter/angularjs';
-import { ApplicationReader } from './service/application.read.service';
+
 import { Application } from './application.model';
-import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
+import { ApplicationComponent } from './ApplicationComponent';
 import { ApplicationModelBuilder } from './applicationModel.builder';
+import { ApplicationReader } from './service/application.read.service';
+import { INestedState, STATE_CONFIG_PROVIDER, StateConfigProvider } from 'core/navigation/state.provider';
+import { NgReact } from 'core/reactShims';
 
 export class ApplicationStateProvider implements IServiceProvider {
 
@@ -14,9 +17,9 @@ export class ApplicationStateProvider implements IServiceProvider {
     name: 'insight',
     abstract: true,
     views: {
-      'insight': {
-        template: '<insight-layout app="$resolve.app"></insight-layout>',
-      }
+      'insight' : {
+        component: NgReact.InsightLayout, $type: 'react'
+      },
     },
     children: this.insightStates,
   };
@@ -99,7 +102,7 @@ export class ApplicationStateProvider implements IServiceProvider {
     };
     applicationConfig.views = {};
     applicationConfig.views[mainView] = {
-      template: `<application app="$resolve.app"></application>`,
+      component: ApplicationComponent, $type: 'react'
     };
     parentState.children.push(applicationConfig);
     this.stateConfigProvider.setStates();

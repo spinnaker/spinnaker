@@ -1,9 +1,10 @@
-import {module, IComponentController, IComponentOptions} from 'angular';
-import {Application} from '../application.model';
-import {ApplicationDataSource} from '../service/applicationDataSource';
-import {StateService} from '@uirouter/angularjs';
+import { module, IComponentController, IComponentOptions } from 'angular';
 
-class SecondaryApplicationNavComponentController implements IComponentController {
+import { Application } from '../application.model';
+import { ApplicationDataSource } from '../service/applicationDataSource';
+import { StateService } from '@uirouter/angularjs';
+
+class ApplicationNavSecondaryComponentController implements IComponentController {
 
   public application: Application;
 
@@ -18,11 +19,11 @@ class SecondaryApplicationNavComponentController implements IComponentController
   }
 }
 
-class SecondaryApplicationNavComponent implements IComponentOptions {
+export class ApplicationNavSecondaryComponent implements IComponentOptions {
   public bindings: any = {
     application: '=',
   };
-  public controller: any = SecondaryApplicationNavComponentController;
+  public controller: any = ApplicationNavSecondaryComponentController;
   public template = `
     <div ng-if="!$ctrl.application.notFound">
       <a ng-repeat="dataSource in $ctrl.getSecondaryDataSources()"
@@ -52,6 +53,6 @@ class SecondaryApplicationNavComponent implements IComponentOptions {
   `;
 }
 
-export const SECONDARY_APPLICATION_NAV_COMPONENT = 'spinnaker.core.application.nav.secondaryNav.component';
-module(SECONDARY_APPLICATION_NAV_COMPONENT, [])
-  .component('secondaryApplicationNav', new SecondaryApplicationNavComponent());
+export const APPLICATION_NAV_SECONDARY_COMPONENT = 'spinnaker.core.application.nav.secondaryNav.component';
+module(APPLICATION_NAV_SECONDARY_COMPONENT, [])
+  .component('applicationNavSecondary', new ApplicationNavSecondaryComponent());

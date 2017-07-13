@@ -1,6 +1,8 @@
-import {module} from 'angular';
-import {APPLICATION_STATE_PROVIDER, ApplicationStateProvider} from './application.state.provider';
-import {STATE_CONFIG_PROVIDER, StateConfigProvider, INestedState} from 'core/navigation/state.provider';
+import { module } from 'angular';
+
+import { APPLICATION_STATE_PROVIDER, ApplicationStateProvider } from './application.state.provider';
+import { STATE_CONFIG_PROVIDER, StateConfigProvider, INestedState } from 'core/navigation/state.provider';
+import { NgReact } from 'core/reactShims';
 
 export const APPLICATIONS_STATE_PROVIDER = 'spinnaker.core.application.applications.state';
 module(APPLICATIONS_STATE_PROVIDER, [
@@ -13,9 +15,7 @@ module(APPLICATIONS_STATE_PROVIDER, [
     url: '/applications',
     views: {
       'main@': {
-        templateUrl: require('../application/applications.html'),
-        controller: 'ApplicationsCtrl',
-        controllerAs: 'ctrl'
+        component: NgReact.Applications, $type: 'react',
       }
     },
     data: {

@@ -14,6 +14,7 @@ export interface IApplicationDataSourceAttribute {
 
 export interface IApplicationSummary {
   name: string;
+  description?: string;
   email?: string;
   accounts?: string;
   updateTs?: string;

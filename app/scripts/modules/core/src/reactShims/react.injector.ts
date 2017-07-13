@@ -27,6 +27,7 @@ import { PipelineConfigProvider } from '../pipeline/config/pipelineConfigProvide
 import { PipelineConfigService } from '../pipeline/config/services/pipelineConfig.service';
 import { PipelineTemplateService } from '../pipeline/config/templates/pipelineTemplate.service';
 import { ProviderSelectionService } from '../cloudProvider/providerSelection/providerSelection.service';
+import { RecentHistoryService } from 'core/history/recentHistory.service'
 import { SchedulerFactory } from '../scheduler/scheduler.factory';
 import { StateEvents } from './state.events';
 import { TaskMonitorBuilder } from '../task/monitor/taskMonitor.builder';
@@ -81,6 +82,7 @@ export class CoreReactInject extends ReactInject {
   public get pipelineTemplateService() { return this.$injector.get('pipelineTemplateService') as PipelineTemplateService; }
   public get providerSelectionService() { return this.$injector.get('providerSelectionService') as ProviderSelectionService; }
   public get schedulerFactory() { return this.$injector.get('schedulerFactory') as SchedulerFactory; }
+  public get recentHistoryService() { return this.$injector.get('recentHistoryService') as RecentHistoryService; }
   public get stateEvents() { return this.$injector.get('stateEvents') as StateEvents; }
   public get taskMonitorBuilder() { return this.$injector.get('taskMonitorBuilder') as TaskMonitorBuilder; }
   public get variableInputService() { return this.$injector.get('variableInputService') as VariableInputService; }

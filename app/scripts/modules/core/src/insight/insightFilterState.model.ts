@@ -1,4 +1,6 @@
-import { INSIGHT_NGMODULE } from './insight.module';
+import { module } from 'angular';
+
+import { COLLAPSIBLE_SECTION_STATE_CACHE } from 'core/cache/collapsibleSectionStateCache';
 
 export class InsightFilterStateModel {
 
@@ -45,4 +47,8 @@ export class InsightFilterStateModel {
   }
 }
 
-INSIGHT_NGMODULE.service('InsightFilterStateModel', InsightFilterStateModel);
+export const INSIGHT_FILTER_STATE_MODEL = 'spinnaker.core.insight.insightFilterState.model';
+module(INSIGHT_FILTER_STATE_MODEL, [
+  COLLAPSIBLE_SECTION_STATE_CACHE
+])
+  .service('InsightFilterStateModel', InsightFilterStateModel);
