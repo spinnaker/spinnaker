@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, IFilterService, IScope, module } from 'angular';
+import { IController, IComponentOptions, IFilterService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 
@@ -18,7 +18,7 @@ export interface IApplicationPagination {
   maxSize: number;
 }
 
-export class ApplicationsController implements IComponentController {
+export class ApplicationsController implements IController {
   private accounts: IAccount[];
   public applications: IApplicationSummary[];
   private applicationsViewStateCache: ICache;

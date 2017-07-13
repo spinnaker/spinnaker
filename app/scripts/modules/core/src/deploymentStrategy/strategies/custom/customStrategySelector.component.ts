@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import { APPLICATION_READ_SERVICE, ApplicationReader } from 'core/application/service/application.read.service';
 import { PIPELINE_CONFIG_SERVICE, PipelineConfigService } from 'core/pipeline/config/services/pipelineConfig.service';
@@ -21,7 +21,7 @@ interface ICustomStrategyCommand {
   pipelineParameters?: { [key: string]: any };
 }
 
-class CustomStrategySelectorController implements IComponentController {
+class CustomStrategySelectorController implements IController {
 
   public command: ICustomStrategyCommand;
   public state: ICustomStrategyState = {

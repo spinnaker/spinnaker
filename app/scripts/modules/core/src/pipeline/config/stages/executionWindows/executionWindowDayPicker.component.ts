@@ -1,4 +1,4 @@
-const angular = require('angular');
+import { IController, module, noop } from 'angular';
 
 import { DAYS_OF_WEEK } from './daysOfWeek';
 
@@ -6,7 +6,7 @@ interface IWindowConfig {
   days: number[];
 }
 
-class ExecutionWindowDayPickerController implements ng.IComponentController {
+class ExecutionWindowDayPickerController implements IController {
 
   public DAYS_OF_WEEK: any = DAYS_OF_WEEK;
   public windowConfig: IWindowConfig;
@@ -14,7 +14,7 @@ class ExecutionWindowDayPickerController implements ng.IComponentController {
 
   public $onInit(): void {
     if (!this.onChange) {
-      this.onChange = angular.noop;
+      this.onChange = noop;
     }
   }
 
@@ -69,5 +69,5 @@ class ExecutionWindowDayPickerComponent implements ng.IComponentOptions {
   public templateUrl: string = require('./executionWindowDayPicker.component.html');
 }
 
-angular.module(EXECUTION_WINDOWS_DAY_PICKER, [])
+module(EXECUTION_WINDOWS_DAY_PICKER, [])
   .component('executionWindowDayPicker', new ExecutionWindowDayPickerComponent());

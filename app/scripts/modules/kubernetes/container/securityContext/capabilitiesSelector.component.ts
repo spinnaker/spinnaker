@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {set, has} from 'lodash';
+import { IController, IComponentOptions, module } from 'angular';
+import { set, has } from 'lodash';
 
 interface ICapabilitiesSelectorField {
   label: string;
@@ -7,7 +7,7 @@ interface ICapabilitiesSelectorField {
   model: string;
 }
 
-class CapabilitiesSelector implements ng.IComponentController {
+class CapabilitiesSelector implements IController {
   public component: any;
   public fields: ICapabilitiesSelectorField[] = [
     {
@@ -35,7 +35,7 @@ class CapabilitiesSelector implements ng.IComponentController {
   }
 }
 
-class CapabilitiesSelectorComponent implements ng.IComponentOptions {
+class CapabilitiesSelectorComponent implements IComponentOptions {
   public bindings: any = {
     component: '=',
   };

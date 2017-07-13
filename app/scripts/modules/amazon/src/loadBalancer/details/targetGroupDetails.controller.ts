@@ -1,4 +1,4 @@
-import { IPromise, IQService, IScope, module } from 'angular';
+import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
 import { Application, ILoadBalancer } from '@spinnaker/core';
@@ -13,7 +13,7 @@ export interface ITargetGroupFromStateParams {
   vpcId: string;
 }
 
-export class AwsTargetGroupDetailsController {
+export class AwsTargetGroupDetailsController implements IController {
   private targetGroupFromParams: ITargetGroupFromStateParams;
   public application: Application;
   public state = { loading: true };

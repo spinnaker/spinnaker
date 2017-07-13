@@ -163,14 +163,14 @@ export class AwsServerGroupConfigurationService {
       enabledMetrics: this.$q.when(clone(this.enabledMetrics)),
       healthCheckTypes: this.$q.when(clone(this.healthCheckTypes)),
       terminationPolicies: this.$q.when(clone(this.terminationPolicies)),
-    }).then((backingData: IAmazonServerGroupCommandBackingData) => {
+    }).then((backingData: Partial<IAmazonServerGroupCommandBackingData>) => {
       let loadBalancerReloader = this.$q.when(null);
       let securityGroupReloader = this.$q.when(null);
       let instanceTypeReloader = this.$q.when(null);
       backingData.accounts = keys(backingData.credentialsKeyedByAccount);
       backingData.filtered = {} as IAmazonServerGroupCommandBackingDataFiltered;
       backingData.scalingProcesses = this.autoScalingProcessService.listProcesses();
-      command.backingData = backingData;
+      command.backingData = backingData as IAmazonServerGroupCommandBackingData;
       this.configureVpcId(command);
       backingData.filtered.securityGroups = this.getRegionalSecurityGroups(command);
       if (command.viewState.disableImageSelection) {

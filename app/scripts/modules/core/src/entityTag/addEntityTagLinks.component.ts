@@ -1,10 +1,10 @@
-import { module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import { Application, IEntityTag } from 'core';
 import { EntityTagEditor, IEntityTagEditorProps, IOwnerOption } from './EntityTagEditor';
 import { ENTITY_TAGS_HELP } from './entityTags.help';
 
-class AddEntityTagLinksCtrl implements ng.IComponentController {
+class AddEntityTagLinksCtrl implements IController {
   public application: Application;
   public tagType: string;
 
@@ -37,7 +37,7 @@ class AddEntityTagLinksCtrl implements ng.IComponentController {
   }
 }
 
-class AddEntityTagLinksComponent implements ng.IComponentOptions {
+class AddEntityTagLinksComponent implements IComponentOptions {
   public bindings: any = {
     component: '<',
     application: '<',

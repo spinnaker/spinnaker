@@ -1,4 +1,4 @@
-import { ISCEService, module } from 'angular';
+import { IController, ISCEService, module } from 'angular';
 import { debounce, filter, find, flatten, forOwn, groupBy, max, maxBy, sortBy, sum, sumBy, throttle, uniq } from 'lodash';
 import * as $ from 'jquery';
 
@@ -10,7 +10,7 @@ import { LABEL_COMPONENT } from 'core/presentation/label.component';
 
 import './pipelineGraph.less';
 
-export class PipelineGraphController implements ng.IComponentController {
+export class PipelineGraphController implements IController {
   public pipeline: IPipeline;
   public execution: IExecution;
   public viewState: IExecutionViewState;

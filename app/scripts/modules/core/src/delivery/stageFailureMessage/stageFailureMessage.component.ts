@@ -1,14 +1,14 @@
-import {module} from 'angular';
+import { IController, module } from 'angular';
 
-import {IStageStep} from 'core/domain/IStageStep';
-import {IExecutionStage} from 'core/domain/IExecutionStage';
+import { IStageStep } from 'core/domain/IStageStep';
+import { IExecutionStage } from 'core/domain/IExecutionStage';
 
 interface IFailureOnChanges extends ng.IOnChangesObject {
   isFailed: ng.IChangesObject<boolean>;
   stage: ng.IChangesObject<IExecutionStage>;
 }
 
-class StageFailureMessageCtrl implements ng.IComponentController {
+class StageFailureMessageCtrl implements IController {
 
   public isFailed: boolean;
   public message: string;

@@ -1,13 +1,13 @@
-import {module} from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { IServerGroup } from 'core/domain';
-import {Application} from 'core/application/application.model';
+import { Application } from 'core/application/application.model';
 
-class ServerGroupRunningTasksCtrl implements ng.IComponentController {
+class ServerGroupRunningTasksCtrl implements IController {
   public serverGroup: IServerGroup;
   public application: Application;
 }
 
-class ServerGroupRunningTasksComponent implements ng.IComponentOptions {
+class ServerGroupRunningTasksComponent implements IComponentOptions {
   public bindings: any = {
     serverGroup: '<',
     application: '<',

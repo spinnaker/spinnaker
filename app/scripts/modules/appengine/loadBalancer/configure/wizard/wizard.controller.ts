@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IController, module } from 'angular';
 import { cloneDeep } from 'lodash';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
@@ -20,7 +20,7 @@ import {
 
 import './wizard.less';
 
-class AppengineLoadBalancerWizardController {
+class AppengineLoadBalancerWizardController implements IController {
   public state = {loading: true};
   public loadBalancer: AppengineLoadBalancerUpsertDescription;
   public heading: string;

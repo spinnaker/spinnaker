@@ -1,5 +1,5 @@
 import { flatten } from 'lodash';
-import { IComponentController, IPromise, IQService, module } from 'angular';
+import { IController, IPromise, IQService, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { API_SERVICE, Api } from 'core/api/api.service';
@@ -19,7 +19,7 @@ interface IStageWrapper {
   stage: IStage;
 }
 
-class CopyStageModalCtrl implements IComponentController {
+class CopyStageModalCtrl implements IController {
   public applications: IApplicationSummary[];
   public stages: IStageWrapper[];
   public viewState = { loading: true, error: false };

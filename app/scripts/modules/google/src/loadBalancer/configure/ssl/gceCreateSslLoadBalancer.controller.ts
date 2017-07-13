@@ -1,4 +1,4 @@
-import { module, IScope } from 'angular';
+import { module, IScope, IController } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
@@ -60,7 +60,7 @@ class SslLoadBalancer implements IGceLoadBalancer {
   constructor (public region = 'global') {}
 }
 
-class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
+class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IController {
   public pages: any = {
     'location': require('./createLoadBalancerProperties.html'),
     'listener': require('./listener.html'),

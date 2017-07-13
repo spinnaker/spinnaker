@@ -1,4 +1,4 @@
-import { IComponentController, module } from 'angular';
+import { IController, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import { Application } from '@spinnaker/core';
@@ -7,7 +7,7 @@ import { IAwsLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
 import './awsLoadBalancerChoice.less'
 
-class AwsLoadBalancerChoiceCtrl implements IComponentController {
+class AwsLoadBalancerChoiceCtrl implements IController {
   public choices: IAwsLoadBalancerConfig[];
   public choice: IAwsLoadBalancerConfig;
 

@@ -1,10 +1,10 @@
-import { module, IComponentController, IComponentOptions } from 'angular';
+import { module, IController, IComponentOptions } from 'angular';
 
 import { Application } from '../application.model';
 import { ApplicationDataSource } from '../service/applicationDataSource';
 import { StateService } from '@uirouter/angularjs';
 
-class ApplicationNavSecondaryComponentController implements IComponentController {
+class ApplicationNavSecondaryComponentController implements IController {
 
   public application: Application;
 

@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { Subject } from 'rxjs';
 import { get, intersection, uniq } from 'lodash';
 
@@ -21,7 +21,7 @@ interface ISecurityGroupCommand extends ISecurityGroup {
   credentials: string;
 }
 
-class IngressRuleSelectorController implements IComponentController {
+class IngressRuleSelectorController implements IController {
 
   public rule: IRuleCommand;
   public securityGroup: ISecurityGroupCommand;

@@ -1,12 +1,12 @@
-import {extend} from 'lodash';
-import {IComponentController, IComponentOptions, module} from 'angular';
-import {IModalInstanceService, IModalService} from 'angular-ui-bootstrap';
+import { extend } from 'lodash';
+import { IController, IComponentOptions, module } from 'angular';
+import { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
 
-import {IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IJenkinsInfo} from 'core/domain';
-import {ICommit} from './commitHistory.component';
-import {COMMIT_HISTORY_COMPONENT} from './commitHistory.component';
-import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
-import {JAR_DIFF_COMPONENT, IJarDiff} from './jarDiff.component';
+import { IBuildDiffInfo, ICreationMetadata, ICreationMetadataTag, IJenkinsInfo } from 'core/domain';
+import { ICommit } from './commitHistory.component';
+import { COMMIT_HISTORY_COMPONENT } from './commitHistory.component';
+import { EXECUTION_SERVICE, ExecutionService } from 'core/delivery/service/execution.service';
+import { JAR_DIFF_COMPONENT, IJarDiff } from './jarDiff.component';
 
 export interface IViewChangesConfig {
   buildInfo?: IBuildDiffInfo;
@@ -52,7 +52,7 @@ class ViewChangesModalController {
   }
 }
 
-class ViewChangesLinkController implements IComponentController {
+class ViewChangesLinkController implements IController {
 
   public changeConfig: IViewChangesConfig;
   public viewType: string;

@@ -2,7 +2,13 @@
 # yarn lockfile v1
 
 
-"@types/angular-mocks@1.5.9", "@types/angular-mocks@^1.5.9":
+"@types/angular-mocks@1.5.10":
+  version "1.5.10"
+  resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.10.tgz#bb3728bfc156a3bc35dfbfcc2d332e175284fba6"
+  dependencies:
+    "@types/angular" "*"
+
+"@types/angular-mocks@^1.5.9":
   version "1.5.9"
   resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.9.tgz#4d91bb71a5cfb000d02b02133bc98c20f57101fd"
   dependencies:
@@ -14,11 +20,9 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@1.6.16", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
-  version "1.6.16"
-  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.16.tgz#f649ef28dd56311a7d8c10be19af879a2a3a9151"
-  dependencies:
-    "@types/jquery" "*"
+"@types/angular@*", "@types/angular@1.6.26", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
+  version "1.6.26"
+  resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.26.tgz#a96cccef648de0bf7435f3b9bad13f2430719305"
 
 "@types/cheerio@*":
   version "0.22.1"
@@ -1574,13 +1578,13 @@ combined-stream@^1.0.5, combined-stream@~1.0.5:
   dependencies:
     delayed-stream "~1.0.0"
 
-commander@2.9.x, commander@^2.5.0:
+commander@2.9.x:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.9.0.tgz#9c99094176e12240cb22d6c5146098400fe0f7d4"
   dependencies:
     graceful-readlink ">= 1.0.0"
 
-commander@^2.9.0:
+commander@^2.5.0, commander@^2.9.0:
   version "2.11.0"
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.11.0.tgz#157152fd1e7a6c8d98a5b715cf376df928004563"
 
@@ -5364,9 +5368,9 @@ rx-lite@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/rx-lite/-/rx-lite-3.1.2.tgz#19ce502ca572665f3b647b10939f97fd1615f102"
 
-rxjs@^5.1.0:
-  version "5.4.0"
-  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.4.0.tgz#a7db14ab157f9d7aac6a56e655e7a3860d39bf26"
+rxjs@^5.4.2:
+  version "5.4.2"
+  resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-5.4.2.tgz#2a3236fcbf03df57bae06fd6972fd99e5c08fcf7"
   dependencies:
     symbol-observable "^1.0.1"
 
@@ -5971,9 +5975,9 @@ typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
 
-typescript@^2.2.2:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.3.2.tgz#f0f045e196f69a72f06b25fd3bd39d01c3ce9984"
+typescript@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.4.1.tgz#c3ccb16ddaa0b2314de031e7e6fee89e5ba346bc"
 
 ua-parser-js@^0.7.9:
   version "0.7.12"

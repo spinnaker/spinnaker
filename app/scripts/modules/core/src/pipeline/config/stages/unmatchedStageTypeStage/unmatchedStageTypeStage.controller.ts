@@ -1,9 +1,9 @@
-import {module, IComponentController, IScope, isDefined} from 'angular';
+import {module, IController, IScope, isDefined} from 'angular';
 import {cloneDeep, isEqual} from 'lodash';
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
 import {IStage} from 'core/domain/IStage';
 
-export class UnmatchedStageTypeStageCtrl implements IComponentController {
+export class UnmatchedStageTypeStageCtrl implements IController {
   public stageJson: string;
   public errorMessage: string;
   public textareaRows: number;

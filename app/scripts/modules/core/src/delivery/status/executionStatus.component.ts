@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import { EXECUTION_FILTER_MODEL, ExecutionFilterModel } from 'core/delivery';
 import { IExecution } from 'core/domain';
@@ -6,7 +6,7 @@ import { EXECUTION_USER_FILTER } from './executionUser.filter';
 
 import './executionStatus.less';
 
-export class ExecutionStatusController implements IComponentController {
+export class ExecutionStatusController implements IController {
   public execution: IExecution;
   public toggleDetails: (stageIndex?: number) => void;
   public showingDetails: boolean;

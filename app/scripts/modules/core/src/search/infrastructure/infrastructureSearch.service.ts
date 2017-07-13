@@ -45,7 +45,7 @@ export class InfrastructureSearcher {
         )
       })
       .subscribe((result: ISearchResults<ISearchResult>) => {
-        const tmp = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
+        const tmp: {[type: string]: ISearchResult[]} = result.results.reduce((categories: { [type: string]: ISearchResult[] }, entry: ISearchResult) => {
           this.formatResult(entry.type, entry).then((name) => entry.displayName = name);
           entry.href = urlBuilderService.buildFromMetadata(entry);
           if (!categories[entry.type]) {

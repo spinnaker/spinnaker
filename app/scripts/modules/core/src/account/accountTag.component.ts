@@ -1,10 +1,10 @@
-import {module, IComponentController, IComponentOptions} from 'angular';
+import {module, IController, IComponentOptions} from 'angular';
 
 import {ACCOUNT_SERVICE, AccountService} from 'core/account/account.service';
 
 import './accountTag.less';
 
-class AccountTagController implements IComponentController {
+class AccountTagController implements IController {
   public account: string;
 
   public accountType: string;

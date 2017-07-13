@@ -1,8 +1,8 @@
-import {set, get, has, without} from 'lodash';
-import {module} from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
+import { set, get, has, without } from 'lodash';
 import './loadBalancingPolicySelector.component.less';
 
-class GceLoadBalancingPolicySelectorController implements ng.IComponentController {
+class GceLoadBalancingPolicySelectorController implements IController {
 
   public maxPort = 65535;
   public command: any;
@@ -78,7 +78,7 @@ class GceLoadBalancingPolicySelectorController implements ng.IComponentControlle
   }
 }
 
-class GceLoadBalancingPolicySelectorComponent implements ng.IComponentOptions {
+class GceLoadBalancingPolicySelectorComponent implements IComponentOptions {
   public bindings: any = {
     command: '='
   };

@@ -1,4 +1,4 @@
-import { IScope, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep } from 'lodash';
@@ -21,7 +21,7 @@ interface ILoadBalancerFromStateParams {
   name: string;
 }
 
-class AppengineLoadBalancerDetailsController {
+class AppengineLoadBalancerDetailsController implements IController {
   public state = { loading: true };
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAppengineLoadBalancer;

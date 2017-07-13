@@ -1,13 +1,13 @@
-import {module, IScope} from 'angular';
-import {StateParams} from '@uirouter/angularjs';
-import {get} from 'lodash';
+import { IController, IScope, module } from 'angular';
+import { StateParams } from '@uirouter/angularjs';
+import { get } from 'lodash';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService
 } from 'core/delivery/details/executionDetailsSection.service';
 
-export class TravisExecutionDetailsCtrl {
+export class TravisExecutionDetailsCtrl implements IController {
   public configSections = ['travisConfig', 'taskStatus'];
   public detailsSection: string;
   public failureMessage: string;

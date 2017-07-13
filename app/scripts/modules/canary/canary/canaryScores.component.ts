@@ -1,9 +1,9 @@
-import { module } from 'angular';
+import { IController, module } from 'angular';
 import { isString } from 'lodash';
 
 import './canary.less';
 
-class CanaryScoresConfigComponentCtrl implements ng.IComponentController {
+class CanaryScoresConfigComponentCtrl implements IController {
 
   public unhealthyScore: string;
   public successfulScore: string;

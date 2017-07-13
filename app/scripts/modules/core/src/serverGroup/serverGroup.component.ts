@@ -1,5 +1,5 @@
 import { has } from 'lodash';
-import { IComponentController, IComponentOptions, IFilterService, ITimeoutService, IScope, module } from 'angular';
+import { IController, IComponentOptions, IFilterService, ITimeoutService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
 import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
@@ -22,7 +22,7 @@ export interface ServerGroupViewModel {
   images?: string;
 }
 
-export class ServerGroupController implements IComponentController {
+export class ServerGroupController implements IController {
   public cluster: string;
   public serverGroup: IServerGroup;
   public application: string;

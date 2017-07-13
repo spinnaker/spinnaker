@@ -1,4 +1,4 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 export interface IJarDiffItem {
   displayDiff: string;
@@ -15,7 +15,7 @@ export interface IJarDiff {
   upgraded: IJarDiffItem[];
 }
 
-class JarDiffComponentController implements IComponentController {
+class JarDiffComponentController implements IController {
 
   public jarDiffs: IJarDiff;
   public hasJarDiffs = false;

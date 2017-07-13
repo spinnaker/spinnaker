@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
@@ -35,7 +35,7 @@ interface IListKeyedByAccount {
   [account: string]: string[];
 }
 
-interface IPrivateScope extends ng.IScope {
+interface IPrivateScope extends IScope {
   $$destroyed: boolean;
 }
 
@@ -58,7 +58,7 @@ class InternalLoadBalancer implements IGceLoadBalancer {
   constructor (public region: string) {}
 }
 
-class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
+class InternalLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IController {
   public pages: any = {
     'location': require('./createLoadBalancerProperties.html'),
     'listener': require('./listener.html'),

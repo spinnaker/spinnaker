@@ -1,11 +1,11 @@
-import { module, IComponentController, IComponentOptions } from 'angular';
+import { module, IController, IComponentOptions } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { URL_BUILDER_SERVICE, UrlBuilderService } from 'core/navigation/urlBuilder.service';
 import { SERVER_GROUP_COMPONENT } from 'core/serverGroup/serverGroup.component';
 
-class ClusterPodController implements IComponentController {
+class ClusterPodController implements IController {
   public grouping: any;
   public sortFilter: any;
   public application: Application;

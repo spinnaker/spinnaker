@@ -107,7 +107,7 @@ export class AwsLoadBalancerTransformer {
     targetGroup.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
     this.updateHealthCounts(targetGroup);
 
-    return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs));
+    return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(targetGroup)(vpcs) as ITargetGroup);
   }
 
   public normalizeLoadBalancer(loadBalancer: IAmazonLoadBalancer): IPromise<IAmazonLoadBalancer> {
@@ -125,7 +125,7 @@ export class AwsLoadBalancerTransformer {
     loadBalancer.instances = chain(activeServerGroups).map('instances').flatten<IInstance>().value();
     loadBalancer.detachedInstances = chain(activeServerGroups).map('detachedInstances').flatten<IInstance>().value();
     this.updateHealthCounts(loadBalancer);
-    return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs));
+    return this.vpcReader.listVpcs().then((vpcs: IVpc[]) => this.addVpcNameToContainer(loadBalancer)(vpcs) as IAmazonLoadBalancer);
   }
 
   public convertClassicLoadBalancerForEditing(loadBalancer: IAmazonClassicLoadBalancer): IAmazonClassicLoadBalancerUpsertCommand {

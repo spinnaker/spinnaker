@@ -1,6 +1,6 @@
-import {module} from 'angular';
+import { IController, module } from 'angular';
 
-import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
+import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
 /**
  * Wizard page directive
  * possible attributes:
@@ -24,7 +24,7 @@ export interface WizardPageState {
   markCompleteOnView: boolean;
 }
 
-export class WizardPageController implements ng.IComponentController {
+export class WizardPageController implements IController {
   /**
    * when set to false, the wizard will not consider this page when isComplete is called
    * default: false

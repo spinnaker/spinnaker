@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, IScope, module } from 'angular';
+import { IController, IComponentOptions, IScope, module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { IClusterSummary } from 'core/domain/ICluster';
@@ -6,7 +6,7 @@ import { CLUSTER_FILTER_MODEL, ClusterFilterModel } from '../filter/clusterFilte
 
 import './onDemandClusterPicker.component.less';
 
-class OnDemandClusterPickerController implements IComponentController {
+class OnDemandClusterPickerController implements IController {
   public application: Application;
   public availableClusters: IClusterSummary[];
   public lastSelection: string;

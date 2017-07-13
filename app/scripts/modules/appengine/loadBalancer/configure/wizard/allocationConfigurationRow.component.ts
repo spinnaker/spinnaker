@@ -1,8 +1,8 @@
-import {module} from 'angular';
-import {uniq} from 'lodash';
-import {IAppengineAllocationDescription} from 'appengine/loadBalancer/transformer';
+import { IController, IComponentOptions, module } from 'angular';
+import { uniq } from 'lodash';
+import { IAppengineAllocationDescription } from 'appengine/loadBalancer/transformer';
 
-class AppengineAllocationConfigurationRowCtrl implements ng.IComponentController {
+class AppengineAllocationConfigurationRowCtrl implements IController {
   public allocationDescription: IAppengineAllocationDescription;
   public serverGroupOptions: string[];
 
@@ -15,7 +15,7 @@ class AppengineAllocationConfigurationRowCtrl implements ng.IComponentController
   }
 }
 
-class AppengineAllocationConfigurationRowComponent implements ng.IComponentOptions {
+class AppengineAllocationConfigurationRowComponent implements IComponentOptions {
   public bindings: any = {allocationDescription: '<', removeAllocation: '&', serverGroupOptions: '<', onAllocationChange: '&'};
   public template = `
     <div class="form-group">

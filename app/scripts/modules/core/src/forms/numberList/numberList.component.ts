@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import './numberList.component.less';
 
 export interface NumberListConstraints {
@@ -6,7 +6,7 @@ export interface NumberListConstraints {
   max: number;
 }
 
-export class NumberListController implements IComponentController {
+export class NumberListController implements IController {
   public model: number[] | string;
   public constraints: NumberListConstraints;
   public label: string;

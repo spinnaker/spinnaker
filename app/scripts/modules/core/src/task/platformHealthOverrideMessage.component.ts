@@ -1,11 +1,11 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { get } from 'lodash';
 import * as moment from 'moment';
 
 import { Application } from 'core/application/application.model';
 import { IInstanceCounts, IStage, ITask, ITaskStep, ITimedItem } from 'core/domain';
 
-class PlatformHealthOverrideMessageController implements IComponentController {
+class PlatformHealthOverrideMessageController implements IController {
   public showMessage: boolean;
   public messageTemplate = require('./platformHealthOverrideMessage.html');
   private application: Application;

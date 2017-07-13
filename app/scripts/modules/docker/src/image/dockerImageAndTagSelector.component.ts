@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IChangesObject, IController, IOnChangesObject, module } from 'angular';
 import { isString, trim, uniq } from 'lodash';
 
 import { ACCOUNT_SERVICE, AccountService, IAccount, IFindImageParams } from '@spinnaker/core';
@@ -11,11 +11,11 @@ interface IViewState {
   imagesRefreshing: boolean;
 }
 
-export interface IOnDockerBindingsChanges extends ng.IOnChangesObject {
-  registry: ng.IChangesObject<string>;
+export interface IOnDockerBindingsChanges extends IOnChangesObject {
+  registry: IChangesObject<string>;
 }
 
-export class DockerImageAndTagSelectorController implements ng.IComponentController {
+export class DockerImageAndTagSelectorController implements IController {
 
   private viewState: IViewState = {
     imagesLoading: false,

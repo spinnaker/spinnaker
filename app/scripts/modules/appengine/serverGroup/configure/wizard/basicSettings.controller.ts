@@ -1,4 +1,4 @@
-import { extend, IControllerService, IScope, module } from 'angular';
+import { extend, IController, IControllerService, IScope, module } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 import { set } from 'lodash';
 
@@ -11,7 +11,7 @@ interface IAppengineBasicSettingsScope extends IScope {
   command: IAppengineServerGroupCommand;
 }
 
-class AppengineServerGroupBasicSettingsCtrl {
+class AppengineServerGroupBasicSettingsCtrl implements IController {
   constructor(public $scope: IAppengineBasicSettingsScope,
               $state: StateService,
               $controller: IControllerService,

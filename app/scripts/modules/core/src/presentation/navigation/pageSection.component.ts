@@ -1,5 +1,5 @@
-import {module} from 'angular';
-import {PageNavigationState, INavigationPage} from './pageNavigationState';
+import { IController, module } from 'angular';
+import { PageNavigationState, INavigationPage } from './pageNavigationState';
 
 interface IPageSectionOnChanges extends ng.IOnChangesObject {
   visible: ng.IChangesObject<boolean>;
@@ -7,7 +7,7 @@ interface IPageSectionOnChanges extends ng.IOnChangesObject {
   badge: ng.IChangesObject<string>;
 }
 
-class PageSectionController implements ng.IComponentController {
+class PageSectionController implements IController {
   public key: string;
   public label: string;
   public badge: string;

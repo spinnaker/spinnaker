@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IController, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep } from 'lodash';
 
@@ -7,7 +7,7 @@ import { CloudProviderRegistry, ILoadBalancer } from '@spinnaker/core';
 import { AppengineProviderSettings } from 'appengine/appengine.settings';
 import { APPENGINE_LOAD_BALANCER_CHOICE_MODAL_CTRL } from './loadBalancerChoice.modal.controller';
 
-class AppengineEditLoadBalancerStageCtrl {
+class AppengineEditLoadBalancerStageCtrl implements IController {
   constructor(public $scope: any,
               private $uibModal: IModalService,
               private cloudProviderRegistry: CloudProviderRegistry) {

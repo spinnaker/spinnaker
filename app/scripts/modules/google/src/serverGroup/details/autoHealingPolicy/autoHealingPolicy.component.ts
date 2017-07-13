@@ -1,11 +1,11 @@
-import { module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { Application, ConfirmationModalService } from '@spinnaker/core';
 
 import { IGceServerGroup } from 'google/domain/index';
 
-class GceAutoHealingPolicyDetailsCtrl implements ng.IComponentController {
+class GceAutoHealingPolicyDetailsCtrl implements IController {
   public serverGroup: IGceServerGroup;
   public application: Application;
 
@@ -44,7 +44,7 @@ class GceAutoHealingPolicyDetailsCtrl implements ng.IComponentController {
   }
 }
 
-class GceAutoHealingPolicyDetails implements ng.IComponentOptions {
+class GceAutoHealingPolicyDetails implements IComponentOptions {
   public bindings: any = {serverGroup: '<', application: '<'};
   public template = `
     <dt>

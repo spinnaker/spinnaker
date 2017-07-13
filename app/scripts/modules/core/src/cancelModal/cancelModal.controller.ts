@@ -1,4 +1,4 @@
-import { module, IScope } from 'angular';
+import { module, IController, IScope } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 import './cancel.less';
@@ -9,7 +9,7 @@ export interface ICancelModalScope extends IScope {
   errorMessage: string;
 }
 
-export class CancelModalCtrl {
+export class CancelModalCtrl implements IController {
 
   constructor(public $scope: ICancelModalScope, private $uibModalInstance: IModalServiceInstance, private params: any) {
     this.$scope.params = params;

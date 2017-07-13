@@ -1,4 +1,4 @@
-import { IPromise, IQService, module } from 'angular';
+import { IController, IPromise, IQService, module } from 'angular';
 import { cloneDeep, flattenDeep } from 'lodash';
 
 import {
@@ -27,7 +27,7 @@ interface InstanceContainer {
   instances: IAppengineInstance[];
 }
 
-class AppengineInstanceDetailsController {
+class AppengineInstanceDetailsController implements IController {
   public state = {loading: true};
   public instance: IAppengineInstance;
   public instanceIdNotFound: string;

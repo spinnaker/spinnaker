@@ -1,12 +1,12 @@
-import {IScope, module} from 'angular';
-import {has, trim} from 'lodash';
+import { IController, IScope, module } from 'angular';
+import { has, trim } from 'lodash';
 
-import {SETTINGS} from 'core/config/settings';
-import {IGitTrigger} from 'core/domain/ITrigger';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {SERVICE_ACCOUNT_SERVICE, ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
+import { SETTINGS } from 'core/config/settings';
+import { IGitTrigger } from 'core/domain/ITrigger';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
 
-class GitTriggerController {
+class GitTriggerController implements IController {
 
   public fiatEnabled: boolean = SETTINGS.feature.fiatEnabled;
   public serviceAccounts: string[] = [];

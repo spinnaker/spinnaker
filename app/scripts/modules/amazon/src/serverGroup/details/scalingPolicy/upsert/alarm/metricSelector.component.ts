@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import { Dictionary, get } from 'lodash';
 import { Subject } from 'rxjs';
@@ -26,7 +26,7 @@ const dimensionSorter = (a: IMetricAlarmDimension, b: IMetricAlarmDimension): nu
   return a.name.localeCompare(b.name);
 };
 
-export class MetricSelectorController implements IComponentController {
+export class MetricSelectorController implements IController {
 
   public alarmUpdated: Subject<void>;
   public namespaceUpdated = new Subject();

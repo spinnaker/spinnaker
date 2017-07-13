@@ -1,7 +1,7 @@
 import * as $ from 'jquery';
 import { get, last } from 'lodash';
 import { StateParams, PathNode, StateService } from '@uirouter/core';
-import { IChangesObject, IComponentController, IComponentOptions, IOnChangesObject, IRootScopeService, IScope, ITimeoutService, module } from 'angular';
+import { IChangesObject, IController, IComponentOptions, IOnChangesObject, IRootScopeService, IScope, ITimeoutService, module } from 'angular';
 
 import { IInstance } from 'core/domain';
 
@@ -15,7 +15,7 @@ export interface IOnChanges extends IOnChangesObject {
   highlight: IChangesObject<string>;
 }
 
-export class InstancesController implements IComponentController {
+export class InstancesController implements IController {
   public instances: IInstance[];
   public highlight: string;
 

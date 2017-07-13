@@ -1,4 +1,4 @@
-import { module, toJson } from 'angular';
+import { IController, module, toJson } from 'angular';
 import * as _ from 'lodash';
 
 import { SETTINGS } from 'core/config/settings';
@@ -33,7 +33,7 @@ export class ChaosMonkeyConfig {
   }
 }
 
-export class ChaosMonkeyConfigController implements ng.IComponentController {
+export class ChaosMonkeyConfigController implements IController {
 
   public application: Application;
   public config: ChaosMonkeyConfig;

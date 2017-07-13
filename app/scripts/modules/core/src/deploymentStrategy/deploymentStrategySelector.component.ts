@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { unset } from 'lodash';
 
 import { DeploymentStrategyRegistry, IDeploymentStrategy } from 'core/deploymentStrategy';
@@ -9,7 +9,7 @@ export interface IDeploymentCommand {
   strategy: string;
 }
 
-export class DeploymentStrategySelectorController implements IComponentController {
+export class DeploymentStrategySelectorController implements IController {
   public command: IDeploymentCommand;
   public labelColumns = 3;
   public fieldColumns = 6;

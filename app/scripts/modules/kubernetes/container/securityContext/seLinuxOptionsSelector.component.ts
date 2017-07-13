@@ -1,11 +1,11 @@
-import {module} from 'angular';
+import {IController, IComponentOptions, module} from 'angular';
 
 interface ISeLinuxField {
   label: string;
   model: string;
 }
 
-class SeLinuxOptions implements ng.IComponentController {
+class SeLinuxOptions implements IController {
   public component: any;
   public fields: ISeLinuxField[] = [
     {
@@ -27,7 +27,7 @@ class SeLinuxOptions implements ng.IComponentController {
   ];
 }
 
-class SeLinuxOptionsComponent implements ng.IComponentOptions {
+class SeLinuxOptionsComponent implements IComponentOptions {
   public bindings: any = {
     component: '=',
   };

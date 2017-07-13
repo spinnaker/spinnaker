@@ -1,7 +1,7 @@
-import {module} from 'angular';
-import {AppengineLoadBalancerUpsertDescription} from 'appengine/loadBalancer/transformer';
+import { IController, IComponentOptions, module} from 'angular';
+import { AppengineLoadBalancerUpsertDescription} from 'appengine/loadBalancer/transformer';
 
-class AppengineLoadBalancerAdvancedSettingsCtrl implements ng.IComponentController {
+class AppengineLoadBalancerAdvancedSettingsCtrl implements IController {
   public state = {error: false};
   public loadBalancer: AppengineLoadBalancerUpsertDescription;
 
@@ -23,7 +23,7 @@ class AppengineLoadBalancerAdvancedSettingsCtrl implements ng.IComponentControll
   }
 }
 
-class AppengineLoadBalancerAdvancedSettingsComponent implements ng.IComponentOptions {
+class AppengineLoadBalancerAdvancedSettingsComponent implements IComponentOptions {
   public bindings: any = {loadBalancer: '=', application: '<'};
   public template = `
     <ng-form name="advancedSettingsForm">

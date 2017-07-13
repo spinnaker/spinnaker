@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IController, module } from 'angular';
 import { IModalInstanceService, IModalService } from 'angular-ui-bootstrap';
 import { find, map } from 'lodash';
 
@@ -9,7 +9,7 @@ import {
   IGceLoadBalancerToWizardMap
 } from './loadBalancerTypeToWizardMap.constant';
 
-class GceLoadBalancerChoiceCtrl implements ng.IComponentController {
+class GceLoadBalancerChoiceCtrl implements IController {
   public choices: string[];
   public choice = 'Network';
 

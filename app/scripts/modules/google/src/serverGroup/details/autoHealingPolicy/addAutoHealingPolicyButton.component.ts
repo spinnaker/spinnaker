@@ -1,9 +1,9 @@
-import { module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 
 import { Application, IServerGroup } from '@spinnaker/core';
 
-class GceAddAutoHealingPolicyButtonCtrl implements ng.IComponentController {
+class GceAddAutoHealingPolicyButtonCtrl implements IController {
   public application: Application;
   public serverGroup: IServerGroup;
 
@@ -23,7 +23,7 @@ class GceAddAutoHealingPolicyButtonCtrl implements ng.IComponentController {
   }
 }
 
-class GceAddAutoHealingPolicyButton implements ng.IComponentOptions {
+class GceAddAutoHealingPolicyButton implements IComponentOptions {
   public bindings: any = {
     application: '<',
     serverGroup: '<',

@@ -1,5 +1,5 @@
 import {cloneDeepWith} from 'lodash';
-import {extend, module, IComponentController} from 'angular';
+import {extend, module, IController} from 'angular';
 import {IModalServiceInstance} from 'angular-ui-bootstrap';
 
 import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
@@ -12,7 +12,7 @@ export interface IEditPipelineJsonModalCommand {
   locked: boolean;
 }
 
-export class EditPipelineJsonModalCtrl implements IComponentController {
+export class EditPipelineJsonModalCtrl implements IController {
 
   public isStrategy: boolean;
   public command: IEditPipelineJsonModalCommand;

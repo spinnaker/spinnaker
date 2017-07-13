@@ -1,4 +1,4 @@
-import {IComponentController, IComponentOptions, module} from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 export interface IBaseOsOption {
   id: string;
@@ -7,7 +7,7 @@ export interface IBaseOsOption {
   isImageFamily?: boolean;
 }
 
-export class BakeStageChooseOSController implements IComponentController {
+export class BakeStageChooseOSController implements IController {
 
   public model: any;
   public baseOsOptions: IBaseOsOption[];

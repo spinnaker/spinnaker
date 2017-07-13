@@ -1,9 +1,9 @@
-import {module} from 'angular';
-import {difference} from 'lodash';
+import { IController, module } from 'angular';
+import { difference } from 'lodash';
 
-import {AppengineLoadBalancerUpsertDescription} from 'appengine/loadBalancer/transformer';
+import { AppengineLoadBalancerUpsertDescription } from 'appengine/loadBalancer/transformer';
 
-class AppengineLoadBalancerSettingsController implements ng.IComponentController {
+class AppengineLoadBalancerSettingsController implements IController {
   public loadBalancer: AppengineLoadBalancerUpsertDescription;
   public serverGroupOptions: string[];
   public forPipelineConfig: boolean;

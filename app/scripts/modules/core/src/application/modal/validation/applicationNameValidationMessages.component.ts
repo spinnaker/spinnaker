@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { IController, module } from 'angular';
 import {
   APPLICATION_NAME_VALIDATOR,
   ApplicationNameValidator, IApplicationNameValidationResult
@@ -8,7 +8,7 @@ import {
  * This directive is responsible for rendering error and warning messages to the screen when creating a new application.
  * It does NOT set the validity of the form field - that is handled by the validateApplicationName directive.
  */
-class ApplicationNameValidationMessagesController implements ng.IComponentController {
+class ApplicationNameValidationMessagesController implements IController {
   public name: string;
   public cloudProviders: string[];
   public messages: IApplicationNameValidationResult;

@@ -1,7 +1,7 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 import { IJsonDiff } from 'core/utils/json/json.utility.service';
 
-class DiffViewController implements IComponentController {
+class DiffViewController implements IController {
 
   public diff: IJsonDiff;
 

@@ -1,11 +1,11 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import { Application, IServerGroup } from '@spinnaker/core';
 
 import { ScalingPolicyTypeRegistry } from './ScalingPolicyTypeRegistry';
 import { IScalingPolicy } from 'amazon/domain';
 
-class ScalingPolicyDetailsSummaryController implements IComponentController {
+class ScalingPolicyDetailsSummaryController implements IController {
 
   public templateUrl: string;
   public policy: IScalingPolicy;

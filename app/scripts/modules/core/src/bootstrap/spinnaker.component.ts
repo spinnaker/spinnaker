@@ -1,3 +1,5 @@
+import { IController } from 'angular';
+
 import { bootstrapModule } from './bootstrap.module';
 import { OverrideRegistry } from 'core/overrideRegistry';
 import { IFeatures, SETTINGS } from '@spinnaker/core';
@@ -18,7 +20,7 @@ const template = `
   <notifier></notifier>
 `;
 
-class SpinnakerController {
+class SpinnakerController implements IController {
   public spinnakerHeaderTemplate: string;
   public feature: IFeatures;
   constructor (overrideRegistry: OverrideRegistry) {

@@ -1,8 +1,8 @@
-import {get} from 'lodash';
-import {module} from 'angular';
-import {IGceHealthCheck} from 'google/domain/index';
+import { get } from 'lodash';
+import { IController, module } from 'angular';
+import { IGceHealthCheck } from 'google/domain/index';
 
-class HealthCheckCreateCtrl implements ng.IComponentController {
+class HealthCheckCreateCtrl implements IController {
   public healthCheck: IGceHealthCheck;
   public healthCheckPlaceholder: IGceHealthCheck;
   public healthChecksByAccountAndType: { [account: string]: { [healthCheckType: string]: IGceHealthCheck[] } };

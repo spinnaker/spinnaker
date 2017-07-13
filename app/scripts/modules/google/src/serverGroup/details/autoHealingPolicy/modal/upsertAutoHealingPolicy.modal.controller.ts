@@ -1,5 +1,5 @@
 import { Application, TaskMonitor, TaskMonitorBuilder } from '@spinnaker/core';
-import { module } from 'angular';
+import { IController, module } from 'angular';
 import { IModalServiceInstance } from 'angular-ui-bootstrap';
 import { chain, cloneDeep, last } from 'lodash';
 
@@ -8,7 +8,7 @@ import { GCE_HEALTH_CHECK_READER, GceHealthCheckReader } from 'google/healthChec
 
 import './upsertAutoHealingPolicy.modal.less';
 
-class GceUpsertAutoHealingPolicyModalCtrl {
+class GceUpsertAutoHealingPolicyModalCtrl implements IController {
   public autoHealingPolicy: IGceAutoHealingPolicy;
   public taskMonitor: TaskMonitor;
   public httpHealthChecks: string[];

@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import {
   CACHE_INITIALIZER_SERVICE,
@@ -7,7 +7,7 @@ import {
   InfrastructureCacheService
 } from '@spinnaker/core';
 
-class GceCacheRefreshCtrl implements IComponentController {
+class GceCacheRefreshCtrl implements IController {
   public capitalizedKey: string;
   public depluralizedKey: string;
   public renderCompact: boolean;

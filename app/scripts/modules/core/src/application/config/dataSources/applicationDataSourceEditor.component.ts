@@ -1,12 +1,12 @@
-import {module} from 'angular';
+import { IController, module } from 'angular';
 
-import {Application} from '../../application.model';
-import {ApplicationDataSource} from '../../service/applicationDataSource';
-import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
+import { Application } from '../../application.model';
+import { ApplicationDataSource } from '../../service/applicationDataSource';
+import { APPLICATION_WRITE_SERVICE, ApplicationWriter } from 'core/application/service/application.write.service';
 
 import './applicationDataSourceEditor.component.less';
 
-export class DataSourceEditorController implements ng.IComponentController {
+export class DataSourceEditorController implements IController {
 
   public application: Application;
 

@@ -1,7 +1,8 @@
-import {InsightFilterStateModel} from './insightFilterState.model';
-import {INSIGHT_NGMODULE} from './insight.module';
+import { IController } from 'angular';
+import { InsightFilterStateModel } from './insightFilterState.model';
+import { INSIGHT_NGMODULE } from './insight.module';
 
-export class InsightFilterCtrl {
+export class InsightFilterCtrl implements IController {
   constructor(public insightFilterStateModel: InsightFilterStateModel) { 'ngInject'; }
 }
 

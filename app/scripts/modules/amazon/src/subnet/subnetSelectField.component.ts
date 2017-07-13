@@ -1,10 +1,10 @@
-import { module } from 'angular';
+import { IController, module } from 'angular';
 import { get } from 'lodash';
 
 import { Application, ISubnet } from '@spinnaker/core';
 import { AWSProviderSettings } from '../aws.settings';
 
-class SubnetSelectFieldController implements ng.IComponentController {
+class SubnetSelectFieldController implements IController {
   public subnets: ISubnet[];
   public activeSubnets: ISubnet[];
   public deprecatedSubnets: ISubnet[];

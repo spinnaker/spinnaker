@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, IPromise, ITimeoutService, module } from 'angular';
+import { IController, IComponentOptions, IPromise, ITimeoutService, module } from 'angular';
 
 import { HELP_CONTENTS } from './help.contents';
 import { HELP_CONTENTS_REGISTRY, HelpContentsRegistry } from './helpContents.registry';
@@ -8,7 +8,7 @@ export interface IHelpFieldContents {
   placement: string;
 }
 
-export class HelpFieldCtrl implements IComponentController {
+export class HelpFieldCtrl implements IController {
 
   public content: string;
   public expand: boolean;

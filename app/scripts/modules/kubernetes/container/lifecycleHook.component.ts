@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { IComponentOptions, IController, module } from 'angular';
 
 interface IKubernetesHandler {
   type: 'EXEC' | 'HTTP';
@@ -23,7 +23,7 @@ interface IKeyValuePair {
   value: string;
 }
 
-class KubernetesLifecycleHookConfigurerCtrl implements ng.IComponentController {
+class KubernetesLifecycleHookConfigurerCtrl implements IController {
   public heading: string;
   public handler: IKubernetesHandler;
   public execActionCommandsViewValue: string;
@@ -95,7 +95,7 @@ class KubernetesLifecycleHookConfigurerCtrl implements ng.IComponentController {
   }
 }
 
-class KubernetesLifecycleHookConfigurer implements ng.IComponentOptions {
+class KubernetesLifecycleHookConfigurer implements IComponentOptions {
   public bindings: any = {
     heading: '@',
     handler: '<',

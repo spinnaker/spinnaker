@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IController, IDirective, IScope, ITimeoutService, module } from 'angular';
 import { Subject } from 'rxjs';
 
 import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
@@ -8,14 +8,14 @@ export interface AutoScrollAttrs {
   autoScroll: string;
 }
 
-export class AutoScrollController implements ng.IComponentController {
+export class AutoScrollController implements IController {
   public autoScrollParent: string;
   public autoScrollEnabled: string;
   public onScroll: (event: Event) => void;
   public scrollToTop: Subject<boolean>;
   public $element: JQuery;
   public $attrs: AutoScrollAttrs;
-  public $scope: ng.IScope;
+  public $scope: IScope;
 
   private scrollableContainer: JQuery;
   private scrollEnabled = true;
@@ -51,11 +51,11 @@ export class AutoScrollController implements ng.IComponentController {
     this.$scope.$on('$destroy', () => this.scrollableContainer.off(this.containerEvent));
   }
 
-  public constructor(private $timeout: ng.ITimeoutService) {}
+  public constructor(private $timeout: ITimeoutService) {}
 }
 
 @DirectiveFactory('$timeout')
-class AutoScrollDirective implements ng.IDirective {
+class AutoScrollDirective implements IDirective {
   public restrict = 'A';
   public controller: any = AutoScrollController;
   public controllerAs = '$ctrl';
@@ -66,7 +66,7 @@ class AutoScrollDirective implements ng.IDirective {
     scrollToTop: '=?',
   };
 
-  public link($scope: ng.IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) {
+  public link($scope: IScope, $element: JQuery, $attrs: AutoScrollAttrs, ctrl: AutoScrollController) {
     ctrl.$scope = $scope;
     ctrl.$element = $element;
     ctrl.$attrs = $attrs;

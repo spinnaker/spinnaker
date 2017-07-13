@@ -1,9 +1,9 @@
-import {IComponentController, IComponentOptions, IScope, ITimeoutService, module} from 'angular';
+import {IController, IComponentOptions, IScope, ITimeoutService, module} from 'angular';
 import * as Clipboard from 'clipboard';
 
 import './copyToClipboard.component.less';
 
-export class CopyToClipboardController implements IComponentController {
+export class CopyToClipboardController implements IController {
   public text: string;
   public toolTip: string;
   public tempToolTip: string;

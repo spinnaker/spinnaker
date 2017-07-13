@@ -1,11 +1,11 @@
-import {module, IScope, IQService} from 'angular';
+import { IController, IQService, IScope, module } from 'angular';
 
-import {IGOR_SERVICE, IgorService, BuildServiceType} from 'core/ci/igor.service';
-import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
-import {SERVICE_ACCOUNT_SERVICE, ServiceAccountService} from 'core/serviceAccount/serviceAccount.service';
-import {IBuildTrigger} from 'core/domain/ITrigger';
-import {TRAVIS_TRIGGER_OPTIONS_COMPONENT} from './travisTriggerOptions.component';
-import {SETTINGS} from 'core/config/settings';
+import { IGOR_SERVICE, IgorService, BuildServiceType } from 'core/ci/igor.service';
+import { PIPELINE_CONFIG_PROVIDER } from 'core/pipeline/config/pipelineConfigProvider';
+import { SERVICE_ACCOUNT_SERVICE, ServiceAccountService } from 'core/serviceAccount/serviceAccount.service';
+import { IBuildTrigger } from 'core/domain/ITrigger';
+import { TRAVIS_TRIGGER_OPTIONS_COMPONENT } from './travisTriggerOptions.component';
+import { SETTINGS } from 'core/config/settings';
 
 export interface ITravisTriggerViewState {
   mastersLoaded: boolean;
@@ -14,7 +14,7 @@ export interface ITravisTriggerViewState {
   jobsRefreshing: boolean;
 }
 
-export class TravisTrigger {
+export class TravisTrigger implements IController {
   public viewState: ITravisTriggerViewState;
   public masters: string[];
   public jobs: string[];

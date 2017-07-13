@@ -1,8 +1,8 @@
-import {module} from 'angular';
+import { IComponentOptions, module } from 'angular';
 
-import {SETTINGS} from '../config/settings';
+import { SETTINGS } from '../config/settings';
 
-class RenderIfFeatureController implements ng.IComponentController {
+class RenderIfFeatureController implements ng.IController {
   public feature: string;
   public featureEnabled = false;
 
@@ -11,7 +11,7 @@ class RenderIfFeatureController implements ng.IComponentController {
   }
 }
 
-class RenderIfFeatureComponent implements ng.IComponentOptions {
+class RenderIfFeatureComponent implements IComponentOptions {
   public bindings: any = {feature: '@'};
   public controller: any = RenderIfFeatureController;
   public transclude = true;

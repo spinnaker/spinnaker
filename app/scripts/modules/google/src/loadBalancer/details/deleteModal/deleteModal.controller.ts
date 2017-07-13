@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IController, IPromise, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 
 import {
@@ -30,7 +30,7 @@ interface IGoogleLoadBalancerDeleteOperation extends ILoadBalancerDeleteCommand 
   loadBalancerType: string;
 }
 
-class DeleteLoadBalancerModalController implements ng.IComponentController {
+class DeleteLoadBalancerModalController implements IController {
   public verification: Verification = new Verification();
   public params: Params = new Params();
   public taskMonitor: any;
@@ -76,7 +76,7 @@ class DeleteLoadBalancerModalController implements ng.IComponentController {
     }
   }
 
-  private getSubmitMethod (): {(): ng.IPromise<any>} {
+  private getSubmitMethod (): {(): IPromise<any>} {
     if (this.gceHttpLoadBalancerUtils.isHttpLoadBalancer(this.loadBalancer)) {
       return () => {
         return this.gceHttpLoadBalancerWriter.deleteLoadBalancers(this.loadBalancer, this.application, this.params);

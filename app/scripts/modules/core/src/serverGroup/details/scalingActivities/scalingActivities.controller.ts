@@ -1,8 +1,8 @@
+import { IController, module } from 'angular';
 import * as _ from 'lodash';
-import {module} from 'angular';
-import {IModalServiceInstance} from 'angular-ui-bootstrap';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
-import {SERVER_GROUP_READER, ServerGroupReader} from 'core/serverGroup/serverGroupReader.service';
+import { SERVER_GROUP_READER, ServerGroupReader } from 'core/serverGroup/serverGroupReader.service';
 import { IServerGroup } from 'core/domain';
 
 export interface IScalingActivitiesViewState {
@@ -31,7 +31,7 @@ export interface IRawScalingActivity {
   startTime: number;
 }
 
-export class ScalingActivitiesCtrl implements ng.IComponentController {
+export class ScalingActivitiesCtrl implements IController {
   public viewState: IScalingActivitiesViewState;
   public activities: IScalingEventSummary[] = [];
 

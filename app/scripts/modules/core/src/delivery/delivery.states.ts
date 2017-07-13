@@ -57,7 +57,9 @@ module(DELIVERY_STATES, [
     name: 'executionDetails',
     url: '/details',
     views: {
-      'pipelines': 'singleExecutionDetails'
+      'pipelines': {
+        component: 'singleExecutionDetails',
+      }
     },
     abstract: true,
     children: [executionDetails],

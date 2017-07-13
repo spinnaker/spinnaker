@@ -1,9 +1,9 @@
-import {module} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
+import { IController, module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
 
-import {JSON_UTILITY_SERVICE, JsonUtilityService} from 'core/utils/json/json.utility.service';
-import {PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider} from 'core/pipeline/config/pipelineConfigProvider';
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { JSON_UTILITY_SERVICE, JsonUtilityService } from 'core/utils/json/json.utility.service';
+import { PIPELINE_CONFIG_PROVIDER, PipelineConfigProvider } from 'core/pipeline/config/pipelineConfigProvider';
+import { API_SERVICE, Api } from 'core/api/api.service';
 
 export interface IWebhookStageViewState {
   waitForCompletion?: boolean;
@@ -30,7 +30,7 @@ interface IPreconfiguredWebhook {
   preconfiguredProperties?: string[];
 }
 
-export class WebhookStage {
+export class WebhookStage implements IController {
   public command: IWebhookStageCommand;
   public viewState: IWebhookStageViewState;
   public methods: string[];

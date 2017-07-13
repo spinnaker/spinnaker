@@ -1,8 +1,8 @@
-import {module} from 'angular';
-import {IModalService} from 'angular-ui-bootstrap';
-import {SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl} from './scalingActivities.controller';
+import { IController, IComponentOptions, module } from 'angular';
+import { IModalService } from 'angular-ui-bootstrap';
+import { SCALING_ACTIVITIES_CTRL, ScalingActivitiesCtrl } from './scalingActivities.controller';
 
-class ViewScalingActivitiesLinkCtrl implements ng.IComponentController {
+class ViewScalingActivitiesLinkCtrl implements IController {
   public serverGroup: any;
 
   public constructor(private $uibModal: IModalService) { 'ngInject'; }
@@ -19,7 +19,7 @@ class ViewScalingActivitiesLinkCtrl implements ng.IComponentController {
   }
 }
 
-class ViewScalingActivitiesLink implements ng.IComponentOptions {
+class ViewScalingActivitiesLink implements IComponentOptions {
   public bindings: any = {
     serverGroup: '='
   };

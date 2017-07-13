@@ -1,6 +1,6 @@
-import {module} from 'angular';
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer} from 'core/orchestratedItem/orchestratedItem.transformer';
+import { module } from 'angular';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { ORCHESTRATED_ITEM_TRANSFORMER, OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
 import { ITask } from 'core/domain';
 
 export class TaskReader {
@@ -46,7 +46,7 @@ export class TaskReader {
 
   public waitUntilTaskMatches(task: ITask, closure: (task: ITask) => boolean, failureClosure?: (task: ITask) => boolean,
                               interval = 1000): ng.IPromise<ITask> {
-    const deferred = this.$q.defer();
+    const deferred = this.$q.defer<ITask>();
     if (!task) {
       deferred.reject(null);
     } else if (closure(task)) {

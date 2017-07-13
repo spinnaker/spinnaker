@@ -1,11 +1,12 @@
-import {mock} from 'angular';
+import { mock } from 'angular';
 import Spy = jasmine.Spy;
 
-import {API_SERVICE, Api} from 'core/api/api.service';
-import {TASK_MONITOR_BUILDER, TaskMonitorBuilder} from 'core/task/monitor/taskMonitor.builder';
-import {OrchestratedItemTransformer} from 'core/orchestratedItem/orchestratedItem.transformer';
-import {APPLICATION_MODEL_BUILDER, ApplicationModelBuilder} from 'core/application/applicationModel.builder';
-import {IModalServiceInstance} from 'angular-ui-bootstrap';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { ITask } from 'core/domain';
+import { TASK_MONITOR_BUILDER, TaskMonitorBuilder } from 'core/task/monitor/taskMonitor.builder';
+import { OrchestratedItemTransformer } from 'core/orchestratedItem/orchestratedItem.transformer';
+import { APPLICATION_MODEL_BUILDER, ApplicationModelBuilder } from 'core/application/applicationModel.builder';
+import { IModalServiceInstance } from 'angular-ui-bootstrap';
 
 describe('Service: taskMonitorBuilder', () => {
 
@@ -106,7 +107,7 @@ describe('Service: taskMonitorBuilder', () => {
 
     it('sets error when task fails while polling', () => {
       let completeCalled = false;
-      const task = { id: 'a', status: 'RUNNING' };
+      const task = { id: 'a', status: 'RUNNING' } as ITask;
       orchestratedItemTransformer.defineProperties(task);
 
       const operation = () => $q.when(task);

@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { IController, IDeferred, IDirective, INgModelController, IQService, IScope, module } from 'angular';
 import { DirectiveFactory } from 'core/utils/tsDecorators/directiveFactoryDecorator';
 import {
   APPLICATION_NAME_VALIDATOR,
@@ -15,18 +15,18 @@ interface IValidateNameAttrs  {
  * applicationNameValidationMessages component.
  */
 
-class ValidateApplicationNameController implements ng.IComponentController {
+class ValidateApplicationNameController implements IController {
 
-  public model: ng.INgModelController;
+  public model: INgModelController;
   public cloudProviders: string[];
   public $attrs: IValidateNameAttrs;
-  public $scope: ng.IScope;
+  public $scope: IScope;
 
-  public constructor(private applicationNameValidator: ApplicationNameValidator, private $q: ng.IQService) {}
+  public constructor(private applicationNameValidator: ApplicationNameValidator, private $q: IQService) {}
 
   public initialize() {
     this.model.$asyncValidators['validateApplicationName'] = (value: string) => {
-      const deferred: ng.IDeferred<boolean> = this.$q.defer();
+      const deferred: IDeferred<boolean> = this.$q.defer();
       this.applicationNameValidator.validate(value, this.cloudProviders)
         .then((result: IApplicationNameValidationResult) => {
           if (result.errors.length) {
@@ -43,7 +43,7 @@ class ValidateApplicationNameController implements ng.IComponentController {
 
 
 @DirectiveFactory('applicationNameValidator')
-class ValidateApplicationNameDirective implements ng.IDirective {
+class ValidateApplicationNameDirective implements IDirective {
   public restrict = 'A';
   public controller: any = ValidateApplicationNameController;
   public controllerAs = '$ctrl';
@@ -52,7 +52,7 @@ class ValidateApplicationNameDirective implements ng.IDirective {
     cloudProviders: '<',
   };
 
-  public link($scope: ng.IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: ng.INgModelController) {
+  public link($scope: IScope, _$element: JQuery, $attrs: IValidateNameAttrs, ctrl: INgModelController) {
     const $ctrl: ValidateApplicationNameController = $scope['$ctrl'];
     $ctrl.$scope = $scope;
     $ctrl.$attrs = $attrs;

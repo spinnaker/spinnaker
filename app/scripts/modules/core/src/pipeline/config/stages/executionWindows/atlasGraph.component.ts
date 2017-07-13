@@ -1,9 +1,9 @@
+import { IController, module } from 'angular';
 import * as momentTimezone from 'moment-timezone';
-import {has} from 'lodash';
-import {module} from 'angular';
-import {Subject} from 'rxjs';
+import { has } from 'lodash';
+import { Subject } from 'rxjs';
 
-import {SETTINGS} from 'core/config/settings';
+import { SETTINGS } from 'core/config/settings';
 
 interface IExecutionWindow {
   displayStart: Date;
@@ -66,7 +66,7 @@ interface IWindowData {
   end: number;
 }
 
-class ExecutionWindowAtlasGraphController implements ng.IComponentController {
+class ExecutionWindowAtlasGraphController implements IController {
   // configured in settings
   public regions: IAtlasRegion[];
 

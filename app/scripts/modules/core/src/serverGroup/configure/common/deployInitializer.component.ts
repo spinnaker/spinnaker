@@ -1,4 +1,4 @@
-import { IComponentController, IComponentOptions, IPromise, module } from 'angular';
+import { IController, IComponentOptions, IPromise, module } from 'angular';
 
 import { groupBy, sortBy } from 'lodash';
 
@@ -27,7 +27,7 @@ export interface IParentState {
   loaded: boolean,
 }
 
-export class DeployInitializerController implements IComponentController {
+export class DeployInitializerController implements IController {
   public templates: IDeployTemplate[] = [];
 
   public application: Application;

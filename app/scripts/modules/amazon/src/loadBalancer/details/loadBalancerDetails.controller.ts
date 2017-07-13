@@ -1,4 +1,4 @@
-import { IPromise, IQService, IScope, module } from 'angular';
+import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import { cloneDeep, head, get, sortBy } from 'lodash';
@@ -37,7 +37,7 @@ export interface ILoadBalancerFromStateParams {
   name: string;
 }
 
-export class AwsLoadBalancerDetailsController {
+export class AwsLoadBalancerDetailsController implements IController {
   public application: Application;
   public elbProtocol: string;
   public listeners: {in: string, target: ITargetGroup}[];

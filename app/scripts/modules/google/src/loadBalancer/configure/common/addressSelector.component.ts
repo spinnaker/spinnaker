@@ -1,7 +1,7 @@
-import {module, IComponentOptions, IComponentController} from 'angular';
+import {module, IComponentOptions, IController} from 'angular';
 import {IGceAddress} from 'google/address/address.reader';
 
-class GceAddressSelectorCtrl implements IComponentController {
+class GceAddressSelectorCtrl implements IController {
   public selectedAddress: IGceAddress;
   public addressList: IGceAddress[];
   public account: string;

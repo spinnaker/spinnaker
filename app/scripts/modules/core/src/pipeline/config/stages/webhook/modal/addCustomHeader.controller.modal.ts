@@ -1,7 +1,7 @@
-import {module} from 'angular';
-import {IModalInstanceService} from 'angular-ui-bootstrap';
+import { IController, module } from 'angular';
+import { IModalInstanceService } from 'angular-ui-bootstrap';
 
-export class WebhookStageAddCustomHeader {
+export class WebhookStageAddCustomHeader implements IController {
   constructor (private $scope: ng.IScope, private $uibModalInstance: IModalInstanceService) { 'ngInject'; }
 
   public submit(): void {

@@ -21,7 +21,7 @@ export interface IServerGroupCommandDirty {
   keyPair?: boolean;
   loadBalancers?: string[];
   region?: boolean;
-  securityGroups?: ISecurityGroup[];
+  securityGroups?: string[];
   subnetType?: boolean;
   vpcId?: boolean;
 }

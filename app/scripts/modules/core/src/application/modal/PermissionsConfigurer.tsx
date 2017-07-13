@@ -155,7 +155,7 @@ export class PermissionsConfigurer extends React.Component<IPermissionsConfigure
     }
   }
 
-  private handleDeletePermission(rowIndex: number): (option: Select.Option) => void {
+  private handleDeletePermission(rowIndex: number): (event: React.MouseEvent<HTMLElement>) => void {
     return () => {
       const permissionRows = cloneDeep(this.state.permissionRows);
       permissionRows.splice(rowIndex, 1);

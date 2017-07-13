@@ -1,8 +1,8 @@
-import {copy, module, toJson} from 'angular';
-import {cloneDeep} from 'lodash';
+import { IController, IComponentOptions, copy, module, toJson } from 'angular';
+import { cloneDeep } from 'lodash';
 
-import {APPLICATION_WRITE_SERVICE, ApplicationWriter} from 'core/application/service/application.write.service';
-import {Application} from 'core/application/application.model';
+import { APPLICATION_WRITE_SERVICE, ApplicationWriter } from 'core/application/service/application.write.service';
+import { Application } from 'core/application/application.model';
 
 import './configSectionFooter.component.less';
 
@@ -14,7 +14,7 @@ export interface IConfigSectionFooterViewState {
   isDirty: boolean;
 }
 
-export class ConfigSectionFooterController implements ng.IComponentController {
+export class ConfigSectionFooterController implements IController {
 
   public viewState: IConfigSectionFooterViewState;
   public application: Application;
@@ -55,7 +55,7 @@ export class ConfigSectionFooterController implements ng.IComponentController {
   }
 }
 
-class ConfigSectionFooterComponent implements ng.IComponentOptions {
+class ConfigSectionFooterComponent implements IComponentOptions {
   public bindings: any = {
     application: '=',
     config: '=',

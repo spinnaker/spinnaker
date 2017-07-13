@@ -1,13 +1,13 @@
-import {module, IScope} from 'angular';
-import {StateParams} from '@uirouter/angularjs';
-import {get} from 'lodash';
+import { IController, IScope, module } from 'angular';
+import { StateParams } from '@uirouter/angularjs';
+import { get } from 'lodash';
 
 import {
   EXECUTION_DETAILS_SECTION_SERVICE,
   ExecutionDetailsSectionService
 } from 'core/delivery/details/executionDetailsSection.service';
 
-export class WebhookExecutionDetailsCtrl {
+export class WebhookExecutionDetailsCtrl implements IController {
   public configSections = ['webhookConfig', 'taskStatus'];
   public detailsSection: string;
   public failureMessage: string;

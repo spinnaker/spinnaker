@@ -1,10 +1,10 @@
-import { IComponentController, IComponentOptions, module } from 'angular';
+import { IController, IComponentOptions, module } from 'angular';
 
 import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from '@spinnaker/core';
 
 import { AWS_SERVER_GROUP_CONFIGURATION_SERVICE, AwsServerGroupConfigurationService } from 'amazon/serverGroup/configure/serverGroupConfiguration.service';
 
-class LoadBalancerSelectorController implements IComponentController {
+class LoadBalancerSelectorController implements IController {
   public command: any;
 
   public refreshTime: number;

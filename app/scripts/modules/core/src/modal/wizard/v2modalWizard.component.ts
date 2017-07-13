@@ -1,10 +1,10 @@
-import {module} from 'angular';
-import {V2_WIZARD_PAGE_COMPONENT} from './v2wizardPage.component';
-import {V2_MODAL_WIZARD_SERVICE} from './v2modalWizard.service';
+import { IController, module } from 'angular';
+import { V2_WIZARD_PAGE_COMPONENT } from './v2wizardPage.component';
+import { V2_MODAL_WIZARD_SERVICE } from './v2modalWizard.service';
 
 import './modalWizard.less';
 
-export class V2ModalWizard implements ng.IComponentController {
+export class V2ModalWizard implements IController {
 
   public wizard: any;
   public heading: string;

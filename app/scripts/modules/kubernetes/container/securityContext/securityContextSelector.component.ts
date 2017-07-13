@@ -1,4 +1,4 @@
-import {module} from 'angular';
+import { IController, IComponentOptions, module} from 'angular';
 
 import './securityContextSelector.component.less';
 import {KUBERNETES_SE_LINUX_OPTIONS_SELECTOR} from './seLinuxOptionsSelector.component';
@@ -12,7 +12,7 @@ interface ISecurityContextField {
   columns?: number;
 }
 
-class SecurityContextSelector implements ng.IComponentController {
+class SecurityContextSelector implements IController {
   public component: any;
   public fields: ISecurityContextField[] = [
     {
@@ -40,7 +40,7 @@ class SecurityContextSelector implements ng.IComponentController {
   ];
 }
 
-class SecurityContextSelectorComponent implements ng.IComponentOptions {
+class SecurityContextSelectorComponent implements IComponentOptions {
   public bindings: any = {
     component: '='
   };

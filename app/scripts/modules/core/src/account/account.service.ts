@@ -140,7 +140,7 @@ export class AccountService {
           .flatten().compact()
           .map((region: IRegion) => region.name || region)
           .uniq()
-          .value();
+          .value() as string[];
       });
   }
 

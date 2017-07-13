@@ -1,4 +1,4 @@
-import { IScope, copy, module } from 'angular';
+import { IController, IScope, copy, module } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { get, merge } from 'lodash';
 
@@ -18,7 +18,7 @@ import { APPENGINE_DYNAMIC_BRANCH_LABEL } from './dynamicBranchLabel.component';
 
 import './serverGroupWizard.less';
 
-class AppengineCloneServerGroupCtrl {
+class AppengineCloneServerGroupCtrl implements IController {
   public pages: {[pageKey: string]: string} = {
     'basicSettings': require('./basicSettings.html'),
     'advancedSettings': require('./advancedSettings.html'),

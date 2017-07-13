@@ -1,8 +1,8 @@
-import {set} from 'lodash';
-import {module} from 'angular';
-import {IGceAutoHealingPolicy} from 'google/domain/autoHealingPolicy';
+import { IComponentOptions, IController, module } from 'angular';
+import { set } from 'lodash';
+import { IGceAutoHealingPolicy } from 'google/domain/autoHealingPolicy';
 
-class GceAutoHealingPolicySelector implements ng.IComponentController {
+class GceAutoHealingPolicySelector implements IController {
   public httpHealthChecks: string[];
   public autoHealingPolicy: IGceAutoHealingPolicy;
   public enabled: boolean;
@@ -38,7 +38,7 @@ class GceAutoHealingPolicySelector implements ng.IComponentController {
   }
 }
 
-class GceAutoHealingPolicySelectorComponent implements ng.IComponentOptions {
+class GceAutoHealingPolicySelectorComponent implements IComponentOptions {
   public bindings: any = {
     onHealthCheckRefresh: '&',
     setAutoHealingPolicy: '&',

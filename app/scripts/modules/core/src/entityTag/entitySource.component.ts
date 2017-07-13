@@ -1,10 +1,10 @@
-import {module} from 'angular';
+import { IController, module } from 'angular';
 
-import {ICreationMetadataTag} from 'core/domain/IEntityTags';
-import {IExecution} from '../domain/IExecution';
-import {EXECUTION_SERVICE, ExecutionService} from 'core/delivery/service/execution.service';
+import { ICreationMetadataTag } from 'core/domain/IEntityTags';
+import { IExecution } from '../domain/IExecution';
+import { EXECUTION_SERVICE, ExecutionService } from 'core/delivery/service/execution.service';
 
-class EntitySourceCtrl implements ng.IComponentController {
+class EntitySourceCtrl implements IController {
   public relativePath = '^.^.^';
   public metadata: ICreationMetadataTag;
   public executionType: string;

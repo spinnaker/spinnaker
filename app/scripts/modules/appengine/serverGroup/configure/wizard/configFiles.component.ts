@@ -1,6 +1,6 @@
-import {module} from 'angular';
+import { IController, module } from 'angular';
 
-class AppengineConfigFileConfigurerCtrl implements ng.IComponentController {
+class AppengineConfigFileConfigurerCtrl implements IController {
   public command: {configFiles: string[]};
 
   public $onInit(): void {

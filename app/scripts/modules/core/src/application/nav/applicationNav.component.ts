@@ -1,4 +1,4 @@
-import { module, IComponentController, IComponentOptions } from 'angular';
+import { module, IController, IComponentOptions } from 'angular';
 import { StateService } from '@uirouter/angularjs';
 
 import { Application } from 'core/application/application.model';
@@ -6,7 +6,7 @@ import { ApplicationDataSource } from 'core/application/service/applicationDataS
 
 import './applicationNav.component.less';
 
-class ApplicationNavController implements IComponentController {
+class ApplicationNavController implements IController {
   public application: Application;
 
   constructor(private $state: StateService) { 'ngInject'; }

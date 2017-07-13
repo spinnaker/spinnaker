@@ -1,12 +1,12 @@
-import {module} from 'angular';
-import {PageNavigationState, PAGE_NAVIGATION_STATE} from './pageNavigationState';
-import {throttle} from 'lodash';
-import {ScrollToService, SCROLL_TO_SERVICE} from 'core/utils/scrollTo/scrollTo.service';
-import {PAGE_SECTION_COMPONENT} from './pageSection.component';
-import {UUIDGenerator} from 'core/utils/uuid.service';
+import { IController, module } from 'angular';
+import { PageNavigationState, PAGE_NAVIGATION_STATE } from './pageNavigationState';
+import { throttle } from 'lodash';
+import { ScrollToService, SCROLL_TO_SERVICE } from 'core/utils/scrollTo/scrollTo.service';
+import { PAGE_SECTION_COMPONENT } from './pageSection.component';
+import { UUIDGenerator } from 'core/utils/uuid.service';
 import './pageNavigation.less';
 
-class PageNavigatorController implements ng.IComponentController {
+class PageNavigatorController implements IController {
   public scrollableContainer: string;
   private container: JQuery;
   private navigator: JQuery;

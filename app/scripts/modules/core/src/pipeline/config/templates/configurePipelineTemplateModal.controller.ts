@@ -1,4 +1,4 @@
-import { module, IComponentController, IScope, IHttpPromiseCallbackArg, IPromise } from 'angular';
+import { module, IController, IScope, IHttpPromiseCallbackArg, IPromise } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { load, dump } from 'js-yaml';
 import autoBindMethods from 'class-autobind-decorator';
@@ -28,7 +28,7 @@ export interface IState {
 }
 
 @autoBindMethods
-export class ConfigurePipelineTemplateModalController implements IComponentController {
+export class ConfigurePipelineTemplateModalController implements IController {
 
   public pipelineName: string;
   public variableMetadataGroups: IVariableMetadataGroup[];

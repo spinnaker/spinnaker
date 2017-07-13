@@ -1,4 +1,4 @@
-import { IScope, module } from 'angular';
+import { IController, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { cloneDeep, get, map, mapValues, reduce } from 'lodash';
 
@@ -32,7 +32,7 @@ interface IServerGroupFromStateParams {
   name: string;
 }
 
-class AppengineServerGroupDetailsController {
+class AppengineServerGroupDetailsController implements IController {
   public state = { loading: true };
   public serverGroup: IAppengineServerGroup;
 

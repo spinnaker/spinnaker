@@ -1,8 +1,8 @@
 /** based on http://jsfiddle.net/epinapala/WdeTM/4/  **/
-import { IComponentOptions, IDirective, IScope, module } from 'angular';
+import { IController, IDirective, IScope, module } from 'angular';
 import { DirectiveFactory } from './tsDecorators/directiveFactoryDecorator';
 
-class DoubleClickController implements IComponentOptions {
+class DoubleClickController implements IController {
   public $element: JQuery;
   public $scope: IScope;
   public $attrs: any;
