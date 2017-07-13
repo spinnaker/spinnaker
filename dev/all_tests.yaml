@@ -183,16 +183,33 @@ tests:
     args:
       alias: [standard_azure_provider_params]
 
-  appengine_smoke_test:
+  appengine_smoke_test_git:
     requires:
       configuration:
         appengine_account_enabled: true
       services: [clouddriver, front50, gate, orca]
+    quota:
+      appengine_deployment: 1
     api: gate
     args:
       alias: [standard_appengine_provider_params]
-      source_repo_url: https://github.com/GoogleCloudPlatform/python-docs-samples.git
+      git_repo_url: https://github.com/GoogleCloudPlatform/python-docs-samples.git
       app_directory_root: appengine/standard/hello_world
+      branch: master
+
+  appengine_smoke_test_gcs:
+    requires:
+      configuration:
+        appengine_account_enabled: true
+      services: [clouddriver, front50, gate, orca]
+    quota:
+      appengine_deployment: 1
+    api: gate
+    args:
+      alias: [standard_appengine_provider_params]
+      git_repo_url: https://github.com/GoogleCloudPlatform/python-docs-samples.git
+      app_directory_root: appengine/standard/hello_world
+      test_gcs_bucket: $storage_gcs_bucket
       branch: master
 
   

@@ -357,7 +357,10 @@ class ValidateBomTestController(object):
     options = deployer.options
     quota_spec = {parts[0]: int(parts[1])
                   for parts in [entry.split('=')
-                                for entry in options.test_quota.split(',')]}
+                                for entry in options.test_default_quota.split(',')]}
+    quota_spec.update({parts[0]: int(parts[1])
+                  for parts in [entry.split('=')
+                                for entry in options.test_quota.split(',')]})
     self.__quota_tracker = QuotaTracker(quota_spec)
     self.__deployer = deployer
     self.__lock = threading.Lock()
@@ -882,10 +885,13 @@ def init_argument_parser(parser):
       help='Limits how many tests to run at a time. Default is unbounded')
 
   parser.add_argument(
-      '--test_quota',
-      default='google_backend_services=3,google_forwarding_rules=3,google_ssl_certificates=2,google_cpu=20',
+      '--test_default_quota',
+      default='google_backend_services=3,google_forwarding_rules=3,google_ssl_certificates=2,google_cpu=20,appengine_deployment=1',
       help='Comma-delimited name=value list of quota limits. This is used'
            ' to rate-limit tests based on their profiled quota specifications.')
+  parser.add_argument(
+      '--test_quota', default='',
+      help='Comma-delimited name=value list of --test_default_quota overrides.')
 
   parser.add_argument(
       '--test_disable', default=False, action='store_true',
