@@ -20,15 +20,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.configuration.CredentialsConfiguration
 import com.netflix.spinnaker.clouddriver.security.AccountCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -56,7 +53,7 @@ class CredentialsController {
   Map getAccount(@PathVariable("name") String name) {
     def accountDetail = renderDetail(accountCredentialsProvider.getCredentials(name))
     if (!accountDetail) {
-      throw new AccountNotFoundException(account: name)
+      throw new NotFoundException("Account does not exist (name: ${name})")
     }
 
     return accountDetail
@@ -91,17 +88,4 @@ class CredentialsController {
 
     return cred
   }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleAccountNotFound(AccountNotFoundException ex) {
-    def message = messageSource.getMessage("account.not.found", [ex.account] as String[], "account.not.found", LocaleContextHolder.locale)
-    [error: "account.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ResponseStatus(value=HttpStatus.NOT_FOUND)
-  static class AccountNotFoundException extends RuntimeException {
-    String account
-  }
-
 }

@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -72,7 +73,7 @@ class ClusterControllerSpec extends Specification {
       clusterController.getForAccountAndNameAndType("app", "test", "cluster", "aws")
 
     then:
-      thrown ClusterController.ClusterNotFoundException
+      thrown NotFoundException
   }
 
   void "should return specific named serverGroup"() {
@@ -105,7 +106,7 @@ class ClusterControllerSpec extends Specification {
 
     then:
       1 * clusterProvider1.getClusters(_, _) >> null
-      thrown ClusterController.AccountClustersNotFoundException
+      thrown NotFoundException
   }
 
   void "should throw exception when a requested cluster is not found within an account"() {
@@ -118,7 +119,7 @@ class ClusterControllerSpec extends Specification {
 
     then:
       1 * clusterProvider1.getCluster(*_) >> null
-      thrown ClusterController.ClusterNotFoundException
+      thrown NotFoundException
   }
 
   @Unroll
@@ -189,7 +190,7 @@ class ClusterControllerSpec extends Specification {
       )
 
     then:
-      thrown(ClusterController.TargetFailException)
+      thrown NotFoundException
 
     when:
       clusterController.getTargetServerGroup(
@@ -198,7 +199,7 @@ class ClusterControllerSpec extends Specification {
       )
 
     then:
-      thrown(ClusterController.TargetNotFoundException)
+      thrown NotFoundException
 
     where:
       location | target                | onlyEnabled | validateOldest || expectedName
@@ -258,6 +259,6 @@ class ClusterControllerSpec extends Specification {
           "north", "largest", "doesntExist", null /* onlyEnabled */)
 
     then:
-      thrown(ClusterController.SummaryNotFoundException)
+      thrown NotFoundException
   }
 }

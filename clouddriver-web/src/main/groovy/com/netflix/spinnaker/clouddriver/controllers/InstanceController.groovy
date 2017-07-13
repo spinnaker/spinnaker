@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.InstanceProvider
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
@@ -50,7 +51,7 @@ class InstanceController {
       it.getInstance(account, region, id)
     }
     if (!instanceMatches) {
-      throw new InstanceNotFoundException(name: id)
+      throw new NotFoundException("Instance not found (id: ${id})")
     }
     instanceMatches.first()
   }
@@ -70,25 +71,8 @@ class InstanceController {
       null
     }
     if (!outputs) {
-      throw new InstanceNotFoundException(name: id)
+      throw new NotFoundException("Instance not found (id: ${id})")
     }
     [ output: outputs.first() ]
-  }
-
-  static class InstanceNotFoundException extends RuntimeException {
-    String name
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map instanceNotFoundException(InstanceNotFoundException ex) {
-    def message = messageSource.getMessage("instance.not.found", [ex.name] as String[], "Instance not found", LocaleContextHolder.locale)
-    [error: "instance.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map badRequestException(IllegalArgumentException ex) {
-    [error: 'invalid.request', message: ex.message, status: HttpStatus.BAD_REQUEST]
   }
 }

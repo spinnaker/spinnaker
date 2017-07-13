@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers
 
 import com.netflix.spinnaker.clouddriver.model.JobStatus
 import com.netflix.spinnaker.clouddriver.model.JobProvider
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,7 +48,7 @@ class JobController {
       it.collectJob(account, location, id)
     }
     if (!jobMatches) {
-      throw new JobNotFoundException(name: id)
+      throw new NotFoundException("Job not found (account: ${account}, location: ${location}, id: ${id})")
     }
     jobMatches.first()
   }
@@ -65,22 +66,5 @@ class JobController {
     jobProviders.findResults {
       it.getFileContents(account, location, id, fileName)
     }.first()
-  }
-
-  static class JobNotFoundException extends RuntimeException {
-    String name
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map jobNotFoundException(JobNotFoundException ex) {
-    def message = messageSource.getMessage("job.not.found", [ex.name] as String[], "JobStatus not found", LocaleContextHolder.locale)
-    [error: "job.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map badRequestException(IllegalArgumentException ex) {
-    [error: 'invalid.request', message: ex.message, status: HttpStatus.BAD_REQUEST]
   }
 }

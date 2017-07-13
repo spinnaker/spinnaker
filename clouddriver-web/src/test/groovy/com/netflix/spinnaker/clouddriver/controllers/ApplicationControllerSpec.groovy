@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonApplication
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -110,7 +111,7 @@ class ApplicationControllerSpec extends Specification {
     result.attributes == [tag: "val", cloudProviders: "aws"]
   }
 
-  def "throw ApplicationNotFoundException when no apps are found"() {
+  def "throw NotFoundException when no apps are found"() {
     setup:
     def appProvider1 = Mock(ApplicationProvider)
     def appProvider2 = Mock(ApplicationProvider)
@@ -122,8 +123,8 @@ class ApplicationControllerSpec extends Specification {
     then:
     1 * appProvider1.getApplication("foo") >> null
     1 * appProvider2.getApplication("foo") >> null
-    ApplicationsController.ApplicationNotFoundException e = thrown()
-    e.name == "foo"
+    NotFoundException e = thrown()
+    e.message == "Application does not exist (name: foo)"
   }
 
   @Unroll

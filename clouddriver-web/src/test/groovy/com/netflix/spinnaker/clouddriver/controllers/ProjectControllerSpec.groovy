@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.LoadBalancer
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import retrofit.RetrofitError
 import spock.lang.Shared
 import spock.lang.Specification
@@ -73,7 +74,7 @@ class ProjectControllerSpec extends Specification {
 
     then:
     1 * front50Service.getProject(projectName) >> { throw new RetrofitError("a", null, null, null, null, null, null) }
-    thrown ProjectController.ProjectNotFoundException
+    thrown NotFoundException
   }
 
   void "returns an empty list without trying to retrieve applications when no clusters are configured"() {

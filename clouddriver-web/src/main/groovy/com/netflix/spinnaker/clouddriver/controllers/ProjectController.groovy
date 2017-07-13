@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.core.services.Front50Service
 import com.netflix.spinnaker.clouddriver.model.Cluster
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -72,7 +73,7 @@ class ProjectController {
       projectConfig = front50Service.getProject(project)
     } catch (e) {
       log.error("Unable to fetch project (${project})", e)
-      throw new ProjectNotFoundException(name: project)
+      throw new NotFoundException("Project not found (name: ${project})")
     }
 
     if (projectConfig.config.clusters.size() == 0) {
@@ -242,16 +243,5 @@ class ProjectController {
     def executor = new ThreadPoolTaskExecutor(maxPoolSize: threadPoolSize, corePoolSize: threadPoolSize)
     executor.afterPropertiesSet()
     executor
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map projectNotFoundExceptionHandler(ProjectNotFoundException ex) {
-    def message = messageSource.getMessage("project.not.found", [ex.name] as String[], "project.not.found", LocaleContextHolder.locale)
-    [error: "project.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  static class ProjectNotFoundException extends RuntimeException {
-    String name
   }
 }

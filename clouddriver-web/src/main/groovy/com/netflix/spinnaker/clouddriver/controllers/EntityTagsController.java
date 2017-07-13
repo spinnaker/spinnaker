@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.controllers;
 
 import com.netflix.spinnaker.clouddriver.model.EntityTags;
 import com.netflix.spinnaker.clouddriver.model.EntityTagsProvider;
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -80,31 +81,6 @@ public class EntityTagsController {
   public EntityTags get(HttpServletRequest request) {
     String pattern = (String) request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
     String id = new AntPathMatcher().extractPathWithinPattern(pattern, request.getServletPath());
-    return tagProvider.get(id).orElseThrow(() -> new EntityTagsNotFoundException(id));
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map entityTagsNotFoundExceptionHandler(EntityTagsNotFoundException ex) {
-    String message = messageSource.getMessage(
-      "entityTags.not.found",
-      new String[]{ex.name},
-      "No EntityTags found w/ id = '" + ex.name + "'",
-      LocaleContextHolder.getLocale()
-    );
-
-    return new HashMap<String, Object>() {{
-      put("error", "entityTags.not.found");
-      put("message", message);
-      put("status", HttpStatus.NOT_FOUND);
-    }};
-  }
-
-  static class EntityTagsNotFoundException extends RuntimeException {
-    final String name;
-
-    EntityTagsNotFoundException(String name) {
-      this.name = name;
-    }
+    return tagProvider.get(id).orElseThrow(() -> new NotFoundException("No EntityTags found w/ id = '" + id + "'"));
   }
 }

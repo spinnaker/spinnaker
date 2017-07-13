@@ -16,10 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.deploy
 
-import groovy.transform.Canonical
+import com.netflix.spinnaker.kork.web.exceptions.ValidationException
 import org.springframework.validation.Errors
+import org.springframework.validation.ObjectError
 
-@Canonical
-class DescriptionValidationException extends RuntimeException {
-  Errors errors
+class DescriptionValidationException extends ValidationException {
+  DescriptionValidationException(Errors errors) {
+    super("Validation Failed", getErrors(errors))
+  }
+
+  static Collection<String> getErrors(Errors errors) {
+    def errorStrings = []
+    errors.allErrors.each { ObjectError objectError ->
+      errorStrings << (objectError.defaultMessage ?: objectError.code)
+    }
+
+    return errorStrings
+  }
 }

@@ -24,6 +24,7 @@ import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.Summary
 import com.netflix.spinnaker.clouddriver.model.TargetServerGroup
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.transform.Canonical
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -85,7 +86,7 @@ class ClusterController {
       clusterViews
     }?.flatten() as Set<ClusterViewModel>
     if (!clusters) {
-      throw new AccountClustersNotFoundException(application: application, account: account)
+      throw new NotFoundException("No clusters found (application: ${application}, account: ${account})")
     }
     clusters
   }
@@ -100,7 +101,7 @@ class ClusterController {
     }
     clusters.removeAll([null])
     if (!clusters) {
-      throw new ClusterNotFoundException(cluster: name)
+      throw new NotFoundException("Cluster not found (application: ${application}, account: ${account}, name: ${name})")
     }
     clusters
   }
@@ -114,7 +115,7 @@ class ClusterController {
     Set<Cluster> allClusters = getForAccountAndName(application, account, name)
     def cluster = allClusters.find { it.type == type }
     if (!cluster) {
-      throw new ClusterNotFoundException(cluster: name)
+      throw new NotFoundException("No clusters found (application: ${application}, account: ${account}, type: ${type})")
     }
     cluster
   }
@@ -144,7 +145,7 @@ class ClusterController {
       region ? it.name == serverGroupName && it.region == region : it.name == serverGroupName
     }
     if (!serverGroups) {
-      throw new ServerGroupNotFoundException(serverGroupName: serverGroupName)
+      throw new NotFoundException("Server group not found (account: ${account}, name: ${serverGroupName}, type: ${type})")
     }
     region ? serverGroups?.getAt(0) : serverGroups
   }
@@ -168,7 +169,7 @@ class ClusterController {
     try {
       tsg = TargetServerGroup.fromString(target)
     } catch (IllegalArgumentException e) {
-      throw new TargetNotFoundException(target: target)
+      throw new NotFoundException("Target not found (target: ${target})")
     }
 
     def sortedServerGroups = getServerGroups(application, account, clusterName, cloudProvider, null /* region */).findAll {
@@ -185,7 +186,7 @@ class ClusterController {
     }.sort { a, b -> b.createdTime <=> a.createdTime }
 
     if (!sortedServerGroups) {
-      throw new ServerGroupNotFoundException()
+      throw new NotFoundException("No server groups found (account: ${account}, cluster: ${clusterName}, type: ${cloudProvider})")
     }
 
     switch (tsg) {
@@ -193,13 +194,13 @@ class ClusterController {
         return sortedServerGroups.get(0)
       case TargetServerGroup.PREVIOUS:
         if (sortedServerGroups.size() == 1) {
-          throw new TargetNotFoundException(target: target)
+          throw new NotFoundException("Target not found (target: ${target})")
         }
         return sortedServerGroups.get(1)
       case TargetServerGroup.OLDEST:
         // At least two expected, but some cases just want the oldest no matter what.
         if (Boolean.valueOf(validateOldest) && sortedServerGroups.size() == 1) {
-          throw new TargetNotFoundException(target: target)
+          throw new NotFoundException("Target not found (target: ${target})")
         }
         return sortedServerGroups.last()
       case TargetServerGroup.LARGEST:
@@ -210,7 +211,7 @@ class ClusterController {
         }.get(0)
       case TargetServerGroup.FAIL:
         if (sortedServerGroups.size() > 1) {
-          throw new TargetFailException(scope: scope, serverGroupNames: sortedServerGroups.name)
+          throw new NotFoundException("More than one target found (scope: ${scope}, serverGroups: ${sortedServerGroups*.name})")
         }
         return sortedServerGroups.get(0)
     }
@@ -238,76 +239,8 @@ class ClusterController {
     try {
       return (Summary) sg.invokeMethod("get${summaryType.capitalize()}Summary".toString(), null /* args */)
     } catch (MissingMethodException e) {
-      throw new SummaryNotFoundException(summaryType: summaryType)
+      throw new NotFoundException("Summary not found (type: ${summaryType})")
     }
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleClusterNotFoundException(AccountClustersNotFoundException ex) {
-    def message = messageSource.getMessage("account.clusters.not.found", [ex.application, ex.account] as String[], "account.clusters.not.found", LocaleContextHolder.locale)
-    [error: "account.clusters.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleClusterNotFoundException(ClusterNotFoundException ex) {
-    def message = messageSource.getMessage("cluster.not.found", [ex.cluster] as String[], "cluster.not.found", LocaleContextHolder.locale)
-    [error: "cluster.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleServerGroupNotFoundException(ServerGroupNotFoundException ex) {
-    def message = messageSource.getMessage("serverGroup.not.found", [ex.serverGroupName] as String[], "serverGroup.not.found", LocaleContextHolder.locale)
-    [error: "serverGroup.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleTargetNotFoundException(TargetNotFoundException ex) {
-    def message = messageSource.getMessage("target.not.found", [ex.target] as String[], "target.not.found", LocaleContextHolder.locale)
-    [error: "target.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleTargetFailException(TargetFailException ex) {
-    def message = messageSource.getMessage("target.fail.strategy", [ex.scope, ex.serverGroupNames.join(",")] as String[], "target.fail.strategy", LocaleContextHolder.locale)
-    [error: "target.fail.strategy", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleSummaryNotFoundException(SummaryNotFoundException ex) {
-    def message = messageSource.getMessage("summary.not.found", [ex.summaryType] as String[], "summary.not.found", LocaleContextHolder.locale)
-    [error: "summary.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  static class AccountClustersNotFoundException extends RuntimeException {
-    String application
-    String account
-  }
-
-  static class ClusterNotFoundException extends RuntimeException {
-    String cluster
-  }
-
-  static class ServerGroupNotFoundException extends RuntimeException {
-    String serverGroupName
-  }
-
-  static class TargetNotFoundException extends RuntimeException {
-    String target
-  }
-
-  static class TargetFailException extends RuntimeException {
-    String scope
-    List<String> serverGroupNames
-  }
-
-  static class SummaryNotFoundException extends RuntimeException {
-    String summaryType
   }
 
   @Canonical

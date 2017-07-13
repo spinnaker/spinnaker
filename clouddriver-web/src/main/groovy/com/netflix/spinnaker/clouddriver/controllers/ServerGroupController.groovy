@@ -26,19 +26,15 @@ import com.netflix.spinnaker.clouddriver.model.Instance
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import com.netflix.spinnaker.clouddriver.model.view.ServerGroupViewModelPostProcessor
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
-import org.apache.catalina.Server
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
-import org.springframework.context.i18n.LocaleContextHolder
-import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -70,7 +66,7 @@ class ServerGroupController {
       requestQueue.execute(application, { provider.getServerGroup(account, region, name) })
     }
     if (!matches) {
-      throw new ServerGroupNotFoundException([name: name, account: account, region: region])
+      throw new NotFoundException("Server group not found (account: ${account}, region: ${region}, name: ${name})")
     }
     ServerGroup serverGroup = matches.first()
     if (serverGroupViewModelPostProcessor?.supports(serverGroup)) {
@@ -155,19 +151,6 @@ class ServerGroupController {
         isExpanded ? expanded(it, cluster) : new ServerGroupViewModel(it, cluster)
       }
     }.flatten()
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleServerGroupNotFoundException(ServerGroupNotFoundException ex) {
-    def message = messageSource.getMessage("serverGroup.not.found", [ex.name, ex.account, ex.region] as String[], "serverGroup.not.found", LocaleContextHolder.locale)
-    [error: "serverGroup.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  static class ServerGroupNotFoundException extends RuntimeException {
-    String name
-    String account
-    String region
   }
 
   static class ServerGroupViewModel {

@@ -20,17 +20,14 @@ import com.netflix.spinnaker.clouddriver.model.SecurityGroup
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupProvider
 import com.netflix.spinnaker.clouddriver.model.SecurityGroupSummary
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
-import groovy.transform.InheritConstructors
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.security.access.prepost.PostAuthorize
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RequestMapping("/securityGroups")
@@ -166,7 +163,7 @@ class SecurityGroupController {
     }.get(account, region, securityGroupName, vpcId)
 
     if (!securityGroup) {
-      throw new SecurityGroupNotFoundException("Security group '${securityGroupName}' does not exist")
+      throw new NotFoundException("Security group '${securityGroupName}' does not exist")
     }
 
     return securityGroup
@@ -176,15 +173,5 @@ class SecurityGroupController {
     new TreeSet<>({ SecurityGroupSummary a, SecurityGroupSummary b ->
       a.name.toLowerCase() <=> b.name.toLowerCase() ?: a.id <=> b.id
     } as Comparator)
-  }
-
-  @ResponseStatus(value = HttpStatus.NOT_FOUND)
-  @InheritConstructors
-  static class SecurityGroupNotFoundException extends RuntimeException {}
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map handleSecurityGroupNotFoundException(SecurityGroupNotFoundException ex) {
-    [error: "security.group.not.found", message: ex.message, status: HttpStatus.NOT_FOUND]
   }
 }

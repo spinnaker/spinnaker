@@ -16,10 +16,21 @@
 
 package com.netflix.spinnaker.clouddriver.orchestration
 
-import groovy.transform.Canonical
+import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 
-@Canonical
-class AtomicOperationException extends RuntimeException {
-  String error
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+class AtomicOperationException extends RuntimeException implements HasAdditionalAttributes {
   List<String> errors
+
+  AtomicOperationException(String message, List<String> errors) {
+    super(message)
+    this.errors = errors
+  }
+
+  @Override
+  Map<String, Object> getAdditionalAttributes() {
+    return errors ? ["errors": errors] : [:]
+  }
 }

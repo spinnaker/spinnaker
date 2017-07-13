@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.view.ApplicationClusterViewModel
 import com.netflix.spinnaker.clouddriver.model.view.ApplicationViewModel
 import com.netflix.spinnaker.clouddriver.requestqueue.RequestQueue
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
@@ -69,25 +70,13 @@ class ApplicationsController {
         applicationProviders.collect { it.getApplication(name) }
       }) - null
       if (!apps) {
-        throw new ApplicationNotFoundException(name: name)
+        throw new NotFoundException("Application does not exist (name: ${name})")
       } else {
         return transform(apps)
       }
     } catch (e) {
-      log.error("Unable to fetch application (${name})")
-      throw new ApplicationNotFoundException(name: name)
+      throw new NotFoundException("Application does not exist (name: ${name})")
     }
-  }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  Map applicationNotFoundExceptionHandler(ApplicationNotFoundException ex) {
-    def message = messageSource.getMessage("application.not.found", [ex.name] as String[], "application.not.found", LocaleContextHolder.locale)
-    [error: "application.not.found", message: message, status: HttpStatus.NOT_FOUND]
-  }
-
-  static class ApplicationNotFoundException extends RuntimeException {
-    String name
   }
 
   private ApplicationViewModel transform(List<Application> apps) {

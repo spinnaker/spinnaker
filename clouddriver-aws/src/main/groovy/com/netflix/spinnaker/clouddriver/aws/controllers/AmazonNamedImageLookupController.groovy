@@ -20,15 +20,13 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.cache.RelationshipCacheFilter
 import com.netflix.spinnaker.clouddriver.aws.data.Keys
-import groovy.transform.InheritConstructors
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
+import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 import javax.servlet.http.HttpServletRequest
@@ -57,11 +55,11 @@ class AmazonNamedImageLookupController {
   List<NamedImage> getByAmiId(@PathVariable String account, @PathVariable String region, @PathVariable String imageId) {
     CacheData cd = cacheView.get(IMAGES.ns, Keys.getImageKey(imageId, account, region))
     if (cd == null) {
-      throw new ImageNotFoundException("${imageId} not found in ${account}/${region}")
+      throw new NotFoundException("${imageId} not found in ${account}/${region}")
     }
     Collection<String> namedImageKeys = cd.relationships[NAMED_IMAGES.ns]
     if (!namedImageKeys) {
-      throw new ImageNotFoundException("Name not found on image ${imageId} in ${account}/${region}")
+      throw new NotFoundException("Name not found on image ${imageId} in ${account}/${region}")
     }
 
     render(null, [cd], null, region)
@@ -187,13 +185,13 @@ class AmazonNamedImageLookupController {
 
   void validateLookupOptions(LookupOptions lookupOptions) {
     if (lookupOptions.q == null || lookupOptions.q.length() < MIN_NAME_FILTER) {
-      throw new InsufficientLookupOptionsException(EXCEPTION_REASON)
+      throw new InvalidRequestException(EXCEPTION_REASON)
     }
 
     String glob = lookupOptions.q?.trim()
     def isAmi = glob ==~ /^ami-[a-z0-9]{8}$/
     if (glob == "ami" || (!isAmi && glob.startsWith("ami-"))) {
-      throw new InsufficientLookupOptionsException("Searches by AMI id must be an exact match (ami-xxxxxxxx)")
+      throw new InvalidRequestException("Searches by AMI id must be an exact match (ami-xxxxxxxx)")
     }
   }
 
@@ -204,19 +202,6 @@ class AmazonNamedImageLookupController {
       [tagParameter.replaceAll("tag:", "").toLowerCase(), httpServletRequest.getParameter(tagParameter)]
     } as Map<String, String>
   }
-
-  @ExceptionHandler
-  @ResponseStatus(HttpStatus.BAD_REQUEST)
-  Map handleInsufficientLookupOptions(InsufficientLookupOptionsException e) {
-    [message: e.message, status: HttpStatus.BAD_REQUEST]
-  }
-
-  @InheritConstructors
-  static class InsufficientLookupOptionsException extends RuntimeException {}
-
-  @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = 'Image not found')
-  @InheritConstructors
-  private static class ImageNotFoundException extends RuntimeException {}
 
   private static class NamedImage {
     String imageName

@@ -18,8 +18,8 @@
 package com.netflix.spinnaker.clouddriver.aws.controllers
 
 import com.netflix.spinnaker.cats.cache.Cache
-import com.netflix.spinnaker.clouddriver.aws.controllers.AmazonNamedImageLookupController.InsufficientLookupOptionsException
 import com.netflix.spinnaker.clouddriver.aws.controllers.AmazonNamedImageLookupController.LookupOptions
+import com.netflix.spinnaker.kork.web.exceptions.InvalidRequestException
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -72,7 +72,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     controller.validateLookupOptions(new LookupOptions(q: query))
 
     then:
-    thrown(InsufficientLookupOptionsException)
+    thrown(InvalidRequestException)
 
     where:
     query << ["ami", "ami-", "ami-1234", "ami-123456789"]
@@ -87,7 +87,7 @@ class AmazonNamedImageLookupControllerSpec extends Specification {
     controller.validateLookupOptions(new LookupOptions(q: query))
 
     then:
-    notThrown(InsufficientLookupOptionsException)
+    notThrown(InvalidRequestException)
 
     where:
     query << ["ami_", "ami-12345678", "sami", "ami_12345678"]
