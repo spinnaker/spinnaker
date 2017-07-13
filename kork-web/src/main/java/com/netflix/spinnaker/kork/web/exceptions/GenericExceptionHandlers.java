@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.kork.web.exceptions;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes;
@@ -24,10 +26,16 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import retrofit.RetrofitError;
+import retrofit.client.Header;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
 public class GenericExceptionHandlers {
@@ -57,6 +65,33 @@ public class GenericExceptionHandlers {
     response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
   }
 
+  @ExceptionHandler(RetrofitError.class)
+  public void handleRetrofitError(RetrofitError e, HttpServletResponse response, HttpServletRequest request) throws IOException {
+    if (e.getResponse() != null) {
+      Map<String, Object> additionalContext = new HashMap<>();
+      additionalContext.put("url", e.getResponse().getUrl());
+
+      Header contentTypeHeader = e.getResponse().getHeaders()
+        .stream()
+        .filter(h -> h.getName().equalsIgnoreCase("content-type"))
+        .findFirst()
+        .orElse(null);
+
+      if (contentTypeHeader != null && contentTypeHeader.getValue().toLowerCase().contains("application/json")) {
+        // include any json responses
+        additionalContext.put("body", CharStreams.toString(
+          new InputStreamReader(e.getResponse().getBody().in(), Charsets.UTF_8)
+        ));
+      }
+
+      storeException(request, response, new RetrofitErrorWrapper(e.getMessage(), additionalContext));
+      response.sendError(e.getResponse().getStatus(), e.getMessage());
+    } else {
+      // no retrofit response (likely) indicates a NETWORK error
+      handleException(e, response, request);
+    }
+  }
+
   @ExceptionHandler(Exception.class)
   public void handleException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
     logger.error("Internal Server Error", e);
@@ -79,5 +114,19 @@ public class GenericExceptionHandlers {
   private void storeException(HttpServletRequest request, HttpServletResponse response, Exception ex) {
     // store exception as an attribute of HttpServletRequest such that it can be referenced by GenericErrorController
     defaultErrorAttributes.resolveException(request, response, null, ex);
+  }
+
+  private static class RetrofitErrorWrapper extends RuntimeException implements HasAdditionalAttributes {
+    private final Map<String, Object> additionalAttributes;
+
+    public RetrofitErrorWrapper(String message, Map<String, Object> additionalAttributes) {
+      super(message);
+      this.additionalAttributes = additionalAttributes;
+    }
+
+    @Override
+    public Map<String, Object> getAdditionalAttributes() {
+      return additionalAttributes != null ? additionalAttributes : Collections.emptyMap();
+    }
   }
 }
