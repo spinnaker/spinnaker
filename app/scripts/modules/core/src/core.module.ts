@@ -7,6 +7,8 @@ import 'bootstrap/dist/js/bootstrap.js';
 
 import 'font-awesome/css/font-awesome.css';
 import 'react-select/dist/react-select.css';
+import 'react-virtualized/styles.css'
+import 'react-virtualized-select/styles.css'
 import 'ui-select/dist/select.css';
 
 import UI_ROUTER from '@uirouter/angularjs';

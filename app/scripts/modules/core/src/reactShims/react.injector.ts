@@ -3,6 +3,7 @@ import { IModalService } from 'angular-ui-bootstrap';
 import { StateService, StateParams } from '@uirouter/angularjs';
 import { IQService, IRootScopeService } from 'angular';
 
+import { AccountService } from '../account/account.service';
 import { Api } from '../api/api.service';
 import { ApplicationModelBuilder } from '../application/applicationModel.builder';
 import { ApplicationReader } from '../application/service/application.read.service';
@@ -31,6 +32,7 @@ import { StateEvents } from './state.events';
 import { TaskMonitorBuilder } from '../task/monitor/taskMonitor.builder';
 import { VariableInputService } from '../pipeline/config/templates/inputs/variableInput.service';
 import { VariableValidatorService } from '../pipeline/config/templates/validators/variableValidator.service';
+import { ViewStateCacheService } from '../cache/viewStateCache.service';
 import { WaypointService } from '../utils/waypoints/waypoint.service';
 
 export abstract class ReactInject {
@@ -54,6 +56,7 @@ export class CoreReactInject extends ReactInject {
   // Services
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
   public get API() { return this.$injector.get('API') as Api; }
+  public get accountService() { return this.$injector.get('accountService') as AccountService; }
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
   public get applicationReader() { return this.$injector.get('applicationReader') as ApplicationReader; }
   public get authenticationService() { return this.$injector.get('authenticationService') as AuthenticationService; }
@@ -82,6 +85,7 @@ export class CoreReactInject extends ReactInject {
   public get taskMonitorBuilder() { return this.$injector.get('taskMonitorBuilder') as TaskMonitorBuilder; }
   public get variableInputService() { return this.$injector.get('variableInputService') as VariableInputService; }
   public get variableValidatorService() { return this.$injector.get('variableValidatorService') as VariableValidatorService; }
+  public get viewStateCache() { return this.$injector.get('viewStateCache') as ViewStateCacheService; }
   public get waypointService() { return this.$injector.get('waypointService') as WaypointService; }
 
   private createStateService(): StateService {
