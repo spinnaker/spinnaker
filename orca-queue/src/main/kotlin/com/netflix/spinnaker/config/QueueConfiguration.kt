@@ -55,7 +55,7 @@ open class QueueConfiguration {
   open fun executionLogRepository(): ExecutionLogRepository = BlackholeExecutionLogRepository()
 
   @Bean
-  open fun messageHandlerPool(registry: Registry): Executor =
+  open fun messageHandlerPool(registry: Registry): ThreadPoolTaskExecutor =
     applyThreadPoolMetrics(
       registry,
       ThreadPoolTaskExecutor().apply {

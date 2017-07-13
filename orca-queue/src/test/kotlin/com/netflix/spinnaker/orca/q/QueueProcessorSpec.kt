@@ -52,7 +52,7 @@ object QueueProcessorSpec : SubjectSpek<QueueProcessor>({
     subject(SCOPE) {
       QueueProcessor(
         queue,
-        BlockingThreadExecutor(),
+        BlockingQueueExecutor(),
         registry,
         listOf(startExecutionHandler, configurationErrorHandler)
       )
@@ -224,4 +224,9 @@ private class BlockingThreadExecutor : Executor {
     }
     latch.await()
   }
+}
+
+class BlockingQueueExecutor : QueueExecutor {
+  override val executor: Executor = BlockingThreadExecutor()
+  override fun hasCapacity(): Boolean = true
 }
