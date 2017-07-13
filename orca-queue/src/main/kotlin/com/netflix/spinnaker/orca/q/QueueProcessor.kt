@@ -61,7 +61,7 @@ open class QueueProcessor
             registry.counter(pollErrorRateId).increment()
 
             // TODO: DLQ
-            throw IllegalStateException("Unsupported message type ${message.javaClass.simpleName}")
+            throw IllegalStateException("Unsupported message type ${message.javaClass.simpleName}: $message")
           }
         }
       }

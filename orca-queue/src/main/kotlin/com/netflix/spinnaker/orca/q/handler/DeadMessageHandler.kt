@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component
 @Component open class DeadMessageHandler {
   private val log = LoggerFactory.getLogger(javaClass)
 
-  fun handle(queue: Queue, message: Message) {
+  open fun handle(queue: Queue, message: Message) {
     log.error("Dead message: $message")
     when (message) {
       is TaskLevel -> queue.push(CompleteTask(message, TERMINAL))

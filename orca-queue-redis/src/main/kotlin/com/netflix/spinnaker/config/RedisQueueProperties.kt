@@ -21,4 +21,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 @ConfigurationProperties("queue.redis")
 class RedisQueueProperties {
   var queueName: String = "orca.task.queue"
+  var deadLetterQueueName: String = "orca.task.deadLetterQueue"
 }
