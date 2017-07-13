@@ -30,7 +30,7 @@ export interface IVariableMetadata {
   type: VariableType;
 }
 
-export type VariableType = 'int' | 'float' | 'list' | 'object' | 'string';
+export type VariableType = 'int' | 'float' | 'list' | 'object' | 'string' | 'boolean';
 
 export interface ITemplateStage {
   dependsOn: string[];
