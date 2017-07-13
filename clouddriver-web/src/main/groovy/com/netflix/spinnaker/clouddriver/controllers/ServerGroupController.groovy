@@ -30,6 +30,7 @@ import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.MessageSource
 import org.springframework.security.access.prepost.PostAuthorize
+import org.springframework.security.access.prepost.PostFilter
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -38,7 +39,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/applications/{application}/serverGroups")
 class ServerGroupController {
 
   @Autowired
@@ -57,7 +57,7 @@ class ServerGroupController {
   ServerGroupViewModelPostProcessor serverGroupViewModelPostProcessor
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ') and hasPermission(#account, 'ACCOUNT', 'READ')")
-  @RequestMapping(value = "/{account}/{region}/{name:.+}", method = RequestMethod.GET)
+  @RequestMapping(value = "/applications/{application}/serverGroups/{account}/{region}/{name:.+}", method = RequestMethod.GET)
   ServerGroup getServerGroup(@PathVariable String application, // needed for @PreAuthorize
                              @PathVariable String account,
                              @PathVariable String region,
@@ -117,7 +117,7 @@ class ServerGroupController {
 
   @PreAuthorize("hasPermission(#application, 'APPLICATION', 'READ')")
   @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
-  @RequestMapping(method = RequestMethod.GET)
+  @RequestMapping(value= "/applications/{application}/serverGroups", method = RequestMethod.GET)
   List list(@PathVariable String application,
             @RequestParam(required = false, value = 'expand', defaultValue = 'false') String expand,
             @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
@@ -134,6 +134,14 @@ class ServerGroupController {
       return expandedList(application, cloudProvider)
     }
     return summaryList(application, cloudProvider)
+  }
+
+  @PostFilter("hasPermission(filterObject?.application, 'APPLICATION', 'READ')")
+  @PostAuthorize("@authorizationSupport.filterForAccounts(returnObject)")
+  @RequestMapping(value= "/serverGroups", method = RequestMethod.GET)
+  List getServerGroupsByApplications(@RequestParam(value = 'applications') List<String> applications,
+                                     @RequestParam(required = false, value = 'cloudProvider') String cloudProvider) {
+    applications.collectMany { summaryList(it, cloudProvider) }
   }
 
   private Collection buildSubsetForClusters(Collection<String> clusters, String application, Boolean isExpanded) {
@@ -162,6 +170,7 @@ class ServerGroupController {
     String type
     String cloudProvider
     String instanceType
+    String application
     Boolean isDisabled
     Map buildInfo
     Long createdTime
@@ -178,6 +187,7 @@ class ServerGroupController {
       type = serverGroup.type
       cloudProvider = serverGroup.cloudProvider
       name = serverGroup.name
+      application = Names.parseName(serverGroup.name).getApp()
       account = cluster.accountName
       region = serverGroup.region
       createdTime = serverGroup.getCreatedTime()
