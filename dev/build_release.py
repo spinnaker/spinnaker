@@ -84,7 +84,7 @@ class BackgroundProcess(
     sp = None
     log = None
     if logfile:
-      log = open(logfile, 'w')
+      log = open(logfile, 'w', 0) # Unbuffered
       sp = subprocess.Popen(args, shell=True, close_fds=True,
                             stdout=log, stderr=log)
     else:
