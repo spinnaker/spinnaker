@@ -45,6 +45,15 @@ class ServerGroupController {
     serverGroupService.getForApplication(applicationName, expand, cloudProvider, clusters, sourceApp)
   }
 
+  @ApiOperation(value = "Retrieve a list of server groups for a list of applications")
+  @RequestMapping(value = "/serverGroups", method = RequestMethod.GET)
+  List getServerGroupsByApplications(@RequestParam(value = 'applications') List<String> applications,
+                                     @RequestParam(required = false, value = 'cloudProvider') String cloudProvider,
+                                     @RequestHeader(value = "X-RateLimit-App", required = false) String sourceApp) {
+
+    serverGroupService.getForApplications(applications, cloudProvider, sourceApp)
+  }
+
   @ApiOperation(value = "Retrieve a server group's details")
   @RequestMapping(value = "/applications/{applicationName}/serverGroups/{account}/{region}/{serverGroupName:.+}", method = RequestMethod.GET)
   Map getServerGroupDetails(@PathVariable String applicationName,

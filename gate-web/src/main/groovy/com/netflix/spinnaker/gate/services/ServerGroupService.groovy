@@ -47,6 +47,12 @@ class ServerGroupService {
     } execute()
   }
 
+  List getForApplications(List<String> applications, String cloudProvider, String selectorKey) {
+    HystrixFactory.newListCommand(GROUP, "getServerGroupsForApplications") {
+      clouddriverServiceSelector.select(selectorKey).getServerGroups(applications, cloudProvider)
+    } execute()
+  }
+
   Map getForApplicationAndAccountAndRegion(String applicationName, String account, String region, String serverGroupName, String selectorKey) {
     HystrixFactory.newMapCommand(GROUP, "getServerGroupsForApplicationAccountAndRegion-${providerLookupService.providerForAccount(account)}") {
       try {
