@@ -22,4 +22,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 class RedisQueueProperties {
   var queueName: String = "orca.task.queue"
   var deadLetterQueueName: String = "orca.task.deadLetterQueue"
+  var ackTimeoutSeconds: Int = 60
 }

@@ -32,6 +32,7 @@ import org.springframework.context.annotation.Configuration
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import java.time.Clock
+import java.time.Duration
 
 @Configuration
 @ConditionalOnExpression("\${queue.redis.enabled:true}")
@@ -67,7 +68,8 @@ open class RedisQueueConfiguration {
       pool = redisPool,
       clock = clock,
       deadMessageHandler = deadMessageHandler::handle,
-      publisher = publisher
+      publisher = publisher,
+      ackTimeout = Duration.ofSeconds(redisQueueProperties.ackTimeoutSeconds.toLong())
     )
 
 }
