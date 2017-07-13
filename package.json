@@ -95,7 +95,7 @@
     "@types/moment-timezone": "^0.2.34",
     "@types/node": "7.0.5",
     "@types/prop-types": "^15.5.1",
-    "@types/react": "^15.0.38",
+    "@types/react": "15.0.35",
     "@types/react-bootstrap": "^0.0.49",
     "@types/react-dom": "^15.5.0",
     "@types/react-ga": "^2.1.1",
