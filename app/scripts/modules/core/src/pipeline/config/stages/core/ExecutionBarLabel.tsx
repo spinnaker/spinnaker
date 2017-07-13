@@ -14,7 +14,7 @@ export interface IExecutionBarLabelProps {
   executionMarker: boolean;
 }
 
-export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps, any> {
+export class ExecutionBarLabel extends React.Component<IExecutionBarLabelProps> {
   public render() {
     const { stage, application, execution, executionMarker } = this.props;
     const inSuspendedExecutionWindow = stage.inSuspendedExecutionWindow;

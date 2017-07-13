@@ -2,7 +2,7 @@ import * as React from 'react';
 
 import {IExecutionStageSummary} from 'core/domain';
 
-export class JenkinsExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }, any> {
+export class JenkinsExecutionLabel extends React.Component<{ stage: IExecutionStageSummary }> {
   public render() {
     const buildInfo = this.props.stage.masterStage.context.buildInfo || {};
     const testResults = (buildInfo.testResults || []).map((result: any, index: number) => (

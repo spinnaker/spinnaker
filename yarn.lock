@@ -309,9 +309,9 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^15.0.20", "@types/react@^15.0.22", "@types/react@^15.0.23":
-  version "15.0.24"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.24.tgz#8a75299dc37906df327c18ca918bf97a55e7123b"
+"@types/react@*", "@types/react@^15.0.22", "@types/react@^15.0.23", "@types/react@^15.0.38":
+  version "15.0.38"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-15.0.38.tgz#6afea31a9fe66304af474106ba372ddaba449995"
 
 "@types/source-map@*":
   version "0.5.0"
@@ -5016,7 +5016,7 @@ react-virtualized@^9.0.0:
     loose-envify "^1.3.0"
     prop-types "^15.5.4"
 
-react2angular@^1.1.2:
+react2angular@^1.1.3:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/react2angular/-/react2angular-1.1.3.tgz#9d69f5277980d41af1a625b04c78a4497c641893"
   dependencies:

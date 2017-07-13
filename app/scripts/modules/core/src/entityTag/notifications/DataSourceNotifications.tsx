@@ -21,7 +21,7 @@ export interface IDataSourceNotificationsProps {
  * Identical alerts for multiple entities are grouped together.
  */
 @autoBindMethods
-export class DataSourceNotifications extends React.Component<IDataSourceNotificationsProps, void> {
+export class DataSourceNotifications extends React.Component<IDataSourceNotificationsProps> {
   public getDataSourceAnalyticsLabel(): string {
     const { tabName, application, tags } = this.props;
     const alertsStr = tags.map(tag => tag.alerts.map((alert: IEntityTag) => alert.name).join(','));

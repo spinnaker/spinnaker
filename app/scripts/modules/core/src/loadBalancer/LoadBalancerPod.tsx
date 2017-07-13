@@ -23,7 +23,7 @@ function equalForKeys<T>(keys: [keyof T], left: T, right: T): boolean {
 }
 
 @autoBindMethods
-export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps, void> {
+export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
   public render(): React.ReactElement<LoadBalancerPod> {
     const { grouping, application, parentHeading, showServerGroups, showInstances } = this.props;
     const { AccountTag } = NgReact;

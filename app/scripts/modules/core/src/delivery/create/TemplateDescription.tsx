@@ -10,7 +10,7 @@ export interface ITemplateDescriptionProps {
   loadingError: boolean;
 }
 
-export class TemplateDescription extends React.Component<ITemplateDescriptionProps, void> {
+export class TemplateDescription extends React.Component<ITemplateDescriptionProps> {
   public render() {
     const { Spinner } = NgReact;
     return (

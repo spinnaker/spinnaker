@@ -286,7 +286,7 @@ interface IOwnerOptionsProps {
 }
 
 @autoBindMethods
-class OwnerOptions extends React.Component<IOwnerOptionsProps, void> {
+class OwnerOptions extends React.Component<IOwnerOptionsProps> {
   public handleOwnerOptionChanged(option: IOwnerOption): void {
     this.props.onOwnerOptionChanged(option);
   }

@@ -13,7 +13,7 @@ export interface ILoadBalancerClusterContainerProps {
   showInstances?: boolean;
 }
 
-export class LoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps, void> {
+export class LoadBalancerClusterContainer extends React.Component<ILoadBalancerClusterContainerProps> {
   public render(): React.ReactElement<LoadBalancerClusterContainer> {
     const { loadBalancer, serverGroups, showInstances, showServerGroups } = this.props;
 

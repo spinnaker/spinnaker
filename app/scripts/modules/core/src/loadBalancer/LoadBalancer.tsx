@@ -20,7 +20,7 @@ export interface ILoadBalancerProps {
 }
 
 @autoBindMethods
-export class LoadBalancer extends React.Component<ILoadBalancerProps, void> {
+export class LoadBalancer extends React.Component<ILoadBalancerProps> {
   public static defaultProps: Partial<ILoadBalancerProps> = {
     showServerGroups: true,
     showInstances : false

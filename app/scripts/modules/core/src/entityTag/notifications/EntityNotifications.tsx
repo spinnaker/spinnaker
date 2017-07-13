@@ -31,7 +31,7 @@ export interface IEntityNotificationsProps {
  * Shows the notifications for a single entity (not rolled up, and not grouped by message)
  */
 @autoBindMethods
-export class EntityNotifications extends React.Component<IEntityNotificationsProps, void> {
+export class EntityNotifications extends React.Component<IEntityNotificationsProps> {
   public static defaultProps: Partial<IEntityNotificationsProps> = {
     placement: 'bottom',
     hOffsetPercent: '50%',

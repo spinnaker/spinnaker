@@ -16,7 +16,7 @@ export interface IVariableProps {
 }
 
 @autoBindMethods
-export class Variable extends React.Component<IVariableProps, null> {
+export class Variable extends React.Component<IVariableProps> {
 
   private getVariableInput(): JSX.Element {
     const input: IVariableInputBuilder = ReactInjector.variableInputService.getInputForType(this.props.variableMetadata.type);

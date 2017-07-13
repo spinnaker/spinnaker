@@ -9,7 +9,7 @@ export interface IPopoverProps {
   placement?: Placement;
 }
 
-export class Popover extends React.Component<IPopoverProps, void> {
+export class Popover extends React.Component<IPopoverProps> {
   public static defaultProps: Partial<IPopoverProps> = {
     placement: 'top',
     value: ''

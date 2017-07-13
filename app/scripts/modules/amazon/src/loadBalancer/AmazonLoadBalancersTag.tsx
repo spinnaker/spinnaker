@@ -23,7 +23,7 @@ interface ILoadBalancerListItemProps {
 }
 
 @autoBindMethods
-class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps, void> {
+class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
@@ -40,7 +40,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps, v
 }
 
 @autoBindMethods
-class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps, void> {
+class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...

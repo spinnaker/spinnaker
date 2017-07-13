@@ -17,7 +17,7 @@ export interface ITargetGroupProps {
 }
 
 @autoBindMethods
-export class TargetGroup extends React.Component<ITargetGroupProps, void> {
+export class TargetGroup extends React.Component<ITargetGroupProps> {
   public render(): React.ReactElement<TargetGroup> {
     const { targetGroup, showInstances, showServerGroups, loadBalancer } = this.props;
 

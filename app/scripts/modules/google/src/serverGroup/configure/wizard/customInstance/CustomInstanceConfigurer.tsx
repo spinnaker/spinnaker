@@ -18,7 +18,7 @@ export interface ICustomInstanceConfigurerProps {
 }
 
 @autoBindMethods()
-export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps, null> {
+export class CustomInstanceConfigurer extends React.Component<ICustomInstanceConfigurerProps> {
   public render() {
     const vCpuOptions: Select.Option[] = (this.props.vCpuList || []).map(vCpu => ({label: vCpu + '', value: vCpu}));
     const memoryOptions: Select.Option[] = (this.props.memoryList || []).map(memory => ({label: memory + '', value: memory}));

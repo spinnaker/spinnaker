@@ -8,7 +8,7 @@ export interface ITemplatePlanErrorsProps {
 }
 
 @autoBindMethods
-export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps, void> {
+export class TemplatePlanErrors extends React.Component<ITemplatePlanErrorsProps> {
 
   public render() {
     if (this.props.errors && this.props.errors.length) {

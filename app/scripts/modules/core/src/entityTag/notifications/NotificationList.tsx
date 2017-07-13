@@ -15,7 +15,7 @@ export interface INotificationListProps {
  * Renders a list of notifications.
  * Provides edit and delete buttons.
  */
-export class NotificationList extends React.Component<INotificationListProps, void> {
+export class NotificationList extends React.Component<INotificationListProps> {
   public render() {
     const { notifications, onEditTag, onDeleteTag } = this.props;
 
@@ -57,7 +57,7 @@ interface IActionsProps {
 }
 
 @autoBindMethods
-class NotificationActions extends React.Component<IActionsProps, void> {
+class NotificationActions extends React.Component<IActionsProps> {
   private editTag(): void {
     this.props.onEditTag(this.props.notification);
   }

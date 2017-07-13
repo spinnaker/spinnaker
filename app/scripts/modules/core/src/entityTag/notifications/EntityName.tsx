@@ -8,7 +8,7 @@ export interface IEntityNameProps {
 }
 
 /** Renders an entity name and its account and region */
-export class EntityName extends React.Component<IEntityNameProps, void> {
+export class EntityName extends React.Component<IEntityNameProps> {
   public render() {
     const entityRef = this.props.tag.entityRef;
     const { AccountTag } = NgReact;

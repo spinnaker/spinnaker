@@ -9,7 +9,7 @@ export interface IVariableMetadataHelpFieldProps {
   metadata: IVariableMetadata
 }
 
-export class VariableMetadataHelpField extends React.Component<IVariableMetadataHelpFieldProps, void> {
+export class VariableMetadataHelpField extends React.Component<IVariableMetadataHelpFieldProps> {
 
    public render() {
      const content = this.getContent();

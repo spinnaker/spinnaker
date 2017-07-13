@@ -9,7 +9,7 @@ export interface ITooltipProps {
   placement?: Placement;
 }
 
-export class Tooltip extends React.Component<ITooltipProps, void> {
+export class Tooltip extends React.Component<ITooltipProps> {
   public static defaultProps: Partial<ITooltipProps> = {
     placement: 'top',
     value: ''

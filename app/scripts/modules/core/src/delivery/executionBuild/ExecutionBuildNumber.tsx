@@ -12,7 +12,7 @@ export interface IExecutionBuildNumberProps {
 }
 
 @autoBindMethods
-export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberProps, void> {
+export class ExecutionBuildNumber extends React.Component<IExecutionBuildNumberProps, {}> {
   constructor(props: IExecutionBuildNumberProps) {
     super(props);
   }

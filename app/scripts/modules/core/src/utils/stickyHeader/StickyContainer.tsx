@@ -8,7 +8,7 @@ export interface IStickyContext {
 }
 
 @autoBindMethods
-export class StickyContainer extends React.Component<any, any> {
+export class StickyContainer extends React.Component<any> {
   public static childContextTypes = {
     stickyContainer: PropTypes.any
   };

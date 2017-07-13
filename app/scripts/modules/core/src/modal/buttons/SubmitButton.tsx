@@ -11,7 +11,7 @@ export interface ISubmitButtonProps {
   label: string;
 }
 
-export class SubmitButton extends React.Component<ISubmitButtonProps, any> {
+export class SubmitButton extends React.Component<ISubmitButtonProps> {
   public render() {
     const { ButtonBusyIndicator } = NgReact;
     return (

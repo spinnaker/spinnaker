@@ -10,7 +10,7 @@ export interface IManagedTemplateSelectorProps {
 }
 
 @autoBindMethods
-export class ManagedTemplateSelector extends React.Component<IManagedTemplateSelectorProps, void> {
+export class ManagedTemplateSelector extends React.Component<IManagedTemplateSelectorProps> {
 
   public render() {
     const selected = this.props.selectedTemplate;

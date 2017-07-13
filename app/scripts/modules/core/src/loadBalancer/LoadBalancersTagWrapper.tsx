@@ -12,7 +12,7 @@ export interface ILoadBalancersTagProps {
 };
 
 @autoBindMethods
-export class LoadBalancersTagWrapper extends React.Component<ILoadBalancersTagProps, void> {
+export class LoadBalancersTagWrapper extends React.Component<ILoadBalancersTagProps> {
   public render(): React.ReactElement<LoadBalancersTagWrapper> {
     const { serverGroup } = this.props;
     const { cloudProviderRegistry } = ReactInjector;

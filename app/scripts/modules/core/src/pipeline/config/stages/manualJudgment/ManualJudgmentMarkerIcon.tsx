@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {IExecutionMarkerIconProps} from '../core/ExecutionMarkerIcon';
 
-export class ManualJudgmentMarkerIcon extends React.Component<IExecutionMarkerIconProps, any> {
+export class ManualJudgmentMarkerIcon extends React.Component<IExecutionMarkerIconProps> {
 
   constructor(props: IExecutionMarkerIconProps) {
     super(props);
