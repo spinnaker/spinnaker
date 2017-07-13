@@ -33,10 +33,10 @@ module.exports = angular.module('spinnaker.deck.gce.tagManager.service', [])
     this.inferSecurityGroupIdsFromTags = (commandTags = []) => {
       return _.chain(commandTags)
         .map(t => this.securityGroupObjectsKeyedByTag[t.value])
-        .filter(sg => sg.network === this.command.network)
         .flatten()
-        .map('id')
         .compact()
+        .filter(sg => sg.network === this.command.network)
+        .map('id')
         .uniq()
         .value();
     };

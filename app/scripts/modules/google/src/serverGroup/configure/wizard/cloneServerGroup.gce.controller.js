@@ -12,7 +12,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
   require('./hiddenMetadataKeys.value.js'),
   require('./securityGroups/tagManager.service.js')
 ])
-  .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state,
+  .controller('gceCloneServerGroupCtrl', function($scope, $uibModalInstance, $q, $state, $log,
                                                   serverGroupWriter, v2modalWizardService, taskMonitorBuilder,
                                                   gceServerGroupConfigurationService,
                                                   serverGroupCommand, application, title,
@@ -103,6 +103,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
           .register({ page: 'zones', subForm: 'zonesSubForm' })
           .register({ page: 'load-balancers', subForm: 'loadBalancerSubForm' })
           .register({ page: 'autohealing-policy', subForm: 'autoHealingPolicySubForm' });
+      }).catch(e => {
+        $log.error('Error generating server group command: ', e);
       });
     }
 
