@@ -204,9 +204,11 @@ class GoogleLoadBalancerProvider implements LoadBalancerProvider<GoogleLoadBalan
           case (GoogleLoadBalancerType.SSL):
             GoogleSslLoadBalancer.View sslView = view as GoogleSslLoadBalancer.View
             backendServices << sslView.backendService.name
+            break
           case (GoogleLoadBalancerType.TCP):
             GoogleTcpLoadBalancer.View tcpView = view as GoogleTcpLoadBalancer.View
             backendServices << tcpView.backendService.name
+            break
           default:
             // No backend services to add.
             break
