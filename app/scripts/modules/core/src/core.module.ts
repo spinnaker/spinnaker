@@ -30,6 +30,7 @@ import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
 import { CONFIG_MODULE } from './config/config.module';
 
+import { DEBUG_WINDOW } from './utils/consoleDebug';
 import { DEPLOYMENT_STRATEGY_MODULE } from './deploymentStrategy/deploymentStrategy.module';
 import { DIFF_MODULE } from './diffs';
 import { ENTITY_TAGS_MODULE } from './entityTag/entityTags.module';
@@ -76,6 +77,7 @@ module(CORE_MODULE, [
   CONFIG_MODULE,
   require('./cluster/cluster.module'),
 
+  DEBUG_WINDOW,
   DEPLOYMENT_STRATEGY_MODULE,
   require('./delivery/delivery.module'),
   DIFF_MODULE,

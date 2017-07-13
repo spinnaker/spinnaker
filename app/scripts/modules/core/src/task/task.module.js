@@ -13,7 +13,6 @@ module.exports = angular
     require('./modal/reason.directive'),
     require('./monitor/taskMonitor.module.js'),
     require('./statusGlyph.directive.js'),
-    require('./task.write.service.js'),
     require('./tasks.controller.js'),
     require('./task.dataSource'),
     TASK_STATES,

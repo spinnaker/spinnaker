@@ -1,7 +1,8 @@
 import { module } from 'angular';
 
 import { ITask } from 'core/domain';
-import { TASK_READ_SERVICE, TaskReader } from 'core/task/task.read.service';
+import { TASK_READ_SERVICE, TaskReader } from './task.read.service';
+import { TASK_WRITE_SERVICE, TaskWriter } from './task.write.service';
 import { AUTHENTICATION_SERVICE, AuthenticationService } from '../authentication/authentication.service';
 
 export interface IJob {
@@ -24,7 +25,7 @@ export interface ITaskCommand {
 export class TaskExecutor {
 
   public constructor(private $q: ng.IQService, private authenticationService: AuthenticationService,
-                     private taskReader: TaskReader, private taskWriter: any) {
+                     private taskReader: TaskReader, private taskWriter: TaskWriter) {
     'ngInject';
   }
 
@@ -72,5 +73,5 @@ export const TASK_EXECUTOR = 'spinnaker.core.task.executor';
 module(TASK_EXECUTOR, [
   AUTHENTICATION_SERVICE,
   TASK_READ_SERVICE,
-  require('./task.write.service.js'),
+  TASK_WRITE_SERVICE,
 ]).service('taskExecutor', TaskExecutor);

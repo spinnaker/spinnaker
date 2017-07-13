@@ -7,7 +7,8 @@ import {EXECUTION_FILTER_MODEL, ExecutionFilterModel} from 'core/delivery/filter
 import {IExecution, IExecutionStage} from 'core/domain';
 import {PIPELINE_CONFIG_PROVIDER} from 'core/pipeline/config/pipelineConfigProvider';
 import {SETTINGS} from 'core/config/settings';
-import { ApplicationDataSource } from '../../application/service/applicationDataSource';
+import { ApplicationDataSource } from 'core/application/service/applicationDataSource';
+import { DebugWindow } from 'core/utils/consoleDebug';
 
 export class ExecutionService {
   public get activeStatuses(): string[] { return ['RUNNING', 'SUSPENDED', 'PAUSED', 'NOT_STARTED']; }
@@ -373,3 +374,5 @@ module(EXECUTION_SERVICE, [
   API_SERVICE
 ]).factory('executionService', ($http: IHttpService, $q: IQService, $timeout: ITimeoutService, API: Api, executionFilterModel: any, executionsTransformer: any, pipelineConfig: any) =>
                                 new ExecutionService($http, $q, $timeout, API, executionFilterModel, executionsTransformer, pipelineConfig));
+
+DebugWindow.addInjectable('executionService');

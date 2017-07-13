@@ -7,6 +7,7 @@ import { Refresher } from 'core/presentation/refresher/Refresher';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { UIView } from '@uirouter/react';
 import { relativeTime, timestamp } from 'core/utils/timeFormatters';
+import { DebugWindow } from 'core/utils/consoleDebug';
 
 import './application.less';
 
@@ -30,12 +31,13 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
     this.state = {
       compactHeader: props.app.name.length > 20
     };
-
+    DebugWindow.application = props.app;
     props.app.enableAutoRefresh();
   }
 
   public componentWillUnmount(): void {
     if (!this.props.app.notFound) {
+      DebugWindow.application = undefined;
       this.props.app.disableAutoRefresh();
     }
   }

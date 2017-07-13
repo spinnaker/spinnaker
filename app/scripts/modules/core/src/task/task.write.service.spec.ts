@@ -1,23 +1,27 @@
-'use strict';
+import { mock, IHttpBackendService, ITimeoutService } from 'angular';
 
-import {API_SERVICE} from 'core/api/api.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
+import { TASK_WRITE_SERVICE, TaskWriter } from './task.write.service';
 
-describe('Service: taskWriter', function () {
+describe('Service: taskWriter', () => {
 
-  var taskWriter;
-  var $httpBackend;
-  var timeout;
-  var API;
+  let taskWriter: TaskWriter;
+  let $httpBackend: IHttpBackendService;
+  let timeout: ITimeoutService;
+  let API: Api;
 
   beforeEach(
-    window.module(
-      require('./task.write.service'),
+    mock.module(
+      TASK_WRITE_SERVICE,
       API_SERVICE
     )
   );
 
   beforeEach(
-    window.inject(function (_taskWriter_, _$httpBackend_, _$timeout_, _API_) {
+    mock.inject((_taskWriter_: TaskWriter,
+                 _$httpBackend_: IHttpBackendService,
+                 _$timeout_: ITimeoutService,
+                 _API_: Api) => {
       taskWriter = _taskWriter_;
       $httpBackend = _$httpBackend_;
       timeout = _$timeout_;
@@ -25,18 +29,18 @@ describe('Service: taskWriter', function () {
     })
   );
 
-  afterEach(function () {
+  afterEach(() => {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
   });
 
-  describe('cancelling task', function () {
-    it('should wait until task is canceled, then resolve', function () {
+  describe('cancelling task', () => {
+    it('should wait until task is canceled, then resolve', () => {
+      const taskId = 'abc';
+      const cancelUrl = [API.baseUrl, 'applications', 'deck', 'tasks', taskId, 'cancel'].join('/');
+      const checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
+      const application = 'deck';
       let completed = false;
-      let taskId = 'abc';
-      let cancelUrl = [API.baseUrl, 'applications', 'deck', 'tasks', taskId, 'cancel'].join('/');
-      let checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
-      let application = 'deck';
 
       $httpBackend.expectPUT(cancelUrl).respond(200, []);
       $httpBackend.expectGET(checkUrl).respond(200, {id: taskId});
@@ -56,12 +60,12 @@ describe('Service: taskWriter', function () {
     });
   });
 
-  describe('deleting task', function () {
-    it('should wait until task is gone, then resolve', function () {
+  describe('deleting task', () => {
+    it('should wait until task is gone, then resolve', () => {
+      const taskId = 'abc';
+      const deleteUrl = [API.baseUrl, 'tasks', taskId].join('/');
+      const checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
       let completed = false;
-      let taskId = 'abc';
-      let deleteUrl = [API.baseUrl, 'tasks', taskId].join('/');
-      let checkUrl = [API.baseUrl, 'tasks', taskId].join('/');
 
       $httpBackend.expectDELETE(deleteUrl).respond(200, []);
 
