@@ -369,6 +369,8 @@ if [ "$?" != "0" ]; then
 fi
 set -e
 
+configure_halyard_defaults
+
 echo "$(tput bold)Configuring external apt repos...$(tput sgr0)"
 add_apt_repositories
 
@@ -384,7 +386,6 @@ fi
 echo "$(tput bold)Installing Halyard...$(tput sgr0)"
 install_halyard
 
-configure_halyard_defaults
 configure_bash_completion
 
 start halyard
