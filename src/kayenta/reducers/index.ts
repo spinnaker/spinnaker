@@ -4,12 +4,9 @@ import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import {
-  CONFIG_LOAD_ERROR, INITIALIZE, LOAD_CONFIG,
-  ADD_METRIC, RENAME_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES
+  ADD_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES,
   CONFIG_LOAD_ERROR, DISMISS_SAVE_CONFIG_ERROR, INITIALIZE, LOAD_CONFIG,
   RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
-  ADD_METRIC, SELECT_CONFIG,
-  UPDATE_CONFIG_SUMMARIES
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 
