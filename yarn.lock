@@ -349,9 +349,9 @@
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
 
-"@uirouter/react-hybrid@^0.0.10":
-  version "0.0.10"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.10.tgz#0ba5ddeb267bbc7d5143b5abf52c0b8a41bbb426"
+"@uirouter/react-hybrid@^0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.12.tgz#c090c3415a551b28a17dbc4b44d6ef38f9f038bf"
   dependencies:
     "@uirouter/angularjs" "1.0.5-SNAPSHOT.20170711"
     "@uirouter/core" "5.0.5"
