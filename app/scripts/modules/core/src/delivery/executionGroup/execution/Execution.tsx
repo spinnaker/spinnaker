@@ -10,6 +10,7 @@ import { Application } from 'core/application/application.model';
 import { IExecution , IRestartDetails } from 'core/domain';
 import { IExecutionViewState } from 'core/pipeline/config/graph/pipelineGraph.service';
 import { IPipelineNode } from 'core/pipeline/config/graph/pipelineGraph.service';
+import { IScheduler } from 'core/scheduler/scheduler.factory';
 import { OrchestratedItemRunningTime } from './OrchestratedItemRunningTime';
 import { SETTINGS } from 'core/config/settings';
 import { NgReact, ReactInjector } from 'core/reactShims';
@@ -45,7 +46,7 @@ export class Execution extends React.Component<IExecutionProps, IExecutionState>
     dataSourceKey: 'executions'
   };
 
-  private activeRefresher: any;
+  private activeRefresher: IScheduler;
   private stateChangeSuccessSubscription: Subscription;
   private runningTime: OrchestratedItemRunningTime;
 

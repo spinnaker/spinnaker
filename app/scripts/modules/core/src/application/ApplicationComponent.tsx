@@ -6,7 +6,6 @@ import { NgReact, ReactInjector } from 'core/reactShims';
 import { Refresher } from 'core/presentation/refresher/Refresher';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { UIView } from '@uirouter/react';
-import { relativeTime, timestamp } from 'core/utils/timeFormatters';
 import { DebugWindow } from 'core/utils/consoleDebug';
 
 import './application.less';
@@ -17,10 +16,14 @@ export interface IApplicationComponentProps {
 
 export interface IApplicationComponentState {
   compactHeader: boolean;
+  refreshing: boolean;
+  lastRefresh: number;
 }
 
 @autoBindMethods
 export class ApplicationComponent extends React.Component<IApplicationComponentProps, IApplicationComponentState> {
+  private appRefreshUnsubscribe: () => void;
+
   constructor(props: IApplicationComponentProps) {
     super(props);
     if (props.app.notFound) {
@@ -28,11 +31,22 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
       return;
     }
 
-    this.state = {
-      compactHeader: props.app.name.length > 20
-    };
+    this.state = this.parseState(props);
+
     DebugWindow.application = props.app;
     props.app.enableAutoRefresh();
+    this.appRefreshUnsubscribe = props.app.onRefresh(null, () => {
+      this.setState(this.parseState(props));
+    });
+  }
+
+  private parseState(props: IApplicationComponentProps): IApplicationComponentState {
+    const refreshState = props.app.activeState || props.app;
+    return {
+      compactHeader: props.app.name.length > 20,
+      lastRefresh: refreshState.lastRefresh,
+      refreshing: refreshState.refreshing
+    };
   }
 
   public componentWillUnmount(): void {
@@ -58,15 +72,6 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
   public render() {
     const { ApplicationNav, ApplicationNavSecondary } = NgReact;
-    const refresherState = this.props.app.activeState || this.props.app;
-    const RefresherTooltip = (
-      <span>
-        {refresherState.refreshing && <p>Application is <strong>refreshing</strong>.</p>}
-        {!refresherState.refreshing && <p>(click <span className="fa fa-refresh"/> to refresh)</p>}
-        <p>Last refresh: {timestamp(refresherState.lastRefresh)} <br/> ({relativeTime(refresherState.lastRefresh)})</p>
-        <p className="small"><strong>Note:</strong> Due to caching, data may be delayed up to 2 minutes</p>
-      </span>
-    );
 
     const NotFound = this.props.app.notFound ? (
       <div>
@@ -80,8 +85,8 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
         <i className="fa fa-window-maximize"/>
         <span className="application-name">{this.props.app.name}</span>
         <Refresher
-          state={refresherState}
-          tooltipTemplate={RefresherTooltip}
+          refreshing={this.state.refreshing}
+          lastRefresh={this.state.lastRefresh}
           refresh={this.handleRefresh}
         />
       </h2>
