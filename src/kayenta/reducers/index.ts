@@ -4,9 +4,11 @@ import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
 import {
+  CONFIG_LOAD_ERROR, INITIALIZE, LOAD_CONFIG,
+  ADD_METRIC, RENAME_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES
   CONFIG_LOAD_ERROR, DISMISS_SAVE_CONFIG_ERROR, INITIALIZE, LOAD_CONFIG,
   RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
-  SELECT_CONFIG,
+  ADD_METRIC, SELECT_CONFIG,
   UPDATE_CONFIG_SUMMARIES
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
@@ -57,6 +59,11 @@ export function rootReducer(state: ICanaryState, action: any): ICanaryState {
         configLoadState: ConfigDetailLoadState.Loaded,
         metricList: action.config.metrics,
         selectedMetric: null
+      });
+
+    case ADD_METRIC:
+      return Object.assign({}, state, {
+        metricList: state.metricList.concat([action.metric]),
       });
 
     case RENAME_METRIC:

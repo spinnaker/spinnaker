@@ -2,6 +2,7 @@ export const CONFIG_LOAD_ERROR = 'config_load_error';
 export const DISMISS_SAVE_CONFIG_ERROR = 'dismiss_save_config_error';
 export const INITIALIZE = 'initialize';
 export const LOAD_CONFIG = 'load_config';
+export const ADD_METRIC = 'add_metric';
 export const RENAME_METRIC = 'rename_metric';
 export const SAVE_CONFIG_ERROR = 'save_config_error';
 export const SAVE_CONFIG_SAVING = 'save_config_start';

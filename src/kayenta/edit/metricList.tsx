@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import MetricDetail from './metricDetail';
-import { RENAME_METRIC } from '../actions/index';
+import { ADD_METRIC, RENAME_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
   metrics: ICanaryMetricConfig[];
@@ -11,12 +11,13 @@ interface IMetricListStateProps {
 
 interface IMetricListDispatchProps {
   changeName: any;
+  addMetric: any;
 }
 
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, changeName }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, changeName, addMetric }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
       <h2>Metrics</h2>
@@ -29,6 +30,7 @@ function MetricList({ metrics, changeName }: IMetricListStateProps & IMetricList
           </li>
         ))}
       </ul>
+      <button onClick={addMetric}>Add Metric</button>
     </section>
   );
 }
@@ -47,6 +49,19 @@ function mapDispatchToProps(dispatch: any): IMetricListDispatchProps {
         id: event.target.dataset.id,
         name: event.target.value
       });
+    },
+
+    addMetric: () => {
+      dispatch({
+        type: ADD_METRIC,
+        metric: {
+          // TODO: need to block saving an invalid name
+          // TODO: for Atlas metrics, attempt to gather name when query changes
+          name: '',
+          // TODO: we should have a default service setting somewhere
+          serviceName: 'atlas'
+        }
+      })
     }
   };
 }
