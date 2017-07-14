@@ -45,6 +45,8 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     return (String) super.get("id");
   }
 
+  public void setId(String id) { super.put("id", id); }
+
   @Override
   public Long getLastModified() {
     String updateTs = (String) super.get("updateTs");
@@ -84,4 +86,8 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     }
     return false;
   }
+
+  public String getSource() { return (String) super.get("source"); }
+
+  public void setSource(String source) { super.put("source", source); }
 }

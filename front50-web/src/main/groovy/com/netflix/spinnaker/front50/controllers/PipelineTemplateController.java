@@ -15,12 +15,17 @@
  */
 package com.netflix.spinnaker.front50.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.front50.exception.BadRequestException;
 import com.netflix.spinnaker.front50.exception.NotFoundException;
 import com.netflix.spinnaker.front50.exceptions.DuplicateEntityException;
 import com.netflix.spinnaker.front50.exceptions.InvalidRequestException;
+import com.netflix.spinnaker.front50.model.pipeline.PipelineDAO;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplate;
 import com.netflix.spinnaker.front50.model.pipeline.PipelineTemplateDAO;
+import com.netflix.spinnaker.front50.model.pipeline.TemplateConfiguration;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +42,12 @@ public class PipelineTemplateController {
 
   @Autowired(required = false)
   PipelineTemplateDAO pipelineTemplateDAO = null;
+
+  @Autowired
+  PipelineDAO pipelineDAO;
+
+  @Autowired
+  ObjectMapper objectMapper;
 
   // TODO rz - Add fiat authz
 
@@ -67,6 +78,60 @@ public class PipelineTemplateController {
     getPipelineTemplateDAO().update(id, pipelineTemplate);
 
     return pipelineTemplate;
+  }
+
+  @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
+  void delete(@PathVariable String id) {
+    checkForDependentConfigs(id);
+    checkForDependentTemplates(id);
+    getPipelineTemplateDAO().delete(id);
+  }
+
+  @VisibleForTesting
+  void checkForDependentConfigs(String templateId) {
+    List<String> dependentConfigIds = new ArrayList<>();
+
+    pipelineDAO.all()
+      .stream()
+      .filter(pipeline -> pipeline.getType() != null && pipeline.getType().equals("templatedPipeline"))
+      .forEach(templatedPipeline -> {
+        String source;
+        try {
+          TemplateConfiguration config =
+            objectMapper.convertValue(templatedPipeline.getConfig(), TemplateConfiguration.class);
+
+          source = config.getPipeline().getTemplate().getSource();
+        } catch (Exception e) {
+          return;
+        }
+
+        if (source != null && source.equalsIgnoreCase("spinnaker://" + templateId)) {
+          dependentConfigIds.add(templatedPipeline.getId());
+        }
+      });
+
+    if (dependentConfigIds.size() != 0) {
+      throw new InvalidRequestException("The following pipeline configs"
+        + " depend on this template: " + String.join(", ", dependentConfigIds));
+    }
+  }
+
+  @VisibleForTesting
+  void checkForDependentTemplates(String templateId) {
+    List<String> dependentTemplateIds = new ArrayList<>();
+
+    getPipelineTemplateDAO().all()
+      .forEach(template -> {
+        if (template.getSource() != null
+            && template.getSource().equalsIgnoreCase("spinnaker://" + templateId)) {
+          dependentTemplateIds.add(template.getId());
+        }
+      });
+
+    if (dependentTemplateIds.size() != 0) {
+      throw new InvalidRequestException("The following pipeline templates"
+        + " depend on this template: " + String.join(", ", dependentTemplateIds));
+    }
   }
 
   private void checkForDuplicatePipelineTemplate(String id) {

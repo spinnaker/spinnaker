@@ -66,4 +66,24 @@ class Pipeline extends HashMap<String, Object> implements Timestamped {
   void setLastModifiedBy(String lastModifiedBy) {
     super.put("lastModifiedBy", lastModifiedBy)
   }
+
+  @JsonIgnore
+  Object getConfig() {
+    return super.get("config")
+  }
+
+  @JsonIgnore
+  void setConfig(Object config) {
+    super.put("config", config)
+  }
+
+  @JsonIgnore
+  String getType() {
+    return super.get("type")
+  }
+
+  @JsonIgnore
+  void setType(String type) {
+    super.put("type", type)
+  }
 }
