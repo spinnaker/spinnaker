@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.annotation.PostConstruct
 
@@ -41,6 +42,7 @@ open class QueueProcessor
   private val pollOpsRateId = registry.createId("orca.nu.worker.pollOpsRate")
   private val pollErrorRateId = registry.createId("orca.nu.worker.pollErrorRate")
   private val pollSkippedNoCapacity = registry.createId("orca.nu.worker.pollSkippedNoCapacity")
+  private val pollRejectedMessage = registry.createId("orca.nu.worker.pollRejectedMessage")
 
   @Scheduled(fixedDelayString = "\${queue.poll.frequency.ms:10}")
   fun pollOnce() =
@@ -53,9 +55,15 @@ open class QueueProcessor
           log.info("Received message $message")
           val handler = handlerFor(message)
           if (handler != null) {
-            queueExecutor.executor.execute {
-              handler.invoke(message)
-              ack.invoke()
+            try {
+              queueExecutor.executor.execute {
+                handler.invoke(message)
+                ack.invoke()
+              }
+            } catch (e: RejectedExecutionException) {
+              log.warn("Executor at capacity, immediately re-queuing message", e)
+              queue.push(message)
+              registry.counter(pollRejectedMessage).increment()
             }
           } else {
             registry.counter(pollErrorRateId).increment()
