@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.orca.kato.tasks.rollingpush
 
+import com.netflix.spinnaker.orca.clouddriver.utils.HealthHelper
+
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
@@ -28,14 +30,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class WaitForNewInstanceLaunchTask implements RetryableTask {
+class WaitForNewUpInstancesLaunchTask implements RetryableTask {
 
   @Autowired OortService oortService
   @Autowired ObjectMapper objectMapper
 
-  long getBackoffPeriod() { TimeUnit.SECONDS.toMillis(5) }
+  long getBackoffPeriod() { TimeUnit.SECONDS.toMillis(10) }
 
-  long getTimeout() { TimeUnit.MINUTES.toMillis(10) }
+  long getTimeout() { TimeUnit.HOURS.toMillis(2) }
 
   @Override
   TaskResult execute(Stage stage) {
@@ -44,17 +46,20 @@ class WaitForNewInstanceLaunchTask implements RetryableTask {
 
     Map serverGroup = objectMapper.readValue(response.body.in(), Map)
 
-    def serverGroupInstances = serverGroup.instances
-    Set<String> currentIds = stageData.cloudProvider == 'titus' ? serverGroupInstances*.id : serverGroupInstances*.instanceId
+    List<Map> serverGroupInstances = serverGroup.instances as List<Map>
     Set<String> knownInstanceIds = new HashSet(stage.context.knownInstanceIds as List)
 
-    Set<String> newLaunches = new  HashSet(currentIds)
-    newLaunches.removeAll(knownInstanceIds)
+    List<String> healthProviders = stage.context.interestingHealthProviderNames as List<String>
+    Set<String> newUpInstanceIds = serverGroupInstances.findResults {
+      String id = stageData.cloudProvider == 'titus' ? it.id : it.instanceId
+      !knownInstanceIds.contains(id) &&
+        HealthHelper.someAreUpAndNoneAreDown(it, healthProviders) ? id : null
+    }
 
     int expectedNewInstances = (stage.context.instanceIds as List).size()
-    if (newLaunches.size() >= expectedNewInstances) {
-      knownInstanceIds.addAll(currentIds)
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [instanceIds: newLaunches.toList(), knownInstanceIds: knownInstanceIds.toList()])
+    if (newUpInstanceIds.size() >= expectedNewInstances) {
+      knownInstanceIds.addAll(newUpInstanceIds)
+      return new TaskResult(ExecutionStatus.SUCCEEDED, [knownInstanceIds: knownInstanceIds.toList()])
     }
     return new TaskResult(ExecutionStatus.RUNNING)
   }

@@ -24,12 +24,14 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
+import spock.lang.Unroll
 
-class WaitForNewInstanceLaunchTaskSpec extends Specification {
+class WaitForNewUpInstancesLaunchTaskSpec extends Specification {
   def oortService = Mock(OortService)
-  def task = new WaitForNewInstanceLaunchTask(oortService: oortService, objectMapper: new ObjectMapper())
+  def task = new WaitForNewUpInstancesLaunchTask(oortService: oortService, objectMapper: new ObjectMapper())
 
-  def 'waits for new instances to be launched'() {
+  @Unroll
+  def 'waits for new instances to be launched and healthy'() {
 
     def context = [
       account         : account,
@@ -45,7 +47,7 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
     def stage = new Stage<>(new Orchestration(), 'test', context)
 
     def oortResponse = oortResponse([
-      instances: currentInstances.collect { [instanceId: it] }
+      instances: currentInstances.collect { [instanceId: it, health: [ [type: 'Discovery', state: healthState] ] ] }
     ])
 
     when:
@@ -58,13 +60,15 @@ class WaitForNewInstanceLaunchTaskSpec extends Specification {
 
     where:
 
-    terminatedInstanceIds | knownInstanceIds | currentInstances      | expectedStatus
-    []                    | []               | []                    | ExecutionStatus.SUCCEEDED
-    ['i-1']               | ['i-1', 'i-2']   | ['i-2']               | ExecutionStatus.RUNNING
-    ['i-1']               | ['i-1', 'i-2']   | ['i-2', 'i-3']        | ExecutionStatus.SUCCEEDED
-    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3']               | ExecutionStatus.RUNNING
-    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3', 'i-4']        | ExecutionStatus.SUCCEEDED
-    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-1', 'i-2', 'i-3'] | ExecutionStatus.RUNNING
+    terminatedInstanceIds | knownInstanceIds | currentInstances      | healthState || expectedStatus
+    []                    | []               | []                    | null        || ExecutionStatus.SUCCEEDED
+    ['i-1']               | ['i-1', 'i-2']   | ['i-2']               | 'Up'        || ExecutionStatus.RUNNING
+    ['i-1']               | ['i-1', 'i-2']   | ['i-2', 'i-3']        | 'Down'      || ExecutionStatus.RUNNING
+    ['i-1']               | ['i-1', 'i-2']   | ['i-2', 'i-3']        | 'Up'        || ExecutionStatus.SUCCEEDED
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3']               | 'Up'        || ExecutionStatus.RUNNING
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3', 'i-4']        | 'Up'        || ExecutionStatus.SUCCEEDED
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-3', 'i-4']        | 'Down'      || ExecutionStatus.RUNNING
+    ['i-1', 'i-2']        | ['i-1', 'i-2']   | ['i-1', 'i-2', 'i-3'] | 'Up'        || ExecutionStatus.RUNNING
 
     account = 'test'
     application = 'foo'

@@ -52,8 +52,7 @@ public class RollingPushStage implements StageDefinitionBuilder {
             .withTask("waitForTerminateOperation", MonitorKatoTask.class)
             .withTask("waitForTerminatedInstances", WaitForTerminatedInstancesTask.class)
             .withTask("forceCacheRefresh", ServerGroupCacheForceRefreshTask.class)
-            .withTask("waitForNewInstances", WaitForNewInstanceLaunchTask.class)
-            .withTask("waitForUpInstances", WaitForUpInstanceHealthTask.class)
+            .withTask("waitForNewInstances", WaitForNewUpInstancesLaunchTask.class)
             .withTask("checkForRemainingTerminations", CheckForRemainingTerminationsTask.class);
         });
 
