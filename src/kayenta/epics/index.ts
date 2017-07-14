@@ -1,12 +1,17 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/concat';
+import { MiddlewareAPI } from 'redux';
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
-import { getCanaryConfigById } from '../service/canaryConfig.service';
+import {
+  getCanaryConfigById, mapStateToConfig,
+  updateCanaryConfig
+} from '../service/canaryConfig.service';
 import {
   CONFIG_LOAD_ERROR,
-  LOAD_CONFIG,
+  LOAD_CONFIG, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
   SELECT_CONFIG
 } from '../actions/index';
+import { ICanaryState } from '../reducers/index';
 
 const selectConfigEpic = (action$: Observable<any>) =>
   action$
@@ -17,8 +22,18 @@ const selectConfigEpic = (action$: Observable<any>) =>
         .catch(error => ({type: CONFIG_LOAD_ERROR, error}))
     );
 
+const saveConfigEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanaryState>) =>
+  action$
+    .filter(action => action.type === SAVE_CONFIG_SAVING)
+    .concatMap(() =>
+      updateCanaryConfig(mapStateToConfig(store.getState()))
+        .then(configName => ({type: SAVE_CONFIG_SAVED, configName}))
+        .catch(error => ({type: SAVE_CONFIG_ERROR, error}))
+    );
+
 const rootEpic = combineEpics(
-  selectConfigEpic
+  selectConfigEpic,
+  saveConfigEpic
 );
 
 export const epicMiddleware = createEpicMiddleware(rootEpic);
