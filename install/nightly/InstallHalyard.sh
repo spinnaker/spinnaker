@@ -14,6 +14,7 @@ SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
 
 VERSION=""
 RELEASE_TRACK=nightly
+HALYARD_STARTUP_TIMEOUT_SECONDS=120
 
 # We can only currently support limited releases
 # First guess what sort of operating system
@@ -388,14 +389,23 @@ install_halyard
 
 configure_bash_completion
 
-start halyard
-
 printf 'Waiting for the Halyard daemon to start running'
+
+WAIT_START=$(date +%s)
 
 set +e 
 hal --ready &> /dev/null
 
 while [ "$?" != "0" ]; do
+  WAIT_NOW=$(date +%s)
+  WAIT_TIME=$(( $WAIT_NOW - $WAIT_START ))
+
+  if [ "$WAIT_TIME" -gt "$HALYARD_STARTUP_TIMEOUT_SECONDS" ]; then
+    >&2 echo ""
+    >&2 echo "Waiting for halyard to start timed out after $WAIT_TIME seconds"
+    exit 1
+  fi
+
   printf '.'
   sleep 2
   hal --ready &> /dev/null
