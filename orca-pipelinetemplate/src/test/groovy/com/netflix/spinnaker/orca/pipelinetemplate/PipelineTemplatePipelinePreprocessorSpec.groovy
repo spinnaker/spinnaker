@@ -38,7 +38,7 @@ class PipelineTemplatePipelinePreprocessorSpec extends Specification {
 
   TemplateLoader templateLoader = new TemplateLoader([new FileTemplateSchemeLoader(objectMapper)])
 
-  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service))
+  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {

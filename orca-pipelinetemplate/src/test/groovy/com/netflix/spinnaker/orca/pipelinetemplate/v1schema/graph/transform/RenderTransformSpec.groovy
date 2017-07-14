@@ -38,7 +38,7 @@ class RenderTransformSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
 
-  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service))
+  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 
   Registry registry = Mock() {
     clock() >> Mock(Clock) {

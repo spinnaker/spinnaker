@@ -28,7 +28,7 @@ import spock.lang.Subject
 class PipelineIdTagSpec extends Specification {
   ObjectMapper objectMapper = new ObjectMapper()
   Front50Service front50Service = Mock(Front50Service)
-  Renderer renderer = new JinjaRenderer(objectMapper, front50Service)
+  Renderer renderer = new JinjaRenderer(objectMapper, front50Service, [])
 
   @Subject
   PipelineIdTag subject = new PipelineIdTag(front50Service)

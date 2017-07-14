@@ -31,7 +31,7 @@ class ModuleTagSpec extends Specification {
 
   ObjectMapper objectMapper = new ObjectMapper()
 
-  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service))
+  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
 
   @Subject
   ModuleTag subject = new ModuleTag(renderer, objectMapper)

@@ -30,7 +30,7 @@ class JinjaRendererSpec extends Specification {
   RenderedValueConverter renderedValueConverter = new YamlRenderedValueConverter(new Yaml())
 
   @Subject
-  Renderer subject = new JinjaRenderer(renderedValueConverter, objectMapper, Mock(Front50Service))
+  Renderer subject = new JinjaRenderer(renderedValueConverter, objectMapper, Mock(Front50Service), [])
 
   @Unroll
   def 'should render and return correct java type'() {

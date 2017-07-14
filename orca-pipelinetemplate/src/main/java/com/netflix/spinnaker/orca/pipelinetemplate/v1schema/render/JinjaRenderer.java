@@ -27,6 +27,7 @@ import com.hubspot.jinjava.interpret.TemplateError.ErrorItem;
 import com.hubspot.jinjava.interpret.TemplateError.ErrorReason;
 import com.hubspot.jinjava.interpret.TemplateError.ErrorType;
 import com.hubspot.jinjava.interpret.errorcategory.BasicTemplateErrorCategory;
+import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.loader.ResourceLocator;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
@@ -45,6 +46,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 
 public class JinjaRenderer implements Renderer {
 
@@ -54,11 +56,11 @@ public class JinjaRenderer implements Renderer {
 
   private RenderedValueConverter renderedValueConverter;
 
-  public JinjaRenderer(ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service) {
-    this(new JsonRenderedValueConverter(pipelineTemplateObjectMapper), pipelineTemplateObjectMapper, front50Service);
+  public JinjaRenderer(ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service, List<Tag> jinjaTags) {
+    this(new JsonRenderedValueConverter(pipelineTemplateObjectMapper), pipelineTemplateObjectMapper, front50Service, jinjaTags);
   }
 
-  public JinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service) {
+  public JinjaRenderer(RenderedValueConverter renderedValueConverter, ObjectMapper pipelineTemplateObjectMapper, Front50Service front50Service, List<Tag> jinjaTags) {
     this.renderedValueConverter = renderedValueConverter;
 
     JinjavaConfig config = new JinjavaConfig();
@@ -67,6 +69,10 @@ public class JinjaRenderer implements Renderer {
     jinja.setResourceLocator(new NoopResourceLocator());
     jinja.getGlobalContext().registerTag(new ModuleTag(this, pipelineTemplateObjectMapper));
     jinja.getGlobalContext().registerTag(new PipelineIdTag(front50Service));
+    if (jinjaTags != null) {
+      jinjaTags.forEach(tag -> jinja.getGlobalContext().registerTag(tag));
+    }
+
     jinja.getGlobalContext().registerFilter(new FriggaFilter());
     jinja.getGlobalContext().registerFilter(new JsonFilter(pipelineTemplateObjectMapper));
 
