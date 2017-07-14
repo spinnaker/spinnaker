@@ -14,7 +14,7 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular@*", "@types/angular@1.6.16", "@types/angular@>=1.5.0", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
+"@types/angular@*", "@types/angular@1.6.16", "@types/angular@^1.6.15", "@types/angular@^1.6.16":
   version "1.6.16"
   resolved "https://registry.yarnpkg.com/@types/angular/-/angular-1.6.16.tgz#f649ef28dd56311a7d8c10be19af879a2a3a9151"
   dependencies:
@@ -349,15 +349,13 @@
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
 
-"@uirouter/react-hybrid@0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.7.tgz#d6f74551be1e958988744059dfc772030fba60df"
+"@uirouter/react-hybrid@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.10.tgz#0ba5ddeb267bbc7d5143b5abf52c0b8a41bbb426"
   dependencies:
     "@uirouter/angularjs" "1.0.5-SNAPSHOT.20170711"
     "@uirouter/core" "5.0.5"
     "@uirouter/react" "0.5.1-SNAPSHOT.20170711"
-    angular2react "^2.0.3"
-    lodash.kebabcase "^4.1.1"
 
 "@uirouter/react@0.5.1-SNAPSHOT.20170711":
   version "0.5.1-SNAPSHOT.20170711"
@@ -521,19 +519,6 @@ angular2react@^2.0.0:
     "@types/react" "^15.0.22"
     "@types/react-dom" "^15.5.0"
     angular "^1.6.3"
-    lodash.kebabcase "^4.1.1"
-    ngimport "^0.6.0"
-    react "^15.4.2"
-    react-dom "^15.4.2"
-
-angular2react@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/angular2react/-/angular2react-2.0.3.tgz#3ac6bc8d3fdce900db8db6e644e4a623002d508b"
-  dependencies:
-    "@types/angular" ">=1.5.0"
-    "@types/react" "^15.0.22"
-    "@types/react-dom" "^15.5.0"
-    angular ">=1.5.0"
     lodash.kebabcase "^4.1.1"
     ngimport "^0.6.0"
     react "^15.4.2"
