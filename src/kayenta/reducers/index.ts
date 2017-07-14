@@ -1,5 +1,6 @@
 import { get } from 'lodash';
 
+import { combineReducers, Action } from 'redux';
 import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
@@ -15,12 +16,53 @@ export interface ICanaryState {
   selectedConfig: ICanaryConfig;
   configLoadState: ConfigDetailLoadState;
   metricList: ICanaryMetricConfig[];
-  selectedMetric: ICanaryMetricConfig;
   saveConfigState: SaveConfigState;
   saveConfigErrorMessage: string;
 }
 
-function reduceMetric(metric: ICanaryMetricConfig, id: string, action: any): ICanaryMetricConfig {
+function configSummaries(state: ICanaryConfigSummary[] = [], action: Action & any): ICanaryConfigSummary[] {
+  switch (action.type) {
+    case INITIALIZE:
+      return action.state.configSummaries;
+
+    case UPDATE_CONFIG_SUMMARIES:
+      return action.configSummaries;
+
+    default:
+      return state;
+  }
+}
+
+function selectedConfig(state: ICanaryConfig = null, action: Action & any): ICanaryConfig {
+  switch (action.type) {
+    case INITIALIZE:
+      return action.state.selectedConfig;
+
+    case SELECT_CONFIG:
+      return action.config;
+
+    default:
+      return state;
+  }
+}
+
+function configLoadState(state: ConfigDetailLoadState = ConfigDetailLoadState.Loaded, action: Action & any): ConfigDetailLoadState {
+  switch (action.type) {
+    case LOAD_CONFIG:
+      return ConfigDetailLoadState.Loading;
+
+    case CONFIG_LOAD_ERROR:
+      return ConfigDetailLoadState.Error;
+
+    case SELECT_CONFIG:
+      return ConfigDetailLoadState.Loaded;
+
+    default:
+      return state;
+  }
+}
+
+function reduceMetric(metric: ICanaryMetricConfig, id: string, action: Action & any): ICanaryMetricConfig {
   if (id === action.id) {
     switch (action.type) {
 
@@ -36,62 +78,65 @@ function reduceMetric(metric: ICanaryMetricConfig, id: string, action: any): ICa
   }
 }
 
-export function rootReducer(state: ICanaryState, action: any): ICanaryState {
+function metricList(state: ICanaryMetricConfig[] = [], action: Action & any): ICanaryMetricConfig[] {
   switch (action.type) {
     case INITIALIZE:
-      return action.state;
-
-    case UPDATE_CONFIG_SUMMARIES:
-      return Object.assign({}, state, { configSummaries: action.configSummaries });
-
-    case LOAD_CONFIG:
-      return Object.assign({}, state, { configLoadState: ConfigDetailLoadState.Loading });
-
-    case CONFIG_LOAD_ERROR:
-      return Object.assign({}, state, { configLoadState: ConfigDetailLoadState.Error });
+      return action.state.metricList;
 
     case SELECT_CONFIG:
-      return Object.assign({}, state, {
-        selectedConfig: action.config,
-        configLoadState: ConfigDetailLoadState.Loaded,
-        metricList: action.config.metrics,
-        selectedMetric: null
-      });
+      return action.config.metrics;
 
     case ADD_METRIC:
-      return Object.assign({}, state, {
-        metricList: state.metricList.concat([action.metric]),
-      });
+      return state.concat([action.metric]);
 
     case RENAME_METRIC:
-      return Object.assign({}, state, {
-        metricList: state.metricList.map((metric, index) => reduceMetric(metric, String(index), action))
-      });
-
-    case SAVE_CONFIG_SAVING:
-      return Object.assign({}, state, {
-        saveConfigState: SaveConfigState.Saving,
-        saveConfigErrorMessage: null,
-      });
-
-    case SAVE_CONFIG_SAVED:
-      return Object.assign({}, state, {
-        saveConfigState: SaveConfigState.Saved
-      });
-
-    case SAVE_CONFIG_ERROR:
-      return Object.assign({}, state, {
-        saveConfigState: SaveConfigState.Error,
-        saveConfigErrorMessage: get(action, 'error.data.message', null),
-      });
-
-    case DISMISS_SAVE_CONFIG_ERROR:
-      return Object.assign({}, state, {
-        saveConfigState: SaveConfigState.Saved,
-        saveConfigErrorMessage: null
-      });
+      return state.map((metric, index) => reduceMetric(metric, String(index), action));
 
     default:
       return state;
   }
 }
+
+function saveConfigState(state: SaveConfigState = SaveConfigState.Saved, action: Action & any): SaveConfigState {
+  switch (action.type) {
+    case SAVE_CONFIG_SAVING:
+      return SaveConfigState.Saving;
+
+    case SAVE_CONFIG_SAVED:
+      return SaveConfigState.Saved;
+
+    case SAVE_CONFIG_ERROR:
+      return SaveConfigState.Error;
+
+    case DISMISS_SAVE_CONFIG_ERROR:
+      return SaveConfigState.Saved;
+
+    default:
+      return state;
+  }
+}
+
+function saveConfigErrorMessage(state: string = null, action: Action & any): string {
+  switch (action.type) {
+    case SAVE_CONFIG_SAVING:
+      return null;
+
+    case SAVE_CONFIG_ERROR:
+      return get(action, 'error.data.message', null);
+
+    case DISMISS_SAVE_CONFIG_ERROR:
+      return null;
+
+    default:
+      return state;
+  }
+}
+
+export const rootReducer = combineReducers<ICanaryState>({
+  configSummaries,
+  selectedConfig,
+  configLoadState,
+  metricList,
+  saveConfigState,
+  saveConfigErrorMessage
+});
