@@ -2,6 +2,7 @@ import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
 import { Application } from 'core/application';
+import { ApplicationIcon, IApplicationIconProps } from './ApplicationIcon';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { Refresher } from 'core/presentation/refresher/Refresher';
 import { Tooltip } from 'core/presentation/Tooltip';
@@ -71,6 +72,9 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   public render() {
+    // Get overridden application icon renderer
+    const Icon: React.ComponentClass<IApplicationComponentProps> = ReactInjector.overrideRegistry.getComponent<IApplicationIconProps>('applicationIcon') || ApplicationIcon;
+
     const { ApplicationNav, ApplicationNavSecondary } = NgReact;
 
     const NotFound = this.props.app.notFound ? (
@@ -82,7 +86,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
     const Found = !this.props.app.notFound ? (
       <h2>
-        <i className="fa fa-window-maximize"/>
+        <Icon app={this.props.app} />
         <span className="application-name">{this.props.app.name}</span>
         <Refresher
           refreshing={this.state.refreshing}

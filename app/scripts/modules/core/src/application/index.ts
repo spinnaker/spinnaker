@@ -1,3 +1,4 @@
+export * from './ApplicationIcon';
 export * from './application.model';
 export * from './applicationModel.builder';
 export * from './modal/validation/applicationName.validator';
