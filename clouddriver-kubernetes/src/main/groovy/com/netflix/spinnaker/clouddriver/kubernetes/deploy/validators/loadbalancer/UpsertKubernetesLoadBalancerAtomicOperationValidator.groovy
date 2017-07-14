@@ -58,7 +58,9 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidator extends DescriptionVa
       helper.validateIpv4(ip, "externalIps[$idx]")
     }
 
-    description.clusterIp ? helper.validateIpv4(description.clusterIp, "clusterIp")  : null
+    if (description.clusterIp && description.clusterIp != "None") {
+      helper.validateIpv4(description.clusterIp, "clusterIp")
+    }
 
     description.loadBalancerIp ? helper.validateIpv4(description.loadBalancerIp, "loadBalancerIp")  : null
 

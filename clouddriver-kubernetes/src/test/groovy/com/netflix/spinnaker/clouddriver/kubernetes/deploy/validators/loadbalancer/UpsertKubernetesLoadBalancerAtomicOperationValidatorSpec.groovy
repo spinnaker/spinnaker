@@ -42,6 +42,7 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
   final static String INVALID_NAME = "bad name ?"
   final static String VALID_IP = "127.0.0.1"
   final static String INVALID_IP = "0.127.0.0.1"
+  final static String VALID_CLUSTER_IP_NONE = "None"
   final static String VALID_ACCOUNT = "my-kubernetes-account"
 
   UpsertKubernetesLoadBalancerAtomicOperationValidator validator
@@ -112,6 +113,23 @@ class UpsertKubernetesLoadBalancerAtomicOperationValidatorSpec extends Specifica
     then:
       0 * errorsMock._
   }
+
+  void "validation accept (none cluster ip)"() {
+    setup:
+      def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
+        ports: [validPort],
+        externalIps: [VALID_IP],
+        account: VALID_ACCOUNT,
+        clusterIp: VALID_CLUSTER_IP_NONE)
+      def errorsMock = Mock(Errors)
+
+    when:
+      validator.validate([], description, errorsMock)
+
+    then:
+      0 * errorsMock._
+  }
+
   void "validation reject (bad protocol)"() {
     setup:
       def description = new KubernetesLoadBalancerDescription(name: VALID_NAME,
