@@ -190,6 +190,7 @@ tests:
       services: [clouddriver, front50, gate, orca]
     quota:
       appengine_deployment: 1
+    path: citest/tests/appengine_smoke_test.py
     api: gate
     args:
       alias: [standard_appengine_provider_params]
@@ -204,6 +205,7 @@ tests:
       services: [clouddriver, front50, gate, orca]
     quota:
       appengine_deployment: 1
+    path: citest/tests/appengine_smoke_test.py
     api: gate
     args:
       alias: [standard_appengine_provider_params]
