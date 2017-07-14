@@ -10,7 +10,7 @@ if [ -f "/opt/spinnaker/config/halyard-user" ]; then
   HAL_USER=$(cat /opt/spinnaker/config/halyard-user)
 fi
 
-if [ -z "$HAL_USER" ];
+if [ -z "$HAL_USER" ]; then
   HAL_USER="ubuntu"
 fi
 
