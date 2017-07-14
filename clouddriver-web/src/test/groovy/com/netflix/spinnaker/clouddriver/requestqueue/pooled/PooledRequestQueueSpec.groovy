@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class PooledRequestQueueSpec extends Specification {
   def "should execute requests"() {
     given:
-    def queue = new PooledRequestQueue(new NoopRegistry(), 10, 10, 1)
+    def queue = new PooledRequestQueue(new NoopRegistry(), 1000, 1000, 1)
 
     when:
     Long result = queue.execute("foo", { return 12345L })
