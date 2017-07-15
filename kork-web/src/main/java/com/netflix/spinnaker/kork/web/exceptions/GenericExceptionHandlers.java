@@ -21,6 +21,7 @@ import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.DefaultErrorAttributes;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -94,21 +95,23 @@ public class GenericExceptionHandlers {
 
   @ExceptionHandler(Exception.class)
   public void handleException(Exception e, HttpServletResponse response, HttpServletRequest request) throws IOException {
-    logger.error("Internal Server Error", e);
-
     storeException(request, response, e);
 
-    ResponseStatus responseStatus = e.getClass().getAnnotation(ResponseStatus.class);
+    ResponseStatus responseStatus = AnnotationUtils.findAnnotation(e.getClass(), ResponseStatus.class);
+
     if (responseStatus != null) {
+      HttpStatus httpStatus = responseStatus.value();
+      logger.error(httpStatus.getReasonPhrase(), e);
+
       String message = e.getMessage();
       if (message == null || message.trim().isEmpty()) {
         message = responseStatus.reason();
       }
-      response.sendError(responseStatus.value().value(), message);
+      response.sendError(httpStatus.value(), message);
     } else {
+      logger.error("Internal Server Error", e);
       response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
     }
-
   }
 
   private void storeException(HttpServletRequest request, HttpServletResponse response, Exception ex) {

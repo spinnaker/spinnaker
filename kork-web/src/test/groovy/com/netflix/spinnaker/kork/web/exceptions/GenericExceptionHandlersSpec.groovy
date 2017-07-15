@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.kork.web.exceptions
 
-import groovy.transform.InheritConstructors
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 import spock.lang.Specification
@@ -39,23 +38,74 @@ class GenericExceptionHandlersSpec extends Specification {
     genericExceptionHandlers.handleException(exception, response, request)
 
     then:
-    1 * response.sendError(404, expectedReason)
+    1 * response.sendError(expectedStatusCode, expectedReason)
 
     where:
-    exception                     || expectedReason
-    new MyException()             || "Default Reason!"
-    new MyException("")           || "Default Reason!"
-    new MyException("  ")         || "Default Reason!"
-    new MyException("My Message") || "My Message"
+    exception                                || expectedStatusCode || expectedReason
+    new E1()                                 || 404                || "Default Reason!"
+    new E1("")                               || 404                || "Default Reason!"
+    new E1("  ")                             || 404                || "Default Reason!"
+    new E1("E1 Reason")                      || 404                || "E1 Reason"
+    new E2()                                 || 404                || "Default Reason!"
+    new E2("E2 Reason")                      || 404                || "E2 Reason"
+    new E3()                                 || 404                || "Default Reason!"
+    new E4()                                 || 400                || "My Other Reason!" // favor @ResponseStatus on interface over super class
+    new E5("E5 Reason")                      || 400                || "E5 Reason"
+    new NullPointerException("It's an NPE!") || 500                || "It's an NPE!"
   }
 
   @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Default Reason!")
-  class MyException extends RuntimeException {
-    MyException() {
+  class E1 extends RuntimeException {
+    E1() {
       super()
     }
 
-    MyException(String message) {
+    E1(String message) {
+      super(message)
+    }
+  }
+
+  class E2 extends E1 {
+    E2() {
+      super()
+    }
+
+    E2(String message) {
+      super(message)
+    }
+  }
+
+  class E3 extends E2 {
+    E3() {
+      super()
+    }
+
+    E3(String message) {
+      super(message)
+    }
+  }
+
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "My Other Reason!")
+  interface I1 {
+
+  }
+
+  class E4 extends E3 implements I1 {
+    E4() {
+      super()
+    }
+
+    E4(String message) {
+      super(message)
+    }
+  }
+
+  class E5 extends E4 {
+    E5() {
+      super()
+    }
+
+    E5(String message) {
       super(message)
     }
   }
