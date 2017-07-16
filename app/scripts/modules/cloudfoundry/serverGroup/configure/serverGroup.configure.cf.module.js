@@ -4,7 +4,6 @@ const angular = require('angular');
 
 module.exports = angular.module('spinnaker.serverGroup.configure.cf', [
   require('./serverGroupConfiguration.service.js'),
-  require('./wizard/deployInitializer.controller.js'),
   require('./wizard/ServerGroupBasicSettings.controller.js'),
   require('./wizard/ServerGroupLoadBalancers.controller.js'),
   require('./wizard/ServerGroupServices.controller.js'),

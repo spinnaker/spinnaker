@@ -50,6 +50,24 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
+    this.templateSelectionText = {
+      copied: [
+        'account, region, subnet, cluster name (stack, details)',
+        'load balancers',
+        'security groups',
+        'instance type',
+        'all fields on the Advanced Settings page'
+      ],
+      notCopied: [
+        'the following suspended scaling processes: Launch, Terminate, AddToLoadBalancer',
+      ],
+      additionalCopyText: 'If a server group exists in this cluster at the time of deployment, its scaling policies will be copied over to the new server group.'
+    };
+
+    if (!$scope.command.viewState.disableStrategySelection) {
+      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+    }
+
     function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {
@@ -210,8 +228,8 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       $scope.state.loaded = true;
     }
 
-    $scope.$on('template-selected', function() {
+    this.templateSelected = () => {
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
-    });
+    };
   });

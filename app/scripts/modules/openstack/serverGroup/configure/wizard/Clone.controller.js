@@ -37,6 +37,20 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
+    this.templateSelectionText = {
+      copied: [
+        'account, namespace, cluster name (stack, details)',
+        'load balancers',
+        'security groups',
+        'container configuration',
+      ],
+      notCopied: [],
+    };
+
+    if (!$scope.command.viewState.disableStrategySelection) {
+      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+    }
+
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
@@ -97,8 +111,8 @@ module.exports = angular.module('spinnaker.openstack.serverGroup.configure.clone
       $scope.state.loaded = true;
     }
 
-    $scope.$on('template-selected', function() {
+    this.templateSelected = () => {
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
-    });
+    };
   });

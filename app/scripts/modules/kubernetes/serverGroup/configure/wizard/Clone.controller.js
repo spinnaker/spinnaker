@@ -39,6 +39,20 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
+    this.templateSelectionText = {
+      copied: [
+        'account, namespace, cluster name (stack, details)',
+        'load balancers',
+        'security groups',
+        'container configuration',
+      ],
+      notCopied: [],
+    };
+
+    if (!$scope.command.viewState.disableStrategySelection) {
+      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+    }
+
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
@@ -88,7 +102,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
     };
 
     this.clone = function () {
-      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode == 'createPipeline') {
+      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
@@ -108,8 +122,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.clon
       $scope.state.loaded = true;
     }
 
-    $scope.$on('template-selected', function() {
+    this.templateSelected = () => {
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
-    });
+    };
   });

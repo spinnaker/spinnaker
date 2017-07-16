@@ -6,6 +6,7 @@ import { SERVER_GROUP_CONFIGURATION_SERVICE } from 'core/serverGroup/configure/c
 import { SERVER_GROUP_STATES } from './serverGroup.states';
 import './ServerGroupSearchResultFormatter';
 import { VIEW_SCALING_ACTIVITIES_LINK } from './details/scalingActivities/viewScalingActivitiesLink.component';
+import { DEPLOY_INITIALIZER_COMPONENT } from './configure/common/deployInitializer.component';
 
 module.exports = angular
   .module('spinnaker.core.serverGroup', [
@@ -18,5 +19,6 @@ module.exports = angular
     require('./serverGroup.dataSource'),
     require('./configure/common/basicSettingsMixin.controller'),
     SERVER_GROUP_STATES,
-    VIEW_SCALING_ACTIVITIES_LINK
+    VIEW_SCALING_ACTIVITIES_LINK,
+    DEPLOY_INITIALIZER_COMPONENT,
   ]);

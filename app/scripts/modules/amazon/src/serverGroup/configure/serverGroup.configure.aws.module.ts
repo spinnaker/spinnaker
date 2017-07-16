@@ -18,7 +18,6 @@ module(SERVER_GROUP_CONFIGURE_MODULE, [
   LOAD_BALANCER_SELECTOR,
   TARGET_GROUP_SELECTOR,
   SECURITY_GROUPS_REMOVED,
-  require('./wizard/templateSelection/deployInitializer.controller.js'),
   require('./wizard/location/ServerGroupBasicSettings.controller.js'),
   require('./wizard/securityGroups/securityGroupSelector.directive.js'),
   require('./wizard/zones/availabilityZoneSelector.directive.js'),

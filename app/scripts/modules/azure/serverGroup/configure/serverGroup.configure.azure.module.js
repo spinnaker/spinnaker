@@ -3,7 +3,6 @@
 const angular = require('angular');
 
 module.exports = angular.module('spinnaker.azure.serverGroup.configure', [
-  require('./wizard/deployInitializer.controller.js'),
   require('./wizard/basicSettings/ServerGroupBasicSettings.controller.js'),
   require('./wizard/loadBalancers/ServerGroupLoadBalancers.controller.js'),
   require('./wizard/ServerGroupInstanceArchetype.controller.js'),

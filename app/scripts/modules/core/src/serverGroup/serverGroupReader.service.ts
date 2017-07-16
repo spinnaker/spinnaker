@@ -1,13 +1,13 @@
-import {module} from 'angular';
+import { ILogService, IPromise, module } from 'angular';
 
-import {API_SERVICE, Api} from 'core/api/api.service';
+import { API_SERVICE, Api } from 'core/api/api.service';
 import { IServerGroup } from 'core/domain';
 
 export class ServerGroupReader {
 
-  constructor(private $log: ng.ILogService, private API: Api) { 'ngInject'; }
+  constructor(private $log: ILogService, private API: Api) { 'ngInject'; }
 
-  public getScalingActivities(serverGroup: IServerGroup): ng.IPromise<any[]> {
+  public getScalingActivities(serverGroup: IServerGroup): IPromise<any[]> {
     return this.API
       .one('applications')
       .one(serverGroup.app)
@@ -30,7 +30,7 @@ export class ServerGroupReader {
   public getServerGroup(application: any,
                         account: string,
                         region: string,
-                        serverGroupName: string) {
+                        serverGroupName: string): IPromise<IServerGroup> {
     return this.API.one('applications')
       .one(application)
       .all('serverGroups')

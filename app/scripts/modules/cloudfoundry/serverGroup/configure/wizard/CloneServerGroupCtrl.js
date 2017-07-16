@@ -129,12 +129,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
 
     this.clone = function () {
       $scope.command.targetSize = $scope.command.capacity.desired; // TODO(GLT): Unify on this or capacity
-      $scope.command.loadBalancers = $scope.command.loadBalancers;
-
-      $scope.command.repository = $scope.command.repository;
-      $scope.command.artifact = $scope.command.artifact;
-      $scope.command.username = $scope.command.username;
-      $scope.command.password = $scope.command.password;
 
       // Convert list of single entry maps into a single, comprehensive map.
       let envs = {};
@@ -142,17 +136,12 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
         envs[env.key] = env.value;
       });
       $scope.command.envs = envs;
-      $scope.command.services = $scope.command.services;
 
       // We want min/max set to the same value as desired.
       $scope.command.capacity.min = $scope.command.capacity.desired;
       $scope.command.capacity.max = $scope.command.capacity.desired;
 
-      $scope.command.buildpackUrl = $scope.command.buildpackUrl;
-      $scope.command.memory = $scope.command.memory;
-      $scope.command.disk = $scope.command.disk;
-
-        if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
+      if ($scope.command.viewState.mode === 'editPipeline' || $scope.command.viewState.mode === 'createPipeline') {
         return $uibModalInstance.close($scope.command);
       }
       $scope.taskMonitor.submit(
@@ -172,8 +161,8 @@ module.exports = angular.module('spinnaker.serverGroup.configure.cf.cloneServerG
       $scope.state.loaded = true;
     }
 
-    $scope.$on('template-selected', function() {
+    this.templateSelected = () => {
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
-    });
+    };
   });

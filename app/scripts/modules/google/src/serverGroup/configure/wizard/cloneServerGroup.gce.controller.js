@@ -43,6 +43,21 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       requiresTemplateSelection: !!serverGroupCommand.viewState.requiresTemplateSelection,
     };
 
+    this.templateSelectionText = {
+      copied: [
+        'account, region, subnet, cluster name (stack, details)',
+        'load balancers',
+        'security groups',
+        'instance type',
+        'all fields on the Advanced Settings page',
+      ],
+      notCopied: [],
+    };
+
+    if (!$scope.command.viewState.disableStrategySelection) {
+      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+    }
+
     function onApplicationRefresh() {
       // If the user has already closed the modal, do not navigate to the new details view
       if ($scope.$$destroyed) {
@@ -366,10 +381,10 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       $scope.state.loaded = true;
     }
 
-    $scope.$on('template-selected', function() {
+    this.templateSelected = () => {
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
-    });
+    };
 
     $scope.$on('$destroy', gceTagManager.reset);
   });

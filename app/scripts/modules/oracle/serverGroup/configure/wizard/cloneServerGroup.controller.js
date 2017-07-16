@@ -31,6 +31,21 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.clon
       templateSelection: require('./templateSelection/templateSelection.html'),
     };
 
+    this.templateSelectionText = {
+      copied: [
+        'account, region, subnet, cluster name (stack, details)',
+        'load balancers',
+        'security groups',
+        'instance type',
+        'all fields on the Advanced Settings page',
+      ],
+      notCopied: [],
+    };
+
+    if (!$scope.command.viewState.disableStrategySelection) {
+      this.templateSelectionText.notCopied.push('the deployment strategy (if any) used to deploy the most recent server group');
+    }
+
     $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor({
       application: application,
       title: 'Creating your server group',
@@ -70,8 +85,8 @@ module.exports = angular.module('spinnaker.oraclebmcs.serverGroup.configure.clon
 
     configureCommand();
 
-    $scope.$on('template-selected', function () {
+    this.templateSelected = () => {
       $scope.state.requiresTemplateSelection = false;
       configureCommand();
-    });
+    };
   });

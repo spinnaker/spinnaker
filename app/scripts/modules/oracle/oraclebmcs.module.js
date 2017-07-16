@@ -30,7 +30,6 @@ module.exports = angular.module('spinnaker.oraclebmcs', [
   require('./serverGroup/details/serverGroupDetails.controller.js'),
   require('./serverGroup/configure/serverGroupCommandBuilder.service.js'),
   require('./serverGroup/configure/wizard/cloneServerGroup.controller.js'),
-  require('./serverGroup/configure/wizard/templateSelection/deployInitializer.controller.js'),
   // Images
   require('./image/image.reader.js'),
   // Instances
