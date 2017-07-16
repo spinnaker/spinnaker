@@ -1,7 +1,8 @@
-import {module} from 'angular';
+import { module } from 'angular';
 
-import {SCHEDULER_FACTORY, SchedulerFactory} from 'core/scheduler/scheduler.factory';
-import {SETTINGS} from 'core/config/settings';
+import { NOTIFIER_SERVICE } from 'core/widgets/notifier/notifier.service';
+import { SCHEDULER_FACTORY, SchedulerFactory } from 'core/scheduler/scheduler.factory';
+import { SETTINGS } from 'core/config/settings';
 
 interface IDeckVersion {
   version: string;
@@ -59,7 +60,7 @@ class VersionCheckService {
 
 export const VERSION_CHECK_SERVICE = 'spinnaker.core.config.versionCheck.service';
 module(VERSION_CHECK_SERVICE, [
-  require('../widgets/notifier/notifier.service'),
+  NOTIFIER_SERVICE,
   SCHEDULER_FACTORY,
 ]).service('versionCheckService', VersionCheckService)
   .run((versionCheckService: VersionCheckService) => {

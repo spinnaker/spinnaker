@@ -23,6 +23,7 @@ import { InfrastructureSearchService } from '../search/infrastructure/infrastruc
 import { LoadBalancerFilterModel } from '../loadBalancer/filter/loadBalancerFilter.model';
 import { LoadBalancerFilterService } from '../loadBalancer/filter/loadBalancer.filter.service';
 import { ManualJudgmentService } from '../pipeline/config/stages/manualJudgment/manualJudgment.service';
+import { NotifierService } from '../widgets/notifier/notifier.service';
 import { OverrideRegistry } from '../overrideRegistry/override.registry';
 import { PipelineConfigProvider } from '../pipeline/config/pipelineConfigProvider';
 import { PipelineConfigService } from '../pipeline/config/services/pipelineConfig.service';
@@ -78,6 +79,7 @@ export class CoreReactInject extends ReactInject {
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get modalService() { return this.$injector.get('$uibModal') as IModalService; }
+  public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }
   public get pipelineConfigService() { return this.$injector.get('pipelineConfigService') as PipelineConfigService; }
