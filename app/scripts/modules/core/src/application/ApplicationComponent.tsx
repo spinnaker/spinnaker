@@ -27,12 +27,11 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
   constructor(props: IApplicationComponentProps) {
     super(props);
+    this.state = this.parseState(props);
     if (props.app.notFound) {
       ReactInjector.recentHistoryService.removeLastItem('applications');
       return;
     }
-
-    this.state = this.parseState(props);
 
     DebugWindow.application = props.app;
     props.app.enableAutoRefresh();
