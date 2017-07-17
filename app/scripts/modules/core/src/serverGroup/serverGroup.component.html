@@ -9,8 +9,7 @@
         active: $ctrl.$state.includes('**.serverGroup', {region: $ctrl.viewModel.serverGroup.region, accountId: $ctrl.viewModel.serverGroup.account, serverGroup: $ctrl.viewModel.serverGroup.name, provider: $ctrl.viewModel.serverGroup.type})
      }">
   <div class="cluster-container">
-    <sticky-header added-offset-height="67" sticky-if="$ctrl.headerIsSticky()">
-      <div class="server-group-title">
+      <div class="server-group-title" ng-class="{ 'sticky-header-3': $ctrl.headerIsSticky() }">
         <div class="container-fluid no-padding">
           <div class="row">
             <div class="col-md-{{ $ctrl.viewModel.images ? 9 : 8 }} col-sm-6 section-title">
@@ -49,8 +48,7 @@
             </div>
           </div>
         </div>
-      </div>
-    </sticky-header>
+    </div>
     <div class="instance-list" ng-if="$ctrl.sortFilter.showAllInstances">
       <div ng-if="!$ctrl.sortFilter.listInstances">
         <instances highlight="$ctrl.sortFilter.filter" instances="$ctrl.viewModel.instances"></instances>

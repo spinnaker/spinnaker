@@ -1,6 +1,11 @@
 @import (reference) "~core/presentation/less/imports/commonImports.less";
 
 .sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  height: 36px;
+
   .shadowed {
     margin: 0;
     display: flex;
@@ -17,6 +22,18 @@
   .clearfix();
 }
 
+.sticky-header-2 {
+  position: sticky;
+  top: 36px;
+  z-index: 2;
+}
+
+.sticky-header-3 {
+  position: sticky;
+  top: 67px;
+  z-index: 1;
+}
+
 .heading-sticky {
   position: fixed;
   z-index: 2;
@@ -25,6 +42,7 @@
     display: inline;
   }
 }
+
 .not-sticky {
   top: unset;
   width: 100%;

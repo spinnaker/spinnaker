@@ -7,7 +7,6 @@ import { Application } from 'core/application/application.model';
 import { FilterTags, IFilterTag } from 'core/filterModel/FilterTags';
 import { ILoadBalancer, ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancerPod } from './LoadBalancerPod';
-import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
 import { Tooltip } from 'core/presentation/Tooltip';
 
 import { NgReact, ReactInjector } from 'core/reactShims';
@@ -173,7 +172,6 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
                 </div>
               </div>
             </div>
-
           </div>
           <div className="col-lg-4 col-md-2">
             <div className="form-inline clearfix filters"/>
@@ -189,9 +187,10 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
           </div>
           <FilterTags tags={this.state.tags} tagCleared={this.tagCleared} clearFilters={this.clearFilters}/>
         </div>
-        <StickyContainer className="content" data-scroll-id="loadbalancers-content">
+
+        <div className="content">
           {groupings}
-        </StickyContainer>
+        </div>
       </div>
     );
   }

@@ -23,21 +23,17 @@
   </div>
   <div class="modal-body" style="max-height: 800px; overflow-y: scroll;" sticky-headers>
     <div ng-if="$ctrl.commits.length">
-      <sticky-header>
-        <div class="component-heading">
-          <h4>Commits</h4>
-        </div>
-      </sticky-header>
+      <div class="component-heading sticky-header">
+        <h4>Commits</h4>
+      </div>
       <div class="component-body">
         <commit-history commits="$ctrl.commits"></commit-history>
       </div>
     </div>
     <div ng-if="$ctrl.hasJarChanges">
-      <sticky-header>
-        <div class="component-heading">
-          <h4>JAR Changes</h4>
-        </div>
-      </sticky-header>
+      <div class="component-heading sticky-header">
+        <h4>JAR Changes</h4>
+      </div>
       <div class="component-body">
         <jar-diff jar-diffs="$ctrl.jarDiffs"></jar-diff>
       </div>

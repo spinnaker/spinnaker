@@ -10,7 +10,6 @@ import { Application } from 'core/application/application.model';
 import { Execution } from './execution/Execution';
 import { IExecution, IExecutionGroup, IPipeline, IPipelineCommand } from 'core/domain';
 import { NextRunTag } from 'core/delivery/triggers/NextRunTag';
-import { Sticky } from 'core/utils/stickyHeader/Sticky';
 import { Tooltip } from 'core/presentation/Tooltip';
 import { TriggersTag } from 'core/delivery/triggers/TriggersTag';
 import { NgReact, ReactInjector } from 'core/reactShims';
@@ -177,7 +176,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
     return (
       <div className={`execution-group ${this.isShowingDetails() ? 'showing-details' : 'details-hidden'}`}>
         { group.heading && (
-          <Sticky className="clickable sticky-header" onClick={this.handleHeadingClicked} topOffset={-3}>
+          <div className="clickable sticky-header" onClick={this.handleHeadingClicked}>
             <div className={`execution-group-heading ${pipelineDisabled ? 'inactive' : 'active'}`}>
               <span className={`glyphicon pipeline-toggle glyphicon-chevron-${this.state.open ? 'down' : 'right'}`}/>
               <div className="shadowed">
@@ -215,7 +214,7 @@ export class ExecutionGroup extends React.Component<IExecutionGroupProps, IExecu
                 )}
               </div>
             </div>
-          </Sticky>
+          </div>
         )
         }
         { this.state.open && (

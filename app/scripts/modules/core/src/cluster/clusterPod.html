@@ -1,5 +1,5 @@
 <div class="row rollup-entry sub-group">
-  <sticky-header>
+  <div class="sticky-header">
     <div class="rollup-summary">
       <div class="rollup-title-cell">
         <div class="heading-tag">
@@ -31,25 +31,23 @@
         </div>
       </div>
     </div>
-  </sticky-header>
+  </div>
   <div class="rollup-details">
     <div class="pod-subgroup" ng-repeat="subgroup in $ctrl.grouping.subgroups">
-      <sticky-header added-offset-height="36">
-        <h6 class="subgroup-title">
-          {{subgroup.heading}}
+      <h6 class="sticky-header-2 subgroup-title">
+        {{subgroup.heading}}
 
-          <entity-notifications
-            entity="subgroup"
-            application="$ctrl.application"
-            placement="top"
-            h-offset-percent="20%"
-            entity-type="cluster"
-            page-location="pod"
-            on-update="$ctrl.application.serverGroups.refresh()"
-          ></entity-notifications>
+        <entity-notifications
+          entity="subgroup"
+          application="$ctrl.application"
+          placement="top"
+          h-offset-percent="20%"
+          entity-type="cluster"
+          page-location="pod"
+          on-update="$ctrl.application.serverGroups.refresh()"
+        ></entity-notifications>
 
-        </h6>
-      </sticky-header>
+      </h6>
       <server-group
         ng-repeat="serverGroup in subgroup.serverGroups | orderBy:'-name'"
         ng-if="$ctrl.grouping.cluster.category === 'serverGroup'"

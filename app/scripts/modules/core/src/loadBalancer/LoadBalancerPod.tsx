@@ -6,7 +6,6 @@ import { NgReact } from 'core/reactShims';
 import { Application } from 'core/application/application.model';
 import { ILoadBalancerGroup } from 'core/domain';
 import { LoadBalancer } from './LoadBalancer';
-import { Sticky } from 'core/utils/stickyHeader/Sticky';
 
 import './loadBalancerPod.less';
 
@@ -40,20 +39,18 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
 
     return (
       <div className="load-balancer-pod row rollup-entry sub-group">
-        <Sticky>
-          <div className="rollup-summary">
-            <div className="rollup-title-cell">
-              <div className="heading-tag">
-                <AccountTag account={parentHeading}/>
-              </div>
-              <div className="pod-center">
-                <div>
-                  <span className="icon icon-elb"/> {grouping.heading}
-                </div>
+        <div className="rollup-summary sticky-header">
+          <div className="rollup-title-cell">
+            <div className="heading-tag">
+              <AccountTag account={parentHeading}/>
+            </div>
+            <div className="pod-center">
+              <div>
+                <span className="icon icon-elb"/> {grouping.heading}
               </div>
             </div>
           </div>
-        </Sticky>
+        </div>
         <div className="rollup-details">
           {subgroups}
         </div>

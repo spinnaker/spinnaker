@@ -32,7 +32,8 @@ server-group {
 
 .row.rollup-entry {
   padding: 0;
-  margin: 2px 0 23px;
+  margin: 0 0 23px 0;
+
   &:last-child {
     padding-bottom: 5px;
   }
@@ -387,9 +388,7 @@ load-balancers-tag {
       text-transform: uppercase;
       margin: 0;
       padding: 10px 10px 5px;
-      &.heading-sticky {
-        background-color: fade(@lightest_grey, 90%);
-      }
+      background-color: fade(@lightest_grey, 90%);
     }
     .heading-sticky {
       > h6 {

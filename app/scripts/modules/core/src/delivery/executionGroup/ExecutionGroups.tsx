@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { StickyContainer } from 'core/utils/stickyHeader/StickyContainer';
 import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application/application.model';
@@ -70,9 +69,9 @@ export class ExecutionGroups extends React.Component<IExecutionGroupsProps, IExe
               <h4>No executions match the filters you've selected.</h4>
             </div>
           )}
-          <StickyContainer className="execution-groups all-execution-groups">
+          <div className="execution-groups all-execution-groups">
             {executionGroups}
-          </StickyContainer>
+          </div>
       </div>
     );
   }

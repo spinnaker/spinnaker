@@ -8,7 +8,6 @@ import { ReactInjector } from 'core/reactShims';
 
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
 import { LoadBalancerClusterContainer } from './LoadBalancerClusterContainer';
-import { Sticky } from 'core/utils/stickyHeader/Sticky';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 
 export interface ILoadBalancerProps {
@@ -43,11 +42,10 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
 
     return (
       <div className="pod-subgroup load-balancer">
-        <UISrefActive class="active">
-          <UISref to=".loadBalancerDetails" params={params}>
-            <div className={`load-balancer-header clickable clickable-row`}>
-              <Sticky topOffset={36}>
-              <h6>
+        <div className="load-balancer-header sticky-header-2">
+          <UISrefActive class="active">
+            <UISref to=".loadBalancerDetails" params={params}>
+              <h6 className="clickable clickable-row">
                 <span className="icon icon-elb"/> {(loadBalancer.region || '').toUpperCase()}
                 <EntityNotifications
                   entity={loadBalancer}
@@ -61,11 +59,9 @@ export class LoadBalancer extends React.Component<ILoadBalancerProps> {
                   <HealthCounts container={loadBalancer.instanceCounts}/>
                 </span>
               </h6>
-            </Sticky>
-
-            </div>
-          </UISref>
-        </UISrefActive>
+            </UISref>
+          </UISrefActive>
+        </div>
         <ClusterContainer
           loadBalancer={loadBalancer}
           serverGroups={serverGroups}

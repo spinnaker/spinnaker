@@ -1,22 +1,20 @@
 <div class="pod-subgroup clickable clickable-row clearfix"
      ui-sref=".securityGroupDetails(srefParams)"
      ui-sref-active="active">
-  <sticky-header added-offset-height="36">
-    <h6>
-      <span class="glyphicon glyphicon-transfer"></span>
-      {{heading | uppercase}}
+  <h6 class="sticky-header-2">
+    <span class="glyphicon glyphicon-transfer"></span>
+    {{heading | uppercase}}
 
-      <entity-notifications
-        entity="securityGroup"
-        application="application"
-        placement="top"
-        entity-type="securityGroup"
-        page-location="details"
-        on-update="application.securityGroups.refresh()"
-      ></entity-notifications>
+    <entity-notifications
+      entity="securityGroup"
+      application="application"
+      placement="top"
+      entity-type="securityGroup"
+      page-location="details"
+      on-update="application.securityGroups.refresh()"
+    ></entity-notifications>
 
-    </h6>
-  </sticky-header>
+  </h6>
   <div class="cluster-container">
     <div class="rollup-details-section col-md-6" ng-if="sortFilter.showServerGroups">
       <div ng-if="!securityGroup.usages.serverGroups.length" class="small">
