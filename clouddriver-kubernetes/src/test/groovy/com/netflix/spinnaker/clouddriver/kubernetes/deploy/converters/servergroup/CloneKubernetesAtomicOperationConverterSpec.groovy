@@ -52,19 +52,22 @@ class CloneKubernetesAtomicOperationConverterSpec extends Specification {
       def input = [app: APPLICATION,
                    stack: STACK,
                    freeFormDetails: DETAILS,
-                   account: ACCOUNT]
+                   account: ACCOUNT,
+                   source: [
+                     account: ACCOUNT
+                   ]]
     when:
       def description = converter.convertDescription(input)
 
     then:
-      1 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
+      2 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
       description instanceof CloneKubernetesAtomicOperationDescription
 
     when:
       def operation = converter.convertOperation(input)
 
     then:
-      1 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
+      2 * converter.accountCredentialsProvider.getCredentials(_) >> mockCredentials
       operation instanceof CloneKubernetesAtomicOperation
   }
 }

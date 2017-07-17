@@ -23,6 +23,7 @@ import com.netflix.spinnaker.clouddriver.kubernetes.deploy.ops.servergroup.Clone
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
+import com.netflix.spinnaker.clouddriver.kubernetes.security.KubernetesNamedAccountCredentials
 import org.springframework.stereotype.Component
 
 @KubernetesOperation(AtomicOperations.CLONE_SERVER_GROUP)
@@ -33,6 +34,9 @@ class CloneKubernetesAtomicOperationConverter extends AbstractAtomicOperationsCr
   }
 
   CloneKubernetesAtomicOperationDescription convertDescription(Map input) {
-    KubernetesAtomicOperationConverterHelper.convertDescription(input, this, CloneKubernetesAtomicOperationDescription)
+    def converted = KubernetesAtomicOperationConverterHelper.convertDescription(input, this, CloneKubernetesAtomicOperationDescription)
+    converted.sourceCredentials = (KubernetesNamedAccountCredentials) this.getCredentialsObject(converted.source.account)
+    return converted
+
   }
 }

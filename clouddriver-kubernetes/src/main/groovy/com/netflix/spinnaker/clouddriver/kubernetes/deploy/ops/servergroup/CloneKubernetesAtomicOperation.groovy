@@ -72,7 +72,7 @@ class CloneKubernetesAtomicOperation implements AtomicOperation<DeploymentResult
 
     task.updateStatus BASE_PHASE, "Reading ancestor server group ${description.source.serverGroupName}..."
 
-    def credentials = description.credentials.credentials
+    def credentials = description.sourceCredentials.credentials
 
     description.source.namespace = description.source.namespace ?: "default"
     def ancestorServerGroup = credentials.apiAdaptor.getReplicationController(description.source.namespace, description.source.serverGroupName)

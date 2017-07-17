@@ -66,6 +66,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
   def dockerRegistries
   def credentials
   def namedAccountCredentials
+  def sourceNamedAccountCredentials
   def accountCredentialsRepositoryMock
   def spectatorRegistry
 
@@ -119,6 +120,13 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         .credentials(credentials)
         .build()
 
+    sourceNamedAccountCredentials = new KubernetesNamedAccountCredentials.Builder()
+        .name("name")
+        .dockerRegistries(dockerRegistries)
+        .spectatorRegistry(spectatorRegistry)
+        .credentials(credentials)
+        .build()
+
     objectMetadata.setLabels(LABELS)
     podTemplateSpec.setMetadata(objectMetadata)
     replicationControllerSpec.setTemplate(podTemplateSpec)
@@ -153,7 +161,8 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
     setup:
       def inputDescription = new CloneKubernetesAtomicOperationDescription(
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE1],
-        credentials: namedAccountCredentials
+        credentials: namedAccountCredentials,
+        sourceCredentials: sourceNamedAccountCredentials
       )
 
       @Subject def operation = new CloneKubernetesAtomicOperation(inputDescription)
@@ -193,6 +202,7 @@ class CloneKubernetesAtomicOperationSpec extends Specification {
         loadBalancers: LOAD_BALANCER_NAMES,
         containers: containers,
         credentials: namedAccountCredentials,
+        sourceCredentials: sourceNamedAccountCredentials,
         source: [serverGroupName: ANCESTOR_SERVER_GROUP_NAME, namespace: NAMESPACE2]
       )
 
