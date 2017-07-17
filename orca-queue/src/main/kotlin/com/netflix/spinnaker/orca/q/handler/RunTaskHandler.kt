@@ -17,8 +17,11 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.orca.*
+import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
+import com.netflix.spinnaker.orca.RetryableTask
+import com.netflix.spinnaker.orca.Task
+import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.batch.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -28,8 +31,6 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
-import com.netflix.spinnaker.security.AuthenticatedRequest.propagate
-import com.netflix.spinnaker.security.User
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,7 +71,7 @@ open class RunTaskHandler
         }
       } else {
         try {
-          task.executeTask(stage) { result ->
+          task.execute(stage.withMergedContext()).let { result: TaskResult ->
             // TODO: rather send this data with CompleteTask message
             stage.processTaskOutput(result)
             when (result.status) {
@@ -106,24 +107,6 @@ open class RunTaskHandler
         }
       }
     }
-  }
-
-  private fun Task.executeTask(stage: Stage<*>, callback: (TaskResult) -> Unit) {
-    // An AuthenticatedStage can override the default pipeline authentication credentials
-    val authenticatedUser = stage
-      .ancestors()
-      .filter { it.stageBuilder is AuthenticatedStage }
-      .firstOrNull()
-      ?.let { (it.stageBuilder as AuthenticatedStage).authenticatedUser(it.stage).orElse(null) }
-
-    val currentUser = authenticatedUser ?: User().apply {
-      email = stage.getExecution().getAuthentication()?.user
-      allowedAccounts = stage.getExecution().getAuthentication()?.allowedAccounts
-    }
-
-    propagate({
-      execute(stage.withMergedContext()).let(callback)
-    }, false, currentUser).call()
   }
 
   private fun trackResult(stage: Stage<*>, taskType: Class<Task>, status: ExecutionStatus) {
