@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import MetricDetail from './metricDetail';
+import OpenDeleteModalButton from './openDeleteModalButton';
 import { ADD_METRIC, RENAME_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
@@ -21,6 +22,8 @@ function MetricList({ metrics, changeName, addMetric }: IMetricListStateProps & 
   return (
     <section>
       <h2>Metrics</h2>
+      {/*TODO: this button should not go here, but there is no good spot for it now.*/}
+      <OpenDeleteModalButton/>
       <ul className="list-group">
         {metrics.map((metric, index) => (
           // TODO: put id on metric? name can change by edit, index can change by remove operation
