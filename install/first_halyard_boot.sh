@@ -208,8 +208,6 @@ function configure_kubernetes() {
       echo "Kubernetes credentials successfully extracted to $config_path"
       chmod 400 $config_path
       chown $HALYARD_USER:$HALYARD_GROUP $config_path
-
-      return 0
     else
       echo "Failed to extract kubernetes credentials to $config_path"
       rm $config_path
