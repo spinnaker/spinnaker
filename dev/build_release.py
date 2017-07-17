@@ -753,7 +753,7 @@ class Builder(object):
           '--gradle_cache_path', default='{home}/.gradle'.format(home=os.environ.get('HOME', '')),
           help='Path to a gradle cache directory to use for the builds.')
       parser.add_argument(
-          '--run_unit_tests', type=bool, default=False
+          '--run_unit_tests', type=bool, default=False,
           help='Run unit tests during build for all components other than Deck.')
 
 
