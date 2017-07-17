@@ -237,8 +237,9 @@ class Builder(object):
     if self.__options.gradle_cache_path:
       extra_args.append('--gradle-user-home={}'.format(self.__options.gradle_cache_path))
 
-    if name == 'deck' and not 'CHROME_BIN' in os.environ:
-      extra_args.append('-PskipTests')
+    if (not self.__options.run_unit_tests or 
+            (name == 'deck' and not 'CHROME_BIN' in os.environ)):
+      extra_args.append('-x test')
     elif name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
 
@@ -314,8 +315,9 @@ class Builder(object):
     if self.__options.gradle_cache_path:
       extra_args.append('--gradle-user-home={}'.format(self.__options.gradle_cache_path))
 
-    if name == 'deck' and not 'CHROME_BIN' in os.environ:
-      extra_args.append('-PskipTests')
+    if (not self.__options.run_unit_tests or 
+            (name == 'deck' and not 'CHROME_BIN' in os.environ)):
+      extra_args.append('-x test')
 
     # Currently spinnaker is in a separate location
     gradle_root = self.determine_gradle_root(name)
@@ -750,6 +752,9 @@ class Builder(object):
       parser.add_argument(
           '--gradle_cache_path', default='{home}/.gradle'.format(home=os.environ.get('HOME', '')),
           help='Path to a gradle cache directory to use for the builds.')
+      parser.add_argument(
+          '--run_unit_tests', type=bool, default=False
+          help='Run unit tests during build for all components other than Deck.')
 
 
   def __verify_bintray(self):
