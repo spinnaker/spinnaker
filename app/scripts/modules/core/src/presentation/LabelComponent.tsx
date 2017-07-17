@@ -8,7 +8,7 @@ export interface ILabelComponentProps {
 
 export class LabelComponent extends React.Component<ILabelComponentProps> {
   public render() {
-    const LabelComponent = this.props.stage.labelComponent;
-    return (<div className="label-component"><LabelComponent stage={this.props.stage}/></div>);
+    const SubLabelComponent = this.props.stage.labelComponent;
+    return (<div className="label-component"><SubLabelComponent stage={this.props.stage}/></div>);
   }
 }

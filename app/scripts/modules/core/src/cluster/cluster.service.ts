@@ -17,7 +17,7 @@ export class ClusterService {
               private API: Api,
               private serverGroupTransformer: any,
               private namingService: NamingService,
-              private ClusterFilterModel: ClusterFilterModel,
+              private clusterFilterModel: ClusterFilterModel,
               private filterModelService: any) {
     'ngInject';
   }
@@ -30,7 +30,7 @@ export class ClusterService {
       if (dataSource.fetchOnDemand) {
         dataSource.clusters = clusters;
         serverGroupLoader.withParams({
-          clusters: this.filterModelService.getCheckValues(this.ClusterFilterModel.asFilterModel.sortFilter.clusters).join()
+          clusters: this.filterModelService.getCheckValues(this.clusterFilterModel.asFilterModel.sortFilter.clusters).join()
         });
       } else {
         this.reconcileClusterDeepLink();
@@ -46,7 +46,7 @@ export class ClusterService {
   // if the application is deep linked via "clusters:", but the app is not "fetchOnDemand" sized, convert the parameters
   // to the normal, filterable structure
   private reconcileClusterDeepLink() {
-    const selectedClusters: string[] = this.filterModelService.getCheckValues(this.ClusterFilterModel.asFilterModel.sortFilter.clusters);
+    const selectedClusters: string[] = this.filterModelService.getCheckValues(this.clusterFilterModel.asFilterModel.sortFilter.clusters);
     if (selectedClusters && selectedClusters.length) {
       const clusterNames: string[] = [];
       const accountNames: string[] = [];
@@ -58,10 +58,10 @@ export class ClusterService {
         }
       });
       if (clusterNames.length) {
-        accountNames.forEach(account => this.ClusterFilterModel.asFilterModel.sortFilter.account[account] = true);
-        this.ClusterFilterModel.asFilterModel.sortFilter.filter = `clusters:${clusterNames.join()}`;
-        this.ClusterFilterModel.asFilterModel.sortFilter.clusters = {};
-        this.ClusterFilterModel.asFilterModel.applyParamsToUrl();
+        accountNames.forEach(account => this.clusterFilterModel.asFilterModel.sortFilter.account[account] = true);
+        this.clusterFilterModel.asFilterModel.sortFilter.filter = `clusters:${clusterNames.join()}`;
+        this.clusterFilterModel.asFilterModel.sortFilter.clusters = {};
+        this.clusterFilterModel.asFilterModel.applyParamsToUrl();
       }
     }
   }

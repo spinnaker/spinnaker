@@ -98,4 +98,4 @@ export class SecurityGroupFilterModel {
 
 module(SECURITY_GROUP_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
-]).service('SecurityGroupFilterModel', SecurityGroupFilterModel);
+]).service('securityGroupFilterModel', SecurityGroupFilterModel);

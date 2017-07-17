@@ -8,7 +8,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
   require('../cluster/filter/multiselect.model'),
   require('./instanceListBody.directive'),
 ])
-  .directive('instanceList', function (ClusterFilterModel, MultiselectModel) {
+  .directive('instanceList', function (clusterFilterModel, MultiselectModel) {
     return {
       restrict: 'E',
       templateUrl: require('./instanceList.directive.html'),
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceList.directive'
           MultiselectModel.toggleSelectAll(serverGroup, scope.instances.map((instance) => instance.id));
         };
 
-        scope.applyParamsToUrl = ClusterFilterModel.applyParamsToUrl;
+        scope.applyParamsToUrl = clusterFilterModel.applyParamsToUrl;
         scope.showProviderHealth = !scope.hasDiscovery && !scope.hasLoadBalancers;
 
         scope.columnWidth = {

@@ -16,10 +16,10 @@ describe('Controller: MultipleServerGroups', function () {
   );
 
   beforeEach(
-    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, ClusterFilterModel, applicationModelBuilder) {
+    window.inject(function ($rootScope, $controller, _$q_, _MultiselectModel_, clusterFilterModel, applicationModelBuilder) {
       scope = $rootScope.$new();
       MultiselectModel = _MultiselectModel_;
-      ClusterFilterModel.sortFilter.multiselect = true;
+      clusterFilterModel.sortFilter.multiselect = true;
 
       this.createController = function (serverGroups) {
         let application = applicationModelBuilder.createApplication('app', {key: 'serverGroups', lazy: true});

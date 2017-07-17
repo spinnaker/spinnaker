@@ -158,7 +158,7 @@ export class ExecutionFilterService {
     if (this.executionFilterModel.asFilterModel.sortFilter.groupBy === 'name') {
       const executionGroups = groupBy(executions, 'name');
       forOwn(executionGroups, (groupExecutions, key) => {
-        const matchId = (config: IPipeline) => config.id === groupExecutions[0].pipelineConfigId;
+        const matchId = (pipelineConfig: IPipeline) => pipelineConfig.id === groupExecutions[0].pipelineConfigId;
         const config = application.pipelineConfigs.data.find(matchId) || get(application, 'strategyConfigs.data', []).find(matchId);
         groupExecutions.sort((a, b) => this.executionSorter(a, b));
         groups.push({

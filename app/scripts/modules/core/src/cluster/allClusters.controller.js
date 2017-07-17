@@ -31,24 +31,24 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
   require('@uirouter/angularjs').default,
 ])
   .controller('AllClustersCtrl', function($scope, app, $uibModal, $timeout, providerSelectionService, clusterFilterService, $state, scrollToService, $stateParams,
-                                          ClusterFilterModel, MultiselectModel, InsightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry) {
+                                          clusterFilterModel, MultiselectModel, insightFilterStateModel, serverGroupCommandBuilder, cloudProviderRegistry) {
 
     this.$onInit = () => {
-      InsightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
+      insightFilterStateModel.filtersHidden = true; // hidden to prevent filter flashing for on-demand apps
       const groupsUpdatedSubscription = clusterFilterService.groupsUpdatedStream.subscribe(() => clusterGroupsUpdated());
       this.application = app;
-      ClusterFilterModel.activate();
+      clusterFilterModel.activate();
       this.initialized = false;
       this.dataSource = app.getDataSource('serverGroups');
       this.application = app;
 
-      $scope.sortFilter = ClusterFilterModel.sortFilter;
+      $scope.sortFilter = clusterFilterModel.sortFilter;
 
       this.createLabel = 'Create Server Group';
 
       app.getDataSource('serverGroups').ready().then(
         () => {
-          InsightFilterStateModel.filtersHidden = false;
+          insightFilterStateModel.filtersHidden = false;
           updateClusterGroups();
           // Automatically scrolls server group into view if deep linked;
           // $timeout because the updateClusterGroups method is debounced by 25ms
@@ -67,14 +67,14 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
       $scope.$on('$destroy', () => {
         app.activeState = app;
         MultiselectModel.clearAll();
-        InsightFilterStateModel.filtersHidden = false;
+        insightFilterStateModel.filtersHidden = false;
         groupsUpdatedSubscription.unsubscribe();
       });
     };
 
     let updateClusterGroups = () => {
       if (app.getDataSource('serverGroups').fetchOnDemand) {
-        InsightFilterStateModel.filtersHidden = true;
+        insightFilterStateModel.filtersHidden = true;
       }
       clusterFilterService.updateClusterGroups(app);
       clusterGroupsUpdated();
@@ -84,13 +84,13 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
 
     let clusterGroupsUpdated = () => {
       $scope.$applyAsync(() => {
-        $scope.groups = ClusterFilterModel.groups;
-        $scope.tags = ClusterFilterModel.tags;
+        $scope.groups = clusterFilterModel.groups;
+        $scope.tags = clusterFilterModel.tags;
       });
     };
 
     this.toggleMultiselect = () => {
-      ClusterFilterModel.sortFilter.multiselect = !ClusterFilterModel.sortFilter.multiselect;
+      clusterFilterModel.sortFilter.multiselect = !clusterFilterModel.sortFilter.multiselect;
       MultiselectModel.syncNavigation();
       updateClusterGroups();
     };

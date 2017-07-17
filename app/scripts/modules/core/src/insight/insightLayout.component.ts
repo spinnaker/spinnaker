@@ -7,7 +7,7 @@ class InsightLayoutCtrl {
   public app: Application;
   public ready = false;
 
-  constructor(public InsightFilterStateModel: InsightFilterStateModel) { 'ngInject'; }
+  constructor(public insightFilterStateModel: InsightFilterStateModel) { 'ngInject'; }
 
   public $onInit() {
     this.app.ready().then(() => this.ready = true);

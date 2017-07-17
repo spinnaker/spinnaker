@@ -106,4 +106,4 @@ export class ClusterFilterModel {
 
 module(CLUSTER_FILTER_MODEL, [
   require('core/filterModel/filter.model.service'),
-]).service('ClusterFilterModel', ClusterFilterModel);
+]).service('clusterFilterModel', ClusterFilterModel);

@@ -5,16 +5,16 @@ import { ClusterFilterModel } from './clusterFilter.model';
 
 describe('Multiselect Model', () => {
 
-  let MultiselectModel: any, ClusterFilterModel: ClusterFilterModel, $state: StateService;
+  let MultiselectModel: any, clusterFilterModel: ClusterFilterModel, $state: StateService;
 
   beforeEach(mock.module(
     require('./multiselect.model')
   ));
 
   beforeEach(
-    mock.inject((_MultiselectModel_: any, _$state_: StateService, _ClusterFilterModel_: ClusterFilterModel) => {
+    mock.inject((_MultiselectModel_: any, _$state_: StateService, _clusterFilterModel_: ClusterFilterModel) => {
       MultiselectModel = _MultiselectModel_;
-      ClusterFilterModel = _ClusterFilterModel_;
+      clusterFilterModel = _clusterFilterModel_;
       $state = _$state_;
     })
   );
@@ -22,7 +22,7 @@ describe('Multiselect Model', () => {
   describe('navigation management', () => {
     let result: any, currentStates: any[], currentParams: any;
     beforeEach(() => {
-      ClusterFilterModel.asFilterModel.sortFilter.multiselect = true;
+      clusterFilterModel.asFilterModel.sortFilter.multiselect = true;
       result = null;
       currentStates = [];
       currentParams = {};
@@ -129,14 +129,14 @@ describe('Multiselect Model', () => {
       });
 
       it('navigates to details child view when multiselect is not enabled and not in clusters child view', () => {
-        ClusterFilterModel.asFilterModel.sortFilter.multiselect = false;
+        clusterFilterModel.asFilterModel.sortFilter.multiselect = false;
         currentStates.push('.clusters');
         MultiselectModel.toggleServerGroup(serverGroup);
         expect(result).toBe('.serverGroup');
       });
 
       it('navigates to details sibling view when multiselect is not enabled and in clusters child view', () => {
-        ClusterFilterModel.asFilterModel.sortFilter.multiselect = false;
+        clusterFilterModel.asFilterModel.sortFilter.multiselect = false;
         currentStates = ['**.clusters.*'];
         MultiselectModel.toggleServerGroup(serverGroup);
         expect(result).toBe('^.serverGroup');

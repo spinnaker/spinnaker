@@ -58,7 +58,7 @@ describe('serverGroupWriter', function () {
 
   describe('clone server group submit', function () {
 
-    function postTask(command: IServerGroupCommand): ITaskCommand {
+    function postTask(serverGroupCommand: IServerGroupCommand): ITaskCommand {
       let submitted: ITaskCommand = {};
       $httpBackend.expectPOST(`${API.baseUrl}/applications/app/tasks`, (body: string) => {
         submitted = <ITaskCommand>JSON.parse(body);
@@ -73,7 +73,7 @@ describe('serverGroupWriter', function () {
 
 
       $httpBackend.expectGET(API.baseUrl + '/tasks/1').respond({});
-      serverGroupWriter.cloneServerGroup(command, application);
+      serverGroupWriter.cloneServerGroup(serverGroupCommand, application);
       $httpBackend.flush();
 
       return submitted;

@@ -32,7 +32,7 @@ class ClusterFilterCtrl {
 
   constructor(public $scope: IScope,
               public clusterFilterService: ClusterFilterService,
-              public ClusterFilterModel: ClusterFilterModel,
+              public clusterFilterModel: ClusterFilterModel,
               public $rootScope: IScope,
               public clusterDependentFilterHelper: any,
               public dependentFilterService: any,
@@ -41,8 +41,8 @@ class ClusterFilterCtrl {
   }
 
   public $onInit(): void {
-    const { $scope, $rootScope, ClusterFilterModel, clusterFilterService, app } = this;
-    const filterModel = ClusterFilterModel.asFilterModel;
+    const { $scope, $rootScope, clusterFilterModel, clusterFilterService, app } = this;
+    const filterModel = clusterFilterModel.asFilterModel;
 
     this.sortFilter = filterModel.sortFilter;
     this.tags = filterModel.tags;
@@ -65,10 +65,10 @@ class ClusterFilterCtrl {
   }
 
   public updateClusterGroups(applyParamsToUrl = true): void {
-    const { dependentFilterService, ClusterFilterModel, clusterDependentFilterHelper, clusterFilterService, app } = this;
+    const { dependentFilterService, clusterFilterModel, clusterDependentFilterHelper, clusterFilterService, app } = this;
 
     const { providerType, instanceType, account, availabilityZone, region } = dependentFilterService.digestDependentFilters({
-      sortFilter: ClusterFilterModel.asFilterModel.sortFilter,
+      sortFilter: clusterFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region', 'availabilityZone', 'instanceType'],
       pool: clusterDependentFilterHelper.poolBuilder(app.serverGroups.data)
     });
@@ -79,7 +79,7 @@ class ClusterFilterCtrl {
     this.regionHeadings = region;
     this.instanceTypeHeadings = instanceType;
     if (applyParamsToUrl) {
-      ClusterFilterModel.asFilterModel.applyParamsToUrl();
+      clusterFilterModel.asFilterModel.applyParamsToUrl();
     }
     clusterFilterService.updateClusterGroups(app);
   }

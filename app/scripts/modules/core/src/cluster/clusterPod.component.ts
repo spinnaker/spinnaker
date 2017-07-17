@@ -1,8 +1,9 @@
-import {module, IComponentController, IComponentOptions} from 'angular';
+import { module, IComponentController, IComponentOptions } from 'angular';
 
-import {Application} from 'core/application/application.model';
-import {URL_BUILDER_SERVICE, UrlBuilderService} from 'core/navigation/urlBuilder.service';
-import {SERVER_GROUP_COMPONENT} from 'core/serverGroup/serverGroup.component';
+import { Application } from 'core/application/application.model';
+import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
+import { URL_BUILDER_SERVICE, UrlBuilderService } from 'core/navigation/urlBuilder.service';
+import { SERVER_GROUP_COMPONENT } from 'core/serverGroup/serverGroup.component';
 
 class ClusterPodController implements IComponentController {
   public grouping: any;
@@ -13,7 +14,7 @@ class ClusterPodController implements IComponentController {
   public permalink: string;
   public showCloseButton = false;
 
-  constructor(private urlBuilderService: UrlBuilderService, private ClusterFilterModel: any) { 'ngInject'; }
+  constructor(private urlBuilderService: UrlBuilderService, private clusterFilterModel: ClusterFilterModel) { 'ngInject'; }
 
   public $onInit(): void {
     // using location.host here b/c it provides the port, $location.host() does not.
@@ -31,8 +32,8 @@ class ClusterPodController implements IComponentController {
   }
 
   public close(): void {
-    delete this.ClusterFilterModel.sortFilter.clusters[`${this.parentHeading}:${this.grouping.heading}`];
-    this.ClusterFilterModel.applyParamsToUrl();
+    delete this.clusterFilterModel.asFilterModel.sortFilter.clusters[`${this.parentHeading}:${this.grouping.heading}`];
+    this.clusterFilterModel.asFilterModel.applyParamsToUrl();
     this.application.getDataSource('serverGroups').refresh();
   }
 }

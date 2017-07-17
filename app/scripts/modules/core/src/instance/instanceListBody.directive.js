@@ -13,7 +13,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
   CLUSTER_FILTER_MODEL,
 ])
   .directive('instanceListBody', function ($timeout, $filter, $rootScope, $state, clusterFilterService,
-                                           ClusterFilterModel, MultiselectModel) {
+                                           clusterFilterModel, MultiselectModel) {
     return {
       restrict: 'C',
       scope: {
@@ -36,7 +36,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         };
 
         function toggleSelection(instance, $targetRow) {
-          if ($targetRow && !ClusterFilterModel.sortFilter.multiselect) {
+          if ($targetRow && !clusterFilterModel.sortFilter.multiselect) {
             activeInstance = instance;
             $targetRow.addClass('active');
           }
@@ -48,7 +48,7 @@ module.exports = angular.module('spinnaker.core.instance.instanceListBody.direct
         }
 
         function buildInstanceCheckboxCell(instance) {
-          if (!ClusterFilterModel.sortFilter.multiselect) {
+          if (!clusterFilterModel.sortFilter.multiselect) {
             return '';
           }
           let isChecked = MultiselectModel.instanceIsSelected(scope.serverGroup, instance.id);

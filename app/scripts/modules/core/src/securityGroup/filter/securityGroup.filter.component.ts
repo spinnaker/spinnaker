@@ -27,7 +27,7 @@ export class SecurityGroupFilterCtrl {
   private locationChangeUnsubscribe: () => void;
 
   constructor(private securityGroupFilterService: any,
-              private SecurityGroupFilterModel: SecurityGroupFilterModel,
+              private securityGroupFilterModel: SecurityGroupFilterModel,
               private dependentFilterService: any,
               private securityGroupDependentFilterHelper: any,
               private $scope: IScope,
@@ -37,19 +37,19 @@ export class SecurityGroupFilterCtrl {
   }
 
   public $onInit(): void {
-    const { $scope, $rootScope, app, SecurityGroupFilterModel, securityGroupFilterService } = this;
+    const { $scope, $rootScope, app, securityGroupFilterModel, securityGroupFilterService } = this;
 
-    this.sortFilter = SecurityGroupFilterModel.asFilterModel.sortFilter;
-    this.tags = SecurityGroupFilterModel.asFilterModel.tags;
+    this.sortFilter = securityGroupFilterModel.asFilterModel.sortFilter;
+    this.tags = securityGroupFilterModel.asFilterModel.tags;
 
     this.groupsUpdatedSubscription = securityGroupFilterService.groupsUpdatedStream
-      .subscribe(() => this.tags = SecurityGroupFilterModel.asFilterModel.tags);
+      .subscribe(() => this.tags = securityGroupFilterModel.asFilterModel.tags);
 
     this.initialize();
     app.securityGroups.onRefresh($scope, () => this.initialize());
 
     this.locationChangeUnsubscribe = $rootScope.$on('$locationChangeSuccess', () => {
-      SecurityGroupFilterModel.asFilterModel.activate();
+      securityGroupFilterModel.asFilterModel.activate();
       securityGroupFilterService.updateSecurityGroups(app);
     });
 
@@ -63,14 +63,14 @@ export class SecurityGroupFilterCtrl {
   private updateSecurityGroups(applyParamsToUrl = true): void {
     const {
       dependentFilterService,
-      SecurityGroupFilterModel,
+      securityGroupFilterModel,
       securityGroupFilterService,
       securityGroupDependentFilterHelper,
       app,
     } = this;
 
     const { account, region } = dependentFilterService.digestDependentFilters({
-      sortFilter: SecurityGroupFilterModel.asFilterModel.sortFilter,
+      sortFilter: securityGroupFilterModel.asFilterModel.sortFilter,
       dependencyOrder: ['providerType', 'account', 'region'],
       pool: securityGroupDependentFilterHelper.poolBuilder(app.securityGroups.data)
     });
@@ -79,7 +79,7 @@ export class SecurityGroupFilterCtrl {
     this.regionHeadings = region;
 
     if (applyParamsToUrl) {
-      SecurityGroupFilterModel.asFilterModel.applyParamsToUrl();
+      securityGroupFilterModel.asFilterModel.applyParamsToUrl();
     }
     securityGroupFilterService.updateSecurityGroups(app);
   };

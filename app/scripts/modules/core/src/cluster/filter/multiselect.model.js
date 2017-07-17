@@ -10,7 +10,7 @@ module.exports = angular
     require('@uirouter/angularjs').default,
     CLUSTER_FILTER_MODEL,
   ])
-  .factory('MultiselectModel', function ($state, ClusterFilterModel) {
+  .factory('MultiselectModel', function ($state, clusterFilterModel) {
 
     this.instanceGroups = [];
     this.instancesStream = new Subject();
@@ -19,13 +19,13 @@ module.exports = angular
     this.serverGroupsStream = new Subject();
 
     this.syncNavigation = () => {
-      if ($state.includes('**.multipleInstances') && !ClusterFilterModel.sortFilter.multiselect) {
+      if ($state.includes('**.multipleInstances') && !clusterFilterModel.sortFilter.multiselect) {
         this.deselectAllInstances();
         $state.go('^');
         return;
       }
 
-      if ($state.includes('**.multipleServerGroups') && !ClusterFilterModel.sortFilter.multiselect) {
+      if ($state.includes('**.multipleServerGroups') && !clusterFilterModel.sortFilter.multiselect) {
         this.clearAllServerGroups();
         $state.go('^');
         return;
@@ -122,7 +122,7 @@ module.exports = angular
     };
 
     this.toggleServerGroup = (serverGroup) => {
-      if (!ClusterFilterModel.sortFilter.multiselect) {
+      if (!clusterFilterModel.sortFilter.multiselect) {
         let params = {
           provider: serverGroup.type,
           accountId: serverGroup.account,
@@ -159,7 +159,7 @@ module.exports = angular
     };
 
     this.toggleInstance = (serverGroup, instanceId) => {
-      if (!ClusterFilterModel.sortFilter.multiselect) {
+      if (!clusterFilterModel.sortFilter.multiselect) {
         let params = {provider: serverGroup.type, instanceId: instanceId};
         if (isClusterChildState()) {
           if ($state.includes('**.instanceDetails', params)) {

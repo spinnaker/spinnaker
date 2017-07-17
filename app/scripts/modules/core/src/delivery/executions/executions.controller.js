@@ -21,7 +21,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
   .controller('ExecutionsCtrl', function($scope, $state, $q, $uibModal, $stateParams,
                                          pipelineConfigService, scrollToService, $timeout,
                                          executionService, executionFilterModel, executionFilterService,
-                                         InsightFilterStateModel) {
+                                         insightFilterStateModel) {
 
     this.$onInit = () => {
       const { application } = this;
@@ -90,7 +90,7 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
       });
     };
 
-    this.InsightFilterStateModel = InsightFilterStateModel;
+    this.insightFilterStateModel = insightFilterStateModel;
 
     this.executionFilterModel = executionFilterModel;
     this.filter = executionFilterModel.sortFilter;

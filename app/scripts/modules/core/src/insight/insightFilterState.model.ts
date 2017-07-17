@@ -51,4 +51,4 @@ export const INSIGHT_FILTER_STATE_MODEL = 'spinnaker.core.insight.insightFilterS
 module(INSIGHT_FILTER_STATE_MODEL, [
   COLLAPSIBLE_SECTION_STATE_CACHE
 ])
-  .service('InsightFilterStateModel', InsightFilterStateModel);
+  .service('insightFilterStateModel', InsightFilterStateModel);

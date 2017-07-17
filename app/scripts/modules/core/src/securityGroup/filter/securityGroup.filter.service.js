@@ -11,7 +11,7 @@ module.exports = angular
     SECURITY_GROUP_FILTER_MODEL,
     require('core/filterModel/filter.model.service'),
   ])
-  .factory('securityGroupFilterService', function (SecurityGroupFilterModel, filterModelService) {
+  .factory('securityGroupFilterService', function (securityGroupFilterModel, filterModelService) {
 
     var lastApplication = null;
 
@@ -31,7 +31,7 @@ module.exports = angular
     }
 
     function checkSearchTextFilter(securityGroup) {
-      var filter = SecurityGroupFilterModel.sortFilter.filter;
+      var filter = securityGroupFilterModel.sortFilter.filter;
       if (!filter) {
         return true;
       }
@@ -50,10 +50,10 @@ module.exports = angular
     function filterSecurityGroupsForDisplay(securityGroups) {
       return _.chain(securityGroups)
         .filter(checkSearchTextFilter)
-        .filter(filterModelService.checkAccountFilters(SecurityGroupFilterModel))
-        .filter(filterModelService.checkRegionFilters(SecurityGroupFilterModel))
-        .filter(filterModelService.checkStackFilters(SecurityGroupFilterModel))
-        .filter(filterModelService.checkProviderFilters(SecurityGroupFilterModel))
+        .filter(filterModelService.checkAccountFilters(securityGroupFilterModel))
+        .filter(filterModelService.checkRegionFilters(securityGroupFilterModel))
+        .filter(filterModelService.checkStackFilters(securityGroupFilterModel))
+        .filter(filterModelService.checkProviderFilters(securityGroupFilterModel))
         .value();
     }
 
@@ -72,7 +72,7 @@ module.exports = angular
 
       var groups = [];
 
-      var filter = SecurityGroupFilterModel.sortFilter.filter.toLowerCase();
+      var filter = securityGroupFilterModel.sortFilter.filter.toLowerCase();
       var securityGroups = filterSecurityGroupsForDisplay(application.securityGroups.data, filter);
       var grouped = _.groupBy(securityGroups, 'account');
 
@@ -103,7 +103,7 @@ module.exports = angular
       });
 
       sortGroupsByHeading(groups);
-      SecurityGroupFilterModel.addTags();
+      securityGroupFilterModel.addTags();
       lastApplication = application;
       groupsUpdatedStream.next(groups);
       return groups;
@@ -137,10 +137,10 @@ module.exports = angular
     }
 
     function sortGroupsByHeading(groups) {
-      diffSubgroups(SecurityGroupFilterModel.groups, groups);
+      diffSubgroups(securityGroupFilterModel.groups, groups);
 
       // sort groups in place so Angular doesn't try to update the world
-      SecurityGroupFilterModel.groups.sort(function(a, b) {
+      securityGroupFilterModel.groups.sort(function(a, b) {
         if (a.heading < b.heading) {
           return -1;
         }
@@ -152,8 +152,8 @@ module.exports = angular
     }
 
     function clearFilters() {
-      SecurityGroupFilterModel.clearFilters();
-      SecurityGroupFilterModel.applyParamsToUrl();
+      securityGroupFilterModel.clearFilters();
+      securityGroupFilterModel.applyParamsToUrl();
     }
 
     return {

@@ -1,23 +1,23 @@
 <div class="insight" ng-if="!$ctrl.application.notFound"
-     ng-class="$ctrl.InsightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
+     ng-class="$ctrl.insightFilterStateModel.filtersExpanded ? 'filters-expanded' : 'filters-collapsed'">
   <div class="nav">
     <h3 class="filters-placeholder">
       <a href
          class="btn btn-xs btn-default pin"
-         ng-click="$ctrl.InsightFilterStateModel.pinFilters(true)" uib-tooltip="Show filters">
+         ng-click="$ctrl.insightFilterStateModel.pinFilters(true)" uib-tooltip="Show filters">
         <i class="fa fa-forward"></i>
       </a>
     </h3>
     <a href
        class="btn btn-xs btn-default pull-right unpin"
-       ng-click="$ctrl.InsightFilterStateModel.pinFilters(!$ctrl.InsightFilterStateModel.filtersPinned)"
-       ng-show="$ctrl.InsightFilterStateModel.filtersExpanded"
+       ng-click="$ctrl.insightFilterStateModel.pinFilters(!$ctrl.insightFilterStateModel.filtersPinned)"
+       ng-show="$ctrl.insightFilterStateModel.filtersExpanded"
         >
       <i class="fa fa-backward" uib-tooltip="Hide filters"></i>
     </a>
     <execution-filters ng-if="!$ctrl.viewState.loading" application="$ctrl.application"></execution-filters>
   </div>
-  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': $ctrl.InsightFilterStateModel.filtersExpanded, 'show-durations': $ctrl.filter.showStageDuration}">
+  <div class="full-content" data-scroll-id="nav-content" ng-class="{'filters-expanded': $ctrl.insightFilterStateModel.filtersExpanded, 'show-durations': $ctrl.filter.showStageDuration}">
     <div class="execution-groups-header" ng-if="!$ctrl.viewState.loading">
       <h3>Pipelines</h3>
       <div class="form-group pull-right">

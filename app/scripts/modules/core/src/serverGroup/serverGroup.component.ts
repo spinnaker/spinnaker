@@ -43,7 +43,7 @@ export class ServerGroupController implements IComponentController {
               private $filter: IFilterService,
               private clusterFilterService: any,
               private MultiselectModel: any,
-              private ClusterFilterModel: ClusterFilterModel,
+              private clusterFilterModel: ClusterFilterModel,
               private serverGroupTransformer: any) {
     'ngInject';
   }
@@ -51,7 +51,7 @@ export class ServerGroupController implements IComponentController {
   public $onInit(): void {
     // TODO: Remove $scope. Keeping it here so we can use $watch for now.
     //       Eventually, there should be events fired when filters change.
-    this.sortFilter = this.ClusterFilterModel.asFilterModel.sortFilter;
+    this.sortFilter = this.clusterFilterModel.asFilterModel.sortFilter;
     this.$scope.$watch(() => this.sortFilter, () => this.setViewModel(), true);
 
     this.setViewModel();
