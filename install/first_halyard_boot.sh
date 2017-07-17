@@ -224,7 +224,7 @@ function configure_kubernetes() {
 
   $HAL config provider kubernetes enable
   $HAL config provider kubernetes account add $kube_account \
-    --kubeconfig-path $config_path \
+    --kubeconfig-file $config_path \
     --docker-registries $gcr_account
 }
 
