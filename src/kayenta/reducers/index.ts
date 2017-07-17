@@ -8,8 +8,12 @@ import {
   ADD_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES,
   CONFIG_LOAD_ERROR, DISMISS_SAVE_CONFIG_ERROR, INITIALIZE, LOAD_CONFIG,
   RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
+  DELETE_CONFIG_MODAL_OPEN,
+  DELETE_CONFIG_MODAL_CLOSE, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
+  DELETE_CONFIG_ERROR,
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
+import { DeleteConfigState } from '../edit/deleteModal';
 
 export interface ICanaryState {
   configSummaries: ICanaryConfigSummary[];
@@ -18,6 +22,9 @@ export interface ICanaryState {
   metricList: ICanaryMetricConfig[];
   saveConfigState: SaveConfigState;
   saveConfigErrorMessage: string;
+  deleteConfigModalOpen: boolean;
+  deleteConfigState: DeleteConfigState,
+  deleteConfigErrorMessage: string;
 }
 
 function configSummaries(state: ICanaryConfigSummary[] = [], action: Action & any): ICanaryConfigSummary[] {
@@ -132,11 +139,62 @@ function saveConfigErrorMessage(state: string = null, action: Action & any): str
   }
 }
 
+function deleteConfigModalOpen(state = false, action: Action & any): boolean {
+  switch (action.type) {
+    case DELETE_CONFIG_MODAL_OPEN:
+      return true;
+
+    case DELETE_CONFIG_MODAL_CLOSE:
+      return false;
+
+    case DELETE_CONFIG_COMPLETED:
+      return false;
+
+    default:
+      return state;
+  }
+}
+
+function deleteConfigState(state = DeleteConfigState.Completed, action: Action & any): DeleteConfigState {
+  switch (action.type) {
+    case DELETE_CONFIG_DELETING:
+      return DeleteConfigState.Deleting;
+
+    case DELETE_CONFIG_COMPLETED:
+      return DeleteConfigState.Completed;
+
+    case DELETE_CONFIG_ERROR:
+      return DeleteConfigState.Error;
+
+    default:
+      return state;
+  }
+}
+
+function deleteConfigErrorMessage(state: string = null, action: Action & any): string {
+  switch (action.type) {
+    case DELETE_CONFIG_DELETING:
+      return null;
+
+    case DELETE_CONFIG_COMPLETED:
+      return null;
+
+    case DELETE_CONFIG_ERROR:
+      return get(action, 'error.data.message', null);
+
+    default:
+      return state;
+  }
+}
+
 export const rootReducer = combineReducers<ICanaryState>({
   configSummaries,
   selectedConfig,
   configLoadState,
   metricList,
   saveConfigState,
-  saveConfigErrorMessage
+  saveConfigErrorMessage,
+  deleteConfigModalOpen,
+  deleteConfigState,
+  deleteConfigErrorMessage,
 });

@@ -11,6 +11,7 @@ import { ICanaryConfig, ICanaryConfigSummary, ICanaryMetricConfig } from './doma
 import { ConfigDetailLoadState } from './edit/configDetailLoader';
 import { INITIALIZE, UPDATE_CONFIG_SUMMARIES } from './actions/index';
 import { SaveConfigState } from './edit/save';
+import { DeleteConfigState } from './edit/deleteModal';
 
 export interface ICanaryProps {
   app: Application;
@@ -34,6 +35,7 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
         configLoadState: ConfigDetailLoadState.Loaded,
         metricList: [] as ICanaryMetricConfig[],
         saveConfigState: SaveConfigState.Saved,
+        deleteConfigState: DeleteConfigState.Completed,
       }
     });
 

@@ -39,6 +39,14 @@ export function updateCanaryConfig(config: ICanaryConfig): Promise<string> {
   }
 }
 
+export function deleteCanaryConfig(id: string): Promise<void> {
+  if (CanarySettings.liveCalls) {
+    return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
+  } else {
+    return Promise.resolve(null);
+  }
+}
+
 // Not sure if this is the right way to go about this. We have pieces of the config
 // living on different parts of the store. Before, e.g., updating the config, we should
 // reconstitute it into a single object that reflects the user's changes.

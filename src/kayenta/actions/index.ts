@@ -1,4 +1,9 @@
 export const CONFIG_LOAD_ERROR = 'config_load_error';
+export const DELETE_CONFIG_DELETING = 'delete_config_deleting';
+export const DELETE_CONFIG_COMPLETED = 'delete_config_completed';
+export const DELETE_CONFIG_ERROR = 'delete_config_error';
+export const DELETE_CONFIG_MODAL_OPEN = 'delete_config_modal_open';
+export const DELETE_CONFIG_MODAL_CLOSE = 'delete_config_modal_close';
 export const DISMISS_SAVE_CONFIG_ERROR = 'dismiss_save_config_error';
 export const INITIALIZE = 'initialize';
 export const LOAD_CONFIG = 'load_config';
