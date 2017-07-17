@@ -35,4 +35,15 @@ class PipelineTemplateSpec extends Specification {
     ['front50']     | ['FRONT50']           || true
   }
 
+  def 'should be ok if template has no scopes'() {
+    given:
+    def template = new PipelineTemplate(metadata: [description: 'I have no scopes'])
+
+    when:
+    template.containsAnyScope(['global'])
+
+    then:
+    notThrown(NullPointerException)
+  }
+
 }

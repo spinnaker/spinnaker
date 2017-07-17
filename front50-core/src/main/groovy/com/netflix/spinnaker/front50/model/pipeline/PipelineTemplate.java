@@ -37,7 +37,8 @@ public class PipelineTemplate extends HashMap<String, Object> implements Timesta
     if (metadata == null || metadata.isEmpty()) {
       return Collections.emptyList();
     }
-    return (List<String>) metadata.get("scopes");
+    List<String> scopes = (List<String>) metadata.get("scopes");
+    return scopes != null ? scopes : Collections.emptyList();
   }
 
   @Override
