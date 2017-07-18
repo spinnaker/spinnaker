@@ -2,7 +2,7 @@ Orca
 ====
 [![Build Status](https://api.travis-ci.org/spinnaker/orca.svg?branch=master)](https://travis-ci.org/spinnaker/orca)
 
-![Orca Logo](http://i62.photobucket.com/albums/h100/dallastt/MEME/265899.jpg)
+![Orca Logo](logo.jpg?raw=true)
 
 Orca is the orchestration engine for Spinnaker.
 It is responsible for taking a pipeline or task definition and managing the stages and tasks, coordinating the other Spinnaker services.
