@@ -98,7 +98,7 @@ class BomGenerator(Annotator):
     parser.add_argument('--changelog_output', default='',
                         help="Output file to write the changelog to.")
     parser.add_argument('--container_builder', default='gcb',
-                        help="Type of builder to use. Currently, the supported options are {'gcb', 'docker'}.")
+                        help="Type of builder to use. Currently, the supported options are {'gcb', 'docker', 'gcb-trigger'}.")
     parser.add_argument('--container_builder_base_image', default='spinnakerrelease/gradle_cache',
                         help="Base image to start from in the container builds.")
     parser.add_argument('--container_builder_env_vars', default='GRADLE_USER_HOME=/gradle_cache/.gradle',
@@ -191,6 +191,20 @@ class BomGenerator(Annotator):
         'timeout': '3600s'
       }
     return config
+
+
+  def write_gcb_trigger_version_files(self):
+    """Write a file containing the full tag for each microservice for Docker.
+    """
+    for comp in self.__component_versions:
+      if comp == 'spinnaker':
+        pass
+      gradle_version = self.__version_from_tag(comp)
+      git_tag = '{tag}'.format(tag=gradle_version)
+
+      config_file = '{0}-gcb-trigger.yml'.format(comp)
+      with open(config_file, 'w') as cfg:
+        cfg.write(git_tag)
 
 
   def write_docker_version_files(self):
@@ -415,6 +429,8 @@ class BomGenerator(Annotator):
     bom_generator.write_rpm_version_files()
     if options.container_builder == 'gcb':
       bom_generator.write_container_builder_gcr_config()
+    elif options.container_builder == 'gcb-trigger':
+      bom_generator.write_gcb_trigger_version_files()
     elif options.container_builder == 'docker':
       bom_generator.write_docker_version_files()
     else:

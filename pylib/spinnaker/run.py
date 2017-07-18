@@ -127,7 +127,7 @@ def run_quick(command, echo=True):
        stderr itself will be None.
   """
   p = subprocess.Popen(command, shell=True, close_fds=True,
-                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
   stdout, stderr = p.communicate()
   if echo:
     print command
@@ -186,4 +186,3 @@ def check_run_quick(command, echo=True):
                 stdout=result.stdout))
      raise RuntimeError(error)
   return result
-

@@ -47,20 +47,24 @@ import collections
 import datetime
 import fnmatch
 import glob
+import json
 import os
 import multiprocessing
 import multiprocessing.pool
 import re
+import shlex
 import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib2
 from urllib2 import HTTPError
 
 import refresh_source
-from spinnaker.run import check_run_quick
+
+from google.cloud import pubsub
 from spinnaker.run import run_quick
 
 SUBSYSTEM_LIST = ['clouddriver', 'orca', 'front50',
@@ -69,45 +73,8 @@ ADDITIONAL_SUBSYSTEMS = ['spinnaker-monitoring', 'halyard']
 
 VALID_PLATFORMS = ['debian', 'redhat']
 
+GCB_BUILD_STATUS_TIMEOUT = 1200
 
-class BackgroundProcess(
-    collections.namedtuple('BackgroundProcess', ['name', 'subprocess', 'log'])):
-  """Denotes a running background process.
-
-  Attributes:
-    name [string]: The visible name of the process for reporting.
-    subprocess [subprocess]: The subprocess instance.
-  """
-
-  @staticmethod
-  def spawn(name, args, logfile=None):
-    sp = None
-    log = None
-    if logfile:
-      log = open(logfile, 'w', 0) # Unbuffered
-      sp = subprocess.Popen(args, shell=True, close_fds=True,
-                            stdout=log, stderr=log)
-    else:
-      sp = subprocess.Popen(args, shell=True, close_fds=True,
-                            stdout=sys.stdout, stderr=subprocess.STDOUT)
-    return BackgroundProcess(name, sp, log)
-
-  def wait(self):
-    if not self.subprocess:
-      return None
-    return self.subprocess.wait()
-
-  def check_wait(self):
-    return_code = self.wait()
-    if return_code:
-      error = '{name} failed.'.format(name=self.name)
-      raise SystemError(error)
-
-    if not return_code is None and self.log:
-      self.log.close()
-
-
-NO_PROCESS = BackgroundProcess('nop', None, None)
 
 def determine_project_root():
   return os.path.abspath(os.path.dirname(__file__) + '/..')
@@ -146,6 +113,21 @@ def determine_package_version(platform, gradle_root):
     if re.match('-$', version): version = version + '0'
     return version
 
+def run_shell_and_log(cmd_list, logfile, cwd=None):
+  for cmd in cmd_list:
+    parsed = shlex.split(cmd)
+    log = None
+    if not os.path.exists(logfile):
+      log = open(logfile, 'w')
+    else:
+      log = open(logfile, 'a')
+    log.write('Executing command: {}\n---\n'.format(cmd))
+    subprocess.check_call(parsed, stdout=log, stderr=log, cwd=cwd)
+    log.write('\n---\nFinished executing command: {}'.format(cmd))
+    if log:
+      log.close()
+
+
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
 
@@ -158,7 +140,7 @@ class Builder(object):
       self.__build_number = build_number or os.environ.get('BUILD_NUMBER') or '{:%Y-%m-%d}'.format(datetime.datetime.utcnow())
       self.__gcb_service_account = options.gcb_service_account
       self.__options = options
-      if (container_builder and container_builder not in ['gcb', 'docker']):
+      if (container_builder and container_builder not in ['gcb', 'docker', 'gcb-trigger']):
         raise ValueError('Invalid container_builder. Must be empty, "gcb" or "docker"')
 
       self.refresher = refresh_source.Refresher(options)
@@ -200,12 +182,13 @@ class Builder(object):
 
     Args:
       name [string]: Name of the subsystem repository.
-
-    Returns:
-      BackgroundProcess
     """
-    jarRepo = self.__options.jar_repo
-    parts = self.__options.bintray_repo.split('/')
+    self.__debian_build(name, self.__options, self.__build_number, self.determine_gradle_root(name))
+
+  @classmethod
+  def __debian_build(cls, name, options, build_number, gradle_root):
+    jarRepo = options.jar_repo
+    parts = options.bintray_repo.split('/')
     if len(parts) != 2:
       raise ValueError(
           'Expected --bintray_repo to be in the form <owner>/<repo>')
@@ -213,48 +196,45 @@ class Builder(object):
     bintray_key = os.environ['BINTRAY_KEY']
     bintray_user = os.environ['BINTRAY_USER']
 
-    if self.__options.nebula:
+    if options.nebula:
       target = 'candidate'
       extra_args = [
-          '--stacktrace',
-          '--info',
-          '-Prelease.useLastTag=true',
-          '-PbintrayPackageBuildNumber={number}'.format(
-              number=self.__build_number),
-          '-PbintrayOrg="{org}"'.format(org=org),
-          '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
-          '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
-          '-PbintrayKey="{key}"'.format(key=bintray_key),
-          '-PbintrayUser="{user}"'.format(user=bintray_user)
-        ]
+        '--stacktrace',
+        '-Prelease.useLastTag=true',
+        '-PbintrayPackageBuildNumber={number}'.format(number=build_number),
+        '-PbintrayOrg="{org}"'.format(org=org),
+        '-PbintrayPackageRepo="{repo}"'.format(repo=packageRepo),
+        '-PbintrayJarRepo="{jarRepo}"'.format(jarRepo=jarRepo),
+        '-PbintrayKey="{key}"'.format(key=bintray_key),
+        '-PbintrayUser="{user}"'.format(user=bintray_user)
+      ]
     else:
       target = 'buildDeb'
       extra_args = []
 
-    if self.__options.debug_gradle:
+
+    if options.info_gradle:
+      extra_args.append('--info')
+    if options.debug_gradle:
       extra_args.append('--debug')
 
-    if self.__options.gradle_cache_path:
-      extra_args.append('--gradle-user-home={}'.format(self.__options.gradle_cache_path))
+    if options.gradle_cache_path:
+      extra_args.append('--gradle-user-home={}'.format(options.gradle_cache_path))
 
-    if (not self.__options.run_unit_tests or 
+    if (not self.__options.run_unit_tests or
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
       
     if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
 
-    # Currently spinnaker is in a separate location
-    gradle_root = self.determine_gradle_root(name)
-    print 'Building and publishing Debian for {name}...'.format(name=name)
-    # Note: 'candidate' is just the gradle task name. It doesn't indicate
-    # 'release candidate' status for the artifacts created through this build.
-    return BackgroundProcess.spawn(
-      'Building and publishing Debian for {name}...'.format(name=name),
-      'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
-          gradle_root=gradle_root, extra=' '.join(extra_args), target=target),
-      logfile='{name}-debian-build.log'.format(name=name)
-    )
+    cmds = [
+      './gradlew {extra} {target}'.format(extra=' '.join(extra_args), target=target)
+    ]
+    logfile = '{name}-debian-build.log'.format(name=name)
+    if os.path.exists(logfile):
+      os.remove(logfile)
+    run_shell_and_log(cmds, logfile, cwd=gradle_root)
 
   def start_rpm_build(self, name):
     """Start a subprocess to build and publish the designated component.
@@ -282,12 +262,14 @@ class Builder(object):
 
     Args:
       name [string]: Name of the subsystem repository.
-
-    Returns:
-      BackgroundProcess
     """
-    jarRepo = self.__options.jar_repo
-    parts = self.__options.bintray_repo.split('/')
+    gradle_root = self.determine_gradle_root(name)
+    self.__redhat_build(name, self.__options, self.__build_number, gradle_root)
+
+  @classmethod
+  def __redhat_build(cls, name, options, build_number, gradle_root):
+    jarRepo = options.jar_repo
+    parts = options.bintray_repo.split('/')
     if len(parts) != 2:
       raise ValueError(
           'Expected --bintray_repo to be in the form <owner>/<repo>')
@@ -295,42 +277,37 @@ class Builder(object):
     bintray_key = os.environ['BINTRAY_KEY']
     bintray_user = os.environ['BINTRAY_USER']
 
-    if self.__options.nebula:
+    if options.nebula:
       target = 'buildRpm'
       extra_args = [
-          '--stacktrace',
-          '-Prelease.useLastTag=true',
-          '-PbintrayPackageBuildNumber={number}'.format(
-              number=self.__build_number)
-        ]
+        '--stacktrace',
+        '-Prelease.useLastTag=true',
+        '-PbintrayPackageBuildNumber={number}'.format(number=build_number)
+      ]
     else:
       target = 'buildRpm'
       extra_args = [
-          '-PbintrayPackageBuildNumber={number}'.format(
-              number=self.__build_number)
+        '-PbintrayPackageBuildNumber={number}'.format(number=build_number)
       ]
 
-    if self.__options.debug_gradle:
+    if options.debug_gradle:
       extra_args.append('--debug')
 
-    if self.__options.gradle_cache_path:
-      extra_args.append('--gradle-user-home={}'.format(self.__options.gradle_cache_path))
+    if options.gradle_cache_path:
+      extra_args.append('--gradle-user-home={}'.format(options.gradle_cache_path))
 
-    if (not self.__options.run_unit_tests or 
+    if (not self.__options.run_unit_tests or
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
 
     # Currently spinnaker is in a separate location
-    gradle_root = self.determine_gradle_root(name)
-    print 'Building and publishing Redhat for {name}...'.format(name=name)
-    # Note: 'buildRpm' is just the gradle task name. It doesn't indicate
-    # 'release candidate' status for the artifacts created through this build.
-    return BackgroundProcess.spawn(
-      'Building and publishing Redhat for {name}...'.format(name=name),
-      'cd "{gradle_root}"; ./gradlew {extra} {target}'.format(
-          gradle_root=gradle_root, extra=' '.join(extra_args), target=target),
-      logfile='{name}-rhel-build.log'.format(name=name)
-    )
+    cmds = [
+      './gradlew {extra} {target}'.format(extra=' '.join(extra_args), target=target)
+    ]
+    logfile = '{name}-rhel-build.log'.format(name=name)
+    if os.path.exists(logfile):
+      os.remove(logfile)
+    run_shell_and_log(cmds, logfile, cwd=gradle_root)
 
   def start_container_build(self, name):
     """Start a subprocess to build a container image of the subsystem.
@@ -342,42 +319,134 @@ class Builder(object):
 
     Args:
       name [string]: Name of the subsystem repository.
-
-    Returns:
-      BackgroundProcess
     """
     gradle_root = self.determine_gradle_root(name)
     if self.__options.container_builder == 'gcb':
-      # Local .gradle dir stomps on GCB's .gradle directory when the gradle
-      # wrapper is installed, so we need to delete the local one.
-      # The .gradle dir is transient and will be recreated on the next gradle
-      # build, so this is OK.
-      gradle_cache = '{name}/.gradle'.format(name=name)
-      if os.path.isdir(gradle_cache):
-        # Tell rmtree to delete the directory even if it's non-empty.
-        shutil.rmtree(gradle_cache)
-      return BackgroundProcess.spawn(
-          'Build/publishing container image for {name} with'
-          ' Google Container Builder...'.format(name=name),
-          'cd "{gradle_root}"'
-          '; gcloud container builds submit --account={account} --project={project} --config="../{name}-gcb.yml" .'
-        .format(gradle_root=gradle_root, name=name, account=self.__gcb_service_account,
-                project=self.__options.gcb_project),
-        logfile='{name}-gcb-build.log'.format(name=name)
-      )
+      self.__gcb_build(name, gradle_root, self.__options.gcb_service_account, self.__options.gcb_project)
+    elif self.__options.container_builder == 'gcb-trigger':
+      self.__gcb_trigger_build(name,
+                               gradle_root,
+                               self.__options.gcb_service_account,
+                               self.__options.gcb_service_account_json,
+                               self.__options.gcb_project,
+                               self.__options.gcb_mirror_base_url)
     elif self.__options.container_builder == 'docker':
-      return BackgroundProcess.spawn(
-          'Build/publishing container image for {name} with Docker...'.format(
-              name=name),
-          'cd "{gradle_root}"'
-          ' ; docker build -f Dockerfile -t $(cat ../{name}-docker.yml) .'
-          ' ; docker push $(cat ../{name}-docker.yml)'
-          .format(gradle_root=gradle_root, name=name)
-      )
+      self.__docker_build(name, gradle_root)
     else:
       raise NotImplemented(
           'container_builder="{0}"'.format(self.__options.container_builder))
 
+  @classmethod
+  def __gcb_build(cls, name, gradle_root, gcb_service_account, gcb_project):
+    # Local .gradle dir stomps on GCB's .gradle directory when the gradle
+    # wrapper is installed, so we need to delete the local one.
+    # The .gradle dir is transient and will be recreated on the next gradle
+    # build, so this is OK.
+    gradle_cache = '{name}/.gradle'.format(name=name)
+    if os.path.isdir(gradle_cache):
+      # Tell rmtree to delete the directory even if it's non-empty.
+      shutil.rmtree(gradle_cache)
+    cmds = [
+      ('gcloud container builds submit --account={account} --project={project} --config"../{name}-gcb.yml"'
+       .format(name=name, account=gcb_service_account, project=gcb_project))
+    ]
+    logfile = '{name}-gcb-build.log'.format(name=name)
+    if os.path.exists(logfile):
+      os.remove(logfile)
+    run_shell_and_log(cmds, logfile, cwd=gradle_root)
+
+  @classmethod
+  def __gcb_trigger_build(cls, name, gradle_root, gcb_service_account, gcb_service_account_json, gcb_project, mirror_base_url):
+    logfile = '{name}-gcb-triggered-build.log'.format(name=name)
+    tag = cls.__tag_gcb_mirror(name, mirror_base_url, gradle_root, logfile)
+    subscription = cls.__configure_gcb_pubsub(name, gcb_service_account_json)
+    cls.__listen_gcb_build_status(name, subscription, tag, gcb_project, gcb_service_account, logfile)
+
+  @classmethod
+  def __tag_gcb_mirror(cls, name, mirror_base_url, gradle_root, logfile):
+    tag = run_quick('cat {name}-gcb-trigger.yml'.format(name=name), echo=False).stdout.strip()
+    cmds = [
+      'git remote add mirror {base_url}/{name}.git'.format(base_url=mirror_base_url, name=name),
+      'git fetch mirror',
+      'git checkout mirror/master',
+      'git merge origin/master',
+      'git push mirror master',
+      'git push mirror {tag}'.format(name=name, tag=tag)
+    ]
+    if os.path.exists(logfile):
+      os.remove(logfile)
+    run_shell_and_log(cmds, logfile, cwd=gradle_root)
+    return tag
+
+  @classmethod
+  def __configure_gcb_pubsub(cls, name, gcb_service_account_json):
+    pubsub_client = pubsub.Client.from_service_account_json(gcb_service_account_json)
+    topic = pubsub_client.topic('cloud-builds') # GCB creates a topic named this automatically.
+    print 'Creating subscription: cloud-builds-{}'.format(name)
+    subscription = topic.subscription('cloud-builds-{name}'.format(name=name))
+    subscription.create()
+    if not subscription.exists():
+      raise LookupError('GCB pubsub subscription creation for subscription id {} failed.'.format(subscription.name))
+    return subscription
+
+  @classmethod
+  def __listen_gcb_build_status(cls, name, subscription, tag, gcb_project, gcb_service_account, logfile):
+    def fail_build(name):
+      raise Exception('GCB triggered build for {} timed out'.format(name))
+
+    # Set an egg timer to fail.
+    timer = threading.Timer(GCB_BUILD_STATUS_TIMEOUT, fail_build, (name))
+    timer.start()
+
+    # Poll Google Cloud Pubsub for the build status
+    completed = False
+    try:
+      while not completed:
+        pulled = subscription.pull()
+        for ack_id, message in pulled:
+          comp_name = ''
+          if name == 'spinnaker-monitoring':
+            comp_name = 'monitoring-daemon'
+          else:
+            comp_name = name
+          payload = json.loads(message.data)
+          repo_name = payload['source']['repoSource']['repoName']
+          tag_name = payload['source']['repoSource']['tagName']
+          if repo_name == comp_name and tag_name == tag:
+            subscription.acknowledge([ack_id])
+            status = payload['status']
+            print 'Received status: {} for building tag {} of {}'.format(status, tag_name, comp_name)
+            if status in ['SUCCESS', 'FAILURE']:
+              completed = True
+              build_id = payload['id']
+              print 'Retrieving logs for build_id: {}'.format(build_id)
+              get_log_cmd = ('gcloud container builds log --project {project} --account {account} {id}'
+                             .format(project=gcb_project, account=gcb_service_account, id=build_id))
+              build_log = run_quick(get_log_cmd, echo=False).stdout.strip()
+              with open(logfile, 'a') as log:
+                log.write('Fetching GCB build logs with: {}\n---\n'.format(get_log_cmd))
+                log.write(build_log)
+                log.write('\n---\nFinished fetching GCB build logs')
+
+                if status == 'FAILURE':
+                  raise Exception('Triggered GCB build for {name} failed.'.format(name=comp_name))
+                if not completed:
+                  time.sleep(10)
+    finally:
+      timer.cancel()
+      subscription.delete()
+
+  @classmethod
+  def __docker_build(cls, name, gradle_root):
+    docker_tag = run_quick('cat {name}-docker.yml', echo=False).stdout.strip()
+    cmds = [
+      'docker build -f Dockerfile -t {docker_tag} .'.format(name=name, docker_tag=docker_tag),
+      'docker push {docker_tag}'.format(name=name, docker_tag=docker_tag)
+    ]
+    logfile = '{name}-docker-build.log'.format(name=name)
+    if os.path.exists(logfile):
+      os.remove(logfile)
+    run_shell_and_log(cmds, logfile, cwd=gradle_root)
 
   def publish_to_bintray(self, source, package, version, path, debian_tags=''):
     bintray_key = os.environ['BINTRAY_KEY']
@@ -604,13 +673,12 @@ class Builder(object):
   def __do_build(self, subsys):
     if self.__options.platform == 'debian':
       try:
-        self.start_deb_build(subsys).check_wait()
+        self.start_deb_build(subsys)
       except Exception as ex:
         self.__build_failures.append(subsys)
-
     elif self.__options.platform == 'redhat':
       try:
-        self.start_rpm_build(subsys).check_wait()
+        self.start_rpm_build(subsys)
       except Exception as ex:
         self.__build_failures.append(subsys)
 
@@ -619,7 +687,7 @@ class Builder(object):
       # HACK: Space out the container builds to address scalability concerns.
       full_subsystem_list = SUBSYSTEM_LIST + ADDITIONAL_SUBSYSTEMS
       time.sleep(2 * full_subsystem_list.index(subsys))
-      self.start_container_build(subsys).check_wait()
+      self.start_container_build(subsys)
     except Exception as ex:
       print ex
       self.__build_failures.append(subsys)
@@ -701,6 +769,8 @@ class Builder(object):
                                ', '.join(VALID_PLATFORMS)))
       parser.add_argument('--build', default=True, action='store_true',
                           help='Build the sources.')
+      parser.add_argument('--info_gradle', default=False, action='store_true',
+                          help='Run gradle with --info.')
       parser.add_argument('--debug_gradle', default=False, action='store_true',
                           help='Run gradle with --debug.')
       parser.add_argument(
@@ -722,7 +792,6 @@ class Builder(object):
           '--gcb_project', default='',
           help='The google project id to publish containers to'
                'if the container builder is gcp.')
-
       parser.add_argument(
           '--bintray_repo', default='',
           help='Publish to this bintray repo.\n'
@@ -750,6 +819,12 @@ class Builder(object):
       parser.add_argument(
           '--gcb_service_account', default='',
           help='Google service account to invoke the gcp container builder with.')
+      parser.add_argument(
+          '--gcb_service_account_json', default='',
+          help='Path to service account credentials to invoke the gcp container builder with.')
+      parser.add_argument(
+          '--gcb_mirror_base_url', default='git@github.com:spinnaker-release',
+          help='Base URL for the Spinnaker repositories GCB is configured to trigger builds from. Must use SSH protocol.')
       parser.add_argument(
           '--gradle_cache_path', default='{home}/.gradle'.format(home=os.environ.get('HOME', '')),
           help='Path to a gradle cache directory to use for the builds.')
