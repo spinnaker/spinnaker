@@ -94,14 +94,18 @@ SETTINGS.defaultTimeZone = SETTINGS.defaultTimeZone || 'America/Los_Angeles';
 // A helper to make resetting settings to steady state after running tests easier
 const originalSettings: ISpinnakerSettings = cloneDeep(SETTINGS);
 SETTINGS.resetToOriginal = () => {
-  Object.keys(SETTINGS).forEach(k => delete SETTINGS[k]);
+  Object.keys(SETTINGS)
+    .filter(k => typeof SETTINGS[k] !== 'function') // maybe don't self-destruct
+    .forEach(k => delete SETTINGS[k]);
   merge(SETTINGS, originalSettings);
 };
 
 SETTINGS.resetProvider = (provider: string) => {
   return () => {
     const providerSettings: IProviderSettings = SETTINGS.providers[provider];
-    Object.keys(providerSettings).filter(k => k !== 'resetToOriginal').forEach(k => delete (providerSettings as any)[k]);
+    Object.keys(providerSettings)
+      .filter(k => typeof (providerSettings as any)[k] !== 'function')
+      .forEach(k => delete (providerSettings as any)[k]);
     merge(providerSettings, originalSettings.providers[provider]);
   };
 };
