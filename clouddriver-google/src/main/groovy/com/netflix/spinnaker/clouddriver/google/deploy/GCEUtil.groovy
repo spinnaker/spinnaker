@@ -1271,7 +1271,7 @@ class GCEUtil {
       compute.urlMaps().list(project),
       "compute.urlMaps.list",
       executor.TAG_SCOPE, executor.SCOPE_GLOBAL
-    ).getItems()
+    ).getItems() ?: []
     def servicesByUrlMap = projectUrlMaps.collectEntries { UrlMap urlMap ->
       [(urlMap.name): Utils.getBackendServicesFromUrlMap(urlMap)]
     }
