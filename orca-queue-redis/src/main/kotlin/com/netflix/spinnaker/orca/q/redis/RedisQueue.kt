@@ -18,6 +18,7 @@ package com.netflix.spinnaker.orca.q.redis
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.hash.Hashing
 import com.netflix.spinnaker.orca.q.Message
 import com.netflix.spinnaker.orca.q.Queue
@@ -61,6 +62,18 @@ class RedisQueue(
   private val locksKey = "$queueName.locks"
   private val hashKey = "$queueName.hash"
   private val hashesKey = "$queueName.hashes"
+
+  companion object {
+    fun convertToMessage(json: String, mapper: ObjectMapper): Message {
+      val messageMap = mapper.readValue<Map<String, Any>>(json)
+
+      return if (messageMap.containsKey("payload")) {
+        mapper.convertValue(messageMap.get("payload"), Message::class.java)
+      } else {
+        mapper.readValue<Message>(json)
+      }
+    }
+  }
 
   override fun poll(callback: (Message, () -> Unit) -> Unit) {
     pool.resource.use { redis ->
@@ -215,11 +228,11 @@ class RedisQueue(
         removeMessage(id)
       } else {
         try {
-          val message = mapper.readValue<Message>(json)
+          val message = convertToMessage(json, mapper)
           block.invoke(message)
         } catch(e: IOException) {
-          log.error("Failed to read message $id", e)
-          removeMessage(id)
+          log.error("Failed to read message $id, requeuing...", e)
+          requeueMessage(id)
         }
       }
     }

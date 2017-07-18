@@ -44,7 +44,7 @@ open class StartStageHandler
   private val exceptionHandlers: List<ExceptionHandler>,
   private val clock: Clock,
   private val contextParameterProcessor: ContextParameterProcessor,
-  @Value("\${queue.retry.delay.ms:5000}") retryDelayMs: Long
+  @Value("\${queue.retry.delay.ms:60000}") retryDelayMs: Long
 ) : MessageHandler<StartStage>, StageBuilderAware {
 
   private val log = LoggerFactory.getLogger(javaClass)
