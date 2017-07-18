@@ -35,6 +35,9 @@ public interface SavePipelineTemplateTask {
     if (template.getMetadata().getDescription() == null || "".equalsIgnoreCase(template.getMetadata().getDescription())) {
       missingFields.add("metadata.description");
     }
+    if (template.getMetadata().getScopes() == null || template.getMetadata().getScopes().isEmpty()) {
+      missingFields.add("metadata.scopes");
+    }
 
     if (!missingFields.isEmpty()) {
       throw new IllegalArgumentException("Missing required fields: " + Strings.join(",", missingFields.iterator()));
