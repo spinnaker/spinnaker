@@ -240,7 +240,8 @@ class Builder(object):
     if (not self.__options.run_unit_tests or 
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
-    elif name == 'halyard':
+      
+    if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
 
     # Currently spinnaker is in a separate location
