@@ -16,6 +16,10 @@ class AccountTagController implements IController {
       this.accountType = isProdAccount ? 'prod' : this.account;
     });
   }
+
+  public $onChanges(): void {
+    this.$onInit();
+  }
 }
 
 export class AccountTagComponent implements IComponentOptions {
