@@ -24,6 +24,8 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.web.bind.annotation.ResponseStatus
+import retrofit.RetrofitError
 
 @Deprecated
 @Component
@@ -191,8 +193,11 @@ class TargetReferenceSupport {
       def json = response.body.in().text
       def map = mapper.readValue(json, Map)
       map.serverGroups as List<Map>
-    } catch (e) {
-      null
+    } catch (RetrofitError e) {
+      if (e.response.status == 404) {
+        return null
+      }
+      throw e
     }
   }
 }

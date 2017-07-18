@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper
 import com.netflix.spinnaker.orca.kato.pipeline.DetermineTargetReferenceStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import retrofit.RetrofitError
 import retrofit.client.Response
 import retrofit.mime.TypedByteArray
 import spock.lang.Specification
@@ -291,7 +292,7 @@ class TargetReferenceSupportSpec extends Specification {
     targets*.asg.name == ["kato-main-v000"]
   }
 
-  void "should throw exception when target reference not found or does not contain an ASG"() {
+  void "should throw TargetReferenceNotFoundException when target reference not found or does not contain an ASG"() {
     setup:
     def config = [
         regions    : ["us-west-1", "us-east-1"],
@@ -305,14 +306,27 @@ class TargetReferenceSupportSpec extends Specification {
 
     then:
     1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
-      new Response(
-          "foo", 200, "ok", [],
-          new TypedByteArray(
-              "application/json",
-              mapper.writeValueAsBytes([])
-          )
-      )
+      throw new RetrofitError(null, null, new Response("http://clouddriver", 404, "null", [], null), null, null, null, null)
     }
     thrown TargetReferenceNotFoundException
+  }
+
+  void "should throw RetrofitError when status is not 404"() {
+    setup:
+    def config = [
+      regions    : ["us-west-1", "us-east-1"],
+      asgName    : "kato-main-v000",
+      credentials: "prod"
+    ]
+    def stage = new Stage<>(pipeline, "test", config)
+
+    when:
+    subject.getDynamicallyBoundTargetAsgReference(stage)
+
+    then:
+    1 * oort.getCluster("kato", "prod", "kato-main", "aws") >> {
+      throw new RetrofitError(null, null, new Response("http://clouddriver", 429, "null", [], null), null, null, null, null)
+    }
+    thrown RetrofitError
   }
 }
