@@ -81,6 +81,7 @@ class JinjaRendererSpec extends Specification {
 '''                   || String       | '"${ false }".equalsIgnoreCase("True")'
     '#stage("First Wait")["status"].toString() == "SUCCESS"' || String | '#stage("First Wait")["status"].toString() == "SUCCESS"'
     '${ #stage("First Wait")["status"].toString() == "SUCCESS" }' || String | '${ #stage("First Wait")["status"].toString() == "SUCCESS" }'
+    '${ parameters.CONFIG_FOLDER ?: \'\' }' || String | '${ parameters.CONFIG_FOLDER ?: \'\' }'
   }
 
 

@@ -34,6 +34,10 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   @Override
   public Object convertRenderedValue(String renderedValue) {
+    if (containsEL(renderedValue)) {
+      return renderedValue;
+    }
+
     try {
       Object converted = yaml.load(renderedValue);
       return (converted == null || converted instanceof String) ? renderedValue : converted;
@@ -46,5 +50,9 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
       }
       throw pe;
     }
+  }
+
+  private static boolean containsEL(String renderedValue) {
+    return renderedValue.trim().startsWith("${");
   }
 }
