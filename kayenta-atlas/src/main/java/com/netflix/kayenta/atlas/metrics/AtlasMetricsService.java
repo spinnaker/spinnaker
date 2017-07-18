@@ -74,8 +74,8 @@ public class AtlasMetricsService implements MetricsService {
     AtlasCanaryMetricSetQueryConfig atlasMetricSetQuery = (AtlasCanaryMetricSetQueryConfig)canaryMetricConfig.getQuery();
     String decoratedQuery = atlasMetricSetQuery.getQ() + "," + atlasCanaryScope.cq();
     List<AtlasResults> atlasResultsList = atlasRemoteService.fetch(decoratedQuery,
-                                                                   atlasCanaryScope.getStart() + "",
-                                                                   atlasCanaryScope.getEnd() + "",
+                                                                   atlasCanaryScope.getStart(),
+                                                                   atlasCanaryScope.getEnd(),
                                                                    atlasCanaryScope.getStep());
     Map<String, AtlasResults> idToAtlasResultsMap = AtlasResultsHelper.merge(atlasResultsList);
     List<MetricSet> metricSetList = new ArrayList<>();

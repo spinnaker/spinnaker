@@ -20,6 +20,7 @@ import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.util.Map;
 
 @Component
@@ -31,16 +32,15 @@ public class AtlasCanaryScopeFactory implements CanaryScopeFactory {
   }
 
   @Override
-  // TODO(duftler): Standardize on ISO timestamps.
   public CanaryScope buildCanaryScope(String scope,
-                                      String startTimeMillis,
-                                      String endTimeMillis,
+                                      Instant startTimeInstant,
+                                      Instant endTimeInstant,
                                       String step,
                                       Map<String, String> extendedScopeParams) {
     AtlasCanaryScope atlasCanaryScope = new AtlasCanaryScope();
     atlasCanaryScope.setScope(scope);
-    atlasCanaryScope.setStart(startTimeMillis);
-    atlasCanaryScope.setEnd(endTimeMillis);
+    atlasCanaryScope.setStart(startTimeInstant.toEpochMilli() + "");
+    atlasCanaryScope.setEnd(endTimeInstant.toEpochMilli() + "");
     atlasCanaryScope.setStep(step);
 
     if (extendedScopeParams != null && extendedScopeParams.containsKey("type")) {

@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -84,9 +85,8 @@ public class CanaryController {
                                @ApiParam(defaultValue = "MySampleStackdriverCanaryConfig") @RequestParam String canaryConfigId,
                                @ApiParam(defaultValue = "myapp-v010-") @RequestParam String controlScope,
                                @ApiParam(defaultValue = "myapp-v021-") @RequestParam String experimentScope,
-                               // TODO(duftler): Standardize on ISO timestamps.
-                               @ApiParam(defaultValue = "1496329980000") @RequestParam String startTimeMillis,
-                               @ApiParam(defaultValue = "1496417220000") @RequestParam String endTimeMillis,
+                               @ApiParam(defaultValue = "2017-07-01T15:13:00Z") @RequestParam String startTimeIso,
+                               @ApiParam(defaultValue = "2017-07-02T15:27:00Z") @RequestParam String endTimeIso,
                                // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
                                @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
                                @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams) {
@@ -121,10 +121,12 @@ public class CanaryController {
         .filter((f) -> f.handles(serviceType)).findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary scope factory for '" + serviceType + "'."));
 
+    Instant startTimeInstant = Instant.parse(startTimeIso);
+    Instant endTimeInstant = Instant.parse(endTimeIso);
     CanaryScope controlScopeModel =
-      canaryScopeFactory.buildCanaryScope(controlScope, startTimeMillis, endTimeMillis, step, extendedScopeParams);
+      canaryScopeFactory.buildCanaryScope(controlScope, startTimeInstant, endTimeInstant, step, extendedScopeParams);
     CanaryScope experimentScopeModel =
-      canaryScopeFactory.buildCanaryScope(experimentScope, startTimeMillis, endTimeMillis, step, extendedScopeParams);
+      canaryScopeFactory.buildCanaryScope(experimentScope, startTimeInstant, endTimeInstant, step, extendedScopeParams);
 
     Map<String, Object> fetchControlContext =
       Maps.newHashMap(

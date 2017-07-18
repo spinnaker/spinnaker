@@ -16,6 +16,7 @@
 
 package com.netflix.kayenta.canary;
 
+import java.time.Instant;
 import java.util.Map;
 
 public interface CanaryScopeFactory {
@@ -23,8 +24,8 @@ public interface CanaryScopeFactory {
   boolean handles(String serviceType);
 
   CanaryScope buildCanaryScope(String scope,
-                               String startTimeMillis,
-                               String endTimeMillis,
+                               Instant startTimeInstant,
+                               Instant endTimeInstant,
                                String step,
                                Map<String, String> extendedScopeParams);
 }
