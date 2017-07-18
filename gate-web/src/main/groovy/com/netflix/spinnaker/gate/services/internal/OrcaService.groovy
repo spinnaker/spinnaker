@@ -57,10 +57,6 @@ interface OrcaService {
   Map cancelTasks(@Body List<String> taskIds)
 
   @Headers("Accept: application/json")
-  @GET("/executions/activeByInstance")
-  Map getActiveExecutionsByInstance()
-
-  @Headers("Accept: application/json")
   @GET("/pipelines")
   List getLatestExecutionsByConfigIds(@Query("pipelineConfigIds") String pipelineConfigIds, @Query("limit") Integer limit, @Query("statuses") String statuses)
 

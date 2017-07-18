@@ -77,12 +77,6 @@ class TaskService {
     } execute()
   }
 
-  Map getActiveExecutionsByInstance() {
-    HystrixFactory.newMapCommand(GROUP, "getActiveExecutionsByInstance") {
-      orcaService.getActiveExecutionsByInstance()
-    } execute()
-  }
-
   /**
    * @deprecated  This pipeline operation does not belong here.
    */
