@@ -33,7 +33,11 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -128,6 +132,7 @@ public class BackupService {
     FileOutputStream tarOutput = null;
     BufferedOutputStream bufferedTarOutput = null;
     TarArchiveOutputStream tarArchiveOutputStream = null;
+    IOException fatalCleanup = null;
     try {
       tarOutput = new FileOutputStream(new File(halconfigTar));
       bufferedTarOutput = new BufferedOutputStream(tarOutput);
@@ -136,12 +141,20 @@ public class BackupService {
       Arrays.stream(new File(halconfigDir).listFiles())
           .filter(Objects::nonNull)
           .forEach(f -> addFileToTar(finalTarArchiveOutputStream, f.getAbsolutePath(), ""));
+    } catch (HalException e) {
+      log.info("HalException caught during tar operation", e);
+      throw e;
     } catch (IOException e) {
+      log.info("IOException caught during tar operation", e);
       throw new HalException(Problem.Severity.FATAL, "Failed to backup halconfig: " + e.getMessage(), e);
     } finally {
       if (tarArchiveOutputStream != null) {
-        tarArchiveOutputStream.finish();
-        tarArchiveOutputStream.close();
+        try {
+          tarArchiveOutputStream.finish();
+          tarArchiveOutputStream.close();
+        } catch (IOException e) {
+          fatalCleanup = e;
+        }
       }
 
       if (bufferedTarOutput != null) {
@@ -151,6 +164,10 @@ public class BackupService {
       if (tarOutput != null) {
         tarOutput.close();
       }
+    }
+
+    if (fatalCleanup != null) {
+      throw fatalCleanup;
     }
   }
 
@@ -163,28 +180,21 @@ public class BackupService {
     }
 
     String tarEntryName = String.join("/", base, fileName);
-    TarArchiveEntry tarEntry = new TarArchiveEntry(file, tarEntryName);
-    try {
-      tarArchiveOutputStream.putArchiveEntry(tarEntry);
-    } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unable to add archive entry: " + tarEntry + " " + e.getMessage(), e);
-    }
-
     try {
       if (file.isFile()) {
+        TarArchiveEntry tarEntry = new TarArchiveEntry(file, tarEntryName);
+        tarArchiveOutputStream.putArchiveEntry(tarEntry);
         IOUtils.copy(new FileInputStream(file), tarArchiveOutputStream);
         tarArchiveOutputStream.closeArchiveEntry();
       } else if (file.isDirectory()) {
-        tarArchiveOutputStream.closeArchiveEntry();
         Arrays.stream(file.listFiles())
             .filter(Objects::nonNull)
             .forEach(f -> addFileToTar(tarArchiveOutputStream, f.getAbsolutePath(), tarEntryName));
       } else {
-        tarArchiveOutputStream.closeArchiveEntry();
         log.warn("Unknown file type: " + file + " - skipping addition to tar archive");
       }
     } catch (IOException e) {
-      throw new HalException(Problem.Severity.FATAL, "Unable to file " + file.getName() + " to archive entry: " + tarEntry + " " + e.getMessage(), e);
+      throw new HalException(Problem.Severity.FATAL, "Unable to file " + file.getName() + " to archive entry: " + tarEntryName + " " + e.getMessage(), e);
     }
   }
 }
