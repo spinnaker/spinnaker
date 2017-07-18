@@ -156,6 +156,17 @@ describe('Controller: CreateSecurityGroup', function () {
       expect(map(this.$scope.vpcs, 'label').sort()).toEqual(['vpc 1', 'vpc 2']);
     });
 
+    it('loves a default VPC!', function () {
+      AWSProviderSettings.defaults.vpc = 'vpc 2';
+      AWSProviderSettings.classicLaunchLockout = -1;
+      this.initializeCtrl();
+      this.$scope.securityGroup.credentials = 'test';
+      this.$scope.securityGroup.regions = ['us-east-1'];
+      this.ctrl.regionUpdated();
+      this.$scope.$digest();
+      expect(this.$scope.securityGroup.vpcId).toBe('vpc2-te');
+    });
+
     describe('security group removal', function () {
       beforeEach(function () {
         spyOn(this.v2modalWizardService, 'markDirty').and.returnValue(null);

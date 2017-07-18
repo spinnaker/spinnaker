@@ -11,6 +11,7 @@ export interface IAWSProviderSettings extends IProviderSettings {
     region?: string;
     iamRole?: string;
     subnetType?: string;
+    vpc?: string;
   };
   defaultSecurityGroups?: string[];
   loadBalancers?: {
@@ -27,5 +28,5 @@ export interface IAWSProviderSettings extends IProviderSettings {
 
 export const AWSProviderSettings: IAWSProviderSettings = <IAWSProviderSettings>SETTINGS.providers.aws || { defaults: {} };
 if (AWSProviderSettings) {
-  AWSProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
+  AWSProviderSettings.resetToOriginal = SETTINGS.resetProvider('aws');
 }

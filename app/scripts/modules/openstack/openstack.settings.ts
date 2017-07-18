@@ -9,5 +9,5 @@ export interface IOpenStackProviderSettings extends IProviderSettings {
 
 export const OpenStackProviderSettings: IOpenStackProviderSettings = <IOpenStackProviderSettings>SETTINGS.providers.openstack || { defaults: {} };
 if (OpenStackProviderSettings) {
-  OpenStackProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
+  OpenStackProviderSettings.resetToOriginal = SETTINGS.resetProvider('openstack');
 }

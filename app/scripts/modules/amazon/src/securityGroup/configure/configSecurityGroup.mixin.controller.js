@@ -156,23 +156,32 @@ module.exports = angular
         });
         $scope.vpcs = available;
 
-        let lockoutDate = AWSProviderSettings.classicLaunchLockout;
-        if (!securityGroup.id && lockoutDate) {
-          let createTs = Number(_.get(application, 'attributes.createTs', 0));
-          if (createTs >= lockoutDate) {
-            $scope.hideClassic = true;
-            if (!securityGroup.vpcId && available.length) {
-              securityGroup.vpcId = $scope.activeVpcs.length ? $scope.activeVpcs[0].ids[0] : available[0].ids[0];
+        ctrl.updateVpcId(available);
+      });
+    };
+
+    this.updateVpcId = (available) => {
+      let lockoutDate = AWSProviderSettings.classicLaunchLockout;
+      if (!securityGroup.id && lockoutDate) {
+        let createTs = Number(_.get(application, 'attributes.createTs', 0));
+        if (createTs >= lockoutDate) {
+          $scope.hideClassic = true;
+          if (!securityGroup.vpcId && available.length) {
+            let defaultMatch;
+            if (AWSProviderSettings.defaults.vpc) {
+              const match = available.find(vpc => vpc.label === AWSProviderSettings.defaults.vpc);
+              if (match) {
+                defaultMatch = match.ids[0];
+              }
             }
+            securityGroup.vpcId = defaultMatch || ($scope.activeVpcs.length ? $scope.activeVpcs[0].ids[0] : available[0].ids[0]);
           }
         }
+      }
 
-        var match = _.find(available, function (vpc) {
-          return vpc.ids.includes($scope.securityGroup.vpcId);
-        });
-        $scope.securityGroup.vpcId = match ? match.ids[0] : null;
-        ctrl.vpcUpdated();
-      });
+      const match = (available || []).find((vpc) => vpc.ids.includes($scope.securityGroup.vpcId));
+      $scope.securityGroup.vpcId = match ? match.ids[0] : null;
+      this.vpcUpdated();
     };
 
     this.vpcUpdated = function () {

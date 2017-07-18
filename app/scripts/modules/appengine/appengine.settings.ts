@@ -9,5 +9,5 @@ export interface IAppengineProviderSettings extends IProviderSettings {
 
 export const AppengineProviderSettings: IAppengineProviderSettings = <IAppengineProviderSettings>SETTINGS.providers.appengine || { defaults: {} };
 if (AppengineProviderSettings) {
-  AppengineProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
+  AppengineProviderSettings.resetToOriginal = SETTINGS.resetProvider('appengine');
 }

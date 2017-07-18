@@ -9,5 +9,5 @@ export interface IAzureProviderSettings extends IProviderSettings {
 
 export const AzureProviderSettings: IAzureProviderSettings = <IAzureProviderSettings>SETTINGS.providers.azure || { defaults: {} };
 if (AzureProviderSettings) {
-  AzureProviderSettings.resetToOriginal = SETTINGS.resetToOriginal;
+  AzureProviderSettings.resetToOriginal = SETTINGS.resetProvider('azure');
 }
