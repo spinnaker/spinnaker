@@ -45,10 +45,17 @@ function NameAndDescription({ name, description, changeName, changeDescription }
 }
 
 function mapStateToProps(state: ICanaryState) {
-  return {
-    name: state.selectedConfig.name,
-    description: state.selectedConfig.description,
-  };
+  if (state.selectedConfig) {
+    return {
+      name: state.selectedConfig.name,
+      description: state.selectedConfig.description,
+    };
+  } else {
+    return {
+      name: '',
+      description: ''
+    };
+  }
 }
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void) {

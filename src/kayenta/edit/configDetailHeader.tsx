@@ -16,7 +16,7 @@ function ConfigDetailHeader({ selectedConfig }: IConfigDetailStateProps) {
   return (
     <div className="row">
       <div className="col-sm-6">
-        <h2>{selectedConfig.name}</h2>
+        <h2>{selectedConfig ? selectedConfig.name : ''}</h2>
       </div>
       <div className="col-sm-3">
         {/* TODO: config metadata goes here. */}
