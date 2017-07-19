@@ -1,5 +1,6 @@
 /*
  * Copyright 2017 Google, Inc.
+ * Copyright 2017 Netflix, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +25,14 @@ buildscript {
   }
 }
 
+plugins {
+  id 'nebula.netflixoss' version '3.6.4'
+}
+
 allprojects {
   group = "com.netflix.kayenta"
   apply plugin: 'groovy'
+  apply plugin: 'nebula.netflixoss'
 
   test {
     testLogging {
@@ -42,6 +48,10 @@ subprojects { project ->
     jcenter()
     maven { url "https://dl.bintray.com/spinnaker/spinnaker"}
   }
+
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+
   dependencies {
     // spinnaker.group('test')
     testCompile "org.springframework.boot:spring-boot-starter-test:1.2.8.RELEASE"
