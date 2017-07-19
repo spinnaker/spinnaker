@@ -5,8 +5,8 @@ import { NgReact } from '@spinnaker/core';
 
 import { ICanaryState } from '../reducers/index';
 import { ConfigDetailLoadState } from './configDetailLoader';
-import MetricList from './metricList';
-import GroupTabs from './groupTabs';
+
+import ConfigDetail from './configDetail';
 
 interface IConfigLoadStatesProps {
   configLoadState: ConfigDetailLoadState;
@@ -25,12 +25,7 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
       );
 
     case ConfigDetailLoadState.Loaded:
-      return (
-        <section>
-          <GroupTabs/>
-          <MetricList/>
-        </section>
-      );
+      return <ConfigDetail/>;
 
     case ConfigDetailLoadState.Error:
       return (

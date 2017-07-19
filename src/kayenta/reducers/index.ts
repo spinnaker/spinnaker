@@ -55,7 +55,7 @@ function selectedConfig(state: ICanaryConfig = null, action: Action & any): ICan
   }
 }
 
-function configLoadState(state: ConfigDetailLoadState = ConfigDetailLoadState.Loaded, action: Action & any): ConfigDetailLoadState {
+function configLoadState(state: ConfigDetailLoadState = ConfigDetailLoadState.Loading, action: Action & any): ConfigDetailLoadState {
   switch (action.type) {
     case LOAD_CONFIG:
       return ConfigDetailLoadState.Loading;

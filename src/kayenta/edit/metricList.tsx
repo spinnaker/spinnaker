@@ -5,7 +5,6 @@ import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
-import OpenDeleteModalButton from './openDeleteModalButton';
 import { ADD_METRIC, RENAME_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
@@ -24,9 +23,6 @@ interface IMetricListDispatchProps {
 function MetricList({ metrics, selectedGroup, changeName, addMetric }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
-      <h2>Metrics</h2>
-      {/*TODO: this button should not go here, but there is no good spot for it now.*/}
-      <OpenDeleteModalButton/>
       <ul className="list-group">
         {metrics.map((metric, index) => (
           <li className="list-group-item" key={index}>

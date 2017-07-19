@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Button, Modal } from 'react-bootstrap';
+import { Modal } from 'react-bootstrap';
 import * as classNames from 'classnames';
 
 import { SubmitButton } from '@spinnaker/core';
@@ -47,7 +47,7 @@ function DeleteConfigModal({ show, selectedConfigName, deleteConfigState, delete
         </Modal.Body>
       )}
       <Modal.Footer>
-        <Button onClick={closeDeleteConfigModal}>Cancel</Button>
+        <button onClick={closeDeleteConfigModal}>Cancel</button>
         <SubmitButton
           label="Delete"
           submitting={deleteConfigState === DeleteConfigState.Deleting}

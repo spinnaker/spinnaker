@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Button } from 'react-bootstrap';
 
 import { DELETE_CONFIG_MODAL_OPEN } from '../actions/index';
 import DeleteConfigModal from './deleteModal';
@@ -15,8 +14,7 @@ interface IDeleteButtonDispatchProps {
 function DeleteConfigButton({ openDeleteConfigModal }: IDeleteButtonDispatchProps) {
   return (
     <div>
-      <Button onClick={openDeleteConfigModal}>Delete</Button>
-      {/* Is this how people place modals in the component tree? */}
+      <button onClick={openDeleteConfigModal}>Delete</button>
       <DeleteConfigModal/>
     </div>
   );
