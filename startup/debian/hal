@@ -40,16 +40,25 @@ function start_daemon() {
     echo ""
 }
 
+function kill_daemon() {
+    pkill -f '/opt/halyard/lib/halyard-web' || true
+}
+
 if [ -f "$HALYARD_DAEMON_PID_FILE" ]; then
     HALYARD_DAEMON_PID=$(cat $HALYARD_DAEMON_PID_FILE)
 fi
 
 if [ -z "$HALYARD_DAEMON_PID" ]; then
+    kill_daemon
     start_daemon
 else
+    set +e
     ps $HALYARD_DAEMON_PID &> /dev/null
+    exit_code=$?
+    set -e
 
-    if [ $? -ne "0" ]; then
+    if [ "$exit_code" != "0" ]; then
+        kill_daemon
         start_daemon
     fi
 fi
