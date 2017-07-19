@@ -2,8 +2,6 @@
 
 # This script installs Halyard.
 
-# {%header-comment%}
-
 set -e
 set -o pipefail
 
@@ -13,8 +11,14 @@ SPINNAKER_DOCKER_REGISTRY="gcr.io/spinnaker-marketplace"
 SPINNAKER_GCE_PROJECT="marketplace-spinnaker-release"
 
 VERSION=""
-RELEASE_TRACK={%release-track%}
 HALYARD_STARTUP_TIMEOUT_SECONDS=120
+
+if [ -z "$RELEASE_TRACK" ]; then
+  >&2 echo "RELEASE_TRACK env var must be set (nightly or stable)"
+  >&2 echo "Typically this script is invoked from a wrapper, e.g. "
+  >&2 echo "   https://raw.githubusercontent.com/spinnaker/halyard/master/install/stable/InstallHalyard.sh"
+  exit 1
+fi
 
 # We can only currently support limited releases
 # First guess what sort of operating system
