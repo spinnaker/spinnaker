@@ -3,7 +3,6 @@ import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import FormRow from '../layout/formRow';
 
 interface IMetricDetailProps {
-  id: any;
   metric: ICanaryMetricConfig;
   changeName: any;
 }
@@ -11,7 +10,7 @@ interface IMetricDetailProps {
 /*
  * Configures all the available settings for a single metric.
  */
-export default function MetricDetail({ id, metric, changeName }: IMetricDetailProps) {
+export default function MetricDetail({ metric, changeName }: IMetricDetailProps) {
   return (
     <form role="form" className="form-horizontal container-fluid">
       <FormRow label="Name">
@@ -19,7 +18,7 @@ export default function MetricDetail({ id, metric, changeName }: IMetricDetailPr
           type="text"
           className="form-control"
           value={metric.name}
-          data-id={id}
+          data-id={metric.id}
           onChange={changeName}
         />
       </FormRow>
@@ -28,7 +27,17 @@ export default function MetricDetail({ id, metric, changeName }: IMetricDetailPr
           type="text"
           className="form-control"
           value={metric.serviceName}
-          data-id={id}
+          data-id={metric.id}
+          disabled={true}
+        />
+      </FormRow>
+      <FormRow label="Groups">
+        {/* TODO: needs to be a multiselect combo box like select2 */}
+        <input
+          type="text"
+          className="form-control"
+          value={metric.groups.join(',')}
+          data-id={metric.id}
           disabled={true}
         />
       </FormRow>

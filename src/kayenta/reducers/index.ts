@@ -10,7 +10,7 @@ import {
   RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
   DELETE_CONFIG_MODAL_OPEN,
   DELETE_CONFIG_MODAL_CLOSE, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
-  DELETE_CONFIG_ERROR,
+  DELETE_CONFIG_ERROR, ADD_GROUP, SELECT_GROUP
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -20,6 +20,8 @@ export interface ICanaryState {
   selectedConfig: ICanaryConfig;
   configLoadState: ConfigDetailLoadState;
   metricList: ICanaryMetricConfig[];
+  groupList: string[],
+  selectedGroup: string,
   saveConfigState: SaveConfigState;
   saveConfigErrorMessage: string;
   deleteConfigModalOpen: boolean;
@@ -69,8 +71,8 @@ function configLoadState(state: ConfigDetailLoadState = ConfigDetailLoadState.Lo
   }
 }
 
-function reduceMetric(metric: ICanaryMetricConfig, id: string, action: Action & any): ICanaryMetricConfig {
-  if (id === action.id) {
+function reduceMetric(metric: ICanaryMetricConfig, action: Action & any): ICanaryMetricConfig {
+  if (metric.id === action.id) {
     switch (action.type) {
 
       case RENAME_METRIC:
@@ -85,19 +87,23 @@ function reduceMetric(metric: ICanaryMetricConfig, id: string, action: Action & 
   }
 }
 
+function idMetrics(metrics: ICanaryMetricConfig[]) {
+  return metrics.map((metric, index) => Object.assign({}, metric, { id: '#' + index }));
+}
+
 function metricList(state: ICanaryMetricConfig[] = [], action: Action & any): ICanaryMetricConfig[] {
   switch (action.type) {
     case INITIALIZE:
-      return action.state.metricList;
+      return idMetrics(action.state.metricList);
 
     case SELECT_CONFIG:
-      return action.config.metrics;
+      return idMetrics(action.config.metrics);
 
     case ADD_METRIC:
-      return state.concat([action.metric]);
+      return idMetrics(state.concat([action.metric]));
 
     case RENAME_METRIC:
-      return state.map((metric, index) => reduceMetric(metric, String(index), action));
+      return state.map(metric => reduceMetric(metric, action));
 
     default:
       return state;
@@ -187,6 +193,49 @@ function deleteConfigErrorMessage(state: string = null, action: Action & any): s
   }
 }
 
+function groupList(state: string[] = [], action: Action & any): string[] {
+  function groupsFromMetrics(metrics: ICanaryMetricConfig[] = []) {
+    return metrics.reduce((groups, metric) => {
+      return groups.concat(metric.groups.filter((group: string) => !groups.includes(group)))
+    }, []).sort();
+  }
+
+  switch (action.type) {
+    case INITIALIZE:
+      return groupsFromMetrics(action.state.metricList);
+
+    case SELECT_CONFIG:
+      return groupsFromMetrics(action.config.metrics);
+
+    case ADD_METRIC: {
+      const groups = action.metric.groups;
+      return state.concat(groups.filter((group: string) => !state.includes(group)));
+    }
+
+    case ADD_GROUP:
+      let n = 1;
+      let name = null;
+      do {
+        name = 'Group ' + n;
+        n++;
+      } while (state.includes(name));
+      return state.concat([name]);
+
+    default:
+      return state;
+  }
+}
+
+function selectedGroup(state: string = null, action: Action & any): string {
+  switch (action.type) {
+    case SELECT_GROUP:
+      return action.name;
+
+    default:
+      return state;
+  }
+}
+
 export const rootReducer = combineReducers<ICanaryState>({
   configSummaries,
   selectedConfig,
@@ -197,4 +246,6 @@ export const rootReducer = combineReducers<ICanaryState>({
   deleteConfigModalOpen,
   deleteConfigState,
   deleteConfigErrorMessage,
+  groupList,
+  selectedGroup
 });

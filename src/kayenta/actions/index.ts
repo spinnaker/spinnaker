@@ -14,3 +14,5 @@ export const SAVE_CONFIG_SAVING = 'save_config_start';
 export const SAVE_CONFIG_SAVED = 'save_config_success';
 export const SELECT_CONFIG = 'select_config';
 export const UPDATE_CONFIG_SUMMARIES = 'update_config_summaries';
+export const ADD_GROUP = 'add_group';
+export const SELECT_GROUP = 'select_group';

@@ -1,24 +1,27 @@
 import * as React from 'react';
+import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
+import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
 import OpenDeleteModalButton from './openDeleteModalButton';
 import { ADD_METRIC, RENAME_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
+  selectedGroup: string,
   metrics: ICanaryMetricConfig[];
 }
 
 interface IMetricListDispatchProps {
-  changeName: any;
-  addMetric: any;
+  changeName: (event: any) => void;
+  addMetric: (event: any) => void;
 }
 
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, changeName, addMetric }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, selectedGroup, changeName, addMetric }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
       <h2>Metrics</h2>
@@ -26,25 +29,33 @@ function MetricList({ metrics, changeName, addMetric }: IMetricListStateProps & 
       <OpenDeleteModalButton/>
       <ul className="list-group">
         {metrics.map((metric, index) => (
-          // TODO: put id on metric? name can change by edit, index can change by remove operation
-          // unless remove leaves a null entry instead of deleting the index.
           <li className="list-group-item" key={index}>
-            <MetricDetail id={index} metric={metric} changeName={changeName}/>
+            <MetricDetail metric={metric} changeName={changeName}/>
           </li>
         ))}
       </ul>
-      <button onClick={addMetric}>Add Metric</button>
+      <button data-group={selectedGroup} onClick={addMetric}>Add Metric</button>
     </section>
   );
 }
 
 function mapStateToProps(state: ICanaryState): IMetricListStateProps {
+  const { selectedGroup, metricList } = state;
+  let filter;
+  if (!selectedGroup) {
+    filter = () => true;
+  } else if (selectedGroup === UNGROUPED) {
+    filter = (metric: ICanaryMetricConfig) => metric.groups.length === 0;
+  } else {
+    filter = (metric: ICanaryMetricConfig) => metric.groups.includes(selectedGroup);
+  }
   return {
-    metrics: state.metricList,
+    selectedGroup,
+    metrics: metricList.filter(filter)
   };
 }
 
-function mapDispatchToProps(dispatch: any): IMetricListDispatchProps {
+function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricListDispatchProps {
   return {
     changeName: (event: any) => {
       dispatch({
@@ -54,7 +65,8 @@ function mapDispatchToProps(dispatch: any): IMetricListDispatchProps {
       });
     },
 
-    addMetric: () => {
+    addMetric: (event: any) => {
+      const group = event.target.dataset.group;
       dispatch({
         type: ADD_METRIC,
         metric: {
@@ -62,7 +74,8 @@ function mapDispatchToProps(dispatch: any): IMetricListDispatchProps {
           // TODO: for Atlas metrics, attempt to gather name when query changes
           name: '',
           // TODO: we should have a default service setting somewhere
-          serviceName: 'atlas'
+          serviceName: 'atlas',
+          groups: (group && group !== UNGROUPED) ? [group] : []
         }
       })
     }
