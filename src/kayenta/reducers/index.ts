@@ -10,7 +10,8 @@ import {
   RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
   DELETE_CONFIG_MODAL_OPEN,
   DELETE_CONFIG_MODAL_CLOSE, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
-  DELETE_CONFIG_ERROR, ADD_GROUP, SELECT_GROUP
+  DELETE_CONFIG_ERROR, ADD_GROUP, SELECT_GROUP, UPDATE_CONFIG_NAME,
+  UPDATE_CONFIG_DESCRIPTION
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -49,6 +50,12 @@ function selectedConfig(state: ICanaryConfig = null, action: Action & any): ICan
 
     case SELECT_CONFIG:
       return action.config;
+
+    case UPDATE_CONFIG_NAME:
+      return Object.assign({}, state, { name: action.name });
+
+    case UPDATE_CONFIG_DESCRIPTION:
+      return Object.assign({}, state, { description: action.description });
 
     default:
       return state;
