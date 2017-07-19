@@ -1,6 +1,6 @@
 import { get } from 'lodash';
-
 import { combineReducers, Action } from 'redux';
+import { Application } from '@spinnaker/core';
 import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { ConfigDetailLoadState } from '../edit/configDetailLoader';
@@ -17,6 +17,7 @@ import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
 
 export interface ICanaryState {
+  application: Application;
   configSummaries: ICanaryConfigSummary[];
   selectedConfig: ICanaryConfig;
   configLoadState: ConfigDetailLoadState;
@@ -28,6 +29,16 @@ export interface ICanaryState {
   deleteConfigModalOpen: boolean;
   deleteConfigState: DeleteConfigState,
   deleteConfigErrorMessage: string;
+}
+
+function application(state: Application = null, action: Action & any): Application {
+  switch (action.type) {
+    case INITIALIZE:
+      return action.state.application;
+
+    default:
+      return state;
+  }
 }
 
 function configSummaries(state: ICanaryConfigSummary[] = [], action: Action & any): ICanaryConfigSummary[] {
@@ -56,6 +67,9 @@ function selectedConfig(state: ICanaryConfig = null, action: Action & any): ICan
 
     case UPDATE_CONFIG_DESCRIPTION:
       return Object.assign({}, state, { description: action.description });
+
+    case DELETE_CONFIG_COMPLETED:
+      return null;
 
     default:
       return state;
@@ -244,6 +258,7 @@ function selectedGroup(state: string = null, action: Action & any): string {
 }
 
 export const rootReducer = combineReducers<ICanaryState>({
+  application,
   configSummaries,
   selectedConfig,
   configLoadState,

@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@spinnaker/amazon": "0.0.5",
-    "@spinnaker/core": "^0.0.31",
+    "@spinnaker/core": "^0.0.39",
     "@spinnaker/google": "^0.0.1",
     "@uirouter/angularjs": "^1.0.4",
     "@uirouter/react-hybrid": "^0.0.5",
@@ -72,6 +72,7 @@
     "react-ga": "^2.1.2",
     "react-redux": "^5.0.5",
     "react-select": "^1.0.0-rc.4",
+    "react-virtualized-select": "3.1.0",
     "react2angular": "1.1.2",
     "redux": "^3.7.1",
     "redux-observable": "^0.14.1",
