@@ -224,6 +224,7 @@ hal [parameters] [subcommands]
 ```
 #### Global Parameters
  * `--options`: Get options for the specified field name.
+ * `-a, --alpha`: Enable alpha halyard features.
  * `-c, --color`: Enable terminal color output.
  * `-d, --debug`: Show detailed network traffic with halyard daemon.
  * `-h, --help`: (*Default*: `false`) Display help text about this command.

@@ -22,7 +22,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.GlobalOptions;
 import com.netflix.spinnaker.halyard.cli.command.v1.HalCommand;
 import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 
-
 public class Main {
   public static void main(String[] args) {
     GlobalOptions globalOptions = GlobalOptions.getGlobalOptions();

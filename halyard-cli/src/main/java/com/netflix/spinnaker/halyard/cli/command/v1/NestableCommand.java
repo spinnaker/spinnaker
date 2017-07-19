@@ -25,7 +25,12 @@ import com.netflix.spinnaker.halyard.cli.command.v1.converter.FormatConverter;
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.LogLevelConverter;
 import com.netflix.spinnaker.halyard.cli.services.v1.ExpectedDaemonFailureException;
 import com.netflix.spinnaker.halyard.cli.services.v1.TaskKilledException;
-import com.netflix.spinnaker.halyard.cli.ui.v1.*;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiFormatUtils;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiParagraphBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiPrinter;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStoryBuilder;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiStyle;
+import com.netflix.spinnaker.halyard.cli.ui.v1.AnsiUi;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutorLocal;
 import com.netflix.spinnaker.halyard.core.resource.v1.JarResource;
@@ -37,7 +42,12 @@ import retrofit.RetrofitError;
 
 import java.io.Console;
 import java.net.ConnectException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Parameters(separators = "=")
@@ -62,7 +72,12 @@ public abstract class NestableCommand {
     GlobalOptions.getGlobalOptions().setDebug(debug);
   }
 
-  @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.")
+  @Parameter(names = {"-a", "--alpha"}, description = "Enable alpha halyard features.")
+  public void setAlpha(boolean alpha) {
+    GlobalOptions.getGlobalOptions().setAlpha(alpha);
+  }
+
+    @Parameter(names = {"-q", "--quiet"}, description = "Show no task information or messages. When set, ANSI formatting will be disabled, and all prompts will be accepted.")
   public void setQuiet(boolean quiet) {
     GlobalOptions.getGlobalOptions().setQuiet(quiet);
     GlobalOptions.getGlobalOptions().setColor(!quiet);
