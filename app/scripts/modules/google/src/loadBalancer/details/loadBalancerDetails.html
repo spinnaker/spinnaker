@@ -131,7 +131,7 @@
     <collapsible-section heading="Listeners">
       <dl>
         <dt>Load Balancer &rarr; Instance
-          <help-field ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.loadBalancerType === 'SSL'"
+          <help-field ng-if="ctrl.isHttpLoadBalancer(loadBalancer) || loadBalancer.loadBalancerType === 'SSL' || loadBalancer.loadBalancerType === 'TCP'"
                       key="gce.httpLoadBalancer.namedPort"></help-field>
         </dt>
         <dd ng-repeat="listener in loadBalancer.elb.listenerDescriptions">

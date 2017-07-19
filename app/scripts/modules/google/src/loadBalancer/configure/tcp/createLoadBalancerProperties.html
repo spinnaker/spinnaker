@@ -1,0 +1,73 @@
+<div class="container-fluid form-horizontal">
+  <ng-form name="locationForm">
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="col-md-12 well" ng-class="{'alert-danger': locationForm.loadBalancerName.$error.validateUnique, 'alert-info': !locationForm.loadBalancerName.$error.validateUnique}">
+          <strong>Your load balancer will be named:</strong>
+          <span>{{ctrl.getName(ctrl.loadBalancer, ctrl.application)}}</span>
+          <!-- Angular does not seem to run length validation on hidden inputs, hence the text + display:none -->
+          <input type="text"
+                 style="display: none"
+                 ng-maxlength="63"
+                 class="form-control input-sm"
+                 ng-model="ctrl.loadBalancer.loadBalancerName"
+                 validate-unique="ctrl.existingLoadBalancerNames"
+                 validate-ignore-case="true"
+                 name="loadBalancerName"/>
+          <validation-error ng-if="locationForm.loadBalancerName.$error.validateUnique"
+                            message="There is already a load balancer in {{ctrl.loadBalancer.credentials}} with that name.">
+          </validation-error>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-2 sm-label-right">Account</div>
+        <div class="col-md-8">
+          <account-select-field component="ctrl.loadBalancer"
+                                field="credentials"
+                                accounts="ctrl.accounts"
+                                provider="'gce'"
+                                on-change="ctrl.accountUpdated()"></account-select-field>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 sm-label-right">Region</div>
+        <div class="col-md-8">
+          <input readonly class="form-control input-sm" ng-model="ctrl.loadBalancer.region"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-2 sm-label-right">Stack <help-field key="aws.loadBalancer.stack"></help-field></div>
+        <div class="col-md-3">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="ctrl.loadBalancer.stack"
+                 name="stackName"
+                 ng-change="ctrl.updateName()"
+                 ng-pattern="/^[a-z0-9]*$/"/>
+        </div>
+        <div class="col-md-2 sm-label-right">Detail<help-field key="gce.loadBalancer.detail"></help-field></div>
+        <div class="col-md-3">
+          <input type="text"
+                 class="form-control input-sm"
+                 ng-model="ctrl.loadBalancer.detail"
+                 name="detailName"
+                 ng-change="ctrl.updateName()"
+                 ng-pattern="/^[a-z0-9-]*$/"/>
+        </div>
+        <div class="col-md-7 col-md-offset-3" ng-if="locationForm.stackName.$error.pattern">
+          <validation-error message="Stack can only contain letters and numbers."></validation-error>
+        </div>
+        <div class="col-md-7 col-md-offset-3" ng-if="locationForm.detailName.$error.pattern">
+          <validation-error message="Detail can only contain letters, numbers, and dashes(-)."></validation-error>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-9 col-md-offset-3" ng-if="locationForm.loadBalancerName.$error.maxlength">
+          <validation-error message="Load Balancer name can only be 63 characters."></validation-error>
+        </div>
+      </div>
+    </div>
+  </ng-form>
+</div>

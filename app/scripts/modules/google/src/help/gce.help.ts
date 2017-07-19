@@ -7,7 +7,7 @@ const helpContents: {[key: string]: string} = {
   'gce.httpLoadBalancer.externalIP': 'The IP address for this listener. If you do not specify an IP, your listener will be assigned an ephemeral IP.',
   'gce.httpLoadBalancer.hostRule.hostPattern': 'For example, <b>example.com</b>.',
   'gce.httpLoadBalancer.namedPort': `
-      For HTTP(S) and SSL load balancers,
+      For HTTP(S) and SSL/TCP load balancers,
       incoming traffic is directed through a named port (for Spinnaker, the named port is <b>http</b>).
       The mapping from named port to port number is specified per server group
       and can be configured within the server group creation dialogue under <b>Port Name Mapping</b>.`,

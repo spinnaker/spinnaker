@@ -72,6 +72,8 @@ module.exports = angular.module('spinnaker.loadBalancer.gce.details.controller',
               resourceTypes = ['gce_forwarding_rule', 'gce_target_pool', 'gce_health_check'];
             } else if ($scope.loadBalancer.loadBalancerType === 'SSL') {
               resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
+            } else if ($scope.loadBalancer.loadBalancerType === 'TCP') {
+              resourceTypes = ['gce_forwarding_rule', 'gce_backend_service'];
             } else {
               // $scope.loadBalancer.loadBalancerType === 'HTTP'
               resourceTypes = ['http_load_balancer', 'gce_target_http_proxy', 'gce_url_map', 'gce_backend_service'];

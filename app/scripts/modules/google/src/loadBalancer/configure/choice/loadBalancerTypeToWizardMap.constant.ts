@@ -36,6 +36,12 @@ const loadBalancerTypeToWizardMap: IGceLoadBalancerToWizardMap = {
     editTemplateUrl: require('../common/commonEditLoadBalancer.html'),
     controller: 'gceSslLoadBalancerCtrl'
   },
+  'TCP': {
+    label: 'TCP',
+    createTemplateUrl: require('../common/commonCreateLoadBalancer.html'),
+    editTemplateUrl: require('../common/commonEditLoadBalancer.html'),
+    controller: 'gceTcpLoadBalancerCtrl'
+  },
 };
 
 export const GCE_LOAD_BALANCER_TYPE_TO_WIZARD_CONSTANT = 'spinnaker.gce.loadBalancerTypeToWizard.constant';

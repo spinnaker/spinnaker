@@ -44,7 +44,7 @@ module.exports = angular
         let selected = this.command.loadBalancers;
 
         return angular.isDefined(selected) && _.some(selected, s => {
-            return index[s].loadBalancerType === 'HTTP' || index[s].loadBalancerType === 'SSL';
+            return index[s].loadBalancerType === 'HTTP' || index[s].loadBalancerType === 'SSL' || index[s].loadBalancerType === 'TCP';
           });
       }
     };

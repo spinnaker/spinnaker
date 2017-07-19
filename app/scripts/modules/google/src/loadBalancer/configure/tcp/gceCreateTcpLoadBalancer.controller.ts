@@ -1,4 +1,4 @@
-import { module, IScope, IController } from 'angular';
+import { module, IScope } from 'angular';
 import { IModalInstanceService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
 import * as _ from 'lodash';
@@ -37,30 +37,29 @@ interface IListKeyedByAccount {
   [account: string]: string[];
 }
 
-interface ISslLoadBalancerUpsertDescription extends ILoadBalancerUpsertCommand {
+interface ITcpLoadBalancerUpsertDescription extends ILoadBalancerUpsertCommand {
   backendService: IGceBackendService;
   loadBalancerName: string;
   instances: IInstance[];
 }
 
-class SslLoadBalancer implements IGceLoadBalancer {
+class TcpLoadBalancer implements IGceLoadBalancer {
   public stack: string;
   public detail: string;
   public loadBalancerName: string;
   public portRange = '443';
   public ipProtocol = 'TCP';
   public instances: IInstance[];
-  public loadBalancerType = 'SSL';
+  public loadBalancerType = 'TCP';
   public credentials: string;
   public account: string;
-  public certificate: string;
   public backendService: IGceBackendService = { healthCheck: { healthCheckType: 'TCP' } } as IGceBackendService;
   public cloudProvider: string;
   public name: string;
   constructor (public region = 'global') {}
 }
 
-class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IController {
+class TcpLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements ng.IComponentController {
   public pages: any = {
     'location': require('./createLoadBalancerProperties.html'),
     'listener': require('./listener.html'),
@@ -74,7 +73,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
   };
   public accounts: ICredentials[];
   public regions: string[];
-  public certificateWrappers: any[];
   public healthChecksByAccountAndType: {[account: string]: {[healthCheckType: string]: IGceHealthCheck[]}};
   public portOptions: string[] = ['25', '43', '110', '143', '195', '443', '465', '587', '700', '993', '995'];
 
@@ -93,7 +91,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
   constructor (public $scope: IScope,
                public application: Application,
                public $uibModalInstance: IModalInstanceService,
-               private loadBalancer: SslLoadBalancer,
+               private loadBalancer: TcpLoadBalancer,
                private gceCommonLoadBalancerCommandBuilder: GceCommonLoadBalancerCommandBuilder,
                private isNew: boolean,
                private accountService: AccountService,
@@ -108,12 +106,12 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
 
   public $onInit (): void {
     this.gceCommonLoadBalancerCommandBuilder
-      .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'healthChecks', 'certificates'])
+      .getBackingData(['existingLoadBalancerNamesByAccount', 'accounts', 'healthChecks'])
       .then((backingData) => {
         if (!this.isNew) {
           this.initializeEditMode();
         } else {
-          this.loadBalancer = new SslLoadBalancer(
+          this.loadBalancer = new TcpLoadBalancer(
             GCEProviderSettings
             ? GCEProviderSettings.defaults.region
             : null);
@@ -129,7 +127,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
         }
 
         this.accounts = backingData.accounts;
-        this.certificateWrappers = backingData.certificates as any[];
         this.existingLoadBalancerNamesByAccount = backingData.existingLoadBalancerNamesByAccount;
         this.healthChecksByAccountAndType = this.gceCommonLoadBalancerCommandBuilder
           .groupHealthChecksByAccountAndType(backingData.healthChecks as IGceHealthCheck[]);
@@ -168,13 +165,6 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
       });
   }
 
-  public onCertificateRefresh (): void {
-    this.gceCommonLoadBalancerCommandBuilder.getBackingData(['certificates'])
-      .then((data) => {
-        this.certificateWrappers = data.certificates as any[];
-      });
-  }
-
   public accountUpdated (): void {
     const existingHealthCheckNames =
       _.get<any, string[]>(this, ['existingHealthCheckNamesByAccount', this.loadBalancer.credentials]);
@@ -200,7 +190,7 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
 
   public submit (): void {
     const descriptor = this.isNew ? 'Create' : 'Update';
-    const toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as ISslLoadBalancerUpsertDescription;
+    const toSubmitLoadBalancer = _.cloneDeep(this.loadBalancer) as ITcpLoadBalancerUpsertDescription;
     toSubmitLoadBalancer.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.backendService.name = toSubmitLoadBalancer.loadBalancerName;
     toSubmitLoadBalancer.cloudProvider = 'gce';
@@ -214,18 +204,17 @@ class SslLoadBalancerCtrl extends CommonGceLoadBalancerCtrl implements IControll
 
   private initializeEditMode (): void {
     this.loadBalancer.portRange = this.loadBalancer.portRange.split('-')[0];
-    this.loadBalancer.certificate = this.loadBalancer.certificate.split('/').pop();
     this.viewState = new ViewState(this.sessionAffinityModelToViewMap[this.loadBalancer.backendService.sessionAffinity]);
   }
 }
 
-export const GCE_SSL_LOAD_BALANCER_CTRL = 'spinnaker.gce.sslLoadBalancer.controller';
+export const GCE_TCP_LOAD_BALANCER_CTRL = 'spinnaker.gce.tcpLoadBalancer.controller';
 
-module(GCE_SSL_LOAD_BALANCER_CTRL, [
+module(GCE_TCP_LOAD_BALANCER_CTRL, [
   GCE_HEALTH_CHECK_SELECTOR_COMPONENT,
   GCE_COMMON_LOAD_BALANCER_COMMAND_BUILDER,
   ACCOUNT_SERVICE,
   INFRASTRUCTURE_CACHE_SERVICE,
   LOAD_BALANCER_WRITE_SERVICE,
   TASK_MONITOR_BUILDER,
-]).controller('gceSslLoadBalancerCtrl', SslLoadBalancerCtrl);
+]).controller('gceTcpLoadBalancerCtrl', TcpLoadBalancerCtrl);

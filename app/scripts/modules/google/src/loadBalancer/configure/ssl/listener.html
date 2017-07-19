@@ -23,9 +23,11 @@
               </ui-select>
             </td>
             <td>
-              <input class="form-control input-sm"
-                     readonly
-                     required ng-model="ctrl.loadBalancer.portRange"/>
+              <select class="form-control input-sm"
+                      ng-options="port for port in ctrl.portOptions"
+                      ng-disabled="!ctrl.isNew"
+                      ng-model="ctrl.loadBalancer.portRange">
+              </select>
             </td>
           </tr>
           </tbody>

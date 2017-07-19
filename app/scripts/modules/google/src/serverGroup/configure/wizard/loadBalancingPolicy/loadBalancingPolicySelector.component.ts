@@ -41,7 +41,7 @@ class GceLoadBalancingPolicySelectorController implements IController {
     /*
     * Three cases:
     *   - If we have only HTTP(S) load balancers, our balancing mode can be RATE or UTILIZATION.
-    *   - If we have only SSL load balancers, our balancing mode can be CONNECTION or UTILIZATION.
+    *   - If we have only SSL/TCP load balancers, our balancing mode can be CONNECTION or UTILIZATION.
     *   - If we have both, only UTILIZATION.
     * */
     if (has(this, 'command.backingData.filtered.loadBalancerIndex')) {
@@ -49,11 +49,12 @@ class GceLoadBalancingPolicySelectorController implements IController {
       const selected = this.command.loadBalancers;
 
       const hasSsl = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'SSL');
+      const hasTcp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'TCP');
       const hasHttp = selected.find((loadBalancer: any) => get(index[loadBalancer], 'loadBalancerType') === 'HTTP');
 
-      if ((hasSsl && hasHttp)) {
+      if ((hasSsl || hasTcp) && hasHttp) {
         balancingModes = ['UTILIZATION'];
-      } else if (hasSsl) {
+      } else if (hasSsl || hasTcp) {
         balancingModes = ['CONNECTION', 'UTILIZATION'];
       } else {
         balancingModes = ['RATE', 'UTILIZATION'];
