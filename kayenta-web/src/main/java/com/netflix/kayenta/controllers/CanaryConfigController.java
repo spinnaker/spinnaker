@@ -139,7 +139,7 @@ public class CanaryConfigController {
         .getOne(resolvedAccountName)
         .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to delete canary config."));
 
-    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    storageService.deleteObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
 
     response.setStatus(HttpStatus.NO_CONTENT.value());
   }
