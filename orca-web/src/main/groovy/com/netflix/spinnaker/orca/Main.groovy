@@ -29,6 +29,7 @@ import com.netflix.spinnaker.orca.eureka.DiscoveryPollingConfiguration
 import com.netflix.spinnaker.orca.flex.config.FlexConfiguration
 import com.netflix.spinnaker.orca.front50.config.Front50Configuration
 import com.netflix.spinnaker.orca.igor.config.IgorConfiguration
+import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
 import com.netflix.spinnaker.orca.mahe.config.MaheConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
@@ -65,7 +66,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   MaheConfiguration,
   ApplicationConfig,
   StackdriverConfig,
-  PipelineTemplateConfiguration
+  PipelineTemplateConfiguration,
+  KayentaConfiguration
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config"
