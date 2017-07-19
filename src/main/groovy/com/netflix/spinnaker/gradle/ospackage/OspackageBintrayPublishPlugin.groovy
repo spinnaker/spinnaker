@@ -50,6 +50,13 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             deb.release = packageExtension.buildNumber
             String debTaskName = "${Character.toUpperCase(deb.name.charAt(0))}${deb.name.substring(1)}"
             def publishDeb = project.tasks.create("publish$debTaskName")
+
+            publishDeb.onlyIf {
+                BintrayExtension bintrayCfg = project.extensions.getByType(BintrayExtension)
+                String versionName = bintrayCfg.pkg.version.name ?: project.version.toString()
+                return !versionName.contains('-rc.')
+            }
+
             publishDeb.doFirst {
                 BintrayExtension bintrayCfg = project.extensions.getByType(BintrayExtension)
                 def http = BintrayHttpClientFactory.create(bintrayCfg.apiUrl, bintrayCfg.user, bintrayCfg.key)
@@ -249,6 +256,13 @@ class OspackageBintrayPublishPlugin implements Plugin<Project> {
             rpm.release = packageExtension.buildNumber
             String rpmTaskName = "${Character.toUpperCase(rpm.name.charAt(0))}${rpm.name.substring(1)}"
             def publishRpm = project.tasks.create("publish$rpmTaskName")
+
+            publishRpm.onlyIf {
+                BintrayExtension bintrayCfg = project.extensions.getByType(BintrayExtension)
+                String versionName = bintrayCfg.pkg.version.name ?: project.version.toString()
+                return !versionName.contains('-rc.')
+            }
+
             publishRpm.doFirst {
                 BintrayExtension bintrayCfg = project.extensions.getByType(BintrayExtension)
                 def http = BintrayHttpClientFactory.create(bintrayCfg.apiUrl, bintrayCfg.user, bintrayCfg.key)
