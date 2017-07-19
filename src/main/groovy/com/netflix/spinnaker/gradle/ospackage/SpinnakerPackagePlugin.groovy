@@ -54,7 +54,7 @@ class SpinnakerPackagePlugin implements Plugin<Project> {
         extension.setOs(Os.LINUX)
         String projVer = project.version.toString()
         int idx = projVer.indexOf('-')
-        if (idx != -1) {
+        if (idx != -1 && !projVer.contains('-rc.')) {
             extension.setVersion(projVer.substring(0, idx))
         } else {
             extension.setVersion(projVer)
