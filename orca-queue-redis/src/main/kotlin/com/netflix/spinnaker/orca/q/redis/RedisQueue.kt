@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.redis
 
+import com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -49,9 +50,10 @@ class RedisQueue(
   override val publisher: ApplicationEventPublisher
 ) : MonitorableQueue {
 
-  private val mapper = ObjectMapper().apply {
-    registerModule(KotlinModule())
-  }
+  private val mapper = ObjectMapper()
+    .registerModule(KotlinModule())
+    .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+
   private val log: Logger = LoggerFactory.getLogger(javaClass)
 
   private val queueKey = "$queueName.queue"
