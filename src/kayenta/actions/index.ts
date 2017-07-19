@@ -16,3 +16,5 @@ export const SELECT_CONFIG = 'select_config';
 export const UPDATE_CONFIG_SUMMARIES = 'update_config_summaries';
 export const ADD_GROUP = 'add_group';
 export const SELECT_GROUP = 'select_group';
+export const UPDATE_CONFIG_NAME = 'update_config_name';
+export const UPDATE_CONFIG_DESCRIPTION = 'update_config_description';
