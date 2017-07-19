@@ -128,6 +128,20 @@ def run_shell_and_log(cmd_list, logfile, cwd=None):
       log.close()
 
 
+class BuildFailure(object):
+  def __init__(self, component, exception):
+    self.__component = component
+    self.__exception = exception
+
+  @property
+  def component(self):
+    return self.__component
+
+  @property
+  def exception(self):
+    return self.__exception
+
+
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
 
@@ -221,10 +235,10 @@ class Builder(object):
     if options.gradle_cache_path:
       extra_args.append('--gradle-user-home={}'.format(options.gradle_cache_path))
 
-    if (not self.__options.run_unit_tests or
+    if (not options.run_unit_tests or
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
-      
+
     if name == 'halyard':
       extra_args.append('-PbintrayPackageDebDistribution=trusty-nightly')
 
@@ -296,7 +310,7 @@ class Builder(object):
     if options.gradle_cache_path:
       extra_args.append('--gradle-user-home={}'.format(options.gradle_cache_path))
 
-    if (not self.__options.run_unit_tests or
+    if (not options.run_unit_tests or
             (name == 'deck' and not 'CHROME_BIN' in os.environ)):
       extra_args.append('-x test')
 
@@ -675,12 +689,12 @@ class Builder(object):
       try:
         self.start_deb_build(subsys)
       except Exception as ex:
-        self.__build_failures.append(subsys)
+        self.__build_failures.append(BuildFailure(subsys, ex))
     elif self.__options.platform == 'redhat':
       try:
         self.start_rpm_build(subsys)
       except Exception as ex:
-        self.__build_failures.append(subsys)
+        self.__build_failures.append(BuildFailure(subsys, ex))
 
   def __do_container_build(self, subsys):
     try:
@@ -689,8 +703,22 @@ class Builder(object):
       time.sleep(2 * full_subsystem_list.index(subsys))
       self.start_container_build(subsys)
     except Exception as ex:
-      print ex
-      self.__build_failures.append(subsys)
+      self.__build_failures.append(BuildFailure(subsys, ex))
+
+  def __check_build_failures(self, subsystems):
+    if self.__build_failures:
+      msg_lines = ['Builds failed:\n']
+      should_exit = False
+      for failure in self.__build_failures:
+        if failure.component in subsystems:
+          should_exit = True
+          msg_lines.append('Building component {} failed with exception: \n{}\n'.format(failure.component, failure.exception))
+      if should_exit:
+        msg = '\n'.join(msg_lines)
+        raise RuntimeError(msg)
+      else:
+        print 'Ignoring errors on optional subsystems {0!r}'.format(
+          failed_components)
 
   def build_container_images(self):
     """Build the Spinnaker packages as container images.
@@ -704,14 +732,7 @@ class Builder(object):
         processes=int(max(1, weighted_processes)))
       pool.map(self.__do_container_build, subsystems)
 
-    if self.__build_failures:
-      if set(self.__build_failures).intersection(set(subsystems)):
-        raise RuntimeError('Builds failed for {0!r}'.format(
-          self.__build_failures))
-      else:
-        print 'Ignoring errors on optional subsystems {0!r}'.format(
-          self.__build_failures)
-    return
+    self.__check_build_failures(subsystems)
 
   def build_packages(self):
       """Build all the Spinnaker packages."""
@@ -727,19 +748,14 @@ class Builder(object):
             processes=int(max(1, weighted_processes)))
         pool.map(self.__do_build, all_subsystems)
 
-      if self.__build_failures:
-        if set(self.__build_failures).intersection(set(SUBSYSTEM_LIST)):
-          raise RuntimeError('Builds failed for {0!r}'.format(
-            self.__build_failures))
-        else:
-          print 'Ignoring errors on optional subsystems {0!r}'.format(
-              self.__build_failures)
+      self.__check_build_failures(SUBSYSTEM_LIST)
 
       if self.__options.nebula:
         return
 
       # Do not choke if there is nothing to copy
-      wait_on = set(all_subsystems).difference(set(self.__build_failures))
+      failed_components = [failure.component for failure in self.__build_failures]
+      wait_on = set(all_subsystems).difference(set(failed_components))
       if len(wait_on) > 0:
         pool = multiprocessing.pool.ThreadPool(processes=len(wait_on))
         print 'Copying packages...'
