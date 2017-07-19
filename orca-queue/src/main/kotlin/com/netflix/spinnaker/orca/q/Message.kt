@@ -24,12 +24,54 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
+import java.util.*
 
 /**
  * Messages used internally by the queueing system.
  */
+
 @JsonTypeInfo(use = MINIMAL_CLASS, include = PROPERTY, property = "@class")
-sealed class Message
+interface Attribute {
+}
+
+data class MaxAttemptsAttribute(val maxAttempts: Int = -1) : Attribute {
+}
+
+data class AttemptsAttribute(var attempts: Int = 0) : Attribute {
+  fun increment() {
+    this.attempts = attempts + 1
+  }
+}
+
+@JsonTypeInfo(use = MINIMAL_CLASS, include = PROPERTY, property = "@class")
+sealed class Message {
+  val attributes: MutableList<Attribute> = mutableListOf()
+
+  fun <A: Attribute> setAttribute(attribute: A) : A {
+    removeAttribute(attribute)
+    attributes.add(attribute)
+
+    return attribute
+  }
+
+  fun <A: Attribute> removeAttribute(attribute: A) {
+    attributes.removeIf { it.javaClass == attribute.javaClass }
+  }
+
+  inline fun <reified A : Attribute> getAttribute(): A? {
+    val attribute = attributes.find { it is A }
+
+    return if (attribute != null) {
+      attribute as A
+    } else {
+      null
+    }
+  }
+
+  inline fun <reified A : Attribute> getAttribute(defaultValue : A): A {
+    return getAttribute<A>() ?: defaultValue
+  }
+}
 
 interface ApplicationAware {
   val application: String
@@ -319,3 +361,5 @@ data class NoDownstreamTasks(
   constructor(source: TaskLevel) :
     this(source.executionType, source.executionId, source.application, source.stageId, source.taskId)
 }
+
+data class TestMessage(val message: String) : Message()

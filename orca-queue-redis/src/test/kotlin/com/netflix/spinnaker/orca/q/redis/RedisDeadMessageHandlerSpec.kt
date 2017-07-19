@@ -62,7 +62,7 @@ object RedisDeadMessageHandlerSpec : SubjectSpek<RedisDeadMessageHandler>({
     }
 
     it("puts the message onto the DLQ") {
-      verify(redis).zadd("dlq.messages", 0.0, "{\"@class\":\".StartExecution\",\"executionType\":\"com.netflix.spinnaker.orca.pipeline.model.Pipeline\",\"executionId\":\"1\",\"application\":\"spinnaker\"}")
+      verify(redis).zadd("dlq.messages", 0.0, "{\"@class\":\".StartExecution\",\"executionType\":\"com.netflix.spinnaker.orca.pipeline.model.Pipeline\",\"executionId\":\"1\",\"application\":\"spinnaker\",\"attributes\":[]}")
     }
   }
 })

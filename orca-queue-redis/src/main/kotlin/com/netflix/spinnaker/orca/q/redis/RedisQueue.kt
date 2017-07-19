@@ -20,8 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.hash.Hashing
-import com.netflix.spinnaker.orca.q.Message
-import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.q.metrics.*
 import org.funktionale.partials.partially1
 import org.slf4j.Logger
@@ -83,7 +82,17 @@ class RedisQueue(
         ?.also { id ->
           val ack = this::ackMessage.partially1(id)
           redis.readMessage(id) { message ->
-            callback(message, ack)
+            val attempts = message.getAttribute<AttemptsAttribute>()?.attempts ?: 0
+            val maxAttempts = message.getAttribute<MaxAttemptsAttribute>()?.maxAttempts ?: 0
+
+            if (maxAttempts > 0 && attempts > maxAttempts) {
+              log.warn("Message $id with payload $message exceeded $maxAttempts retries")
+              handleDeadMessage(message)
+              redis.removeMessage(id)
+              fire<MessageDead>()
+            } else {
+              callback(message, ack)
+            }
           }
         }
       fire<QueuePolled>()
@@ -177,6 +186,12 @@ class RedisQueue(
   private fun Jedis.queueMessage(message: Message, delay: TemporalAmount = ZERO) {
     val id = randomUUID().toString()
     val hash = message.hash()
+
+    message.setAttribute(
+      // ensure the message has the attempts tracking attribute
+      message.getAttribute<AttemptsAttribute>(AttemptsAttribute())
+    )
+
     multi {
       hset(messagesKey, id, mapper.writeValueAsString(message))
       zadd(queueKey, score(delay), id)
@@ -229,6 +244,13 @@ class RedisQueue(
       } else {
         try {
           val message = convertToMessage(json, mapper)
+
+          // TODO: AttemptsAttribute could replace `attemptsKey`
+          message.setAttribute(
+            message.getAttribute<AttemptsAttribute>(AttemptsAttribute())
+          ).increment()
+          hset(messagesKey, id, mapper.writeValueAsString(message))
+
           block.invoke(message)
         } catch(e: IOException) {
           log.error("Failed to read message $id, requeuing...", e)

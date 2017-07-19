@@ -67,6 +67,10 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   private String name;
 
+  public String getName() {
+    return name != null ? name : type;
+  }
+
   /**
    * Gets the execution object for this stage
    */

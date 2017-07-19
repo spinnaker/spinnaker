@@ -76,6 +76,7 @@ open class StartStageHandler
             val exceptionDetails = exceptionHandlers.shouldRetry(e, stage.getName())
             if (exceptionDetails?.shouldRetry ?: false) {
               log.warn("Error planning ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]")
+              message.setAttribute(MaxAttemptsAttribute(5))
               queue.push(message, retryDelay)
             } else {
               log.error("Error running ${stage.getType()} stage for ${message.executionType.simpleName}[${message.executionId}]", e)
