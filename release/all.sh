@@ -2,7 +2,7 @@
 
 set -e
 
-./gradlew clean && ./gradlew installDist
+./gradlew clean && ./gradlew installDist -Prelease.useLastTag=true
 
 PLATFORMS=(debian)
 VERSION=$1
