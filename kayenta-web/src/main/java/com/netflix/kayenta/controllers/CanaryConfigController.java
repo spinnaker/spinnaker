@@ -125,7 +125,7 @@ public class CanaryConfigController {
 
     throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
   }
-  
+
   @ApiOperation(value = "Update a canary config")
   @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.PUT)
   public String updateCanaryConfig(@RequestParam(required = false) final String accountName,
@@ -145,17 +145,17 @@ public class CanaryConfigController {
     canaryConfig.getServices().forEach((serviceName, canaryServiceConfig) -> {
       canaryServiceConfig.setName(serviceName);
     });
-    
+
     canaryConfigId = canaryConfigId.toLowerCase();
-    
+
     try {
       storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
     } catch (Exception e) {
       throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' does not exist.");
     }
-    
+
     storageService.storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
-    return canaryConfigId;    
+    return canaryConfigId;
   }
 
   @ApiOperation(value = "Delete a canary config")
