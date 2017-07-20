@@ -92,6 +92,8 @@ def main():
 
   bom_generator = BomGenerator(options)
   bom_generator.determine_and_tag_versions()
+  # bom_generator.determine_and_tag_halyard()
+  bom_generator.write_component_version_files()
   if options.container_builder == 'gcb':
     bom_generator.write_container_builder_gcr_config()
   elif options.container_builder == 'gcb-trigger':
