@@ -52,3 +52,4 @@ swagger:
     - /metricSetList.*
     - /metricSetPairList.*
     - /pipeline.*
+    - /healthcheck.*
