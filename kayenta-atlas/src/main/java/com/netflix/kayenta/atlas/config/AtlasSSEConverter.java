@@ -47,7 +47,7 @@ public class AtlasSSEConverter implements Converter {
   private static final ObjectMapper objectMapper = new ObjectMapper()
     .setSerializationInclusion(NON_NULL)
     .disable(FAIL_ON_UNKNOWN_PROPERTIES);
-  private static final List<String> expectedResultsTypeList = Arrays.asList(new String[]{"timeseries", "close"});
+  private static final List<String> expectedResultsTypeList = Arrays.asList("timeseries", "close");
 
   @Override
   public List<AtlasResults> fromBody(TypedInput body, Type type) throws ConversionException {
