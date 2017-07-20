@@ -57,7 +57,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 import urllib2
 from urllib2 import HTTPError
@@ -405,17 +404,13 @@ class Builder(object):
 
   @classmethod
   def __listen_gcb_build_status(cls, name, subscription, tag, gcb_project, gcb_service_account, logfile):
-    def fail_build(name):
-      raise Exception('GCB triggered build for {} timed out'.format(name))
-
-    # Set an egg timer to fail.
-    timer = threading.Timer(GCB_BUILD_STATUS_TIMEOUT, fail_build, (name))
-    timer.start()
-
-    # Poll Google Cloud Pubsub for the build status
+    """Poll Google Cloud Pubsub for the GCB build status.
+    """
+    start_time = datetime.datetime.now()
+    time_elapsed = (datetime.datetime.now() - start_time).seconds
     completed = False
     try:
-      while not completed:
+      while not completed and time_elapsed < GCB_BUILD_STATUS_TIMEOUT:
         pulled = subscription.pull()
         for ack_id, message in pulled:
           comp_name = ''
@@ -444,10 +439,10 @@ class Builder(object):
 
                 if status == 'FAILURE':
                   raise Exception('Triggered GCB build for {name} failed.'.format(name=comp_name))
-                if not completed:
-                  time.sleep(10)
+        time_elapsed = (datetime.datetime.now() - start_time).seconds
+      if time_elapsed >= GCB_BUILD_STATUS_TIMEOUT:
+        raise Exception('GCB triggered build for {} timed out'.format(name))
     finally:
-      timer.cancel()
       subscription.delete()
 
   @classmethod
