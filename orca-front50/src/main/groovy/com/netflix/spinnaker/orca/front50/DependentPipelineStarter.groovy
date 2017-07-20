@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.front50
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.netflix.spinnaker.orca.extensionpoint.pipeline.PipelinePreprocessor
 import com.netflix.spinnaker.orca.pipeline.PipelineLauncher
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
@@ -43,7 +44,14 @@ class DependentPipelineStarter implements ApplicationContextAware {
   @Autowired
   ContextParameterProcessor contextParameterProcessor
 
+  @Autowired(required = false)
+  List<PipelinePreprocessor> pipelinePreprocessors
+
   Pipeline trigger(Map pipelineConfig, String user, Execution parentPipeline, Map suppliedParameters, String parentPipelineStageId) {
+    for (PipelinePreprocessor preprocessor : (pipelinePreprocessors ?: [])) {
+      pipelineConfig = preprocessor.process(pipelineConfig)
+    }
+
     def json = objectMapper.writeValueAsString(pipelineConfig)
     log.info('triggering dependent pipeline {}:{}', pipelineConfig.id, json)
 
