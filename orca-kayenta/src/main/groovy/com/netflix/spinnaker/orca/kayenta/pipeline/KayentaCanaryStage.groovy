@@ -26,6 +26,7 @@ import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -34,7 +35,7 @@ import java.time.temporal.ChronoUnit
 class KayentaCanaryStage implements StageDefinitionBuilder {
 
   @Autowired
-  RunCanaryPipelineStage runCanaryPipelineStage
+  Clock clock
 
   @Autowired
   WaitStage waitStage
@@ -53,7 +54,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     String canaryConfigId = canaryConfig.canaryConfigId
     String controlScope = canaryConfig.controlScope
     String experimentScope = canaryConfig.experimentScope
-    String startTimeIso = canaryConfig.startTimeIso ?: Instant.now().toString()
+    String startTimeIso = canaryConfig.startTimeIso ?: Instant.now(clock).toString()
     Instant startTimeInstant = Instant.parse(startTimeIso)
     String endTimeIso = canaryConfig.endTimeIso
     Instant endTimeInstant
@@ -73,6 +74,11 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     }
 
     long canaryAnalysisIntervalMins = canaryConfig.canaryAnalysisIntervalMins ? canaryConfig.canaryAnalysisIntervalMins.toLong() : lifetimeMinutes
+
+    if (canaryAnalysisIntervalMins == 0) {
+      canaryAnalysisIntervalMins = lifetimeMinutes
+    }
+
     long numIntervals = lifetimeMinutes / canaryAnalysisIntervalMins
     List<Stage> stages = []
 
@@ -100,14 +106,20 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
         canaryConfigId: canaryConfigId,
         controlScope: controlScope,
         experimentScope: experimentScope,
-        startTimeIso: startTimeInstant.plus(beginCanaryAnalysisAfterMins + (i - 1) * canaryAnalysisIntervalMins, ChronoUnit.MINUTES).toString(),
-        // TODO(duftler): Support 'lookback'.
-        endTimeIso: startTimeInstant.plus(beginCanaryAnalysisAfterMins + i * canaryAnalysisIntervalMins, ChronoUnit.MINUTES).toString(),
         step: step,
         extendedScopeParams: extendedScopeParams
       ]
 
-      stages << newStage(stage.execution, runCanaryPipelineStage.type, "Run Canary #$i", runCanaryContext, stage, SyntheticStageOwner.STAGE_BEFORE)
+      // TODO(duftler): Support 'lookback'.
+      if (!endTimeIso) {
+        runCanaryContext.startTimeIso = startTimeInstant.plus(beginCanaryAnalysisAfterMins, ChronoUnit.MINUTES).toString()
+        runCanaryContext.endTimeIso = startTimeInstant.plus(beginCanaryAnalysisAfterMins + i * canaryAnalysisIntervalMins, ChronoUnit.MINUTES).toString()
+      } else {
+        runCanaryContext.startTimeIso = startTimeInstant.toString()
+        runCanaryContext.endTimeIso = startTimeInstant.plus(i * canaryAnalysisIntervalMins, ChronoUnit.MINUTES).toString()
+      }
+
+      stages << newStage(stage.execution, RunCanaryPipelineStage.STAGE_TYPE, "Run Canary #$i", runCanaryContext, stage, SyntheticStageOwner.STAGE_BEFORE)
     }
 
     return stages
