@@ -713,7 +713,7 @@ class Builder(object):
         raise RuntimeError(msg)
       else:
         print 'Ignoring errors on optional subsystems {0!r}'.format(
-          failed_components)
+          [failure.component for failure in self.__build_failures])
 
   def build_container_images(self):
     """Build the Spinnaker packages as container images.
