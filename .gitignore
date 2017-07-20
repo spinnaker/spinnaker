@@ -10,3 +10,4 @@ out/
 .DS_Store
 /json/
 *.rdb
+/.shelf/
