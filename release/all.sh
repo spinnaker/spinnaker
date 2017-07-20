@@ -2,14 +2,14 @@
 
 set -e
 
+PLATFORMS=(debian)
+VERSIONS=$@
+
 ./gradlew clean && ./gradlew installDist -Prelease.useLastTag=true
 
-PLATFORMS=(debian)
-VERSION=$1
+USAGE="You must supply a list of <versions>, e.g.\n $0 <version1> <version2>"
 
-USAGE="You must supply <version>, e.g.\n $0 <version>"
-
-if [ -z "$VERSION" ]; then
+if [ -z "$VERSIONS" ]; then
   >&2 echo $USAGE
   exit 1
 fi
@@ -17,5 +17,8 @@ fi
 for PLATFORM in "${PLATFORMS[@]}"; do
   echo "Building & releasing $PLATFORM..."
   ./release/$PLATFORM.sh
-  ./release/publish.sh $VERSION $PLATFORM
+  for VERSION in $VERSIONS; do
+    echo "Releasing $VERSION to $PLATFORM"
+    ./release/publish.sh $VERSION $PLATFORM
+  done
 done
