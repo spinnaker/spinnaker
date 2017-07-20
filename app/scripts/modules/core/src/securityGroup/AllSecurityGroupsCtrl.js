@@ -33,9 +33,9 @@ module.exports = angular.module('spinnaker.core.securityGroup.all.controller', [
 
       handleRefresh();
 
-      app.activeState = app.securityGroups;
+      app.setActiveState(app.securityGroups);
       $scope.$on('$destroy', () => {
-        app.activeState = app;
+        app.setActiveState();
         groupsUpdatedSubscription.unsubscribe();
       });
 

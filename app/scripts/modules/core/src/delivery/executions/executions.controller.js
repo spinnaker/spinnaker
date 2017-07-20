@@ -37,9 +37,9 @@ module.exports = angular.module('spinnaker.core.delivery.executions.controller',
         return;
       }
 
-      application.activeState = application.executions;
+      application.setActiveState(application.executions);
       $scope.$on('$destroy', () => {
-        application.activeState = application;
+        application.setActiveState();
         application.executions.deactivate();
         application.pipelineConfigs.deactivate();
         groupsUpdatedSubscription.unsubscribe();

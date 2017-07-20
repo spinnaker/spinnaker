@@ -1,5 +1,6 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
+import { Subscription } from 'rxjs';
 
 import { Application } from 'core/application';
 import { ApplicationIcon, IApplicationIconProps } from './ApplicationIcon';
@@ -23,7 +24,8 @@ export interface IApplicationComponentState {
 
 @autoBindMethods
 export class ApplicationComponent extends React.Component<IApplicationComponentProps, IApplicationComponentState> {
-  private appRefreshUnsubscribe: () => void;
+  private activeStateRefreshUnsubscribe: () => void;
+  private activeStateChangeSubscription: Subscription;
 
   constructor(props: IApplicationComponentProps) {
     super(props);
@@ -35,17 +37,25 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
     DebugWindow.application = props.app;
     props.app.enableAutoRefresh();
-    this.appRefreshUnsubscribe = props.app.onRefresh(null, () => {
+    this.activeStateChangeSubscription = props.app.activeStateChangeStream.subscribe(() => {
+      this.resetActiveStateRefreshStream(this.props);
+      this.setState(this.parseState(props));
+    })
+  }
+
+  private resetActiveStateRefreshStream(props: IApplicationComponentProps): void {
+    if (this.activeStateRefreshUnsubscribe) { this.activeStateRefreshUnsubscribe(); }
+    this.activeStateRefreshUnsubscribe = props.app.activeState.onRefresh(null, () => {
       this.setState(this.parseState(props));
     });
   }
 
   private parseState(props: IApplicationComponentProps): IApplicationComponentState {
-    const refreshState = props.app.activeState || props.app;
+    const activeState = props.app.activeState || props.app;
     return {
       compactHeader: props.app.name.length > 20,
-      lastRefresh: refreshState.lastRefresh,
-      refreshing: refreshState.refreshing
+      lastRefresh: activeState.lastRefresh,
+      refreshing: activeState.loading
     };
   }
 
@@ -54,6 +64,7 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
       DebugWindow.application = undefined;
       this.props.app.disableAutoRefresh();
     }
+    this.activeStateChangeSubscription.unsubscribe();
   }
 
   public pageApplicationOwner(): void {
@@ -67,6 +78,8 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
   }
 
   public handleRefresh(): void {
+    // Force set refreshing to true since we are forcing the refresh
+    this.setState({refreshing: true});
     this.props.app.refresh(true);
   }
 

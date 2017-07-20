@@ -62,10 +62,10 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
         () => this.clustersLoadError()
       );
 
-      app.activeState = app.serverGroups;
+      app.setActiveState(app.serverGroups);
       app.serverGroups.onRefresh($scope, updateClusterGroups);
       $scope.$on('$destroy', () => {
-        app.activeState = app;
+        app.setActiveState();
         MultiselectModel.clearAll();
         insightFilterStateModel.filtersHidden = false;
         groupsUpdatedSubscription.unsubscribe();

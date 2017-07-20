@@ -44,7 +44,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
 
     this.loadBalancersRefreshUnsubscribe = props.app.getDataSource('loadBalancers').onRefresh(null, () => this.updateLoadBalancerGroups());
 
-    props.app.activeState = props.app.loadBalancers;
+    props.app.setActiveState(props.app.loadBalancers);
   }
 
   private groupsUpdated(): void {
@@ -119,7 +119,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
   }
 
   public componentWillUnmount(): void {
-    this.props.app.activeState = this.props.app;
+    this.props.app.setActiveState();
     this.groupsUpdatedListener.unsubscribe();
     this.loadBalancersRefreshUnsubscribe();
   }

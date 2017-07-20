@@ -75,6 +75,15 @@ export class Application {
    */
   public isStandalone = false;
 
+  /**
+   * Which data source is the active state
+   * @type {ApplicationDataSource}
+   */
+  public activeState: ApplicationDataSource = null;
+
+  // Since active state changes don't use $scope, we can just make the Subject public
+  public activeStateChangeStream: Subject<any> = new Subject();
+
   private refreshStream: Subject<any> = new Subject();
 
   private refreshFailureStream: Subject<any> = new Subject();
@@ -162,6 +171,13 @@ export class Application {
   public disableAutoRefresh(): void {
     this.dataLoader && this.dataLoader.unsubscribe();
     this.scheduler.unsubscribe();
+  }
+
+  public setActiveState(state: ApplicationDataSource = null): void {
+    if (this.activeState !== state) {
+      this.activeState = state;
+      this.activeStateChangeStream.next(null);
+    }
   }
 
   private applicationLoadError(err: Error): void {

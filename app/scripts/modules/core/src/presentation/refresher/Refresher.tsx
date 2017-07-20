@@ -39,6 +39,13 @@ export class Refresher extends React.Component<IRefresherProps, IRefresherState>
     });
   }
 
+  public componentWillReceiveProps(nextProps: IRefresherProps): void {
+    if (nextProps.refreshing !== this.props.refreshing ||
+        nextProps.lastRefresh !== this.props.lastRefresh) {
+      this.setState(this.parseState(nextProps));
+    }
+  }
+
   public componentWillUnmount(): void {
     if (this.activeRefresher) {
       this.activeRefresher.unsubscribe();
