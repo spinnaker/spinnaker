@@ -75,7 +75,7 @@ public class CanaryConfigController {
   }
 
   @ApiOperation(value = "Write a canary config to object storage")
-  @RequestMapping(consumes = "application/context+json", method = RequestMethod.POST)
+  @RequestMapping(consumes = "application/json", method = RequestMethod.POST)
   public String storeCanaryConfig(@RequestParam(required = false) final String accountName,
                                   @RequestBody CanaryConfig canaryConfig) throws IOException {
     String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
@@ -124,6 +124,38 @@ public class CanaryConfigController {
     }
 
     throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' already exists.");
+  }
+  
+  @ApiOperation(value = "Update a canary config")
+  @RequestMapping(value = "/{canaryConfigId:.+}", consumes = "application/json", method = RequestMethod.PUT)
+  public String updateCanaryConfig(@RequestParam(required = false) final String accountName,
+                                   @PathVariable String canaryConfigId,
+                                   @RequestBody CanaryConfig canaryConfig) throws IOException {
+    String resolvedAccountName = CredentialsHelper.resolveAccountByNameOrType(accountName,
+                                                                              AccountCredentials.Type.OBJECT_STORE,
+                                                                              accountCredentialsRepository);
+    StorageService storageService =
+      storageServiceRepository
+        .getOne(resolvedAccountName)
+        .orElseThrow(() -> new IllegalArgumentException("No storage service was configured; unable to write canary config to bucket."));
+
+    canaryConfig.setUpdatedTimestamp(System.currentTimeMillis());
+    canaryConfig.setUpdatedTimestampIso(Instant.ofEpochMilli(canaryConfig.getUpdatedTimestamp()).toString());
+
+    canaryConfig.getServices().forEach((serviceName, canaryServiceConfig) -> {
+      canaryServiceConfig.setName(serviceName);
+    });
+    
+    canaryConfigId = canaryConfigId.toLowerCase();
+    
+    try {
+      storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Canary config '" + canaryConfigId + "' does not exist.");
+    }
+    
+    storageService.storeObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId, canaryConfig);
+    return canaryConfigId;    
   }
 
   @ApiOperation(value = "Delete a canary config")
