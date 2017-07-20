@@ -40,8 +40,9 @@ class OldPipelineCleanupPollingNotificationAgentSpec extends Specification {
     def filter = new OldPipelineCleanupPollingNotificationAgent(clock: clock, thresholdDays: 1).filter
 
     expect:
-    filter.call(new Pipeline(startTime: Duration.ofDays(1).toMillis())) == true
-    filter.call(new Pipeline(startTime: Duration.ofDays(3).toMillis())) == false
+    filter.call(new Pipeline(status: ExecutionStatus.SUCCEEDED, startTime: Duration.ofDays(1).toMillis())) == true
+    filter.call(new Pipeline(status: ExecutionStatus.RUNNING, startTime: Duration.ofDays(1).toMillis())) == false
+    filter.call(new Pipeline(status: ExecutionStatus.SUCCEEDED, startTime: Duration.ofDays(3).toMillis())) == false
   }
 
   void 'mapper should extract id, app, pipelineConfigId, status, startTime and buildTime'() {

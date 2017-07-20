@@ -66,6 +66,9 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
   private Func1<Execution, Boolean> filter = new Func1<Execution, Boolean>() {
     @Override
     public Boolean call(Execution execution) {
+      if (!COMPLETED_STATUSES.contains(execution.getStatus().toString())) {
+        return false;
+      }
       long startTime = execution.getStartTime() == null ? execution.getBuildTime() : execution.getStartTime();
       return startTime <= (Instant.ofEpochMilli(clock.millis()).minus(thresholdDays, ChronoUnit.DAYS).toEpochMilli());
     }
@@ -209,7 +212,7 @@ public class OldPipelineCleanupPollingNotificationAgent implements ApplicationLi
     Long startTime;
     Long buildTime;
 
-    PipelineExecutionDetails(String id, String application, String pipelineConfigId, ExecutionStatus status, long startTime, long buildTime) {
+    PipelineExecutionDetails(String id, String application, String pipelineConfigId, ExecutionStatus status, Long startTime, Long buildTime) {
       this.id = id;
       this.application = application;
       this.pipelineConfigId = pipelineConfigId;
