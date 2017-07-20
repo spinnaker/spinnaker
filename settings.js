@@ -6,6 +6,7 @@ var bakeryDetailUrl = process.env.BAKERY_DETAIL_URL || (gateHost + '/bakery/logs
 var authEndpoint = process.env.AUTH_ENDPOINT || (gateHost + '/auth/user');
 var fiatEnabled = process.env.FIAT_ENABLED === 'true' ? true : false;
 var entityTagsEnabled = process.env.ENTITY_TAGS_ENABLED === 'true' ? true : false;
+var liveCallsEnabled = process.env.LIVE_CALLS === 'true';
 
 window.spinnakerSettings = {
   checkForUpdates: true,
@@ -63,7 +64,7 @@ window.spinnakerSettings = {
   gitSources: ['stash', 'github', 'bitbucket'],
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   canary: {
-    liveCalls: false,
+    liveCalls: liveCallsEnabled,
   },
   feature: {
     entityTags: entityTagsEnabled,

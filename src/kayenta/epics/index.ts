@@ -28,7 +28,7 @@ const saveConfigEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanarySt
     .filter(action => action.type === SAVE_CONFIG_SAVING)
     .concatMap(() =>
       updateCanaryConfig(mapStateToConfig(store.getState()))
-        .then(configName => ({type: SAVE_CONFIG_SAVED, configName}))
+        .then((response: {id: string}) => ({type: SAVE_CONFIG_SAVED, configName: response.id}))
         .catch(error => ({type: SAVE_CONFIG_ERROR, error}))
     );
 

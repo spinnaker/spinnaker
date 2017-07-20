@@ -130,6 +130,7 @@ function configure(IS_TEST) {
         FIAT_ENABLED: false,
         INFRA_STAGES: false,
         TIMEZONE: 'America/Los_Angeles',
+        LIVE_CALLS: false,
       }),
     ]);
   }
