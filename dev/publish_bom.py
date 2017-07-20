@@ -171,7 +171,7 @@ class BomPublisher(BomGenerator):
       check_run_quick('git -C {comp} remote add release {url}'
                       .format(comp=comp_path, url=repo_to_push))
       check_run_quick('git -C {comp} push release {branch}'
-                      .format(comp=comp_path,  branch=stable_branch))
+                      .format(comp=comp_path, branch=stable_branch))
 
       repo = self.__github.get_repo('{owner}/{comp}'.format(owner=self.__github_publisher, comp=comp))
       paginated_tags = repo.get_tags()
