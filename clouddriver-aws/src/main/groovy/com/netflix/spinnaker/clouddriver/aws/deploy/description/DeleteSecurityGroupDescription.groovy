@@ -19,4 +19,5 @@ class DeleteSecurityGroupDescription extends AbstractAmazonCredentialsDescriptio
     String securityGroupName
     String vpcId
     Set<String> regions
+    Boolean removeDependencies
 }
