@@ -144,7 +144,7 @@ class BuildFailure(object):
 class Builder(object):
   """Knows how to coordinate a Spinnaker release."""
 
-  def __init__(self, options, build_number=None, container_builder=None):
+  def __init__(self, options, build_number=None, container_builder=None, sync_branch=None):
       self.__package_list = []
       self.__build_failures = []
       self.__background_processes = []
@@ -161,6 +161,7 @@ class Builder(object):
         self.__verify_bintray()
 
       self.__project_dir = determine_project_root()
+      self.__sync_branch = sync_branch
 
   def determine_gradle_root(self, name):
       if self.__options.platform == "debian":
@@ -342,7 +343,8 @@ class Builder(object):
                                self.__options.gcb_service_account,
                                self.__options.gcb_service_account_json,
                                self.__options.gcb_project,
-                               self.__options.gcb_mirror_base_url)
+                               self.__options.gcb_mirror_base_url,
+                               self.__sync_branch)
     elif self.__options.container_builder == 'docker':
       self.__docker_build(name, gradle_root)
     else:
@@ -369,21 +371,34 @@ class Builder(object):
     run_shell_and_log(cmds, logfile, cwd=gradle_root)
 
   @classmethod
-  def __gcb_trigger_build(cls, name, gradle_root, gcb_service_account, gcb_service_account_json, gcb_project, mirror_base_url):
+  def __gcb_trigger_build(cls, name, gradle_root, gcb_service_account, gcb_service_account_json, gcb_project, mirror_base_url, sync_branch):
     logfile = '{name}-gcb-triggered-build.log'.format(name=name)
-    tag = cls.__tag_gcb_mirror(name, mirror_base_url, gradle_root, logfile)
+    tag = cls.__tag_gcb_mirror(name, mirror_base_url, gradle_root, sync_branch, logfile)
     subscription = cls.__configure_gcb_pubsub(name, gcb_service_account_json)
     cls.__listen_gcb_build_status(name, subscription, tag, gcb_project, gcb_service_account, logfile)
 
   @classmethod
-  def __tag_gcb_mirror(cls, name, mirror_base_url, gradle_root, logfile):
+  def __tag_gcb_mirror(cls, name, mirror_base_url, gradle_root, sync_branch, logfile):
+    add_mirror_cmds = [
+      'git remote add mirror {base_url}/{name}.git'.format(base_url=mirror_base_url, name=name),
+      'git fetch mirror'
+    ]
+    run_shell_and_log(add_mirror_cmds, logfile, cwd=gradle_root)
+
+    all_remote_branches = run_quick('git -C {name} branch -r'.format(name=name),
+                                    echo=False).stdout.strip().splitlines()
+    checkout_cmd = ''
+    print all_remote_branches
+    if 'mirror/{}'.format(sync_branch) in all_remote_branches:
+      checkout_cmd = 'git checkout mirror/{branch}'.format(branch=sync_branch)
+    else:
+      checkout_cmd = 'git checkout {branch}'.format(branch=sync_branch)
+
     tag = run_quick('cat {name}-gcb-trigger.yml'.format(name=name), echo=False).stdout.strip()
     cmds = [
-      'git remote add mirror {base_url}/{name}.git'.format(base_url=mirror_base_url, name=name),
-      'git fetch mirror',
-      'git checkout mirror/master',
-      'git merge origin/master',
-      'git push mirror master',
+      checkout_cmd,
+      'git merge origin/{branch}'.format(branch=sync_branch),
+      'git push mirror {branch}'.format(branch=sync_branch),
       'git push mirror {tag}'.format(name=name, tag=tag)
     ]
     if os.path.exists(logfile):
@@ -852,7 +867,7 @@ class Builder(object):
 
 
   @classmethod
-  def do_build(cls, options, build_number=None, container_builder=None):
+  def do_build(cls, options, build_number=None, container_builder=None, sync_branch=None):
     if options.build and not (options.bintray_repo):
       sys.stderr.write('ERROR: Missing a --bintray_repo')
       return -1
@@ -862,7 +877,8 @@ class Builder(object):
           .format(options.platform, ', '.join(VALID_PLATFORMS)))
       return -1
 
-    builder = cls(options, build_number=build_number, container_builder=container_builder)
+    builder = cls(options, build_number=build_number,
+                  container_builder=container_builder, sync_branch=sync_branch)
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
