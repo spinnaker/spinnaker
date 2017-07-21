@@ -20,6 +20,7 @@ import com.netflix.spinnaker.clouddriver.aws.AmazonOperation;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractRegionAsgInstanceIdsDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceTargetGroupRegistrationDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.RegisterInstancesWithLoadBalancerAtomicOperation;
+import com.netflix.spinnaker.clouddriver.aws.deploy.ops.RegisterInstancesWithTargetGroupAtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations;
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport;
@@ -40,7 +41,7 @@ class RegisterInstancesWithLoadBalancerAtomicOperationConverter extends Abstract
     if (isClassic(input)) {
       return new RegisterInstancesWithLoadBalancerAtomicOperation(convertDescription(input));
     }
-    return new RegisterInstancesWithLoadBalancerAtomicOperation(convertDescription(input));
+    return new RegisterInstancesWithTargetGroupAtomicOperation(convertDescription(input));
   }
 
   @Override
@@ -52,7 +53,7 @@ class RegisterInstancesWithLoadBalancerAtomicOperationConverter extends Abstract
       converted = getObjectMapper().convertValue(input, InstanceTargetGroupRegistrationDescription.class);
     }
 
-    converted.setCredentials(getCredentialsObject((String)input.get("credentials")));
+    converted.setCredentials(getCredentialsObject((String) input.get("credentials")));
     return converted;
   }
 }

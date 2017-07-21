@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.aws.deploy.ops;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.AbstractRegionAsgInstanceIdsDescription;
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.InstanceTargetGroupRegistrationDescription;
 
-class RegisterInstancesWithTargetGroupAtomicOperation extends AbstractInstanceTargetGroupRegistrationAtomicOperation {
-  RegisterInstancesWithTargetGroupAtomicOperation(AbstractRegionAsgInstanceIdsDescription description) {
-    super((InstanceTargetGroupRegistrationDescription)description);
+public class RegisterInstancesWithTargetGroupAtomicOperation extends AbstractInstanceTargetGroupRegistrationAtomicOperation {
+  public RegisterInstancesWithTargetGroupAtomicOperation(AbstractRegionAsgInstanceIdsDescription description) {
+    super((InstanceTargetGroupRegistrationDescription) description);
   }
 
   @Override
