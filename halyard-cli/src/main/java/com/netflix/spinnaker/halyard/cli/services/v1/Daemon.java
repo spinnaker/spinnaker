@@ -643,15 +643,12 @@ public class Daemon {
     return objectMapper;
   }
 
-  // TODO(lwander): setup config file for this
-  static final private String endpoint = "http://localhost:8064";
-
   static private DaemonService service;
   static private ObjectMapper objectMapper;
 
   private static DaemonService createService(boolean log) {
     return new RestAdapter.Builder()
-        .setEndpoint(endpoint)
+        .setEndpoint(GlobalOptions.getGlobalOptions().getDaemonEndpoint())
         .setClient(new OkClient())
         .setConverter(new JacksonConverter(getObjectMapper()))
         .setLogLevel(log ? RestAdapter.LogLevel.FULL : RestAdapter.LogLevel.NONE)

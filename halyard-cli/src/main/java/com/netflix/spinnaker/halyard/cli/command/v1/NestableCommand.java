@@ -97,6 +97,11 @@ public abstract class NestableCommand {
     GlobalOptions.getGlobalOptions().setColor(color);
   }
 
+  @Parameter(names = { "--daemon-endpoint"}, description = "If supplied, connect to the daemon at this address.")
+  public void setDaemonEndpoint(String address) {
+    GlobalOptions.getGlobalOptions().setDaemonEndpoint(address);
+  }
+
   private String fullCommandName = "";
 
   private static JobExecutor jobExecutor;

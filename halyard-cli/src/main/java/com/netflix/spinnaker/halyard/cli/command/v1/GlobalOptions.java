@@ -37,6 +37,8 @@ public class GlobalOptions {
 
   private boolean alpha = false;
 
+  private String daemonEndpoint = "http://localhost:8064";
+
   private String options;
 
   private Level log;
@@ -58,6 +60,12 @@ public class GlobalOptions {
     }
 
     name = name.substring(i);
+    i = name.indexOf("-");
+    if (i != -1) {
+      String prefix = name.substring(0, i);
+      String suffix = name.substring(i+1, name.length());
+      name = prefix + suffix.substring(0, 1).toUpperCase() + suffix.substring(1, suffix.length());
+    }
     try {
       GlobalOptions.class.getDeclaredField(name);
     } catch (NoSuchFieldException e) {
