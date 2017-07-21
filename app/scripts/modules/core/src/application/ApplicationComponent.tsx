@@ -45,7 +45,8 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
 
   private resetActiveStateRefreshStream(props: IApplicationComponentProps): void {
     if (this.activeStateRefreshUnsubscribe) { this.activeStateRefreshUnsubscribe(); }
-    this.activeStateRefreshUnsubscribe = props.app.activeState.onRefresh(null, () => {
+    const activeState = props.app.activeState || props.app;
+    this.activeStateRefreshUnsubscribe = activeState.onRefresh(null, () => {
       this.setState(this.parseState(props));
     });
   }
