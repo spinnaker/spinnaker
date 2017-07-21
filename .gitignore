@@ -10,6 +10,7 @@ Thumbs.db
 *.iws
 *.iml
 .idea/
+.vscode/
 
 # Node Files #
 npm-debug.log

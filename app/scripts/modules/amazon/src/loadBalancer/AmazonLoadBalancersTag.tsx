@@ -22,6 +22,10 @@ interface ILoadBalancerListItemProps {
   onItemClick: (loadBalancer: ILoadBalancer | ITargetGroup) => void;
 }
 
+interface ILoadBalancerSingleItemProps extends ILoadBalancerListItemProps {
+  label: string;
+}
+
 @autoBindMethods
 class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
@@ -40,7 +44,7 @@ class LoadBalancerListItem extends React.Component<ILoadBalancerListItemProps> {
 }
 
 @autoBindMethods
-class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
+class LoadBalancerButton extends React.Component<ILoadBalancerSingleItemProps> {
   private onClick(e: React.MouseEvent<HTMLElement>): void {
     this.props.onItemClick(this.props.loadBalancer);
     e.nativeEvent.preventDefault(); // yay angular JQueryEvent still listening to the click event...
@@ -48,7 +52,7 @@ class LoadBalancerButton extends React.Component<ILoadBalancerListItemProps> {
 
   public render(): React.ReactElement<LoadBalancerButton> {
     return (
-      <Tooltip value={`Load Balancer: ${this.props.loadBalancer.name}`}>
+      <Tooltip value={`${this.props.label || 'Load Balancer'}: ${this.props.loadBalancer.name}`}>
         <button className="btn btn-link no-padding" onClick={this.onClick}>
           <span className="badge badge-counter">
             <span className="icon">
@@ -142,12 +146,12 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
           )}
           { (loadBalancers.length === 1 && targetGroups.length === 0) && (
             <span className="btn-load-balancer">
-              <LoadBalancerButton key={loadBalancers[0].name} loadBalancer={loadBalancers[0]} onItemClick={this.showLoadBalancerDetails}/>
+              <LoadBalancerButton key={loadBalancers[0].name} label="Load Balancer" loadBalancer={loadBalancers[0]} onItemClick={this.showLoadBalancerDetails}/>
             </span>
           )}
           { (targetGroups.length === 1 && loadBalancers.length === 0) && (
             <span className="btn-load-balancer">
-              <LoadBalancerButton key={targetGroups[0].name} loadBalancer={targetGroups[0]} onItemClick={this.showTargetGroupDetails}/>
+              <LoadBalancerButton key={targetGroups[0].name} label="Target Group" loadBalancer={targetGroups[0]} onItemClick={this.showTargetGroupDetails}/>
             </span>
           )}
         </span>
