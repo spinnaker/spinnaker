@@ -16,12 +16,14 @@
 
 package com.netflix.spinnaker.clouddriver.core
 
+import com.netflix.spinnaker.cats.redis.JedisClientDelegate
+import com.netflix.spinnaker.cats.redis.RedisClientDelegate
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.data.task.jedis.JedisTaskRepository
+import com.netflix.spinnaker.clouddriver.data.task.jedis.RedisTaskRepository
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -31,7 +33,7 @@ import redis.clients.jedis.JedisPool
 import redis.clients.jedis.Protocol
 
 @Configuration
-@ConditionalOnProperty('redis.connection')
+@ConditionalOnExpression('${redis.enabled:true}')
 @EnableConfigurationProperties(RedisConfigurationProperties)
 class RedisConfig {
   @Bean
@@ -41,8 +43,18 @@ class RedisConfig {
   }
 
   @Bean
-  TaskRepository taskRepository(JedisPool jedisPool, Optional<JedisPool> jedisPoolPrevious) {
-    new JedisTaskRepository(jedisPool, jedisPoolPrevious)
+  TaskRepository taskRepository(RedisClientDelegate redisClientDelegate, Optional<RedisClientDelegate> redisClientDelegatePrevious) {
+    new RedisTaskRepository(redisClientDelegate, redisClientDelegatePrevious)
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegate(JedisPool jedisPool) {
+    return new JedisClientDelegate(jedisPool);
+  }
+
+  @Bean
+  RedisClientDelegate redisClientDelegatePrevious(JedisPool jedisPoolPrevious) {
+    return new JedisClientDelegate(jedisPoolPrevious)
   }
 
   @Bean

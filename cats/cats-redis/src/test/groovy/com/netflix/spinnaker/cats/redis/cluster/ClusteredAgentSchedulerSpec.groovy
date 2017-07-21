@@ -19,10 +19,11 @@ package com.netflix.spinnaker.cats.redis.cluster
 import com.netflix.spinnaker.cats.agent.AgentExecution
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
-import com.netflix.spinnaker.cats.redis.JedisSource
+import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.cats.test.ManualRunnableScheduler
 import com.netflix.spinnaker.cats.test.TestAgent
 import redis.clients.jedis.Jedis
+import redis.clients.jedis.JedisPool
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -42,12 +43,12 @@ class ClusteredAgentSchedulerSpec extends Specification {
         def interval = new DefaultAgentIntervalProvider(6000000)
         agent = new TestAgent()
         jedis = Mock(Jedis)
-        def source = Stub(JedisSource) {
-            getJedis() >> jedis
+        def jedisPool = Stub(JedisPool) {
+            getResource() >> jedis
         }
         lockPollingScheduler = new ManualRunnableScheduler()
         agentExecutionScheduler = new ManualRunnableScheduler()
-        scheduler = new ClusteredAgentScheduler(source, new DefaultNodeIdentity(), interval, new DefaultNodeStatusProvider(), lockPollingScheduler, agentExecutionScheduler)
+        scheduler = new ClusteredAgentScheduler(new JedisClientDelegate(jedisPool), new DefaultNodeIdentity(), interval, new DefaultNodeStatusProvider(), lockPollingScheduler, agentExecutionScheduler)
     }
 
     def 'cache run aborted if agent doesnt acquire execution token'() {

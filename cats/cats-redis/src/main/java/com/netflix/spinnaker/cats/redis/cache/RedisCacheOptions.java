@@ -108,7 +108,7 @@ public class RedisCacheOptions {
         return hashingEnabled;
     }
 
-    public static class Builder {
+  public static class Builder {
         public static final int DEFAULT_MULTI_OP_SIZE = 10000;
         public static final int DEFAULT_BATCH_SIZE = 5000;
         public static final int DEFAULT_SCAN_SIZE = 25000;
@@ -319,5 +319,5 @@ public class RedisCacheOptions {
         public void setHashingEnabled(boolean hashingEnabled) {
             this.hashingEnabled = hashingEnabled;
         }
-    }
+  }
 }

@@ -21,7 +21,8 @@ import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
 import com.netflix.spinnaker.cats.cache.WriteableCache
 import com.netflix.spinnaker.cats.cache.WriteableCacheSpec
-import com.netflix.spinnaker.cats.redis.JedisPoolSource
+import com.netflix.spinnaker.cats.redis.JedisClientDelegate
+import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache.CacheMetrics
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -33,7 +34,7 @@ class RedisCacheSpec extends WriteableCacheSpec {
     static int MAX_MSET_SIZE = 2
     static int MAX_MERGE_COUNT = 1
 
-    RedisCache.CacheMetrics cacheMetrics = Mock(RedisCache.CacheMetrics)
+    CacheMetrics cacheMetrics = Mock()
     JedisPool pool
 
     @Shared
@@ -46,17 +47,16 @@ class RedisCacheSpec extends WriteableCacheSpec {
             embeddedRedis = EmbeddedRedis.embed()
         }
         pool = embeddedRedis.pool as JedisPool
-        def source = new JedisPoolSource(pool)
         Jedis jedis
         try {
-            jedis = source.jedis
+            jedis = pool.resource
             jedis.flushAll()
         } finally {
             jedis?.close()
         }
 
         def mapper = new ObjectMapper();
-        return new RedisCache('test', source, mapper, RedisCacheOptions.builder().maxMset(MAX_MSET_SIZE).maxMergeBatch(MAX_MERGE_COUNT).build(), cacheMetrics)
+        return new RedisCache('test', new JedisClientDelegate(pool), mapper, RedisCacheOptions.builder().maxMset(MAX_MSET_SIZE).maxMergeBatch(MAX_MERGE_COUNT).build(), cacheMetrics)
     }
 
     @Unroll
@@ -129,27 +129,27 @@ class RedisCacheSpec extends WriteableCacheSpec {
     }
 
     def 'should ignore hashes if hashes disabled'() {
-      setup:
-      def data = createData('blerp', [a: 'b'])
+        setup:
+        def data = createData('blerp', [a: 'b'])
 
-      when: //initial write
-      ((WriteableCache) cache).merge('foo', data)
+        when: //initial write
+        ((WriteableCache) cache).merge('foo', data)
 
-      then:
-      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
+        then:
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 0, 1, 1, 1, 0)
 
-      when: //second write, hash matches
-      ((WriteableCache) cache).merge('foo', data)
+        when: //second write, hash matches
+        ((WriteableCache) cache).merge('foo', data)
 
-      then:
-      1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0)
+        then:
+        1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)
 
-      when: //third write, disable hashing
-      pool.resource.withCloseable { Jedis j -> j.set('test:foo:hashes.disabled', 'true')}
-      ((WriteableCache) cache).merge('foo', data)
+        when: //third write, disable hashing
+        pool.resource.withCloseable { Jedis j -> j.set('test:foo:hashes.disabled', 'true')}
+        ((WriteableCache) cache).merge('foo', data)
 
-      then:
-      1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
+        then:
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 0, 1, 1, 1, 0)
     }
 
     def 'should not write an item if it is unchanged'() {
@@ -160,20 +160,20 @@ class RedisCacheSpec extends WriteableCacheSpec {
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 1, 1, 1, 0)
+        1 * cacheMetrics.merge('test', 'foo', 1, 1, 0, 0, 1, 2, 0, 1, 1, 1, 0)
 
         when:
         ((WriteableCache) cache).merge('foo', data)
 
         then:
-        1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0)
+        1 * cacheMetrics.merge('test', 'foo', 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0)
     }
 
     def 'should merge #mergeCount items at a time'() {
         setup:
         def cache = new RedisCache(
             'test',
-            new JedisPoolSource(pool),
+            new JedisClientDelegate(pool),
             new ObjectMapper(),
             RedisCacheOptions.builder().maxMergeBatch(mergeCount).hashing(false).build(),
             cacheMetrics)
@@ -183,8 +183,8 @@ class RedisCacheSpec extends WriteableCacheSpec {
 
         then:
 
-        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 2, 1, 0, 1, 0)
-        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 2, 1, 0, 1, 0)
+        fullMerges * cacheMetrics.merge('test', 'foo', mergeCount, mergeCount, 0, 0, 0, 2, 0, 1, 0, 1, 0)
+        finalMergeCount * cacheMetrics.merge('test', 'foo', finalMerge, finalMerge, 0, 0, 0, 2, 0, 1, 0, 1, 0)
 
         where:
         mergeCount << [ 1, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 100, 101, 131 ]

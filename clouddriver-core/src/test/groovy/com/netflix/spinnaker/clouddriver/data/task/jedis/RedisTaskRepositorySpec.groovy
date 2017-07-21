@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.data.task.jedis
 
+import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.clouddriver.data.task.DefaultTaskStatus
 import com.netflix.spinnaker.clouddriver.data.task.TaskState
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
@@ -25,9 +26,10 @@ import spock.lang.AutoCleanup
 import spock.lang.Shared
 import spock.lang.Specification
 
-class JedisTaskRepositorySpec extends Specification {
+class RedisTaskRepositorySpec extends Specification {
+
   @Shared
-  JedisTaskRepository taskRepository
+  RedisTaskRepository taskRepository
 
   @Shared
   JedisPool jedisPool
@@ -39,7 +41,7 @@ class JedisTaskRepositorySpec extends Specification {
   def setupSpec() {
     embeddedRedis = EmbeddedRedis.embed()
     jedisPool = embeddedRedis.pool as JedisPool
-    taskRepository = new JedisTaskRepository(jedisPool, Optional.empty())
+    taskRepository = new RedisTaskRepository(new JedisClientDelegate(jedisPool), Optional.empty())
   }
 
   def setup() {
@@ -58,11 +60,11 @@ class JedisTaskRepositorySpec extends Specification {
     def currentPool = embeddedRedis.pool as JedisPool
     currentPool.resource.withCloseable { it.flushDB() }
 
-    def taskR = new JedisTaskRepository(previousJedisPool, Optional.empty())
+    def taskR = new RedisTaskRepository(new JedisClientDelegate(previousJedisPool), Optional.empty())
     def oldPoolTask = taskR.create("starting", "foo")
     oldPoolTask.complete()
 
-    def newTaskR = new JedisTaskRepository(currentPool, Optional.of(previousJedisPool))
+    def newTaskR = new RedisTaskRepository(new JedisClientDelegate(currentPool), Optional.of(new JedisClientDelegate(previousJedisPool)))
 
     when:
     def fromOldPool = newTaskR.get(oldPoolTask.id)

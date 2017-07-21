@@ -18,7 +18,7 @@ package com.netflix.spinnaker.cats.redis.cache
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.cache.DefaultCacheData
-import com.netflix.spinnaker.cats.redis.JedisPoolSource
+import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.Jedis
 import redis.clients.jedis.JedisPool
@@ -39,17 +39,16 @@ class RedisNamedCacheFactorySpec extends Specification {
     def setup() {
         embeddedRedis = EmbeddedRedis.embed()
         def pool = embeddedRedis.pool as JedisPool
-        def source = new JedisPoolSource(pool)
         Jedis jedis
         try {
-            jedis = source.jedis
+            jedis = pool.resource
             jedis.flushAll()
         } finally {
             jedis?.close()
         }
 
         def mapper = new ObjectMapper();
-        factory = new RedisNamedCacheFactory(source, mapper, RedisCacheOptions.builder().build(), null)
+        factory = new RedisNamedCacheFactory(new JedisClientDelegate(pool), mapper, RedisCacheOptions.builder().build(), null)
     }
 
     def 'caches with the same name share content'() {

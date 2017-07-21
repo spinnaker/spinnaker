@@ -26,7 +26,7 @@ import groovy.util.logging.Slf4j
 class JedisTask implements Task {
 
   @JsonIgnore
-  JedisTaskRepository repository
+  RedisTaskRepository repository
 
   final String id
   final long startTimeMs
@@ -34,7 +34,7 @@ class JedisTask implements Task {
   @JsonIgnore
   final boolean previousRedis
 
-  JedisTask(String id, long startTimeMs, JedisTaskRepository repository, boolean previousRedis) {
+  JedisTask(String id, long startTimeMs, RedisTaskRepository repository, boolean previousRedis) {
     this.id = id
     this.startTimeMs = startTimeMs
     this.repository = repository

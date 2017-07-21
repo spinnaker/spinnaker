@@ -19,9 +19,9 @@ package com.netflix.spinnaker.clouddriver.eureka
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.eureka.api.EurekaApiFactory
 import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.EurekaSupportConfigurationProperties
+import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaAwareProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.agent.EurekaCachingAgent
-import com.netflix.spinnaker.clouddriver.eureka.provider.EurekaCachingProvider
 import com.netflix.spinnaker.clouddriver.eureka.provider.config.EurekaAccountConfigurationProperties
 import org.springframework.beans.factory.config.ConfigurableBeanFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

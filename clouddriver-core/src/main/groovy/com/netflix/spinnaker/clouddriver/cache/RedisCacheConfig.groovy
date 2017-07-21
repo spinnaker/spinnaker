@@ -16,47 +16,33 @@
 
 package com.netflix.spinnaker.clouddriver.cache
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.discovery.DiscoveryClient
 import com.netflix.spectator.api.Registry
-import com.netflix.spinnaker.cats.agent.AgentScheduler
-import com.netflix.spinnaker.cats.cache.NamedCacheFactory
-import com.netflix.spinnaker.cats.redis.JedisPoolSource
-import com.netflix.spinnaker.cats.redis.JedisSource
-import com.netflix.spinnaker.cats.redis.cache.RedisCache
+import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache
 import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions
-import com.netflix.spinnaker.cats.redis.cache.RedisNamedCacheFactory
 import com.netflix.spinnaker.cats.redis.cluster.AgentIntervalProvider
-import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler
-import com.netflix.spinnaker.cats.redis.cluster.ClusteredSortAgentScheduler
-import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeIdentity
 import com.netflix.spinnaker.cats.redis.cluster.DefaultNodeStatusProvider
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider
 import com.netflix.spinnaker.clouddriver.core.RedisConfigurationProperties
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import redis.clients.jedis.JedisPool
 
 import java.util.concurrent.TimeUnit
 
 @Configuration
-@ConditionalOnProperty('redis.connection')
+@ConditionalOnExpression('${redis.enabled:true}')
 @EnableConfigurationProperties(RedisConfigurationProperties)
 class RedisCacheConfig {
-  @Bean
-  JedisSource jedisSource(JedisPool jedisPool) {
-    new JedisPoolSource(jedisPool)
-  }
 
   @Bean
   @ConfigurationProperties("caching.redis")
   RedisCacheOptions.Builder redisCacheOptionsBuilder() {
-    return RedisCacheOptions.builder();
+    return RedisCacheOptions.builder()
   }
 
   @Bean
@@ -65,22 +51,16 @@ class RedisCacheConfig {
   }
 
   @Bean
-  RedisCache.CacheMetrics cacheMetrics(Registry registry) {
+  AbstractRedisCache.CacheMetrics cacheMetrics(Registry registry) {
     new SpectatorRedisCacheMetrics(registry)
   }
 
   @Bean
-  NamedCacheFactory cacheFactory(
-    JedisSource jedisSource,
-    ObjectMapper objectMapper,
-    RedisCacheOptions redisCacheOptions,
-    RedisCache.CacheMetrics cacheMetrics) {
-    new RedisNamedCacheFactory(jedisSource, objectMapper, redisCacheOptions, cacheMetrics)
-  }
-
-  @Bean
   AgentIntervalProvider agentIntervalProvider(RedisConfigurationProperties redisConfigurationProperties) {
-    new CustomSchedulableAgentIntervalProvider(TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.intervalSeconds), TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.timeoutSeconds))
+    new CustomSchedulableAgentIntervalProvider(
+      TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.intervalSeconds),
+      TimeUnit.SECONDS.toMillis(redisConfigurationProperties.poll.timeoutSeconds)
+    );
   }
 
   @Bean
@@ -93,23 +73,5 @@ class RedisCacheConfig {
   @ConditionalOnMissingBean(NodeStatusProvider)
   DefaultNodeStatusProvider nodeStatusProvider() {
     new DefaultNodeStatusProvider()
-  }
-
-  @Bean
-  @ConditionalOnProperty(value = 'caching.writeEnabled', matchIfMissing = true)
-  AgentScheduler agentScheduler(RedisConfigurationProperties redisConfigurationProperties, JedisSource jedisSource, AgentIntervalProvider agentIntervalProvider, NodeStatusProvider nodeStatusProvider) {
-    if (redisConfigurationProperties.scheduler.equalsIgnoreCase('default')) {
-      URI redisUri = URI.create(redisConfigurationProperties.connection)
-      String redisHost = redisUri.getHost()
-      int redisPort = redisUri.getPort()
-      if (redisPort == -1) {
-        redisPort = 6379
-      }
-      new ClusteredAgentScheduler(jedisSource, new DefaultNodeIdentity(redisHost, redisPort), agentIntervalProvider, nodeStatusProvider)
-    } else if (redisConfigurationProperties.scheduler.equalsIgnoreCase('sort')) {
-      new ClusteredSortAgentScheduler(jedisSource, nodeStatusProvider, agentIntervalProvider, redisConfigurationProperties.parallelism ?: -1);
-    } else {
-      throw new IllegalStateException("redis.scheduler must be one of 'default', 'sort', or ''.");
-    }
   }
 }

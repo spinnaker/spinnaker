@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.netflix.spinnaker.cats.redis.cache;
+package com.netflix.spinnaker.cats.dynomite.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.netflix.spinnaker.cats.cache.CacheData;
-import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
+import com.netflix.spinnaker.cats.dynomite.DynomiteClientDelegate;
+import com.netflix.spinnaker.cats.redis.cache.AbstractRedisCache;
+import com.netflix.spinnaker.cats.redis.cache.RedisCacheOptions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,17 +35,18 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class RedisCache extends AbstractRedisCache {
+public class DynomiteCache extends AbstractRedisCache {
 
-  public RedisCache(String prefix, RedisClientDelegate redisClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, CacheMetrics cacheMetrics) {
-    super(prefix, redisClientDelegate, objectMapper, options, cacheMetrics);
+  public DynomiteCache(String prefix, DynomiteClientDelegate dynomiteClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, CacheMetrics cacheMetrics) {
+    super(prefix, dynomiteClientDelegate, objectMapper, options, cacheMetrics);
   }
 
   @Override
-  protected void mergeItems(String type, Collection<CacheData> items) {
-    if (items.isEmpty()) {
+  public void mergeItems(String type, Collection<CacheData> items) {
+    if (items.isEmpty()){
       return;
     }
+
     final Set<String> relationshipNames = new HashSet<>();
     final List<String> keysToSet = new LinkedList<>();
     final Set<String> idSet = new HashSet<>();
@@ -71,51 +74,45 @@ public class RedisCache extends AbstractRedisCache {
     }
 
     AtomicInteger saddOperations = new AtomicInteger();
+    AtomicInteger setOperations = new AtomicInteger();
     AtomicInteger msetOperations = new AtomicInteger();
     AtomicInteger hmsetOperations = new AtomicInteger();
-    AtomicInteger pipelineOperations = new AtomicInteger();
     AtomicInteger expireOperations = new AtomicInteger();
-    if (keysToSet.size() > 0) {
-      redisClientDelegate.withMultiKeyPipeline(pipeline -> {
+    if (!keysToSet.isEmpty()) {
+      redisClientDelegate.withCommandsClient(client -> {
         for (List<String> idPart : Iterables.partition(idSet, options.getMaxSaddSize())) {
           final String[] ids = idPart.toArray(new String[idPart.size()]);
-          pipeline.sadd(allOfTypeReindex(type), ids);
+          client.sadd(allOfTypeReindex(type), ids);
           saddOperations.incrementAndGet();
-          pipeline.sadd(allOfTypeId(type), ids);
+          client.sadd(allOfTypeId(type), ids);
           saddOperations.incrementAndGet();
         }
 
-        for (List<String> keys : Lists.partition(keysToSet, options.getMaxMsetSize())) {
-          pipeline.mset(keys.toArray(new String[keys.size()]));
-          msetOperations.incrementAndGet();
+        int kn = keysToSet.size() / 2;
+        for (int i = 0; i < kn; i = i + 2) {
+          client.set(keysToSet.get(i), keysToSet.get(i+1));
+          setOperations.incrementAndGet();
         }
 
         if (!relationshipNames.isEmpty()) {
           for (List<String> relNamesPart : Iterables.partition(relationshipNames, options.getMaxSaddSize())) {
-            pipeline.sadd(allRelationshipsId(type), relNamesPart.toArray(new String[relNamesPart.size()]));
+            client.sadd(allRelationshipsId(type), relNamesPart.toArray(new String[relNamesPart.size()]));
             saddOperations.incrementAndGet();
           }
         }
 
         if (!updatedHashes.isEmpty()) {
           for (List<String> hashPart : Iterables.partition(updatedHashes.keySet(), options.getMaxHmsetSize())) {
-            pipeline.hmset(hashesId(type), updatedHashes.subMap(hashPart.get(0), true, hashPart.get(hashPart.size() - 1), true));
+            client.hmset(hashesId(type), updatedHashes.subMap(hashPart.get(0), true, hashPart.get(hashPart.size() - 1), true));
             hmsetOperations.incrementAndGet();
           }
         }
-        pipeline.sync();
-        pipelineOperations.incrementAndGet();
-      });
 
-      redisClientDelegate.withMultiKeyPipeline(pipeline -> {
-        for (List<Map.Entry<String, Integer>> ttlPart : Iterables.partition(ttlSecondsByKey.entrySet(), options.getMaxPipelineSize())) {
-          for (Map.Entry<String, Integer> ttlEntry : ttlPart) {
-            pipeline.expire(ttlEntry.getKey(), ttlEntry.getValue());
-          }
-          expireOperations.addAndGet(ttlPart.size());
-          pipeline.sync();
-          pipelineOperations.incrementAndGet();
+        for (Map.Entry<String, Integer> ttlEntry : ttlSecondsByKey.entrySet()) {
+          client.expire(ttlEntry.getKey(), ttlEntry.getValue());
         }
+        expireOperations.addAndGet(ttlSecondsByKey.size());
+
       });
     }
 
@@ -128,10 +125,10 @@ public class RedisCache extends AbstractRedisCache {
       skippedWrites,
       updatedHashes.size(),
       saddOperations.get(),
-      0,
+      setOperations.get(),
       msetOperations.get(),
       hmsetOperations.get(),
-      pipelineOperations.get(),
+      0,
       expireOperations.get()
     );
   }
@@ -140,8 +137,8 @@ public class RedisCache extends AbstractRedisCache {
   protected void evictItems(String type, List<String> identifiers, Collection<String> allRelationships) {
     List<String> delKeys = new ArrayList<>((allRelationships.size() + 1) * identifiers.size());
     for (String id : identifiers) {
-      for (String relationship : allRelationships) {
-        delKeys.add(relationshipId(type, id, relationship));
+      for (String rel : allRelationships) {
+        delKeys.add(relationshipId(type, id, rel));
       }
       delKeys.add(attributesId(type, id));
     }
@@ -149,23 +146,22 @@ public class RedisCache extends AbstractRedisCache {
     AtomicInteger delOperations = new AtomicInteger();
     AtomicInteger hdelOperations = new AtomicInteger();
     AtomicInteger sremOperations = new AtomicInteger();
-    redisClientDelegate.withMultiKeyPipeline(pipeline -> {
-      for (List<String> delPartition : Lists.partition(delKeys, options.getMaxDelSize())) {
-        pipeline.del(delPartition.toArray(new String[delPartition.size()]));
+
+    redisClientDelegate.withCommandsClient(client -> {
+      for (String key : delKeys) {
+        client.del(key);
         delOperations.incrementAndGet();
-        pipeline.hdel(hashesId(type), delPartition.toArray(new String[delPartition.size()]));
+        client.hdel(hashesId(type), key);
         hdelOperations.incrementAndGet();
       }
 
       for (List<String> idPartition : Lists.partition(identifiers, options.getMaxDelSize())) {
         String[] ids = idPartition.toArray(new String[idPartition.size()]);
-        pipeline.srem(allOfTypeId(type), ids);
+        client.srem(allOfTypeId(type), ids);
         sremOperations.incrementAndGet();
-        pipeline.srem(allOfTypeReindex(type), ids);
+        client.srem(allOfTypeReindex(type), ids);
         sremOperations.incrementAndGet();
       }
-
-      pipeline.sync();
     });
 
     cacheMetrics.evict(

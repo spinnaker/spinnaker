@@ -19,14 +19,12 @@ package com.netflix.spinnaker.clouddriver.core.agent;
 import com.netflix.spinnaker.cats.agent.RunnableAgent;
 import com.netflix.spinnaker.cats.module.CatsModule;
 import com.netflix.spinnaker.cats.provider.Provider;
-import com.netflix.spinnaker.cats.redis.JedisSource;
+import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
 import com.netflix.spinnaker.clouddriver.cache.CustomScheduledAgent;
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Pipeline;
 import redis.clients.jedis.ScanParams;
 import redis.clients.jedis.ScanResult;
 
@@ -43,21 +41,21 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
   private static final long DEFAULT_POLL_INTERVAL_MILLIS = TimeUnit.MINUTES.toMillis(30);
   private static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5);
 
-  private final JedisSource jedisSource;
+  private final RedisClientDelegate redisClientDelegate;
   private final ApplicationContext applicationContext;
   private final long pollIntervalMillis;
   private final long timeoutMillis;
 
-  public CleanupPendingOnDemandCachesAgent(JedisSource jedisSource,
+  public CleanupPendingOnDemandCachesAgent(RedisClientDelegate redisClientDelegate,
                                            ApplicationContext applicationContext) {
-    this(jedisSource, applicationContext, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS);
+    this(redisClientDelegate, applicationContext, DEFAULT_POLL_INTERVAL_MILLIS, DEFAULT_TIMEOUT_MILLIS);
   }
 
-  private CleanupPendingOnDemandCachesAgent(JedisSource jedisSource,
+  private CleanupPendingOnDemandCachesAgent(RedisClientDelegate redisClientDelegate,
                                             ApplicationContext applicationContext,
                                             long pollIntervalMillis,
                                             long timeoutMillis) {
-    this.jedisSource = jedisSource;
+    this.redisClientDelegate = redisClientDelegate;
     this.applicationContext = applicationContext;
     this.pollIntervalMillis = pollIntervalMillis;
     this.timeoutMillis = timeoutMillis;
@@ -80,31 +78,40 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
 
   void run(Collection<Provider> providers) {
    providers.forEach(provider -> {
-      String onDemandSetName = provider.getProviderName() + ":onDemand:members";
-      List<String> onDemandKeys = scanMembers(onDemandSetName).stream()
-        .filter(s -> !s.equals("_ALL_"))
-        .collect(Collectors.toList());
+     String onDemandSetName = provider.getProviderName() + ":onDemand:members";
+     List<String> onDemandKeys = scanMembers(onDemandSetName).stream()
+       .filter(s -> !s.equals("_ALL_"))
+       .collect(Collectors.toList());
 
-      try (Jedis jedis = jedisSource.getJedis()) {
-        Pipeline pipeline = jedis.pipelined();
-        onDemandKeys.forEach(k -> pipeline.get(provider.getProviderName() + ":onDemand:attributes:" + k));
+     List existingOnDemandKeys;
+     if (redisClientDelegate.supportsMultiKeyPipelines()) {
+       existingOnDemandKeys = redisClientDelegate.withMultiKeyPipeline(pipeline -> {
+         onDemandKeys.forEach(k -> pipeline.get(provider.getProviderName() + ":onDemand:attributes:" + k));
+         return pipeline.syncAndReturnAll();
+       });
+     } else {
+       existingOnDemandKeys = redisClientDelegate.withCommandsClient(client -> {
+         return onDemandKeys.stream()
+           .map(k -> client.get(provider.getProviderName() + "onDemand:attributes:" + k))
+           .collect(Collectors.toList());
+       });
+     }
 
-        List existingOnDemandKeys = pipeline.syncAndReturnAll();
+     Set<String> onDemandKeysToRemove = new HashSet<>();
+     for (int i = 0; i < onDemandKeys.size(); i++) {
+       if (existingOnDemandKeys.get(i) == null) {
+         onDemandKeysToRemove.add(onDemandKeys.get(i));
+       }
+     }
 
-        Set<String> onDemandKeysToRemove = new HashSet<>();
-        for (int i = 0; i < onDemandKeys.size(); i++) {
-          if (existingOnDemandKeys.get(i) == null) {
-            onDemandKeysToRemove.add(onDemandKeys.get(i));
-          }
-        }
+     if (!onDemandKeysToRemove.isEmpty()) {
+       log.info("Removing {} from {}", onDemandKeysToRemove.size(), onDemandSetName);
+       log.debug("Removing {} from {}", onDemandKeysToRemove, onDemandSetName);
 
-        if (!onDemandKeysToRemove.isEmpty()) {
-          log.info("Removing {} from {}", onDemandKeysToRemove.size(), onDemandSetName);
-          log.debug("Removing {} from {}", onDemandKeysToRemove, onDemandSetName);
-
-          jedis.srem(onDemandSetName, onDemandKeysToRemove.toArray(new String[onDemandKeysToRemove.size()]));
-        }
-      }
+       redisClientDelegate.withCommandsClient(client -> {
+         client.srem(onDemandSetName, onDemandKeysToRemove.toArray(new String[onDemandKeysToRemove.size()]));
+       });
+     }
     });
   }
 
@@ -117,19 +124,19 @@ public class CleanupPendingOnDemandCachesAgent implements RunnableAgent, CustomS
   }
 
   private Set<String> scanMembers(String setKey) {
-    try (Jedis jedis = jedisSource.getJedis()) {
+    return redisClientDelegate.withCommandsClient(client -> {
       final Set<String> matches = new HashSet<>();
       final ScanParams scanParams = new ScanParams().count(25000);
       String cursor = "0";
       while (true) {
-        final ScanResult<String> scanResult = jedis.sscan(setKey, cursor, scanParams);
+        final ScanResult<String> scanResult = client.sscan(setKey, cursor, scanParams);
         matches.addAll(scanResult.getResult());
         cursor = scanResult.getStringCursor();
         if ("0".equals(cursor)) {
           return matches;
         }
       }
-    }
+    });
   }
 
   private CatsModule getCatsModule() {

@@ -26,7 +26,7 @@ import spock.lang.Subject
 class JedisTaskSpec extends Specification {
 
   @Shared
-  JedisTaskRepository repository
+  RedisTaskRepository repository
 
   @Subject
   JedisTask task
@@ -35,7 +35,7 @@ class JedisTaskSpec extends Specification {
   DefaultTaskStatus initialState = new DefaultTaskStatus('orchestration', 'start', TaskState.STARTED)
 
   void setup() {
-    repository = Mock(JedisTaskRepository)
+    repository = Mock(RedisTaskRepository)
     task = new JedisTask('666', System.currentTimeMillis(), repository, false)
   }
 

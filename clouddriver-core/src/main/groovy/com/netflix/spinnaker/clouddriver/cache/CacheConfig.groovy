@@ -19,7 +19,6 @@ package com.netflix.spinnaker.clouddriver.cache
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.agent.AgentExecution
-import com.netflix.spinnaker.cats.agent.AgentLock
 import com.netflix.spinnaker.cats.agent.AgentScheduler
 import com.netflix.spinnaker.cats.agent.CachingAgent
 import com.netflix.spinnaker.cats.agent.DefaultAgentScheduler
@@ -40,7 +39,9 @@ import java.util.concurrent.TimeUnit
 
 @Configuration
 @Import([
-  RedisCacheConfig
+  RedisCacheConfig,
+  DynomiteCacheConfig,
+  JedisCacheConfig
 ])
 class CacheConfig {
   @Bean

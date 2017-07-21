@@ -17,7 +17,7 @@
 
 package com.netflix.spinnaker.clouddriver.core.agent
 
-import com.netflix.spinnaker.cats.redis.JedisPoolSource
+import com.netflix.spinnaker.cats.redis.JedisClientDelegate
 import com.netflix.spinnaker.clouddriver.core.provider.CoreProvider
 import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import org.springframework.context.ApplicationContext
@@ -32,15 +32,15 @@ class CleanupPendingOnDemandCachesAgentSpec extends Specification {
   @AutoCleanup("destroy")
   EmbeddedRedis embeddedRedis = EmbeddedRedis.embed()
 
-  def jedisSource = new JedisPoolSource(embeddedRedis.pool as JedisPool)
+  def redisClientDelegate = new JedisClientDelegate(embeddedRedis.pool as JedisPool)
 
   def "should cleanup onDemand:members set for a provider"() {
     given:
-    def agent = new CleanupPendingOnDemandCachesAgent(jedisSource, Stub(ApplicationContext))
+    def agent = new CleanupPendingOnDemandCachesAgent(redisClientDelegate, Stub(ApplicationContext))
     def providers = [
         new CoreProvider([])
     ]
-    jedisSource.jedis.withCloseable { Jedis jedis ->
+    embeddedRedis.pool.resource.withCloseable { Jedis jedis ->
       // two keys in set
       jedis.sadd(CoreProvider.name + ":onDemand:members", "does-not-exist")
       jedis.sadd(CoreProvider.name + ":onDemand:members", "exists")
@@ -53,7 +53,7 @@ class CleanupPendingOnDemandCachesAgentSpec extends Specification {
     agent.run(providers)
 
     then:
-    jedisSource.jedis.withCloseable { Jedis jedis ->
+    embeddedRedis.pool.resource.withCloseable { Jedis jedis ->
       // only the key that exists should remain in the set
       (jedis.smembers(CoreProvider.name + ":onDemand:members") as List<String>) == ["exists"]
     }

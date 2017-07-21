@@ -19,17 +19,17 @@ package com.netflix.spinnaker.cats.redis.cache;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.cats.cache.NamedCacheFactory;
 import com.netflix.spinnaker.cats.cache.WriteableCache;
-import com.netflix.spinnaker.cats.redis.JedisSource;
+import com.netflix.spinnaker.cats.redis.RedisClientDelegate;
 
 public class RedisNamedCacheFactory implements NamedCacheFactory {
 
-    private final JedisSource jedisSource;
+    private final RedisClientDelegate redisClientDelegate;
     private final ObjectMapper objectMapper;
     private final RedisCacheOptions options;
-    private final RedisCache.CacheMetrics cacheMetrics;
+    private final AbstractRedisCache.CacheMetrics cacheMetrics;
 
-    public RedisNamedCacheFactory(JedisSource jedisSource, ObjectMapper objectMapper, RedisCacheOptions options, RedisCache.CacheMetrics cacheMetrics) {
-        this.jedisSource = jedisSource;
+    public RedisNamedCacheFactory(RedisClientDelegate redisClientDelegate, ObjectMapper objectMapper, RedisCacheOptions options, AbstractRedisCache.CacheMetrics cacheMetrics) {
+        this.redisClientDelegate = redisClientDelegate;
         this.objectMapper = objectMapper;
         this.options = options;
         this.cacheMetrics = cacheMetrics;
@@ -37,6 +37,6 @@ public class RedisNamedCacheFactory implements NamedCacheFactory {
 
     @Override
     public WriteableCache getCache(String name) {
-        return new RedisCache(name, jedisSource, objectMapper, options, cacheMetrics);
+        return new RedisCache(name, redisClientDelegate, objectMapper, options, cacheMetrics);
     }
 }

@@ -18,7 +18,7 @@ package com.netflix.spinnaker.clouddriver.core
 
 import com.netflix.spinnaker.cats.agent.ExecutionInstrumentation
 import com.netflix.spinnaker.cats.agent.NoopExecutionInstrumentation
-import com.netflix.spinnaker.cats.redis.JedisSource
+import com.netflix.spinnaker.cats.redis.RedisClientDelegate
 import com.netflix.spinnaker.clouddriver.cache.CacheConfig
 import com.netflix.spinnaker.clouddriver.cache.NoopOnDemandCacheUpdater
 import com.netflix.spinnaker.clouddriver.cache.OnDemandCacheUpdater
@@ -62,7 +62,6 @@ import com.netflix.spinnaker.clouddriver.security.DefaultAccountCredentialsProvi
 import com.netflix.spinnaker.clouddriver.security.MapBackedAccountCredentialsRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.context.ApplicationContext
 import org.springframework.context.annotation.Bean
@@ -75,6 +74,7 @@ import org.springframework.web.client.RestTemplate
 @Configuration
 @Import([
   RedisConfig,
+  DynomiteConfig,
   CacheConfig
 ])
 @PropertySource(value = "classpath:META-INF/clouddriver-core.properties", ignoreResourceNotFound = true)
@@ -222,10 +222,10 @@ class CloudDriverConfig {
   }
 
   @Bean
-  @ConditionalOnProperty('redis.connection')
-  CoreProvider coreProvider(JedisSource jedisSource, ApplicationContext applicationContext) {
+  @ConditionalOnExpression('${redis.connection != null || dynomite.enabled:false}')
+  CoreProvider coreProvider(RedisClientDelegate redisClientDelegate, ApplicationContext applicationContext) {
     return new CoreProvider([
-      new CleanupPendingOnDemandCachesAgent(jedisSource, applicationContext)
+      new CleanupPendingOnDemandCachesAgent(redisClientDelegate, applicationContext)
     ])
   }
 

@@ -90,6 +90,10 @@ class TaskDisplayStatus implements Status {
   @JsonIgnore
   Status taskStatus
 
+  static TaskDisplayStatus create(Status taskStatus) {
+    new TaskDisplayStatus(taskStatus)
+  }
+
   @Override
   String getStatus() {
     taskStatus.status
@@ -116,6 +120,11 @@ class DefaultTaskStatus implements Status {
   @JsonIgnore
   TaskState state
 
+  // Needed so that Java can interact with Groovy @Immutable classes.
+  static DefaultTaskStatus create(String phase, String status, TaskState state) {
+    new DefaultTaskStatus(phase, status, state)
+  }
+
   Boolean isComplete() { state.completed }
 
   Boolean isCompleted() { state.completed }
@@ -139,4 +148,3 @@ class DefaultTaskStatus implements Status {
   }
 
 }
-

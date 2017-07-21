@@ -1,0 +1,11 @@
+dependencies {
+  compile project(':cats:cats-redis')
+  compile('com.netflix.dyno:dyno-jedis:1.5.9', {
+    exclude group: 'joda-time'
+    exclude group: 'org.apache.httpcomponents'
+    exclude group: 'org.slf4j'
+  })
+
+  testCompile project(':cats:cats-test')
+  testCompile spinnaker.dependency('korkJedisTest')
+}
