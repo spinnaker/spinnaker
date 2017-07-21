@@ -1,0 +1,54 @@
+<div class="form-horizontal canary-config-view">
+  <h5>Analysis Config</h5>
+  <div class="horizontal-rule"></div>
+
+  <stage-config-field label="Config Name">
+    <input class="form-control input-sm"
+           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"/>
+  </stage-config-field>
+
+  <stage-config-field label="Lifetime" field-columns="3">
+    <input type="text"
+           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.lifetimeHours"
+           class="form-control input-sm"
+           style="display: inline-block; width: 33%"/>
+    <span class="form-control-static">hours</span>
+  </stage-config-field>
+
+  <stage-config-field label="Delay">
+    <input type="text"
+           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.beginCanaryAnalysisAfterMins"
+           class="form-control input-sm"
+           style="display: inline-block; width: 20%"/>
+    <span class="form-control-static">
+      minutes before starting analysis
+    </span>
+  </stage-config-field>
+
+  <stage-config-field label="Frequency" field-columns="3">
+    <input type="text"
+           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryAnalysisIntervalMins"
+           class="form-control input-sm"
+           style="width: 33%; display: inline-block"/>
+    <span class="form-control-static"> minutes</span>
+  </stage-config-field>
+
+  <h5>Metric Scope</h5>
+  <div class="horizontal-rule"></div>
+
+  <stage-config-field label="Baseline">
+    <input
+      class="form-control input-sm"
+      ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.controlScope"
+      required
+      type="text"/>
+  </stage-config-field>
+
+  <stage-config-field label="Canary">
+    <input
+      class="form-control input-sm"
+      ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.experimentScope"
+      required
+      type="text"/>
+  </stage-config-field>
+</div>
