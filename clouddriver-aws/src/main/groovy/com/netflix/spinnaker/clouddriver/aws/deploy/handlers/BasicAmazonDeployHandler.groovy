@@ -67,17 +67,20 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
   private final AccountCredentialsRepository accountCredentialsRepository
   private final AwsConfiguration.DeployDefaults deployDefaults
   private final ScalingPolicyCopier scalingPolicyCopier
+  private final BlockDeviceConfig blockDeviceConfig
 
   private List<CreateServerGroupEvent> deployEvents = []
 
   BasicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                            AccountCredentialsRepository accountCredentialsRepository,
                            AwsConfiguration.DeployDefaults deployDefaults,
-                           ScalingPolicyCopier scalingPolicyCopier) {
+                           ScalingPolicyCopier scalingPolicyCopier,
+                           BlockDeviceConfig blockDeviceConfig) {
     this.regionScopedProviderFactory = regionScopedProviderFactory
     this.accountCredentialsRepository = accountCredentialsRepository
     this.deployDefaults = deployDefaults
     this.scalingPolicyCopier = scalingPolicyCopier
+    this.blockDeviceConfig = blockDeviceConfig
   }
 
   @Override
@@ -214,7 +217,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       }
 
       if (description.blockDevices == null) {
-        description.blockDevices = BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
+        description.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
       }
       ResolvedAmiResult ami = priorOutputs.find({
         it instanceof ResolvedAmiResult && it.region == region && it.amiName == description.amiName
@@ -360,7 +363,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     )
 
     if (description.copySourceCustomBlockDeviceMappings) {
-      description.blockDevices = buildBlockDeviceMappings(deployDefaults, description, sourceLaunchConfiguration)
+      description.blockDevices = buildBlockDeviceMappings(description, sourceLaunchConfiguration)
     }
 
     if (description.copySourceSpotPrice) {
@@ -492,8 +495,9 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
    * Otherwise:
    * - Continue to use any custom block device mappings (if set)
    */
-  private static Collection<AmazonBlockDevice> buildBlockDeviceMappings(
-    DeployDefaults deployDefaults,
+  @VisibleForTesting
+  @PackageScope
+  Collection<AmazonBlockDevice> buildBlockDeviceMappings(
     BasicAmazonDeployDescription description,
     LaunchConfiguration sourceLaunchConfiguration
   ) {
@@ -507,8 +511,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       def blockDevicesForSourceAsg = sourceLaunchConfiguration.blockDeviceMappings.collect {
         [deviceName: it.deviceName, virtualName: it.virtualName, size: it.ebs?.volumeSize]
       }.sort { it.deviceName }
-      def blockDevicesForSourceInstanceType = BlockDeviceConfig.getBlockDevicesForInstanceType(
-        deployDefaults,
+      def blockDevicesForSourceInstanceType = blockDeviceConfig.getBlockDevicesForInstanceType(
         sourceLaunchConfiguration.instanceType
       ).collect {
         [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
@@ -516,7 +519,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
 
       if (blockDevicesForSourceAsg == blockDevicesForSourceInstanceType) {
         // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
-        return BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
+        return blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
       }
     }
 

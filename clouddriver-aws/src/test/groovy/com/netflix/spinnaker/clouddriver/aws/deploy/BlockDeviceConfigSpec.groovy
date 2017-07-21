@@ -17,18 +17,13 @@
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
 import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class BlockDeviceConfigSpec extends Specification {
-
-  @Shared
-  static def expectedBlockDevicesForEbsOnly = [
-    new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125),
-    new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125),
-  ]
 
   @Shared
   static def defaultBlockDevice = new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40)
@@ -64,22 +59,37 @@ class BlockDeviceConfigSpec extends Specification {
   @Unroll
   void "should return block devices for instance type"() {
 
+    DeployDefaults deployDefaults = new DeployDefaults(unknownInstanceTypeBlockDevice: unknownInstanceTypeBlockDevice)
+    if (defaultVolumeType) {
+      deployDefaults.defaultBlockDeviceType = defaultVolumeType
+    }
+    BlockDeviceConfig blockDeviceConfig = new BlockDeviceConfig(deployDefaults)
+
     expect:
-    blockDevices == BlockDeviceConfig.getBlockDevicesForInstanceType(new AwsConfiguration.DeployDefaults(unknownInstanceTypeBlockDevice: unknownInstanceTypeBlockDevice), instanceType)
+    blockDevices == blockDeviceConfig.getBlockDevicesForInstanceType(instanceType)
 
     where:
-    unknownInstanceTypeBlockDevice | instanceType  || blockDevices
-    null                           | "wat"         || null
-    defaultBlockDevice             | "wat"         || [defaultBlockDevice]
-    null                           | "t2.small"    || []
-    defaultBlockDevice             | "t2.small"    || []
-    null                           | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80)]
-    defaultBlockDevice             | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80)]
-    null                           | "m4.large"    || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40)]
-    null                           | "m4.16xlarge" || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120)]
-    null                           | "c4.8xlarge"  || expectedBlockDevicesForEbsOnly
-    null                           | "m3.medium"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
-    null                           | "i2.2xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
-    null                           | "d2.8xlarge"  || expectedD28xlargeBlockDevices
+    unknownInstanceTypeBlockDevice | defaultVolumeType | instanceType  || blockDevices
+    null                           | null              | "wat"         || null
+    defaultBlockDevice             | null              | "wat"         || [defaultBlockDevice]
+    null                           | null              | "t2.small"    || []
+    defaultBlockDevice             | null              | "t2.small"    || []
+    null                           | null              | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80, volumeType: "standard")]
+    defaultBlockDevice             | null              | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80, volumeType: "standard")]
+    null                           | null              | "m4.large"    || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 40, volumeType: "standard")]
+    null                           | null              | "m4.16xlarge" || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 120, volumeType: "standard")]
+    null                           | null              | "c4.8xlarge"  || getExpectedBlockDevicesForEbsOnly("standard")
+    null                           | null              | "m3.medium"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0")]
+    null                           | null              | "i2.2xlarge"  || [new AmazonBlockDevice(deviceName: "/dev/sdb", virtualName: "ephemeral0"), new AmazonBlockDevice(deviceName: "/dev/sdc", virtualName: "ephemeral1")]
+    null                           | null              | "d2.8xlarge"  || expectedD28xlargeBlockDevices
+    null                           | "gp2"             | "m4.xlarge"   || [new AmazonBlockDevice(deviceName: "/dev/sdb", size: 80, volumeType: defaultVolumeType)]
+    null                           | "gp2"             | "c4.8xlarge"  || getExpectedBlockDevicesForEbsOnly("gp2")
+  }
+
+  private Collection<AmazonBlockDevice> getExpectedBlockDevicesForEbsOnly(String volumeType) {
+    [
+      new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125, volumeType: volumeType),
+      new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, volumeType: volumeType),
+    ]
   }
 }

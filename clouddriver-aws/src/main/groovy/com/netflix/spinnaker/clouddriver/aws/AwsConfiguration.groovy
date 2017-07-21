@@ -27,6 +27,7 @@ import com.netflix.spinnaker.clouddriver.aws.agent.CleanupAlarmsAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.CleanupDetachedInstancesAgent
 import com.netflix.spinnaker.clouddriver.aws.agent.ReconcileClassicLinkSecurityGroupsAgent
 import com.netflix.spinnaker.clouddriver.aws.bastion.BastionConfig
+import com.netflix.spinnaker.clouddriver.aws.deploy.BlockDeviceConfig
 import com.netflix.spinnaker.clouddriver.aws.deploy.converters.AllowLaunchAtomicOperationConverter
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.BasicAmazonDeployHandler
 import com.netflix.spinnaker.clouddriver.aws.deploy.handlers.DefaultMigrateClusterConfigurationStrategy
@@ -193,8 +194,9 @@ class AwsConfiguration {
     int maxSecurityGroups = 5
     ReconcileMode reconcileClassicLinkSecurityGroups = ReconcileMode.NONE
     List<String> reconcileClassicLinkAccounts = []
+    String defaultBlockDeviceType = "standard"
     AmazonBlockDevice unknownInstanceTypeBlockDevice = new AmazonBlockDevice(
-      deviceName: "/dev/sdb", size: 20
+      deviceName: "/dev/sdb", size: 20, volumeType: defaultBlockDeviceType
     )
 
     boolean isReconcileClassicLinkAccount(NetflixAmazonCredentials credentials) {
@@ -212,8 +214,15 @@ class AwsConfiguration {
   BasicAmazonDeployHandler basicAmazonDeployHandler(RegionScopedProviderFactory regionScopedProviderFactory,
                                                     AccountCredentialsRepository accountCredentialsRepository,
                                                     DeployDefaults deployDefaults,
-                                                    ScalingPolicyCopier scalingPolicyCopier) {
-    new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults, scalingPolicyCopier)
+                                                    ScalingPolicyCopier scalingPolicyCopier,
+                                                    BlockDeviceConfig blockDeviceConfig) {
+    new BasicAmazonDeployHandler(regionScopedProviderFactory, accountCredentialsRepository, deployDefaults, scalingPolicyCopier, blockDeviceConfig)
+  }
+
+  @Bean
+  @DependsOn('deployDefaults')
+  BlockDeviceConfig blockDeviceConfig(DeployDefaults deployDefaults) {
+    new BlockDeviceConfig(deployDefaults)
   }
 
   @Bean

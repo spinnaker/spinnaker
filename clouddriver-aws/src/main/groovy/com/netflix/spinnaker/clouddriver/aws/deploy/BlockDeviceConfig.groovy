@@ -16,12 +16,64 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
-import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration
+import com.netflix.spinnaker.clouddriver.aws.AwsConfiguration.DeployDefaults
 import com.netflix.spinnaker.clouddriver.aws.model.AmazonBlockDevice
 
 class BlockDeviceConfig {
 
-  static def List<AmazonBlockDevice> enumeratedBlockDevicesWithVirtualName(int size) {
+  private final DeployDefaults deployDefaults
+  private final Map<String, List<AmazonBlockDevice>> blockDevicesByInstanceType
+
+  BlockDeviceConfig(DeployDefaults deployDefaults) {
+    this.deployDefaults = deployDefaults
+    blockDevicesByInstanceType = [
+      "c3.large": enumeratedBlockDevicesWithVirtualName(2),
+      "c3.xlarge": enumeratedBlockDevicesWithVirtualName(2),
+      "c3.2xlarge": enumeratedBlockDevicesWithVirtualName(2),
+      "c3.4xlarge": enumeratedBlockDevicesWithVirtualName(2),
+      "c3.8xlarge": enumeratedBlockDevicesWithVirtualName(2),
+      "c4.large" : defaultBlockDevicesForEbsOnly(),
+      "c4.xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c4.2xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c4.4xlarge" : defaultBlockDevicesForEbsOnly(),
+      "c4.8xlarge" : defaultBlockDevicesForEbsOnly(),
+      "d2.xlarge" : enumeratedBlockDevicesWithVirtualName(3),
+      "d2.2xlarge" : enumeratedBlockDevicesWithVirtualName(6),
+      "d2.4xlarge" : enumeratedBlockDevicesWithVirtualName(12),
+      "d2.8xlarge" : enumeratedBlockDevicesWithVirtualName(24),
+      "i2.2xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "i2.xlarge" : enumeratedBlockDevicesWithVirtualName(1),
+      "i2.4xlarge" : enumeratedBlockDevicesWithVirtualName(4),
+      "i2.8xlarge" : enumeratedBlockDevicesWithVirtualName(8),
+      "m3.medium" : enumeratedBlockDevicesWithVirtualName(1),
+      "m3.large" : enumeratedBlockDevicesWithVirtualName(1),
+      "m3.xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "m3.2xlarge" : enumeratedBlockDevicesWithVirtualName(2),
+      "m4.large" : sizedBlockDevicesForEbs(40),
+      "m4.xlarge" : sizedBlockDevicesForEbs(80),
+      "m4.2xlarge" : sizedBlockDevicesForEbs(80),
+      "m4.4xlarge" : sizedBlockDevicesForEbs(120),
+      "m4.10xlarge" : sizedBlockDevicesForEbs(120),
+      "m4.16xlarge" : sizedBlockDevicesForEbs(120),
+      "r3.large": enumeratedBlockDevicesWithVirtualName(1),
+      "r3.xlarge": enumeratedBlockDevicesWithVirtualName(1),
+      "r3.2xlarge": enumeratedBlockDevicesWithVirtualName(1),
+      "r3.4xlarge": enumeratedBlockDevicesWithVirtualName(1),
+      "r3.8xlarge": enumeratedBlockDevicesWithVirtualName(2),
+      "r4.large" : sizedBlockDevicesForEbs(40),
+      "r4.xlarge" : sizedBlockDevicesForEbs(80),
+      "r4.2xlarge" : sizedBlockDevicesForEbs(80),
+      "r4.4xlarge" : sizedBlockDevicesForEbs(120),
+      "r4.8xlarge" : sizedBlockDevicesForEbs(120),
+      "r4.16xlarge" : sizedBlockDevicesForEbs(120),
+      "t2.micro" : [],
+      "t2.small" : [],
+      "t2.medium" : [],
+      "t2.large" : [],
+    ].asImmutable()
+  }
+
+  List<AmazonBlockDevice> enumeratedBlockDevicesWithVirtualName(int size) {
     def letters = ('a'..'z').collect { it }
     (0..<size).collect {
       def letter = letters[it + 1]
@@ -29,21 +81,20 @@ class BlockDeviceConfig {
     }
   }
 
-  static def defaultBlockDevicesForEbsOnly() {
+  def defaultBlockDevicesForEbsOnly() {
     [
-      new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125),
-      new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125),
+      new AmazonBlockDevice(deviceName: "/dev/sdb", size: 125, volumeType: deployDefaults.defaultBlockDeviceType),
+      new AmazonBlockDevice(deviceName: "/dev/sdc", size: 125, volumeType: deployDefaults.defaultBlockDeviceType),
     ]
   }
 
-  static def sizedBlockDevicesForEbs(int capacity) {
+  def sizedBlockDevicesForEbs(int capacity) {
     [
-      new AmazonBlockDevice(deviceName: "/dev/sdb", size: capacity)
+      new AmazonBlockDevice(deviceName: "/dev/sdb", size: capacity, volumeType: deployDefaults.defaultBlockDeviceType)
     ]
   }
 
-  static List<AmazonBlockDevice> getBlockDevicesForInstanceType(AwsConfiguration.DeployDefaults deployDefaults,
-                                                                String instanceType) {
+  List<AmazonBlockDevice> getBlockDevicesForInstanceType(String instanceType) {
     def blockDevices = blockDevicesByInstanceType[instanceType]
     if (blockDevices == null && deployDefaults.unknownInstanceTypeBlockDevice) {
       // return a default block device mapping if no instance-specific default exists <optional>
@@ -52,51 +103,5 @@ class BlockDeviceConfig {
 
     return blockDevices
   }
-
-  static final def blockDevicesByInstanceType = [
-    "c3.large": enumeratedBlockDevicesWithVirtualName(2),
-    "c3.xlarge": enumeratedBlockDevicesWithVirtualName(2),
-    "c3.2xlarge": enumeratedBlockDevicesWithVirtualName(2),
-    "c3.4xlarge": enumeratedBlockDevicesWithVirtualName(2),
-    "c3.8xlarge": enumeratedBlockDevicesWithVirtualName(2),
-    "c4.large" : defaultBlockDevicesForEbsOnly(),
-    "c4.xlarge" : defaultBlockDevicesForEbsOnly(),
-    "c4.2xlarge" : defaultBlockDevicesForEbsOnly(),
-    "c4.4xlarge" : defaultBlockDevicesForEbsOnly(),
-    "c4.8xlarge" : defaultBlockDevicesForEbsOnly(),
-    "d2.xlarge" : enumeratedBlockDevicesWithVirtualName(3),
-    "d2.2xlarge" : enumeratedBlockDevicesWithVirtualName(6),
-    "d2.4xlarge" : enumeratedBlockDevicesWithVirtualName(12),
-    "d2.8xlarge" : enumeratedBlockDevicesWithVirtualName(24),
-    "i2.2xlarge" : enumeratedBlockDevicesWithVirtualName(2),
-    "i2.xlarge" : enumeratedBlockDevicesWithVirtualName(1),
-    "i2.4xlarge" : enumeratedBlockDevicesWithVirtualName(4),
-    "i2.8xlarge" : enumeratedBlockDevicesWithVirtualName(8),
-    "m3.medium" : enumeratedBlockDevicesWithVirtualName(1),
-    "m3.large" : enumeratedBlockDevicesWithVirtualName(1),
-    "m3.xlarge" : enumeratedBlockDevicesWithVirtualName(2),
-    "m3.2xlarge" : enumeratedBlockDevicesWithVirtualName(2),
-    "m4.large" : sizedBlockDevicesForEbs(40),
-    "m4.xlarge" : sizedBlockDevicesForEbs(80),
-    "m4.2xlarge" : sizedBlockDevicesForEbs(80),
-    "m4.4xlarge" : sizedBlockDevicesForEbs(120),
-    "m4.10xlarge" : sizedBlockDevicesForEbs(120),
-    "m4.16xlarge" : sizedBlockDevicesForEbs(120),
-    "r3.large": enumeratedBlockDevicesWithVirtualName(1),
-    "r3.xlarge": enumeratedBlockDevicesWithVirtualName(1),
-    "r3.2xlarge": enumeratedBlockDevicesWithVirtualName(1),
-    "r3.4xlarge": enumeratedBlockDevicesWithVirtualName(1),
-    "r3.8xlarge": enumeratedBlockDevicesWithVirtualName(2),
-    "r4.large" : sizedBlockDevicesForEbs(40),
-    "r4.xlarge" : sizedBlockDevicesForEbs(80),
-    "r4.2xlarge" : sizedBlockDevicesForEbs(80),
-    "r4.4xlarge" : sizedBlockDevicesForEbs(120),
-    "r4.8xlarge" : sizedBlockDevicesForEbs(120),
-    "r4.16xlarge" : sizedBlockDevicesForEbs(120),
-    "t2.micro" : [],
-    "t2.small" : [],
-    "t2.medium" : [],
-    "t2.large" : [],
-  ].asImmutable()
 
 }

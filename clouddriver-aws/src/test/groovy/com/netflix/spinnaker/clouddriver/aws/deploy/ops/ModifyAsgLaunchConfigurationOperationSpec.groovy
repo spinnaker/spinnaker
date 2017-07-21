@@ -36,6 +36,7 @@ import com.netflix.spinnaker.clouddriver.aws.deploy.LaunchConfigurationBuilder
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.ModifyAsgLaunchConfigurationDescription
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -46,7 +47,11 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
 
   def description = new ModifyAsgLaunchConfigurationDescription()
 
+  @Shared
   def defaults = new AwsConfiguration.DeployDefaults(classicLinkSecurityGroupName: 'nf-classiclink')
+
+  @Shared
+  def blockDeviceConfig = new BlockDeviceConfig(defaults)
 
   @Subject op = new ModifyAsgLaunchConfigurationOperation(description)
 
@@ -79,6 +84,8 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
     }
 
     op.regionScopedProviderFactory = regionScopedProviderFactory
+
+    op.blockDeviceConfig = blockDeviceConfig
   }
 
   void 'should not modify launch configuration if no changes would result'() {
@@ -381,7 +388,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       assert settings.suffix == null
       assert legacyUdf == null
       assert settings.instanceType == 'm4.xlarge'
-      assert settings.blockDevices == BlockDeviceConfig.getBlockDevicesForInstanceType(defaults, 'm4.xlarge')
+      assert settings.blockDevices == blockDeviceConfig.getBlockDevicesForInstanceType('m4.xlarge')
 
       return newLc
     }
@@ -410,7 +417,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
         ami: 'ami-f111f333',
         iamRole: 'BaseIAMRole',
         instanceType: 'm3.xlarge',
-        blockDevices: BlockDeviceConfig.getBlockDevicesForInstanceType(defaults, 'm3.xlarge'),
+        blockDevices: blockDeviceConfig.getBlockDevicesForInstanceType('m3.xlarge'),
         keyPair: 'sekret',
         associatePublicIpAddress: false,
         ebsOptimized: true,
@@ -513,7 +520,7 @@ class ModifyAsgLaunchConfigurationOperationSpec extends Specification {
       assert settings.suffix == null
       assert legacyUdf == null
       assert settings.instanceType == 'm4.xlarge'
-      assert settings.blockDevices == BlockDeviceConfig.getBlockDevicesForInstanceType(defaults, 'm4.xlarge')
+      assert settings.blockDevices == blockDeviceConfig.getBlockDevicesForInstanceType('m4.xlarge')
 
       return newLc
     }

@@ -43,6 +43,9 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
   @Autowired
   AwsConfiguration.DeployDefaults deployDefaults
 
+  @Autowired
+  BlockDeviceConfig blockDeviceConfig
+
   private final ModifyAsgLaunchConfigurationDescription description
 
   ModifyAsgLaunchConfigurationOperation(ModifyAsgLaunchConfigurationDescription description) {
@@ -92,13 +95,12 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
     //if we are changing instance types and don't have explicitly supplied block device mappings
     if (!description.blockDevices && description.instanceType != null && description.instanceType != settings.instanceType) {
       if (!description.copySourceCustomBlockDeviceMappings) {
-        props.blockDevices = BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
+        props.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
       } else {
         def blockDevicesForSourceLaunchConfig = settings.blockDevices.collect {
           [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
         }.sort { it.deviceName }
-        def blockDevicesForSourceInstanceType = BlockDeviceConfig.getBlockDevicesForInstanceType(
-            deployDefaults,
+        def blockDevicesForSourceInstanceType = blockDeviceConfig.getBlockDevicesForInstanceType(
             settings.instanceType
         ).collect {
           [deviceName: it.deviceName, virtualName: it.virtualName, size: it.size]
@@ -106,7 +108,7 @@ class ModifyAsgLaunchConfigurationOperation implements AtomicOperation<Void> {
 
         if (blockDevicesForSourceLaunchConfig == blockDevicesForSourceInstanceType) {
           // use default block mappings for the new instance type (since default block mappings were used on the previous instance type)
-          props.blockDevices = BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, description.instanceType)
+          props.blockDevices = blockDeviceConfig.getBlockDevicesForInstanceType(description.instanceType)
         }
       }
     }

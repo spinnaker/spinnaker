@@ -75,6 +75,9 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   )
 
   @Shared
+  BlockDeviceConfig blockDeviceConfig = new BlockDeviceConfig(deployDefaults)
+
+  @Shared
   Task task = Mock(Task)
 
   AmazonEC2 amazonEC2 = Mock(AmazonEC2)
@@ -99,7 +102,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     def defaults = new AwsConfiguration.DeployDefaults(iamRole: 'IamRole')
     def credsRepo = new MapBackedAccountCredentialsRepository()
     credsRepo.save('baz', TestCredential.named('baz'))
-    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults, scalingPolicyCopier) {
+    this.handler = new BasicAmazonDeployHandler(rspf, credsRepo, defaults, scalingPolicyCopier, blockDeviceConfig) {
       @Override
       LoadBalancerLookupHelper loadBalancerLookupHelper() {
         return new LoadBalancerLookupHelper()
@@ -682,7 +685,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     })
 
     when:
-    def blockDeviceMappings = BasicAmazonDeployHandler.buildBlockDeviceMappings(deployDefaults, description, launchConfiguration)
+    def blockDeviceMappings = handler.buildBlockDeviceMappings(description, launchConfiguration)
 
     then:
     convertBlockDeviceMappings(blockDeviceMappings) == convertBlockDeviceMappings(expectedTargetBlockDevices)
@@ -715,7 +718,7 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
   }
 
   private Collection<AmazonBlockDevice> bD(String instanceType) {
-    return BlockDeviceConfig.getBlockDevicesForInstanceType(deployDefaults, instanceType)
+    return blockDeviceConfig.getBlockDevicesForInstanceType(instanceType)
   }
 
   private Collection<Map> convertBlockDeviceMappings(Collection<AmazonBlockDevice> blockDevices) {
