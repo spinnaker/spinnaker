@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes;
 
+import com.netflix.spinnaker.halyard.config.config.v1.ArtifactSourcesConfig;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.LocalFile;
@@ -88,6 +89,21 @@ public class KubernetesAccount extends Account implements Cloneable {
           .collect(Collectors.toList());
     } else {
       return null;
+    }
+  }
+
+  @Override
+  public void makeBootstrappingAccount(ArtifactSourcesConfig artifactSourcesConfig) {
+    super.makeBootstrappingAccount(artifactSourcesConfig);
+
+    // These changes are only surfaced in the account used by the bootstrapping clouddriver,
+    // the user's clouddriver will be unchanged.
+    if (!namespaces.isEmpty() && !namespaces.contains("spinnaker")) {
+      namespaces.add("spinnaker");
+    }
+
+    if (!omitNamespaces.isEmpty() && omitNamespaces.contains("spinnaker")) {
+      omitNamespaces.remove("spinnaker");
     }
   }
 }
