@@ -1,0 +1,18 @@
+FROM java:8
+
+MAINTAINER delivery-engineering@netflix.com
+
+COPY . workdir/
+
+WORKDIR workdir
+
+RUN cp -r ./halyard-web/build/install/halyard /opt && \
+  cd .. && \
+  rm -rf workdir
+
+RUN echo '#!/usr/bin/env bash' | tee /usr/local/bin/hal > /dev/null && \
+  echo '/opt/halyard/bin/hal "$@"' | tee /usr/local/bin/hal > /dev/null
+
+RUN chmod +x /usr/local/bin/hal
+
+CMD "/opt/halyard/bin/halyard"

@@ -2,4 +2,4 @@
 
 set -e
 
-sudo docker build . -t halyard
+sudo docker build . -t halyard -f Dockerfile.local
