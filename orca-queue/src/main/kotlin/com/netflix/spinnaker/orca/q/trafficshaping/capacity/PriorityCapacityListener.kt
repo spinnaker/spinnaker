@@ -15,7 +15,6 @@
  */
 package com.netflix.spinnaker.orca.q.trafficshaping.capacity
 
-import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.orca.events.ExecutionComplete
 import com.netflix.spinnaker.orca.events.ExecutionEvent
 import com.netflix.spinnaker.orca.events.ExecutionStarted
@@ -32,8 +31,8 @@ class PriorityCapacityListener(
 
   override fun onApplicationEvent(event: ExecutionEvent) {
     when (event) {
-      is ExecutionStarted -> priorityCapacityRepository.incrementExecutions(getPriority(event))
-      is ExecutionComplete -> priorityCapacityRepository.decrementExecutions(getPriority(event))
+      is ExecutionStarted -> priorityCapacityRepository.incrementExecutions(event.executionId, getPriority(event))
+      is ExecutionComplete -> priorityCapacityRepository.decrementExecutions(event.executionId, getPriority(event))
     }
   }
 

@@ -32,7 +32,7 @@ data class GlobalCapacity(
 }
 
 interface PriorityCapacityRepository {
-  fun incrementExecutions(priority: Priority)
-  fun decrementExecutions(priority: Priority)
+  fun incrementExecutions(executionId: String, priority: Priority)
+  fun decrementExecutions(executionId: String, priority: Priority)
   fun getGlobalCapacity(): GlobalCapacity
 }

@@ -27,31 +27,32 @@ class RedisPriorityCapacityRepository(
   private val properties: TrafficShapingProperties.PriorityCapacityProperties
 ) : PriorityCapacityRepository {
 
-  private val key = "queue:trafficShaping:priorityCapacity:capacity"
+  private val key = "queue:trafficShaping:priorityCapacity"
 
-  override fun incrementExecutions(priority: Priority) {
+  override fun incrementExecutions(executionId: String, priority: Priority) {
     pool.resource.use { redis ->
-      redis.hincrBy(key, priority.name, 1)
+      redis.sadd(getPriorityKey(priority), executionId)
     }
   }
 
-  override fun decrementExecutions(priority: Priority) {
+  override fun decrementExecutions(executionId: String, priority: Priority) {
     pool.resource.use { redis ->
-      redis.hincrBy(key, priority.name, -1)
+      redis.srem(getPriorityKey(priority), executionId)
     }
   }
 
   override fun getGlobalCapacity(): GlobalCapacity {
     pool.resource.use { redis ->
-      val capacity = redis.hgetAll(key) ?: return GlobalCapacity(ceiling = properties.capacity, criticalUsage = 0, highUsage = 0, mediumUsage = 0, lowUsage = 0)
       return GlobalCapacity(
-        ceiling = capacity.getOrDefault("ceiling", properties.capacity).toString().toInt(),
-        criticalUsage = capacity.getOrDefault(Priority.CRITICAL.name, 0).toString().toInt(),
-        highUsage = capacity.getOrDefault(Priority.HIGH.name, 0).toString().toInt(),
-        mediumUsage = capacity.getOrDefault(Priority.MEDIUM.name, 0).toString().toInt(),
-        lowUsage = capacity.getOrDefault(Priority.LOW.name, 0).toString().toInt(),
-        learning = if (capacity.containsKey("learning")) capacity["learning"]!!.toBoolean() else null
+        ceiling = (redis.get("$key:ceiling") ?: properties.capacity).toString().toInt(),
+        criticalUsage = (redis.scard(getPriorityKey(Priority.CRITICAL)) ?: 0).toString().toInt(),
+        highUsage = (redis.scard(getPriorityKey(Priority.HIGH)) ?: 0).toString().toInt(),
+        mediumUsage = (redis.scard(getPriorityKey(Priority.MEDIUM)) ?: 0).toString().toInt(),
+        lowUsage = (redis.scard(getPriorityKey(Priority.LOW)) ?: 0).toString().toInt(),
+        learning = if (redis.exists("$key:learning")) redis.get("$key:learning").toBoolean() else null
       )
     }
   }
+
+  private fun getPriorityKey(priority: Priority) = "$key:${priority.name.toLowerCase()}"
 }
