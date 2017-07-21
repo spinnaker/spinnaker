@@ -148,16 +148,22 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.details.controll
     };
 
     this.deleteSecurityGroup = function deleteSecurityGroup() {
-      var taskMonitor = {
+      let isRetry = false;
+      const retryParams = { removeDependencies: true };
+
+      const taskMonitor = {
         application: application,
         title: 'Deleting ' + securityGroup.name,
+        onTaskRetry: () => { isRetry = true; },
       };
 
-      var submitMethod = function () {
-        return securityGroupWriter.deleteSecurityGroup(securityGroup, application, {
+      const submitMethod = () => {
+        const params = {
           cloudProvider: securityGroup.provider,
           vpcId: securityGroup.vpcId,
-        });
+        };
+        if (isRetry) { Object.assign(params, retryParams); }
+        return securityGroupWriter.deleteSecurityGroup(securityGroup, application, params);
       };
 
       confirmationModalService.confirm({
@@ -167,7 +173,8 @@ module.exports = angular.module('spinnaker.amazon.securityGroup.details.controll
         account: securityGroup.accountId,
         applicationName: application.name,
         taskMonitorConfig: taskMonitor,
-        submitMethod: submitMethod
+        submitMethod: submitMethod,
+        retryBody: '<div><p>Retry deleting the security group and revoke any dependent ingress rules?</p><p>Any instance or load balancer associations will have to removed manually.</p></div>'
       });
     };
 

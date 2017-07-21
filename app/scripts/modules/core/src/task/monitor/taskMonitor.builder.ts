@@ -10,6 +10,7 @@ export interface ITaskMonitorConfig {
   application: Application;
   modalInstance?: IModalServiceInstance;
   onTaskComplete?: () => any;
+  onTaskRetry?: () => void;
   monitorInterval?: number;
   submitMethod?: () => ng.IPromise<ITask>;
 }
@@ -25,6 +26,7 @@ export class TaskMonitor {
   public modalInstance: IModalServiceInstance;
   private monitorInterval: number;
   private onTaskComplete: () => any;
+  private onTaskRetry: () => void;
 
   constructor(public config: ITaskMonitorConfig, private $timeout: ng.ITimeoutService, private taskReader: TaskReader) {
 
@@ -32,6 +34,7 @@ export class TaskMonitor {
     this.application = config.application;
     this.modalInstance = config.modalInstance;
     this.onTaskComplete = config.onTaskComplete;
+    this.onTaskRetry = config.onTaskRetry;
     this.monitorInterval = config.monitorInterval || 1000;
     this.submitMethod = config.submitMethod;
 
@@ -78,6 +81,13 @@ export class TaskMonitor {
     this.taskReader.waitUntilTaskCompletes(task, this.monitorInterval)
       .then(() => this.onTaskComplete ? this.onTaskComplete() : noop)
       .catch(() => this.setError(task));
+  }
+
+  public tryToFix() {
+    this.error = null;
+    if (this.onTaskRetry) {
+      this.onTaskRetry();
+    }
   }
 
   public submit(submitMethod?: () => ng.IPromise<ITask>) {

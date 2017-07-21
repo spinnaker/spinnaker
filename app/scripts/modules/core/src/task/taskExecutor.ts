@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IHttpPromiseCallbackArg, IPromise, IQService, module } from 'angular';
 
 import { ITask } from 'core/domain';
 import { TASK_READ_SERVICE, TaskReader } from './task.read.service';
@@ -24,12 +24,12 @@ export interface ITaskCommand {
 
 export class TaskExecutor {
 
-  public constructor(private $q: ng.IQService, private authenticationService: AuthenticationService,
+  public constructor(private $q: IQService, private authenticationService: AuthenticationService,
                      private taskReader: TaskReader, private taskWriter: TaskWriter) {
     'ngInject';
   }
 
-  public executeTask(taskCommand: ITaskCommand): ng.IPromise<ITask> {
+  public executeTask(taskCommand: ITaskCommand): IPromise<ITask> {
     const owner: any = taskCommand.application || taskCommand.project || { name: 'ad-hoc'};
     if (taskCommand.application && taskCommand.application.name) {
       taskCommand.application = taskCommand.application.name;
@@ -51,7 +51,7 @@ export class TaskExecutor {
         }
         return this.taskReader.getTask(taskId);
       },
-      (response: ng.IHttpPromiseCallbackArg<any>) => {
+      (response: IHttpPromiseCallbackArg<any>) => {
         const error: any = {
           status: response.status,
           message: response.statusText

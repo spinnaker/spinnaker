@@ -1,4 +1,4 @@
-import { module } from 'angular';
+import { IPromise, module } from 'angular';
 
 import { Application } from 'core/application/application.model';
 import { INFRASTRUCTURE_CACHE_SERVICE, InfrastructureCacheService } from 'core/cache/infrastructureCaches.service';
@@ -20,14 +20,14 @@ export class SecurityGroupWriter {
 
   public deleteSecurityGroup(securityGroup: ISecurityGroup,
                              application: Application,
-                             params: ISecurityGroupJob): ng.IPromise<ITask> {
+                             params: ISecurityGroupJob): IPromise<ITask> {
 
     params.type = 'deleteSecurityGroup';
     params.securityGroupName = securityGroup.name;
     params.regions = [securityGroup.region];
     params.credentials = securityGroup.accountId;
 
-    const operation: ng.IPromise<ITask> = this.taskExecutor.executeTask({
+    const operation: IPromise<ITask> = this.taskExecutor.executeTask({
       job: [params],
       application: application,
       description: `Delete Security Group: ${securityGroup.name}`
@@ -40,13 +40,13 @@ export class SecurityGroupWriter {
   public upsertSecurityGroup(securityGroup: ISecurityGroup,
                              application: Application,
                              description: string,
-                             params: any = {}): ng.IPromise<ITask> {
+                             params: any = {}): IPromise<ITask> {
 
     params.type = 'upsertSecurityGroup';
     params.credentials = securityGroup.credentials || securityGroup.accountName;
     const job: ISecurityGroupJob = Object.assign(securityGroup, params);
 
-    const operation: ng.IPromise<ITask> = this.taskExecutor.executeTask({
+    const operation: IPromise<ITask> = this.taskExecutor.executeTask({
       job: [job],
       application: application,
       description: `${description} Security Group: ${securityGroup.name}`

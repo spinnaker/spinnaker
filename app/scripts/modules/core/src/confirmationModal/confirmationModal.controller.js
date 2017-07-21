@@ -13,11 +13,19 @@ module.exports = angular
     $scope.params = params;
 
     $scope.state = {
-      submitting: false
+      submitting: false,
+      isRetry: false
     };
 
     if (params.taskMonitorConfig) {
       params.taskMonitorConfig.modalInstance = $uibModalInstance;
+
+      const onTaskRetry = params.taskMonitorConfig.onTaskRetry;
+      params.taskMonitorConfig.onTaskRetry = () => {
+        $scope.state.isRetry = true;
+        $scope.state.submitting = false;
+        if (onTaskRetry) { onTaskRetry(); }
+      };
 
       $scope.taskMonitor = taskMonitorBuilder.buildTaskMonitor(params.taskMonitorConfig);
     }
@@ -49,7 +57,9 @@ module.exports = angular
         if ($scope.taskMonitors) {
           $scope.taskMonitors.forEach(monitor => monitor.callPreconfiguredSubmit({reason: params.reason}));
         } else if ($scope.taskMonitor) {
-          $scope.taskMonitor.submit(() => { return params.submitMethod({interestingHealthProviderNames: params.interestingHealthProviderNames, reason: params.reason}); });
+          $scope.taskMonitor.submit(() => {
+            return params.submitMethod({interestingHealthProviderNames: params.interestingHealthProviderNames, reason: params.reason});
+          });
         } else if (params.submitJustWithReason) {
           params.submitMethod(params.reason).then($uibModalInstance.close, showError);
         } else {
