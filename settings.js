@@ -15,7 +15,7 @@ var canaryEnabled = process.env.CANARY_ENABLED === 'true';
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'openstack'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'openstack', 'oraclebmcs'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,

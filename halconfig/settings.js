@@ -47,13 +47,19 @@ var azure = {
     region: '{%azure.default.region%}'
   }
 };
+var oraclebmcs = {
+  defaults: {
+    account: '{%oraclebmcs.default.account%}',
+    region: '{%oraclebmcs.default.region%}'
+  }
+};
 var entityTagsEnabled = false;
 var netflixMode = false;
 
 window.spinnakerSettings = {
   version: version,
   checkForUpdates: false,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'titus', 'openstack', 'oraclebmcs'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -89,6 +95,7 @@ window.spinnakerSettings = {
     openstack: openstack,
     kubernetes: kubernetes,
     appengine: appengine,
+    oraclebmcs: oraclebmcs,
   },
   changelog: {
     gistId: changelogGistId,
