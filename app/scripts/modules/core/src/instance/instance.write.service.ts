@@ -16,7 +16,7 @@ export interface IMultiInstanceGroup {
   instances: IInstance[];
 }
 
-interface IMultiInstanceJob {
+export interface IMultiInstanceJob {
   type: string;
   cloudProvider: string;
   instanceIds: string[];
@@ -29,9 +29,9 @@ interface IMultiInstanceJob {
 
 export class InstanceWriter {
 
-  public constructor(private taskExecutor: TaskExecutor,
-                     private serverGroupReader: ServerGroupReader,
-                     private providerServiceDelegate: ProviderServiceDelegate) {
+  public constructor(protected taskExecutor: TaskExecutor,
+                     protected serverGroupReader: ServerGroupReader,
+                     protected providerServiceDelegate: ProviderServiceDelegate) {
     'ngInject';
   }
 
@@ -210,13 +210,13 @@ export class InstanceWriter {
   }
 
 
-  private buildMultiInstanceJob(instanceGroups: IMultiInstanceGroup[], type: string, additionalJobProperties = {}) {
+  protected buildMultiInstanceJob(instanceGroups: IMultiInstanceGroup[], type: string, additionalJobProperties = {}) {
     return instanceGroups
       .filter((instanceGroup) => instanceGroup.instances.length > 0)
       .map((instanceGroup) => this.convertGroupToJob(instanceGroup, type, additionalJobProperties));
   }
 
-  private buildMultiInstanceDescriptor(jobs: IMultiInstanceJob[], base: string, suffix: string): string {
+  protected buildMultiInstanceDescriptor(jobs: IMultiInstanceJob[], base: string, suffix: string): string {
     let totalInstances = 0;
     jobs.forEach((job: IMultiInstanceJob) => totalInstances += job.instanceIds.length);
     let descriptor = `${base} ${totalInstances} instance`;

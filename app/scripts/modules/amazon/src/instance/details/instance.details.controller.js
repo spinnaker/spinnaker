@@ -7,15 +7,16 @@ import {
   CLOUD_PROVIDER_REGISTRY,
   CONFIRMATION_MODAL_SERVICE,
   INSTANCE_READ_SERVICE,
-  INSTANCE_WRITE_SERVICE,
   RECENT_HISTORY_SERVICE,
   SETTINGS
 } from '@spinnaker/core';
 
+import { AMAZON_INSTANCE_WRITE_SERVICE } from 'amazon/instance/amazon.instance.write.service';
+
 module.exports = angular.module('spinnaker.amazon.instance.details.controller', [
   require('@uirouter/angularjs').default,
   require('angular-ui-bootstrap'),
-  INSTANCE_WRITE_SERVICE,
+  AMAZON_INSTANCE_WRITE_SERVICE,
   INSTANCE_READ_SERVICE,
   require('../../vpc/vpcTag.directive.js'),
   CONFIRMATION_MODAL_SERVICE,
@@ -23,9 +24,8 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
   CLOUD_PROVIDER_REGISTRY,
 ])
   .controller('awsInstanceDetailsCtrl', function ($scope, $state, $uibModal,
-                                                  instanceWriter, confirmationModalService, recentHistoryService,
+                                                  amazonInstanceWriter, confirmationModalService, recentHistoryService,
                                                   cloudProviderRegistry, instanceReader, instance, app, $q, overrides) {
-
     // needed for standalone instances
     $scope.detailsTemplateUrl = cloudProviderRegistry.getValue('aws', 'instance.detailsTemplateUrl');
 
@@ -65,11 +65,12 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
 
     function retrieveInstance() {
       var extraData = {};
-      var instanceSummary, loadBalancers, account, region, vpcId;
+      var instanceSummary, loadBalancers, targetGroups, account, region, vpcId;
       if (!app.serverGroups) {
         // standalone instance
         instanceSummary = {};
         loadBalancers = [];
+        targetGroups = [];
         account = instance.account;
         region = instance.region;
       } else {
@@ -78,6 +79,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
             if (possibleInstance.id === instance.instanceId) {
               instanceSummary = possibleInstance;
               loadBalancers = serverGroup.loadBalancers;
+              targetGroups = serverGroup.targetGroups;
               account = serverGroup.account;
               region = serverGroup.region;
               vpcId = serverGroup.vpcId;
@@ -99,6 +101,18 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
                 vpcId = loadBalancer.vpcId;
                 return true;
               }
+            }) ||
+            loadBalancer.targetGroups.some(function (targetGroup) {
+              return targetGroup.instances.some(function (possibleInstance) {
+                if (possibleInstance.id === instance.instanceId) {
+                  instanceSummary = possibleInstance;
+                  targetGroups = [targetGroup.name];
+                  account = loadBalancer.account;
+                  region = loadBalancer.region;
+                  vpcId = loadBalancer.vpcId;
+                  return true;
+                }
+              });
             });
           });
           if (!instanceSummary) {
@@ -117,6 +131,23 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
                     vpcId = loadBalancer.vpcId;
                     return true;
                   }
+                });
+              }) ||
+              loadBalancer.targetGroups.some(function(targetGroup) {
+                targetGroup.serverGroups.some(function(serverGroup) {
+                  if (!serverGroup.isDisabled) {
+                    return false;
+                  }
+                  return serverGroup.instances.some(function(possibleInstance) {
+                    if (possibleInstance.id === instance.instanceId) {
+                      instanceSummary = possibleInstance;
+                      loadBalancers = [loadBalancer.name];
+                      account = loadBalancer.account;
+                      region = loadBalancer.region;
+                      vpcId = loadBalancer.vpcId;
+                      return true;
+                    }
+                  });
                 });
               });
             });
@@ -140,6 +171,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
             $scope.instance.region = region;
             $scope.instance.vpcId = vpcId;
             $scope.instance.loadBalancers = loadBalancers;
+            $scope.instance.targetGroups = targetGroups;
             if($scope.instance.networkInterfaces) {
               var permanentNetworkInterfaces = $scope.instance.networkInterfaces.filter(f => f.attachment.deleteOnTermination === false);
               if (permanentNetworkInterfaces.length) {
@@ -198,6 +230,28 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       return outOfService || !hasLoadBalancerHealth;
     };
 
+    this.canDeregisterFromTargetGroup = function() {
+      let healthMetrics = $scope.instance.health || [];
+      return healthMetrics.some(function(health) {
+        return health.type === 'TargetGroup' && health.state !== 'OutOfService';
+      });
+    };
+
+    this.canRegisterWithTargetGroup = function() {
+      var instance = $scope.instance,
+          healthMetrics = instance.health || [];
+      if (!instance.targetGroups || !instance.targetGroups.length) {
+        return false;
+      }
+      var outOfService = healthMetrics.some(function(health) {
+        return health.type === 'TargetGroup' && health.state === 'OutOfService';
+      });
+      var hasTargetGroupHealth = healthMetrics.some(function(health) {
+        return health.type === 'TargetGroup';
+      });
+      return outOfService || !hasTargetGroupHealth;
+    };
+
     this.canRegisterWithDiscovery = function() {
       var instance = $scope.instance;
       let healthMetrics = instance.health || [];
@@ -221,7 +275,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       };
 
       var submitMethod = function () {
-        return instanceWriter.terminateInstance(instance, app);
+        return amazonInstanceWriter.terminateInstance(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -248,7 +302,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       };
 
       var submitMethod = function () {
-        return instanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
+        return amazonInstanceWriter.terminateInstanceAndShrinkServerGroup(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -274,7 +328,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
           params.interestingHealthProviderNames = ['Amazon'];
         }
 
-        return instanceWriter.rebootInstance(instance, app, params);
+        return amazonInstanceWriter.rebootInstance(instance, app, params);
       };
 
       confirmationModalService.confirm({
@@ -297,7 +351,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       };
 
       var submitMethod = function () {
-        return instanceWriter.registerInstanceWithLoadBalancer(instance, app);
+        return amazonInstanceWriter.registerInstanceWithLoadBalancer(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -319,11 +373,56 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       };
 
       var submitMethod = function () {
-        return instanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
+        return amazonInstanceWriter.deregisterInstanceFromLoadBalancer(instance, app);
       };
 
       confirmationModalService.confirm({
         header: 'Really deregister ' + instance.instanceId + ' from ' + loadBalancerNames + '?',
+        buttonText: 'Deregister ' + instance.instanceId,
+        provider: 'aws',
+        account: instance.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
+    this.registerInstanceWithTargetGroup = function registerInstanceWithTargetGroup() {
+      var instance = $scope.instance;
+      var targetGroupNames = instance.targetGroups.join(' and ');
+
+      var taskMonitor = {
+        application: app,
+        title: 'Registering ' + instance.instanceId + ' with ' + targetGroupNames
+      };
+
+      var submitMethod = function () {
+        return amazonInstanceWriter.registerInstanceWithTargetGroup(instance, app);
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really register ' + instance.instanceId + ' with ' + targetGroupNames + '?',
+        buttonText: 'Register ' + instance.instanceId,
+        account: instance.account,
+        taskMonitorConfig: taskMonitor,
+        submitMethod: submitMethod
+      });
+    };
+
+    this.deregisterInstanceFromTargetGroup = function deregisterInstanceFromTargetGroup() {
+      var instance = $scope.instance;
+      var targetGroupNames = instance.targetGroups.join(' and ');
+
+      var taskMonitor = {
+        application: app,
+        title: 'Deregistering ' + instance.instanceId + ' from ' + targetGroupNames
+      };
+
+      var submitMethod = function () {
+        return amazonInstanceWriter.deregisterInstanceFromTargetGroup(instance, app);
+      };
+
+      confirmationModalService.confirm({
+        header: 'Really deregister ' + instance.instanceId + ' from ' + targetGroupNames + '?',
         buttonText: 'Deregister ' + instance.instanceId,
         provider: 'aws',
         account: instance.account,
@@ -341,7 +440,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       };
 
       var submitMethod = function () {
-        return instanceWriter.enableInstanceInDiscovery(instance, app);
+        return amazonInstanceWriter.enableInstanceInDiscovery(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -362,7 +461,7 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
       };
 
       var submitMethod = function () {
-        return instanceWriter.disableInstanceInDiscovery(instance, app);
+        return amazonInstanceWriter.disableInstanceInDiscovery(instance, app);
       };
 
       confirmationModalService.confirm({
@@ -399,6 +498,5 @@ module.exports = angular.module('spinnaker.amazon.instance.details.controller', 
      });
 
     $scope.account = instance.account;
-
   }
 );
