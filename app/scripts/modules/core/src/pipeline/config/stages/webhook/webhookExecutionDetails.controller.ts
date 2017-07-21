@@ -18,12 +18,12 @@ export class WebhookExecutionDetailsCtrl implements IController {
               private executionDetailsSectionService: ExecutionDetailsSectionService,
               private $scope: IScope) {
     'ngInject';
-    this.stage = this.$scope.stage;
     this.initialize();
     this.$scope.$on('$stateChangeSuccess', () => this.initialize());
   }
 
   public initialized(): void {
+    this.stage = this.$scope.stage;
     this.detailsSection = get<string>(this.$stateParams, 'details', '');
     this.failureMessage = this.getFailureMessage();
     this.progressMessage = this.getProgressMessage();
