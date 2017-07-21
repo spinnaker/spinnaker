@@ -64,6 +64,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
   final ConsulConfig consulConfig
   final Compute compute
   final String userDataFile
+  final List<String> regionsToManage
 
   static class Builder {
     String name
@@ -85,6 +86,7 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
     Compute compute
     ConsulConfig consulConfig
     String userDataFile
+    List<String> regionsToManage
 
     /**
      * If true, overwrites any value in regionToZoneMap, locationToInstanceTypesMap and locationToCpuPlatformsMap with values from the platform.
@@ -184,6 +186,11 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
       return this
     }
 
+    Builder regionsToManage(List<String> regionsToManage, List<String> defaultRegions) {
+      this.regionsToManage = (regionsToManage != null) ? regionsToManage : defaultRegions
+      return this
+    }
+
     @VisibleForTesting
     Builder credentials(GoogleCredentials credentials) {
       this.credentials = credentials
@@ -236,19 +243,25 @@ class GoogleNamedAccountCredentials implements AccountCredentials<GoogleCredenti
                                         instanceTypeDisks,
                                         consulConfig,
                                         compute,
-                                        userDataFile)
+                                        userDataFile,
+                                        regionsToManage)
 
     }
   }
 
   public List<Map> getRegions() {
     List<Map> regionList = []
-
-    regionToZonesMap.each { String region, List<String> zones ->
-      Map regionMap = new HashMap()
-      regionMap.put("name", region)
-      regionMap.put("zones", zones)
-      regionList.add(regionMap)
+    if (regionsToManage != null) {
+      if (!regionsToManage.isEmpty()) {
+        regionToZonesMap.findAll { regionsToManage.contains(it.getKey()) }.each {
+          String region, List<String> zones ->
+            regionList.add([name: region, zones: zones])
+        }
+      }
+    } else {
+      regionToZonesMap.each { String region, List<String> zones ->
+        regionList.add([name: region, zones: zones])
+      }
     }
     return regionList
   }

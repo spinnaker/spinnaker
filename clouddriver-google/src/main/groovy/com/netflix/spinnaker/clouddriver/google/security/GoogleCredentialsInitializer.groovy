@@ -81,6 +81,7 @@ class GoogleCredentialsInitializer implements CredentialsInitializerSynchronizab
             .consulConfig(managedAccount.consul)
             .instanceTypeDisks(googleDeployDefaults.instanceTypeDisks)
             .userDataFile(managedAccount.userDataFile)
+            .regionsToManage(managedAccount.regions, googleConfigurationProperties.defaultRegions)
             .build()
 
         if (!managedAccount.project) {

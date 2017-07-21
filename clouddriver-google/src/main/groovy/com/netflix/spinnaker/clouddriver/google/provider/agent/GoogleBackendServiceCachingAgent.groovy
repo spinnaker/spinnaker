@@ -67,14 +67,12 @@ class GoogleBackendServiceCachingAgent extends AbstractGoogleCachingAgent {
     if (globalBackendServices) {
       ret.addAll(globalBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.globalBackendService) })
     }
-    timeExecute(compute.regions().list(project),
-                "compute.regions.list",
-                TAG_SCOPE, SCOPE_GLOBAL
-    ).items.each { Region region ->
+
+    credentials.regions.collect { it.name }.each { String region ->
       def regionBackendServices = timeExecute(
-          compute.regionBackendServices().list(project, region.getName()),
+          compute.regionBackendServices().list(project, region),
           "compute.regionBackendServices.list",
-          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region.getName()
+          TAG_SCOPE, SCOPE_REGIONAL, TAG_REGION, region
       )?.items as List
       if (regionBackendServices) {
         ret.addAll(regionBackendServices.collect { toGoogleBackendService(it, GoogleBackendService.BackendServiceKind.regionBackendService) })

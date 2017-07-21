@@ -30,6 +30,9 @@ class GoogleConfigurationProperties {
     List<String> imageProjects
     ConsulConfig consul
     String userDataFile
+    // Takes a list of regions you want indexed, per-account. Will default to the value in
+    // defaultRegions if left unspecified. An empty list will index no regions.
+    List<String> regions
   }
 
   List<ManagedAccount> accounts = []
@@ -37,4 +40,7 @@ class GoogleConfigurationProperties {
   int asyncOperationMaxPollingIntervalSeconds = ASYNC_OPERATION_MAX_POLLING_INTERVAL_SECONDS
   List<String> baseImageProjects
   long maxMIGPageSize = 50
+  // Takes a list of regions you want indexed. Will default to indexing all regions if left
+  // unspecified. An empty list will index no regions.
+  List<String> defaultRegions
 }
