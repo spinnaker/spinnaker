@@ -19,7 +19,12 @@ fi
 
 ./release/$PLATFORM.sh
 
-BUCKET_PATH=gs://spinnaker-artifacts/halyard/$VERSION/$PLATFORM/halyard.tar.gz
+if [ "$PLATFORM" = "docker" ]; then
+  docker tag halyard gcr.io/spinnaker-marketplace/halyard:$VERSION
+  sudo gcloud docker -- push gcr.io/spinnaker-marketplace/halyard:$VERSION
+else 
+  BUCKET_PATH=gs://spinnaker-artifacts/halyard/$VERSION/$PLATFORM/halyard.tar.gz
 
-gsutil cp halyard.tar.gz $BUCKET_PATH
-gsutil acl ch -u AllUsers:R $BUCKET_PATH
+  gsutil cp halyard.tar.gz $BUCKET_PATH
+  gsutil acl ch -u AllUsers:R $BUCKET_PATH
+fi

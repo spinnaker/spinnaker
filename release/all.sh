@@ -2,7 +2,7 @@
 
 set -e
 
-PLATFORMS=(debian)
+PLATFORMS=(debian docker)
 VERSIONS=$@
 
 ./gradlew clean && ./gradlew installDist -Prelease.useLastTag=true
