@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution
-import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -46,12 +45,12 @@ open class RunTaskHandler
 @Autowired constructor(
   override val queue: Queue,
   override val repository: ExecutionRepository,
+  override val contextParameterProcessor: ContextParameterProcessor,
   private val tasks: Collection<Task>,
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
-  private val contextParameterProcessor: ContextParameterProcessor,
   private val registry: Registry
-) : MessageHandler<RunTask> {
+) : MessageHandler<RunTask>, ExpressionAware {
 
   private val log: Logger = getLogger(javaClass)
 
@@ -203,46 +202,4 @@ open class RunTaskHandler
 
   private fun Stage<*>.shouldContinueOnFailure() =
     getContext()["continuePipeline"] == true
-
-  private fun Stage<*>.withMergedContext(): Stage<*> {
-    val processed = processEntries(this)
-    val execution = getExecution()
-    this.setContext(object : MutableMap<String, Any?> by processed {
-      override fun get(key: String): Any? {
-        if (execution is Pipeline) {
-          if (key == "trigger") {
-            return execution.trigger
-          }
-
-          if (key == "execution") {
-            return execution
-          }
-        }
-
-        val result = processed[key] ?: execution.getContext()[key]
-
-        if (result is String && ContextParameterProcessor.containsExpression(result)) {
-          val augmentedContext = processed.augmentContext(execution)
-          return contextParameterProcessor.process(mapOf(key to result), augmentedContext, true)[key]
-        }
-
-        return result
-      }
-    })
-    return this
-  }
-
-  private fun processEntries(stage: Stage<*>) =
-    contextParameterProcessor.process(
-      stage.getContext(),
-      stage.getContext().augmentContext(stage.getExecution()),
-      true
-    )
-
-  private fun Map<String, Any?>.augmentContext(execution: Execution<*>) =
-    if (execution is Pipeline) {
-      this + execution.context + mapOf("trigger" to execution.trigger, "execution" to execution)
-    } else {
-      this
-    }
 }

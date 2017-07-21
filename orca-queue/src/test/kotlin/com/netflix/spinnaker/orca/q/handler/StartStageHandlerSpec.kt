@@ -71,10 +71,10 @@ object StartStageHandlerSpec : SubjectSpek<StartStageHandler>({
         webhookStage,
         failPlanningStage
       ),
+      ContextParameterProcessor(),
       publisher,
       listOf(exceptionHandler),
       clock,
-      ContextParameterProcessor(),
       retryDelayMs = retryDelay.toMillis()
     )
   }

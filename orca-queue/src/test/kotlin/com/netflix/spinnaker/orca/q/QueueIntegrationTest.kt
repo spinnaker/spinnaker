@@ -499,6 +499,102 @@ open class QueueIntegrationTest {
       stageByRef("2").status shouldEqual CANCELED
     }
   }
+
+  @Test fun `conditional stages can depend on global context values`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+      }
+      stage {
+        refId = "2a"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+        context = mapOf(
+          "stageEnabled" to mapOf(
+            "type" to "expression",
+            "expression" to "\${foo == true}"
+          )
+        )
+      }
+      stage {
+        refId = "2b"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+        context = mapOf(
+          "stageEnabled" to mapOf(
+            "type" to "expression",
+            "expression" to "\${foo == false}"
+          )
+        )
+      }
+      status = TERMINAL
+    }
+    repository.store(pipeline)
+    repository.storeExecutionContext(pipeline.id, mapOf("foo" to false))
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.runToCompletion(pipeline, runner::start, repository)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stageByRef("1").status shouldEqual SUCCEEDED
+      stageByRef("2a").status shouldEqual SKIPPED
+      stageByRef("2b").status shouldEqual SUCCEEDED
+    }
+  }
+
+  @Test fun `conditional stages can depend on global context values after restart`() {
+    val pipeline = pipeline {
+      application = "spinnaker"
+      stage {
+        refId = "1"
+        type = "dummy"
+        status = SUCCEEDED
+      }
+      stage {
+        refId = "2a"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+        status = SKIPPED
+        context = mapOf(
+          "stageEnabled" to mapOf(
+            "type" to "expression",
+            "expression" to "\${foo == true}"
+          )
+        )
+      }
+      stage {
+        refId = "2b"
+        requisiteStageRefIds = setOf("1")
+        type = "dummy"
+        status = TERMINAL
+        context = mapOf(
+          "stageEnabled" to mapOf(
+            "type" to "expression",
+            "expression" to "\${foo == false}"
+          )
+        )
+      }
+      status = TERMINAL
+    }
+    repository.store(pipeline)
+    repository.storeExecutionContext(pipeline.id, mapOf("foo" to false))
+
+    whenever(dummyTask.timeout) doReturn 2000L
+    whenever(dummyTask.execute(any())) doReturn TaskResult.SUCCEEDED
+
+    context.restartAndRunToCompletion(pipeline.stageByRef("1"), runner::restart, repository)
+
+    repository.retrievePipeline(pipeline.id).apply {
+      status shouldEqual SUCCEEDED
+      stageByRef("2a").status shouldEqual SKIPPED
+      stageByRef("2b").status shouldEqual SUCCEEDED
+    }
+  }
 }
 
 @Configuration

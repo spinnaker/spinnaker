@@ -50,7 +50,7 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
   val contextParameterProcessor = ContextParameterProcessor()
 
   subject(GROUP) {
-    RunTaskHandler(queue, repository, listOf(task), clock, listOf(exceptionHandler), contextParameterProcessor, NoopRegistry())
+    RunTaskHandler(queue, repository, contextParameterProcessor, listOf(task), clock, listOf(exceptionHandler), NoopRegistry())
   }
 
   fun resetMocks() = reset(queue, repository, task, exceptionHandler)

@@ -40,12 +40,12 @@ open class StartStageHandler
   override val queue: Queue,
   override val repository: ExecutionRepository,
   override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
+  override val contextParameterProcessor: ContextParameterProcessor,
   private val publisher: ApplicationEventPublisher,
   private val exceptionHandlers: List<ExceptionHandler>,
   private val clock: Clock,
-  private val contextParameterProcessor: ContextParameterProcessor,
   @Value("\${queue.retry.delay.ms:60000}") retryDelayMs: Long
-) : MessageHandler<StartStage>, StageBuilderAware {
+) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val retryDelay = Duration.ofMillis(retryDelayMs)
@@ -128,5 +128,5 @@ open class StartStageHandler
   }
 
   private fun Stage<*>.shouldSkip() =
-    OptionalStageSupport.isOptional(this, contextParameterProcessor)
+    OptionalStageSupport.isOptional(withMergedContext(), contextParameterProcessor)
 }
