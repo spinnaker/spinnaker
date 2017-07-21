@@ -143,19 +143,8 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
       }
 
       if (instanceIds && credentials.discoveryEnabled && description.desiredPercentage && disable) {
-        List<EurekaInstance> eurekaInstances = regionScopedProvider.eureka.getApplication(Names.parseName(serverGroupName).app).instances.findAll {
-          it.asgName == serverGroupName
-        }
-        List<String> modified = []
-        List<String> unmodified = []
-        instanceIds.each { instanceId ->
-          if (eurekaInstances.find { it.instanceId == instanceId }?.status == 'Up') {
-            unmodified.add(instanceId)
-          } else {
-            modified.add(instanceId)
-          }
-        }
-        instanceIds = EnableDisablePercentageCategorizer.getInstancesToModify(modified, unmodified, description.desiredPercentage)
+        instanceIds = discoverySupport.getInstanceToModify(credentials.name, region, serverGroupName, instanceIds, description.desiredPercentage)
+        task.updateStatus phaseName, "Only disabling instances $instanceIds on ASG $serverGroupName with percentage ${description.desiredPercentage}"
       }
 
       if (disable) {

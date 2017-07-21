@@ -47,7 +47,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -72,7 +72,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
     asg.getLoadBalancerNames() >> ["lb1"]
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -86,7 +86,9 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * amazonEc2.describeInstances(_) >> describeInstanceResult
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * asgService.suspendProcesses(_, AutoScalingProcessType.getDisableProcesses())
-    1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> { throw new LoadBalancerNotFoundException("Does not exist") }
+    1 * loadBalancing.deregisterInstancesFromLoadBalancer(_) >> {
+      throw new LoadBalancerNotFoundException("Does not exist")
+    }
     1 * eureka.getInstanceInfo('i1') >>
       [
         instance: [
@@ -101,7 +103,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
   def 'should disable instances for asg in discovery'() {
     given:
     def asg = Mock(AutoScalingGroup)
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService")]
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
     def describeInstanceResult = Mock(DescribeInstancesResult)
     describeInstanceResult.getReservations() >> [new Reservation().withInstances(instance)]
@@ -114,21 +116,21 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     2 * task.getStatus() >> new DefaultTaskStatus(state: TaskState.STARTED)
     1 * asgService.getAutoScalingGroup(_) >> asg
     1 * eureka.getInstanceInfo('i1') >>
-        [
-            instance: [
-                app: "asg1"
-            ]
+      [
+        instance: [
+          app: "asg1"
         ]
+      ]
     1 * eureka.updateInstanceStatus('asg1', 'i1', 'OUT_OF_SERVICE')
   }
 
   def 'should skip discovery if not enabled for account'() {
     given:
     def noDiscovery = new EnableDisableAsgDescription([
-      asgs: [[
-        serverGroupName: "kato-main-v000",
-        region         : "us-west-1"
-      ]],
+      asgs       : [[
+                      serverGroupName: "kato-main-v000",
+                      region         : "us-west-1"
+                    ]],
       credentials: TestCredential.named('foo')
     ])
 
@@ -137,7 +139,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
 
     def asg = Mock(AutoScalingGroup)
     asg.getAutoScalingGroupName() >> "asg1"
-    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService") ]
+    asg.getInstances() >> [new com.amazonaws.services.autoscaling.model.Instance().withInstanceId("i1").withLifecycleState("InService")]
 
     and:
     def instance = new Instance().withState(new InstanceState().withName("running")).withInstanceId("i1")
@@ -172,12 +174,6 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
       new com.amazonaws.services.autoscaling.model.Instance(instanceId: '00003', lifecycleState: 'InService'),
       new com.amazonaws.services.autoscaling.model.Instance(instanceId: '00004', lifecycleState: 'InService'),
     ]
-    eureka.getApplication("kato") >> new EurekaApplication(instances: [
-      new EurekaInstance(instanceId: '00001', asgName: 'kato-main-v000', status: 'Up'),
-      new EurekaInstance(instanceId: '00002', asgName: 'kato-main-v000', status: 'Up'),
-      new EurekaInstance(instanceId: '00003', asgName: 'kato-main-v000', status: 'Unknown'),
-      new EurekaInstance(instanceId: '00004', asgName: 'kato-main-v000', status: 'Down')
-    ])
     1 * amazonEc2.describeInstances(_) >> describeInstancesResult
     1 * describeInstancesResult.getReservations() >> [reservation]
     1 * reservation.getInstances() >> [
@@ -187,6 +183,7 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
       new com.amazonaws.services.ec2.model.Instance(instanceId: '00004', state: runningState)
     ]
     op.discoverySupport = Mock(AwsEurekaSupport)
+    op.discoverySupport.getInstanceToModify(_, _, _, _, percentage) >> instances
 
     when:
     op.operate([])
@@ -195,10 +192,10 @@ class DisableAsgAtomicOperationUnitSpec extends EnableDisableAtomicOperationUnit
     1 * op.discoverySupport.updateDiscoveryStatusForInstances(_, _, _, _, { it.size() == instancesAffected })
 
     where:
-    percentage || instancesAffected
-    75         || 1
-    100        || 2
-    null       || 4
+    percentage | instances          || instancesAffected
+    75         | ['00001']          || 1
+    100        | ['00001', '00004'] || 2
+    null       | null               || 4
   }
 
   @Unroll("Should invoke supend process #invocations times when desiredPercentage is #desiredPercentage")

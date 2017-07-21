@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.eureka.deploy.ops
 import com.amazonaws.AmazonServiceException
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.eureka.api.Eureka
+import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
 import com.netflix.spinnaker.clouddriver.model.ClusterProvider
 import com.netflix.spinnaker.clouddriver.model.ServerGroup
 import groovy.transform.InheritConstructors
@@ -128,7 +129,7 @@ abstract class AbstractEurekaSupport {
 
           Response resp
 
-          if(discoveryStatus == DiscoveryStatus.Disable) {
+          if (discoveryStatus == DiscoveryStatus.Disable) {
             resp = eureka.updateInstanceStatus(applicationName, instanceId, discoveryStatus.value)
           } else {
             resp = eureka.resetInstanceStatus(applicationName, instanceId, DiscoveryStatus.Disable.value)
@@ -217,15 +218,13 @@ abstract class AbstractEurekaSupport {
                                                                    String region,
                                                                    String asgName,
                                                                    String targetDiscoveryStatus) {
-    def matches = (Set<ServerGroup>) clusterProviders.findResults {
-      it.getServerGroup(account, region, asgName)
-    }
 
-    if (!matches) {
+    ServerGroup serverGroup = getCachedServerGroup(clusterProviders, account, region, asgName)
+
+    if (!serverGroup) {
       return Optional.empty()
     }
 
-    def serverGroup = matches.first()
     def containsDiscoveryStatus = false
 
     serverGroup*.instances*.health.flatten().each { Map<String, String> health ->
@@ -237,6 +236,47 @@ abstract class AbstractEurekaSupport {
     return Optional.of(containsDiscoveryStatus)
   }
 
+  static ServerGroup getCachedServerGroup(Collection<ClusterProvider> clusterProviders,
+                                          String account,
+                                          String region,
+                                          String asgName) {
+    def matches = (Set<ServerGroup>) clusterProviders.findResults {
+      it.getServerGroup(account, region, asgName)
+    }
+
+    if (!matches) {
+      return null
+    }
+
+    def serverGroup = matches.first()
+    return serverGroup
+  }
+
+  List<String> getInstanceToModify(String account, String region, String asgName, List<String> instances, int desiredPercentage) {
+    ServerGroup serverGroup = getCachedServerGroup(clusterProviders, account, region, asgName)
+    if (!serverGroup) {
+      return []
+    }
+    List<String> modified = []
+    List<String> unmodified = []
+
+    instances.each { instanceId ->
+      boolean isUp = false
+      serverGroup.instances.find { it.name == instanceId }?.health.flatten().each {
+        Map<String, String> health ->
+          if (DiscoveryStatus.Enable.value.equalsIgnoreCase(health?.eurekaStatus)) {
+            isUp = true
+          }
+      }
+      if (isUp) {
+        unmodified.add(instanceId)
+      } else {
+        modified.add(instanceId)
+      }
+    }
+
+    return EnableDisablePercentageCategorizer.getInstancesToModify(modified, unmodified, desiredPercentage)
+  }
 
   enum DiscoveryStatus {
     Enable('UP'),
