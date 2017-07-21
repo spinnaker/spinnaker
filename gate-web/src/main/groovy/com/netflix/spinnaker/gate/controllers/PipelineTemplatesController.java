@@ -123,6 +123,24 @@ public class PipelineTemplatesController {
     return taskService.create(operation);
   }
 
+  @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+  @ResponseStatus(value = HttpStatus.ACCEPTED)
+  public Map delete(@PathVariable String id,
+                    @RequestParam(value = "application", required = false) String application) {
+    List<Map<String, Object>> jobs = new ArrayList<>();
+    Map<String, Object> job = new HashMap<>();
+    job.put("type", "deletePipelineTemplate");
+    job.put("pipelineTemplateId", id);
+    jobs.add(job);
+
+    Map<String, Object> operation = new HashMap<>();
+    operation.put("description", "Delete pipeline template '" + id + "'");
+    operation.put("application", application != null ? application : DEFAULT_APPLICATION);
+    operation.put("job", jobs);
+
+    return taskService.create(operation);
+  }
+
   private String getNameFromTemplate(PipelineTemplate template) {
     return Optional.ofNullable(template.metadata.name).orElse(template.id);
   }

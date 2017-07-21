@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 
 import javax.ws.rs.core.MediaType
@@ -72,5 +73,30 @@ class PipelineTemplateControllerSpec extends Specification {
       [:]
     ]
     app << ['foo', 'spinnaker']
+  }
+
+  def "should construct delete task from pipeline template id"() {
+    given:
+    def pipelineTemplateService = Mock(PipelineTemplateService)
+    def taskService = Mock(TaskService)
+    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineTemplatesController(pipelineTemplateService, taskService, new ObjectMapper())).build()
+
+    when:
+    def response = mockMvc.perform(
+      delete(URI.create("/pipelineTemplates/my-template-id"))
+    ).andReturn().response
+
+    then:
+    response.status == 202
+    1 * taskService.create([
+      application: 'spinnaker',
+      description: "Delete pipeline template 'my-template-id'",
+      job: [
+        [
+          type: 'deletePipelineTemplate',
+          pipelineTemplateId: 'my-template-id'
+        ]
+      ]
+    ]) >> { [ref: 'taskref'] }
   }
 }
