@@ -18,9 +18,12 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.PipelineService
+import com.netflix.spinnaker.gate.services.TaskService
+import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +31,13 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import retrofit.RetrofitError
 
 @Slf4j
@@ -39,6 +48,12 @@ class PipelineController {
   @Autowired
   PipelineService pipelineService
 
+  @Autowired
+  TaskService taskService
+
+  @Autowired
+  Front50Service front50Service
+
   @ApiOperation(value = "Delete a pipeline definition")
   @RequestMapping(value = "/{application}/{pipelineName:.+}", method = RequestMethod.DELETE)
   void deletePipeline(@PathVariable String application, @PathVariable String pipelineName) {
@@ -48,7 +63,21 @@ class PipelineController {
   @ApiOperation(value = "Save a pipeline definition")
   @RequestMapping(value = '', method = RequestMethod.POST)
   void savePipeline(@RequestBody Map pipeline) {
-    pipelineService.save(pipeline)
+    def operation = [
+      description: "Save pipeline '${pipeline.get("name") ?: "Unknown"}'",
+      application: pipeline.get('application'),
+      job: [
+        [
+          type: "savePipeline",
+          pipeline: pipeline
+        ]
+      ]
+    ]
+    def result = taskService.createAndWaitForCompletion(operation)
+
+    if ("TERMINAL".equalsIgnoreCase((String) result.get("status"))) {
+      throw new PipelineSaveFailedException("Pipeline save operation failed with terminal status: ${result.get("id", "unknown task id")}")
+    }
   }
 
   @ApiOperation(value = "Rename a pipeline definition")
@@ -72,7 +101,24 @@ class PipelineController {
   @ApiOperation(value = "Update a pipeline definition")
   @RequestMapping(value = "{id}", method = RequestMethod.PUT)
   Map updatePipeline(@PathVariable("id") String id, @RequestBody Map pipeline) {
-    pipelineService.update(id, pipeline)
+    def operation = [
+      description: "Update pipeline '${pipeline.get("name") ?: 'Unknown'}",
+      application: (String) pipeline.get('application'),
+      job: [
+        [
+          type: 'updatePipeline',
+          pipeline: pipeline
+        ]
+      ]
+    ]
+
+    def result = taskService.createAndWaitForCompletion(operation)
+
+    if ("TERMINAL".equalsIgnoreCase((String) result.get("status"))) {
+      throw new PipelineSaveFailedException("Pipeline save operation failed with terminal status: ${result.get("id", "unknown task id")}")
+    }
+
+    return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"))?.find { id == (String) it.get("id") }
   }
 
   @ApiOperation(value = "Retrieve pipeline execution logs")
@@ -179,4 +225,8 @@ class PipelineController {
       }
     }
   }
+
+  @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  @InheritConstructors
+  static class PipelineSaveFailedException extends RuntimeException {}
 }
