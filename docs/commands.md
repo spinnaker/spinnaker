@@ -223,6 +223,7 @@ If this is your first time using Halyard to install Spinnaker we recommend that 
 hal [parameters] [subcommands]
 ```
 #### Global Parameters
+ * `--daemon-endpoint`: If supplied, connect to the daemon at this address.
  * `--options`: Get options for the specified field name.
  * `-a, --alpha`: Enable alpha halyard features.
  * `-c, --color`: Enable terminal color output.
