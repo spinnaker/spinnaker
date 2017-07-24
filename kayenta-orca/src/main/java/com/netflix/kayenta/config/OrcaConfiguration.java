@@ -17,14 +17,14 @@
 package com.netflix.kayenta.config;
 
 import com.netflix.spinnaker.config.QueueConfiguration;
-import com.netflix.spinnaker.orca.batch.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration;
+import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.PropertyPlaceholderAutoConfiguration;
+import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;

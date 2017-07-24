@@ -10,7 +10,7 @@ dependencies {
   // compile spinnaker.dependency('lombok')
   compile "org.projectlombok:lombok:1.16.10"
 
-  compile 'com.netflix.spinnaker.orca:orca-core:2.8.3'
+  compile "com.netflix.spinnaker.orca:orca-core:$orcaVersion"
 
   // spinnaker.group('retrofitDefault')
   compile "com.squareup.retrofit:retrofit:1.9.0"

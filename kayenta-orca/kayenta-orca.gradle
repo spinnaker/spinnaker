@@ -1,8 +1,8 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile 'com.netflix.spinnaker.orca:orca-queue:2.8.3'
-  compile 'com.netflix.spinnaker.orca:orca-queue-redis:2.8.3'
+  compile "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
+  compile "com.netflix.spinnaker.orca:orca-queue-redis:$orcaVersion"
 
   // compile spinnaker.dependency('bootWeb')
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
@@ -14,8 +14,8 @@ dependencies {
   compile "org.projectlombok:lombok:1.16.10"
 
   // TODO(duftler): Move these to spinnaker-dependencies.
-  testCompile 'com.netflix.spinnaker.orca:orca-queue:2.8.3'
-  testCompile 'com.netflix.spinnaker.orca:orca-test:2.8.3'
+  testCompile "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
+  testCompile "com.netflix.spinnaker.orca:orca-test:$orcaVersion"
   testCompile fileTree(dir: 'libs', include: ['*.jar'])
 
   testCompile "com.natpryce:hamkrest:1.4.0.0"

@@ -36,6 +36,8 @@ kayenta:
   memory:
     enabled: false
 
+management.security.enabled: false
+
 queue.redis.enabled: false
 executionLog.redis.enabled: false
 

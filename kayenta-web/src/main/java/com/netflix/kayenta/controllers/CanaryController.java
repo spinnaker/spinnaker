@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -69,13 +70,18 @@ public class CanaryController {
                           ExecutionRepository executionRepository,
                           AccountCredentialsRepository accountCredentialsRepository,
                           StorageServiceRepository storageServiceRepository,
-                          List<CanaryScopeFactory> canaryScopeFactories) {
+                          Optional<List<CanaryScopeFactory>> canaryScopeFactories) {
     this.currentInstanceId = currentInstanceId;
     this.pipelineLauncher = pipelineLauncher;
     this.executionRepository = executionRepository;
     this.accountCredentialsRepository = accountCredentialsRepository;
     this.storageServiceRepository = storageServiceRepository;
-    this.canaryScopeFactories = canaryScopeFactories;
+
+    if (canaryScopeFactories.isPresent()) {
+      this.canaryScopeFactories = canaryScopeFactories.get();
+    } else {
+      this.canaryScopeFactories = Collections.emptyList();
+    }
   }
 
   @ApiOperation(value = "Initiate a canary pipeline")
