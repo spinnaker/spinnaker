@@ -24,7 +24,7 @@ dependencies {
   compile project(':kayenta-stackdriver')
 
   // compile spinnaker.dependency('bootActuator')
-  compile "org.springframework.boot:spring-boot-starter-actuator:1.2.8.RELEASE"
+  compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
 
   //compile spinnaker.dependency('bootWeb')
   compile "org.springframework.boot:spring-boot-starter-web:1.5.4.RELEASE"

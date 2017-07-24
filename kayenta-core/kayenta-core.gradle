@@ -19,9 +19,9 @@ dependencies {
   compile 'net.greghaines:jesque:1.3.1'
 
   // spinnaker.group('bootWeb')
-  compile "org.springframework.boot:spring-boot-starter-actuator:1.2.8.RELEASE"
-  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
-  compile "org.springframework.boot:spring-boot-starter-data-rest:1.2.8.RELEASE"
+  compile "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion"
+  compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
+  compile "org.springframework.boot:spring-boot-starter-data-rest:$springBootVersion"
 
   // spinnaker.group('jackson')
   compile "com.fasterxml.jackson.core:jackson-core:2.8.7"
