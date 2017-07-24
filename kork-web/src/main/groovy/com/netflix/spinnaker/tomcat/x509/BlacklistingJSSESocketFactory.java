@@ -16,27 +16,27 @@
 
 package com.netflix.spinnaker.tomcat.x509;
 
-import org.apache.tomcat.util.net.AbstractEndpoint;
-import org.apache.tomcat.util.net.jsse.JSSESocketFactory;
+import org.apache.tomcat.util.net.SSLHostConfigCertificate;
+import org.apache.tomcat.util.net.jsse.JSSEUtil;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.util.Optional;
 
-public class BlacklistingJSSESocketFactory extends JSSESocketFactory {
+public class BlacklistingJSSESocketFactory extends JSSEUtil {
   private static final String BLACKLIST_PREFIX = "blacklist:";
 
   private final Blacklist blacklist;
 
-  public BlacklistingJSSESocketFactory(AbstractEndpoint<?> endpoint) {
-    super(endpoint);
-    String blacklistFile = Optional.ofNullable(endpoint.getCrlFile())
+  public BlacklistingJSSESocketFactory(SSLHostConfigCertificate certificate) {
+    super(certificate);
+    String blacklistFile = Optional.ofNullable(certificate.getSSLHostConfig().getCertificateRevocationListFile())
       .filter(file -> file.startsWith(BLACKLIST_PREFIX))
       .map(file -> file.substring(BLACKLIST_PREFIX.length()))
       .orElse(null);
 
     if (blacklistFile != null) {
-      endpoint.setCrlFile(null);
+      certificate.getSSLHostConfig().setCertificateRevocationListFile(null);
       blacklist = Blacklist.forFile(blacklistFile);
     } else {
       blacklist = null;

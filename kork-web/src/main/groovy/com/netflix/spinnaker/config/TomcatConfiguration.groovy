@@ -18,11 +18,13 @@ package com.netflix.spinnaker.config
 
 import com.netflix.spinnaker.okhttp.OkHttpClientConfigurationProperties
 import com.netflix.spinnaker.tomcat.x509.BlacklistingSSLImplementation
+import com.netflix.spinnaker.tomcat.x509.BlacklistingX509TrustManager
 import com.netflix.spinnaker.tomcat.x509.SslExtensionConfigurationProperties
 import groovy.util.logging.Slf4j
 import org.apache.catalina.connector.Connector
 import org.apache.coyote.http11.AbstractHttp11JsseProtocol
 import org.apache.coyote.http11.Http11NioProtocol
+import org.apache.tomcat.util.net.SSLHostConfig
 import org.springframework.boot.actuate.endpoint.ResolvedEnvironmentEndpoint
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer
@@ -61,11 +63,16 @@ class TomcatConfiguration {
           def handler = connector.getProtocolHandler()
           if (handler instanceof AbstractHttp11JsseProtocol) {
             if (handler.isSSLEnabled()) {
-              handler.setProperty("useServerCipherSuitesOrder", "true")
-              handler.setProperty("sslEnabledProtocols", okHttpClientConfigurationProperties.tlsVersions.join(","))
-              handler.setCiphers(okHttpClientConfigurationProperties.cipherSuites.join(","))
+              def sslConfigs = connector.findSslHostConfigs()
+              if (sslConfigs.size() != 1) {
+                throw new RuntimeException("Ssl configs: found ${sslConfigs.size()}, expected 1.")
+              }
               handler.setSslImplementationName(BlacklistingSSLImplementation.name)
-              handler.setCrlFile(sslExtensionConfigurationProperties.getCrlFile())
+              SSLHostConfig sslHostConfig = sslConfigs.first()
+              sslHostConfig.setHonorCipherOrder("true")
+              sslHostConfig.ciphers = okHttpClientConfigurationProperties.cipherSuites.join(",")
+              sslHostConfig.setProtocols(okHttpClientConfigurationProperties.tlsVersions.join(","))
+              sslHostConfig.setCertificateRevocationListFile(sslExtensionConfigurationProperties.getCrlFile())
             }
           }
         }
@@ -79,7 +86,7 @@ class TomcatConfiguration {
         tomcat.addAdditionalTomcatConnectors(httpConnector)
       }
 
-      if (tomcatConfigurationProperties.getApiPort()> 0) {
+      if (tomcatConfigurationProperties.getApiPort() > 0) {
         log.info("Creating api connector on port ${tomcatConfigurationProperties.getApiPort()}")
         def apiConnector = new Connector("org.apache.coyote.http11.Http11NioProtocol")
         apiConnector.setScheme("https")
@@ -95,11 +102,18 @@ class TomcatConfiguration {
         ssl.setCiphers(okHttpClientConfigurationProperties.cipherSuites as String[])
 
         Http11NioProtocol handler = apiConnector.getProtocolHandler() as Http11NioProtocol
-        handler.setProperty("sslEnabledProtocols", okHttpClientConfigurationProperties.tlsVersions.join(","))
         handler.setSslImplementationName(BlacklistingSSLImplementation.name)
-        handler.setCrlFile(sslExtensionConfigurationProperties.getCrlFile())
-
         tomcat.configureSsl(handler, ssl)
+        def sslConfigs = apiConnector.findSslHostConfigs()
+        if (sslConfigs.size() != 1) {
+          throw new RuntimeException("Ssl configs: found ${sslConfigs.size()}, expected 1.")
+        }
+        SSLHostConfig sslHostConfig = sslConfigs.first()
+        sslHostConfig.setHonorCipherOrder("true")
+        sslHostConfig.ciphers = okHttpClientConfigurationProperties.cipherSuites.join(",")
+        sslHostConfig.setProtocols(okHttpClientConfigurationProperties.tlsVersions.join(","))
+        sslHostConfig.setCertificateRevocationListFile(sslExtensionConfigurationProperties.getCrlFile())
+
         tomcat.addAdditionalTomcatConnectors(apiConnector)
       }
     } as EmbeddedServletContainerCustomizer
