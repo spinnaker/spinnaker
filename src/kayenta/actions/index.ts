@@ -18,3 +18,7 @@ export const ADD_GROUP = 'add_group';
 export const SELECT_GROUP = 'select_group';
 export const UPDATE_CONFIG_NAME = 'update_config_name';
 export const UPDATE_CONFIG_DESCRIPTION = 'update_config_description';
+export const EDIT_CONFIG_JSON_MODAL_OPEN = 'edit_config_json_modal_open';
+export const EDIT_CONFIG_JSON_MODAL_CLOSE = 'edit_config_json_modal_close';
+export const SET_CONFIG_JSON = 'set_config_json';
+export const CONFIG_JSON_DESERIALIZATION_ERROR = 'config_json_deserialization_error';

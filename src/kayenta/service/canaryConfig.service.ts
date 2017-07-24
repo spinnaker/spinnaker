@@ -31,11 +31,11 @@ export function getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
   }
 }
 
-export function updateCanaryConfig(config: ICanaryConfig): Promise<string> {
+export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
   if (CanarySettings.liveCalls) {
-    return ReactInjector.API.one('v2/canaryConfig').put(config);
+    return ReactInjector.API.one('v2/canaryConfig').one(config.name).put(config);
   } else {
-    return Promise.resolve(config.name);
+    return Promise.resolve({ id: config.name });
   }
 }
 

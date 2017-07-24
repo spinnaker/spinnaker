@@ -11,7 +11,10 @@ import {
   DELETE_CONFIG_MODAL_OPEN,
   DELETE_CONFIG_MODAL_CLOSE, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
   DELETE_CONFIG_ERROR, ADD_GROUP, SELECT_GROUP, UPDATE_CONFIG_NAME,
-  UPDATE_CONFIG_DESCRIPTION
+  UPDATE_CONFIG_DESCRIPTION, EDIT_CONFIG_JSON_MODAL_OPEN,
+  EDIT_CONFIG_JSON_MODAL_CLOSE,
+  SET_CONFIG_JSON,
+  CONFIG_JSON_DESERIALIZATION_ERROR
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -29,6 +32,9 @@ export interface ICanaryState {
   deleteConfigModalOpen: boolean;
   deleteConfigState: DeleteConfigState,
   deleteConfigErrorMessage: string;
+  editConfigJsonModalOpen: boolean;
+  configJson: string;
+  configJsonDeserializationError: string;
 }
 
 function application(state: Application = null, action: Action & any): Application {
@@ -257,6 +263,47 @@ function selectedGroup(state: string = null, action: Action & any): string {
   }
 }
 
+function editConfigJsonModalOpen(state = false, action: Action & any): boolean {
+  switch (action.type) {
+    case EDIT_CONFIG_JSON_MODAL_OPEN:
+      return true;
+
+    case EDIT_CONFIG_JSON_MODAL_CLOSE:
+    case SELECT_CONFIG:
+      return false;
+
+    default:
+      return state;
+  }
+}
+
+function configJson(state: string = null, action: Action & any): string {
+  switch (action.type) {
+    case SET_CONFIG_JSON:
+      return action.configJson;
+
+    case EDIT_CONFIG_JSON_MODAL_CLOSE:
+      return null;
+
+    default:
+      return state;
+  }
+}
+
+function configJsonDeserializationError(state: string = null, action: Action & any): string {
+  switch (action.type) {
+    case CONFIG_JSON_DESERIALIZATION_ERROR:
+      return action.error;
+
+    case EDIT_CONFIG_JSON_MODAL_CLOSE:
+    case SELECT_CONFIG:
+      return null;
+
+    default:
+      return state;
+  }
+}
+
 export const rootReducer = combineReducers<ICanaryState>({
   application,
   configSummaries,
@@ -269,5 +316,8 @@ export const rootReducer = combineReducers<ICanaryState>({
   deleteConfigState,
   deleteConfigErrorMessage,
   groupList,
-  selectedGroup
+  selectedGroup,
+  editConfigJsonModalOpen,
+  configJson,
+  configJsonDeserializationError,
 });
