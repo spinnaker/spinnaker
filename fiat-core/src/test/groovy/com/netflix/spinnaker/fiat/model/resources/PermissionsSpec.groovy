@@ -18,19 +18,16 @@ package com.netflix.spinnaker.fiat.model.resources
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.netflix.spinnaker.fiat.YamlFileApplicationContextInitializer
 import com.netflix.spinnaker.fiat.model.Authorization
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.test.ConfigFileApplicationContextInitializer
-import org.springframework.boot.test.SpringApplicationConfiguration
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.test.context.ContextConfiguration
-import org.springframework.test.context.TestPropertySource
 import spock.lang.Specification
 
-@ContextConfiguration(classes = TestConfig, initializers = ConfigFileApplicationContextInitializer)
+@ContextConfiguration(classes = TestConfig, initializers = YamlFileApplicationContextInitializer)
 class PermissionsSpec extends Specification {
 
   private static final Authorization R = Authorization.READ

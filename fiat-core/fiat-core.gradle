@@ -17,4 +17,5 @@ dependencies {
   testCompile spinnaker.dependency("retrofitJackson")
   spinnaker.group("test")
   testCompile spinnaker.dependency("bootAutoConfigure")
+  testCompile spinnaker.dependency("bootActuator")
 }
