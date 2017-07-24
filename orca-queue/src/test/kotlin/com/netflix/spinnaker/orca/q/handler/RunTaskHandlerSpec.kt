@@ -133,87 +133,89 @@ object RunTaskHandlerSpec : SubjectSpek<RunTaskHandler>({
       }
     }
 
-    describe("that fails") {
-      val pipeline = pipeline {
-        stage {
-          refId = "1"
-          type = "whatever"
-          task {
-            id = "1"
-            implementingClass = DummyTask::class.qualifiedName
-            startTime = clock.instant().toEpochMilli()
+    setOf(TERMINAL, CANCELED).forEach { taskStatus ->
+      describe("that fails with $taskStatus") {
+        val pipeline = pipeline {
+          stage {
+            refId = "1"
+            type = "whatever"
+            task {
+              id = "1"
+              implementingClass = DummyTask::class.qualifiedName
+              startTime = clock.instant().toEpochMilli()
+            }
           }
         }
-      }
-      val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
-      val taskResult = TaskResult(TERMINAL)
+        val message = RunTask(Pipeline::class.java, pipeline.id, "foo", pipeline.stages.first().id, "1", DummyTask::class.java)
+        val taskResult = TaskResult(taskStatus)
 
-      and("no overrides are in place") {
-        beforeGroup {
-          whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-        }
-
-        afterGroup(::resetMocks)
-
-        action("the handler receives a message") {
-          subject.handle(message)
-        }
-
-        it("marks the task TERMINAL") {
-          verify(queue).push(check<CompleteTask> {
-            it.status shouldEqual TERMINAL
-          })
-        }
-      }
-
-      and("the task should not fail the whole pipeline, only the branch") {
-        beforeGroup {
-          pipeline.stageByRef("1").apply {
-            context["failPipeline"] = false
-            context["continuePipeline"] = false
+        and("no overrides are in place") {
+          beforeGroup {
+            whenever(task.execute(any())) doReturn taskResult
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
           }
 
-          whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
-        }
+          afterGroup(::resetMocks)
 
-        afterGroup(::resetMocks)
-        afterGroup { pipeline.stages.first().context.clear() }
-
-        action("the handler receives a message") {
-          subject.handle(message)
-        }
-
-        it("marks the task STOPPED") {
-          verify(queue).push(check<CompleteTask> {
-            it.status shouldEqual STOPPED
-          })
-        }
-      }
-
-      and("the task should allow the pipeline to proceed") {
-        beforeGroup {
-          pipeline.stageByRef("1").apply {
-            context["failPipeline"] = false
-            context["continuePipeline"] = true
+          action("the handler receives a message") {
+            subject.handle(message)
           }
 
-          whenever(task.execute(any())) doReturn taskResult
-          whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          it("marks the task $taskStatus") {
+            verify(queue).push(check<CompleteTask> {
+              it.status shouldEqual taskStatus
+            })
+          }
         }
 
-        afterGroup(::resetMocks)
-        afterGroup { pipeline.stages.first().context.clear() }
+        and("the task should not fail the whole pipeline, only the branch") {
+          beforeGroup {
+            pipeline.stageByRef("1").apply {
+              context["failPipeline"] = false
+              context["continuePipeline"] = false
+            }
 
-        action("the handler receives a message") {
-          subject.handle(message)
+            whenever(task.execute(any())) doReturn taskResult
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          }
+
+          afterGroup(::resetMocks)
+          afterGroup { pipeline.stages.first().context.clear() }
+
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
+
+          it("marks the task STOPPED") {
+            verify(queue).push(check<CompleteTask> {
+              it.status shouldEqual STOPPED
+            })
+          }
         }
 
-        it("marks the task FAILED_CONTINUE") {
-          verify(queue).push(check<CompleteTask> {
-            it.status shouldEqual FAILED_CONTINUE
-          })
+        and("the task should allow the pipeline to proceed") {
+          beforeGroup {
+            pipeline.stageByRef("1").apply {
+              context["failPipeline"] = false
+              context["continuePipeline"] = true
+            }
+
+            whenever(task.execute(any())) doReturn taskResult
+            whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
+          }
+
+          afterGroup(::resetMocks)
+          afterGroup { pipeline.stages.first().context.clear() }
+
+          action("the handler receives a message") {
+            subject.handle(message)
+          }
+
+          it("marks the task FAILED_CONTINUE") {
+            verify(queue).push(check<CompleteTask> {
+              it.status shouldEqual FAILED_CONTINUE
+            })
+          }
         }
       }
     }

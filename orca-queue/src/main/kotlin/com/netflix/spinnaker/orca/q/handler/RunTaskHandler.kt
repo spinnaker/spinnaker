@@ -82,12 +82,13 @@ open class RunTaskHandler
                 queue.push(CompleteTask(message, result.status))
                 trackResult(stage, task.javaClass, result.status)
               }
-              TERMINAL -> {
-                queue.push(CompleteTask(message, stage.failureStatus()))
-                trackResult(stage, task.javaClass, stage.failureStatus())
+              TERMINAL, CANCELED -> {
+                val status = stage.failureStatus(default = result.status)
+                queue.push(CompleteTask(message, status))
+                trackResult(stage, task.javaClass, status)
               }
               else ->
-                TODO("handle other states such as cancellation, suspension, etc.")
+                TODO("Unhandled task status ${result.status}")
             }
           }
         } catch(e: Exception) {
@@ -188,11 +189,11 @@ open class RunTaskHandler
     }
   }
 
-  private fun Stage<*>.failureStatus() =
+  private fun Stage<*>.failureStatus(default: ExecutionStatus = TERMINAL) =
     if (shouldContinueOnFailure()) {
       FAILED_CONTINUE
     } else if (shouldFailPipeline()) {
-      TERMINAL
+      default
     } else {
       STOPPED
     }
