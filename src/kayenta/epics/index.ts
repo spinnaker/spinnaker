@@ -10,9 +10,11 @@ import {
 import {
   CONFIG_LOAD_ERROR,
   LOAD_CONFIG, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
-  SELECT_CONFIG, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED, DELETE_CONFIG_ERROR
+  SELECT_CONFIG, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
+  DELETE_CONFIG_ERROR, DELETE_CONFIG_MODAL_CLOSE
 } from '../actions/index';
 import { ICanaryState } from '../reducers/index';
+import { ReactInjector } from '@spinnaker/core';
 
 const selectConfigEpic = (action$: Observable<any>) =>
   action$
@@ -41,10 +43,22 @@ const deleteConfigEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanary
         .catch(error => ({type: DELETE_CONFIG_ERROR, error}))
     );
 
+const deleteConfigCompletedEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanaryState>) =>
+  action$
+    .filter(action => action.type === DELETE_CONFIG_COMPLETED)
+    .concatMap(() =>
+      Promise.all([
+        ReactInjector.$state.go('^'), // Why does '.canary' not work?
+        // TODO: handle config summary load failure (in general, not just here).
+        store.getState().application.getDataSource('canaryConfigs').refresh(true),
+      ]).then(() => ({type: DELETE_CONFIG_MODAL_CLOSE}))
+    );
+
 const rootEpic = combineEpics(
   selectConfigEpic,
   saveConfigEpic,
-  deleteConfigEpic
+  deleteConfigEpic,
+  deleteConfigCompletedEpic,
 );
 
 export const epicMiddleware = createEpicMiddleware(rootEpic);
