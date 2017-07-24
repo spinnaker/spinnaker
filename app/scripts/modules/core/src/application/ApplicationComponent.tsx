@@ -65,7 +65,9 @@ export class ApplicationComponent extends React.Component<IApplicationComponentP
       DebugWindow.application = undefined;
       this.props.app.disableAutoRefresh();
     }
-    this.activeStateChangeSubscription.unsubscribe();
+    if (this.activeStateChangeSubscription) {
+      this.activeStateChangeSubscription.unsubscribe();
+    }
   }
 
   public pageApplicationOwner(): void {
