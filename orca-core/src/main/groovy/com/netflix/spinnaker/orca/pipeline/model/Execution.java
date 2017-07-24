@@ -32,7 +32,6 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
 
   String id;
   String application;
-  String executingInstance;
 
   Long buildTime;
 

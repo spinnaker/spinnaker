@@ -551,15 +551,15 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
   def "can retrieve orchestrations from multiple redis stores"() {
     given:
-    repository.store(new Orchestration(application: "orca", executingInstance: "current"))
-    repository.store(new Orchestration(application: "orca", executingInstance: "current"))
-    repository.store(new Orchestration(application: "orca", executingInstance: "current"))
+    repository.store(new Orchestration(application: "orca"))
+    repository.store(new Orchestration(application: "orca"))
+    repository.store(new Orchestration(application: "orca"))
 
     and:
     def previousRepository = new JedisExecutionRepository(new NoopRegistry(), jedisPoolPrevious, Optional.empty(), 1, 50)
-    previousRepository.store(new Orchestration(application: "orca", executingInstance: "previous"))
-    previousRepository.store(new Orchestration(application: "orca", executingInstance: "previous"))
-    previousRepository.store(new Orchestration(application: "orca", executingInstance: "previous"))
+    previousRepository.store(new Orchestration(application: "orca"))
+    previousRepository.store(new Orchestration(application: "orca"))
+    previousRepository.store(new Orchestration(application: "orca"))
 
     when:
     // TODO-AJ limits are current applied to each backing redis
@@ -568,8 +568,7 @@ class JedisExecutionRepositorySpec extends ExecutionRepositoryTck<JedisExecution
 
     then:
     // orchestrations are stored in an unsorted set and results are non-deterministic
-    retrieved.findAll { it.executingInstance == "current" }.size() == 2
-    retrieved.findAll { it.executingInstance == "previous" }.size() == 2
+    retrieved.size() == 4
   }
 
   def "can delete orchestrations from multiple redis stores"() {

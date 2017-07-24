@@ -118,11 +118,6 @@ class PipelineBuilder {
     return this
   }
 
-  PipelineBuilder withExecutingInstance(String instanceId) {
-    pipeline.executingInstance = instanceId
-    return this
-  }
-
   PipelineBuilder withId(id = UUID.randomUUID().toString()) {
     pipeline.id = id
     return this

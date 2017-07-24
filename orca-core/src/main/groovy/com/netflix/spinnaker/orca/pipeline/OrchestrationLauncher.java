@@ -38,12 +38,11 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
   @Autowired
   public OrchestrationLauncher(
     ObjectMapper objectMapper,
-    String currentInstanceId,
     ExecutionRepository executionRepository,
     ExecutionRunner executionRunner,
     Clock clock
   ) {
-    super(objectMapper, currentInstanceId, executionRepository, executionRunner);
+    super(objectMapper, executionRepository, executionRunner);
     this.clock = clock;
   }
 
@@ -82,7 +81,6 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
 
     orchestration.setBuildTime(clock.millis());
     orchestration.setAuthentication(AuthenticationDetails.build().orElse(new AuthenticationDetails()));
-    orchestration.setExecutingInstance(currentInstanceId);
 
     return orchestration;
   }

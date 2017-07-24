@@ -35,17 +35,14 @@ import static java.util.Collections.emptyMap;
 public abstract class ExecutionLauncher<T extends Execution<T>> {
 
   protected final ObjectMapper objectMapper;
-  protected final String currentInstanceId;
   protected final ExecutionRepository executionRepository;
 
   private final ExecutionRunner executionRunner;
 
   protected ExecutionLauncher(ObjectMapper objectMapper,
-                              String currentInstanceId,
                               ExecutionRepository executionRepository,
                               ExecutionRunner executionRunner) {
     this.objectMapper = objectMapper;
-    this.currentInstanceId = currentInstanceId;
     this.executionRepository = executionRepository;
     this.executionRunner = executionRunner;
   }

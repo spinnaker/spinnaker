@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.function.BiFunction;
+import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -67,6 +68,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
    */
   private String name;
 
+  @Nonnull
   public String getName() {
     return name != null ? name : type;
   }

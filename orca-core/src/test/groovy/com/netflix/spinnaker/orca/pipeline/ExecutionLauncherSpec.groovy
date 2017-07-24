@@ -49,7 +49,7 @@ class PipelineLauncherSpec extends ExecutionLauncherSpec<Pipeline, PipelineLaunc
 
   @Override
   PipelineLauncher create() {
-    return new PipelineLauncher(objectMapper, "currentInstanceId", executionRepository, executionRunner, Optional.of(startTracker), Optional.of(pipelineValidator))
+    return new PipelineLauncher(objectMapper, executionRepository, executionRunner, Optional.of(startTracker), Optional.of(pipelineValidator))
   }
 
   def "can autowire pipeline launcher with optional dependencies"() {
