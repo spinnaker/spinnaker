@@ -65,6 +65,8 @@ window.spinnakerSettings = {
   triggerTypes: ['git', 'pipeline', 'docker', 'cron', 'jenkins', 'travis'],
   canary: {
     liveCalls: liveCallsEnabled,
+    metricsAccountName: 'my-google-account',
+    storageAccountName: 'my-google-account',
   },
   feature: {
     entityTags: entityTagsEnabled,

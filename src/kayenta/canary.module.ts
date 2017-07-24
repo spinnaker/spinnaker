@@ -6,6 +6,7 @@ import {
 } from '@spinnaker/core';
 
 import { CANARY_DATA_SOURCE } from 'kayenta/canary.dataSource';
+import { CANARY_STAGES } from 'kayenta/stages/stages.module';
 import { CANARY_STATES } from 'kayenta/canary.states';
 
 // load all templates into the $templateCache
@@ -18,6 +19,7 @@ export const KAYENTA_MODULE = 'spinnaker.kayenta';
 module(KAYENTA_MODULE, [
   APPLICATION_DATA_SOURCE_REGISTRY,
   CANARY_DATA_SOURCE,
+  CANARY_STAGES,
   CANARY_STATES,
 ]).run((applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
   // Should be dropped when deck-kayenta is a library (not running as its own app).
