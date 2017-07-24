@@ -424,6 +424,7 @@ class BomGenerator(Annotator):
     version_bump = self.tag_head()
     self.__halyard_version[comp] = version_bump
     self.delete_unwanted_tags()
+    return version_bump
 
   @classmethod
   def main(cls):
