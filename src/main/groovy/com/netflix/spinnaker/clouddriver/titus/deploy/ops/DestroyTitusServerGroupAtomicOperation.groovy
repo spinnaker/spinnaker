@@ -44,13 +44,12 @@ class DestroyTitusServerGroupAtomicOperation implements AtomicOperation<Void> {
     task.updateStatus PHASE, "Destroying server group: ${description.serverGroupName}..."
     TitusClient titusClient = titusClientProvider.getTitusClient(description.credentials, description.region)
     Job job = titusClient.findJobByName(description.serverGroupName)
-
-    if (!job) {
-      throw new IllegalArgumentException("No titus server group named '${description.serverGroupName}' found")
+    if (job) {
+      titusClient.terminateJob(new TerminateJobRequest().withJobId(job.id).withUser(description.user))
+      task.updateStatus PHASE, "Successfully issued terminate job request to titus for ${job.id} which corresponds to ${description.serverGroupName}"
+    } else {
+      task.updateStatus PHASE, "No titus job found for ${description.serverGroupName}"
     }
-
-    titusClient.terminateJob(new TerminateJobRequest().withJobId(job.id).withUser(description.user))
-    task.updateStatus PHASE, "Successfully issued terminate job request to titus for ${job.id} which corresponds to ${description.serverGroupName}"
 
     task.updateStatus PHASE, "Completed destroy server group operation for ${description.serverGroupName}"
     null
