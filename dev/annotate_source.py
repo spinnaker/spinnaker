@@ -296,7 +296,8 @@ class Annotator(object):
     sorted_filtered_tags = sorted(self.__filtered_tags,
                                   key=lambda ht: ht.version, reverse=True)
     if len(sorted_filtered_tags) == 0:
-      raise GitTagMissingException("No version tags of the form 'version-X.Y.Z'.")
+      raise GitTagMissingException("No version tags of the form 'version-X.Y.Z' in {path}."
+                                   .format(path=self.path))
 
     self.__current_version = sorted_filtered_tags[0]
 

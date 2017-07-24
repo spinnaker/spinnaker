@@ -192,9 +192,20 @@ class BomGenerator(Annotator):
       }
     return config
 
+  def write_component_version_files(self):
+    """Write a file containing the full version for each microservice.
+    """
+    for comp in dict(self.__component_versions.items() + self.__halyard_version.items()):
+      if comp == 'spinnaker':
+        pass
+      gradle_version = self.__version_from_tag(comp)
+      config_file = '{0}-component-version.yml'.format(comp)
+      with open(config_file, 'w') as cfg:
+        cfg.write(gradle_version)
 
   def write_gcb_trigger_version_files(self):
-    """Write a file containing the full tag for each microservice for Docker.
+    """Write a file containing the full tag for each microservice for GCB 
+    triggers.
     """
     for comp in self.__component_versions:
       if comp == 'spinnaker':
@@ -205,7 +216,6 @@ class BomGenerator(Annotator):
       config_file = '{0}-gcb-trigger.yml'.format(comp)
       with open(config_file, 'w') as cfg:
         cfg.write(git_tag)
-
 
   def write_docker_version_files(self):
     """Write a file containing the full tag for each microservice for Docker.
@@ -427,6 +437,7 @@ class BomGenerator(Annotator):
     bom_generator = cls(options)
     bom_generator.determine_and_tag_versions()
     bom_generator.write_rpm_version_files()
+    bom_generator.write_component_version_files()
     if options.container_builder == 'gcb':
       bom_generator.write_container_builder_gcr_config()
     elif options.container_builder == 'gcb-trigger':

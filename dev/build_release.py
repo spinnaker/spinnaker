@@ -351,6 +351,18 @@ class Builder(object):
       raise NotImplemented(
           'container_builder="{0}"'.format(self.__options.container_builder))
 
+  def start_jar_build(self, name):
+    """Start a subprocess to build a JAR for the given subcomponent
+
+    Relies on gradle's installDist task to produce build artifacts to be
+    packaged into an installable zip file.
+
+    Args:
+      name [string]: Name of the subsystem repository.
+    """
+    gradle_root = self.determine_gradle_root(name)
+    self.__jar_build(name, gradle_root)
+
   @classmethod
   def __gcb_build(cls, name, gradle_root, gcb_service_account, gcb_project):
     # Local .gradle dir stomps on GCB's .gradle directory when the gradle
@@ -468,6 +480,18 @@ class Builder(object):
       'docker push {docker_tag}'.format(name=name, docker_tag=docker_tag)
     ]
     logfile = '{name}-docker-build.log'.format(name=name)
+    if os.path.exists(logfile):
+      os.remove(logfile)
+    run_shell_and_log(cmds, logfile, cwd=gradle_root)
+
+  @classmethod
+  def __jar_build(cls, name, gradle_root):
+    version = run_quick('cat {name}-component-version.yml'.format(name=name), 
+                        echo=False).stdout.strip()
+    cmds = [
+      './release/all.sh {version} nightly'.format(version=version),
+    ]
+    logfile = '{name}-jar-build.log'.format(name=name)
     if os.path.exists(logfile):
       os.remove(logfile)
     run_shell_and_log(cmds, logfile, cwd=gradle_root)
@@ -694,6 +718,13 @@ class Builder(object):
 
       return pids
 
+  def __do_jar_build(self, subsys):
+    if self.__options.do_jar_build:
+      try:
+        self.start_jar_build(subsys)
+      except Exception as ex:
+        self.__build_failures.append(BuildFailure(subsys, ex))
+
   def __do_build(self, subsys):
     if self.__options.platform == 'debian':
       try:
@@ -741,6 +772,19 @@ class Builder(object):
       pool = multiprocessing.pool.ThreadPool(
         processes=int(max(1, weighted_processes)))
       pool.map(self.__do_container_build, subsystems)
+
+    self.__check_build_failures(subsystems)
+
+  def build_jars(self):
+    """Build the Spinnaker packages as jars
+    """
+    subsystems = ['halyard']
+
+    if self.__options.do_jar_build:
+      weighted_processes = self.__options.cpu_ratio * multiprocessing.cpu_count()
+      pool = multiprocessing.pool.ThreadPool(
+        processes=int(max(1, weighted_processes)))
+      pool.map(self.__do_jar_build, subsystems)
 
     self.__check_build_failures(subsystems)
 
@@ -857,7 +901,9 @@ class Builder(object):
       parser.add_argument(
           '--run_unit_tests', type=bool, default=False,
           help='Run unit tests during build for all components other than Deck.')
-
+      parser.add_argument(
+          '--do_jar_build', type=bool, default=True,
+          help='Build & publish jars independently to GCS.')
 
   def __verify_bintray(self):
     if not os.environ.get('BINTRAY_KEY', None):
@@ -882,8 +928,14 @@ class Builder(object):
     if options.pull_origin:
         builder.refresher.pull_all_from_origin()
 
+    print "Starting JAR build..."
+    builder.build_jars()
+
+    print "Starting package build..."
     builder.build_packages()
+
     if container_builder:
+      print "Starting container build..."
       builder.build_container_images()
 
     if options.build and options.bintray_repo:
