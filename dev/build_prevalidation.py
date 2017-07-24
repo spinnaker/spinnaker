@@ -25,19 +25,6 @@ from refresh_source import Refresher
 
 from spinnaker.run import check_run_quick
 
-
-def __annotate_component(annotator, component):
-  """Annotate the component's source but don't include it in the BOM.
-
-  Returns:
-    [VersionBump]: Version bump complete with commit hash.
-  """
-  annotator.path = component
-  annotator.parse_git_tree()
-  version_bump = annotator.tag_head()
-  annotator.delete_unwanted_tags()
-  return version_bump
-
 def __record_halyard_nightly_version(version_bump, options):
   """Record the version and commit hash at which Halyard was built in a bucket.
 
@@ -87,12 +74,9 @@ def main():
   init_argument_parser(parser)
   options = parser.parse_args()
 
-  annotator = Annotator(options)
-  halyard_bump = __annotate_component(annotator, 'halyard')
-
   bom_generator = BomGenerator(options)
   bom_generator.determine_and_tag_versions()
-  # bom_generator.determine_and_tag_halyard()
+  halyard_bump = bom_generator.determine_and_tag_halyard()
   bom_generator.write_component_version_files()
   if options.container_builder == 'gcb':
     bom_generator.write_container_builder_gcr_config()
