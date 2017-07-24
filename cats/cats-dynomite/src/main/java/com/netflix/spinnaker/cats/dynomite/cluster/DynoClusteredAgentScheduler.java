@@ -28,6 +28,8 @@ import com.netflix.spinnaker.cats.redis.cluster.ClusteredAgentScheduler;
 import com.netflix.spinnaker.cats.redis.cluster.NodeIdentity;
 import com.netflix.spinnaker.cats.redis.cluster.NodeStatusProvider;
 import com.netflix.spinnaker.cats.thread.NamedThreadFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisCommands;
 
 import java.util.HashMap;
@@ -43,10 +45,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Temporary clustered agent scheduler while we're waiting for Dyno client support of evalsha and loadscript.
  *
- * Shares a similiar strategy as ClusteredAgentScheduler, but doesn't use Lua, is slower and unsafe (does not use atomic
- * set/expires commands).
+ * Shares a similiar strategy as ClusteredAgentScheduler, but doesn't use Lua, is slower and less safe. Dynomite
+ * support for Lua is in-progress, so this class is rather temporary, then we can move to ClusteredSortAgentScheduler.
  */
 public class DynoClusteredAgentScheduler extends CatsModuleAware implements AgentScheduler<AgentLock>, Runnable {
+
+  private final static Logger log = LoggerFactory.getLogger(DynoClusteredAgentScheduler.class);
 
   private final DynomiteClientDelegate redisClientDelegate;
   private final NodeIdentity nodeIdentity;
@@ -93,7 +97,7 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
     try {
       runAgents();
     } catch (Throwable t) {
-      t.printStackTrace(System.err);
+      log.error("Failed running cache agents", t);
     }
   }
 
@@ -113,7 +117,9 @@ public class DynoClusteredAgentScheduler extends CatsModuleAware implements Agen
   }
 
   private boolean acquireRunKey(String agentType, long timeout) {
-    // This isn't safe, but it's the best one can do without `String set(String key, String value, String nxxx, String expx, long time).`
+    // This isn't as safe as the vanilla Redis impl because the call isn't atomic, but it's the best we can do until
+    // dynomite adds support for `String set(String key, String value, String nxxx, String expx, long time)` (which
+    // they are working on).
     return redisClientDelegate.withCommandsClient(client -> {
       String response = client.get(agentType);
       if (response == null) {
