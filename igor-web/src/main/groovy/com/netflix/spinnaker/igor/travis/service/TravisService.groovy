@@ -41,9 +41,9 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
 import com.netflix.spinnaker.igor.travis.client.model.v3.TravisBuildType
+import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Build
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
-import com.netflix.spinnaker.igor.travis.client.model.v3.V3Commit
 import groovy.util.logging.Slf4j
 import retrofit.RetrofitError
 import retrofit.client.Response
@@ -102,17 +102,16 @@ class TravisService implements BuildService {
     @Override
     int triggerBuildWithParameters(String inputRepoSlug, Map<String, String> queryParameters) {
         String repoSlug = cleanRepoSlug(inputRepoSlug)
-        Repo repo = getRepo(repoSlug)
         String branch = branchFromRepoSlug(inputRepoSlug)
         RepoRequest repoRequest = new RepoRequest(branch.empty? "master" : branch)
-
         repoRequest.config = new Config(queryParameters)
-
         TriggerResponse triggerResponse = travisClient.triggerBuild(getAccessToken(), repoSlug, repoRequest)
         if (triggerResponse.remainingRequests) {
-            log.info "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
+            log.debug "${groupKey}: remaining requests: ${triggerResponse.remainingRequests}"
+            log.debug "${groupKey}: request id: ${triggerResponse.request.id}"
+            log.debug "${groupKey}: repository id: ${triggerResponse.request.repository.id}"
         }
-        return travisCache.setQueuedJob(groupKey, repoSlug, repo.lastBuildNumber+1)
+        return travisCache.setQueuedJob(groupKey, triggerResponse.request.repository.id, triggerResponse.request.id)
     }
 
     List<Build> getBuilds() {
@@ -304,11 +303,11 @@ class TravisService implements BuildService {
 
     Map<String, Integer> queuedBuild(int queueId) {
         Map queuedJob = travisCache.getQueuedJob(groupKey, queueId)
-        Build build = getBuild(queuedJob.jobName, queuedJob.buildNumber)
-        if (build) {
+        Request requestResponse = travisClient.request(getAccessToken(), queuedJob.repositoryId, queuedJob.requestId)
+        if (requestResponse.builds.size() > 0) {
             log.info "removing ${queueId} from ${groupKey} travisCache"
             travisCache.remove(groupKey, queueId)
-            return ["number":build.number]
+            return ["number":requestResponse.builds.first().number]
         }
         return null
     }

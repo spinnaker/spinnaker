@@ -54,22 +54,22 @@ class TravisCache {
                 return [:]
             }
             Map convertedResult = [
-                buildNumber: Integer.parseInt(result.buildNumber),
-                jobName: result.jobName
+                requestId: Integer.parseInt(result.requestId),
+                repositoryId: Integer.parseInt(result.repositoryId)
             ]
             return convertedResult
         }
     }
 
-    int setQueuedJob(String master, String jobName, int buildNumber) {
+    int setQueuedJob(String master, int repositoryId, int requestId) {
         Jedis resource = jedisPool.getResource()
         int queueId = (int) (long) TimeUnit.MILLISECONDS.toSeconds(new Date().getTime())
         resource.withCloseable {
             while (resource.exists(makeKey(master, queueId))) {
                 queueId++;
             }
-            resource.hset(makeKey(master, queueId), 'buildNumber', buildNumber as String)
-            resource.hset(makeKey(master, queueId), 'jobName', jobName)
+            resource.hset(makeKey(master, queueId), 'requestId', requestId as String)
+            resource.hset(makeKey(master, queueId), 'repositoryId', repositoryId as String)
             return queueId
         }
     }

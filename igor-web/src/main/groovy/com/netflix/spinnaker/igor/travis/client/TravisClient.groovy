@@ -28,6 +28,7 @@ import com.netflix.spinnaker.igor.travis.client.model.RepoRequest
 import com.netflix.spinnaker.igor.travis.client.model.RepoWrapper
 import com.netflix.spinnaker.igor.travis.client.model.Repos
 import com.netflix.spinnaker.igor.travis.client.model.TriggerResponse
+import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import com.netflix.spinnaker.igor.travis.client.model.v3.V3Builds
 import retrofit.client.Response
 import retrofit.http.Body
@@ -120,5 +121,9 @@ interface TravisClient {
     @GET('/repo/{repository_slug}/builds')
     @Headers("Travis-API-Version: 3")
     V3Builds v3buildsByEventType(@Header("Authorization") String accessToken, @Path('repository_slug') String repositorySlug, @Query('event_type') String EventType, @Query('limit') int limit)
+
+    @GET('/repo/{repository_id}/request/{request_id}')
+    @Headers("Travis-API-Version: 3")
+    Request request(@Header("Authorization") String accessToken, @Path('repository_id') int repositoryId, @Path('request_id') int requestId)
 
 }

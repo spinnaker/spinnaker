@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Schibsted ASA.
+ * Copyright 2017 Schibsted ASA.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.netflix.spinnaker.igor.travis.client.model
+package com.netflix.spinnaker.igor.travis.client.model.v3
 
-import com.google.gson.annotations.SerializedName
-import com.netflix.spinnaker.igor.travis.client.model.v3.Request
 import groovy.transform.CompileStatic
 import org.simpleframework.xml.Default
 
-
 @Default
 @CompileStatic
-class TriggerResponse {
-    @SerializedName("remaining_requests")
-    int remainingRequests
+class Request {
+    V3Repository repository
 
-    Request request
+    List<V3Build> builds
+
+    int id
 }
