@@ -3,13 +3,13 @@ dependencies {
   compile "redis.clients:jedis:2.8.1"
 
   // compile spinnaker.dependency('korkJedisTest')
-  compile "com.netflix.spinnaker.kork:kork-jedis-test:1.93.0"
+  compile "com.netflix.spinnaker.kork:kork-jedis-test:$korkVersion"
 
   // compile spinnaker.dependency("korkSwagger")
-  compile "com.netflix.spinnaker.kork:kork-swagger:1.93.0"
+  compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
 
   // this was magically pulled in before, not sure how...
-  compile "com.netflix.spinnaker.kork:kork-web:1.93.0"
+  compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
 
   // compile spinnaker.dependency('lombok')
   compile "org.projectlombok:lombok:1.16.10"

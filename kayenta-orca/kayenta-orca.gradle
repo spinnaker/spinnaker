@@ -8,7 +8,7 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-web:$springBootVersion"
 
   // compile spinnaker.dependency("korkSwagger")
-  compile "com.netflix.spinnaker.kork:kork-swagger:1.93.0"
+  compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
 
   // compile spinnaker.dependency('lombok')
   compile "org.projectlombok:lombok:1.16.10"

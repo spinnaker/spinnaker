@@ -30,10 +30,10 @@ dependencies {
   compile "org.springframework.boot:spring-boot-starter-web:1.5.4.RELEASE"
 
   //compile spinnaker.dependency("korkSwagger")
-  compile "com.netflix.spinnaker.kork:kork-swagger:1.93.0"
+  compile "com.netflix.spinnaker.kork:kork-swagger:$korkVersion"
 
   //compile spinnaker.dependency("korkWeb")
-  compile "com.netflix.spinnaker.kork:kork-web:1.93.0"
+  compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
 }
 
 tasks.bootRepackage.enabled = project.repackage

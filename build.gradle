@@ -59,8 +59,8 @@ subprojects { project ->
     testCompile "org.spockframework:spock-spring:1.1-groovy-2.4-rc-2"
     testCompile "org.springframework:spring-test:$springVersion"
     testCompile "cglib:cglib-nodep:3.2.0"
-    testCompile "org.objenesis:objenesis:2.1"
-    testCompile "junit:junit:4.11"
+    testCompile "org.objenesis:objenesis:2.5.1"
+    testCompile "junit:junit:4.12"
     testCompile "org.hamcrest:hamcrest-core:1.3"
   }
 }
