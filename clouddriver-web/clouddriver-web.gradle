@@ -1,4 +1,9 @@
 apply plugin: 'spring-boot'
+// Applying the spring-boot plugin pulls in a newer version of jedis that we can't use yet. The
+// other ways to override versions (namely the subprojects.configurations.all.resolutionStrategy in
+// build.gradle) didn't work.
+ext['jedis.version'] = spinnaker.version('jedis')
+
 apply plugin: 'spinnaker.package'
 
 ext {
@@ -34,15 +39,6 @@ dependencies {
   compile project(':clouddriver-elasticsearch')
   compile project(':clouddriver-oracle-bmcs')
   compile project(':clouddriver-dcos')
-
-//  Replace below with this line when fiat becomes stable.
-//  spinnaker.group "fiat"
-  compile "org.springframework.boot:spring-boot-starter-actuator:1.2.8.RELEASE"
-  compile "org.springframework.boot:spring-boot-starter-web:1.2.8.RELEASE"
-  compile "org.springframework.boot:spring-boot-starter-data-rest:1.2.8.RELEASE"
-  compile "org.springframework.security:spring-security-config:3.2.9.RELEASE"
-  compile "org.springframework.security:spring-security-core:3.2.9.RELEASE"
-  compile "org.springframework.security:spring-security-web:3.2.9.RELEASE"
 
   runtime spinnaker.dependency('kork')
   compile spinnaker.dependency('korkWeb')

@@ -12,6 +12,8 @@ services:
   front50:
     baseUrl: http://localhost:8080
 
+management.health.elasticsearch.enabled: false
+
 swagger:
   enabled: true
   title: clouddriver
