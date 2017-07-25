@@ -159,8 +159,9 @@ class ContextParameterProcessor {
         evaluationContext.registerFunction('propertiesFromUrl', ContextUtilities.getDeclaredMethod("propertiesFromUrl", String))
         evaluationContext.registerFunction('stage', ContextUtilities.getDeclaredMethod("stage", Object, String))
         evaluationContext.registerFunction('judgment', ContextUtilities.getDeclaredMethod("judgment", Object, String))
+        evaluationContext.registerFunction('judgement', ContextUtilities.getDeclaredMethod("judgment", Object, String))
 
-        ["judgment", "stage"].each { contextAwareStageFunction ->
+        ["judgment", "judgement", "stage"].each { contextAwareStageFunction ->
           if (convertedValue.contains("#${contextAwareStageFunction}(") && !convertedValue.contains("#${contextAwareStageFunction}( #root.execution, ")) {
             convertedValue = convertedValue.replaceAll("#${contextAwareStageFunction}\\(", "#${contextAwareStageFunction}( #root.execution, ")
           }
