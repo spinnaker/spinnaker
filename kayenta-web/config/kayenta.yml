@@ -38,7 +38,7 @@ kayenta:
 
 management.security.enabled: false
 
-queue.redis.enabled: false
+queue.redis.enabled: true
 executionLog.redis.enabled: false
 
 swagger:

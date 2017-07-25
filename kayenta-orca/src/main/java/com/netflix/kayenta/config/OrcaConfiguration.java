@@ -18,6 +18,7 @@ package com.netflix.kayenta.config;
 
 import com.netflix.spinnaker.config.QueueConfiguration;
 import com.netflix.spinnaker.orca.config.OrcaPersistenceConfiguration;
+import com.netflix.spinnaker.orca.config.RedisConfiguration;
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler;
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow;
 import com.netflix.spinnaker.orca.pipeline.persistence.jedis.JedisExecutionRepository;
@@ -40,6 +41,7 @@ import java.util.UUID;
   OrcaPersistenceConfiguration.class,
   PropertyPlaceholderAutoConfiguration.class,
   QueueConfiguration.class,
+  RedisConfiguration.class,
   RestrictExecutionDuringTimeWindow.class,
   StageNavigator.class,
 })
