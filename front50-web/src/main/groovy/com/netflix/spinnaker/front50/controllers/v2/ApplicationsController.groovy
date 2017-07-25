@@ -38,7 +38,7 @@ public class ApplicationsController {
   @Autowired
   ApplicationDAO applicationDAO
 
-  @Autowired
+  @Autowired(required = false)
   ApplicationPermissionDAO applicationPermissionDAO
 
   @Autowired
