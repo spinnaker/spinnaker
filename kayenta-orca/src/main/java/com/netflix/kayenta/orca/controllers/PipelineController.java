@@ -82,9 +82,6 @@ public class PipelineController {
   @ApiOperation(value = "Retrieve pipeline execution logs")
   @RequestMapping(value = "/{executionId}/logs", method = RequestMethod.GET)
   List<ExecutionLogEntry> logs(@PathVariable String executionId) {
-    // TODO(duftler): Remove this once we figure out how to enable the redis-backed execution log repository.
-    System.out.println("*** executionLogRepository=" + executionLogRepository);
-
     if (executionLogRepository == null) {
       throw new FeatureNotEnabledException("Execution log not enabled");
     }

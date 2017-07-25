@@ -1,7 +1,6 @@
 apply from: "$rootDir/gradle/kotlin.gradle"
 
 dependencies {
-  compile "com.netflix.spinnaker.orca:orca-queue:$orcaVersion"
   compile "com.netflix.spinnaker.orca:orca-queue-redis:$orcaVersion"
 
   // compile spinnaker.dependency('bootWeb')
