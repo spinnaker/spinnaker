@@ -57,7 +57,6 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
       .withPipelineConfigId(getString(config, "id"))
       .withTrigger((Map<String, Object>) config.get("trigger"))
       .withStages((List<Map<String, Object>>) config.get("stages"))
-      .withAppConfig((Map<String, Serializable>) config.get("appConfig"))
       .withParallel(getBoolean(config, "parallel"))
       .withLimitConcurrent(getBoolean(config, "limitConcurrent"))
       .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))

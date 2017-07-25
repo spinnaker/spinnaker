@@ -43,7 +43,6 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
   boolean limitConcurrent = false;
   boolean keepWaitingPipelines = false;
 
-  final Map<String, Object> appConfig = new HashMap<>();
   final Map<String, Object> context = new HashMap<>();
   List<Stage<T>> stages = new ArrayList<>();
 

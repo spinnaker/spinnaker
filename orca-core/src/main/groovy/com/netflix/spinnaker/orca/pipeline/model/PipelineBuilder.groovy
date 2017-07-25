@@ -48,14 +48,6 @@ class PipelineBuilder {
     return this
   }
 
-  PipelineBuilder withAppConfig(Map<String, Serializable> appConfig = [:]) {
-    pipeline.appConfig.clear()
-    if (appConfig) {
-      pipeline.appConfig.putAll(appConfig)
-    }
-    return this
-  }
-
   PipelineBuilder withStage(String type, String name = type, Map<String, Object> context = [:]) {
     if (context.providerType && !(context.providerType in ['aws', 'titus'])) {
       type += "_$context.providerType"

@@ -539,7 +539,6 @@ class JedisExecutionRepository implements ExecutionRepository {
 
     Map<String, String> map = [
       application         : execution.application,
-      appConfig           : mapper.writeValueAsString(execution.appConfig),
       canceled            : String.valueOf(execution.canceled),
       parallel            : String.valueOf(execution.parallel),
       limitConcurrent     : String.valueOf(execution.limitConcurrent),
@@ -629,7 +628,6 @@ class JedisExecutionRepository implements ExecutionRepository {
       def execution = type.newInstance()
       execution.id = id
       execution.application = map.application
-      execution.appConfig.putAll(mapper.readValue(map.appConfig, Map))
       execution.context.putAll(map.context ? mapper.readValue(map.context, Map) : [:])
       execution.canceled = Boolean.parseBoolean(map.canceled)
       execution.canceledBy = map.canceledBy

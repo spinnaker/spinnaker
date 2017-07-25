@@ -61,9 +61,6 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
       orchestration.setDescription(getString(config, "description"));
       orchestration.setDescription(getString(config, "description"));
     }
-    if (config.containsKey("appConfig")) {
-      orchestration.getAppConfig().putAll(getMap(config, "appConfig"));
-    }
     orchestration.setExecutionEngine(v3);
 
     for (Map<String, Object> context : getList(config, "stages")) {
