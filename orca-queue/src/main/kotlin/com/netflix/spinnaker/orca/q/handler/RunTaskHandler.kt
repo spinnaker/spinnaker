@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
+import com.netflix.spinnaker.orca.exceptions.TimeoutException
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -57,19 +58,14 @@ open class RunTaskHandler
   override fun handle(message: RunTask) {
     message.withTask { stage, taskModel, task ->
       val execution = stage.getExecution()
-      if (execution.isCanceled() || execution.getStatus().isComplete) {
-        queue.push(CompleteTask(message, CANCELED))
-      } else if (execution.getStatus() == PAUSED) {
-        queue.push(PauseTask(message))
-      } else if (task.isTimedOut(stage, taskModel)) {
-        // TODO: probably want something specific in the execution log
-        if (stage.getContext()["markSuccessfulOnTimeout"] == true) {
-          queue.push(CompleteTask(message, SUCCEEDED))
+      try {
+        if (execution.isCanceled() || execution.getStatus().isComplete) {
+          queue.push(CompleteTask(message, CANCELED))
+        } else if (execution.getStatus() == PAUSED) {
+          queue.push(PauseTask(message))
         } else {
-          queue.push(CompleteTask(message, stage.failureStatus()))
-        }
-      } else {
-        try {
+          task.checkForTimeout(stage, taskModel)
+
           task.execute(stage.withMergedContext()).let { result: TaskResult ->
             // TODO: rather send this data with CompleteTask message
             stage.processTaskOutput(result)
@@ -91,19 +87,21 @@ open class RunTaskHandler
                 TODO("Unhandled task status ${result.status}")
             }
           }
-        } catch(e: Exception) {
-          val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel?.name)
-          if (exceptionDetails?.shouldRetry ?: false) {
-            log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
-            queue.push(message, task.backoffPeriod())
-            trackResult(stage, task.javaClass, RUNNING)
-          } else {
-            log.error("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]", e)
-            stage.getContext()["exception"] = exceptionDetails
-            repository.storeStage(stage)
-            queue.push(CompleteTask(message, stage.failureStatus()))
-            trackResult(stage, task.javaClass, stage.failureStatus())
-          }
+        }
+      } catch (e: Exception) {
+        val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel?.name)
+        if (exceptionDetails?.shouldRetry ?: false) {
+          log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
+          queue.push(message, task.backoffPeriod())
+          trackResult(stage, task.javaClass, RUNNING)
+        } else if (e is TimeoutException && stage.getContext()["markSuccessfulOnTimeout"] == true) {
+          queue.push(CompleteTask(message, SUCCEEDED))
+        } else {
+          log.error("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]", e)
+          stage.getContext()["exception"] = exceptionDetails
+          repository.storeStage(stage)
+          queue.push(CompleteTask(message, stage.failureStatus()))
+          trackResult(stage, task.javaClass, stage.failureStatus())
         }
       }
     }
@@ -146,20 +144,17 @@ open class RunTaskHandler
       else -> Duration.ofSeconds(1)
     }
 
-  private fun Task.isTimedOut(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task): Boolean =
-    when (this) {
-      is RetryableTask -> {
-        val startTime = taskModel.startTime.toInstant()
-        val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
-        if (Duration.between(startTime, clock.instant()).minus(pausedDuration) > timeoutDuration(stage)) {
-          log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after ${Duration.between(startTime, clock.instant())}")
-          true
-        } else {
-          false
-        }
+  private fun Task.checkForTimeout(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task) {
+    if (this is RetryableTask) {
+      val startTime = taskModel.startTime.toInstant()
+      val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
+      val elapsedTime = Duration.between(startTime, clock.instant())
+      if (elapsedTime.minus(pausedDuration) > timeoutDuration(stage)) {
+        log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after $elapsedTime")
+        throw TimeoutException("${javaClass.simpleName} of stage ${stage.getName()} timed out after $elapsedTime")
       }
-      else -> false
     }
+  }
 
   private fun RetryableTask.timeoutDuration(stage: Stage<*>): Duration {
     val durationOverride = (stage.getContext()["stageTimeoutMs"] as Number?)?.toInt()
