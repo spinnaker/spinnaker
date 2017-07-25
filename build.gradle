@@ -22,7 +22,7 @@ buildscript {
   }
   dependencies {
     classpath "com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.16.0"
-    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.2.8.RELEASE"
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.4.RELEASE"
     classpath "org.junit.platform:junit-platform-gradle-plugin:$junitVersion"
     classpath "com.netflix.nebula:nebula-kotlin-plugin:$kotlinVersion"
   }
@@ -34,7 +34,7 @@ allprojects {
   group = "com.netflix.spinnaker.orca"
 
   ext {
-    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.106.0'
+    spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.109.2'
   }
 
   def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]

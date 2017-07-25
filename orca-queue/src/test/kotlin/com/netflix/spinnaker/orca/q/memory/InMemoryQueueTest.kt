@@ -20,6 +20,7 @@ import com.netflix.spinnaker.orca.q.DeadMessageCallback
 import com.netflix.spinnaker.orca.q.QueueTest
 import com.netflix.spinnaker.orca.q.metrics.MonitorableQueueTest
 import org.funktionale.partials.invoke
+import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
@@ -37,7 +38,10 @@ private val createQueue = {
   InMemoryQueue(
     clock = clock,
     deadMessageHandler = deadLetterCallback,
-    publisher = publisher ?: ApplicationEventPublisher { }
+    publisher = publisher ?: (object : ApplicationEventPublisher {
+      override fun publishEvent(event: ApplicationEvent?) {}
+      override fun publishEvent(event: Any?) {}
+    })
   )
 }
 

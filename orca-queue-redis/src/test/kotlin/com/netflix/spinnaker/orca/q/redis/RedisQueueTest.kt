@@ -30,6 +30,7 @@ import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
 import org.jetbrains.spek.api.dsl.it
 import org.junit.Assert
+import org.springframework.context.ApplicationEvent
 import org.springframework.context.ApplicationEventPublisher
 import java.time.Clock
 
@@ -52,7 +53,10 @@ private val createQueue = { clock: Clock,
     pool = redis!!.pool,
     clock = clock,
     deadMessageHandler = deadLetterCallback,
-    publisher = publisher ?: ApplicationEventPublisher { }
+    publisher = publisher ?: (object : ApplicationEventPublisher {
+      override fun publishEvent(event: ApplicationEvent?) {}
+      override fun publishEvent(event: Any?) {}
+    })
   )
 }
 
