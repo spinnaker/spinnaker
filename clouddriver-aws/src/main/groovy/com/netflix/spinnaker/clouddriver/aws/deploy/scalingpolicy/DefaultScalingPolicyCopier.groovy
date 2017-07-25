@@ -61,10 +61,12 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
     sourceAsgScalingPolicies.each { sourceAsgScalingPolicy ->
       String newPolicyName = [targetAsgName, 'policy', idGenerator.nextId()].join('-')
       def policyRequest = buildNewPolicyRequest(newPolicyName, sourceAsgScalingPolicy, targetAsgName)
+      task.updateStatus "AWS_DEPLOY", "Creating scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
+
       def result = targetAutoScaling.putScalingPolicy(policyRequest)
       sourcePolicyArnToTargetPolicyArn[sourceAsgScalingPolicy.policyARN] = result.policyARN
 
-      task.updateStatus "AWS_DEPLOY", "Creating scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
+      task.updateStatus "AWS_DEPLOY", "Created scaling policy (${policyRequest}) on ${targetRegion}/${targetAsgName} from ${sourceRegion}/${sourceAsgName}..."
     }
     Collection<String> allSourceAlarmNames = sourceAsgScalingPolicies*.alarms*.alarmName.flatten().unique()
     if (allSourceAlarmNames) {
@@ -99,6 +101,7 @@ class DefaultScalingPolicyCopier implements ScalingPolicyCopier {
       metricAggregationType: sourceAsgScalingPolicy.metricAggregationType,
       stepAdjustments: sourceAsgScalingPolicy.stepAdjustments,
       estimatedInstanceWarmup: sourceAsgScalingPolicy.estimatedInstanceWarmup,
+      targetTrackingConfiguration: sourceAsgScalingPolicy.targetTrackingConfiguration
     )
   }
 
