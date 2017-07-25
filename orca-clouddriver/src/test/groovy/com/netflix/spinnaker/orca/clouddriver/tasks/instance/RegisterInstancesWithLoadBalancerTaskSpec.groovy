@@ -77,6 +77,6 @@ class RegisterInstancesWithLoadBalancerTaskSpec extends Specification {
     then:
       result.status == ExecutionStatus.SUCCEEDED
       result.outputs."kato.last.task.id" == taskId
-      result.outputs.interestingHealthProviderNames == ["LoadBalancer"]
+      result.outputs.interestingHealthProviderNames == ["LoadBalancer", "TargetGroup"]
   }
 }

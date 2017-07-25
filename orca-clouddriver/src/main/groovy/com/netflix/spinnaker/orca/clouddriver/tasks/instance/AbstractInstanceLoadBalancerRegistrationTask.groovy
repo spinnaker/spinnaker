@@ -41,7 +41,7 @@ abstract class AbstractInstanceLoadBalancerRegistrationTask extends AbstractClou
     new TaskResult(ExecutionStatus.SUCCEEDED, [
         "notification.type"           : getAction().toLowerCase(),
         "kato.last.task.id"           : taskId,
-        interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["LoadBalancer"])
+        interestingHealthProviderNames: HealthHelper.getInterestingHealthProviderNames(stage, ["LoadBalancer", "TargetGroup"])
     ])
   }
 }
