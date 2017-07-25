@@ -17,36 +17,50 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.CanaryConfigService
-import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-class V2CanaryController {
-  @Autowired(required = false)
+@RequestMapping("/v2/canaryConfig")
+@ConditionalOnBean(CanaryConfigService)
+class V2CanaryConfigController {
+
+  @Autowired
   CanaryConfigService canaryConfigService
 
   @ApiOperation(value = "Retrieve a list of canary configurations")
-  @RequestMapping(value = "/v2/canaryConfig", method = RequestMethod.GET)
+  @RequestMapping(method = RequestMethod.GET)
   List getCanaryConfigs() {
-    if (canaryConfigService) {
-      return canaryConfigService.getCanaryConfigs()
-    } else {
-      return []
-    }
+    canaryConfigService.getCanaryConfigs()
   }
 
-  @ApiOperation(value = "Retrieve a canary configuration by name")
-  @RequestMapping(value = "/v2/canaryConfig/{id}", method = RequestMethod.GET)
+  @ApiOperation(value = "Retrieve a canary configuration by id")
+  @RequestMapping(value = "/{id}", method = RequestMethod.GET)
   Map getCanaryConfig(@PathVariable String id) {
-    if (canaryConfigService) {
-      return canaryConfigService.getCanaryConfig(id)
-    } else {
-      throw new NotFoundException("Canary configuration not found (id: ${id})")
-    }
+    canaryConfigService.getCanaryConfig(id)
+  }
+
+  @ApiOperation(value = "Create a canary configuration")
+  @RequestMapping(method = RequestMethod.POST)
+  Map createCanaryConfig(@RequestBody Map config) {
+    [id: canaryConfigService.createCanaryConfig(config)]
+  }
+
+  @ApiOperation(value = "Update a canary configuration")
+  @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
+  Map updateCanaryConfig(@PathVariable String id, @RequestBody Map config) {
+    [id: canaryConfigService.updateCanaryConfig(id, config)]
+  }
+
+  @ApiOperation(value = "Delete a canary configuration")
+  @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+  void deleteCanaryConfig(@PathVariable String id) {
+    canaryConfigService.deleteCanaryConfig(id)
   }
 }

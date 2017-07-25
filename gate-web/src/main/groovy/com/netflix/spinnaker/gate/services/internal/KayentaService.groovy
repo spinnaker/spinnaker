@@ -16,8 +16,8 @@
 
 package com.netflix.spinnaker.gate.services.internal
 
-import retrofit.http.GET
-import retrofit.http.Path
+import retrofit.client.Response
+import retrofit.http.*
 
 interface KayentaService {
   @GET("/canaryConfig")
@@ -25,4 +25,13 @@ interface KayentaService {
 
   @GET("/canaryConfig/{id}")
   Map getCanaryConfig(@Path("id") String id)
+
+  @POST("/canaryConfig")
+  Response createCanaryConfig(@Body Map config)
+
+  @PUT("/canaryConfig/{id}")
+  Response updateCanaryConfig(@Path("id") String id, @Body Map config)
+
+  @DELETE("/canaryConfig/{id}")
+  Response deleteCanaryConfig(@Path("id") String id)
 }

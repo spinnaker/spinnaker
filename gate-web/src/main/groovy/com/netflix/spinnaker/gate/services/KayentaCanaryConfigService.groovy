@@ -23,6 +23,8 @@ import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.stereotype.Component
+import retrofit.client.Response
+import retrofit.mime.TypedByteArray
 
 
 @CompileStatic
@@ -44,6 +46,26 @@ class KayentaCanaryConfigService implements CanaryConfigService {
   Map getCanaryConfig(String id) {
     HystrixFactory.newMapCommand(GROUP, "getCanaryConfig") {
       kayentaService.getCanaryConfig(id)
+    } execute()
+  }
+
+  String createCanaryConfig(Map config) {
+    HystrixFactory.newMapCommand(GROUP, "createCanaryConfig") {
+      Response response = kayentaService.createCanaryConfig(config)
+      return new String(((TypedByteArray)response.getBody()).getBytes())
+    } execute()
+  }
+
+  String updateCanaryConfig(String id, Map config) {
+    HystrixFactory.newMapCommand(GROUP, "updateCanaryConfig") {
+      Response response = kayentaService.updateCanaryConfig(id, config)
+      return new String(((TypedByteArray)response.getBody()).getBytes())
+    } execute()
+  }
+
+  void deleteCanaryConfig(String id) {
+    HystrixFactory.newMapCommand(GROUP, "deleteCanaryConfig") {
+      kayentaService.deleteCanaryConfig(id)
     } execute()
   }
 }
