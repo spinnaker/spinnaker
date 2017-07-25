@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.front50.PipelineModelMutator;
 import com.netflix.spinnaker.orca.pipelinetemplate.loader.TemplateLoader;
@@ -106,13 +107,31 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
       applyConcurrentExecutions(pipeline, configuration.getConcurrentExecutions());
     }
     if (!configuration.getTriggers().isEmpty()) {
-      pipeline.put("triggers", TemplateMerge.mergeNamedContent((List<NamedHashMap>) pipeline.get("triggers"), configuration.getTriggers()));
+      pipeline.put(
+        "triggers",
+        TemplateMerge.mergeNamedContent(
+          pipelineTemplateObjectMapper.convertValue(pipeline.get("triggers"), new TypeReference<List<NamedHashMap>>() {}),
+          configuration.getTriggers()
+        )
+      );
     }
     if (!configuration.getParameters().isEmpty()) {
-      pipeline.put("parameters", TemplateMerge.mergeNamedContent((List<NamedHashMap>) pipeline.get("parameters"), configuration.getParameters()));
+      pipeline.put(
+        "parameters",
+        TemplateMerge.mergeNamedContent(
+          pipelineTemplateObjectMapper.convertValue(pipeline.get("parameters"), new TypeReference<List<NamedHashMap>>() {}),
+          configuration.getParameters()
+        )
+      );
     }
     if (!configuration.getNotifications().isEmpty()) {
-      pipeline.put("notifications", TemplateMerge.mergeNamedContent((List<NamedHashMap>) pipeline.get("notifications"), configuration.getNotifications()));
+      pipeline.put(
+        "notifications",
+        TemplateMerge.mergeNamedContent(
+          pipelineTemplateObjectMapper.convertValue(pipeline.get("notifications"), new TypeReference<List<NamedHashMap>>() {}),
+          configuration.getNotifications()
+        )
+      );
     }
   }
 
