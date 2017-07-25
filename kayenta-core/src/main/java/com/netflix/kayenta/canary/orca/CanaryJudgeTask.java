@@ -18,6 +18,7 @@ package com.netflix.kayenta.canary.orca;
 
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
+import com.netflix.kayenta.canary.CanaryMetricConfig;
 import com.netflix.kayenta.canary.results.CanaryJudgeResult;
 import com.netflix.kayenta.metrics.MetricSetPair;
 import com.netflix.kayenta.security.AccountCredentials;
@@ -48,7 +49,7 @@ public class CanaryJudgeTask implements RetryableTask {
   StorageServiceRepository storageServiceRepository;
 
   @Autowired
-  CanaryJudge canaryJudge;
+  List<CanaryJudge> canaryJudges;
 
   @Override
   public long getBackoffPeriod() {
@@ -78,6 +79,33 @@ public class CanaryJudgeTask implements RetryableTask {
 
     CanaryConfig canaryConfig = storageService.loadObject(resolvedAccountName, ObjectType.CANARY_CONFIG, canaryConfigId.toLowerCase());
     List<MetricSetPair> metricSetPairList = storageService.loadObject(resolvedAccountName, ObjectType.METRIC_SET_PAIR_LIST, metricSetPairListId);
+    List<CanaryMetricConfig> metricConfigList = canaryConfig.getMetrics();
+    CanaryJudge canaryJudge = null;
+
+    if (metricConfigList != null && metricConfigList.size() > 0) {
+      // TODO(duftler): We're just considering the judge reference in the first metric analysis configuration here. Should we be considering each one?
+      Map<String, Map> analysisConfigurations = metricConfigList.get(0).getAnalysisConfigurations();
+
+      if (analysisConfigurations != null && analysisConfigurations.containsKey("canary")) {
+        Map canaryAnalysisConfiguration = analysisConfigurations.get("canary");
+
+        if (canaryAnalysisConfiguration != null && canaryAnalysisConfiguration.containsKey("judge")) {
+          String judgeName = (String)canaryAnalysisConfiguration.get("judge");
+
+          canaryJudge =
+            canaryJudges
+              .stream()
+              .filter(c -> c.getName().equals(judgeName))
+              .findFirst()
+              .orElseThrow(() -> new IllegalArgumentException("Unable to resolve canary judge '" + judgeName + "'."));
+        }
+      }
+    }
+
+    if (canaryJudge == null) {
+      canaryJudge = canaryJudges.get(0);
+    }
+
     CanaryJudgeResult result = canaryJudge.judge(canaryConfig, metricSetPairList);
     Map<String, CanaryJudgeResult> outputs = Collections.singletonMap("result", result);
 

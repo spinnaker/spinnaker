@@ -23,7 +23,9 @@ Atlas and Stackdriver are used.
         "q": "name,CpuRawUser,:eq,:sum,name,numProcs,:eq,:sum,:div"
       },
       "analysisConfigurations": {
-        "canary": { }
+        "canary": {
+          "judge": "dredd-v1.0"
+        }
       },
       "groups": ["system"]
     },
@@ -78,7 +80,9 @@ Atlas and Stackdriver are used.
         "metricType": "compute.googleapis.com/instance/cpu/utilization"
       },
       "analysisConfigurations": {
-        "canary": { }
+        "canary": {
+          "judge": "dredd-v1.0"
+        }
       },
       "groups": ["system"]
     }

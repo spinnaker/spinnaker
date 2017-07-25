@@ -25,17 +25,22 @@ import java.util.List;
 import java.util.Random;
 
 @Component
-// TODO(duftler): Make the canary judge a pluggable component.
-// TODO(mgraff, or duftler): move to its own subproject once it's pluggable.
 public class CanaryJudgeDummy implements CanaryJudge {
+  private static final String NAME = "dredd-v1.0";
+
   private Random random = new Random();
+
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
   @Override
   public CanaryJudgeResult judge(CanaryConfig canaryConfig, List<MetricSetPair> metricSetPairList) {
     // TODO: "You're the judge; so judge!"
 
     CanaryJudgeScore score = CanaryJudgeScore.builder().score(random.nextDouble() * 100).build();
-    CanaryJudgeResult result = CanaryJudgeResult.builder().score(score).build();
+    CanaryJudgeResult result = CanaryJudgeResult.builder().judgeName(NAME).score(score).build();
     return result;
   }
 }

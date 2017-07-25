@@ -22,5 +22,6 @@ import com.netflix.kayenta.metrics.MetricSetPair;
 import java.util.List;
 
 public interface CanaryJudge {
+  String getName();
   CanaryJudgeResult judge(CanaryConfig canaryConfig, List<MetricSetPair> metricSetPairList);
 }

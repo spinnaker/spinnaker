@@ -15,7 +15,7 @@
       ],
       "analysisConfigurations": {
         "canary": {
-
+          "judge": "dredd-v1.0"
         }
       }
     },

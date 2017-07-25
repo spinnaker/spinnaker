@@ -23,6 +23,10 @@ import com.netflix.kayenta.canary.{CanaryConfig, CanaryJudge}
 import com.netflix.kayenta.metrics.MetricSetPair
 
 class NetflixJudge extends CanaryJudge {
+  override def getName(): String = {
+    "netflixJudge-v1.0"
+  }
+
   override def judge(canaryConfig: CanaryConfig, metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
     val result = CanaryJudgeResult.builder().build()
     result
