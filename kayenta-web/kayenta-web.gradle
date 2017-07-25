@@ -36,4 +36,4 @@ dependencies {
   compile "com.netflix.spinnaker.kork:kork-web:$korkVersion"
 }
 
-tasks.bootRepackage.enabled = project.repackage
+tasks.bootRepackage.enabled = false
