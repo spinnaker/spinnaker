@@ -29,18 +29,15 @@ import com.amazonaws.services.elasticloadbalancingv2.model.InvalidTargetExceptio
 import com.amazonaws.services.elasticloadbalancingv2.model.RegisterTargetsRequest
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetDescription
 import com.amazonaws.services.elasticloadbalancingv2.model.TargetGroupNotFoundException
-import com.netflix.frigga.Names
-import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
-import com.netflix.spinnaker.clouddriver.data.task.Task
-import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
-import com.netflix.spinnaker.clouddriver.eureka.model.EurekaInstance
-import com.netflix.spinnaker.clouddriver.helpers.EnableDisablePercentageCategorizer
-import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableAsgDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.description.EnableDisableInstanceDiscoveryDescription
 import com.netflix.spinnaker.clouddriver.aws.deploy.ops.discovery.AwsEurekaSupport
 import com.netflix.spinnaker.clouddriver.aws.model.AutoScalingProcessType
 import com.netflix.spinnaker.clouddriver.aws.services.RegionScopedProviderFactory
+import com.netflix.spinnaker.clouddriver.data.task.Task
+import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
+import com.netflix.spinnaker.clouddriver.eureka.deploy.ops.AbstractEurekaSupport
+import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -116,6 +113,7 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
         it.lifecycleState == "InService" || it.lifecycleState.startsWith("Pending")
       }*.instanceId
 
+      int failedAttempts = 0
       if (instanceIds) {
         DescribeInstancesRequest describeInstancesRequest = new DescribeInstancesRequest().withInstanceIds(instanceIds)
         List<Reservation> reservations = []
@@ -129,7 +127,12 @@ abstract class AbstractEnableDisableAtomicOperation implements AtomicOperation<V
 
             describeInstancesRequest.setNextToken(describeInstancesResult.nextToken)
           } catch(Exception e) {
-           log.error("Failed to describe one of the instances in  {}", instanceIds, e)
+            failedAttempts++
+            log.error("Failed to describe one of the instances in  {}", instanceIds, e)
+            if (failedAttempts >= 10) {
+              task.updateStatus phaseName, "Failed to describe instances 10 times, aborting. This may happen if the server group has been disabled for a long period of time."
+              return false
+            }
           }
         }
 
