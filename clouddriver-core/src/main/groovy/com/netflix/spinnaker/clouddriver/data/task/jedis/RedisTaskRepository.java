@@ -191,7 +191,7 @@ public class RedisTaskRepository implements TaskRepository {
 
   public DefaultTaskStatus currentState(JedisTask task) {
     String historyId = "taskHistory:" + task.getId();
-    String state = redisClientDelegate.withCommandsClient(client -> {
+    String state = clientForTask(task).withCommandsClient(client -> {
       return client.lindex(historyId, -1);
     });
     Map<String, String> history;

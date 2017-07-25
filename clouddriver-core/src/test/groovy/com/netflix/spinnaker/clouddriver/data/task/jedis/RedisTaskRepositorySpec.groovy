@@ -53,11 +53,11 @@ class RedisTaskRepositorySpec extends Specification {
   void "reads from previous redis if task missing"() {
     given:
     def embeddedRedis1 = EmbeddedRedis.embed()
-    def previousJedisPool = embeddedRedis.pool as JedisPool
+    def previousJedisPool = embeddedRedis1.pool as JedisPool
     previousJedisPool.resource.withCloseable { it.flushDB() }
 
     def embeddedRedis2 = EmbeddedRedis.embed()
-    def currentPool = embeddedRedis.pool as JedisPool
+    def currentPool = embeddedRedis2.pool as JedisPool
     currentPool.resource.withCloseable { it.flushDB() }
 
     def taskR = new RedisTaskRepository(new JedisClientDelegate(previousJedisPool), Optional.empty())
