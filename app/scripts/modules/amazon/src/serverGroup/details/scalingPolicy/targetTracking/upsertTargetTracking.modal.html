@@ -102,12 +102,12 @@
           <div class="col-md-9">
             <div class="checkbox" style="margin-top: 5px">
               <label>
-                <input type="checkbox" ng-model="$ctrl.command.disableScaleIn" ng-change="$ctrl.scaleInChanged()"/>
+                <input type="checkbox" ng-model="$ctrl.command.targetTrackingConfiguration.disableScaleIn" ng-change="$ctrl.scaleInChanged()"/>
                 Disable Scale-downs
               </label>
               <div class="small" style="margin-top: 5px">
                 <p>
-                  This option disables scale-downs for the target-tracking policy, while keeping the scale-ups.
+                  This option disables scale-downs for the target tracking policy, while keeping the scale-ups.
                   This means that ASG will not scale down unless you explicitly set up a separate step policy to scale it
                   down.
                 </p>
@@ -121,11 +121,11 @@
 
         <div class="row" ng-if="$ctrl.state.scaleInChanged">
           <div class="col-md-10 col-md-offset-1 well">
-            <div ng-if="$ctrl.command.disableScaleIn">
+            <div ng-if="$ctrl.command.targetTrackingConfiguration.disableScaleIn">
               This policy will not scale down. Make sure you have another policy (either TT or Step) that
                 will scale down this ASG.
             </div>
-            <div ng-if="!$ctrl.command.disableScaleIn">
+            <div ng-if="!$ctrl.command.targetTrackingConfiguration.disableScaleIn">
               This policy will scale both up and down. Make sure you don't have other scaling policies, as they
                 will likely interfere with each other.
             </div>
