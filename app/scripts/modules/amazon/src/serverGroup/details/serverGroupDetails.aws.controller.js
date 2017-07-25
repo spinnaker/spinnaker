@@ -6,6 +6,7 @@ import { chain, filter, find, get, has, isEmpty } from 'lodash';
 import { AWS_SCHEDULED_ACTION_COMPONENT } from './scheduledAction/scheduledAction.component';
 import { AWS_SERVER_GROUP_TRANSFORMER } from 'amazon/serverGroup/serverGroup.transformer';
 import { SERVER_GROUP_CONFIGURE_MODULE } from '../configure/serverGroup.configure.aws.module';
+import { CREATE_SCALING_POLICY_BUTTON } from './scalingPolicy/createScalingPolicyButton.component';
 
 import {
   ACCOUNT_SERVICE,
@@ -25,6 +26,7 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
   AWS_SERVER_GROUP_TRANSFORMER,
   CLUSTER_TARGET_BUILDER,
   CONFIRMATION_MODAL_SERVICE,
+  CREATE_SCALING_POLICY_BUTTON,
   OVERRIDE_REGISTRY,
   SERVER_GROUP_CONFIGURE_MODULE,
   SERVER_GROUP_READER,
@@ -34,7 +36,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
   require('../configure/serverGroupCommandBuilder.service.js'),
   require('./resize/resizeServerGroup.controller'),
   require('./rollback/rollbackServerGroup.controller'),
-  require('./scalingPolicy/addScalingPolicyButton.component.js'),
   require('./securityGroup/editSecurityGroups.modal.controller'),
 ])
   .controller('awsServerGroupDetailsCtrl', function ($scope, $state, app, serverGroup,
@@ -92,12 +93,10 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
             .then((details) => {
               cancelLoader();
 
-              var plainDetails = details;
-              angular.extend(plainDetails, summary);
               // it's possible the summary was not found because the clusters are still loading
-              plainDetails.account = serverGroup.accountId;
+              angular.extend(details, summary, { account: serverGroup.accountId });
 
-              this.serverGroup = plainDetails;
+              this.serverGroup = awsServerGroupTransformer.normalizeServerGroupDetails(details);
               this.applyAccountDetails(this.serverGroup);
 
               if (!isEmpty(this.serverGroup)) {
@@ -141,7 +140,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
 
                 this.autoScalingProcesses = autoScalingProcessService.normalizeScalingProcesses(this.serverGroup);
                 this.disabledDate = autoScalingProcessService.getDisabledDate(this.serverGroup);
-                awsServerGroupTransformer.normalizeServerGroupDetails(this.serverGroup);
                 this.scalingPolicies = this.serverGroup.scalingPolicies;
                 this.scalingPoliciesDisabled = this.scalingPolicies.length && this.autoScalingProcesses
                     .filter(p => !p.enabled)

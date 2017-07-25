@@ -1,8 +1,8 @@
 import { IMetricAlarmDimension } from '@spinnaker/core';
 
 export interface IScalingPolicyAlarm {
-  alarmName: string;
-  alarmArn: string;
+  alarmName?: string;
+  alarmArn?: string;
   metricName: string;
   namespace: string;
   statistic: AlarmStatisticType;
@@ -10,12 +10,12 @@ export interface IScalingPolicyAlarm {
   period: number;
   threshold: number;
   comparisonOperator: AlarmComparisonOperator;
-  okactions: string[];
-  insufficientDataActions: string[];
-  alarmActions: string[];
-  evaluationPeriods: number;
-  alarmDescription: string;
-  unit: StandardUnitType;
+  okactions?: string[];
+  insufficientDataActions?: string[];
+  alarmActions?: string[];
+  evaluationPeriods?: number;
+  alarmDescription?: string;
+  unit?: StandardUnitType;
 }
 
 export type ScalingPolicyAdjustmentType = 'ChangeInCapacity' | 'ExactCapacity' | 'PercentChangeInCapacity';
@@ -34,14 +34,14 @@ export type StandardUnitType = 'Seconds' | 'Microseconds' | 'Milliseconds' | 'By
 export interface IStepAdjustment {
   metricIntervalLowerBound?: number;
   metricIntervalUpperBound?: number;
-  scalingAdjustment: number;
+  scalingAdjustment?: number;
 }
 
 export interface IScalingPolicy {
-  policyARN: string;
-  policyName: string;
-  policyType: string;
-  adjustmentType: ScalingPolicyAdjustmentType;
+  policyARN?: string;
+  policyName?: string;
+  policyType?: string;
+  adjustmentType?: ScalingPolicyAdjustmentType;
   alarms: IScalingPolicyAlarm[];
 
   stepAdjustments?: IStepAdjustment[]; // step

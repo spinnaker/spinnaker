@@ -1,7 +1,7 @@
 import { mock, IQService, IRootScopeService, IScope } from 'angular';
 
 import { AWS_SERVER_GROUP_TRANSFORMER, AwsServerGroupTransformer } from './serverGroup.transformer';
-import { IAmazonScalingPolicy, IAmazonScalingPolicyAlarm, IAmazonServerGroup, IAmazonStepAdjustment } from '../domain';
+import { IScalingPolicyAlarmView, IAmazonServerGroup, IStepAdjustment } from '../domain';
 import { VPC_READ_SERVICE, VpcReader } from '../vpc/vpc.read.service';
 
 describe('awsServerGroupTransformer', () => {
@@ -94,7 +94,7 @@ describe('awsServerGroupTransformer', () => {
           }]
       } as IAmazonServerGroup;
       transformer.normalizeServerGroupDetails(serverGroup);
-      const alarms = serverGroup.scalingPolicies[0].alarms as IAmazonScalingPolicyAlarm[];
+      const alarms = serverGroup.scalingPolicies[0].alarms as IScalingPolicyAlarmView[];
       expect(alarms.map(a => a.comparator)).toEqual(['&lt;', '&gt;', '&le;', '&ge;', undefined]);
     });
 
@@ -106,8 +106,8 @@ describe('awsServerGroupTransformer', () => {
             { scalingAdjustment: -5 }
           ]
       } as IAmazonServerGroup;
-      transformer.normalizeServerGroupDetails(serverGroup);
-      const policies = serverGroup.scalingPolicies as IAmazonScalingPolicy[];
+      const transformed = transformer.normalizeServerGroupDetails(serverGroup);
+      const policies = transformed.scalingPolicies;
       expect(policies.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
       expect(policies.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
     });
@@ -123,8 +123,8 @@ describe('awsServerGroupTransformer', () => {
           ]}
         ]
       } as IAmazonServerGroup;
-      transformer.normalizeServerGroupDetails(serverGroup);
-      const steps = serverGroup.scalingPolicies[0].stepAdjustments as IAmazonStepAdjustment[];
+      const transformed = transformer.normalizeServerGroupDetails(serverGroup);
+      const steps = transformed.scalingPolicies[0].stepAdjustments;
       expect(steps.map(a => a.absAdjustment)).toEqual([10, 0, 5]);
       expect(steps.map(a => a.operator)).toEqual(['increase', 'increase', 'decrease']);
     });
@@ -132,7 +132,7 @@ describe('awsServerGroupTransformer', () => {
     describe('sorting step adjustments', () => {
 
       beforeEach(function() {
-        this.test = (steps: IAmazonStepAdjustment[], expected: any[]) => {
+        this.test = (steps: IStepAdjustment[], expected: any[]) => {
           const serverGroup = {
             scalingPolicies: [
               {
@@ -142,18 +142,18 @@ describe('awsServerGroupTransformer', () => {
           } as IAmazonServerGroup;
           transformer.normalizeServerGroupDetails(serverGroup);
           const check = serverGroup.scalingPolicies[0].stepAdjustments;
-          expect(check.map(s => s.id)).toEqual(expected);
+          expect(check.map(s => s.scalingAdjustment)).toEqual(expected);
         };
       });
 
       it('reverse sorts step adjustments by lower bound when none have an upper bound defined', function() {
         this.test(
           [
-            {id: 1, scalingAdjustment: 10, metricIntervalLowerBound: 3},
-            {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5},
-            {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1}
+            {scalingAdjustment: 10, metricIntervalLowerBound: 3},
+            {scalingAdjustment: 0, metricIntervalLowerBound: 5},
+            {scalingAdjustment: -5, metricIntervalLowerBound: 1}
           ],
-          [3, 1, 2]
+          [-5, 10, 0]
         );
       });
 
@@ -164,7 +164,7 @@ describe('awsServerGroupTransformer', () => {
             {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5},
             {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 3}
           ],
-          [3, 1, 2]
+          [-5, 10, 0]
         );
       });
 
@@ -175,7 +175,7 @@ describe('awsServerGroupTransformer', () => {
             {id: 2, scalingAdjustment: 0, metricIntervalLowerBound: 5, metricIntervalUpperBound: 9},
             {id: 3, scalingAdjustment: -5, metricIntervalLowerBound: 1, metricIntervalUpperBound: 0}
           ],
-          [2, 1, 3]
+          [0, 10, -5]
         );
       });
 

@@ -1,8 +1,13 @@
 import { IServerGroup } from '@spinnaker/core';
 
-import { IAmazonScalingPolicy } from './IAmazonScalingPolicy';
+import { IScalingPolicy } from './IScalingPolicy';
+import { IScalingPolicyView } from 'amazon/domain';
 
 export interface IAmazonServerGroup extends IServerGroup {
-  scalingPolicies?: IAmazonScalingPolicy[];
+  scalingPolicies?: IScalingPolicy[];
   targetGroups?: string[];
+}
+
+export interface IAmazonServerGroupView extends IAmazonServerGroup {
+  scalingPolicies: IScalingPolicyView[];
 }

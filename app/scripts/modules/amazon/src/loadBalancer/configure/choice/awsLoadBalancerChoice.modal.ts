@@ -5,8 +5,6 @@ import { Application } from '@spinnaker/core';
 
 import { IAwsLoadBalancerConfig, LoadBalancerTypes } from './LoadBalancerTypes';
 
-import './awsLoadBalancerChoice.less'
-
 class AwsLoadBalancerChoiceCtrl implements IController {
   public choices: IAwsLoadBalancerConfig[];
   public choice: IAwsLoadBalancerConfig;

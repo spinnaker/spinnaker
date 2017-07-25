@@ -4,6 +4,8 @@ export * from './domain';
 
 export * from './keyPairs';
 
+export * from './reactShims';
+
 export * from './serverGroup';
 
 export * from './templates';

@@ -3,6 +3,7 @@ import { module } from 'angular';
 import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
 
 import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
+import { AWS_REACT_MODULE } from './reactShims/aws.react.module';
 import { AWS_SECURITY_GROUP_MODULE } from './securityGroup/securityGroup.module';
 import { AWS_SERVER_GROUP_TRANSFORMER } from './serverGroup/serverGroup.transformer';
 import { AMAZON_APPLICATION_NAME_VALIDATOR } from './validation/applicationName.validator';
@@ -27,6 +28,7 @@ templates.keys().forEach(function(key) {
 
 export const AMAZON_MODULE = 'spinnaker.amazon';
 module(AMAZON_MODULE, [
+  AWS_REACT_MODULE,
   CLOUD_PROVIDER_REGISTRY,
   AMAZON_HELP,
   AMAZON_APPLICATION_NAME_VALIDATOR,
