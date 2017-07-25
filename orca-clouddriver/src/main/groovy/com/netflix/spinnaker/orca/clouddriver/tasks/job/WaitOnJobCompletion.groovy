@@ -85,6 +85,7 @@ public class WaitOnJobCompletion extends AbstractCloudProviderAwareTask implemen
               throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
             }
             outputs << properties
+            outputs.propertyFileContents = properties
           }
 
           return

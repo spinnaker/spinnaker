@@ -61,6 +61,7 @@ class MonitorJenkinsJobTask implements RetryableTask {
     def buildNumber = (int) stage.context.buildNumber
     try {
       Map<String, Object> build = buildService.getBuild(buildNumber, master, job)
+      Map outputs = [:]
       String result = build.result
       if ((build.building && build.building != 'false') || (build.running && build.running != 'false')) {
         return new TaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
@@ -70,6 +71,8 @@ class MonitorJenkinsJobTask implements RetryableTask {
         build.artifacts = buildArtifactFilter.filterArtifacts(build.artifacts as List<Map>)
       }
 
+      outputs.buildInfo = build
+
       if (statusMap.containsKey(result)) {
         ExecutionStatus status = statusMap[result]
         Map<String, Object> properties = [:]
@@ -78,11 +81,13 @@ class MonitorJenkinsJobTask implements RetryableTask {
           if (properties.size() == 0 && result == 'SUCCESS') {
             throw new IllegalStateException("expected properties file ${stage.context.propertyFile} but one was not found or was empty")
           }
+          outputs << properties
+          outputs.propertyFileContents = properties
         }
         if (result == 'UNSTABLE' && stage.context.markUnstableAsSuccessful) {
           status = ExecutionStatus.SUCCEEDED
         }
-        return new TaskResult(status, [buildInfo: build] + properties, [buildInfo: build] + properties)
+        return new TaskResult(status, outputs, outputs)
       } else {
         return new TaskResult(ExecutionStatus.RUNNING, [buildInfo: build])
       }
