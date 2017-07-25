@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.front50.tasks
 
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.front50.pipeline.PipelineStage
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
@@ -41,7 +42,7 @@ class MonitorPipelineTaskSpec extends Specification {
   def "returns the correct task result based on child pipeline execution"() {
     given:
     def pipeline = new Pipeline().builder().withStage(
-      com.netflix.spinnaker.orca.front50.pipeline.PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
+      PipelineStage.PIPELINE_CONFIG_TYPE, "pipeline", [:]
     ).build()
     pipeline.status = providedStatus
 
@@ -62,5 +63,37 @@ class MonitorPipelineTaskSpec extends Specification {
     ExecutionStatus.CANCELED    || ExecutionStatus.TERMINAL
     ExecutionStatus.TERMINAL    || ExecutionStatus.TERMINAL
     ExecutionStatus.REDIRECT    || ExecutionStatus.RUNNING
+  }
+
+  def "propagates pipeline exceptions"() {
+    def katoTasks = [
+      [status: [failed: false], messages: ["should not appear"]],
+      [status: [failed: true], history: ["task failed, no exception"]],
+      [status: [failed: true], history: ["should not appear"], exception: [message: "task had exception"]],
+    ]
+    def pipeline = new Pipeline().builder()
+      .withName("some child")
+      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, "other", [:])
+      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, "a pipeline", [exception: [details: [errors: "Some error"]]])
+      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, null, [exception: [details: [errors: "Some other error"]]])
+      .withStage(PipelineStage.PIPELINE_CONFIG_TYPE, "deploy", ["kato.tasks": katoTasks])
+      .build()
+    pipeline.status = ExecutionStatus.TERMINAL
+    pipeline.stages[1].status = ExecutionStatus.TERMINAL
+    pipeline.stages[2].status = ExecutionStatus.TERMINAL
+    pipeline.stages[3].status = ExecutionStatus.TERMINAL
+
+    repo.retrievePipeline(_) >> pipeline
+
+    when:
+    def result = task.execute(stage)
+
+    then:
+    result.stageOutputs.exception == [details: [errors: [
+      "Exception in child pipeline stage (some child: a pipeline): Some error",
+      "Exception in child pipeline stage (some child: pipeline): Some other error",
+      "Exception in child pipeline stage (some child: deploy): task failed, no exception",
+      "Exception in child pipeline stage (some child: deploy): task had exception"
+    ]]]
   }
 }

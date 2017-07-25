@@ -48,9 +48,35 @@ class MonitorPipelineTask implements RetryableTask {
 
     if (childPipeline.status.halt) {
       // indicates a failure of some sort
-      return new TaskResult(ExecutionStatus.TERMINAL, [status: childPipeline.status])
+      List<String> errors = childPipeline.stages
+        .findAll { s -> s.status == ExecutionStatus.TERMINAL }
+        .findResults { s ->
+          if (s.context["exception"]?.details) {
+            return [(s.context["exception"].details.errors ?: s.context["exception"].details.error)]
+              .flatten()
+              .collect {e -> buildExceptionMessage(childPipeline.name, e, s)}
+          }
+          if (s.context["kato.tasks"]) {
+            return s.context["kato.tasks"]
+              .findAll { k -> k.status?.failed }
+              .findResults { k ->
+                String message = k.exception?.message ?: k.history ? ((List<String>) k.history).last() : null
+                return message ? buildExceptionMessage(childPipeline.name, message, s) : null
+              }
+          }
+        }
+        .flatten()
+      Map context = [status: childPipeline.status]
+      if (errors) {
+        context.exception = [details: [errors: errors]]
+      }
+      return new TaskResult(ExecutionStatus.TERMINAL, context)
     }
 
     return new TaskResult(ExecutionStatus.RUNNING, [status: childPipeline.status])
+  }
+
+  private static String buildExceptionMessage(String pipelineName, String message, Stage stage) {
+    "Exception in child pipeline stage (${pipelineName}: ${stage.name ?: stage.type}): ${message}"
   }
 }
