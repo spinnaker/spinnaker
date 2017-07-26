@@ -94,7 +94,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
       pipeline.put("triggers", templateConfiguration.getTriggers());
     }
     if (configuration.getInherit().contains("parameters")) {
-      pipeline.put("parameters", templateConfiguration.getParameters());
+      pipeline.put("parameterConfig", templateConfiguration.getParameters());
     }
     if (configuration.getInherit().contains("notifications")) {
       pipeline.put("notifications", templateConfiguration.getNotifications());
@@ -117,9 +117,9 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     }
     if (!configuration.getParameters().isEmpty()) {
       pipeline.put(
-        "parameters",
+        "parameterConfig",
         TemplateMerge.mergeNamedContent(
-          pipelineTemplateObjectMapper.convertValue(pipeline.get("parameters"), new TypeReference<List<NamedHashMap>>() {}),
+          pipelineTemplateObjectMapper.convertValue(pipeline.get("parameterConfig"), new TypeReference<List<NamedHashMap>>() {}),
           configuration.getParameters()
         )
       );
@@ -153,7 +153,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
       pipeline.put("triggers", renderList((List<Object>) pipeline.get("triggers"), renderContext));
     }
     if (pipeline.containsKey("parameters")) {
-      pipeline.put("parameters", renderList((List<Object>) pipeline.get("parameters"), renderContext));
+      pipeline.put("parameterConfig", renderList((List<Object>) pipeline.get("parameterConfig"), renderContext));
     }
     if (pipeline.containsKey("notifications")) {
       pipeline.put("notifications", renderList((List<Object>) pipeline.get("notifications"), renderContext));
