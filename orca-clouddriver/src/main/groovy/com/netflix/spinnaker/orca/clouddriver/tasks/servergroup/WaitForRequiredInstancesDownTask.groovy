@@ -41,8 +41,8 @@ class WaitForRequiredInstancesDownTask extends AbstractWaitingForInstancesTask {
     }
 
     // We need at least target instances to be disabled.
-    return targetDesiredSize <= instances.count { instance ->
+    return instances.count { instance ->
       return HealthHelper.someAreDownAndNoneAreUp(instance, interestingHealthProviderNames)
-    }
+    } >= targetDesiredSize
   }
 }
