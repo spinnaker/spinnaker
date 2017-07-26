@@ -10,6 +10,7 @@ const exclusionPattern = /(node_modules|\.\.\/deck)/;
 
 module.exports = {
   context: basePath,
+  devtool: 'source-map',
   entry: {
     lib: path.join(__dirname, 'src', 'index.ts'),
   },
@@ -137,7 +138,7 @@ module.exports = {
       mangle: false,
       beautify: true,
       comments: true,
-      sourceMap: false,
+      sourceMap: true,
     }),
     new HappyPack({
       id: 'lib-html',
