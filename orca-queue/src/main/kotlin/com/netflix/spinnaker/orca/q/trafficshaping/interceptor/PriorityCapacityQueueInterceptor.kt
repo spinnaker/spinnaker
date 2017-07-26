@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.TotalThrottleTimeAttribute
 import com.netflix.spinnaker.orca.q.trafficshaping.InterceptorType
 import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
 import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptorCallback
@@ -114,6 +115,7 @@ class PriorityCapacityQueueInterceptor(
   }
 
   private fun defaultThrottleCallback(): TrafficShapingInterceptorCallback = { queue, msg, ack ->
+    msg.setAttribute(msg.getAttribute<TotalThrottleTimeAttribute>(TotalThrottleTimeAttribute())).add(properties.durationMs)
     queue.push(msg, Duration.of(properties.durationMs, ChronoUnit.MILLIS))
     val app = when (msg) {
       is ApplicationAware -> msg.application

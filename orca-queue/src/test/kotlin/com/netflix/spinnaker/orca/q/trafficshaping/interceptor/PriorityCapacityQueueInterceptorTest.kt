@@ -19,16 +19,22 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.Queue
+import com.netflix.spinnaker.orca.q.TotalThrottleTimeAttribute
 import com.netflix.spinnaker.orca.q.StartExecution
+import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import com.netflix.spinnaker.orca.q.trafficshaping.capacity.GlobalCapacity
 import com.netflix.spinnaker.orca.q.trafficshaping.capacity.PrioritizationStrategy
 import com.netflix.spinnaker.orca.q.trafficshaping.capacity.Priority
 import com.netflix.spinnaker.orca.q.trafficshaping.capacity.PriorityCapacityRepository
 import com.nhaarman.mockito_kotlin.*
-import junit.framework.Assert.assertNotNull
-import junit.framework.Assert.assertNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
+import java.time.Clock
 
 object PriorityCapacityQueueInterceptorTest : Spek({
 
@@ -104,6 +110,32 @@ object PriorityCapacityQueueInterceptorTest : Spek({
 
           assertNotNull(subject.interceptMessage(message))
         }
+      }
+
+      describe("throttle time") {
+
+        val queueImpl: Queue = InMemoryQueue(Clock.systemDefaultZone(), deadMessageHandler = mock(), publisher = mock())
+        whenever(strategy.getPriority(message = any())) doReturn Priority.LOW
+
+        describe("callback message contains throttle time") {
+          val msg: Message = StartExecution(Pipeline::class.java, "1", "foo")
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          assertNotNull(msg.getAttribute<TotalThrottleTimeAttribute>())
+        }
+
+        describe("throttle time is being set") {
+          val msg: Message = StartExecution(Pipeline::class.java, "1", "foo")
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          assertEquals(5000L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+        }
+
+        describe("throttle time is being added") {
+          val msg: Message = StartExecution(Pipeline::class.java, "1", "foo")
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          assertEquals(10000L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+        }
+
       }
     }
   }

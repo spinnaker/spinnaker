@@ -19,17 +19,23 @@ import com.netflix.spectator.api.Id
 import com.netflix.spectator.api.NoopRegistry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
+import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.Queue
 import com.netflix.spinnaker.orca.q.StartStage
+import com.netflix.spinnaker.orca.q.TotalThrottleTimeAttribute
+import com.netflix.spinnaker.orca.q.memory.InMemoryQueue
 import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimit
 import com.netflix.spinnaker.orca.q.trafficshaping.ratelimit.RateLimitBackend
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.whenever
-import junit.framework.Assert.assertNotNull
-import junit.framework.Assert.assertNull
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.describe
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import java.time.Clock
 import java.time.Duration
 
 object ApplicationRateLimitQueueInterceptorTest : Spek({
@@ -55,15 +61,42 @@ object ApplicationRateLimitQueueInterceptorTest : Spek({
     }
 
     describe("when enforcing") {
-      describe("when limited callback is returned") {
-        whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = true)
-        assertNotNull(subject.interceptMessage(message))
-      }
+      describe("when limited") {
 
-      describe("when not limited, no callback is returned") {
-        whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = false, duration = Duration.ZERO, enforcing = true)
-        assertNull(subject.interceptMessage(message))
+        val queueImpl: Queue = InMemoryQueue(Clock.systemDefaultZone(), deadMessageHandler = mock(), publisher = mock())
+
+        describe("callback is returned") {
+          whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = true)
+          assertNotNull(subject.interceptMessage(message))
+        }
+
+        describe("callback message contains throttle time") {
+          val msg: Message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ZERO, enforcing = true)
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          assertNotNull(msg.getAttribute<TotalThrottleTimeAttribute>())
+        }
+
+        describe("throttle time is being set") {
+          val msg: Message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ofMillis(5), enforcing = true)
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          assertEquals(5L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+        }
+
+        describe("throttle time is being added") {
+          val msg: Message = StartStage(Pipeline::class.java, "1", "foo", "1")
+          whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = true, duration = Duration.ofMillis(5), enforcing = true)
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          subject.interceptMessage(msg)?.invoke(queueImpl, msg, {})
+          assertEquals(10L, msg.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs)
+        }
       }
+    }
+
+    describe("when not limited, no callback is returned") {
+      whenever(backend.incrementAndGet(any(), any())) doReturn RateLimit(limiting = false, duration = Duration.ZERO, enforcing = true)
+      assertNull(subject.interceptMessage(message))
     }
   }
 })

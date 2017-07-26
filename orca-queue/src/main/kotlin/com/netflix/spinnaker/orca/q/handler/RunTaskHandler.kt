@@ -64,7 +64,7 @@ open class RunTaskHandler
         } else if (execution.getStatus() == PAUSED) {
           queue.push(PauseTask(message))
         } else {
-          task.checkForTimeout(stage, taskModel)
+          task.checkForTimeout(stage, taskModel, message)
 
           task.execute(stage.withMergedContext()).let { result: TaskResult ->
             // TODO: rather send this data with CompleteTask message
@@ -144,12 +144,13 @@ open class RunTaskHandler
       else -> Duration.ofSeconds(1)
     }
 
-  private fun Task.checkForTimeout(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task) {
+  private fun Task.checkForTimeout(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, message: Message) {
     if (this is RetryableTask) {
       val startTime = taskModel.startTime.toInstant()
       val pausedDuration = stage.getExecution().pausedDurationRelativeTo(startTime)
+      val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
       val elapsedTime = Duration.between(startTime, clock.instant())
-      if (elapsedTime.minus(pausedDuration) > timeoutDuration(stage)) {
+      if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > timeoutDuration(stage)) {
         log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after $elapsedTime")
         throw TimeoutException("${javaClass.simpleName} of stage ${stage.getName()} timed out after $elapsedTime")
       }

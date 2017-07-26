@@ -37,6 +37,12 @@ interface Attribute {
 data class MaxAttemptsAttribute(val maxAttempts: Int = -1) : Attribute {
 }
 
+data class TotalThrottleTimeAttribute(var totalThrottleTimeMs: Long = 0) : Attribute {
+  fun add(throttleTimeMs: Long) {
+    this.totalThrottleTimeMs += throttleTimeMs
+  }
+}
+
 data class AttemptsAttribute(var attempts: Int = 0) : Attribute {
   fun increment() {
     this.attempts = attempts + 1

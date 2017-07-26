@@ -20,6 +20,7 @@ import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.config.TrafficShapingProperties
 import com.netflix.spinnaker.orca.q.ApplicationAware
 import com.netflix.spinnaker.orca.q.Message
+import com.netflix.spinnaker.orca.q.TotalThrottleTimeAttribute
 import com.netflix.spinnaker.orca.q.trafficshaping.InterceptorType
 import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptor
 import com.netflix.spinnaker.orca.q.trafficshaping.TrafficShapingInterceptorCallback
@@ -72,6 +73,7 @@ class ApplicationRateLimitQueueInterceptor(
           if (rateLimit.enforcing) {
             log.info("Throttling message: $message")
             return { queue, msg, ack ->
+              msg.setAttribute(msg.getAttribute<TotalThrottleTimeAttribute>(TotalThrottleTimeAttribute())).add(rateLimit.duration.toMillis())
               queue.push(msg, rateLimit.duration)
               ack.invoke()
               registry.counter(throttledMessagesId.withTags("learning", "false", "application", message.application)).increment()
