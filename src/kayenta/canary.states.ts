@@ -9,13 +9,14 @@ import {
 import ConfigDetailLoader from './edit/configDetailLoader';
 import CanaryConfigSave from './edit/save';
 import Canary from './canary';
+import SelectConfig from './selectConfig';
 
 export const CANARY_STATES = 'spinnaker.kayenta.canary.states';
 module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   .config((applicationStateProvider: ApplicationStateProvider) => {
-  const config: INestedState = {
+  const configDetail: INestedState = {
     name: 'configDetail',
-    url: '/:configName',
+    url: '/canary/:configName',
     views: {
       detail: {
         component: ConfigDetailLoader, $type: 'react'
@@ -33,9 +34,19 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
     ]
   };
 
-  const canary: INestedState = {
-    name: 'canary',
+  const canaryDefault: INestedState = {
+    name: 'default',
     url: '/canary',
+    views: {
+      detail: {
+        component: SelectConfig, $type: 'react'
+      }
+    }
+  };
+
+  const canary: INestedState = {
+    abstract: true,
+    name: 'canary',
     views: {
       insight: {
         component: Canary, $type: 'react'
@@ -46,7 +57,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
         title: 'Canary'
       }
     },
-    children: [config]
+    children: [canaryDefault, configDetail]
   };
 
   applicationStateProvider.addChildState(canary);

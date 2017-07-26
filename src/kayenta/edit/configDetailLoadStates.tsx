@@ -7,6 +7,7 @@ import { ICanaryState } from '../reducers/index';
 import { ConfigDetailLoadState } from './configDetailLoader';
 
 import ConfigDetail from './configDetail';
+import CenteredDetail from '../layout/centeredDetail';
 
 interface IConfigLoadStatesProps {
   configLoadState: ConfigDetailLoadState;
@@ -19,9 +20,9 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
   switch (configLoadState) {
     case ConfigDetailLoadState.Loading:
       return (
-        <section className="text-center">
+        <CenteredDetail>
           <NgReact.Spinner radius={20} width={3} length={20}/>
-        </section>
+        </CenteredDetail>
       );
 
     case ConfigDetailLoadState.Loaded:
@@ -29,9 +30,9 @@ function ConfigDetailLoadStates({ configLoadState }: IConfigLoadStatesProps) {
 
     case ConfigDetailLoadState.Error:
       return (
-        <section className="text-center">
+        <CenteredDetail>
           <p>Could not load canary config.</p>
-        </section>
+        </CenteredDetail>
       );
 
     default:
