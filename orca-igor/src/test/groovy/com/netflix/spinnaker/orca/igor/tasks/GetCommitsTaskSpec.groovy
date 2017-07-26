@@ -327,6 +327,28 @@ class GetCommitsTaskSpec extends Specification {
     targetImageName = "amiTargetName"
   }
 
+  def "return info from ami or empty map if not in the right format"() {
+    given:
+    task.oortService = oortService
+    1 * oortService.getByAmiId("aws", account, region, image) >> [[ "tags" : [ "appversion" : appVersion ]]]
+
+    when:
+    Map result = task.resolveInfoFromAmi(image, account, region)
+
+    then:
+    result.commitHash == infoFromAmi.commitHash
+    result.build == infoFromAmi.build
+
+    where:
+    account = "test"
+    region = "us-west-1"
+    image = "ami-image"
+
+    appVersion | infoFromAmi
+    "myapp-1.144-h217.a86305d/MYAPP-package-myapp/217" | [commitHash: "a86305d", build: "217"]
+    "myapp-1.144" | [:]
+  }
+
   def "returns success if commit info is missing"() {
     given:
     String katoTasks = "[{\"resultObjects\": [" +

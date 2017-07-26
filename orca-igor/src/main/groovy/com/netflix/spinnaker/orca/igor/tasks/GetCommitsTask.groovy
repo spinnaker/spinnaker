@@ -143,7 +143,8 @@ class GetCommitsTask implements DiffTask {
     def appVersion = amiDetails[0]?.tags?.appversion
 
     def buildInfo = [:]
-    if (appVersion) {
+    //Regex matches the last dot, some characters and then a slash
+    if (appVersion && appVersion =~ /\.(?=[^.]*$)[a-z0-9]*\//) {
       buildInfo << [commitHash: appVersion.substring(0, appVersion.indexOf('/')).substring(appVersion.lastIndexOf('.') + 1)]
       buildInfo << [build: getBuildFromAppVersion(appVersion)]
     }
