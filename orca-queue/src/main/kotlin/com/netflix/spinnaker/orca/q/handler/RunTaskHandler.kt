@@ -31,6 +31,7 @@ import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
+import org.apache.commons.lang.time.DurationFormatUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory.getLogger
 import org.springframework.beans.factory.annotation.Autowired
@@ -151,8 +152,9 @@ open class RunTaskHandler
       val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
       val elapsedTime = Duration.between(startTime, clock.instant())
       if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > timeoutDuration(stage)) {
-        log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after $elapsedTime")
-        throw TimeoutException("${javaClass.simpleName} of stage ${stage.getName()} timed out after $elapsedTime")
+        val durationString = DurationFormatUtils.formatDurationWords(elapsedTime.toMillis(), true, true)
+        log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString")
+        throw TimeoutException("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString")
       }
     }
   }
