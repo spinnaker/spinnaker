@@ -64,6 +64,7 @@ class RollingRedBlackStrategy implements Strategy, ApplicationContextAware {
         max: 0,
         desired: 0
     ]
+    stage.context.useSourceCapacity = false
 
     def targetPercentages = stageData.getTargetPercentages()
     if (targetPercentages.size() == 0 || targetPercentages[-1] != 100) {
