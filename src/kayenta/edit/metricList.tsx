@@ -5,7 +5,7 @@ import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
-import { ADD_METRIC, RENAME_METRIC } from '../actions/index';
+import { ADD_METRIC, RENAME_METRIC, REMOVE_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
   selectedGroup: string,
@@ -13,23 +13,30 @@ interface IMetricListStateProps {
 }
 
 interface IMetricListDispatchProps {
-  changeName: (event: any) => void;
+  renameMetric: (event: any) => void;
   addMetric: (event: any) => void;
+  removeMetric: (event: any) => void;
 }
 
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, selectedGroup, changeName, addMetric }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, selectedGroup, renameMetric, addMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
       <ul className="list-group">
         {metrics.map((metric, index) => (
           <li className="list-group-item" key={index}>
-            <MetricDetail metric={metric} changeName={changeName}/>
+            <MetricDetail metric={metric} rename={renameMetric} remove={removeMetric}/>
           </li>
         ))}
       </ul>
+      {(!metrics.length && selectedGroup && selectedGroup !== UNGROUPED) ? (
+        <p>
+          This group is empty! The group will be not be present the next time the config is loaded unless
+          it is saved with at least one metric in it.
+        </p>
+      ) : null}
       <button data-group={selectedGroup} onClick={addMetric}>Add Metric</button>
     </section>
   );
@@ -53,7 +60,7 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricListDispatchProps {
   return {
-    changeName: (event: any) => {
+    renameMetric: (event: any) => {
       dispatch({
         type: RENAME_METRIC,
         id: event.target.dataset.id,
@@ -74,6 +81,13 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           groups: (group && group !== UNGROUPED) ? [group] : []
         }
       })
+    },
+
+    removeMetric: (event: any) => {
+      dispatch({
+        type: REMOVE_METRIC,
+        id: event.target.dataset.id
+      });
     }
   };
 }

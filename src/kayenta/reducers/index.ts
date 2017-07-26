@@ -14,7 +14,7 @@ import {
   UPDATE_CONFIG_DESCRIPTION, EDIT_CONFIG_JSON_MODAL_OPEN,
   EDIT_CONFIG_JSON_MODAL_CLOSE,
   SET_CONFIG_JSON,
-  CONFIG_JSON_DESERIALIZATION_ERROR
+  CONFIG_JSON_DESERIALIZATION_ERROR, REMOVE_METRIC
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -128,6 +128,9 @@ function metricList(state: ICanaryMetricConfig[] = [], action: Action & any): IC
 
     case ADD_METRIC:
       return idMetrics(state.concat([action.metric]));
+
+    case REMOVE_METRIC:
+      return idMetrics(state.filter(metric => metric.id !== action.id));
 
     case RENAME_METRIC:
       return state.map(metric => reduceMetric(metric, action));

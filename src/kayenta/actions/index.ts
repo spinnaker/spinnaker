@@ -9,6 +9,7 @@ export const INITIALIZE = 'initialize';
 export const LOAD_CONFIG = 'load_config';
 export const ADD_METRIC = 'add_metric';
 export const RENAME_METRIC = 'rename_metric';
+export const REMOVE_METRIC = 'remove_metric';
 export const SAVE_CONFIG_ERROR = 'save_config_error';
 export const SAVE_CONFIG_SAVING = 'save_config_start';
 export const SAVE_CONFIG_SAVED = 'save_config_success';
