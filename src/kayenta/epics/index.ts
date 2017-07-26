@@ -48,7 +48,7 @@ const deleteConfigCompletedEpic = (action$: Observable<any>, store: MiddlewareAP
     .filter(action => action.type === DELETE_CONFIG_COMPLETED)
     .concatMap(() =>
       Promise.all([
-        ReactInjector.$state.go('^'), // Why does '.canary' not work?
+        ReactInjector.$state.go('^.default'),
         // TODO: handle config summary load failure (in general, not just here).
         store.getState().application.getDataSource('canaryConfigs').refresh(true),
       ]).then(() => ({type: DELETE_CONFIG_MODAL_CLOSE}))
