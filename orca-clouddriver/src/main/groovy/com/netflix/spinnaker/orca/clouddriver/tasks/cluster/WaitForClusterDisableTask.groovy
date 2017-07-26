@@ -77,7 +77,7 @@ class WaitForClusterDisableTask extends AbstractWaitForClusterWideClouddriverTas
       def targetServerGroup = serverGroup.get()
       if (stage.context.desiredPercentage) {
         // TODO(lwander) investigate if the non-desiredPercentage case code can be dropped below in favor of this
-        return !waitForRequiredInstancesDownTask.hasSucceeded(stage, targetServerGroup as Map, targetServerGroup.getInstances(), interestingHealthProviderNames)
+        return waitForRequiredInstancesDownTask.hasSucceeded(stage, targetServerGroup as Map, targetServerGroup.getInstances(), interestingHealthProviderNames)
       }
 
       // The operation can be considered complete if it was requested to only consider the platform health.
