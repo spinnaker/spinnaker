@@ -20,6 +20,7 @@ import com.netflix.frigga.NameBuilder
 import com.netflix.frigga.ami.AppVersion
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.ExecutionStatus
+import com.netflix.spinnaker.orca.Task
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.cluster.FindImageFromClusterTask
@@ -135,7 +136,7 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
 
   @Component
   @Slf4j
-  static class CompleteDeployCanaryTask implements com.netflix.spinnaker.orca.Task {
+  static class CompleteDeployCanaryTask implements Task {
 
     private final List<DiffTask> diffTasks
 
@@ -153,6 +154,11 @@ class DeployCanaryStage extends ParallelDeployStage implements CloudProviderAwar
       def allStages = stage.execution.stages
       def deployStages = allStages.findAll {
         it.parentStageId == stage.id
+      }
+      // if the canary is configured to continue on failure, we need to short-circuit if one of the deploys failed
+      def unsuccessfulDeployStage = deployStages.find { s -> s.status != ExecutionStatus.SUCCEEDED }
+      if (unsuccessfulDeployStage) {
+        return new TaskResult(ExecutionStatus.TERMINAL)
       }
       def deployedClusterPairs = []
       for (Map pair in context.clusterPairs) {
