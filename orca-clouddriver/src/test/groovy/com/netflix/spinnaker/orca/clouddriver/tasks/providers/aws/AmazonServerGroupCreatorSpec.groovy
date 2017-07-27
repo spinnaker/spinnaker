@@ -154,6 +154,7 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
   def "create deploy task adds imageId if present in deployment details"() {
     given:
+      deployConfig.credentials = creator.defaultBakeAccount
       stage.context.amiName = null
       stage.context.deploymentDetails = [
           ["imageId": "docker-image-is-not-region-specific", "region": "us-west-1"],
@@ -170,6 +171,26 @@ class AmazonServerGroupCreatorSpec extends Specification {
 
     where:
       amiName = "ami-name-from-bake"
+  }
+
+  def "create deploy throws an exception if allowLaunch cannot find an ami"() {
+    given:
+    stage.context.amiName = null
+
+    when:
+    creator.getOperations(stage)
+
+    then:
+    thrown(IllegalStateException)
+  }
+
+  def "create deploy adds an allowLaunch operation if needed"() {
+    when:
+    def operations = creator.getOperations(stage)
+
+    then:
+    operations.size() == 2
+    operations[0].containsKey("allowLaunchDescription")
   }
 
   @Unroll

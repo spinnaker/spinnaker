@@ -187,10 +187,10 @@ class FindImageFromClusterTask extends AbstractCloudProviderAwareTask implements
           resolveFromBaseImageName(defaultImages, missingLocations, imageSummaries, deploymentDetailTemplate, config)
           def stillUnresolved = imageSummaries.findResults { it.value == null ? it.key : null }
           if (stillUnresolved) {
-            throw new IllegalStateException("Still missing images in $stillUnresolved.value")
+            throw new IllegalStateException("Missing images in $stillUnresolved.value")
           }
         } else {
-          throw new IllegalStateException("Still missing images in $unresolved.value")
+          throw new IllegalStateException("Missing images in $unresolved.value")
         }
       }
     }

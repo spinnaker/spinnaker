@@ -112,18 +112,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     result?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | 0             | "image"           | false              || "some-ami-name"
-    "gce"                  | null              | 0             | "image"           | false              || "some-ami-name"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "some-ami-name"
-    "aws"                  | null              | 1             | "imageId"         | true               || "some-ami-name"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
+    "gce"                  | "gce"             | "image"           | false              || "some-ami-name"
+    "gce"                  | null              | "image"           | false              || "some-ami-name"
+    "aws"                  | "aws"             | "imageId"         | true               || "some-ami-name"
+    "aws"                  | null              | "imageId"         | true               || "some-ami-name"
   }
 
   @Unroll
@@ -163,18 +163,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     result?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | 0             | "image"           | false              || "parent-ami"
-    "gce"                  | null              | 0             | "image"           | false              || "parent-ami"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "parent-ami"
-    "aws"                  | null              | 1             | "imageId"         | true               || "parent-ami"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
+    "gce"                  | "gce"             | "image"           | false              || "parent-ami"
+    "gce"                  | null              | "image"           | false              || "parent-ami"
+    "aws"                  | "aws"             | "imageId"         | true               || "parent-ami"
+    "aws"                  | null              | "imageId"         | true               || "parent-ami"
   }
 
   @Unroll
@@ -232,18 +232,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     result?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | 0             | "image"           | false              || "grandparent-ami"
-    "gce"                  | null              | 0             | "image"           | false              || "grandparent-ami"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "grandparent-ami"
-    "aws"                  | null              | 1             | "imageId"         | true               || "grandparent-ami"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
+    "gce"                  | "gce"             | "image"           | false              || "grandparent-ami"
+    "gce"                  | null              | "image"           | false              || "grandparent-ami"
+    "aws"                  | "aws"             | "imageId"         | true               || "grandparent-ami"
+    "aws"                  | null              | "imageId"         | true               || "grandparent-ami"
   }
 
   @Unroll
@@ -283,18 +283,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     result?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | 0             | "image"           | false              || "parent-name"
-    "gce"                  | null              | 0             | "image"           | false              || "parent-name"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "parent-name"
-    "aws"                  | null              | 1             | "imageId"         | true               || "parent-name"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
+    "gce"                  | "gce"             | "image"           | false              || "parent-name"
+    "gce"                  | null              | "image"           | false              || "parent-name"
+    "aws"                  | "aws"             | "imageId"         | true               || "parent-name"
+    "aws"                  | null              | "imageId"         | true               || "parent-name"
   }
 
   @Unroll
@@ -342,18 +342,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     result?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | 0             | "image"           | false              || "grandparent-name"
-    "gce"                  | null              | 0             | "image"           | false              || "grandparent-name"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "grandparent-name"
-    "aws"                  | null              | 1             | "imageId"         | true               || "grandparent-name"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
+    "gce"                  | "gce"             | "image"           | false              || "grandparent-name"
+    "gce"                  | null              | "image"           | false              || "grandparent-name"
+    "aws"                  | "aws"             | "imageId"         | true               || "grandparent-name"
+    "aws"                  | null              | "imageId"         | true               || "grandparent-name"
   }
 
   @Unroll
@@ -396,18 +396,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageId
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     result?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageId
-    "gce"                  | "gce"             | 0             | "image"           | false              || "parent-ami"
-    "gce"                  | null              | 0             | "image"           | false              || "parent-ami"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "parent-ami"
-    "aws"                  | null              | 1             | "imageId"         | true               || "parent-ami"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageId
+    "gce"                  | "gce"             | "image"           | false              || "parent-ami"
+    "gce"                  | null              | "image"           | false              || "parent-ami"
+    "aws"                  | "aws"             | "imageId"         | true               || "parent-ami"
+    "aws"                  | null              | "imageId"         | true               || "parent-ami"
   }
 
   @Unroll
@@ -481,7 +481,7 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchA
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchA
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
@@ -493,18 +493,18 @@ class CreateServerGroupTaskSpec extends Specification {
     then:
     _ * mortService.getAccountDetails("abc") >> [:]
     1 * katoService.requestOperations(operationCloudProvider, {
-      return it[createOpIndex]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchB
+      return it[0]?.createServerGroup?.get(imageAttributeKey) == expectedImageIdBranchB
     }) >> { Observable.from(taskId) }
     // This helps avoid an NPE within CreateServerGroupTask; this results in better error-reporting on a test failure.
     _ * katoService.requestOperations(operationCloudProvider, _) >> { Observable.from(taskId) }
     resultB?.stageOutputs == baseOutput + ["kato.result.expected": katoResultExpected]
 
     where:
-    operationCloudProvider | bakeCloudProvider | createOpIndex | imageAttributeKey | katoResultExpected || expectedImageIdBranchA | expectedImageIdBranchB
-    "gce"                  | "gce"             | 0             | "image"           | false              || "parent-name-branch-a" | "parent-name-branch-b"
-    "gce"                  | null              | 0             | "image"           | false              || "parent-name-branch-a" | "parent-name-branch-b"
-    "aws"                  | "aws"             | 1             | "imageId"         | true               || "parent-name-branch-a" | "parent-name-branch-b"
-    "aws"                  | null              | 1             | "imageId"         | true               || "parent-name-branch-a" | "parent-name-branch-b"
+    operationCloudProvider | bakeCloudProvider | imageAttributeKey | katoResultExpected || expectedImageIdBranchA | expectedImageIdBranchB
+    "gce"                  | "gce"             | "image"           | false              || "parent-name-branch-a" | "parent-name-branch-b"
+    "gce"                  | null              | "image"           | false              || "parent-name-branch-a" | "parent-name-branch-b"
+    "aws"                  | "aws"             | "imageId"         | true               || "parent-name-branch-a" | "parent-name-branch-b"
+    "aws"                  | null              | "imageId"         | true               || "parent-name-branch-a" | "parent-name-branch-b"
   }
 
   private def buildBakeConfig(String imageId, String deployRegion, String cloudProvider) {
@@ -554,6 +554,8 @@ class CreateServerGroupTaskSpec extends Specification {
   }
 
   private def buildServerGroupCreators(MortService mortService) {
-    return [new AmazonServerGroupCreator(mortService: mortService), new GoogleServerGroupCreator()]
+    // set the default bake account to avoid dealing with an allowLaunch operation getting injected before
+    // the createServerGroup operation
+    return [new AmazonServerGroupCreator(mortService: mortService, defaultBakeAccount: "abc"), new GoogleServerGroupCreator()]
   }
 }

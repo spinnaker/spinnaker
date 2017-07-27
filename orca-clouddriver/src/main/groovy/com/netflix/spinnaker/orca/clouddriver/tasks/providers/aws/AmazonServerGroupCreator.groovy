@@ -53,6 +53,16 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
       allowLaunchOps.each {
         ops.add([allowLaunchDescription: it])
       }
+      def missingAmiRegions = allowLaunchOps.findResults { it.amiName ? null : it.region }
+      if (missingAmiRegions.size()) {
+        String regions = missingAmiRegions.join(', ')
+        String base = missingAmiRegions.size() == 1 ?
+          "No AMI found for ${regions}" :
+          "No AMIs found for the following regions: ${regions}"
+        String helpText = "Make sure an upstream stage (e.g. bake, find image) or the pipeline trigger is supplying " +
+          "an AMI for each region specified."
+        throw new IllegalStateException("${base}. ${helpText}")
+      }
     }
     ops.add([(ServerGroupCreator.OPERATION): createServerGroupOp])
     return ops
@@ -132,7 +142,7 @@ class AmazonServerGroupCreator implements ServerGroupCreator, DeploymentDetailsA
 
   def allowLaunchOperations(Map createServerGroupOp) {
     def ops = []
-    if (createServerGroupOp.availabilityZones && createServerGroupOp.credentials != defaultBakeAccount) {
+    if (cloudProvider == 'aws' && createServerGroupOp.availabilityZones && createServerGroupOp.credentials != defaultBakeAccount) {
       ops.addAll(createServerGroupOp.availabilityZones.collect { String region, List<String> azs ->
         [account    : createServerGroupOp.credentials,
          credentials: defaultBakeAccount,
