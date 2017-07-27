@@ -33,7 +33,7 @@ export default class Canary extends React.Component<ICanaryProps, {}> {
       type: INITIALIZE,
       state: {
         application: props.app,
-        configSummaries: [] as ICanaryConfigSummary[],
+        configSummaries: props.app.getDataSource('canaryConfigs').data as ICanaryConfigSummary[],
         selectedConfig: null as ICanaryConfig,
         configLoadState: ConfigDetailLoadState.Loading,
         metricList: [] as ICanaryMetricConfig[],
