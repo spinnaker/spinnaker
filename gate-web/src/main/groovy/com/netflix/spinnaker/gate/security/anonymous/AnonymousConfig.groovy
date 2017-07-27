@@ -27,8 +27,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -40,7 +40,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 @ConditionalOnMissingBean(annotation = SpinnakerAuthConfig.class)
 @Configuration
 @Slf4j
-@EnableWebMvcSecurity
+@EnableWebSecurity
 class AnonymousConfig extends WebSecurityConfigurerAdapter {
   static String key = "spinnaker-anonymous"
   static String defaultEmail = "anonymous"

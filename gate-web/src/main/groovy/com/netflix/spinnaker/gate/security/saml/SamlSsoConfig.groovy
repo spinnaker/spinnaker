@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.gate.security.saml
 
-import com.netflix.spinnaker.gate.services.PermissionService
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.gate.security.AuthConfig
 import com.netflix.spinnaker.gate.security.SpinnakerAuthConfig
-import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
+import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.ClouddriverService
 import com.netflix.spinnaker.security.User
+import groovy.util.logging.Slf4j
 import org.opensaml.saml2.core.Assertion
 import org.opensaml.saml2.core.Attribute
 import org.opensaml.xml.schema.XSAny
@@ -38,8 +37,8 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.saml.SAMLCredential
@@ -56,7 +55,7 @@ import static org.springframework.security.extensions.saml2.config.SAMLConfigure
 @ConditionalOnExpression('${saml.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
-@EnableWebMvcSecurity
+@EnableWebSecurity
 @Import(SecurityAutoConfiguration)
 @Slf4j
 class SamlSsoConfig extends WebSecurityConfigurerAdapter {
@@ -187,9 +186,6 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
       ClouddriverService clouddriverService
 
       @Autowired
-      UserRolesProvider userRolesProvider
-
-      @Autowired
       PermissionService permissionService
 
       @Override
@@ -228,7 +224,7 @@ class SamlSsoConfig extends WebSecurityConfigurerAdapter {
           }
         }.flatten()*.toLowerCase() as Set<String>
 
-        return assertionRoles + userRolesProvider.loadRoles(email)
+        return assertionRoles
       }
 
       static Map<String, List<String>> extractAttributes(Assertion assertion) {

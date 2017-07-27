@@ -31,8 +31,8 @@ import org.springframework.ldap.core.DirContextAdapter
 import org.springframework.ldap.core.DirContextOperations
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component
 @ConditionalOnExpression('${ldap.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
-@EnableWebMvcSecurity
+@EnableWebSecurity
 @Import(SecurityAutoConfiguration)
 class LdapSsoConfig extends WebSecurityConfigurerAdapter {
 

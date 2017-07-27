@@ -95,6 +95,7 @@ class FunctionalSpec extends Specification {
     System.setProperty("saml.enabled", "false")
     System.setProperty('security.basic.enabled', 'false')
     System.setProperty('management.security.enabled', 'false')
+    System.setProperty('spring.session.store-type', 'HASH_MAP')
     def spring = new SpringApplication()
     spring.setSources([FunctionalConfiguration] as Set)
     ctx = spring.run()

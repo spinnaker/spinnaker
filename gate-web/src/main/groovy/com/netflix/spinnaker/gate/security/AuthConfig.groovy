@@ -16,21 +16,15 @@
 
 package com.netflix.spinnaker.gate.security
 
-import com.netflix.discovery.converters.Auto
 import com.netflix.spinnaker.fiat.shared.FiatClientConfigurationProperties
 import com.netflix.spinnaker.fiat.shared.FiatPermissionEvaluator
 import com.netflix.spinnaker.gate.filters.FiatSessionFilter
-import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.InitializingBean
-import org.springframework.beans.factory.annotation.Autowire
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.security.SecurityProperties
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.annotation.SecurityBuilder
@@ -39,7 +33,6 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler
 import org.springframework.security.web.authentication.logout.SimpleUrlLogoutSuccessHandler
-import org.springframework.security.web.session.ConcurrentSessionFilter
 import org.springframework.stereotype.Component
 
 import javax.servlet.ServletException
@@ -62,26 +55,11 @@ class AuthConfig {
   @Autowired
   FiatPermissionEvaluator permissionEvaluator
 
-  @Bean
-  @ConditionalOnMissingBean(UserRolesProvider)
-  UserRolesProvider defaultUserRolesProvider() {
-    return new UserRolesProvider() {
-      @Override
-      Map<String, Collection<String>> multiLoadRoles(Collection<String> userEmails) {
-        return [:]
-      }
-
-      @Override
-      Collection<String> loadRoles(String userEmail) {
-        return []
-      }
-    }
-  }
-
   void configure(HttpSecurity http) throws Exception {
     // @formatter:off
     SecurityBuilder result = http
       .authorizeRequests()
+        .antMatchers('/**/favicon.ico').permitAll()
         .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
         .antMatchers(PermissionRevokingLogoutSuccessHandler.LOGGED_OUT_URL).permitAll()
         .antMatchers('/auth/user').permitAll()

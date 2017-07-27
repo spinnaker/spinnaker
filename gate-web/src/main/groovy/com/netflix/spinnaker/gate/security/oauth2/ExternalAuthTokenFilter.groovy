@@ -18,9 +18,8 @@ package com.netflix.spinnaker.gate.security.oauth2
 
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoRestTemplateFactory
 import org.springframework.security.core.Authentication
-import org.springframework.security.oauth2.client.OAuth2RestOperations
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken
 import org.springframework.security.oauth2.provider.authentication.BearerTokenExtractor
 
@@ -40,8 +39,7 @@ import javax.servlet.http.HttpServletRequest
 class ExternalAuthTokenFilter implements Filter {
 
   @Autowired
-  @Qualifier("userInfoRestTemplate")
-  OAuth2RestOperations restTemplate
+  UserInfoRestTemplateFactory userInfoRestTemplateFactory
 
   BearerTokenExtractor extractor = new BearerTokenExtractor()
 
@@ -50,7 +48,7 @@ class ExternalAuthTokenFilter implements Filter {
     def httpServletRequest = (HttpServletRequest) request
     Authentication auth = extractor.extract(httpServletRequest)
     if (auth?.principal) {
-      restTemplate.OAuth2ClientContext.accessToken = new DefaultOAuth2AccessToken(auth.principal.toString())
+      userInfoRestTemplateFactory.getUserInfoRestTemplate().OAuth2ClientContext.accessToken = new DefaultOAuth2AccessToken(auth.principal.toString())
     }
     chain.doFilter(request, response)
   }

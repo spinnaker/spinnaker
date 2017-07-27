@@ -21,7 +21,7 @@ dependencies {
   compile spinnaker.dependency("korkSecurity")
   compile spinnaker.dependency('spectatorApi')
   compile spinnaker.dependency("groovy")
-  compile 'org.springframework.security.oauth:spring-security-oauth2:2.0.7.RELEASE'
+  compile spinnaker.dependency("guava")
   compile 'com.netflix.hystrix:hystrix-core:1.4.20'
   compile 'com.netflix.hystrix:hystrix-metrics-event-stream:1.4.20'
 }

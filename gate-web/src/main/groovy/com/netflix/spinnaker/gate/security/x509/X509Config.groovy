@@ -26,13 +26,12 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.cloud.security.oauth2.sso.OAuth2SsoConfigurer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
-import org.springframework.security.config.annotation.web.servlet.configuration.EnableWebMvcSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.context.SecurityContext
@@ -47,7 +46,7 @@ import javax.servlet.http.HttpServletResponse
 @ConditionalOnExpression('${x509.enabled:false}')
 @Configuration
 @SpinnakerAuthConfig
-@EnableWebMvcSecurity
+@EnableWebSecurity
 class X509Config {
 
   @Value('${x509.subjectPrincipalRegex:}')
@@ -126,25 +125,6 @@ class X509Config {
       Authentication authenticate(Authentication authentication) throws AuthenticationException {
         throw new UnsupportedOperationException("No authentication should be done with this AuthenticationManager");
       }
-    }
-  }
-
-  @ConditionalOnBean(OAuth2SsoConfig)
-  @Bean
-  X509OAuthConfig withOauthConfig() {
-    new X509OAuthConfig()
-  }
-
-  class X509OAuthConfig implements OAuth2SsoConfigurer {
-    @Override
-    void match(OAuth2SsoConfigurer.RequestMatchers matchers) {
-      matchers.antMatchers('/**')
-    }
-
-    @Override
-    void configure(HttpSecurity http) throws Exception {
-      X509Config.this.configure(http)
-      http.securityContext().securityContextRepository(new X509SecurityContextRepository())
     }
   }
 

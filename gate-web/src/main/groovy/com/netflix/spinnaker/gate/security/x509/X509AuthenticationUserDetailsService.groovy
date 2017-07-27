@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.gate.security.x509
 
-import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
@@ -43,9 +42,6 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
   CredentialsService credentialsService
 
   @Autowired
-  UserRolesProvider userRolesProvider
-
-  @Autowired
   PermissionService permissionService
 
   @Autowired(required = false)
@@ -70,7 +66,7 @@ class X509AuthenticationUserDetailsService implements AuthenticationUserDetailsS
       email = emailFromSubjectAlternativeName(x509) ?: token.principal
     }
 
-    def roles = userRolesProvider.loadRoles(email as String)
+    def roles = []
     if (rolesExtractor) {
       roles += rolesExtractor.fromCertificate(x509)
     }

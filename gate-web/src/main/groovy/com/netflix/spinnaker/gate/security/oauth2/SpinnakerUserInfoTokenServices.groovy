@@ -17,15 +17,14 @@
 package com.netflix.spinnaker.gate.security.oauth2
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesProvider
 import com.netflix.spinnaker.gate.services.CredentialsService
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.gate.services.internal.Front50Service
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.cloud.security.oauth2.resource.ResourceServerProperties
-import org.springframework.cloud.security.oauth2.resource.UserInfoTokenServices
+import org.springframework.boot.autoconfigure.security.oauth2.resource.ResourceServerProperties
+import org.springframework.boot.autoconfigure.security.oauth2.resource.UserInfoTokenServices
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.oauth2.common.OAuth2AccessToken
@@ -56,9 +55,6 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
   CredentialsService credentialsService
 
   @Autowired
-  UserRolesProvider userRolesProvider
-
-  @Autowired
   OAuth2SsoConfig.UserInfoMapping userInfoMapping
 
   @Autowired
@@ -86,7 +82,7 @@ class SpinnakerUserInfoTokenServices implements ResourceServerTokenServices {
     }
 
     def username = details[userInfoMapping.username] as String
-    def roles = userRolesProvider.loadRoles(username)
+    def roles = []
 
     User spinnakerUser = new User(
         email: details[userInfoMapping.email] as String,

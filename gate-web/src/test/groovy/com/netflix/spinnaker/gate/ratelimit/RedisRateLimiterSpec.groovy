@@ -15,7 +15,7 @@
  */
 package com.netflix.spinnaker.gate.ratelimit
 
-import com.netflix.spinnaker.gate.redis.EmbeddedRedis
+import com.netflix.spinnaker.kork.jedis.EmbeddedRedis
 import redis.clients.jedis.JedisPool
 import spock.lang.AutoCleanup
 import spock.lang.Shared

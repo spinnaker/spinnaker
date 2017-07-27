@@ -17,7 +17,6 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.security.SpinnakerUser
-import com.netflix.spinnaker.gate.security.rolesprovider.UserRolesSyncer
 import com.netflix.spinnaker.gate.services.PermissionService
 import com.netflix.spinnaker.security.User
 import groovy.util.logging.Slf4j
@@ -55,9 +54,6 @@ class AuthController {
 
   @Autowired
   PermissionService permissionService
-
-  @Autowired(required = false)
-  UserRolesSyncer userRolesSyncer
 
   @Autowired
   AuthController(@Value('${services.deck.baseUrl}') URL deckBaseUrl,
@@ -98,11 +94,7 @@ class AuthController {
    */
   @RequestMapping(value = "/roles/sync", method = RequestMethod.POST)
   void sync() {
-    if (userRolesSyncer) {
-      userRolesSyncer.sync()
-    } else {
-      permissionService.sync()
-    }
+    permissionService.sync()
   }
 
   @RequestMapping(value = "/redirect", method = RequestMethod.GET)
