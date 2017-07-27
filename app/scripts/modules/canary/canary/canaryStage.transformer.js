@@ -151,7 +151,7 @@ module.exports = angular.module('spinnaker.canary.transformer', [
           }
 
           if (getException(deployParent)) {
-            stage.exceptions.push('Deploy Canary failure' + getException(deployParent));
+            stage.exceptions.push('Deploy Canary failure: ' + getException(deployParent));
           }
 
           deployStages.forEach((deployStage) => {
@@ -260,7 +260,7 @@ module.exports = angular.module('spinnaker.canary.transformer', [
             var foundTask = _.find(stage.tasks, function(task) {
               return task.region === deployment.baselineCluster.region && task.commits !== undefined && task.commits.length > 0;
             });
-            if(foundTask !== undefined && foundTask.commits !== undefined) {
+            if (foundTask !== undefined && foundTask.commits !== undefined) {
               deployment.commits = foundTask.commits;
             }
 
