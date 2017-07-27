@@ -51,8 +51,8 @@ swagger:
     - /canaryConfig.*
     - /credentials.*
     - /fetch.*
+    - /health
     - /judges.*
     - /metricSetList.*
     - /metricSetPairList.*
     - /pipeline.*
-    - /healthcheck.*
