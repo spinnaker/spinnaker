@@ -3,23 +3,13 @@ import { ReactInjector } from '@spinnaker/core';
 import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryConfigSummary, ICanaryConfig } from 'kayenta/domain/index';
 import { ICanaryState } from '../reducers/index';
-
-const atlasCanaryConfig = require('kayenta/scratch/atlas_canary_config.json');
-const stackdriverCanaryConfig = require('kayenta/scratch/stackdriver_canary_config.json');
-const canaryConfigSummaries = require('kayenta/scratch/canary_config_summaries.json');
+import { localConfigCache } from './localConfigCache.service';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(id).get();
   } else {
-    switch (id) {
-      case 'mysampleatlascanaryconfig':
-        return Promise.resolve(atlasCanaryConfig);
-      case 'mysamplestackdrivercanaryconfig':
-        return Promise.resolve(stackdriverCanaryConfig);
-      default:
-        return Promise.reject('Whoops - this is a fake service!');
-    }
+    return localConfigCache.getCanaryConfigById(id);
   }
 }
 
@@ -27,7 +17,7 @@ export function getCanaryConfigSummaries(): Promise<ICanaryConfigSummary[]> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').get();
   } else {
-    return Promise.resolve(canaryConfigSummaries);
+    return localConfigCache.getCanaryConfigSummaries();
   }
 }
 
@@ -35,7 +25,7 @@ export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}>
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(config.name).put(config);
   } else {
-    return Promise.resolve({ id: config.name });
+    return localConfigCache.updateCanaryConfig(config);
   }
 }
 
@@ -43,7 +33,7 @@ export function deleteCanaryConfig(id: string): Promise<void> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
   } else {
-    return Promise.resolve(null);
+    return localConfigCache.deleteCanaryConfig(id);
   }
 }
 
