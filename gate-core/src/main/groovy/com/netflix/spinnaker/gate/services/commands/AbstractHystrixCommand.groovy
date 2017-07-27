@@ -67,16 +67,40 @@ abstract class AbstractHystrixCommand<T> extends HystrixCommand<T> {
   T execute() {
     def result = super.execute() as T
     if (result == null && isResponseFromFallback()) {
-      def e = getFailedExecutionException()
-      def errorMessage = "Fallback encountered"
-      if (e instanceof RetrofitError) {
-        def retrofitError = (RetrofitError) e
-        errorMessage += " (url: ${retrofitError.url}, type: ${retrofitError.kind}, status: ${retrofitError.response?.status})"
-      }
-      log.error(errorMessage, e)
-      throw new ThrottledRequestException("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${e?.toString() ?: ""}')", e)
+      handleDownstreamException()
     }
 
     return result
+  }
+
+  private void handleDownstreamException() {
+    def e = getFailedExecutionException()
+    if (e instanceof RetrofitError) {
+      def retrofitError = (RetrofitError) e
+      log.error("Fallback encountered (url: ${retrofitError.url}, type: ${retrofitError.kind}, status: ${retrofitError.response?.status})", e)
+      def status = e?.getResponse()?.getStatus()
+
+      if (status == 429 || status == 503) {
+        throw new ServiceUnavailableException()
+      } else if (status in HttpStatus.values().findAll { it.is4xxClientError() }*.value()) {
+        throw UpstreamBadRequest.classifyError(e)
+      } else if (status in HttpStatus.values().findAll { it.is5xxServerError() }*.value()) {
+        throw new ServerErrorException()
+      }
+
+      log.error("No fallback available (group: '${groupKey}', command: '${commandKey}', exception: '${e?.toString() ?: ""}')", e)
+    }
+
+    /**
+     * For any other errors including timeout, hystrix semaphore related (threadpool exhaustion), circuit breaker open
+     * Return a 503
+     */
+
+    if (isResponseShortCircuited() || isResponseTimedOut()) {
+      log.error("(Circuit breaker open| Response Timeout | Semaphore rejected) for group: '${groupKey}', command: '${commandKey}'")
+      throw new ServiceUnavailableException()
+    }
+
+    throw new ServerErrorException()
   }
 }
