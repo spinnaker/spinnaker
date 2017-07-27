@@ -32,12 +32,20 @@ class AggregateCanaryResultsTask implements Task {
 
   @Override
   TaskResult execute(@Nonnull Stage stage) {
+    String combinedCanaryResultStrategy = stage.context.canaryConfig.combinedCanaryResultStrategy
     List<Stage> runCanaryStages = stage.execution.stages.findAll { it.type == RunCanaryPipelineStage.STAGE_TYPE }
     List<Double> runCanaryScores = runCanaryStages.collect { (Double)it.context.canaryScore }
+    // Took this value from mine.
+    Double overallScore = -99
 
-    // TODO(duftler): Also handle alternative strategies like 'lowest'?
-    Double averageCanaryScore = runCanaryScores.sum() / runCanaryScores.size()
+    if (runCanaryScores) {
+      if (combinedCanaryResultStrategy == "AVERAGE") {
+        overallScore = runCanaryScores.sum() / runCanaryScores.size()
+      } else /* LOWEST */ {
+        overallScore = runCanaryScores.min()
+      }
+    }
 
-    return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores: runCanaryScores, averageCanaryScore: averageCanaryScore])
+    return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores: runCanaryScores, overallScore: overallScore])
   }
 }
