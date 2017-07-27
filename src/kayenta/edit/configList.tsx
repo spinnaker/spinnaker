@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers';
 import { ICanaryConfigSummary } from '../domain/ICanaryConfigSummary';
 import { UISref, UISrefActive } from '@uirouter/react';
+import CreateConfigButton from './createConfigButton';
 
 interface IConfigListStateProps {
   configs: ICanaryConfigSummary[];
@@ -19,13 +20,14 @@ function ConfigList({ configs }: IConfigListStateProps) {
         {configs.map(config => (
           <li key={config.name} className="list-group-item">
             <UISrefActive class="active">
-              <UISref to=".configDetail" params={{configName: config.name}}>
+              <UISref to=".configDetail" params={{configName: config.name, isNew: null}}>
                 <a>{config.name}</a>
               </UISref>
             </UISrefActive>
           </li>
         ))}
       </ul>
+      <CreateConfigButton/>
     </section>
   );
 }

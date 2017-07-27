@@ -1,8 +1,9 @@
 export interface ICanaryConfig {
-  createdTimestamp: number;
-  updatedTimestamp: number;
-  createdTimestampIso: string;
-  updatedTimestampIso: string;
+  createdTimestamp?: number;
+  updatedTimestamp?: number;
+  createdTimestampIso?: string;
+  updatedTimestampIso?: string;
+  isNew?: boolean;
   name: string;
   description: string;
   configVersion: string;

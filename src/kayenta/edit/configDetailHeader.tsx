@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import ConfigDetailActionButtons from './configDetailActionButtons';
+import { mapStateToConfig } from '../service/canaryConfig.service';
 
 interface IConfigDetailStateProps {
   selectedConfig: ICanaryConfig;
@@ -30,7 +31,7 @@ function ConfigDetailHeader({ selectedConfig }: IConfigDetailStateProps) {
 
 function mapStateToProps(state: ICanaryState): IConfigDetailStateProps {
   return {
-    selectedConfig: state.selectedConfig
+    selectedConfig: mapStateToConfig(state),
   };
 }
 

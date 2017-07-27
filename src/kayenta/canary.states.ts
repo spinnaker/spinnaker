@@ -6,6 +6,7 @@ import {
   APPLICATION_STATE_PROVIDER,
   ApplicationStateProvider
 } from '@spinnaker/core';
+
 import ConfigDetailLoader from './edit/configDetailLoader';
 import CanaryConfigSave from './edit/save';
 import Canary from './canary';
@@ -16,7 +17,7 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
   .config((applicationStateProvider: ApplicationStateProvider) => {
   const configDetail: INestedState = {
     name: 'configDetail',
-    url: '/canary/:configName',
+    url: '/canary/:configName?isNew',
     views: {
       detail: {
         component: ConfigDetailLoader, $type: 'react'
@@ -25,11 +26,14 @@ module(CANARY_STATES, [APPLICATION_STATE_PROVIDER])
         component: CanaryConfigSave, $type: 'react',
       }
     },
+    params: {
+      configName: { squash: true, value: null },
+    },
     resolve: [
       {
         token: 'configNameStream',
         deps: [UIRouter],
-        resolveFn: (uiRouter: any) => uiRouter.globals.params$.map((param: any) => param.configName),
+        resolveFn: (uiRouter: any) => uiRouter.globals.params$,
       }
     ]
   };
