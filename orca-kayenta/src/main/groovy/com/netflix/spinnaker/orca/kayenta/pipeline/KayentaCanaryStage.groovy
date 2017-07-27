@@ -63,6 +63,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     String lifetimeHours = canaryConfig.lifetimeHours
     long lifetimeMinutes
     long beginCanaryAnalysisAfterMins = (canaryConfig.beginCanaryAnalysisAfterMins ?: "0").toLong()
+    long lookbackMins = (canaryConfig.lookbackMins ?: "0").toLong()
 
     if (endTimeIso) {
       endTimeInstant = Instant.parse(canaryConfig.endTimeIso)
@@ -110,13 +111,16 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
         extendedScopeParams: extendedScopeParams
       ]
 
-      // TODO(duftler): Support 'lookback'.
       if (!endTimeIso) {
         runCanaryContext.startTimeIso = startTimeInstant.plus(beginCanaryAnalysisAfterMins, ChronoUnit.MINUTES).toString()
         runCanaryContext.endTimeIso = startTimeInstant.plus(beginCanaryAnalysisAfterMins + i * canaryAnalysisIntervalMins, ChronoUnit.MINUTES).toString()
       } else {
         runCanaryContext.startTimeIso = startTimeInstant.toString()
         runCanaryContext.endTimeIso = startTimeInstant.plus(i * canaryAnalysisIntervalMins, ChronoUnit.MINUTES).toString()
+      }
+
+      if (lookbackMins) {
+        runCanaryContext.startTimeIso = Instant.parse(runCanaryContext.endTimeIso).minus(lookbackMins, ChronoUnit.MINUTES).toString()
       }
 
       stages << newStage(stage.execution, RunCanaryPipelineStage.STAGE_TYPE, "Run Canary #$i", runCanaryContext, stage, SyntheticStageOwner.STAGE_BEFORE)
