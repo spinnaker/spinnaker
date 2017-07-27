@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.clouddriver.kubernetes.security;
 
+import com.google.common.collect.Lists;
 import com.netflix.spinnaker.clouddriver.docker.registry.security.DockerRegistryNamedAccountCredentials;
 import com.netflix.spinnaker.clouddriver.kubernetes.api.KubernetesApiAdaptor;
 import com.netflix.spinnaker.clouddriver.kubernetes.config.LinkedDockerRegistryConfiguration;
@@ -65,8 +66,12 @@ public class KubernetesCredentials {
     this.repository = accountCredentialsRepository;
     this.LOG = LoggerFactory.getLogger(KubernetesCredentials.class);
 
-    List<String> knownNamespaces = !this.namespaces.isEmpty() ? this.namespaces : apiAdaptor.getNamespacesByName();
-    reconfigureRegistries(knownNamespaces, knownNamespaces);
+    try {
+      List<String> knownNamespaces = !this.namespaces.isEmpty() ? this.namespaces : apiAdaptor.getNamespacesByName();
+      reconfigureRegistries(knownNamespaces, knownNamespaces);
+    } catch (Exception e) {
+      LOG.warn("Could not determine kubernetes namespaces. Will try again later.", e);
+    }
   }
 
   public List<String> getNamespaces() {
@@ -74,18 +79,23 @@ public class KubernetesCredentials {
       // If namespaces are provided, used them
       return namespaces;
     } else {
-      List<String> addedNamespaces = apiAdaptor.getNamespacesByName();
-      addedNamespaces.removeAll(omitNamespaces);
+      try {
+        List<String> addedNamespaces = apiAdaptor.getNamespacesByName();
+        addedNamespaces.removeAll(omitNamespaces);
 
-      List<String> resultNamespaces = new ArrayList<>(addedNamespaces);
+        List<String> resultNamespaces = new ArrayList<>(addedNamespaces);
 
-      // Find the namespaces that were added, and add docker secrets to them. No need to track deleted
-      // namespaces since they delete their secrets automatically.
-      addedNamespaces.removeAll(oldNamespaces);
-      reconfigureRegistries(addedNamespaces, resultNamespaces);
-      oldNamespaces = resultNamespaces;
+        // Find the namespaces that were added, and add docker secrets to them. No need to track deleted
+        // namespaces since they delete their secrets automatically.
+        addedNamespaces.removeAll(oldNamespaces);
+        reconfigureRegistries(addedNamespaces, resultNamespaces);
+        oldNamespaces = resultNamespaces;
 
-      return resultNamespaces;
+        return resultNamespaces;
+      } catch (Exception e) {
+        LOG.warn("Could not determine kubernetes namespaces. Will try again later.", e);
+        return Lists.newArrayList();
+      }
     }
   }
 

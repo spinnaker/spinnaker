@@ -117,4 +117,21 @@ class KubernetesCredentialsSpec extends Specification {
     result.getNamespaces() == NAMESPACES2
     result.dockerRegistries.get(0).namespaces == NAMESPACES1
   }
+
+  void "shouldn't destroy itself when api server is dead"() {
+    setup:
+    KubernetesApiAdaptor adaptorMock = Stub() {
+      getNamespacesByName() >> { throw new RuntimeException() }
+    }
+
+    AccountCredentialsRepository repositoryMock = Mock(AccountCredentialsRepository)
+    DockerRegistryNamedAccountCredentials registryAccountMock = mockCredentials(ACCOUNT1)
+    repositoryMock.getOne(ACCOUNT1) >> registryAccountMock
+
+    when:
+    def namespaces = new KubernetesCredentials(adaptorMock, null, [], REGISTRIES1, repositoryMock).getNamespaces()
+
+    then:
+    namespaces == []
+  }
 }
