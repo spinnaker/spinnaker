@@ -52,7 +52,7 @@ export class OrchestratedItemTransformer {
         get: (): boolean => item.status === 'RUNNING'
       },
       isFailed: {
-        get: (): boolean => item.status === 'TERMINAL'
+        get: (): boolean => item.status === 'TERMINAL' || item.status === 'FAILED_CONTINUE'
       },
       isStopped: {
         get: (): boolean => item.status === 'STOPPED'

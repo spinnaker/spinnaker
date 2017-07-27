@@ -92,19 +92,18 @@ class SingleExecutionDetailsController {
   }
 
   public $onInit() {
-    this.executionScheduler = this.schedulerFactory.createScheduler(5000);
-    this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
-
     this.getExecution();
   }
 
   public $onDestroy() {
-    this.executionScheduler.unsubscribe();
-    this.executionLoader.unsubscribe();
+    if (this.executionScheduler) {
+      this.executionScheduler.unsubscribe();
+      this.executionLoader.unsubscribe();
+    }
   }
 
   private getExecution() {
-    const { executionService, executionScheduler, executionLoader, $state } = this;
+    const { executionService, $state } = this;
 
     if (this.app.notFound) {
       return;
@@ -114,9 +113,9 @@ class SingleExecutionDetailsController {
       this.execution = this.execution || execution;
       executionService.transformExecution(this.app, execution);
       executionService.synchronizeExecution(this.execution, execution);
-      if (!execution.isActive) {
-        executionScheduler.unsubscribe();
-        executionLoader.unsubscribe();
+      if (execution.isActive) {
+        this.executionScheduler = this.schedulerFactory.createScheduler(5000);
+        this.executionLoader = this.executionScheduler.subscribe(() => this.getExecution());
       }
     }, () => {
       this.execution = null;
