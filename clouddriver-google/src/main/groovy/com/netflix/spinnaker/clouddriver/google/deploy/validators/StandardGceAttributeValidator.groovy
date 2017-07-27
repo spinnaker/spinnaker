@@ -350,10 +350,6 @@ class StandardGceAttributeValidator {
         errors.rejectValue("disks",
                            "${context}.disks.missingPersistentDisk",
                            "A persistent boot disk is required.")
-      } else if (persistentDiskCount > 1) {
-        errors.rejectValue("disks",
-                           "${context}.disks.tooManyPersistentDisks",
-                           "Cannot specify more than one persistent disk.")
       }
     }
 

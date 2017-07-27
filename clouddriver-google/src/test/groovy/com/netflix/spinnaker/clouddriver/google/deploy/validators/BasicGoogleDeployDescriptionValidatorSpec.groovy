@@ -263,22 +263,6 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("disks",
                              "basicGoogleDeployDescription.disks.missingPersistentDisk",
                              "A persistent boot disk is required.")
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD, DISK_PD_SSD]), errors)
-
-    then:
-      1 * errors.rejectValue("disks",
-                             "basicGoogleDeployDescription.disks.tooManyPersistentDisks",
-                             "Cannot specify more than one persistent disk.")
-
-    when:
-      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD, DISK_LOCAL_SSD, DISK_PD_SSD]), errors)
-
-    then:
-      1 * errors.rejectValue("disks",
-                             "basicGoogleDeployDescription.disks.tooManyPersistentDisks",
-                             "Cannot specify more than one persistent disk.")
   }
 
   void "invalid local ssd settings fails validation"() {
