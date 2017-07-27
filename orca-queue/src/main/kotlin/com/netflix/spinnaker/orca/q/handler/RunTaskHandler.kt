@@ -145,6 +145,10 @@ open class RunTaskHandler
       else -> Duration.ofSeconds(1)
     }
 
+  private fun Task.formatTimeout(timeout: Long): String {
+    return DurationFormatUtils.formatDurationWords(timeout, true, true)
+  }
+
   private fun Task.checkForTimeout(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, message: Message) {
     if (this is RetryableTask) {
       val startTime = taskModel.startTime.toInstant()
@@ -152,9 +156,14 @@ open class RunTaskHandler
       val throttleTime = message.getAttribute<TotalThrottleTimeAttribute>()?.totalThrottleTimeMs ?: 0
       val elapsedTime = Duration.between(startTime, clock.instant())
       if (elapsedTime.minus(pausedDuration).minusMillis(throttleTime) > timeoutDuration(stage)) {
-        val durationString = DurationFormatUtils.formatDurationWords(elapsedTime.toMillis(), true, true)
-        log.warn("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString")
-        throw TimeoutException("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString")
+        val durationString = formatTimeout(elapsedTime.toMillis())
+        val msg = StringBuilder("${javaClass.simpleName} of stage ${stage.getName()} timed out after $durationString. ")
+        msg.append("pausedDuration: ${formatTimeout(pausedDuration.toMillis())}, ")
+        msg.append("throttleTime: ${formatTimeout(throttleTime)}, ")
+        msg.append("elapsedTime: ${formatTimeout(elapsedTime.toMillis())}")
+
+        log.warn(msg.toString())
+        throw TimeoutException(msg.toString())
       }
     }
   }
