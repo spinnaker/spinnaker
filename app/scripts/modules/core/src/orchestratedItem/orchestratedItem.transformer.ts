@@ -46,20 +46,19 @@ export class OrchestratedItemTransformer {
         get: (): string => this.getGeneralException(item) || this.getOrchestrationException(item) || null
       },
       isCompleted: {
-        get: (): boolean => item.status === 'SUCCEEDED' || item.status === 'SKIPPED'
+        get: (): boolean => ['SUCCEEDED', 'SKIPPED'].includes(item.status)
       },
       isRunning: {
         get: (): boolean => item.status === 'RUNNING'
       },
       isFailed: {
-        get: (): boolean => item.status === 'TERMINAL' || item.status === 'FAILED_CONTINUE'
+        get: (): boolean => ['TERMINAL', 'FAILED_CONTINUE', 'STOPPED'].includes(item.status)
       },
       isStopped: {
         get: (): boolean => item.status === 'STOPPED'
       },
       isActive: {
-        get: (): boolean => item.status === 'RUNNING' || item.status === 'SUSPENDED' ||
-                            item.status === 'NOT_STARTED' || item.status === 'PAUSED'
+        get: (): boolean => ['RUNNING', 'SUSPENDED', 'NOT_STARTED', 'PAUSED'].includes(item.status)
       },
       hasNotStarted: {
         get: (): boolean => item.status === 'NOT_STARTED'

@@ -141,10 +141,8 @@ module.exports = angular.module('spinnaker.canary.transformer', [
             }
           });
 
-          var deployStages = _.filter(execution.stages, {
-            type: 'deploy',
-            parentStageId: deployParent.id,
-          });
+          const deployStages = execution.stages.filter(s =>
+            s.parentStageId === deployParent.id && ['deploy', 'createServerGroup'].includes(s.type));
 
           if (getException(monitorStage)) {
             stage.exceptions.push('Monitor Canary failure: ' + getException(monitorStage));
