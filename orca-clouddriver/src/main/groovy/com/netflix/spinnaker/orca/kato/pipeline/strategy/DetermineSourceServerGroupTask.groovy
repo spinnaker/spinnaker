@@ -55,7 +55,10 @@ class DetermineSourceServerGroupTask implements RetryableTask {
       def source = sourceResolver.getSource(stage)
       Boolean useSourceCapacity = useSourceCapacity(stage, source)
       if (useSourceCapacity && !source) {
-        throw new IllegalStateException( "useSourceCapacity requested, but unable to determine source for ${stageData.account}/${stageData.availabilityZones?.keySet()?.getAt(0)}/${stageData.cluster}")
+        throw new IllegalStateException( "Cluster is configured to copy capacity from the current server group, " +
+          "but no server group was found for the cluster '${stageData.cluster}' in " +
+          "${stageData.account}/${stageData.availabilityZones?.keySet()?.getAt(0)}. If this is a new cluster, you must " +
+          "explicitly specify the capacity in your cluster configuration for the first deployment.")
       }
       def stageOutputs = [:]
       if (source) {
