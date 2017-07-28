@@ -75,7 +75,7 @@ open class RunTaskHandler
                 queue.push(message, task.backoffPeriod())
                 trackResult(stage, task.javaClass, result.status)
               }
-              SUCCEEDED, REDIRECT -> {
+              SUCCEEDED, REDIRECT, FAILED_CONTINUE -> {
                 queue.push(CompleteTask(message, result.status))
                 trackResult(stage, task.javaClass, result.status)
               }
