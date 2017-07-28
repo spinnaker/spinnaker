@@ -43,7 +43,6 @@ class ScmInfoController {
 
     @RequestMapping(value = '/masters', method = RequestMethod.GET)
     Map listMasters() {
-        log.info('Getting list of masters')
         def result = [:]
         if(stashMaster)
             result << [stash : stashMaster.baseUrl]

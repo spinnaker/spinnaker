@@ -77,14 +77,14 @@ class DockerMonitor implements PollingMonitor {
         String account = accountDetails.name
         Boolean trackDigests = accountDetails.trackDigests ?: false
 
-        log.info 'Checking for new tags for ' + account
+        log.debug 'Checking for new tags for ' + account
         try {
             lastPoll = System.currentTimeMillis()
             List<String> cachedImages = cache.getImages(account)
 
             def startTime = System.currentTimeMillis()
             List<TaggedImage> images = dockerRegistryAccounts.service.getImagesByAccount(account)
-            log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: ${account})")
+            log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve images (account: ${account})")
 
             Map<String, TaggedImage> imageIds = images.collectEntries {
                 [(cache.makeKey(account, it.registry, it.repository, it.tag)): it]

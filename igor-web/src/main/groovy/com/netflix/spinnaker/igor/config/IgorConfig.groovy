@@ -62,7 +62,6 @@ class IgorConfig extends WebMvcConfigurerAdapter {
 
     @Bean
     BuildMasters buildMasters() {
-        log.info "creating buildMaster"
         new BuildMasters()
     }
 

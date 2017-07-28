@@ -148,11 +148,11 @@ class JenkinsBuildMonitor implements PollingMonitor {
         try {
             JenkinsService jenkinsService = buildMasters.map[master] as JenkinsService
             List<Project> jobs = jenkinsService.getProjects()?.getList() ?:[]
-            log.info("Jobs on master: ${master} ${jobs.size()}")
+            log.debug("Jobs on master: ${master} ${jobs.size()}")
 
             for (Project job : jobs) {
                 if (!job.lastBuild) {
-                    log.info("[${master}:${job.name}] has no builds skipping...")
+                    log.debug("[${master}:${job.name}] has no builds skipping...")
                     continue
                 }
 
@@ -160,14 +160,14 @@ class JenkinsBuildMonitor implements PollingMonitor {
                 Long lastBuildStamp = job.lastBuild.timestamp as Long
                 Date upperBound = new Date(lastBuildStamp)
 
-                log.info("[${master}:${job.name}] last cursor was ${cursor}, last build on this job was at ${upperBound}")
+                log.debug("[${master}:${job.name}] last cursor was ${cursor}, last build on this job was at ${upperBound}")
 
                 if (!cursor) {
-                    log.info("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
+                    log.debug("[${master}:${job.name}] setting new cursor to ${lastBuildStamp}")
                     cache.setLastPollCycleTimestamp(master, job.name, lastBuildStamp);
                 } else {
                     if (cursor == lastBuildStamp) {
-                        log.info("[${master}:${job.name}] is up to date. skipping")
+                        log.debug("[${master}:${job.name}] is up to date. skipping")
                         continue
                     }
 
@@ -187,7 +187,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
                     completedBuilds.forEach { build ->
                         Boolean eventPosted = cache.getEventPosted(master, job.name, cursor, build.number)
                         if (!eventPosted) {
-                            log.info("[${master}:${job.name}]:${build.number} event posted")
+                            log.debug("[${master}:${job.name}]:${build.number} event posted")
                             postEvent(echoService, new Project(name: job.name, lastBuild: build), master)
                             cache.setEventPosted(master, job.name, cursor, build.number)
                         }
@@ -205,7 +205,7 @@ class JenkinsBuildMonitor implements PollingMonitor {
             log.error("Error processing builds for ${master}", e)
         }
 
-        log.info("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
+        log.debug("Took ${System.currentTimeMillis() - startTime}ms to retrieve projects (master: ${master})")
     }
 
     static void postEvent(EchoService echoService,  Project project, String master) {
