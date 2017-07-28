@@ -92,16 +92,16 @@ class OperationsController {
       convertLinearToParallel(pipeline)
     }
 
-    def augmentedContext = [trigger: pipeline.trigger]
-    def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
-
     if (plan) {
       log.info('not starting pipeline (plan: true): {}', pipeline.id)
       if (pipeline.errors != null) {
         throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
       }
-      return processedPipeline
+      return pipeline
     }
+
+    def augmentedContext = [trigger: pipeline.trigger]
+    def processedPipeline = contextParameterProcessor.process(pipeline, augmentedContext, false)
 
     if (pipeline.errors != null) {
       throw new ValidationException("Pipeline template is invalid", pipeline.errors as List<Map<String, Object>>)
