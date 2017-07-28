@@ -85,4 +85,37 @@ class JenkinsBuildMonitorSchedulingSpec extends Specification {
         cleanup:
         monitor.stop()
     }
+
+    void 'scheduler can be turned off'() {
+        given:
+        cache.getJobNames(MASTER) >> []
+        BuildMasters buildMasters = Mock(BuildMasters)
+        def cfg = new IgorConfigurationProperties()
+        cfg.spinnaker.build.pollInterval = 1
+        monitor = new JenkinsBuildMonitor(cache: cache, buildMasters: buildMasters, igorConfigurationProperties: cfg)
+        monitor.pollingEnabled = false
+        monitor.worker = scheduler.createWorker()
+
+        when:
+        monitor.onApplicationEvent(Mock(ContextRefreshedEvent))
+        scheduler.advanceTimeBy(1L, TimeUnit.SECONDS.MILLISECONDS)
+
+        then: 'initial poll'
+        0 * buildMasters.filteredMap
+
+        when:
+        scheduler.advanceTimeBy(998L, TimeUnit.SECONDS.MILLISECONDS)
+
+        then:
+        0 * buildMasters.filteredMap
+
+        when: 'poll at 1 second'
+        scheduler.advanceTimeBy(2L, TimeUnit.SECONDS.MILLISECONDS)
+
+        then:
+        0 * buildMasters.filteredMap
+
+        cleanup:
+        monitor.stop()
+    }
 }

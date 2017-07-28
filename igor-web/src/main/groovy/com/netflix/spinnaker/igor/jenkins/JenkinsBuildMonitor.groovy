@@ -30,6 +30,7 @@ import com.netflix.spinnaker.igor.polling.PollingMonitor
 import com.netflix.spinnaker.igor.service.BuildMasters
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.core.env.Environment
@@ -53,6 +54,9 @@ class JenkinsBuildMonitor implements PollingMonitor {
 
     @Autowired
     Environment environment
+
+    @Value('${jenkins.polling.enabled:true}')
+    boolean pollingEnabled = true
 
     Scheduler scheduler = Schedulers.io()
     Worker worker = scheduler.createWorker()
@@ -95,14 +99,14 @@ class JenkinsBuildMonitor implements PollingMonitor {
     boolean isInService() {
         if (discoveryClient == null) {
             log.info("no DiscoveryClient, assuming InService")
-            true
+            return pollingEnabled
         } else {
             def remoteStatus = discoveryClient.instanceRemoteStatus
             if (remoteStatus != lastStatus) {
                 log.info("current remote status ${remoteStatus}")
             }
             lastStatus=remoteStatus
-            remoteStatus == InstanceInfo.InstanceStatus.UP
+            remoteStatus == InstanceInfo.InstanceStatus.UP && pollingEnabled
         }
     }
 
