@@ -158,7 +158,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build without parameters'() {
         given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig()
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
         1 * jenkinsService.build(JOB_NAME) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
@@ -174,7 +174,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build with parameters to a job with parameters'() {
         given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: null, description: "description")])
         1 * jenkinsService.buildWithParameters(JOB_NAME,[name:"myName"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
         when:
@@ -189,7 +189,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build without parameters to a job with parameters with default values'() {
         given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true, parameterDefinitionList: [new ParameterDefinition(defaultName: "name", defaultValue: "value", description: "description")])
         1 * jenkinsService.buildWithParameters(JOB_NAME, ['startedBy': "igor"]) >> new Response("http://test.com", HTTP_201, "", [new Header("Location","foo/${BUILD_NUMBER}")], null)
 
 
@@ -205,7 +205,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build with parameters to a job without parameters'() {
         given:
-        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig()
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> new JobConfig(buildable: true)
 
         when:
         MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
@@ -219,7 +219,7 @@ class BuildControllerSpec extends Specification {
 
     void 'trigger a build with an invalid choice'() {
         given:
-        JobConfig config = new JobConfig()
+        JobConfig config = new JobConfig(buildable: true)
         config.parameterDefinitionList = [
             new ParameterDefinition(type: "ChoiceParameterDefinition", name: "foo", choices: ["bar", "baz"])
         ]
@@ -234,6 +234,23 @@ class BuildControllerSpec extends Specification {
         1 * buildMasters.map >> [MASTER: jenkinsService]
         response.status == HttpStatus.BAD_REQUEST.value()
         response.errorMessage == "`bat` is not a valid choice for `foo`. Valid choices are: bar, baz"
+    }
+
+    void 'trigger a disabled build'() {
+        given:
+        JobConfig config = new JobConfig()
+        1 * jenkinsService.getJobConfig(JOB_NAME) >> config
+
+        when:
+        MockHttpServletResponse response = mockMvc.perform(put("/masters/${MASTER}/jobs/${JOB_NAME}")
+            .contentType(MediaType.APPLICATION_JSON).param("foo", "bat")).andReturn().response
+
+        then:
+        1 * buildMasters.filteredMap(BuildServiceProvider.JENKINS) >> [MASTER: jenkinsService]
+        1 * buildMasters.map >> [MASTER: jenkinsService]
+        response.status == HttpStatus.BAD_REQUEST.value()
+        response.errorMessage == "Job '${JOB_NAME}' is not buildable. It may be disabled."
+
     }
 
 }

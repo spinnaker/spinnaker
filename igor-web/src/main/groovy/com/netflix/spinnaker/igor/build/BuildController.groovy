@@ -19,6 +19,7 @@ package com.netflix.spinnaker.igor.build
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.igor.build.model.GenericBuild
 import com.netflix.spinnaker.igor.jenkins.client.model.JobConfig
+import com.netflix.spinnaker.igor.jenkins.service.JenkinsService
 import com.netflix.spinnaker.igor.model.BuildServiceProvider
 import com.netflix.spinnaker.igor.service.ArtifactDecorator
 import com.netflix.spinnaker.igor.service.BuildMasters
@@ -153,8 +154,11 @@ class BuildController {
             HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE).split('/').drop(4).join('/')
         if (buildMasters.filteredMap(BuildServiceProvider.JENKINS).containsKey(master)) {
             def response
-            def jenkinsService = buildMasters.map[master]
+            JenkinsService jenkinsService = (JenkinsService) buildMasters.map[master]
             JobConfig jobConfig = jenkinsService.getJobConfig(job)
+            if (!jobConfig.buildable) {
+                throw new BuildJobError("Job '${job}' is not buildable. It may be disabled.")
+            }
 
             if (jobConfig.parameterDefinitionList?.size() > 0) {
                 validateJobParameters(jobConfig, requestParams)
