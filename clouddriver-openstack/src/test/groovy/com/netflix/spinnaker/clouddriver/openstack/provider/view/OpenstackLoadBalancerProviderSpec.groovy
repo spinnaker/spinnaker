@@ -277,44 +277,7 @@ class OpenstackLoadBalancerProviderSpec extends Specification {
 
   }
 
-  def 'search for all load balancers'() {
-    given:
-    def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
-
-    when:
-    List<OpenstackLoadBalancerSummary> result = provider.list()
-
-    then:
-    1 * provider.getLoadBalancers('*','*','*') >> lbs
-    result.size() == lbs.size()
-    if (result.size() > 0) {
-      result.each {
-        assert it.name != null
-        assert it.id != null
-        assert it.account != null
-        assert it.region != null
-      }
-    }
-    noExceptionThrown()
-
-    where:
-    lbs << [(0..1).collect { create(it) }.toSet(), [].toSet()]
-  }
-
-  def 'search for all load balancers - throw exception'() {
-    given:
-    def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
-    Throwable throwable = new JedisException('exception')
-
-    when:
-    provider.list()
-
-    then:
-    1 * provider.getLoadBalancers('*','*','*') >> { throw throwable }
-    Throwable thrownException = thrown(JedisException)
-    thrownException == throwable
-  }
-
+  
   def 'get load balancer by account, region, name'() {
     given:
     def provider = Spy(OpenstackLoadBalancerProvider, constructorArgs: [cache, objectMapper, clusterProvider])
