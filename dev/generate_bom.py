@@ -204,7 +204,7 @@ class BomGenerator(Annotator):
         cfg.write(gradle_version)
 
   def write_gcb_trigger_version_files(self):
-    """Write a file containing the full tag for each microservice for GCB 
+    """Write a file containing the full tag for each microservice for GCB
     triggers.
     """
     for comp in self.__component_versions:
@@ -420,7 +420,6 @@ class BomGenerator(Annotator):
     comp = 'halyard'
     self.path = os.path.join(self.__base_dir, comp)
     self.parse_git_tree()
-    self.__changelog_start_hashes[comp] = self.current_version.hash
     version_bump = self.tag_head()
     self.__halyard_version[comp] = version_bump
     self.delete_unwanted_tags()
