@@ -222,7 +222,6 @@ class CloudDriverConfig {
   }
 
   @Bean
-  @ConditionalOnExpression('${redis.connection != null || dynomite.enabled:false}')
   CoreProvider coreProvider(RedisClientDelegate redisClientDelegate, ApplicationContext applicationContext) {
     return new CoreProvider([
       new CleanupPendingOnDemandCachesAgent(redisClientDelegate, applicationContext)
