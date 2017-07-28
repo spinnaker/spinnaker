@@ -7,6 +7,7 @@ import { CLUSTER_FILTER_SERVICE } from 'core/cluster/filter/clusterFilter.servic
 import { INSTANCES_COMPONENT } from './../instance/instances.component';
 import { SERVER_GROUP_SEQUENCE_FILTER } from 'core/cluster/serverGroup.sequence.filter';
 import { IInstance, IServerGroup } from 'core/domain';
+import { ScrollToService } from 'core/utils';
 
 export interface JenkinsViewModel {
   number: number;
@@ -66,7 +67,7 @@ export class ServerGroupController implements IController {
       return this.viewModel.instances.length > 20;
     };
     const { account, region, name } = this.serverGroup;
-    this.key = ['serverGroup', account, region, name].join('-');
+    this.key = ScrollToService.toDomId(['serverGroup', account, region, name].join('-'));
   }
 
   public loadDetails(event: JQueryEventObject): void {

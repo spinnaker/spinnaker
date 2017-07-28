@@ -11,6 +11,7 @@ import { INSIGHT_NGMODULE } from 'core/insight/insight.module';
 import { CLUSTER_FILTER_MODEL } from '../cluster/filter/clusterFilter.model';
 import { FILTER_TAGS_COMPONENT } from '../filterModel/filterTags.component';
 import { PROVIDER_SELECTION_SERVICE } from 'core/cloudProvider/providerSelection/providerSelection.service';
+import { ScrollToService } from 'core/utils';
 
 import './rollups.less';
 
@@ -55,7 +56,7 @@ module.exports = angular.module('spinnaker.core.cluster.allClusters.controller',
           $timeout(() => {
             if ($state.$current.name.endsWith('serverGroup')) {
               const key = ['serverGroup', $stateParams.accountId, $stateParams.region, $stateParams.serverGroup].join('-');
-              scrollToService.scrollTo('#' + key, 'all-clusters-groupings', 270, 0);
+              scrollToService.scrollTo('#' + ScrollToService.toDomId(key), 'all-clusters-groupings', 270, 0);
             }
           }, 50);
         },

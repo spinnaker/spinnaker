@@ -1,9 +1,13 @@
-import {module} from 'angular';
+import { ITimeoutService, module } from 'angular';
 import * as $ from 'jquery';
 
 export class ScrollToService {
 
-  public constructor(private $timeout: ng.ITimeoutService) {}
+  public static toDomId(id: string) {
+    return id.replace(/[\W]/g, '-')
+  }
+
+  constructor(private $timeout: ITimeoutService) { 'ngInject'; }
 
   public scrollTo(selector: string, scrollableContainer: string, offset = 0, delay = 0): void {
     this.$timeout(() => {
