@@ -31,6 +31,7 @@ import com.hubspot.jinjava.lib.tag.Tag;
 import com.hubspot.jinjava.loader.ResourceLocator;
 import com.netflix.spinnaker.orca.front50.Front50Service;
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.Base64Filter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.FriggaFilter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters.JsonFilter;
 import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.tags.ModuleTag;
@@ -75,6 +76,7 @@ public class JinjaRenderer implements Renderer {
 
     jinja.getGlobalContext().registerFilter(new FriggaFilter());
     jinja.getGlobalContext().registerFilter(new JsonFilter(pipelineTemplateObjectMapper));
+    jinja.getGlobalContext().registerFilter(new Base64Filter());
 
     log.info("PipelineTemplates: Using JinjaRenderer");
   }
