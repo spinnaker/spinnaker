@@ -24,6 +24,7 @@ import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.q.StartStage
 import org.slf4j.LoggerFactory
@@ -39,13 +40,14 @@ open class StartStageHandler
 @Autowired constructor(
   override val queue: Queue,
   override val repository: ExecutionRepository,
+  override val stageNavigator: StageNavigator,
   override val stageDefinitionBuilders: Collection<StageDefinitionBuilder>,
   override val contextParameterProcessor: ContextParameterProcessor,
   private val publisher: ApplicationEventPublisher,
   private val exceptionHandlers: List<ExceptionHandler>,
   private val clock: Clock,
   @Value("\${queue.retry.delay.ms:60000}") retryDelayMs: Long
-) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware {
+) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
 
   private val log = LoggerFactory.getLogger(javaClass)
   private val retryDelay = Duration.ofMillis(retryDelayMs)
@@ -63,7 +65,9 @@ open class StartStageHandler
           queue.push(CompleteStage(message, SKIPPED))
         } else {
           try {
-            stage.plan()
+            stage.withAuth {
+              stage.plan()
+            }
 
             stage.setStatus(RUNNING)
             stage.setStartTime(clock.millis())

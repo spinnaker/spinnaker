@@ -22,6 +22,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage
 import org.springframework.beans.factory.annotation.Autowired
 import spock.lang.Specification
 import spock.lang.Unroll
+import static com.netflix.spinnaker.orca.pipeline.util.PackageType.DEB
 
 class PackageInfoSpec extends Specification {
 
@@ -58,7 +59,7 @@ class PackageInfoSpec extends Specification {
       context: [buildInfo: [name: "someName"], package: "testPackageName"]
     )
 
-    def packageType = PackageType.DEB
+    def packageType = DEB
     def packageInfo =
       new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
 
@@ -73,29 +74,35 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "If no artifacts in current build info, find from first ancestor that does"() {
     given:
-    Stage quipStage = new Stage<>(new Pipeline(), "type", "name", [buildInfo: [name: "someName"], package: "testPackageName"])
-    quipStage.stageNavigator = Mock(StageNavigator) {
-      findAll(_, _) >> {
-        return inputFileNames.collect() {
-          new StageNavigator.Result(new Stage<>(context: [
-            buildInfo: [
-              artifacts: [
-                [fileName: "${it}.deb"],
-                [fileName: "${it}.war"],
-                [fileName: "build.properties"]
-              ],
-              url: "http://localhost",
-              name: "testBuildName",
-              number: "1"
-            ]
-          ]))
-        }
-      }
+    def pipeline = new Pipeline()
+    def ancestorStages = inputFileNames.collect {
+      new Stage<>(
+        execution: pipeline,
+        refId: it,
+        context: [
+          buildInfo: [
+            artifacts: [
+              [fileName: "${it}.deb"],
+              [fileName: "${it}.war"],
+              [fileName: "build.properties"]
+            ],
+            url      : "http://localhost",
+            name     : "testBuildName",
+            number   : "1"
+          ]
+        ]
+      )
+    }
+    Stage quipStage = new Stage<>(pipeline, "type", "name", [buildInfo: [name: "someName"], package: "testPackageName"]).with {
+      it.requisiteStageRefIds = ancestorStages.refId
+      return it
+    }
+    (ancestorStages + [quipStage]).each {
+      pipeline.stages << it
     }
 
-    PackageType packageType = PackageType.DEB
     PackageInfo packageInfo =
-      new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, false, new ObjectMapper())
+      new PackageInfo(quipStage, DEB.packageType, DEB.versionDelimiter, true, false, new ObjectMapper())
 
     when:
     def requestMap = packageInfo.findTargetPackage(true)
@@ -119,26 +126,26 @@ class PackageInfoSpec extends Specification {
   @Unroll("#filename -> #result")
   def "All the matching packages get replaced with the build ones, while others just pass-through"() {
     given:
-      Stage bakeStage = new Stage<>()
-      PackageType packageType = PackageType.DEB
-      boolean extractBuildDetails = false
-      PackageInfo packageInfo = new PackageInfo(bakeStage,
-        packageType.packageType,
-        packageType.versionDelimiter,
-        extractBuildDetails,
-        false,
-        mapper)
-      def allowMissingPackageInstallation = true
+    Stage bakeStage = new Stage<>()
+    PackageType packageType = DEB
+    boolean extractBuildDetails = false
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+    def allowMissingPackageInstallation = true
 
-      Map trigger = ["buildInfo": ["artifacts": filename]]
-      Map buildInfo = ["artifacts": []]
-      Map request = ["package": requestPackage]
+    Map trigger = ["buildInfo": ["artifacts": filename]]
+    Map buildInfo = ["artifacts": []]
+    Map request = ["package": requestPackage]
 
     when:
-      Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
+    Map requestMap = packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
 
     then:
-      requestMap.package == result
+    requestMap.package == result
 
     where:
     filename                                    | requestPackage                                                           | result
@@ -178,27 +185,27 @@ class PackageInfoSpec extends Specification {
     requestMap.package == result
 
     where:
-    filename                                                         || requestPackage       || packageType       || result
-    [["fileName": "package-4.11.4h-1.x86_64.rpm"]]                   || "package"            || PackageType.RPM   || "package-4.11.4h-1.x86_64"
-    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]         || "package"            || PackageType.RPM   || "package"
+    filename                                                        || requestPackage      || packageType       || result
+    [["fileName": "package-4.11.4h-1.x86_64.rpm"]]                  || "package"           || PackageType.RPM   || "package-4.11.4h-1.x86_64"
+    [["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]        || "package"           || PackageType.RPM   || "package"
     [["fileName": "package-4.11.4h-1.x86_64.rpm"],
-     ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]         || "package"            || PackageType.RPM   || "package-4.11.4h-1.x86_64"
+     ["fileName": "package-something-4.11.4h-1.x86_64.rpm"]]        || "package"           || PackageType.RPM   || "package-4.11.4h-1.x86_64"
     [["fileName": "package-something-4.11.4h-1.x86_64.rpm"],
-     ["fileName": "package-4.11.4h-1.x86_64.rpm"]]                   || "package"            || PackageType.RPM   || "package-4.11.4h-1.x86_64"
-    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]            || "package"            || PackageType.DEB   || "package_4.11.4-h02.sha123_amd64"
-    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]]  || "package"            || PackageType.DEB   || "package"
+     ["fileName": "package-4.11.4h-1.x86_64.rpm"]]                  || "package"           || PackageType.RPM   || "package-4.11.4h-1.x86_64"
+    [["fileName": "package_4.11.4-h02.sha123_amd64.deb"]]           || "package"           || DEB               || "package_4.11.4-h02.sha123_amd64"
+    [["fileName": "package-something_4.11.4-h02.sha123_amd64.deb"]] || "package"           || DEB               || "package"
     [["fileName": "package_4.11.4-h02.deb"],
-     ["fileName": "package-something_4.11.4-h02.deb"]]               || "package"            || PackageType.DEB   || "package_4.11.4-h02"
+     ["fileName": "package-something_4.11.4-h02.deb"]]              || "package"           || DEB               || "package_4.11.4-h02"
     [["fileName": "package_4.11.4-h02.sha123.deb"],
-     ["fileName": "package-something_4.11.4-h02.deb"]]               || "package-something"  || PackageType.DEB   || "package-something_4.11.4-h02"
+     ["fileName": "package-something_4.11.4-h02.deb"]]              || "package-something" || DEB               || "package-something_4.11.4-h02"
     [["fileName": "package_4.11.4-h02.sha123.deb"],
-     ["fileName": "package-something_4.11.4-h02.sha123.deb"]]        || "package"            || PackageType.DEB   || "package_4.11.4-h02.sha123"
-    [["fileName": "package.4.11.4-1+x86_64.nupkg"]]                  || "package"            || PackageType.NUPKG || "package.4.11.4-1+x86_64"
-    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]        || "package-something"  || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
+     ["fileName": "package-something_4.11.4-h02.sha123.deb"]]       || "package"           || DEB               || "package_4.11.4-h02.sha123"
+    [["fileName": "package.4.11.4-1+x86_64.nupkg"]]                 || "package"           || PackageType.NUPKG || "package.4.11.4-1+x86_64"
+    [["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]       || "package-something" || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
     [["fileName": "package.4.11.4-1+x86_64.nupkg"],
-     ["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]        || "package-something"  || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
+     ["fileName": "package-something.4.11.4-1+x86_64.nupkg"]]       || "package-something" || PackageType.NUPKG || "package-something.4.11.4-1+x86_64"
     [["fileName": "package-something.4.11.4-1+x86_64.nupkg"],
-     ["fileName": "package.4.11.4-1+x86_64.nupkg"]]                  || "package"            || PackageType.NUPKG || "package.4.11.4-1+x86_64"
+     ["fileName": "package.4.11.4-1+x86_64.nupkg"]]                 || "package"           || PackageType.NUPKG || "package.4.11.4-1+x86_64"
 
   }
 
@@ -211,9 +218,9 @@ class PackageInfoSpec extends Specification {
     bakeStage.context = [package: 'api']
 
 
-    PackageType packageType = PackageType.DEB
+    PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -231,9 +238,9 @@ class PackageInfoSpec extends Specification {
     bakeStage.context = [package: '']
 
 
-    PackageType packageType = PackageType.DEB
+    PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
-    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper )
+    PackageInfo packageInfo = new PackageInfo(bakeStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
     Map targetPkg = packageInfo.findTargetPackage(false)
@@ -250,7 +257,7 @@ class PackageInfoSpec extends Specification {
     quipStage.execution = pipeline
     quipStage.context = [package: 'api']
 
-    PackageType packageType = PackageType.DEB
+    PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
     PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
@@ -264,59 +271,59 @@ class PackageInfoSpec extends Specification {
   @Unroll
   def "findTargetPackage: matched packages are always allowed"() {
     given:
-      Stage quipStage = new Stage<>()
-      Pipeline pipeline = new Pipeline()
-      pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
-      quipStage.execution = pipeline
-      quipStage.context = ['package': "api"]
+    Stage quipStage = new Stage<>()
+    Pipeline pipeline = new Pipeline()
+    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
+    quipStage.execution = pipeline
+    quipStage.context = ['package': "api"]
 
-      PackageType packageType = PackageType.DEB
-      ObjectMapper objectMapper = new ObjectMapper()
-      PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageType packageType = DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     when:
-      Map targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
+    Map targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
 
     then:
-      targetPkg.packageVersion == packageVersion
+    targetPkg.packageVersion == packageVersion
 
     where:
-      allowMissingPackageInstallation   ||  packageVersion
-      false                             ||  "1.1.1-h01.sha123"
-      true                              ||  "1.1.1-h01.sha123"
+    allowMissingPackageInstallation || packageVersion
+    false                           || "1.1.1-h01.sha123"
+    true                            || "1.1.1-h01.sha123"
   }
 
   @Unroll
   def "findTargetPackage: allowing unmatched packages is guarded by the allowMissingPackageInstallation flag"() {
     given:
-      Stage quipStage = new Stage<>()
-      Pipeline pipeline = new Pipeline()
-      pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
-      quipStage.execution = pipeline
-      quipStage.context = ['package': "another_package"]
+    Stage quipStage = new Stage<>()
+    Pipeline pipeline = new Pipeline()
+    pipeline.context << [buildInfo: [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]]
+    quipStage.execution = pipeline
+    quipStage.context = ['package': "another_package"]
 
-      PackageType packageType = PackageType.DEB
-      ObjectMapper objectMapper = new ObjectMapper()
-      PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
+    PackageType packageType = DEB
+    ObjectMapper objectMapper = new ObjectMapper()
+    PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
     expect:
-      Map targetPkg
-      try {
-        targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
-        assert !expectedException
-      } catch (IllegalStateException ex) {
-        assert expectedException
-        assert ex.message == expectedMessage
-        return
-      }
+    Map targetPkg
+    try {
+      targetPkg = packageInfo.findTargetPackage(allowMissingPackageInstallation)
+      assert !expectedException
+    } catch (IllegalStateException ex) {
+      assert expectedException
+      assert ex.message == expectedMessage
+      return
+    }
 
-      targetPkg.package == "another_package"
-      targetPkg.packageVersion == null
+    targetPkg.package == "another_package"
+    targetPkg.packageVersion == null
 
     where:
-      allowMissingPackageInstallation || expectedException || expectedMessage
-      true                            || false             || null
-      false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in [[fileName:api_1.1.1-h01.sha123_all.deb]] and null. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
+    allowMissingPackageInstallation || expectedException || expectedMessage
+    true                            || false             || null
+    false                           || true              || "Unable to find deployable artifact starting with [another_package_] and ending with .deb in [[fileName:api_1.1.1-h01.sha123_all.deb]] and null. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   def "findTargetPackage: stage execution instance of Pipeline with trigger and no buildInfo"() {
@@ -327,7 +334,7 @@ class PackageInfoSpec extends Specification {
     quipStage.execution = pipeline
     quipStage.context = [package: 'api']
 
-    PackageType packageType = PackageType.DEB
+    PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
     PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
@@ -340,27 +347,27 @@ class PackageInfoSpec extends Specification {
 
   def "Raise an exception if allowMissingPackageInstallation is false and there's no match"() {
     given:
-      Stage bakeStage = new Stage<>()
-      PackageType packageType = PackageType.DEB
-      boolean extractBuildDetails = false
-      PackageInfo packageInfo = new PackageInfo(bakeStage,
-        packageType.packageType,
-        packageType.versionDelimiter,
-        extractBuildDetails,
-        false,
-        mapper)
-      def allowMissingPackageInstallation = false
+    Stage bakeStage = new Stage<>()
+    PackageType packageType = DEB
+    boolean extractBuildDetails = false
+    PackageInfo packageInfo = new PackageInfo(bakeStage,
+      packageType.packageType,
+      packageType.versionDelimiter,
+      extractBuildDetails,
+      false,
+      mapper)
+    def allowMissingPackageInstallation = false
 
-      Map trigger = ["buildInfo": ["artifacts": [["fileName": "test-package_1.0.0.deb"]]]]
-      Map buildInfo = ["artifacts": []]
-      Map request = ["package": "foo bar"]
+    Map trigger = ["buildInfo": ["artifacts": [["fileName": "test-package_1.0.0.deb"]]]]
+    Map buildInfo = ["artifacts": []]
+    Map request = ["package": "foo bar"]
 
     when:
-      packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
+    packageInfo.createAugmentedRequest(trigger, buildInfo, request, allowMissingPackageInstallation)
 
     then:
-      def exception = thrown(IllegalStateException)
-      exception.message == "Unable to find deployable artifact starting with [foo_, bar_] and ending with .deb in [] and [[fileName:test-package_1.0.0.deb]]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
+    def exception = thrown(IllegalStateException)
+    exception.message == "Unable to find deployable artifact starting with [foo_, bar_] and ending with .deb in [] and [[fileName:test-package_1.0.0.deb]]. Make sure your deb package file name complies with the naming convention: name_version-release_arch."
   }
 
   @Unroll
@@ -376,32 +383,32 @@ class PackageInfoSpec extends Specification {
     buildInfo == artifactSourceBuildInfo
 
     where:
-    trigger                                                ||  buildInfo
+    trigger     || buildInfo
     [buildInfo: [
       something: "else"
-    ]]                                                     ||  null
+    ]]          || null
     [parentExecution: [
       trigger: [
         buildInfo: [
           artifacts: [
             [fileName: "api_1.1.1-h01.sha123_all.deb"]
-          ]]]]]                                            ||  [artifacts:[[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+          ]]]]] || [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
     [buildInfo: [
       artifacts: [
         [fileName: "api_1.1.1-h01.sha123_all.deb"]
-      ]]]                                                  ||  [artifacts:[[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
+      ]]]       || [artifacts: [[fileName: "api_1.1.1-h01.sha123_all.deb"]]]
     [
-    buildInfo: [
-      artifacts: [
-        [fileName: "first_1.1.1-h01.sha123_all.deb"]
-      ]],
-    parentExecution: [
-      trigger: [
-        buildInfo: [
-          artifacts: [
-            [fileName: "api_1.1.1-h01.sha123_all.deb"]
-      ]]]]
-    ]                                                      ||  [artifacts:[[fileName: "first_1.1.1-h01.sha123_all.deb"]]]
+      buildInfo      : [
+        artifacts: [
+          [fileName: "first_1.1.1-h01.sha123_all.deb"]
+        ]],
+      parentExecution: [
+        trigger: [
+          buildInfo: [
+            artifacts: [
+              [fileName: "api_1.1.1-h01.sha123_all.deb"]
+            ]]]]
+    ]           || [artifacts: [[fileName: "first_1.1.1-h01.sha123_all.deb"]]]
   }
 
   @Unroll
@@ -413,7 +420,7 @@ class PackageInfoSpec extends Specification {
     quipStage.execution = pipeline
     quipStage.context = ['package': "api"]
 
-    PackageType packageType = PackageType.DEB
+    PackageType packageType = DEB
     ObjectMapper objectMapper = new ObjectMapper()
     PackageInfo packageInfo = new PackageInfo(quipStage, packageType.packageType, packageType.versionDelimiter, true, true, objectMapper)
 
@@ -424,16 +431,16 @@ class PackageInfoSpec extends Specification {
     targetPkg.packageVersion == packageVersion
 
     where:
-    trigger                                                ||  packageVersion
+    trigger     || packageVersion
     [parentExecution: [
       trigger: [
         buildInfo: [
           artifacts: [
             [fileName: "api_1.1.1-h01.sha123_all.deb"]
-          ]]]]]                                            ||  "1.1.1-h01.sha123"
+          ]]]]] || "1.1.1-h01.sha123"
     [buildInfo: [
       artifacts: [
         [fileName: "api_1.1.1-h01.sha123_all.deb"]
-      ]]]                                                  ||  "1.1.1-h01.sha123"
+      ]]]       || "1.1.1-h01.sha123"
   }
 }

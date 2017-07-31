@@ -26,8 +26,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.support.Targe
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -54,7 +52,6 @@ class AbstractClusterWideClouddriverTaskSpec extends Specification {
       ]
     ])
 
-    pipeline.stages[0].stageNavigator = new StageNavigator(Stub(ApplicationContext))
     pipeline.stages[0].parentStageId = pipeline.stages[1].id
     pipeline.stages[1].requisiteStageRefIds = ["2"]
     pipeline.stages[2].refId = "2"

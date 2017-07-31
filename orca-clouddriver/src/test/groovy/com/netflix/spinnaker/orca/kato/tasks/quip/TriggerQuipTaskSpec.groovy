@@ -21,10 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import retrofit.RetrofitError
 import retrofit.client.Client
 import retrofit.client.Response
@@ -56,12 +54,9 @@ class TriggerQuipTaskSpec extends Specification {
     .build()
 
   @Shared
-  Stage versionStage = new Stage<>(pipe, "quickPatch", ["version": "1.2"])
-
-
-  @Shared
-  StageNavigator navigator = Stub(StageNavigator) {
-    findAll(*_) >> [new StageNavigator.Result(versionStage, Stub(StageDefinitionBuilder))]
+  def versionStage = new Stage<>(pipe, "quickPatch", ["version": "1.2"]).with {
+    pipe.stages << it
+    return it
   }
 
   @Shared
@@ -80,15 +75,15 @@ class TriggerQuipTaskSpec extends Specification {
     given:
     def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
+      "account"     : account,
+      "region"      : region,
       "application" : app,
-      "baseOs" : "ubuntu",
-      "package" : app,
+      "baseOs"      : "ubuntu",
+      "package"     : app,
       "skipUpToDate": false,
-      "instances": instances
+      "instances"   : instances
     ])
-    stage.stageNavigator = navigator
+    stage.parentStageId = versionStage.id
 
     instances.size() * task.createInstanceService(_) >> instanceService
 
@@ -109,25 +104,25 @@ class TriggerQuipTaskSpec extends Specification {
     region = "us-east-1"
 
     instances | response | dnsTaskMap
-    ["i-1234" : ["hostName" : "foo.com"] ] | [instanceResponse] | ["foo.com" : "93fa4"]
-    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | [instanceResponse,instanceResponse2]  | ["foo.com" : "93fa4", "foo2.com" : "abcd"]
-    ["i-1234" :["hostName" :  "foo.com"], "i-2345" : ["hostName" : "foo2.com"], "i-3456" : ["hostName" : "foo3.com"] ]| [instanceResponse,instanceResponse2,instanceResponse3]  | ["foo.com" : "93fa4", "foo2.com" : "abcd", "foo3.com" : "efghi"]
+    ["i-1234": ["hostName": "foo.com"]] | [instanceResponse] | ["foo.com": "93fa4"]
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"]] | [instanceResponse, instanceResponse2] | ["foo.com": "93fa4", "foo2.com": "abcd"]
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"], "i-3456": ["hostName": "foo3.com"]] | [instanceResponse, instanceResponse2, instanceResponse3] | ["foo.com": "93fa4", "foo2.com": "abcd", "foo3.com": "efghi"]
   }
 
   def "checks versions and skips up to date instances in skipUpToDate mode"() {
     given:
     def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
+      "account"     : account,
+      "region"      : region,
       "application" : app,
-      "baseOs" : "ubuntu",
-      "package" : app,
-      "version" : "1.2",
+      "baseOs"      : "ubuntu",
+      "package"     : app,
+      "version"     : "1.2",
       "skipUpToDate": true,
-      "instances": instances
+      "instances"   : instances
     ])
-    stage.stageNavigator = navigator
+    stage.parentStageId = versionStage.id
 
     2 * task.createInstanceService(_) >> instanceService
 
@@ -142,7 +137,6 @@ class TriggerQuipTaskSpec extends Specification {
     result.stageOutputs.skippedInstances == skipInstances
     result.stageOutputs.instanceIds.sort() == ['i-1', 'i-2'].sort()
     result.stageOutputs.remainingInstances == [:]
-
 
     where:
     cluster = 'foo-test'
@@ -160,15 +154,15 @@ class TriggerQuipTaskSpec extends Specification {
   def "servers return errors, expect RUNNING"() {
     def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
+      "account"     : account,
+      "region"      : region,
       "application" : app,
-      "baseOs" : "ubuntu",
-      "package" : app,
-      "version" : "1.2",
+      "baseOs"      : "ubuntu",
+      "package"     : app,
+      "version"     : "1.2",
       "skipUpToDate": false
     ])
-    stage.stageNavigator = navigator
+    stage.parentStageId = versionStage.id
 
     stage.context.instances = instances
     instances.size() * task.createInstanceService(_) >> instanceService
@@ -177,8 +171,9 @@ class TriggerQuipTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    throwException.each { // need to do this since I can't stick exceptions on the data table
-      if(it) {
+    throwException.each {
+      // need to do this since I can't stick exceptions on the data table
+      if (it) {
         1 * instanceService.patchInstance(app, patchVersion, "") >> {
           throw new RetrofitError(null, null, null, null, null, null, null)
         }
@@ -195,21 +190,21 @@ class TriggerQuipTaskSpec extends Specification {
     region = "us-east-1"
     patchVersion = "1.2"
     instances | throwException
-    ["i-1234" : ["hostName" : "foo.com"] ] | [ true ]
-    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | [false, true]
-    ["i-1234" : ["hostName" : "foo.com"], "i-2345" : ["hostName" : "foo2.com"] ] | [true, true]
- }
+    ["i-1234": ["hostName": "foo.com"]] | [true]
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"]] | [false, true]
+    ["i-1234": ["hostName": "foo.com"], "i-2345": ["hostName": "foo2.com"]] | [true, true]
+  }
 
   @Unroll
   def 'missing configuration data'() {
     given:
     def stage = new Stage<>(pipe, 'triggerQuip', [
-      "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
-      "application" : app,
-      "baseOs" : "ubuntu",
-      "package" : packageName
+      "clusterName": cluster,
+      "account"    : account,
+      "region"     : region,
+      "application": app,
+      "baseOs"     : "ubuntu",
+      "package"    : packageName
     ])
 
     stage.context.instances = instances
@@ -228,22 +223,22 @@ class TriggerQuipTaskSpec extends Specification {
     account = 'test'
     region = "us-east-1"
     packageName | patchVersion | instances
-    null | "1.2" | ["i-1234": ["hostName" : "foo.com"]]
-    "bar" | null | ["i-1234": ["hostName" : "foo.com"]]
+    null | "1.2" | ["i-1234": ["hostName": "foo.com"]]
+    "bar" | null | ["i-1234": ["hostName": "foo.com"]]
     "bar" | "1.2" | null
   }
 
   def "skipUpToDate with getVersion retries"() {
     def stage = new Stage<>(pipe, 'triggerQuip', [
       "clusterName" : cluster,
-      "account" : account,
-      "region" : region,
+      "account"     : account,
+      "region"      : region,
       "application" : app,
-      "baseOs" : "ubuntu",
-      "package" : app,
+      "baseOs"      : "ubuntu",
+      "package"     : app,
       "skipUpToDate": true
     ])
-    stage.stageNavigator = navigator
+    stage.parentStageId = versionStage.id
 
     stage.context.instances = instances
     task.instanceVersionSleep = 1
@@ -253,7 +248,9 @@ class TriggerQuipTaskSpec extends Specification {
     TaskResult result = task.execute(stage)
 
     then:
-    2 * instanceService.getCurrentVersion(app) >> { throw RetrofitError.networkError('http://foo', new IOException('failed')) } >> mkResponse([version: patchVersion])
+    2 * instanceService.getCurrentVersion(app) >> {
+      throw RetrofitError.networkError('http://foo', new IOException('failed'))
+    } >> mkResponse([version: patchVersion])
 
     result.stageOutputs.skippedInstances.keySet() == ["i-1234"] as Set
 
@@ -262,6 +259,6 @@ class TriggerQuipTaskSpec extends Specification {
     account = 'test'
     region = "us-east-1"
     patchVersion = "1.2"
-    instances = ["i-1234" : ["hostName" : "foo.com"] ]
+    instances = ["i-1234": ["hostName": "foo.com"]]
   }
 }

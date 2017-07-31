@@ -16,14 +16,13 @@
 
 package com.netflix.spinnaker.orca.pipeline.util
 
+import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
-
-import java.util.regex.Pattern
 
 @Slf4j
 class PackageInfo {
@@ -227,8 +226,8 @@ class PackageInfo {
 
   private static Map findBuildInfoInUpstreamStage(Stage currentStage, Pattern packageFilePattern) {
     def upstreamStage = currentStage.ancestors().find {
-      artifactMatch(it.stage.context.buildInfo?.artifacts as List<Map<String, String>>, packageFilePattern)
-    }?.stage
+      artifactMatch(it.context.buildInfo?.artifacts as List<Map<String, String>>, packageFilePattern)
+    }
     return upstreamStage ? upstreamStage.context.buildInfo as Map : null
   }
 

@@ -16,38 +16,26 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce;
 
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
 import static java.lang.String.format;
 
 @Component
 public class GoogleImageTagger extends ImageTagger implements CloudProviderAware {
-  private static final Logger log = LoggerFactory.getLogger(GoogleImageTagger.class);
   private static final Set<String> BUILT_IN_TAGS = new HashSet<>(Arrays.asList("appversion", "build_host"));
 
   @Autowired
   public GoogleImageTagger(OortService oortService, ObjectMapper objectMapper) {
-    super(oortService, objectMapper, log);
+    super(oortService, objectMapper);
   }
 
   @Override

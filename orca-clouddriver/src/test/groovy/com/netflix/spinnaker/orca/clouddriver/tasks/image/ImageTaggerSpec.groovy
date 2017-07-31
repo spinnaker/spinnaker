@@ -18,12 +18,20 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.image
 
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.context.ApplicationContext
 import spock.lang.Specification
+import spock.lang.Subject
 import spock.lang.Unroll
 
-class ImageTaggerSupportSpec extends Specification {
+abstract class ImageTaggerSpec<T extends ImageTagger> extends Specification {
+
+  protected abstract T subject()
+
+  @Subject T imageTagger
+
+  def setup() {
+    imageTagger = subject()
+  }
+
   @Unroll
   def "should extract imageId from upstream stages"() {
     given:
@@ -37,12 +45,11 @@ class ImageTaggerSupportSpec extends Specification {
 
     [stage1, stage2, stage3].each {
       it.refId = it.id
-      it.stageNavigator = new StageNavigator(Stub(ApplicationContext))
       pipeline.stages << it
     }
 
     expect:
-    ImageTaggerSupport.upstreamImageIds(stage3, cloudProvider) == expectedImageNames
+    imageTagger.upstreamImageIds(stage3, cloudProvider) == expectedImageNames
 
     where:
     cloudProvider | stage1Context                    | stage2Context    || expectedImageNames

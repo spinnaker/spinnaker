@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.context.ApplicationContext
 import redis.clients.jedis.Jedis
 import redis.clients.util.Pool
 import spock.lang.AutoCleanup
@@ -36,7 +35,7 @@ import spock.lang.Specification
 class ResizeAsgStageSpec extends Specification {
 
   @Shared
-  def stageNavigator = new StageNavigator(Mock(ApplicationContext))
+  def stageNavigator = new StageNavigator([])
 
   @Shared
   @AutoCleanup("destroy")

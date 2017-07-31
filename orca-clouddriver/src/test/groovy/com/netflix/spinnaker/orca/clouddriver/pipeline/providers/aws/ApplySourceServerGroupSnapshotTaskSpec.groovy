@@ -24,8 +24,6 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.model.SyntheticStageOwner
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.context.ApplicationContext
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
@@ -33,7 +31,6 @@ import spock.lang.Unroll
 class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
   def oortHelper = Mock(OortHelper)
   def executionRepository = Mock(ExecutionRepository)
-  def stageNavigator = new StageNavigator(Stub(ApplicationContext))
 
   @Subject
   def task = new ApplySourceServerGroupCapacityTask(
@@ -74,10 +71,6 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       ]
     ])
 
-    (parentPipeline.stages + childPipeline.stages).each {
-      it.setStageNavigator(stageNavigator)
-    }
-
     when:
     def ancestorDeployStage = ApplySourceServerGroupCapacityTask.getAncestorDeployStage(
       executionRepository, parentPipeline.stages[-1]
@@ -101,7 +94,6 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
         max    : 10
       ]
     ])
-    stage.setStageNavigator(stageNavigator)
 
     expect:
     ApplySourceServerGroupCapacityTask.getAncestorDeployStage(null, stage) == stage
@@ -198,13 +190,18 @@ class ApplySourceServerGroupSnapshotTaskSpec extends Specification {
       ]
     ])
 
+    def parentStage = new Stage(pipeline, "", [:])
+
     stage.parentStageId = "parentStageId"
 
     siblingStage.parentStageId = stage.parentStageId
     siblingStage.syntheticStageOwner = SyntheticStageOwner.STAGE_AFTER
 
+    parentStage.id = stage.parentStageId
+
     pipeline.stages << stage
     pipeline.stages << siblingStage
+    pipeline.stages << parentStage
 
     when:
     def targetServerGroupContext = task.getTargetServerGroupContext(stage)

@@ -34,6 +34,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
@@ -50,6 +51,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
+  val stageNavigator: StageNavigator = mock()
   val publisher: ApplicationEventPublisher = mock()
   val exceptionHandler: ExceptionHandler = mock()
   val clock = fixedClock()
@@ -59,6 +61,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
     StartStageHandler(
       queue,
       repository,
+      stageNavigator,
       listOf(
         singleTaskStage,
         multiTaskStage,

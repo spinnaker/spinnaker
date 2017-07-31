@@ -28,6 +28,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.toDuration
 import com.netflix.spinnaker.orca.time.toInstant
@@ -47,12 +48,13 @@ open class RunTaskHandler
 @Autowired constructor(
   override val queue: Queue,
   override val repository: ExecutionRepository,
+  override val stageNavigator: StageNavigator,
   override val contextParameterProcessor: ContextParameterProcessor,
   private val tasks: Collection<Task>,
   private val clock: Clock,
   private val exceptionHandlers: List<ExceptionHandler>,
   private val registry: Registry
-) : MessageHandler<RunTask>, ExpressionAware {
+) : MessageHandler<RunTask>, ExpressionAware, AuthenticationAware {
 
   private val log: Logger = getLogger(javaClass)
 
@@ -67,30 +69,32 @@ open class RunTaskHandler
         } else {
           task.checkForTimeout(stage, taskModel, message)
 
-          task.execute(stage.withMergedContext()).let { result: TaskResult ->
-            // TODO: rather send this data with CompleteTask message
-            stage.processTaskOutput(result)
-            when (result.status) {
-              RUNNING -> {
-                queue.push(message, task.backoffPeriod())
-                trackResult(stage, task.javaClass, result.status)
+          stage.withAuth {
+            task.execute(stage.withMergedContext()).let { result: TaskResult ->
+              // TODO: rather send this data with CompleteTask message
+              stage.processTaskOutput(result)
+              when (result.status) {
+                RUNNING -> {
+                  queue.push(message, task.backoffPeriod())
+                  trackResult(stage, task.javaClass, result.status)
+                }
+                SUCCEEDED, REDIRECT, FAILED_CONTINUE -> {
+                  queue.push(CompleteTask(message, result.status))
+                  trackResult(stage, task.javaClass, result.status)
+                }
+                TERMINAL, CANCELED -> {
+                  val status = stage.failureStatus(default = result.status)
+                  queue.push(CompleteTask(message, status))
+                  trackResult(stage, task.javaClass, status)
+                }
+                else ->
+                  TODO("Unhandled task status ${result.status}")
               }
-              SUCCEEDED, REDIRECT, FAILED_CONTINUE -> {
-                queue.push(CompleteTask(message, result.status))
-                trackResult(stage, task.javaClass, result.status)
-              }
-              TERMINAL, CANCELED -> {
-                val status = stage.failureStatus(default = result.status)
-                queue.push(CompleteTask(message, status))
-                trackResult(stage, task.javaClass, status)
-              }
-              else ->
-                TODO("Unhandled task status ${result.status}")
             }
           }
         }
       } catch (e: Exception) {
-        val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel?.name)
+        val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel.name)
         if (exceptionDetails?.shouldRetry ?: false) {
           log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
           queue.push(message, task.backoffPeriod())

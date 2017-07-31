@@ -27,7 +27,7 @@ import spock.lang.Subject
 class QuickPatchStageSpec extends Specification {
 
   def oortHelper = Mock(OortHelper)
-  def bulkQuickPatchStage = Mock(BulkQuickPatchStage)
+  def bulkQuickPatchStage = new BulkQuickPatchStage()
   def objectMapper = OrcaObjectMapper.newInstance()
 
   @Subject

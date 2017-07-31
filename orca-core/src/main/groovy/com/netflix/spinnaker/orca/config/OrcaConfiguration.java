@@ -26,7 +26,6 @@ import com.netflix.spinnaker.orca.pipeline.persistence.PipelineStack;
 import com.netflix.spinnaker.orca.pipeline.persistence.memory.InMemoryPipelineStack;
 import com.netflix.spinnaker.orca.pipeline.util.ContextFunctionConfiguration;
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor;
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -49,10 +48,9 @@ import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROT
 @Configuration
 @ComponentScan({
   "com.netflix.spinnaker.orca.pipeline",
-  "com.netflix.spinnaker.orca.webhook",
   "com.netflix.spinnaker.orca.notifications.scheduling",
-  "com.netflix.spinnaker.orca.restart",
-  "com.netflix.spinnaker.orca.deprecation"
+  "com.netflix.spinnaker.orca.deprecation",
+  "com.netflix.spinnaker.orca.pipeline.util"
 })
 @EnableConfigurationProperties
 public class OrcaConfiguration {
@@ -110,11 +108,6 @@ public class OrcaConfiguration {
   @ConditionalOnProperty(value = "jarDiffs.enabled", matchIfMissing = false)
   public ComparableLooseVersion comparableLooseVersion() {
     return new DefaultComparableLooseVersion();
-  }
-
-  @Bean
-  public StageNavigator stageNavigator(ApplicationContext applicationContext) {
-    return new StageNavigator(applicationContext);
   }
 
   @Bean

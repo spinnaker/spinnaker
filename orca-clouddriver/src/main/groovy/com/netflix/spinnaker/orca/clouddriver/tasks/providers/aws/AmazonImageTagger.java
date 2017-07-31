@@ -16,27 +16,22 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.providers.aws;
 
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger;
 import com.netflix.spinnaker.orca.clouddriver.utils.CloudProviderAware;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
 import static java.lang.String.format;
 
 @Component
 public class AmazonImageTagger extends ImageTagger implements CloudProviderAware {
-  private static final Logger log = LoggerFactory.getLogger(AmazonImageTagger.class);
   private static final String ALLOW_LAUNCH_OPERATION = "allowLaunchDescription";
   private static final Set<String> BUILT_IN_TAGS = new HashSet<>(
     Arrays.asList("appversion", "base_ami_version", "build_host", "creation_time", "creator")
@@ -47,7 +42,7 @@ public class AmazonImageTagger extends ImageTagger implements CloudProviderAware
 
   @Autowired
   public AmazonImageTagger(OortService oortService, ObjectMapper objectMapper) {
-    super(oortService, objectMapper, log);
+    super(oortService, objectMapper);
   }
 
   @Override

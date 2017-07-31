@@ -27,7 +27,6 @@ import com.netflix.spinnaker.orca.pipeline.model.*
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionNotFoundException
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository.ExecutionCriteria
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import groovy.transform.CompileDynamic
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -68,9 +67,6 @@ class JedisExecutionRepository implements ExecutionRepository {
   private final int chunkSize
   private final Scheduler queryAllScheduler
   private final Scheduler queryByAppScheduler
-
-  @Autowired
-  StageNavigator stageNavigator
 
   @Autowired
   JedisExecutionRepository(
@@ -649,7 +645,6 @@ class JedisExecutionRepository implements ExecutionRepository {
 
       stageIds.each { stageId ->
         def stage = new Stage<>()
-        stage.stageNavigator = stageNavigator
         stage.id = stageId
         stage.refId = map["stage.${stageId}.refId".toString()]
         stage.type = map["stage.${stageId}.type".toString()]

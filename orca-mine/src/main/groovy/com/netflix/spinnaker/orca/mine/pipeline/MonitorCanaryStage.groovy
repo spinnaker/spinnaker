@@ -16,7 +16,6 @@
 
 package com.netflix.spinnaker.orca.mine.pipeline
 
-import groovy.util.logging.Slf4j
 import com.netflix.spinnaker.orca.CancellableStage
 import com.netflix.spinnaker.orca.clouddriver.tasks.MonitorKatoTask
 import com.netflix.spinnaker.orca.mine.MineService
@@ -28,14 +27,17 @@ import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.TaskNode
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
+import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Slf4j
 @Component
 class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
-  @Autowired
-  MineService mineService
+
+  @Autowired MineService mineService
+  @Autowired StageNavigator stageNavigator
 
   @Override
   <T extends Execution<T>> void taskGraph(Stage<T> stage, TaskNode.Builder builder) {
@@ -72,8 +74,8 @@ class MonitorCanaryStage implements StageDefinitionBuilder, CancellableStage {
       log.error("Unable to cancel canary '${canaryId}' in mine", e)
     }
 
-    def canaryStages = stage.ancestors { Stage s, StageDefinitionBuilder stageBuilder ->
-      stageBuilder instanceof CanaryStage
+    def canaryStages = stageNavigator.ancestors(stage).findAll {
+      it.stageBuilder instanceof CanaryStage
     }
 
     if (!canaryStages) {

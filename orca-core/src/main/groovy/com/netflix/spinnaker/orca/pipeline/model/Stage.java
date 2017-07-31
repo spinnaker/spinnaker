@@ -3,7 +3,6 @@ package com.netflix.spinnaker.orca.pipeline.model;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -11,11 +10,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TreeTraversingParser;
+import com.google.common.collect.ImmutableList;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.orca.jackson.OrcaObjectMapper;
 import com.netflix.spinnaker.orca.listeners.StageTaskPropagationListener;
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder;
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator;
 import lombok.Data;
 import org.codehaus.groovy.runtime.ReverseListIterator;
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
@@ -61,7 +59,7 @@ public class Stage<T extends Execution<T>> implements Serializable {
   /**
    * The type as it corresponds to the Mayo configuration
    */
-  private  String type;
+  private String type;
 
   /**
    * The name of the stage. Can be different from type, but often will be the same.
@@ -177,22 +175,41 @@ public class Stage<T extends Execution<T>> implements Serializable {
       .collect(toList());
   }
 
-  @JsonIgnore
-  private StageNavigator stageNavigator = null;
-
-  /**
-   * Gets all ancestor stages that satisfy {@code matcher}, including the current stage.
-   */
-  @SuppressWarnings("unchecked")
-  public List<StageNavigator.Result> ancestors(BiFunction<Stage<T>, StageDefinitionBuilder, Boolean> matcher) {
-    return (List<StageNavigator.Result>) (stageNavigator != null ? stageNavigator.findAll(this, matcher) : emptyList());
-  }
-
   /**
    * Gets all ancestor stages, including the current stage.
    */
-  public List<StageNavigator.Result> ancestors() {
-    return ancestors((stage, builder) -> true);
+  public List<Stage<T>> ancestors() {
+    return ImmutableList
+      .<Stage<T>>builder()
+      .add(this)
+      .addAll(ancestorsOnly())
+      .build();
+  }
+
+  private List<Stage<T>> ancestorsOnly() {
+    if (!requisiteStageRefIds.isEmpty()) {
+      List<Stage<T>> previousStages = execution.stages.stream().filter(it ->
+        requisiteStageRefIds.contains(it.refId)
+      ).collect(toList());
+      List<Stage<T>> syntheticStages = execution.stages.stream().filter(s ->
+        previousStages.stream().map(Stage::getId).anyMatch(id -> id.equals(s.parentStageId))
+      ).collect(toList());
+      return ImmutableList
+        .<Stage<T>>builder()
+        .addAll(previousStages)
+        .addAll(syntheticStages)
+        .addAll(previousStages.stream().flatMap(it -> it.ancestorsOnly().stream()).collect(toList()))
+        .build();
+    } else if (parentStageId != null) {
+      Stage<T> parent = execution.stages.stream().filter(it -> it.id.equals(parentStageId)).findFirst().orElseThrow(IllegalStateException::new);
+      return ImmutableList
+        .<Stage<T>>builder()
+        .add(parent)
+        .addAll(parent.ancestorsOnly())
+        .build();
+    } else {
+      return emptyList();
+    }
   }
 
   /**

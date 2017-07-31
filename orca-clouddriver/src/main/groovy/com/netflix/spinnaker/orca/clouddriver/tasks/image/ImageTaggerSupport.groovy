@@ -17,19 +17,17 @@
 package com.netflix.spinnaker.orca.clouddriver.tasks.image
 
 import com.netflix.spinnaker.orca.kato.tasks.DeploymentDetailsAware
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 
 class ImageTaggerSupport implements DeploymentDetailsAware {
   static Collection<String> upstreamImageIds(Stage sourceStage, String cloudProviderType) {
-    def imageProvidingAncestorStages = sourceStage.ancestors { Stage stage, StageDefinitionBuilder stageBuilder ->
+    def imageProvidingAncestorStages = sourceStage.ancestors().findAll { Stage stage ->
       def cloudProvider = stage.context.cloudProvider ?: stage.context.cloudProviderType
       return (stage.context.containsKey("imageId") || stage.context.containsKey("amiDetails")) && cloudProvider == cloudProviderType
     }
 
     return imageProvidingAncestorStages.findResults {
-      def imageProvidingStage = it.stage
-      return (imageProvidingStage.context.imageId ?: (imageProvidingStage.context.amiDetails as Collection<Map>)[0]?.imageId) as String
+      return (it.context.imageId ?: (it.context.amiDetails as Collection<Map>)[0]?.imageId) as String
     }
   }
 }

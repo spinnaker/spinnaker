@@ -16,27 +16,25 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.image;
 
+import java.util.*;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.annotations.VisibleForTesting;
 import com.netflix.spinnaker.orca.clouddriver.OortService;
+import com.netflix.spinnaker.orca.pipeline.model.Execution;
 import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import org.slf4j.Logger;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
+import org.slf4j.LoggerFactory;
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toList;
 
 public abstract class ImageTagger {
   protected static final String OPERATION = "upsertImageTags";
 
-  protected OortService oortService;
-  protected ObjectMapper objectMapper;
-  protected Logger log;
+  protected final OortService oortService;
+  protected final ObjectMapper objectMapper;
+  protected final Logger log = LoggerFactory.getLogger(getClass());
 
   /**
    * @return the OperationContext object that contains the cloud provider-specific list of operations as well as
@@ -54,10 +52,9 @@ public abstract class ImageTagger {
    */
   abstract protected String getCloudProvider();
 
-  protected ImageTagger(OortService oortService, ObjectMapper objectMapper, Logger log) {
+  protected ImageTagger(OortService oortService, ObjectMapper objectMapper) {
     this.oortService = oortService;
     this.objectMapper = objectMapper;
-    this.log = log;
   }
 
   protected Collection findImages(Collection<String> imageNames, Stage stage, Class matchedImageType) {
@@ -97,6 +94,22 @@ public abstract class ImageTagger {
     }
 
     return foundImages;
+  }
+
+  @VisibleForTesting
+  <T extends Execution<T>> Collection<String> upstreamImageIds(Stage<T> sourceStage, String cloudProviderType) {
+    Collection<Stage<T>> imageProvidingAncestorStages = sourceStage.ancestors().stream().filter((Stage<T> stage) -> {
+      String cloudProvider = (String) stage.getContext().getOrDefault("cloudProvider", stage.getContext().get("cloudProviderType"));
+      return (stage.getContext().containsKey("imageId") || stage.getContext().containsKey("amiDetails")) && cloudProviderType.equals(cloudProvider);
+    }).collect(toList());
+
+    return imageProvidingAncestorStages.stream().map(it -> {
+      if (it.getContext().containsKey("imageId")) {
+        return (String) it.getContext().get("imageId");
+      } else {
+        return (String) ((List<Map>) it.getContext().get("amiDetails")).get(0).get("imageId");
+      }
+    }).collect(toList());
   }
 
   protected class OperationContext {

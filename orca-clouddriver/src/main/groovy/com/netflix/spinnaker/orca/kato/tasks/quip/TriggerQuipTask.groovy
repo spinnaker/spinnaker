@@ -21,7 +21,6 @@ import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.RetryableTask
 import com.netflix.spinnaker.orca.TaskResult
 import com.netflix.spinnaker.orca.clouddriver.InstanceService
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,9 +51,9 @@ class TriggerQuipTask extends AbstractQuipTask implements RetryableTask {
     Map<String, Map> instances = stage.context.instances
     Map<String, Map> remainingInstances = stage.context.remainingInstances == null ? new HashMap<>(instances) : stage.context.remainingInstances
     String packageName = stage.context?.package
-    String version = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder ancestorStageBuilder ->
+    String version = stage.ancestors().find { ancestorStage ->
       ancestorStage.id == stage.parentStageId
-    }.getAt(0)?.stage?.context?.version ?: stage.context.version
+    }?.context?.version ?: stage.context.version
    Map<String, Map> skippedInstances = stage.context.skippedInstances ?: [:]
     Set<String> patchedInstanceIds = []
     // verify instance list, package, and version are in the context

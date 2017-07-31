@@ -30,16 +30,12 @@ class StageNavigatorSpec extends Specification {
   def stageBuilders = [
     new ExampleStageBuilder("One"),
     new ExampleStageBuilder("Two"),
-    new ExampleStageBuilder("Three")
+    new ExampleStageBuilder("Three"),
+    new ExampleStageBuilder("Four")
   ]
 
   @Subject
-  def stageNavigator = new StageNavigator(null) {
-    @Override
-    protected Collection<StageDefinitionBuilder> stageBuilders() {
-      stageBuilders
-    }
-  }
+  def stageNavigator = new StageNavigator(stageBuilders)
 
   def execution = new Pipeline()
 
@@ -53,11 +49,23 @@ class StageNavigatorSpec extends Specification {
     stage2.parentStageId = stage3.id
 
     expect:
-    stage1.ancestors()*.stage*.type == ["One", "Two", "Three"]
-    stage1.ancestors({ stage, builder -> false })*.stage*.type == []
-    stage1.ancestors({ stage, builder -> true })*.stage*.type == ["One", "Two", "Three"]
-    stage1.ancestors({ stage, builder -> stage.type == "One" })*.stage*.type == ["One"]
-    stage1.ancestors({ stage, builder -> stage.type == "Four" })*.stage*.type == []
+    stage1.ancestors().type == ["One", "Two", "Three"]
+  }
+
+  def "traverses up the synthetic stage hierarchy with StageNavigator"() {
+    given:
+    def stage1 = buildStage("One")
+    def stage2 = buildStage("Two")
+    def stage3 = buildStage("Three")
+
+    stage1.parentStageId = stage2.id
+    stage2.parentStageId = stage3.id
+
+    expect:
+    with(stageNavigator.ancestors(stage1)) {
+      stage.type == ["One", "Two", "Three"]
+      stageBuilder.type == ["One", "Two", "Three"]
+    }
   }
 
   def "traverses up the refId stage hierarchy"() {
@@ -77,7 +85,30 @@ class StageNavigatorSpec extends Specification {
 
     expect:
     // order is dependent on the order of a stage within `execution.stages`
-    stage1.ancestors()*.stage*.type == ["One", "Two", "Four", "Three"]
+    stage1.ancestors().type == ["One", "Two", "Four", "Three"]
+  }
+
+  def "traverses up the refId stage hierarchy with StageNavigator"() {
+    given:
+    def stage1 = buildStage("One")
+    def stage2 = buildStage("Two")
+    def stage4 = buildStage("Four")
+    def stage3 = buildStage("Three")
+
+    stage1.refId = "1"
+    stage2.refId = "2"
+    stage3.refId = "3"
+    stage4.refId = "4"
+
+    stage1.requisiteStageRefIds = ["2"]
+    stage2.requisiteStageRefIds = ["3", "4"]
+
+    expect:
+    // order is dependent on the order of a stage within `execution.stages`
+    with(stageNavigator.ancestors(stage1)) {
+      stage.type == ["One", "Two", "Four", "Three"]
+      stageBuilder.type == ["One", "Two", "Four", "Three"]
+    }
   }
 
   def "traverses up both synthetic and refId stage hierarchies"() {
@@ -98,12 +129,35 @@ class StageNavigatorSpec extends Specification {
 
     expect:
     // order is dependent on the order of a stage within `execution.stages`
-    stage1.ancestors()*.stage*.type == ["One", "Two", "Three", "Four"]
+    stage1.ancestors().type == ["One", "Two", "Three", "Four"]
+  }
+
+  def "traverses up both synthetic and refId stage hierarchies with StageNavigator"() {
+    given:
+    def stage1 = buildStage("One")
+    def stage2 = buildStage("Two")
+    def stage4 = buildStage("Four")
+    def stage3 = buildStage("Three")
+
+    stage1.refId = "1"
+    stage2.refId = "2"
+    stage3.refId = "3"
+    stage4.refId = "4"
+
+    stage1.requisiteStageRefIds = ["2"]
+    stage2.parentStageId = stage3.id
+    stage3.requisiteStageRefIds = ["4"]
+
+    expect:
+    // order is dependent on the order of a stage within `execution.stages`
+    with(stageNavigator.ancestors(stage1)) {
+      stage.type == ["One", "Two", "Three", "Four"]
+      stageBuilder.type == ["One", "Two", "Three", "Four"]
+    }
   }
 
   private Stage buildStage(String type) {
     def pipelineStage = new Stage<>(execution, type)
-    pipelineStage.stageNavigator = stageNavigator
 
     execution.stages << pipelineStage
 

@@ -19,21 +19,20 @@ package com.netflix.spinnaker.orca.clouddriver.tasks.providers.gce
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.clouddriver.OortService
 import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTagger
+import com.netflix.spinnaker.orca.clouddriver.tasks.image.ImageTaggerSpec
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
-import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
-import org.springframework.context.ApplicationContext
-import spock.lang.Specification
-import spock.lang.Subject
 import spock.lang.Unroll
 
-class GoogleImageTaggerSpec extends Specification {
+class GoogleImageTaggerSpec extends ImageTaggerSpec {
 
   def oortService = Mock(OortService)
 
-  @Subject
-  def imageTagger = new GoogleImageTagger(oortService, new ObjectMapper())
+  @Override
+  protected ImageTagger subject() {
+    new GoogleImageTagger(oortService, new ObjectMapper())
+  }
 
   @Unroll
   def "should throw exception if image does not exist"() {
@@ -51,9 +50,11 @@ class GoogleImageTaggerSpec extends Specification {
 
     stage1.refId = stage1.id
     stage2.requisiteStageRefIds = [stage1.refId]
-    stage2.stageNavigator = new StageNavigator(Stub(ApplicationContext))
 
     pipeline.stages = [stage1, stage2]
+
+    and:
+    oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
 
     when:
     imageTagger.getOperationContext(stage2)
@@ -61,8 +62,6 @@ class GoogleImageTaggerSpec extends Specification {
     then:
     ImageTagger.ImageNotFound e = thrown(ImageTagger.ImageNotFound)
     e.shouldRetry == shouldRetry
-
-    1 * oortService.findImage("gce", "my-gce-image", null, null, null) >> { [] }
 
     where:
     imageId        | imageName       || shouldRetry

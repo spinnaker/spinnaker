@@ -24,7 +24,6 @@ import com.netflix.spinnaker.orca.clouddriver.pipeline.servergroup.ResizeServerG
 import com.netflix.spinnaker.orca.clouddriver.tasks.servergroup.AbstractServerGroupTask
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.support.StageData
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import groovy.util.logging.Slf4j
@@ -147,9 +146,9 @@ class ApplySourceServerGroupCapacityTask extends AbstractServerGroupTask {
    * Find an ancestor (or synthetic sibling) stage w/ `sourceServerGroupCapacitySnapshot` in it's context.
    */
   static Stage getAncestorSnapshotStage(Stage stage) {
-    def ancestors = stage.ancestors { Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
+    def ancestors = stage.ancestors().findAll { ancestorStage ->
       ancestorStage.context.containsKey("sourceServerGroupCapacitySnapshot")
-    }*.stage
+    }
 
     return ancestors ? ancestors[0] : stage.execution.stages.find {
       // find a synthetic sibling w/ 'sourceServerGroupCapacitySnapshot' in the event of there being no suitable

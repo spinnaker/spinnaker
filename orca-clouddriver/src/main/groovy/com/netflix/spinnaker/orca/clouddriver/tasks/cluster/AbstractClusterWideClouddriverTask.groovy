@@ -29,7 +29,6 @@ import com.netflix.spinnaker.orca.clouddriver.tasks.AbstractCloudProviderAwareTa
 import com.netflix.spinnaker.orca.clouddriver.utils.OortHelper
 import com.netflix.spinnaker.orca.kato.pipeline.CopyLastAsgStage
 import com.netflix.spinnaker.orca.kato.pipeline.DeployStage
-import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import groovy.transform.Canonical
 import groovy.util.logging.Slf4j
@@ -207,11 +206,11 @@ abstract class AbstractClusterWideClouddriverTask extends AbstractCloudProviderA
     ]
     List<TargetServerGroup> deployedServerGroups = []
 
-    stage.ancestors({ Stage ancestorStage, StageDefinitionBuilder stageBuilder ->
+    stage.ancestors().findAll { Stage ancestorStage ->
       // Stage type is the context.type value when the stage is running as a child stage of a parallel deploy, or
       // the stage.type attribute when it is running directly as part of an Orchestration or Pipeline
       (deployStageTypes.contains(ancestorStage.type) || deployStageTypes.contains(ancestorStage.context.type)) && ancestorStage.context.'deploy.account.name' == account
-    })*.stage.each { Stage parentDeployStage ->
+    }.each { Stage parentDeployStage ->
       Map<String, String> dsgs = (parentDeployStage.context.'deploy.server.groups' ?: [:]) as Map
       switch (location.type) {
         case Location.Type.ZONE:

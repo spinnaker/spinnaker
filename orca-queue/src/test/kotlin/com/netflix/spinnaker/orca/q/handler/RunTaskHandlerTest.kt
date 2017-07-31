@@ -25,6 +25,7 @@ import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
+import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
 import com.netflix.spinnaker.orca.q.*
 import com.netflix.spinnaker.orca.time.fixedClock
 import com.netflix.spinnaker.spek.and
@@ -44,6 +45,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
   val queue: Queue = mock()
   val repository: ExecutionRepository = mock()
+  val stageNavigator: StageNavigator = mock()
   val task: DummyTask = mock()
   val exceptionHandler: ExceptionHandler = mock()
   val clock = fixedClock()
@@ -53,6 +55,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
     RunTaskHandler(
       queue,
       repository,
+      stageNavigator,
       contextParameterProcessor,
       listOf(task),
       clock,
