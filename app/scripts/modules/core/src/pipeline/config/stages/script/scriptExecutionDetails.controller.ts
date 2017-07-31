@@ -3,7 +3,8 @@ import { get } from 'lodash';
 import { StateParams } from '@uirouter/core';
 
 import { BaseExecutionDetailsCtrl, IExecutionDetailsScope } from '../core/baseExecutionDetails.controller';
-import { ExecutionDetailsSectionService, IStage } from '@spinnaker/core';
+import { IStage } from 'core/domain/IStage';
+import { ExecutionDetailsSectionService } from 'core/delivery/details/executionDetailsSection.service';
 
 export class ScriptExecutionDetailsCtrl extends BaseExecutionDetailsCtrl {
 

@@ -2,7 +2,7 @@ import { IController } from 'angular';
 
 import { bootstrapModule } from './bootstrap.module';
 import { OverrideRegistry } from 'core/overrideRegistry';
-import { IFeatures, SETTINGS } from '@spinnaker/core';
+import { IFeatures, SETTINGS } from 'core/config/settings';
 
 const template = `
   <div class="spinnaker-container">

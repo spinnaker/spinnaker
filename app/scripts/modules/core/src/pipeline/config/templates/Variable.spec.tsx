@@ -2,8 +2,9 @@ import { mock } from 'angular';
 import * as React from 'react';
 import { mount, ReactWrapper } from 'enzyme';
 
-import { HELP_CONTENTS, HELP_CONTENTS_REGISTRY, REACT_MODULE } from '@spinnaker/core';
-
+import { REACT_MODULE } from 'core/reactShims/react.module';
+import { HELP_CONTENTS } from 'core/help/help.contents';
+import { HELP_CONTENTS_REGISTRY } from 'core/help/helpContents.registry';
 import { PIPELINE_TEMPLATE_MODULE } from './pipelineTemplate.module';
 import { Variable } from './Variable';
 import { IVariableError, IVariableProps } from './inputs/variableInput.service';

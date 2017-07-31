@@ -1,4 +1,4 @@
-import { IUrlBuilder } from '@spinnaker/core';
+import { IUrlBuilder } from './urlBuilder.service';
 
 export class UrlBuilderRegistry {
   private builders: { [key: string]: IUrlBuilder} = {};

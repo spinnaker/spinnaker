@@ -2,7 +2,7 @@
 
 const angular = require('angular');
 
-import { InstanceTemplates } from '@spinnaker/core';
+import {InstanceTemplates} from 'core/instance/templates';
 
 module.exports = angular
   .module('spinnaker.core.instance.details.console.link', [
@@ -19,7 +19,7 @@ module.exports = angular
         text: '=?'
       },
       controllerAs: 'vm',
-      controller: function($uibModal) {
+      controller: function ($uibModal) {
         this.text = this.text || 'Console Output (Raw)';
         this.showConsoleOutput = function () {
           $uibModal.open({

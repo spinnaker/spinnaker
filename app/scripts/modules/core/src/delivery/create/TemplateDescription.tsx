@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { NgReact } from '@spinnaker/core';
+import { NgReact } from 'core/reactShims/ngReact';
 import { IPipelineTemplate } from 'core/pipeline/config/templates/pipelineTemplate.service';
 
 import './TemplateDescription.less';

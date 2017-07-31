@@ -1,8 +1,11 @@
 import { IPromise } from 'angular';
 import { $q, $log } from 'ngimport';
 
-import { ISearchResult, ISearchResultFormatter, IUrlBuilder, urlBuilderRegistry } from '@spinnaker/core';
+import { urlBuilderRegistry } from 'core/navigation/urlBuilder.registry';
+import { IUrlBuilder } from 'core/navigation/urlBuilder.service';
 import { searchResultFormatterRegistry } from './searchResult/searchResultFormatter.registry';
+import { ISearchResult } from './search.service';
+import { ISearchResultFormatter } from './searchResult/searchResultFormatter.registry';
 
 /**
  * External search registry entries add a section to the infrastructure search
