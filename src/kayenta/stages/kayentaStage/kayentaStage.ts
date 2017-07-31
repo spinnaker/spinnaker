@@ -7,6 +7,7 @@ import {
 } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
+import { getCanaryConfigSummaries } from 'kayenta/service/canaryConfig.service';
 
 interface IKayentaStage {
   canaryConfig: IKayentaStageCanaryConfig;
@@ -28,6 +29,7 @@ interface IKayentaStageCanaryConfig {
 class CanaryStage implements IComponentController {
 
   public state = { useLookback: false };
+  public canaryConfigNames: string[] = [];
 
   constructor(public stage: IKayentaStage) {
     'ngInject';
@@ -56,6 +58,14 @@ class CanaryStage implements IComponentController {
     if (this.stage.canaryConfig.lookbackMins) {
       this.state.useLookback = true;
     }
+
+    this.loadCanaryConfigNames();
+  }
+
+  private loadCanaryConfigNames(): void {
+    getCanaryConfigSummaries().then(summaries => {
+      this.canaryConfigNames = summaries.map(summary => summary.name);
+    });
   }
 }
 
