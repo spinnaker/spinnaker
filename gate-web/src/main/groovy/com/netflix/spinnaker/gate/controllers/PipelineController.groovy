@@ -18,9 +18,12 @@
 package com.netflix.spinnaker.gate.controllers
 
 import com.netflix.spinnaker.gate.services.PipelineService
+
+import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes
 import com.netflix.spinnaker.kork.web.exceptions.NotFoundException
 import com.netflix.spinnaker.security.AuthenticatedRequest
 import groovy.transform.CompileStatic
+import groovy.transform.InheritConstructors
 import groovy.util.logging.Slf4j
 import io.swagger.annotations.ApiOperation
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +31,13 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import retrofit.RetrofitError
 
 @Slf4j
@@ -172,11 +181,21 @@ class PipelineController {
       def body = call()
       new ResponseEntity(body, HttpStatus.OK)
     } catch (RetrofitError re) {
-      if (re.response.status == HttpStatus.BAD_REQUEST.value() && requestBody.type == "templatedPipeline") {
-        new ResponseEntity(re.getBody(), HttpStatus.BAD_REQUEST)
+      if (re.response?.status == HttpStatus.BAD_REQUEST.value() && requestBody.type == "templatedPipeline") {
+        throw new PipelineException((HashMap<String, Object>) re.getBodyAs(HashMap.class))
       } else {
         throw re
       }
+    }
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @InheritConstructors
+  class PipelineException extends RuntimeException implements HasAdditionalAttributes {
+    Map<String, Object> additionalAttributes = [:]
+
+    PipelineException(Map<String, Object> additionalAttributes) {
+      this.additionalAttributes = additionalAttributes
     }
   }
 }

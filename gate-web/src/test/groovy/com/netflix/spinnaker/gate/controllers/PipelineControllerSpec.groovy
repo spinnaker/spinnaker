@@ -21,7 +21,13 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import retrofit.MockTypedInput
+import retrofit.RetrofitError
+import retrofit.client.Response
+import retrofit.converter.JacksonConverter
 import spock.lang.Specification
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 
 class PipelineControllerSpec extends Specification {
@@ -52,5 +58,43 @@ class PipelineControllerSpec extends Specification {
     then:
     response.status == 200
     1 * pipelineService.update(pipeline.id, pipeline)
+  }
+
+  def "should propagate pipeline template errors"() {
+    given:
+    def pipelineService = Mock(PipelineService)
+    MockMvc mockMvc = MockMvcBuilders.standaloneSetup(new PipelineController(pipelineService: pipelineService)).build()
+
+    and:
+    def pipeline = [
+      type: 'templatedPipeline',
+      config: [:]
+    ]
+    def mockedHttpException = [
+      errors: [
+        [
+          location: "configuration:stages.meh",
+          message: "Stage configuration is unset"
+        ]
+      ]
+    ]
+
+    when:
+    mockMvc.perform(
+      post("/start").contentType(MediaType.APPLICATION_JSON)
+        .content(new ObjectMapper().writeValueAsString(pipeline))
+    ).andDo({
+      // thanks groovy
+      throw RetrofitError.httpError(
+        "http://orca",
+        new Response("http://orca", 400, "template invalid", [], new MockTypedInput(new JacksonConverter(), mockedHttpException)),
+        new JacksonConverter(),
+        Object.class
+      )
+    })
+
+    then:
+    def e = thrown(RetrofitError)
+    e.body == mockedHttpException
   }
 }
