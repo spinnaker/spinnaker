@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.eureka;
 
+import com.netflix.appinfo.InstanceInfo.InstanceStatus;
 import com.netflix.discovery.StatusChangeEvent;
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent;
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
+import static com.netflix.appinfo.InstanceInfo.InstanceStatus.OUT_OF_SERVICE;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UNKNOWN;
 import static com.netflix.appinfo.InstanceInfo.InstanceStatus.UP;
 
@@ -32,7 +34,7 @@ public class NoDiscoveryApplicationStatusPublisher implements ApplicationListene
   private final ApplicationEventPublisher publisher;
   private final Logger log = LoggerFactory.getLogger(NoDiscoveryApplicationStatusPublisher.class);
 
-  private static final RemoteStatusChangedEvent DEFAULT_UP_EVENT = new RemoteStatusChangedEvent(new StatusChangeEvent(UNKNOWN, UP));
+  private static InstanceStatus instanceStatus = UNKNOWN;
 
   public NoDiscoveryApplicationStatusPublisher(ApplicationEventPublisher publisher) {
     this.publisher = publisher;
@@ -40,6 +42,16 @@ public class NoDiscoveryApplicationStatusPublisher implements ApplicationListene
 
   @Override public void onApplicationEvent(ContextRefreshedEvent event) {
     log.warn("No discovery client is available, assuming application is up");
-    publisher.publishEvent(DEFAULT_UP_EVENT);
+    setInstanceStatus(UP);
+  }
+
+  private void setInstanceStatus(InstanceStatus current) {
+    InstanceStatus previous = instanceStatus;
+    instanceStatus = current;
+    publisher.publishEvent(new RemoteStatusChangedEvent(new StatusChangeEvent(previous, current)));
+  }
+
+  public void setInstanceEnabled(boolean enabled) {
+    setInstanceStatus(enabled ? UP : OUT_OF_SERVICE);
   }
 }
