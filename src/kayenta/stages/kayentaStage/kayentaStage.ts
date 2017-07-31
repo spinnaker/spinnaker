@@ -1,4 +1,5 @@
 import { IComponentController, module } from 'angular';
+import { isString } from 'lodash';
 
 import {
   ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY,
@@ -16,24 +17,45 @@ interface IKayentaStageCanaryConfig {
   canaryAnalysisIntervalMins: string;
   canaryConfigId: string;
   controlScope: string,
+  combinedCanaryResultStrategy: string;
   experimentScope: string;
   lifetimeHours: string;
+  lookbackMins?: string;
   metricsAccountName: string;
   storageAccountName: string;
 }
 
 class CanaryStage implements IComponentController {
 
+  public state = { useLookback: false };
+
   constructor(public stage: IKayentaStage) {
     'ngInject';
+    this.initialize();
   }
 
-  public $onInit(): void {
+  public onUseLookbackChange(): void {
+    if (!this.state.useLookback) {
+      delete this.stage.canaryConfig.lookbackMins;
+    }
+  }
+
+  public isExpression(val: number | string): boolean {
+    return isString(val) && val.includes('${');
+  }
+
+  private initialize(): void {
     this.stage.canaryConfig = this.stage.canaryConfig || {} as IKayentaStageCanaryConfig;
     this.stage.canaryConfig.storageAccountName =
       this.stage.canaryConfig.storageAccountName || CanarySettings.storageAccountName;
     this.stage.canaryConfig.metricsAccountName =
       this.stage.canaryConfig.metricsAccountName || CanarySettings.metricsAccountName;
+    this.stage.canaryConfig.combinedCanaryResultStrategy =
+      this.stage.canaryConfig.combinedCanaryResultStrategy || 'LOWEST';
+
+    if (this.stage.canaryConfig.lookbackMins) {
+      this.state.useLookback = true;
+    }
   }
 }
 
