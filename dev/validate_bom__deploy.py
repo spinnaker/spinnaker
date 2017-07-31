@@ -939,7 +939,8 @@ class GoogleValidateBomDeployer(GenericVmValidateBomDeployer):
         .format(gcloud_account=options.deploy_hal_google_service_account,
                 project=options.deploy_google_project,
                 zone=options.deploy_google_zone,
-                instance=options.deploy_google_instance))
+                instance=options.deploy_google_instance),
+        dup_stderr_to_stdout=False)
     nic = json.JSONDecoder().decode(
         response.stdout)['networkInterfaces'][0]
 

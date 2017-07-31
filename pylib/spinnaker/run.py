@@ -114,7 +114,7 @@ def run_and_monitor(command, echo=True, input=None,
   return RunResult(process.returncode, ''.join(out), ''.join(err))
 
 
-def run_quick(command, echo=True):
+def run_quick(command, echo=True, dup_stderr_to_stdout=True):
   """A more efficient form of run_and_monitor that doesnt monitor output.
 
   Args:
@@ -126,14 +126,17 @@ def run_quick(command, echo=True):
        The content of stderr will be joined into stdout.
        stderr itself will be None.
   """
+  stderr_target = subprocess.STDOUT if dup_stderr_to_stdout else subprocess.PIPE
   p = subprocess.Popen(command, shell=True, close_fds=True,
-                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                       stdout=subprocess.PIPE, stderr=stderr_target)
   stdout, stderr = p.communicate()
   if echo:
     print command
     print stdout
+    if not dup_stderr_to_stdout:
+      print stderr
 
-  return RunResult(p.returncode, stdout, None)
+  return RunResult(p.returncode, stdout, stderr)
 
 
 def check_run_and_monitor(command, echo=True, input=None):
@@ -161,12 +164,16 @@ def check_run_and_monitor(command, echo=True, input=None):
   return result
 
 
-def check_run_quick(command, echo=True):
+def check_run_quick(command, echo=True, dup_stderr_to_stdout=True):
   """A more efficient form of check_run_and_monitor that doesnt monitor output.
 
   Args:
     command [string]: The shell command to run.
     echo [bool]: If True then echo the command and output to stdout.
+    dup_stderr_to_stdout [bool]: If True then also write stderr to stdout,
+       otherwise keep the streams separate. Duping them interleaves the sequence
+       into a single stream which is more human readable but might not be machine
+       readable if expecting a response and a warning is emitted.
 
   Returns:
     RunResult with result code and output from running the command.
@@ -176,13 +183,14 @@ def check_run_quick(command, echo=True):
   Raises:
     RuntimeError if command failed.
   """
-  result = run_quick(command, echo)
+  result = run_quick(command, echo=echo, dup_stderr_to_stdout=dup_stderr_to_stdout)
   if result.returncode:
+     msg = result.stdout if dup_stderr_to_stdout else result.stderr
      error = ('FAILED with exit code {code}'
               '\n\nCommand was {command}'
-              '\n\nError was {stdout}'.format(
+              '\n\nError was {msg}'.format(
                  code=result.returncode,
                 command=command,
-                stdout=result.stdout))
+                msg=msg))
      raise RuntimeError(error)
   return result
