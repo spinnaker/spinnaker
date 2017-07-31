@@ -22,6 +22,7 @@ import com.netflix.spinnaker.kork.web.exceptions.HasAdditionalAttributes
 import com.netflix.spinnaker.orca.eureka.NoDiscoveryApplicationStatusPublisher
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.ApplicationListener
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.http.HttpStatus
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.*
 @Slf4j
 class AdminController {
   @Autowired(required = false)
+  @Qualifier("discoveryStatusPoller")
   ApplicationListener<ContextRefreshedEvent> discoveryStatusPoller
 
   @RequestMapping(value = "/instance/enabled", method = RequestMethod.POST)
