@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
+import com.netflix.spectator.api.histogram.BucketDistributionSummary
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.RetryableTask
@@ -42,6 +43,7 @@ import java.time.Duration
 import java.time.Duration.ZERO
 import java.time.Instant
 import java.time.temporal.TemporalAmount
+import java.util.concurrent.TimeUnit
 
 @Component
 open class RunTaskHandler
@@ -75,17 +77,17 @@ open class RunTaskHandler
               stage.processTaskOutput(result)
               when (result.status) {
                 RUNNING -> {
-                  queue.push(message, task.backoffPeriod())
-                  trackResult(stage, task.javaClass, result.status)
+                  queue.push(message, task.backoffPeriod(taskModel))
+                  trackResult(stage, taskModel, result.status)
                 }
                 SUCCEEDED, REDIRECT, FAILED_CONTINUE -> {
                   queue.push(CompleteTask(message, result.status))
-                  trackResult(stage, task.javaClass, result.status)
+                  trackResult(stage, taskModel, result.status)
                 }
                 TERMINAL, CANCELED -> {
                   val status = stage.failureStatus(default = result.status)
                   queue.push(CompleteTask(message, status))
-                  trackResult(stage, task.javaClass, status)
+                  trackResult(stage, taskModel, status)
                 }
                 else ->
                   TODO("Unhandled task status ${result.status}")
@@ -97,8 +99,8 @@ open class RunTaskHandler
         val exceptionDetails = exceptionHandlers.shouldRetry(e, taskModel.name)
         if (exceptionDetails?.shouldRetry ?: false) {
           log.warn("Error running ${message.taskType.simpleName} for ${message.executionType.simpleName}[${message.executionId}]")
-          queue.push(message, task.backoffPeriod())
-          trackResult(stage, task.javaClass, RUNNING)
+          queue.push(message, task.backoffPeriod(taskModel))
+          trackResult(stage, taskModel, RUNNING)
         } else if (e is TimeoutException && stage.getContext()["markSuccessfulOnTimeout"] == true) {
           queue.push(CompleteTask(message, SUCCEEDED))
         } else {
@@ -106,26 +108,43 @@ open class RunTaskHandler
           stage.getContext()["exception"] = exceptionDetails
           repository.storeStage(stage)
           queue.push(CompleteTask(message, stage.failureStatus()))
-          trackResult(stage, task.javaClass, stage.failureStatus())
+          trackResult(stage, taskModel, stage.failureStatus())
         }
       }
     }
   }
 
-  private fun trackResult(stage: Stage<*>, taskType: Class<Task>, status: ExecutionStatus) {
+  private fun trackResult(stage: Stage<*>, taskModel: com.netflix.spinnaker.orca.pipeline.model.Task, status: ExecutionStatus) {
     val id = registry.createId("task.invocations")
       .withTag("status", status.toString())
       .withTag("executionType", stage.getExecution().javaClass.simpleName)
-      .withTag("stageType", stage.getType())
-      .withTag("taskType", taskType.simpleName)
       .withTag("isComplete", status.isComplete.toString())
-      .withTag("sourceApplication", stage.getExecution().getApplication())
+      .withTag("application", stage.getExecution().getApplication())
       .let { id ->
         stage.getContext()["cloudProvider"]?.let {
           id.withTag("cloudProvider", it.toString())
         } ?: id
       }
     registry.counter(id).increment()
+
+    val distributionId = registry.createId("task.invocations.duration").withTags(id.tags())
+    BucketDistributionSummary
+      .get(registry, distributionId, { v -> bucketDuration(v) })
+      .record(System.currentTimeMillis() - taskModel.startTime)
+  }
+
+  fun bucketDuration(duration: Long): String {
+    return if (duration > TimeUnit.MINUTES.toMillis(60)) {
+      "gt60m"
+    } else if (duration > TimeUnit.MINUTES.toMillis(30)) {
+      "gt30m"
+    } else if (duration > TimeUnit.MINUTES.toMillis(15)) {
+      "gt15m"
+    } else if (duration > TimeUnit.MINUTES.toMillis(5)) {
+      "gt5m"
+    } else {
+      "lt5m"
+    }
   }
 
   override val messageType = RunTask::class.java
@@ -143,9 +162,11 @@ open class RunTaskHandler
         }
     }
 
-  private fun Task.backoffPeriod(): TemporalAmount =
+  private fun Task.backoffPeriod(taskModel: com.netflix.spinnaker.orca.pipeline.model.Task): TemporalAmount =
     when (this) {
-      is RetryableTask -> Duration.ofMillis(backoffPeriod)
+      is RetryableTask -> Duration.ofMillis(
+        getDynamicBackoffPeriod(Duration.ofMillis(System.currentTimeMillis() - taskModel.startTime))
+      )
       else -> Duration.ofSeconds(1)
     }
 

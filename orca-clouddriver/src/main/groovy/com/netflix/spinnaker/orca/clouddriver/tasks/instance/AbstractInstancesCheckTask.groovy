@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.tasks.instance
 
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.frigga.Names
@@ -69,6 +70,19 @@ abstract class AbstractInstancesCheckTask extends AbstractCloudProviderAwareTask
   // For the other uses of this task, we will fail if the server group doesn't exist.
   boolean waitForUpServerGroup() {
     return false
+  }
+
+  @Override
+  long getDynamicBackoffPeriod(Duration taskDuration) {
+    if (taskDuration.toMillis() > TimeUnit.MINUTES.toMillis(60)) {
+      // task has been running > 60min, drop retry interval to every 2 minutes
+      return Math.max(backoffPeriod, TimeUnit.SECONDS.toMillis(120))
+    } else if (taskDuration.toMillis() > TimeUnit.MINUTES.toMillis(30)) {
+      // task has been running > 30min, drop retry interval to every 60s
+      return Math.max(backoffPeriod, TimeUnit.SECONDS.toMillis(60))
+    }
+
+    return backoffPeriod
   }
 
   @Override

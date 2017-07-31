@@ -17,7 +17,7 @@ import com.netflix.spinnaker.orca.libdiffs.ComparableLooseVersion;
 import com.netflix.spinnaker.orca.libdiffs.DefaultComparableLooseVersion;
 import com.netflix.spinnaker.orca.listeners.ExecutionCleanupListener;
 import com.netflix.spinnaker.orca.listeners.ExecutionListener;
-import com.netflix.spinnaker.orca.listeners.OnCompleteMetricExecutionListener;
+import com.netflix.spinnaker.orca.listeners.MetricsExecutionListener;
 import com.netflix.spinnaker.orca.notifications.scheduling.SuspendedPipelinesNotificationHandler;
 import com.netflix.spinnaker.orca.pipeline.PipelineStartTracker;
 import com.netflix.spinnaker.orca.pipeline.PipelineStarterListener;
@@ -133,7 +133,7 @@ public class OrcaConfiguration {
 
   @Bean
   public ApplicationListener<ExecutionEvent> onCompleteMetricExecutionListenerAdapter(Registry registry, ExecutionRepository repository) {
-    return new ExecutionListenerAdapter(new OnCompleteMetricExecutionListener(registry), repository);
+    return new ExecutionListenerAdapter(new MetricsExecutionListener(registry), repository);
   }
 
   // TODO: this is a weird place to have this, feels like it should be a bean configurer or something

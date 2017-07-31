@@ -23,6 +23,7 @@ import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.model.Execution.PausedDetails
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
+import com.netflix.spinnaker.orca.pipeline.model.Task
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -40,6 +41,7 @@ import org.jetbrains.spek.subject.SubjectSpek
 import org.threeten.extra.Minutes
 import java.lang.RuntimeException
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
@@ -121,7 +123,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
       beforeGroup {
         whenever(task.execute(any())) doReturn taskResult
-        whenever(task.backoffPeriod) doReturn taskBackoffMs
+        whenever(task.getDynamicBackoffPeriod(any())) doReturn taskBackoffMs
         whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
       }
 
@@ -337,7 +339,7 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
         )
 
         beforeGroup {
-          whenever(task.backoffPeriod) doReturn taskBackoffMs
+          whenever(task.getDynamicBackoffPeriod(any())) doReturn taskBackoffMs
           whenever(task.execute(any())) doThrow RuntimeException("o noes")
           whenever(repository.retrievePipeline(message.executionId)) doReturn pipeline
           whenever(exceptionHandler.handles(any())) doReturn true
@@ -992,6 +994,23 @@ object RunTaskHandlerTest : SubjectSpek<RunTaskHandler>({
 
     it("should not timeout and push the message back on the queue") {
       verify(queue).push(message, Duration.ofMillis(0))
+    }
+  }
+
+  describe("should bucket task durations") {
+    mapOf(
+      0 to "lt5m",
+      1 to "lt5m",
+      7 to "gt5m",
+      16 to "gt15m",
+      31 to "gt30m",
+      61 to "gt60m",
+      120 to "gt60m"
+    ).forEach { minutes, expectedBucket ->
+      given("a task that is ${minutes} minutes old") {
+        val millis = TimeUnit.MINUTES.toMillis(minutes.toLong())
+        subject.bucketDuration(millis) shouldEqual expectedBucket
+      }
     }
   }
 })

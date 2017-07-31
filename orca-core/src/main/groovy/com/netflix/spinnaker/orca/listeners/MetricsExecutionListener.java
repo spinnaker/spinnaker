@@ -24,11 +24,25 @@ import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
 
 import java.util.concurrent.TimeUnit;
 
-public class OnCompleteMetricExecutionListener implements ExecutionListener {
+public class MetricsExecutionListener implements ExecutionListener {
   private final Registry registry;
 
-  public OnCompleteMetricExecutionListener(Registry registry) {
+  public MetricsExecutionListener(Registry registry) {
     this.registry = registry;
+  }
+
+  @Override
+  public void beforeExecution(Persister persister, Execution execution) {
+    if (execution.getApplication() == null) {
+      return;
+    }
+
+    Id id = registry
+      .createId("executions.started")
+      .withTag("executionType", execution.getClass().getSimpleName().toLowerCase())
+      .withTag("application", execution.getApplication().toLowerCase());
+
+    registry.counter(id).increment();
   }
 
   @Override
