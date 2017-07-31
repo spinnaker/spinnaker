@@ -4,6 +4,10 @@ import { CanarySettings } from 'kayenta/canary.settings';
 import { ICanaryConfigSummary, ICanaryConfig } from 'kayenta/domain/index';
 import { ICanaryState } from '../reducers/index';
 import { localConfigCache } from './localConfigCache.service';
+import {
+  ICanaryMetricConfig,
+  ICanaryServiceConfig
+} from '../domain/ICanaryConfig';
 
 export function getCanaryConfigById(id: string): Promise<ICanaryConfig> {
   if (CanarySettings.liveCalls) {
@@ -29,6 +33,14 @@ export function updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}>
   }
 }
 
+export function createCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
+  if (CanarySettings.liveCalls) {
+    return ReactInjector.API.one('v2/canaryConfig').post(config);
+  } else {
+    return localConfigCache.createCanaryConfig(config);
+  }
+}
+
 export function deleteCanaryConfig(id: string): Promise<void> {
   if (CanarySettings.liveCalls) {
     return ReactInjector.API.one('v2/canaryConfig').one(id).remove();
@@ -46,4 +58,22 @@ export function mapStateToConfig(state: ICanaryState): ICanaryConfig {
   } else {
     return null;
   }
+}
+
+export function buildNewConfig(): ICanaryConfig {
+  return {
+    name: '(New config)',
+    description: '',
+    isNew: true,
+    metrics: [] as ICanaryMetricConfig[],
+    configVersion: '1',
+    services: {} as {[key: string]: ICanaryServiceConfig},
+    classifier: {
+      groupWeights: {} as {[key: string]: number},
+      scoreThreshold: {
+        pass: 75,
+        marginal: 50,
+      }
+    }
+  };
 }

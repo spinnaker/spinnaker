@@ -1,8 +1,9 @@
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/concat';
-import { MiddlewareAPI } from 'redux';
+import { Action, MiddlewareAPI } from 'redux';
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import {
+  createCanaryConfig,
   deleteCanaryConfig,
   getCanaryConfigById, mapStateToConfig,
   updateCanaryConfig
@@ -16,7 +17,7 @@ import {
 import { ICanaryState } from '../reducers/index';
 import { ReactInjector } from '@spinnaker/core';
 
-const selectConfigEpic = (action$: Observable<any>) =>
+const selectConfigEpic = (action$: Observable<Action & any>) =>
   action$
     .filter(action => action.type === LOAD_CONFIG)
     .concatMap(action =>
@@ -25,16 +26,29 @@ const selectConfigEpic = (action$: Observable<any>) =>
         .catch(error => ({type: CONFIG_LOAD_ERROR, error}))
     );
 
-const saveConfigEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanaryState>) =>
+const saveConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(action => action.type === SAVE_CONFIG_SAVING)
-    .concatMap(() =>
-      updateCanaryConfig(mapStateToConfig(store.getState()))
-        .then((response: {id: string}) => ({type: SAVE_CONFIG_SAVED, configName: response.id}))
-        .catch(error => ({type: SAVE_CONFIG_ERROR, error}))
-    );
+    .concatMap(() => {
+      const config = mapStateToConfig(store.getState());
+      let saveAction: Promise<{id: string}>;
+      if (config.isNew) {
+        delete config.isNew;
+        saveAction = createCanaryConfig(config);
+      } else {
+        saveAction = updateCanaryConfig(config);
+      }
 
-const deleteConfigEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanaryState>) =>
+      return saveAction
+        .then(() => Promise.all([
+          ReactInjector.$state.go('^.configDetail', {configName: config.name, isNew: null}),
+          store.getState().application.getDataSource('canaryConfigs').refresh(true),
+        ]))
+        .then(() => ({type: SAVE_CONFIG_SAVED, configName: config.name}))
+        .catch((error: Error) => ({type: SAVE_CONFIG_ERROR, error}));
+    });
+
+const deleteConfigEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(action => action.type === DELETE_CONFIG_DELETING)
     .concatMap(() =>
@@ -43,7 +57,7 @@ const deleteConfigEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanary
         .catch(error => ({type: DELETE_CONFIG_ERROR, error}))
     );
 
-const deleteConfigCompletedEpic = (action$: Observable<any>, store: MiddlewareAPI<ICanaryState>) =>
+const deleteConfigCompletedEpic = (action$: Observable<Action & any>, store: MiddlewareAPI<ICanaryState>) =>
   action$
     .filter(action => action.type === DELETE_CONFIG_COMPLETED)
     .concatMap(() =>

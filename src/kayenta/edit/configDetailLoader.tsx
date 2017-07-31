@@ -1,17 +1,24 @@
 import * as React from 'react';
+import { Action } from 'redux';
 import { connect } from 'react-redux';
 import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import ConfigDetailLoadStates from './configDetailLoadStates';
-import { LOAD_CONFIG } from '../actions/index';
+import { LOAD_CONFIG, SELECT_CONFIG } from '../actions/index';
+import { buildNewConfig } from '../service/canaryConfig.service';
 
 interface IConfigLoaderStateParamsProps {
-  configNameStream: Observable<string>;
+  configNameStream: Observable<IConfigDetailStateParams>;
 }
 
 interface IConfigLoaderDispatchProps {
-  loadConfig: (configName: string) => void;
+  loadConfig: (stateParams: IConfigDetailStateParams) => void;
+}
+
+interface IConfigDetailStateParams {
+  configName: string;
+  isNew: string;
 }
 
 export enum ConfigDetailLoadState {
@@ -41,13 +48,20 @@ class ConfigDetailLoader extends React.Component<IConfigLoaderDispatchProps & IC
   }
 }
 
-function mapDispatchToProps(dispatch: any): IConfigLoaderDispatchProps {
+function mapDispatchToProps(dispatch: (action: Action & any) => void): IConfigLoaderDispatchProps {
   return {
-    loadConfig: (configName: string) => {
-      dispatch({
-        type: LOAD_CONFIG,
-        id: configName
-      });
+    loadConfig: (stateParams: IConfigDetailStateParams) => {
+      if (stateParams.isNew) {
+        dispatch({
+          type: SELECT_CONFIG,
+          config: buildNewConfig(),
+        });
+      } else {
+        dispatch({
+          type: LOAD_CONFIG,
+          id: stateParams.configName,
+        });
+      }
     }
   };
 }

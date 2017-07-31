@@ -11,6 +11,7 @@ import {
 import { ICanaryState } from '../reducers/index';
 import { ICanaryConfig } from '../domain/ICanaryConfig';
 import { jsonUtilityService } from '@spinnaker/core';
+import { mapStateToConfig } from '../service/canaryConfig.service';
 
 interface IEditConfigJsonDispatchProps {
   closeModal: () => void;
@@ -94,7 +95,7 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IEditConf
 function mapStateToProps(state: ICanaryState): IEditConfigJsonStateProps {
   return {
     show: state.editConfigJsonModalOpen,
-    selectedConfig: state.selectedConfig,
+    selectedConfig: mapStateToConfig(state),
     configJson: state.configJson,
     deserializationError: state.configJsonDeserializationError,
   };

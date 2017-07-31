@@ -37,8 +37,7 @@ class LocalConfigCache {
 
   public updateCanaryConfig(config: ICanaryConfig): Promise<{id: string}> {
     return this.deleteCanaryConfig(config.name)
-      .then(() => this.configs.add(config))
-      .then(() => ({id: config.name}));
+      .then(() => this.createCanaryConfig(config));
   }
 
   public deleteCanaryConfig(id: string): Promise<void> {
