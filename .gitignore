@@ -6,7 +6,3 @@ build/
 out/
 /.idea/
 *.rdb
-
-.classpath
-.project
-.settings
