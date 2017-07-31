@@ -358,9 +358,10 @@ class ValidateBomTestController(object):
     quota_spec = {parts[0]: int(parts[1])
                   for parts in [entry.split('=')
                                 for entry in options.test_default_quota.split(',')]}
-    quota_spec.update({parts[0]: int(parts[1])
-                  for parts in [entry.split('=')
-                                for entry in options.test_quota.split(',')]})
+    if options.test_quota:
+      quota_spec.update({parts[0]: int(parts[1])
+                         for parts in [entry.split('=')
+                                       for entry in options.test_quota.split(',')]})
     self.__quota_tracker = QuotaTracker(quota_spec)
     self.__deployer = deployer
     self.__lock = threading.Lock()
