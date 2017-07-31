@@ -79,9 +79,10 @@ private fun <E : Execution<E>> ExecutionRepository.waitForAllStagesToComplete(ex
     complete = when (execution) {
       is Pipeline -> retrievePipeline(execution.id)
       else -> retrieveOrchestration(execution.id)
+    }.run {
+      getStatus().isComplete && getStages()
+        .map(Stage<*>::getStatus)
+        .all { it.isComplete || it == NOT_STARTED }
     }
-      .getStages()
-      .map(Stage<*>::getStatus)
-      .all { it.isComplete || it == NOT_STARTED }
   }
 }
