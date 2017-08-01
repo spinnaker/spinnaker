@@ -1,8 +1,13 @@
 @import (reference) "~core/presentation/less/imports/commonImports.less";
 
 .global-search {
-  .navbar-form {
+  form {
     margin: 5px;
+
+    @media (min-width: 768px) {
+      padding: 0 15px;
+    }
+    
     input[type="search"] {
       width: 200px;
     }

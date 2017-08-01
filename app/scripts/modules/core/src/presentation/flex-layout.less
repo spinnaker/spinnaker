@@ -6,13 +6,90 @@
   &.baseline {
     align-items: baseline;
   }
+
+  &.center {
+    justify-content: center;
+  }
+
+  &.middle {
+    align-items: center;
+  }
+
+  &.top {
+    align-items: flex-start;
+  }
+
+  &.bottom {
+    align-items: flex-end;
+  }
+
+  &.space-between {
+    justify-content: space-between;
+  }
+
+  &.space-around {
+    justify-content: space-around;
+  }
+
+  &.right {
+    justify-content: flex-end;
+  }
 }
 
 .flex-container-v {
   display: flex;
   flex-flow: column nowrap;
+
+  &.center {
+    align-items: center;
+  }
+
+  &.middle {
+    justify-content: center;
+  }
+
+  &.right {
+    align-items: flex-end;
+  }
+
+  &.bottom {
+    justify-content: flex-end;
+  }
+
+  &.space-around {
+    justify-content: space-around;
+  }
+
+  &.space-between {
+    justify-content: space-between;
+  }
 }
 
+// TODO(archana): Fix !important by removing the nowrap from the flex-container-h and v and testing to
+// ensure nothing breaks.
+.wrap {
+  flex-wrap: wrap !important;
+}
+
+.wrap-reverse {
+  flex-wrap: wrap-reverse;
+}
+
+.self-left {
+  align-self: flex-start;
+}
+
+.self-right {
+  align-self: flex-end;
+}
+
+.self-center {
+  align-self: center;
+}
+
+.self-stretch {
+  align-self: stretch;
+}
 
 // Flex item
 .flex-grow {
