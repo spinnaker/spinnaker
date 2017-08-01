@@ -16,7 +16,7 @@
 
 buildscript {
     ext {
-        springBootVersion = "1.2.8.RELEASE"
+        springBootVersion = "1.5.4.RELEASE"
     }
     repositories {
         jcenter()
@@ -24,7 +24,7 @@ buildscript {
         maven { url "https://plugins.gradle.org/m2/" }
     }
     dependencies {
-        classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.12.0'
+        classpath 'com.netflix.spinnaker.gradle:spinnaker-gradle-project:3.16.0'
         classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
     }
 }
@@ -36,7 +36,7 @@ allprojects {
     group = "com.netflix.spinnaker.echo"
 
     ext {
-        spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.104.0'
+        spinnakerDependenciesVersion = project.hasProperty('spinnakerDependenciesVersion') ? project.property('spinnakerDependenciesVersion') : '0.109.0'
     }
 
     def checkLocalVersions = [spinnakerDependenciesVersion: spinnakerDependenciesVersion]
@@ -70,9 +70,6 @@ allprojects {
         exclude group: 'javax.servlet', module: 'servlet-api'
         exclude group: 'org.slf4j', module: 'slf4j-log4j12'
         exclude group: 'org.slf4j', module: 'slf4j-simple'
-        resolutionStrategy {
-            force 'com.google.guava:guava:15.0'
-        }
     }
 }
 
