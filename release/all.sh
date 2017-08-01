@@ -22,3 +22,5 @@ for PLATFORM in "${PLATFORMS[@]}"; do
     ./release/publish.sh $VERSION $PLATFORM
   done
 done
+
+rm halyard.tar.gz
