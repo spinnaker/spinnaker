@@ -5,7 +5,7 @@ dependencies {
   compile project(":orca-core")
   compile project(":orca-front50")
 
-  compile('com.hubspot.jinjava:jinjava:2.1.14')
+  compile('com.hubspot.jinjava:jinjava:2.2.3')
 
   compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${spinnaker.version('jackson')}"
   compile('com.jayway.jsonpath:json-path:2.2.0')

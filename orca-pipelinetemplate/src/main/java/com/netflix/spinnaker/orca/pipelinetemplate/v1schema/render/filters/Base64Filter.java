@@ -25,6 +25,9 @@ public class Base64Filter implements Filter {
 
   @Override
   public Object filter(Object var, JinjavaInterpreter interpreter, String... args) {
+    if (var == null) {
+      return null;
+    }
     if (args.length != 0) {
       throw new InterpretException("base64 does not accept any arguments");
     }
