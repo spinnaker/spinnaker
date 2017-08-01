@@ -15,6 +15,7 @@
  */
 package com.netflix.spinnaker.orca.front50.tasks
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.collect.ImmutableMap
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.front50.Front50Service
@@ -31,8 +32,10 @@ class SavePipelineTaskSpec extends Specification {
 
   PipelineModelMutator mutator = Mock()
 
+  ObjectMapper objectMapper = new ObjectMapper()
+
   @Subject
-  SavePipelineTask task = new SavePipelineTask(front50Service: front50Service, pipelineModelMutators: [mutator])
+  SavePipelineTask task = new SavePipelineTask(front50Service: front50Service, objectMapper: objectMapper, pipelineModelMutators: [mutator])
 
   def "should run model mutators with correct context"() {
     given:
@@ -42,7 +45,7 @@ class SavePipelineTaskSpec extends Specification {
       stages: []
     ]
     def stage = new Stage<>(new Pipeline(), "whatever", [
-      pipeline: pipeline
+      pipeline: Base64.encoder.encodeToString(objectMapper.writeValueAsString(pipeline).bytes)
     ])
 
     when:
