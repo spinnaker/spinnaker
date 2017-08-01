@@ -16,6 +16,8 @@
 
 package com.netflix.spinnaker.clouddriver.aws.deploy
 
+import com.netflix.frigga.NameConstants
+import com.netflix.frigga.NameValidation
 import com.netflix.frigga.Names
 import com.netflix.spinnaker.clouddriver.helpers.AbstractServerGroupNameResolver
 import com.netflix.spinnaker.clouddriver.aws.services.AsgService
@@ -76,9 +78,15 @@ class AWSServerGroupNameResolver extends AbstractServerGroupNameResolver {
 
   @Override
   String resolveNextServerGroupName(String application, String stack, String details, Boolean ignoreSequence) {
+    def clusterName = combineAppStackDetail(application, stack, details)
+
+    if (!NameValidation.checkNameWithHyphen(clusterName)) {
+      throw new IllegalArgumentException("Invalid cluster name: '${clusterName}'. Cluster names can only contain " +
+        "characters in the following range: ${NameConstants.NAME_HYPHEN_CHARS}")
+    }
+
     def originalNextServerGroupName = super.resolveNextServerGroupName(application, stack, details, ignoreSequence)
     def nextServerGroupName = originalNextServerGroupName
-    def clusterName = combineAppStackDetail(application, stack, details)
 
     if (nextServerGroupName) {
       def hasNextServerGroup = false

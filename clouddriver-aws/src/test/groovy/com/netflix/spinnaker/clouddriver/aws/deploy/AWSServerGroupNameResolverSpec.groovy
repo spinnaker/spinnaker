@@ -141,6 +141,18 @@ class AWSServerGroupNameResolverSpec extends Specification {
     thrown(IllegalArgumentException)
   }
 
+  void "should raise IllegalArgumentException in cluster name is invalid"() {
+    given:
+    def clusterProviders = [amazonClusterProvider]
+    def resolver = new AWSServerGroupNameResolver(account, region, asgService, clusterProviders, 1)
+
+    when:
+    resolver.resolveNextServerGroupName('application', 'stack', 'details with spaces', false)
+
+    then:
+    thrown(IllegalArgumentException)
+  }
+
   static ServerGroup sG(String name, Long createdTime, String region) {
     return new SimpleServerGroup(name: name, createdTime: createdTime, region: region)
   }
