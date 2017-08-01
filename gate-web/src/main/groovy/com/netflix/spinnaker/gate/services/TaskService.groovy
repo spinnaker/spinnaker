@@ -77,6 +77,27 @@ class TaskService {
     } execute()
   }
 
+  Map createAndWaitForCompletion(Map body, int maxPolls = 20, int intervalMs = 500) {
+    Map createResult = create(body)
+    if (!createResult.get("ref")) {
+      return createResult
+    }
+
+    String taskId = ((String) createResult.get("ref")).split('/')[2]
+
+    int i = 0
+    while (i < maxPolls) {
+      i++
+      sleep(intervalMs)
+
+      Map task = getTask(taskId)
+      if (['SUCCEEDED', 'TERMINAL'].contains((String) task.get("status"))) {
+        return task
+      }
+    }
+    return null
+  }
+
   /**
    * @deprecated  This pipeline operation does not belong here.
    */
