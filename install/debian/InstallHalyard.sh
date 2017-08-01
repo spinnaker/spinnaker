@@ -15,7 +15,7 @@ function process_args() {
         ;;
       --version)
         echo "version"
-        VERSION="$1"
+        HALYARD_VERSION="$1"
         shift
         ;;
       -y)
@@ -71,11 +71,11 @@ function configure_defaults() {
   fi
   set -e
 
-  if [ -z "$VERSION" ]; then
-    VERSION="latest"
+  if [ -z "$HALYARD_VERSION" ]; then
+    HALYARD_VERSION="stable"
   fi
 
-  echo "$(tput bold)Halyard version will be $VERSION $(tput sgr0)"
+  echo "$(tput bold)Halyard version will be $HALYARD_VERSION $(tput sgr0)"
 
   home=$(getent passwd $HAL_USER | cut -d: -f6)
   local halconfig_dir="$home/.hal"
@@ -195,8 +195,12 @@ function install_halyard() {
   TEMPDIR=$(mktemp -d installhalyard.XXXX)
   pushd $TEMPDIR
 
-  curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$VERSION/debian/halyard.tar.gz
+  curl -O https://storage.googleapis.com/spinnaker-artifacts/halyard/$HALYARD_VERSION/debian/halyard.tar.gz
   tar -xvf halyard.tar.gz -C /opt
+
+  groupadd halyard
+  usermod -G halyard $HAL_USER
+  chown $HAL_USER:halyard /opt/halyard
 
   mv /opt/hal /usr/local/bin
   chmod +x /usr/local/bin/hal
