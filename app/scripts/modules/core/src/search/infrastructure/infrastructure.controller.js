@@ -75,13 +75,13 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
     var autoNavigate = false;
 
     if (angular.isDefined($location.search().q)) {
-      $scope.query = $location.search().q;
+      this.query = $location.search().q;
       autoNavigate = !!$location.search().route;
       // clear the parameter - it only comes from shortcut links, and if there are more than one result,
       // we don't want to automatically route the user or have them copy this as a link
       $location.search('route', null);
     }
-    $scope.$watch('query', function(query) {
+    $scope.$watch('ctrl.query', function(query) {
       $scope.categories = [];
       $scope.projects = [];
       if (query && query.length < $scope.viewState.minCharactersToSearch) {
@@ -184,7 +184,7 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
       return $scope.categories.length || $scope.projects.length;
     };
 
-    this.noMatches = () => !this.hasResults() && $scope.query && $scope.query.length > 0;
+    this.noMatches = () => !this.hasResults() && this.query && this.query.length > 0;
 
     this.showRecentResults = () => this.hasRecentItems && !$scope.viewState.searching && !$scope.projects.length && $scope.categories.every((category) => !category.results.length);
 
