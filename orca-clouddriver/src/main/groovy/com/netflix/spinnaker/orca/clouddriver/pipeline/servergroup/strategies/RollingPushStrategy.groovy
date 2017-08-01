@@ -47,6 +47,10 @@ class RollingPushStrategy implements Strategy {
     def stages = []
     def source = sourceResolver.getSource(stage)
 
+    if (!source) {
+      throw new IllegalArgumentException("Could not find source server group for rolling push. Does the specified cluster exist?")
+    }
+
     def modifyCtx = stage.context + [
         region: source.region,
         regions: [source.region],
