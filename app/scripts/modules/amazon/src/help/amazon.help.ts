@@ -32,6 +32,8 @@ const helpContents: {[key: string]: string} = {
     `<p>(Optional) <b>Detail</b> is a string of free-form alphanumeric characters; by convention, we recommend using "frontend".</p>
      <p>However, if your stack name needs to be longer (load balancer names are limited to 32 characters), consider changing it to "elb", or omit it altogether.</p>`,
   'aws.loadBalancer.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
+  'aws.loadBalancer.targetGroups': 'Add a target group if you want to associate this with an Application Load Balancer (ALB)',
+  'aws.loadBalancer.loadBalancers': 'And a load balancer directly if you created a Classic Load Balancer (a classic load balancer does not have target groups)',
   'aws.serverGroup.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'aws.serverGroup.detail': '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
   'aws.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',
