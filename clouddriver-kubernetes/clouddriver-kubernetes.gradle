@@ -1,10 +1,8 @@
 dependencies {
+  spinnaker.group('kubernetes')
   compile project(":clouddriver-core")
   compile project(":clouddriver-docker")
   compile spinnaker.dependency('frigga')
   compile spinnaker.dependency('bootActuator')
   compile spinnaker.dependency('bootWeb')
-
-  // TODO (move to https://github.com/spinnaker/spinnaker-dependencies/blob/master/src/spinnaker-dependencies.yml)
-  compile 'io.fabric8:kubernetes-client:2.4.1'
 }
