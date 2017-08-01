@@ -33,6 +33,7 @@ import com.netflix.spinnaker.orca.kayenta.config.KayentaConfiguration
 import com.netflix.spinnaker.orca.mahe.config.MaheConfiguration
 import com.netflix.spinnaker.orca.mine.config.MineConfiguration
 import com.netflix.spinnaker.orca.web.config.WebConfiguration
+import com.netflix.spinnaker.orca.webhook.config.WebhookConfiguration
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.batch.BatchAutoConfiguration
 import org.springframework.boot.autoconfigure.groovy.template.GroovyTemplateAutoConfiguration
@@ -67,7 +68,8 @@ import org.springframework.scheduling.annotation.EnableAsync
   ApplicationConfig,
   StackdriverConfig,
   PipelineTemplateConfiguration,
-  KayentaConfiguration
+  KayentaConfiguration,
+  WebhookConfiguration
 ])
 @ComponentScan([
   "com.netflix.spinnaker.config"

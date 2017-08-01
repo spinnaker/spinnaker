@@ -28,7 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Configuration
 @ConditionalOnProperty(prefix = "webhook.stage", value = "enabled", matchIfMissing = true)
-@ComponentScan(basePackageClasses = WebhookService)
+@ComponentScan("com.netflix.spinnaker.orca.webhook")
 @EnableConfigurationProperties(PreconfiguredWebhookProperties)
 class WebhookConfiguration {
 
