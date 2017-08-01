@@ -8,6 +8,7 @@ var authEnabled = {%features.auth%};
 var chaosEnabled = {%features.chaos%};
 var fiatEnabled = {%features.fiat%};
 var jobsEnabled = {%features.jobs%};
+var pipelineTemplatesEnabled = {%features.pipelineTemplates%};
 var timezone = '{%timezone%}';
 var version = '{%version%}';
 var changelogGistId = '{%changelog.gist.id%}';
@@ -127,6 +128,7 @@ window.spinnakerSettings = {
     netflixMode: netflixMode,
     chaosMonkey: chaosEnabled,
     jobs: jobsEnabled,
+    pipelineTemplates: pipelineTemplatesEnabled,
     pipelines: true,
     notifications: false,
     fastProperty: true,
