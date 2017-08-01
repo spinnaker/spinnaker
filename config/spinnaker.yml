@@ -380,3 +380,5 @@ providers:
       gitHttpsUsername: ${SPINNAKER_APPENGINE_GIT_HTTPS_USERNAME:}
       gitHttpsPassword: ${SPINNAKER_APPENGINE_GIT_HTTPS_PASSWORD:}
       githubOAuthAccessToken: ${SPINNAKER_APPENGINE_GITHUB_OAUTH_ACCESS_TOKEN:}
+
+management.security.enabled: false
