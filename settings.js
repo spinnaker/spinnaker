@@ -18,7 +18,7 @@ var infSearchEnabled = process.env.INF_SEARCH_ENABLED === 'true' ? true : false;
 window.spinnakerSettings = {
   checkForUpdates: true,
   debugEnabled: debugEnabled,
-  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'openstack', 'oraclebmcs'],
+  defaultProviders: ['aws', 'gce', 'azure', 'cf', 'kubernetes', 'dcos', 'openstack', 'oraclebmcs'],
   feedbackUrl: feedbackUrl,
   gateUrl: gateHost,
   bakeryDetailUrl: bakeryDetailUrl,
@@ -83,6 +83,11 @@ window.spinnakerSettings = {
         proxy: 'localhost:8001',
         internalDNSNameTemplate: '{{name}}.{{namespace}}.svc.cluster.local',
         instanceLinkTemplate: '{{host}}/api/v1/proxy/namespaces/{{namespace}}/pods/{{name}}',
+      },
+    },
+    dcos: {
+      defaults: {
+        account: 'my-dcos-account'
       },
     },
     appengine: {

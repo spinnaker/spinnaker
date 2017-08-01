@@ -17,6 +17,7 @@ module('netflix.spinnaker', [
   require('./modules/openstack/openstack.module.js'),
   DOCKER_MODULE,
   require('./modules/oracle/oraclebmcs.module.js'),
+  require('./modules/dcos/dcos.module.js'),
   APPENGINE_MODULE,
   CANARY_MODULE,
 ]);

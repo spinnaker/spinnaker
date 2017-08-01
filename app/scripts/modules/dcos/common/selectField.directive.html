@@ -1,0 +1,18 @@
+<div class="form-group">
+  <div ng-hide="hideLabel">
+    <div class="col-md-{{labelColumns}} sm-label-right">Region
+    <help-field key="dcos.cluster"></help-field></div>
+  </div>
+  <div class="col-md-{{fieldColumns || 7}}" ng-if="!account">(Select an account)</div>
+  <div class="col-md-{{fieldColumns || 7}}">
+    <select class="form-control input-sm"
+            ng-if="account && !readOnly"
+            ng-model="component[field]"
+            ng-change="onChange()"
+            required>
+      <option value="" disabled>Select...</option>
+      <option ng-repeat="cluster in clusters" value="{{cluster.name}}" ng-selected="component[field] === cluster.name">{{cluster.name}}</option>
+    </select>
+    <p ng-if="readOnly" class="form-control-static">{{component[field]}}</p>
+  </div>
+</div>
