@@ -17,7 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spectator.api.Registry
-import com.netflix.spectator.api.histogram.BucketDistributionSummary
+import com.netflix.spectator.api.histogram.BucketCounter
 import com.netflix.spinnaker.orca.ExecutionStatus
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.RetryableTask
@@ -128,7 +128,7 @@ open class RunTaskHandler
     registry.counter(id).increment()
 
     val distributionId = registry.createId("task.invocations.duration").withTags(id.tags())
-    BucketDistributionSummary
+    BucketCounter
       .get(registry, distributionId, { v -> bucketDuration(v) })
       .record(System.currentTimeMillis() - taskModel.startTime)
   }
