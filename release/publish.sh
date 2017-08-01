@@ -21,7 +21,7 @@ fi
 
 if [ "$PLATFORM" = "docker" ]; then
   docker tag halyard gcr.io/spinnaker-marketplace/halyard:$VERSION
-  sudo gcloud docker -- push gcr.io/spinnaker-marketplace/halyard:$VERSION
+  gcloud docker -- push gcr.io/spinnaker-marketplace/halyard:$VERSION
 else 
   BUCKET_PATH=gs://spinnaker-artifacts/halyard/$VERSION/$PLATFORM/halyard.tar.gz
 
