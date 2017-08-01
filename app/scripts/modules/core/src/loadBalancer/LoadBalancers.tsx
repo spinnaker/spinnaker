@@ -30,7 +30,7 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
 
   constructor(props: ILoadBalancersProps) {
     super(props);
-    const { $stateParams, loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
+    const { $stateParams } = ReactInjector;
     this.state = {
       initialized: false,
       groups: [],
@@ -38,13 +38,23 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
       showServerGroups: !$stateParams.hideServerGroups || true,
       showInstances: $stateParams.showInstances || false
     };
+  }
+
+  public componentDidMount(): void {
+    const { loadBalancerFilterModel, loadBalancerFilterService } = ReactInjector;
+    const { app } = this.props;
 
     this.groupsUpdatedListener = loadBalancerFilterService.groupsUpdatedStream.subscribe(() => this.groupsUpdated());
     loadBalancerFilterModel.asFilterModel.activate();
+    this.loadBalancersRefreshUnsubscribe = app.getDataSource('loadBalancers').onRefresh(null, () => this.updateLoadBalancerGroups());
+    app.setActiveState(app.loadBalancers);
+    this.updateLoadBalancerGroups();
+  }
 
-    this.loadBalancersRefreshUnsubscribe = props.app.getDataSource('loadBalancers').onRefresh(null, () => this.updateLoadBalancerGroups());
-
-    props.app.setActiveState(props.app.loadBalancers);
+  public componentWillUnmount(): void {
+    this.props.app.setActiveState();
+    this.groupsUpdatedListener.unsubscribe();
+    this.loadBalancersRefreshUnsubscribe();
   }
 
   private groupsUpdated(): void {
@@ -112,16 +122,6 @@ export class LoadBalancers extends React.Component<ILoadBalancersProps, ILoadBal
     state[name] = value;
     this.updateUIState(state);
     this.setState(state);
-  }
-
-  public componentDidMount(): void {
-    this.updateLoadBalancerGroups();
-  }
-
-  public componentWillUnmount(): void {
-    this.props.app.setActiveState();
-    this.groupsUpdatedListener.unsubscribe();
-    this.loadBalancersRefreshUnsubscribe();
   }
 
   private tagCleared(): void {
