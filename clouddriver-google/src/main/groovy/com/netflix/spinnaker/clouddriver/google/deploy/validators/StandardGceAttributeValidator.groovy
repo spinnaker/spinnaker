@@ -175,6 +175,8 @@ class StandardGceAttributeValidator {
     if (validateNotEmpty(region, "region") && credentials) {
       if (!(region in credentials.regionToZonesMap)) {
         errors.rejectValue("region", "${context}.region.invalid")
+      } else if (!(region in credentials.regions*.name)) {
+        errors.rejectValue("region", "${context}.region.unconfigured")
       }
     }
   }
@@ -183,6 +185,8 @@ class StandardGceAttributeValidator {
     if (validateNotEmpty(zone, "zone") && credentials) {
       if (!credentials.regionFromZone(zone)) {
         errors.rejectValue("zone", "${context}.zone.invalid")
+      } else if (!(credentials.regionFromZone(zone) in credentials.regions*.name)) {
+        errors.rejectValue("zone", "${context}.zone.unconfigured")
       }
     }
   }
