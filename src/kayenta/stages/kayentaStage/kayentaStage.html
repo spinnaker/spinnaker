@@ -21,8 +21,15 @@
   <div class="horizontal-rule"></div>
 
   <stage-config-field label="Config Name">
-    <input class="form-control input-sm"
-           ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"/>
+    <ui-select required
+               ng-model="kayentaCanaryStageCtrl.stage.canaryConfig.canaryConfigId"
+               class="visible-sm-inline-block visible-md-inline-block visible-lg-inline-block"
+               style="width:245px">
+      <ui-select-match>{{$select.selected}}</ui-select-match>
+      <ui-select-choices repeat="name in kayentaCanaryStageCtrl.canaryConfigNames | filter: $select.search">
+        {{name}}
+      </ui-select-choices>
+    </ui-select>
   </stage-config-field>
 
   <stage-config-field label="Delay" field-columns="5">
