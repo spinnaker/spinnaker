@@ -4,14 +4,14 @@ import FormRow from '../layout/formRow';
 
 interface IMetricDetailProps {
   metric: ICanaryMetricConfig;
-  rename: (event: any) => void;
+  edit: (event: any) => void;
   remove: (event: any) => void;
 }
 
 /*
  * Configures all the available settings for a single metric.
  */
-export default function MetricDetail({ metric, rename, remove }: IMetricDetailProps) {
+export default function MetricDetail({ metric, edit, remove }: IMetricDetailProps) {
   return (
     <form role="form" className="form-horizontal container-fluid">
       <div className="col-md-11">
@@ -21,7 +21,7 @@ export default function MetricDetail({ metric, rename, remove }: IMetricDetailPr
             className="form-control"
             value={metric.name}
             data-id={metric.id}
-            onChange={rename}
+            disabled={true}
           />
         </FormRow>
         <FormRow label="Service">
@@ -45,6 +45,11 @@ export default function MetricDetail({ metric, rename, remove }: IMetricDetailPr
         </FormRow>
       </div>
       <div className="col-md-1">
+        <i
+          className="fa fa-edit"
+          data-id={metric.id}
+          onClick={edit}
+        />
         <i
           className="fa fa-trash"
           data-id={metric.id}
