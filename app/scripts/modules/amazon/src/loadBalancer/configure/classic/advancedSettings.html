@@ -3,16 +3,24 @@
 
     <div class="form-group">
       <div class="col-md-6 sm-label-right">
-        <b>Timeout</b><help-field key="ctrl.loadBalancerCommand.advancedSettings.healthTimeout"/>
+        <b>Timeout</b><help-field key="loadBalancer.advancedSettings.healthTimeout"/>
       </div>
       <div class="col-md-4">
-        <input class="form-control input-sm" type="number" min="0" ng-model="ctrl.loadBalancerCommand.healthTimeout"/>
+        <input class="form-control input-sm"
+               type="number"
+               name="healthTimeout"
+               min="0"
+               ng-max="ctrl.loadBalancerCommand.healthInterval - 1"
+               ng-model="ctrl.loadBalancerCommand.healthTimeout"/>
+      </div>
+      <div class="col-md-12 col-md-offset-6" ng-if="form.healthTimeout.$error.max">
+        <validation-error message="The health timeout must be less than the health interval."></validation-error>
       </div>
     </div>
 
     <div class="form-group">
       <div class="col-md-6 sm-label-right">
-        <b>Interval</b><help-field key="ctrl.loadBalancerCommand.advancedSettings.healthInterval"/>
+        <b>Interval</b><help-field key="loadBalancer.advancedSettings.healthInterval"/>
       </div>
       <div class="col-md-4">
         <input class="form-control input-sm" type="number" min="0" ng-model="ctrl.loadBalancerCommand.healthInterval"/>
@@ -21,7 +29,7 @@
 
     <div class="form-group">
       <div class="col-md-6 sm-label-right">
-        <b>Healthy Threshold</b><help-field key="ctrl.loadBalancerCommand.advancedSettings.healthyThreshold"/>
+        <b>Healthy Threshold</b><help-field key="loadBalancer.advancedSettings.healthyThreshold"/>
       </div>
       <div class="col-md-4">
         <input class="form-control input-sm" type="number" min="0" ng-model="ctrl.loadBalancerCommand.healthyThreshold"/>
@@ -30,7 +38,7 @@
 
     <div class="form-group">
       <div class="col-md-6 sm-label-right">
-        <b>Unhealthy Threshold</b><help-field key="ctrl.loadBalancerCommand.advancedSettings.unhealthyThreshold"/>
+        <b>Unhealthy Threshold</b><help-field key="loadBalancer.advancedSettings.unhealthyThreshold"/>
       </div>
       <div class="col-md-4">
         <input class="form-control input-sm" type="number" min="0" ng-model="ctrl.loadBalancerCommand.unhealthyThreshold"/>
