@@ -27,6 +27,7 @@ import com.netflix.spinnaker.config.QueueConfiguration
 import com.netflix.spinnaker.kork.eureka.RemoteStatusChangedEvent
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.TaskResult
+import com.netflix.spinnaker.orca.config.OrcaConfiguration
 import com.netflix.spinnaker.orca.exceptions.DefaultExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.RestrictExecutionDuringTimeWindow
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
@@ -604,7 +605,8 @@ open class QueueIntegrationTest {
   EmbeddedRedisConfiguration::class,
   JedisExecutionRepository::class,
   StageNavigator::class,
-  RestrictExecutionDuringTimeWindow::class
+  RestrictExecutionDuringTimeWindow::class,
+  OrcaConfiguration::class
 )
 open class TestConfig {
   @Bean open fun registry(): Registry = NoopRegistry()

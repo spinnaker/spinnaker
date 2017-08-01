@@ -16,11 +16,13 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.orca.ExecutionStatus.*
 import com.netflix.spinnaker.orca.events.StageStarted
 import com.netflix.spinnaker.orca.exceptions.ExceptionHandler
 import com.netflix.spinnaker.orca.pipeline.StageDefinitionBuilder
 import com.netflix.spinnaker.orca.pipeline.model.OptionalStageSupport
+import com.netflix.spinnaker.orca.pipeline.model.Pipeline
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository
 import com.netflix.spinnaker.orca.pipeline.util.ContextParameterProcessor
@@ -45,6 +47,7 @@ open class StartStageHandler
   override val contextParameterProcessor: ContextParameterProcessor,
   private val publisher: ApplicationEventPublisher,
   private val exceptionHandlers: List<ExceptionHandler>,
+  private val objectMapper: ObjectMapper,
   private val clock: Clock,
   @Value("\${queue.retry.delay.ms:60000}") retryDelayMs: Long
 ) : MessageHandler<StartStage>, StageBuilderAware, ExpressionAware, AuthenticationAware {
@@ -131,6 +134,13 @@ open class StartStageHandler
     }
   }
 
-  private fun Stage<*>.shouldSkip() =
-    OptionalStageSupport.isOptional(withMergedContext(), contextParameterProcessor)
+  private fun Stage<*>.shouldSkip(): Boolean {
+    if (this.getExecution() !is Pipeline) {
+      return false
+    }
+
+    val clonedContext = objectMapper.convertValue(this.getContext(), Map::class.java) as Map<String, Any>
+    val clonedStage = Stage<Pipeline>(this.getExecution() as Pipeline, this.getType(), clonedContext)
+    return OptionalStageSupport.isOptional(clonedStage.withMergedContext(), contextParameterProcessor)
+  }
 }

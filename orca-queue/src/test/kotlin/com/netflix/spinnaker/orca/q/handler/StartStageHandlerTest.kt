@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.q.handler
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.natpryce.hamkrest.allElements
 import com.natpryce.hamkrest.assertion.assertThat
 import com.natpryce.hamkrest.equalTo
@@ -54,6 +55,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
   val stageNavigator: StageNavigator = mock()
   val publisher: ApplicationEventPublisher = mock()
   val exceptionHandler: ExceptionHandler = mock()
+  val objectMapper = ObjectMapper()
   val clock = fixedClock()
   val retryDelay = Duration.ofSeconds(5)
 
@@ -77,6 +79,7 @@ object StartStageHandlerTest : SubjectSpek<StartStageHandler>({
       ContextParameterProcessor(),
       publisher,
       listOf(exceptionHandler),
+      objectMapper,
       clock,
       retryDelayMs = retryDelay.toMillis()
     )
