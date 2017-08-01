@@ -5,29 +5,29 @@ import { ICanaryMetricConfig } from '../domain/ICanaryConfig';
 import { ICanaryState } from '../reducers';
 import { UNGROUPED } from './groupTabs';
 import MetricDetail from './metricDetail';
-import { ADD_METRIC, RENAME_METRIC, REMOVE_METRIC } from '../actions/index';
+import { ADD_METRIC, EDIT_METRIC_BEGIN, REMOVE_METRIC } from '../actions/index';
 
 interface IMetricListStateProps {
-  selectedGroup: string,
+  selectedGroup: string;
   metrics: ICanaryMetricConfig[];
 }
 
 interface IMetricListDispatchProps {
-  renameMetric: (event: any) => void;
   addMetric: (event: any) => void;
+  editMetric: (event: any) => void;
   removeMetric: (event: any) => void;
 }
 
 /*
  * Configures an entire list of metrics.
  */
-function MetricList({ metrics, selectedGroup, renameMetric, addMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
+function MetricList({ metrics, selectedGroup, addMetric, editMetric, removeMetric }: IMetricListStateProps & IMetricListDispatchProps) {
   return (
     <section>
       <ul className="list-group">
         {metrics.map((metric, index) => (
           <li className="list-group-item" key={index}>
-            <MetricDetail metric={metric} rename={renameMetric} remove={removeMetric}/>
+            <MetricDetail metric={metric} edit={editMetric} remove={removeMetric}/>
           </li>
         ))}
       </ul>
@@ -54,20 +54,12 @@ function mapStateToProps(state: ICanaryState): IMetricListStateProps {
   }
   return {
     selectedGroup,
-    metrics: metricList.filter(filter)
+    metrics: metricList.filter(filter),
   };
 }
 
 function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricListDispatchProps {
   return {
-    renameMetric: (event: any) => {
-      dispatch({
-        type: RENAME_METRIC,
-        id: event.target.dataset.id,
-        name: event.target.value
-      });
-    },
-
     addMetric: (event: any) => {
       const group = event.target.dataset.group;
       dispatch({
@@ -81,6 +73,13 @@ function mapDispatchToProps(dispatch: (action: Action & any) => void): IMetricLi
           groups: (group && group !== UNGROUPED) ? [group] : []
         }
       })
+    },
+
+    editMetric: (event: any) => {
+      dispatch({
+        type: EDIT_METRIC_BEGIN,
+        id: event.target.dataset.id
+      });
     },
 
     removeMetric: (event: any) => {

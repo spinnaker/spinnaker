@@ -3,6 +3,7 @@ import * as React from 'react';
 import ConfigDetailHeader from './configDetailHeader';
 import GroupTabs from './groupTabs';
 import MetricList from './metricList';
+import EditMetricModal from './editMetricModal';
 import NameAndDescription from './nameAndDescription'
 import TitledSection from '../layout/titledSection';
 
@@ -19,6 +20,7 @@ export default function ConfigDetail() {
       <TitledSection title="Metrics">
         <GroupTabs/>
         <MetricList/>
+        <EditMetricModal/>
       </TitledSection>
     </section>
   );
