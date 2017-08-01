@@ -20,7 +20,6 @@ import com.netflix.hystrix.exception.HystrixRuntimeException
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.fiat.shared.EnableFiatAutoConfig
 import com.netflix.spinnaker.filters.AuthenticatedRequestFilter
-import com.netflix.spinnaker.front50.exception.BadRequestException
 import com.netflix.spinnaker.front50.exceptions.AccessDeniedExceptionHandler
 import com.netflix.spinnaker.front50.model.application.ApplicationDAO
 import com.netflix.spinnaker.front50.model.application.ApplicationPermissionDAO
@@ -32,8 +31,8 @@ import com.netflix.spinnaker.front50.model.serviceaccount.ServiceAccountDAO
 import com.netflix.spinnaker.kork.web.interceptors.MetricsInterceptor
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.boot.context.embedded.FilterRegistrationBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
@@ -45,8 +44,6 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
-
-import javax.servlet.http.HttpServletResponse
 
 @Configuration
 @ComponentScan

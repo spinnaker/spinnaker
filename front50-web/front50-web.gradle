@@ -23,7 +23,7 @@ tasks.withType(org.springframework.boot.gradle.run.BootRunTask) {
   systemProperty('spring.config.location', project.springConfigLocation)
 }
 
-apply plugin: 'spring-boot'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'spinnaker.package'
 
 configurations.all {
@@ -43,15 +43,6 @@ dependencies {
   compile project(":front50-oracle-bmcs")
 
   spinnaker.group "bootWeb"
-
-// Replace below with this line when fiat becomes stable.
-//  spinnaker.group "fiat"
-  spinnaker.dependency("bootActuator")
-  spinnaker.dependency("bootWeb")
-  spinnaker.dependency("bootDataRest")
-  spinnaker.dependency("springSecurityConfig")
-  spinnaker.dependency("springSecurityCore")
-  spinnaker.dependency("springSecurityWeb")
 
   compile spinnaker.dependency("korkWeb")
   compile spinnaker.dependency("korkStackdriver")
