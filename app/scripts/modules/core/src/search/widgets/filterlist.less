@@ -1,0 +1,61 @@
+@import "~bootstrap/less/mixins/vendor-prefixes.less";
+@import (reference) "~core/presentation/main.less";
+@import (reference) "~core/presentation/less/imports/commonImports.less";
+
+.secondary-text() {
+  color: @mid_lighter_grey;
+  font-size: small;
+  margin-left: 5px;
+}
+
+.filter-list {
+
+  background-color: @dropdown-bg;
+  border: 1px solid @dropdown-border;
+  border-radius: @border-radius-base;
+  .box-shadow(0 6px 12px rgba(0, 0, 0, .175));
+  cursor: default;
+  margin-top: 40px;
+  position: absolute;
+  white-space: pre;
+  width: 200px;
+  z-index: @zindex-dropdown;
+
+  &.filter-list__open {
+    display: block;
+  }
+
+  &.filter-list__closed {
+    display: none;
+  }
+
+  .filter-list__header {
+    .secondary-text();
+    margin-top: 10px;
+    margin-left: 10px;
+  }
+
+  .filter {
+
+    align-items: center;
+    display: flex;
+    padding: 5px 5px 5px 10px;
+
+    .filter__text {
+      color: @text-color;
+    }
+
+    .filter__modifier {
+      .secondary-text();
+    }
+
+    &.filter--focus {
+      border-color: @glow-init;
+      background-color: @pod_header_blue;
+    }
+
+    &.filter--blur {
+      background-color: @body-bg;
+    }
+  }
+}

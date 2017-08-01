@@ -38,6 +38,7 @@ export interface IFeatures {
   dockerBake?: boolean;
   pipelineTemplates?: boolean;
   travis?: boolean;
+  infSearchEnabled?: boolean;  // TODO: temporary until new inf search is ready
   [key: string]: any;
 }
 

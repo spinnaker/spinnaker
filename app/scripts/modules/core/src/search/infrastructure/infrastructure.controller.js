@@ -4,6 +4,7 @@ import _ from 'lodash';
 
 const angular = require('angular');
 
+import {SETTINGS} from 'core/config/settings';
 import {CLUSTER_FILTER_SERVICE} from 'core/cluster/filter/clusterFilter.service';
 import {CACHE_INITIALIZER_SERVICE} from 'core/cache/cacheInitializer.service';
 import {OVERRIDE_REGISTRY} from 'core/overrideRegistry/override.registry';
@@ -27,6 +28,8 @@ module.exports = angular.module('spinnaker.search.infrastructure.controller', [
                                              pageTitleService, recentHistoryService, $uibModal, $state, clusterFilterService) {
 
     var search = infrastructureSearchService.getSearcher();
+
+    this.showNewSearch = SETTINGS.feature.infSearchEnabled;
 
     $scope.categories = [];
     $scope.projects = [];

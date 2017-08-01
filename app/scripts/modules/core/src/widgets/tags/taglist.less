@@ -1,0 +1,42 @@
+@import (reference) "~core/presentation/main.less";
+@import (reference) "~core/presentation/less/imports/commonImports.less";
+
+.tag-list {
+
+  align-items: center;
+  display: flex;
+
+  .tag {
+
+    align-items: center;
+    cursor: default;
+    display: flex;
+    font-size: 14px;
+    margin-right: 10px;
+
+    .tag__category {
+      background-color: @dark_blue_background;
+      border-radius: 4px 0 0 4px;
+      color: white;
+      padding: 5px;
+    }
+
+    .tag__label {
+      background-color: @pod_header_blue;
+      color: @dark_blue_background;
+      flex: 1 0 auto;
+      padding: 5px;
+    }
+
+    .tag__remove {
+      background-color: @pod_header_blue;
+      border-radius: 0 4px 4px 0;
+      color: @dark_blue_background;
+      padding: 5px;
+
+      .fa.fa-times-circle {
+        .clickable();
+      }
+    }
+  }
+}

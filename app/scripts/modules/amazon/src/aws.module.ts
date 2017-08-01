@@ -1,6 +1,6 @@
 import { module } from 'angular';
 
-import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry } from '@spinnaker/core';
+import { CLOUD_PROVIDER_REGISTRY, CloudProviderRegistry, DeploymentStrategyRegistry, SearchFilterTypeRegistry } from '@spinnaker/core';
 
 import { AWS_LOAD_BALANCER_MODULE } from './loadBalancer/loadBalancer.module';
 import { AWS_REACT_MODULE } from './reactShims/aws.react.module';
@@ -114,6 +114,9 @@ module(AMAZON_MODULE, [
       templateUrl: require('./applicationProviderFields/awsFields.html'),
     },
   });
+}).run(() => {
+  SearchFilterTypeRegistry.register({key: 'account', modifier: 'acct', text: 'Account'});
+  SearchFilterTypeRegistry.register({key: 'region', modifier: 'reg', text: 'Region'});
 });
 
 DeploymentStrategyRegistry.registerProvider('aws', ['custom', 'redblack', 'rollingpush', 'rollingredblack']);

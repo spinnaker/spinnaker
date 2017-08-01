@@ -21,6 +21,8 @@ export * from './IInstanceCounts';
 export * from './IJobConfig';
 export * from './IJenkinsInfo';
 
+export * from '../widgets/Keys';
+
 export * from './ILoadBalancer';
 
 export * from './IOrchestratedItem';
