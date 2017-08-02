@@ -30,6 +30,7 @@ class OnDemandClusterPickerController implements IController {
   public selectCluster(cluster: IClusterSummary): void {
     this.lastSelection = undefined;
     this.clusterFilterModel.asFilterModel.sortFilter.clusters[this.makeKey(cluster)] = true;
+    this.clusterFilterModel.asFilterModel.applyParamsToUrl();
     this.application.getDataSource('serverGroups').refresh();
   }
 

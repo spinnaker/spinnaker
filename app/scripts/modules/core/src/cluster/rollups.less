@@ -1,6 +1,6 @@
 @import (reference) "~core/presentation/less/imports/commonImports.less";
 
-server-group {
+.server-group {
   input[type="checkbox"] {
     font-size: 200%;
     margin: 0;
@@ -321,8 +321,8 @@ running-tasks-tag {
   }
 }
 
-load-balancers-tag {
-  .overflowing {
+.load-balancers-tag {
+  &.overflowing {
     position: relative;
   }
   .btn-load-balancer button, .btn-multiple-load-balancers {
@@ -346,7 +346,6 @@ load-balancers-tag {
     background-color: #fff;
     border: 1px solid @spinnaker-link-color;
     right: 0;
-    top: -3px;
     font-size: 100%;
     padding: 1px 4px;
     border-radius: 4px;

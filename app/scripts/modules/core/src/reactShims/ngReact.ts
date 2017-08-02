@@ -20,12 +20,12 @@ import { IExecutionDetailsProps } from '../delivery/details/ExecutionDetails';
 import { IExecutionStatusProps } from '../delivery/status/ExecutionStatus';
 import { IHelpFieldProps } from '../help/HelpField';
 import { IInsightLayoutProps } from 'core/insight/InsightLayout';
+import { IInstanceListProps, instanceListBindings } from '../instance/InstanceList';
 import { InsightLayoutComponent } from 'core/insight/insightLayout.component';
 import { IPipelineGraphProps } from '../pipeline/config/graph/PipelineGraph';
+import { IRunningTasksTagProps, runningTasksTagBindings } from '../serverGroup/pod/RunningTasksTag';
 import { ISpinnerProps, SpinnerWrapperComponent } from '../widgets/Spinner';
 import { ITaskMonitorProps } from 'core/task/monitor/TaskMonitor';
-import { InstancesProps } from '../instance/Instances';
-import { InstancesWrapperComponent } from '../instance/instances.component';
 import { PipelineGraphComponent } from '../pipeline/config/graph/pipeline.graph.component';
 import { ReactInject } from './react.injector';
 import { TaskMonitorWrapperComponent } from 'core/task/monitor/taskMonitor.directive';
@@ -47,8 +47,9 @@ export class NgReactInjector extends ReactInject {
   public ExecutionStatus: React.ComponentClass<IExecutionStatusProps>                 = angular2react('executionStatus', new ExecutionStatusComponent(), this.$injectorProxy) as any;
   public HelpField: React.ComponentClass<IHelpFieldProps>                             = angular2react('helpFieldWrapper', new HelpFieldWrapperComponent(), this.$injectorProxy) as any;
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                     = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
-  public Instances: React.ComponentClass<InstancesProps>                              = angular2react('instancesWrapper', new InstancesWrapperComponent(), this.$injectorProxy) as any;
+  public InstanceList: React.ComponentClass<IInstanceListProps>                       = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
   public PipelineGraph: React.ComponentClass<IPipelineGraphProps>                     = angular2react('pipelineGraph', new PipelineGraphComponent(), this.$injectorProxy) as any;
+  public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                 = angular2react('runningTasks', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
   public Spinner: React.ComponentClass<ISpinnerProps>                                 = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
   public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>                  = angular2react('taskMonitorWrapper', new TaskMonitorWrapperComponent(), this.$injectorProxy) as any;
 

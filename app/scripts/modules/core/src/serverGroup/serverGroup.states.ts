@@ -22,7 +22,7 @@ module(SERVER_GROUP_STATES, [
         template: '<cluster-filter app="$resolve.app"></cluster-filter>',
       },
       'master': {
-        templateUrl: require('../cluster/all.html'),
+        templateUrl: require('../cluster/allClusters.html'),
         controller: 'AllClustersCtrl',
         controllerAs: 'ctrl'
       }

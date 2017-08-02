@@ -1,7 +1,8 @@
+import { IQService, IRootScopeService, IScope } from 'angular';
 import IInjectorService = angular.auto.IInjectorService;
+
 import { IModalService } from 'angular-ui-bootstrap';
-import { StateService, StateParams } from '@uirouter/angularjs';
-import { IQService, IRootScopeService } from 'angular';
+import { UIRouter, StateService, StateParams } from '@uirouter/core';
 
 import { AccountService } from '../account/account.service';
 import { Api } from '../api/api.service';
@@ -10,6 +11,7 @@ import { ApplicationReader } from '../application/service/application.read.servi
 import { AuthenticationService } from '../authentication/authentication.service';
 import { CancelModalService } from '../cancelModal/cancelModal.service';
 import { CloudProviderRegistry } from '../cloudProvider/cloudProvider.registry';
+import { ClusterFilterModel } from 'core/cluster/filter/clusterFilter.model';
 import { ClusterFilterService } from '../cluster/filter/clusterFilter.service';
 import { CollapsibleSectionStateCache } from '../cache/collapsibleSectionStateCache';
 import { ConfirmationModalService } from '../confirmationModal/confirmationModal.service';
@@ -57,7 +59,9 @@ export class CoreReactInject extends ReactInject {
   }
 
   // Services
+  public get $rootScope() { return this.$injector.get('$rootScope') as IScope; }
   public get $stateParams() { return this.$injector.get('$stateParams') as StateParams; }
+  public get $uiRouter() { return this.$injector.get('$uiRouter') as UIRouter; }
   public get API() { return this.$injector.get('API') as Api; }
   public get accountService() { return this.$injector.get('accountService') as AccountService; }
   public get applicationModelBuilder() { return this.$injector.get('applicationModelBuilder') as ApplicationModelBuilder; }
@@ -65,6 +69,7 @@ export class CoreReactInject extends ReactInject {
   public get authenticationService() { return this.$injector.get('authenticationService') as AuthenticationService; }
   public get cancelModalService() { return this.$injector.get('cancelModalService') as CancelModalService; }
   public get cloudProviderRegistry() { return this.$injector.get('cloudProviderRegistry') as CloudProviderRegistry; }
+  public get clusterFilterModel() { return this.$injector.get('clusterFilterModel') as ClusterFilterModel; }
   public get clusterFilterService() { return this.$injector.get('clusterFilterService') as ClusterFilterService; }
   public get collapsibleSectionStateCache() { return this.$injector.get('collapsibleSectionStateCache') as CollapsibleSectionStateCache; }
   public get confirmationModalService() { return this.$injector.get('confirmationModalService') as ConfirmationModalService; }
@@ -79,6 +84,7 @@ export class CoreReactInject extends ReactInject {
   public get loadBalancerFilterService() { return this.$injector.get('loadBalancerFilterService') as LoadBalancerFilterService; }
   public get manualJudgmentService() { return this.$injector.get('manualJudgmentService') as ManualJudgmentService; }
   public get modalService() { return this.$injector.get('$uibModal') as IModalService; }
+  public get MultiselectModel() { return this.$injector.get('MultiselectModel') as any; }
   public get notifierService() { return this.$injector.get('notifierService') as NotifierService; }
   public get overrideRegistry() { return this.$injector.get('overrideRegistry') as OverrideRegistry; }
   public get pipelineConfig() { return this.$injector.get('pipelineConfig') as PipelineConfigProvider; }

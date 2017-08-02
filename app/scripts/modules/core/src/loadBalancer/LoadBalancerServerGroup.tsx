@@ -4,11 +4,11 @@ import autoBindMethods from 'class-autobind-decorator';
 import { clone } from 'lodash';
 import { UISref, UISrefActive } from '@uirouter/react';
 
-import { NgReact } from 'core/reactShims';
 import { IServerGroup, IInstance } from 'core/domain';
 
 import { CloudProviderLogo } from 'core/cloudProvider/CloudProviderLogo';
 import { HealthCounts } from 'core/healthCounts/HealthCounts';
+import { Instances } from 'core/instance/Instances';
 
 export interface ILoadBalancerServerGroupProps {
   cloudProvider: string;
@@ -41,7 +41,6 @@ export class LoadBalancerServerGroup extends React.Component<ILoadBalancerServer
 
   public render(): React.ReactElement<LoadBalancerServerGroup> {
     const { cloudProvider, serverGroup, showInstances, account, region } = this.props;
-    const { Instances } = NgReact;
 
     const className = classNames({
       clickable: true,

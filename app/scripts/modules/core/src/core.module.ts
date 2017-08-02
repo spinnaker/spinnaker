@@ -28,6 +28,7 @@ import { APPLICATION_MODULE } from './application/application.module';
 import { AUTHENTICATION_MODULE } from './authentication/authentication.module';
 import { CANCEL_MODAL_MODULE } from './cancelModal/cancelModal.module';
 import { CLOUD_PROVIDER_MODULE } from './cloudProvider/cloudProvider.module';
+import { CLUSTER_MODULE } from './cluster/cluster.module';
 import { CONFIG_MODULE } from './config/config.module';
 
 import { DEBUG_WINDOW } from './utils/consoleDebug';
@@ -75,7 +76,7 @@ module(CORE_MODULE, [
   CANCEL_MODAL_MODULE,
   CLOUD_PROVIDER_MODULE,
   CONFIG_MODULE,
-  require('./cluster/cluster.module'),
+  CLUSTER_MODULE,
 
   DEBUG_WINDOW,
   DEPLOYMENT_STRATEGY_MODULE,

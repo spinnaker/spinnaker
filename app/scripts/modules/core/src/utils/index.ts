@@ -5,4 +5,3 @@ export * from './scrollTo/scrollTo.service';
 export * from './timeFormatters';
 export * from './tsDecorators/directiveFactoryDecorator';
 export * from './uuid.service';
-

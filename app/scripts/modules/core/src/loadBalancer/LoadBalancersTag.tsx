@@ -100,8 +100,9 @@ export class LoadBalancersTag extends React.Component<ILoadBalancersTagProps, IL
   public render(): React.ReactElement<LoadBalancersTag> {
     const serverGroup = this.props.serverGroup;
     if (serverGroup.loadBalancers.length) {
+      const className = `load-balancers-tag ${serverGroup.loadBalancers.length > 1 ? 'overflowing' : ''}`;
       return (
-        <span className={serverGroup.loadBalancers.length > 1 ? 'overflowing' : ''}>
+        <span className={className}>
           { serverGroup.loadBalancers.length > 1 && (
             <Tooltip value={`${this.state.showPopover ? 'Hide' : 'Show'} all ${serverGroup.loadBalancers.length} load balancers`}>
               <button

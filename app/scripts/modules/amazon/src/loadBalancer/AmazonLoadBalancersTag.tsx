@@ -121,9 +121,10 @@ export class AmazonLoadBalancersTag extends React.Component<ILoadBalancersTagPro
 
     if (totalCount) {
       const showValue = targetGroupCount ? loadBalancerCount ? 'target groups and load balancers' : 'target groups' : 'load balancers';
+      const className = `load-balancers-tag ${totalCount > 1 ? 'overflowing' : ''}`;
 
       return (
-        <span className={totalCount > 1 ? 'overflowing' : ''}>
+        <span className={className}>
           { totalCount > 1 && (
             <Tooltip value={`${showPopover ? 'Hide' : 'Show'} all ${totalCount} ${showValue}`}>
               <button

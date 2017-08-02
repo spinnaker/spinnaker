@@ -17,9 +17,6 @@ export interface ILoadBalancerPodProps {
   showInstances: boolean
 }
 
-function equalForKeys<T>(keys: [keyof T], left: T, right: T): boolean {
-  return keys.reduce((acc, key) => acc && left[key] === right[key], true);
-}
 
 @autoBindMethods
 export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
@@ -59,10 +56,12 @@ export class LoadBalancerPod extends React.Component<ILoadBalancerPodProps> {
   }
 
   public shouldComponentUpdate(nextProps: ILoadBalancerPodProps) {
-    const simplePropsDiffer = () => !equalForKeys(['application', 'parentHeading', 'showServerGroups', 'showInstances'], nextProps, this.props);
+    const simpleProps: [keyof ILoadBalancerPodProps] = ['application', 'parentHeading', 'showServerGroups', 'showInstances'];
+    const simplePropsDiffer = () => simpleProps.some(key => this.props[key] !== nextProps[key]);
 
     const loadBalancerGroupsDiffer = (left: ILoadBalancerGroup, right: ILoadBalancerGroup) => {
-      const simpleGroupingPropsDiffer = () => !equalForKeys(['heading', 'loadBalancer', 'searchField'], left, right);
+      const loadBalancerGroupProps: [keyof ILoadBalancerGroup] = ['heading', 'loadBalancer', 'searchField']
+      const simpleGroupingPropsDiffer = () => loadBalancerGroupProps.some(key => left[key] !== right[key]);
       const serverGroupsDiffer = () => !isEqual((left.serverGroups || []).map(g => g.name), (right.serverGroups || []).map(g => g.name));
       const subgroupsDiffer = (): boolean => {
         const leftSG = left.subgroups || [];

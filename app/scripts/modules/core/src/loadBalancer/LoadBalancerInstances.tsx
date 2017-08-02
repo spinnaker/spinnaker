@@ -3,7 +3,8 @@ import { flatten, map } from 'lodash';
 import { Subscription } from 'rxjs';
 
 import { IInstance, IServerGroup } from 'core/domain';
-import { NgReact, ReactInjector } from 'core/reactShims';
+import { ReactInjector } from 'core/reactShims';
+import { Instances } from 'core/instance/Instances';
 
 export interface ILoadBalancerInstancesProps {
   serverGroups: IServerGroup[];
@@ -36,8 +37,6 @@ export class LoadBalancerInstances extends React.Component<ILoadBalancerInstance
   }
 
   public render(): React.ReactElement<LoadBalancerInstances> {
-    const { Instances } = NgReact;
-
     return (
       <div className="instance-list">
         <Instances instances={this.state.instances}/>
