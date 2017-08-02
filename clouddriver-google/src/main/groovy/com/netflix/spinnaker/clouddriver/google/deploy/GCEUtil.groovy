@@ -601,22 +601,25 @@ class GCEUtil {
 
     return disks.collect { disk ->
       def diskType = useDiskTypeUrl ? buildDiskTypeUrl(project, zone, disk.type) : disk.type
-      def sourceImage = queryImage(project,
-                                   disk.is(firstPersistentDisk) ? description.image : disk.sourceImage,
-                                   credentials,
-                                   compute,
-                                   task,
-                                   phase,
-                                   clouddriverUserAgentApplicationName,
-                                   baseImageProjects,
-                                   executor)
+      def sourceImage =
+        disk.persistent
+        ? queryImage(project,
+                     disk.is(firstPersistentDisk) ? description.image : disk.sourceImage,
+                     credentials,
+                     compute,
+                     task,
+                     phase,
+                     clouddriverUserAgentApplicationName,
+                     baseImageProjects,
+                     executor)
+        : null
 
-      if (sourceImage.diskSizeGb > disk.sizeGb) {
+      if (sourceImage && sourceImage.diskSizeGb > disk.sizeGb) {
         disk.sizeGb = sourceImage.diskSizeGb
       }
 
       def attachedDiskInitializeParams =
-        new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
+        new AttachedDiskInitializeParams(sourceImage: sourceImage?.selfLink,
                                          diskSizeGb: disk.sizeGb,
                                          diskType: diskType)
 
