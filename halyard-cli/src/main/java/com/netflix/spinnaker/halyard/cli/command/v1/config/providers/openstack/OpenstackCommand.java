@@ -15,5 +15,6 @@ public class OpenstackCommand extends AbstractNamedProviderCommand {
   public OpenstackCommand() {
     super();
     registerSubcommand(new OpenstackAccountCommand());
+    registerSubcommand(new OpenstackBakeryCommand());
   }
 }

@@ -6,7 +6,6 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +15,18 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
   protected String getProviderName() {
     return "openstack";
   }
+
+  @Parameter(
+      names = "--environment",
+      description = OpenstackCommandProperties.ENVIRONMENT_DESCRIPTION
+  )
+  private String environment;
+
+  @Parameter(
+      names = "--account-type",
+      description = OpenstackCommandProperties.ACCOUNT_TYPE_DESCRIPTION
+  )
+  private String accountType;
 
   @Parameter(
       names = "--auth-url",
@@ -67,6 +78,21 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
   private boolean insecure;
 
   @Parameter(
+      names = "--heat-template-location",
+      converter = PathExpandingConverter.class,
+      description = OpenstackCommandProperties.HEAT_TEMPLATE_LOCATION_DESCRIPTION
+
+  )
+  private String heatTemplateLocation;
+
+  @Parameter(
+      names = "--consul-config",
+      converter = PathExpandingConverter.class,
+      description = OpenstackCommandProperties.CONSUL_CONFIG_DESCRIPTION
+  )
+  private String consulConfig;
+
+  @Parameter(
       names = "--user-data-file",
       converter = PathExpandingConverter.class,
       description = OpenstackCommandProperties.USER_DATA_FILE_DESCRIPTION
@@ -74,7 +100,7 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
   private String userDataFile;
 
   @Parameter(
-      names = "--lbaas-poll-timout",
+      names = "--lbaas-poll-timeout",
       description = OpenstackCommandProperties.LBAAS_POLL_TIMEOUT_DESCRIPTION
   )
   private Integer lbaasPollTimeout;
@@ -100,11 +126,15 @@ public class OpenstackAddAccountCommand extends AbstractAddAccountCommand {
     account.setAuthUrl(authUrl)
         .setUsername(username)
         .setPassword(password)
+        .setEnvironment(environment)
+        .setAccountType(accountType)
+        .setHeatTemplateLocation(heatTemplateLocation)
         .setProjectName(projectName)
         .setDomainName(domainName)
-        .setRegions(StringUtils.join(regions, ","))
+        .setRegions(regions)
         .setInsecure(insecure)
         .setUserDataFile(userDataFile)
+        .setConsulConfig(consulConfig)
         .setLbaas(lbaas);
 
     return account;

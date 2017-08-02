@@ -7,19 +7,28 @@ import com.netflix.spinnaker.halyard.config.problem.v1.ConfigProblemSetBuilder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class OpenstackAccount extends Account {
+  private String accountName;
+  private String environment;
+  private String accountType;
   private String authUrl;
   private String username;
   private String password;
   private String projectName;
   private String domainName;
   private Boolean insecure = false;
+  private String heatTemplateLocation;
+  private String consulConfig;
+
   @LocalFile
   private String userDataFile;
   private OpenstackLbaasOptions lbaas = new OpenstackLbaasOptions();
-  private String regions;
+  private List<String> regions;
 
   @Override
   public void accept(ConfigProblemSetBuilder psBuilder, Validator v) {

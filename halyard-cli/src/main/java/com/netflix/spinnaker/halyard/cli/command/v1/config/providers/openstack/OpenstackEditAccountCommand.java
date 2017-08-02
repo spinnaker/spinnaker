@@ -6,18 +6,27 @@ import com.netflix.spinnaker.halyard.cli.command.v1.config.providers.account.Abs
 import com.netflix.spinnaker.halyard.cli.command.v1.converter.PathExpandingConverter;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Account;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.openstack.OpenstackAccount;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Parameters(separators = "=")
 public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<OpenstackAccount> {
   protected String getProviderName() {
     return "openstack";
   }
+
+  @Parameter(
+          names = "--environment",
+          description = OpenstackCommandProperties.ENVIRONMENT_DESCRIPTION
+  )
+  private String environment;
+
+  @Parameter(
+          names = "--account-type",
+          description = OpenstackCommandProperties.ACCOUNT_TYPE_DESCRIPTION
+  )
+  private String accountType;
 
   @Parameter(
       names = "--auth-url",
@@ -75,20 +84,26 @@ public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<Open
   private Boolean insecure;
 
   @Parameter(
-      names = "--user-data-file",
+      names = "--heat-template-location",
       converter = PathExpandingConverter.class,
+      description = OpenstackCommandProperties.HEAT_TEMPLATE_LOCATION_DESCRIPTION
+  )
+  private String heatTemplateLocation;
+
+  @Parameter(
+      names = "--consul-config",
+      description = OpenstackCommandProperties.CONSUL_CONFIG_DESCRIPTION
+  )
+  private String consulConfig;
+
+  @Parameter(
+      names = "--user-data-file",
       description = OpenstackCommandProperties.USER_DATA_FILE_DESCRIPTION
   )
   private String userDataFile;
 
   @Parameter(
-      names = "--remove-user-data-file",
-      description = "Removes currently configured user data file."
-  )
-  private boolean removeUserDataFile;
-
-  @Parameter(
-      names = "--lbaas-poll-timout",
+      names = "--lbaas-poll-timeout",
       description = OpenstackCommandProperties.LBAAS_POLL_TIMEOUT_DESCRIPTION
   )
   private Integer lbaasPollTimeout;
@@ -101,15 +116,11 @@ public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<Open
 
   @Override
   protected Account editAccount(OpenstackAccount account) {
-    boolean userDataSet = isSet(userDataFile);
-    if (userDataSet && !removeUserDataFile) {
-      account.setUserDataFile(isSet(userDataFile) ? userDataFile : account.getUserDataFile());
-    }else if (removeUserDataFile && !userDataSet) {
-      account.setUserDataFile(null);
-    }else if (userDataSet && removeUserDataFile) {
-      throw new IllegalArgumentException("Set either --user-data-file or --remove-user-data-file");
-    }
-
+    account.setUserDataFile(isSet(userDataFile) ? userDataFile : account.getUserDataFile());
+    account.setHeatTemplateLocation(isSet(heatTemplateLocation) ? heatTemplateLocation : account.getHeatTemplateLocation());
+    account.setConsulConfig(isSet(consulConfig) ? consulConfig : account.getConsulConfig());
+    account.setAccountType(isSet(accountType) ? accountType : account.getAccountType());
+    account.setEnvironment(isSet(environment) ? environment : account.getEnvironment());
     account.setAuthUrl(isSet(authUrl) ? authUrl : account.getAuthUrl());
     account.setUsername(isSet(username) ? username : account.getUsername());
     account.setPassword(isSet(password) ? password : account.getPassword());
@@ -118,9 +129,9 @@ public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<Open
     account.setInsecure(isSet(insecure) ? insecure : account.getInsecure());
 
     try {
-      List<String> existingRegions = Arrays.stream(StringUtils.split(account.getRegions(), ",")).collect(Collectors.toList());
+      List<String> existingRegions = account.getRegions();
       List<String> newRegions = updateStringList(existingRegions, regions, addRegion, removeRegion);
-      account.setRegions(StringUtils.join(newRegions, ","));
+      account.setRegions(newRegions);
     }catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Set either --regions or --[add/remove]-region");
     }
@@ -138,5 +149,4 @@ public class OpenstackEditAccountCommand extends AbstractEditAccountCommand<Open
 
     return account;
   }
-
 }
