@@ -41,7 +41,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -131,7 +137,7 @@ public class GenerateService {
       pluralModifier = customProfiles.size() == 1 ? "" : "s";
       profileMessage += " and discovered " + customProfiles.size() + " custom profile" + pluralModifier + " for " + service.getCanonicalName();
       DaemonTaskHandler.message(profileMessage);
-      outputProfiles.putAll(processProfiles(spinnakerStaging, customProfiles));
+      mergeProfilesAndPreserveProperties(outputProfiles, processProfiles(spinnakerStaging, customProfiles));
 
       serviceProfiles.put(service.getType(), outputProfiles);
     }
@@ -139,6 +145,19 @@ public class GenerateService {
     return new ResolvedConfiguration()
         .setServiceProfiles(serviceProfiles)
         .setRuntimeSettings(runtimeSettings);
+  }
+
+  private void mergeProfilesAndPreserveProperties(Map<String, Profile> existingProfiles, Map<String, Profile> newProfiles) {
+    for (Map.Entry<String, Profile> entry : newProfiles.entrySet()) {
+      String name = entry.getKey();
+      Profile newProfile = entry.getValue();
+      if (existingProfiles.containsKey(name)) {
+        Profile existingProfile = existingProfiles.get(name);
+        newProfile.assumeMetadata(existingProfile);
+      }
+
+      existingProfiles.put(name, newProfile);
+    }
   }
 
   private Map<String, Profile> processProfiles(File spinnakerStaging, List<Profile> profiles) {

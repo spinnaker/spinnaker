@@ -98,4 +98,11 @@ public class Profile {
     }
     return this;
   }
+
+  public void assumeMetadata(Profile other) {
+    requiredFiles = other.getRequiredFiles();
+    executable = other.isExecutable();
+    user = other.getUser();
+    env = other.getEnv();
+  }
 }
