@@ -276,18 +276,7 @@
       </dl>
     </collapsible-section>
     <collapsible-section heading="Advanced Settings">
-      <dl class="horizontal-when-filters-collapsed">
-        <dt>Cooldown</dt>
-        <dd>{{ctrl.serverGroup.asg.defaultCooldown}} seconds</dd>
-        <dt ng-if="ctrl.enabledMetrics.length">Enabled Metrics</dt>
-        <dd ng-if="ctrl.enabledMetrics.length">{{ctrl.enabledMetrics.join(', ')}}</dd>
-        <dt>Health Check Type</dt>
-        <dd>{{ctrl.serverGroup.asg.healthCheckType}}</dd>
-        <dt>Grace Period</dt>
-        <dd>{{ctrl.serverGroup.asg.healthCheckGracePeriod}} seconds</dd>
-        <dt>Termination Policies</dt>
-        <dd>{{ctrl.serverGroup.asg.terminationPolicies.join(', ')}}</dd>
-      </dl>
+      <aws-advanced-settings-view server-group="ctrl.serverGroup"></aws-advanced-settings-view>
       <a href ng-click="ctrl.editAdvancedSettings()">Edit Advanced Settings</a>
     </collapsible-section>
     <collapsible-section heading="Logs">

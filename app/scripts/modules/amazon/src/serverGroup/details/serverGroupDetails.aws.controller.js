@@ -7,6 +7,7 @@ import { AWS_SCHEDULED_ACTION_COMPONENT } from './scheduledAction/scheduledActio
 import { AWS_SERVER_GROUP_TRANSFORMER } from 'amazon/serverGroup/serverGroup.transformer';
 import { SERVER_GROUP_CONFIGURE_MODULE } from '../configure/serverGroup.configure.aws.module';
 import { CREATE_SCALING_POLICY_BUTTON } from './scalingPolicy/createScalingPolicyButton.component';
+import { ADVANCED_SETTINGS_VIEW } from './advancedSettings/advancedSettingsView.component';
 
 import {
   ACCOUNT_SERVICE,
@@ -22,6 +23,7 @@ import {
 module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller', [
   require('@uirouter/angularjs').default,
   ACCOUNT_SERVICE,
+  ADVANCED_SETTINGS_VIEW,
   AWS_SCHEDULED_ACTION_COMPONENT,
   AWS_SERVER_GROUP_TRANSFORMER,
   CLUSTER_TARGET_BUILDER,
@@ -102,7 +104,6 @@ module.exports = angular.module('spinnaker.amazon.serverGroup.details.controller
               if (!isEmpty(this.serverGroup)) {
 
                 this.image = details.image ? details.image : undefined;
-                this.enabledMetrics = get(this.serverGroup, 'asg.enabledMetrics', []).map(m => m.metric);
 
                 var vpc = this.serverGroup.asg ? this.serverGroup.asg.vpczoneIdentifier : '';
 

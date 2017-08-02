@@ -1,15 +1,16 @@
 import * as React from 'react';
 import autoBindMethods from 'class-autobind-decorator';
 
-import { Application, IServerGroup, ReactInjector } from '@spinnaker/core';
+import { Application, ReactInjector } from '@spinnaker/core';
 
 import { PolicyTypeSelectionModal } from './upsert/PolicyTypeSelectionModal';
 import { UpsertTargetTrackingController } from './targetTracking/upsertTargetTracking.controller';
 import { AwsReactInjector } from 'amazon/reactShims';
+import { IAmazonServerGroupView } from 'amazon/domain';
 
 export interface ICreateScalingPolicyButtonProps {
   application: Application;
-  serverGroup: IServerGroup;
+  serverGroup: IAmazonServerGroupView;
 }
 
 export interface ICreateScalingPolicyButtonState {
