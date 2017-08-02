@@ -23,12 +23,27 @@ import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.KubernetesUtil;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesLoadBalancerDescription;
 import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.loadbalancer.KubernetesNamedServicePort;
-import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.*;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.DeployKubernetesAtomicOperationDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesContainerPort;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesEnvVar;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandler;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHandlerType;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesHttpGetAction;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesImageDescription;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesProbe;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesSecretVolumeSource;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesTcpSocketAction;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeMount;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSource;
+import com.netflix.spinnaker.clouddriver.kubernetes.deploy.description.servergroup.KubernetesVolumeSourceType;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentEnvironment;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Provider;
 import com.netflix.spinnaker.halyard.config.model.v1.providers.kubernetes.KubernetesAccount;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.job.v1.JobExecutor;
+import com.netflix.spinnaker.halyard.core.job.v1.JobRequest;
+import com.netflix.spinnaker.halyard.core.job.v1.JobStatus;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.deployment.v1.AccountDeploymentDetails;
@@ -38,20 +53,39 @@ import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails.Instance;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerMonitoringDaemonService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerStatus;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePortBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSet;
 import io.fabric8.kubernetes.api.model.extensions.ReplicaSetBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.utils.Strings;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.springframework.util.SocketUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -570,6 +604,36 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return res;
   }
 
+  @Override
+  default <S> S connectToInstance(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar, String instanceId) {
+    ServiceSettings settings = runtimeSettings.getServiceSettings(sidecar);
+    String namespace = getNamespace(settings);
+    int localPort = SocketUtils.findAvailableTcpPort();
+    int targetPort = settings.getPort();
+    List<String> command = KubernetesProviderUtils.kubectlPortForwardCommand(details,
+        namespace,
+        instanceId,
+        targetPort,
+        localPort);
+    JobRequest request = new JobRequest().setTokenizedCommand(command);
+    String jobId = getJobExecutor().startJob(request);
+
+    // Wait for the proxy to spin up.
+    DaemonTaskHandler.safeSleep(TimeUnit.SECONDS.toMillis(5));
+
+    JobStatus status = getJobExecutor().updateJob(jobId);
+
+    // This should be a long-running job.
+    if (status.getState() == JobStatus.State.COMPLETED) {
+      throw new HalException(Problem.Severity.FATAL,
+          "Unable to establish a proxy against " + getServiceName() + ":\n" + status.getStdOut()
+              + "\n" + status.getStdErr());
+    }
+
+    return getServiceInterfaceFactory().createService(settings.getScheme() + "://localhost:" + localPort, sidecar);
+  }
+
+  @Override
   default <S> S connectToService(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> service) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(service);
 
@@ -579,7 +643,7 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return getServiceInterfaceFactory().createService(endpoint, service);
   }
 
-  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings, int localPort) {
     ServiceSettings settings = runtimeSettings.getServiceSettings(getService());
     RunningServiceDetails runningServiceDetails = getRunningServiceDetails(details, runtimeSettings);
     Map<Integer, List<Instance>> instances = runningServiceDetails.getInstances();
@@ -594,11 +658,16 @@ public interface KubernetesDistributedService<T> extends DistributedService<T, K
     return Strings.join(KubernetesProviderUtils.kubectlPortForwardCommand(details,
         namespace,
         latestInstances.get(0).getId(),
-        settings.getPort()), " ");
+        settings.getPort(),
+        localPort), " ");
+  }
+
+  default String connectCommand(AccountDeploymentDetails<KubernetesAccount> details, SpinnakerRuntimeSettings runtimeSettings) {
+    return connectCommand(details, runtimeSettings, runtimeSettings.getServiceSettings(getService()).getPort());
   }
 
   default void deleteVersion(AccountDeploymentDetails<KubernetesAccount> details, ServiceSettings settings, Integer version) {
-    String name = String.format("%s-v%03d", getServiceName(), version);
+    String name = getVersionedName(version);
     String namespace = getNamespace(settings);
     KubernetesProviderUtils.deleteReplicaSet(details, namespace, name);
   }

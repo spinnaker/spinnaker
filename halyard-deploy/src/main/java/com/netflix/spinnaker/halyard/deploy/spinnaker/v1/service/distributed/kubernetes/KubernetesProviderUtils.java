@@ -205,7 +205,7 @@ class KubernetesProviderUtils {
     return halSecret(name, version, "dependencies");
   }
 
-  static List<String> kubectlPortForwardCommand(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String instance, int port) {
+  static List<String> kubectlPortForwardCommand(AccountDeploymentDetails<KubernetesAccount> details, String namespace, String instance, int targetPort, int localPort) {
     List<String> command =  kubectlAccountCommand(details);
     command.add("--namespace");
     command.add(namespace);
@@ -213,7 +213,7 @@ class KubernetesProviderUtils {
     command.add("port-forward");
     command.add(instance);
 
-    command.add(port + "");
+    command.add(localPort + ":" + targetPort);
     return command;
   }
 

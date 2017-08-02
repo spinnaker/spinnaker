@@ -21,14 +21,18 @@ import com.netflix.spinnaker.halyard.core.DaemonResponse;
 import com.netflix.spinnaker.halyard.core.RemoteAction;
 import com.netflix.spinnaker.halyard.core.error.v1.HalException;
 import com.netflix.spinnaker.halyard.core.problem.v1.Problem;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemBuilder;
 import com.netflix.spinnaker.halyard.core.tasks.v1.DaemonTaskHandler;
 import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.ResolvedConfiguration;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.LogCollector;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.OrcaService.Orca.ActiveExecutions;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RedisService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.RoscoService.Rosco;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedServiceProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +43,12 @@ import redis.clients.jedis.Jedis;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -189,8 +198,15 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     DaemonTaskHandler.reduceChildren(null, (t1, t2) -> null, (t1, t2) -> null)
         .getProblemSet().throwifSeverityExceeds(Problem.Severity.WARNING);
 
-    reapOrcaServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ORCA));
+    DistributedService<Orca, T> orca = serviceProvider.getDeployableService(SpinnakerService.Type.ORCA);
+    Set<Integer> unknownVersions = reapOrcaServerGroups(deploymentDetails, runtimeSettings, orca);
     reapRoscoServerGroups(deploymentDetails, runtimeSettings, serviceProvider.getDeployableService(SpinnakerService.Type.ROSCO));
+
+    if (!unknownVersions.isEmpty()) {
+      String versions = String.join(", ", unknownVersions.stream().map(orca::getVersionedName).collect(Collectors.toList()));
+      throw new HalException(new ProblemBuilder(Problem.Severity.ERROR, "The following orca versions (" + versions + ") could not safely be drained of work.")
+          .setRemediation("Please make sure that no pipelines are running, and manually destroy the server groups at those versions.").build());
+    }
 
     return new RemoteAction();
   }
@@ -209,7 +225,6 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
       Orca orca,
       DistributedService distributedService) {
     SpinnakerRuntimeSettings runtimeSettings = resolvedConfiguration.getRuntimeSettings();
-    ServiceSettings settings = resolvedConfiguration.getServiceSettings(distributedService.getService());
     RunningServiceDetails runningServiceDetails = distributedService.getRunningServiceDetails(details, runtimeSettings);
     Supplier<String> idSupplier;
     if (!runningServiceDetails.getLoadBalancer().isExists()) {
@@ -343,38 +358,69 @@ public class DistributedDeployer<T extends Account> implements Deployer<Distribu
     }
   }
 
-  private <T extends Account> void reapOrcaServerGroups(AccountDeploymentDetails<T> details,
+  private <T extends Account> Set<Integer> disableOrcaServerGroups(AccountDeploymentDetails<T> details,
+      SpinnakerRuntimeSettings runtimeSettings,
+      DistributedService<Orca, T> orcaService,
+      RunningServiceDetails runningOrcaDetails) {
+    Map<Integer, List<RunningServiceDetails.Instance>> instances = runningOrcaDetails.getInstances();
+    List<Integer> existingVersions = new ArrayList<>(instances.keySet());
+    existingVersions.sort(Integer::compareTo);
+
+    Map<String, String> disableRequest = new HashMap<>();
+    Set<Integer> result = new HashSet<>();
+    disableRequest.put("enabled", "false");
+    List<Integer> disabledVersions = existingVersions.subList(0, existingVersions.size() - 1);
+    for (Integer version : disabledVersions) {
+      try {
+        for (RunningServiceDetails.Instance instance : instances.get(version)) {
+          log.info("Disabling instance " + instance.getId());
+          Orca orca = orcaService.connectToInstance(details, runtimeSettings, orcaService.getService(), instance.getId());
+          orca.setInstanceStatusEnabled(disableRequest);
+        }
+        result.add(version);
+      } catch (RetrofitError e) {
+        Response response = e.getResponse();
+        if (response == null) {
+          log.warn("Unexpected error disabling orca", e);
+        } else if (response.getStatus() == 400 && ((Map) e.getBodyAs(Map.class)).containsKey("discovery")) {
+          log.info("Orca instance is managed by eureka");
+          result.add(version);
+        } else {
+          log.warn("Orca version doesn't support explicit disabling of instances", e);
+        }
+      }
+    }
+
+    Set<Integer> unknownVersions = disabledVersions.stream().filter(i -> !result.contains(i)).collect(Collectors.toSet());
+    if (unknownVersions.size() > 0) {
+      log.warn("There are existing orca server groups that cannot be explicitly disabled, we will have to wait for these to drain work");
+    }
+
+    return unknownVersions;
+  }
+
+  private <T extends Account> Set<Integer> reapOrcaServerGroups(AccountDeploymentDetails<T> details,
       SpinnakerRuntimeSettings runtimeSettings,
       DistributedService<Orca, T> orcaService) {
-    ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
-    boolean enabled = orcaSettings.getEnabled() != null && orcaSettings.getEnabled();
-    if (!enabled) {
-      log.warn("Orca was not updated during this deployment, if no orca instances exist this deployment may fail.");
-    }
-    Orca orca = orcaService.connectToPrimaryService(details, runtimeSettings);
-    Map<String, ActiveExecutions> executions = orca.getActiveExecutions();
-    RunningServiceDetails orcaDetails = orcaService.getRunningServiceDetails(details, runtimeSettings);
+    RunningServiceDetails runningOrcaDetails = orcaService.getRunningServiceDetails(details, runtimeSettings);
+    Map<Integer, List<RunningServiceDetails.Instance>> instances = runningOrcaDetails.getInstances();
+    List<Integer> versions = new ArrayList<>(instances.keySet());
+    versions.sort(Integer::compareTo);
 
-    Map<String, Integer> executionsByInstance = new HashMap<>();
-
-    executions.forEach((s, e) -> {
-      String instanceId = s.split("@")[1];
-      executionsByInstance.put(instanceId, e.getCount());
-    });
-
+    Set<Integer> unknownVersions = disableOrcaServerGroups(details, runtimeSettings, orcaService, runningOrcaDetails);
     Map<Integer, Integer> executionsByServerGroupVersion = new HashMap<>();
 
-    orcaDetails.getInstances().forEach((s, is) -> {
-      int count = is.stream().reduce(0,
-          (c, i) -> c + executionsByInstance.getOrDefault(i.getId(), 0),
-          (a, b) -> a + b);
-      executionsByServerGroupVersion.put(s, count);
-    });
+    for (Integer version : versions) {
+      if (unknownVersions.contains(version)) {
+        executionsByServerGroupVersion.put(version, 1); // we make the assumption that there is non-0 work for the unknown versions
+      } else {
+        executionsByServerGroupVersion.put(version, 0);
+      }
+    }
 
-    // Omit the last deployed orcas from being deleted, since they are kept around for rollbacks.
-    List<Integer> allOrcas = new ArrayList<>(executionsByServerGroupVersion.keySet());
-    allOrcas.sort(Integer::compareTo);
+    ServiceSettings orcaSettings = runtimeSettings.getServiceSettings(orcaService.getService());
+    cleanupServerGroups(details, orcaService, orcaSettings, executionsByServerGroupVersion, versions);
 
-    cleanupServerGroups(details, orcaService, orcaSettings, executionsByServerGroupVersion, allOrcas);
+    return unknownVersions;
   }
 }

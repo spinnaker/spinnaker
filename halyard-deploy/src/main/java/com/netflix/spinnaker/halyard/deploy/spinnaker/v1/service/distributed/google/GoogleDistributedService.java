@@ -19,7 +19,17 @@ package com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.go
 
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.compute.Compute;
-import com.google.api.services.compute.model.*;
+import com.google.api.services.compute.model.AccessConfig;
+import com.google.api.services.compute.model.AttachedDisk;
+import com.google.api.services.compute.model.AttachedDiskInitializeParams;
+import com.google.api.services.compute.model.InstanceGroupManager;
+import com.google.api.services.compute.model.InstanceProperties;
+import com.google.api.services.compute.model.InstanceTemplate;
+import com.google.api.services.compute.model.ManagedInstance;
+import com.google.api.services.compute.model.Metadata;
+import com.google.api.services.compute.model.NetworkInterface;
+import com.google.api.services.compute.model.Operation;
+import com.google.api.services.compute.model.ServiceAccount;
 import com.netflix.frigga.Names;
 import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil;
 import com.netflix.spinnaker.clouddriver.google.model.GoogleDiskType;
@@ -35,8 +45,16 @@ import com.netflix.spinnaker.halyard.deploy.services.v1.GenerateService.Resolved
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.RunningServiceDetails;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.SpinnakerRuntimeSettings;
 import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.profile.Profile;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.*;
-import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.*;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ConfigSource;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceInterfaceFactory;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.ServiceSettings;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.SpinnakerService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.VaultServerService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.DistributedService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.SidecarService;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMount;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConfigMountSet;
+import com.netflix.spinnaker.halyard.deploy.spinnaker.v1.service.distributed.VaultConnectionDetails;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
@@ -44,7 +62,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -583,6 +608,15 @@ public interface GoogleDistributedService<T> extends DistributedService<T, Googl
 
     try {
       return GoogleProviderUtils.openSshTunnel(details, instances.get(0).getId(), settings);
+    } catch (InterruptedException e) {
+      throw new DaemonTaskInterrupted(e);
+    }
+  }
+
+  @Override
+  default <S> S connectToInstance(AccountDeploymentDetails<GoogleAccount> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar, String instanceId) {
+    try {
+      return getServiceInterfaceFactory().createService(GoogleProviderUtils.openSshTunnel(details, instanceId, runtimeSettings.getServiceSettings(sidecar)).toString(), sidecar);
     } catch (InterruptedException e) {
       throw new DaemonTaskInterrupted(e);
     }

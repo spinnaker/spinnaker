@@ -57,6 +57,7 @@ public interface DistributedService<T, A extends Account> extends HasServiceSett
   String getServiceName();
   SpinnakerMonitoringDaemonService getMonitoringDaemonService();
   <S> S connectToService(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar);
+  <S> S connectToInstance(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings, SpinnakerService<S> sidecar, String instanceId);
   String connectCommand(AccountDeploymentDetails<A> details, SpinnakerRuntimeSettings runtimeSettings);
   void deleteVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, Integer version);
   void resizeVersion(AccountDeploymentDetails<A> details, ServiceSettings settings, int version, int targetSize);

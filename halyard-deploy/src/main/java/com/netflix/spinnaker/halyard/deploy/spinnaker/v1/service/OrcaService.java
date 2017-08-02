@@ -27,6 +27,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import retrofit.client.Response;
 import retrofit.http.*;
 
 import java.nio.file.Paths;
@@ -81,6 +82,9 @@ abstract public class OrcaService extends SpringService<OrcaService.Orca> {
 
     @GET("/executions/activeByInstance")
     Map<String, ActiveExecutions> getActiveExecutions();
+
+    @POST("/admin/instance/enabled")
+    Response setInstanceStatusEnabled(@Body Map<String, String> request);
 
     @GET("/resolvedEnv")
     Map<String, String> resolvedEnv();
