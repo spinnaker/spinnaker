@@ -17,6 +17,8 @@
 package com.netflix.spinnaker.clouddriver.google.deploy.ops
 
 import com.google.api.services.compute.Compute
+import com.google.api.services.compute.model.AttachedDisk
+import com.google.api.services.compute.model.AttachedDiskInitializeParams
 import com.google.api.services.compute.model.Image
 import com.google.api.services.compute.model.InstanceProperties
 import com.google.api.services.compute.model.InstanceTemplate
@@ -111,13 +113,13 @@ class CopyLastGoogleServerGroupAtomicOperationUnitSpec extends Specification {
     sourceImage = new Image(selfLink: IMAGE)
     network = new GoogleNetwork(selfLink: DEFAULT_NETWORK_URL)
     subnet = new GoogleSubnet(selfLink: SUBNET_URL)
-    attachedDisks = GCEUtil.buildAttachedDisks(PROJECT_NAME,
-                                               null,
-                                               sourceImage,
-                                               [DISK_PD_STANDARD],
-                                               false,
-                                               INSTANCE_TYPE,
-                                               new GoogleConfiguration.DeployDefaults())
+    attachedDisks = [new AttachedDisk(boot: true,
+                                      autoDelete: true,
+                                      type: "PERSISTENT",
+                                      initializeParams: new AttachedDiskInitializeParams(sourceImage: IMAGE,
+                                                                                         diskSizeGb: DISK_PD_STANDARD.sizeGb,
+                                                                                         diskType: DISK_PD_STANDARD.type))]
+
     networkInterface = GCEUtil.buildNetworkInterface(network,
                                                      subnet,
                                                      true,

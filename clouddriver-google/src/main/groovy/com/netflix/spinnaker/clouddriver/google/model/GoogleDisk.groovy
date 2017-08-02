@@ -24,6 +24,10 @@ import groovy.transform.ToString
 class GoogleDisk {
   GoogleDiskType type
   Long sizeGb
+  // This is the unqualified name of an indexed image; just like the `image` defined on BaseGoogleInstanceDescription.
+  // It should not be specified on the first persistent disk (since that is the boot disk and the image is specified at
+  // the top-level of the request). It is required on all the remaining persistent disks.
+  String sourceImage
   boolean autoDelete = true
 
   void setType(String type) {

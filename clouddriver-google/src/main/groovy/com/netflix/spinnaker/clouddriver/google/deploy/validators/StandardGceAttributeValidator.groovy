@@ -366,6 +366,23 @@ class StandardGceAttributeValidator {
       }
     }
 
+    // sourceImage must not be specified on the first persistent disk, and is required on all remaining persistent disks.
+    def firstPersistentDisk = specifiedDisks.find { it.persistent }
+
+    specifiedDisks.eachWithIndex { disk, index ->
+      if (disk.is(firstPersistentDisk)) {
+        if (firstPersistentDisk.sourceImage) {
+          errors.rejectValue("disks",
+                             "${context}.disk${index}.sourceImage.unexpected",
+                             "The boot disk must not specify source image, it must be specified at the top-level on the request as `image`.")
+        }
+      } else if (disk.persistent && !disk.sourceImage) {
+        errors.rejectValue("disks",
+                           "${context}.disk${index}.sourceImage.required",
+                           "All non-boot persistent disks are required to specify source image.")
+      }
+    }
+
     specifiedDisks.findAll { it.type == GoogleDiskType.LOCAL_SSD }.eachWithIndex { localSSDDisk, index ->
       // Shared-core instance types do not support local-ssd.
       if (!instanceTypeDisk.supportsLocalSSD) {

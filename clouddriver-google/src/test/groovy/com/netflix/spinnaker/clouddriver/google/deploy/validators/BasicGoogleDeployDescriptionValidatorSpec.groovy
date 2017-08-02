@@ -36,10 +36,13 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
   private static final TARGET_SIZE = 3
   private static final IMAGE = "debian-7-wheezy-v20140415"
   private static final INSTANCE_TYPE = "f1-micro"
+  private static final INSTANCE_TYPE_NON_SHARED_CORE = "n1-standard-1"
   private static final INSTANCE_TYPE_DISK = new GoogleInstanceTypeDisk(instanceType: INSTANCE_TYPE, supportsLocalSSD: false)
   private static final DISK_TYPE = "pd-standard"
   private static final DISK_SIZE_GB = 10
   private static final DISK_PD_STANDARD = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB)
+  private static final DISK_PD_STANDARD_2 = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB * 2)
+  private static final DISK_PD_STANDARD_WITH_SOURCE_IMAGE = new GoogleDisk(type: DISK_TYPE, sizeGb: DISK_SIZE_GB, sourceImage: IMAGE)
   private static final DISK_PD_SSD = new GoogleDisk(type: "pd-ssd", sizeGb: 125)
   private static final DISK_LOCAL_SSD = new GoogleDisk(type: "local-ssd", sizeGb: 375)
   private static final DISK_LOCAL_SSD_INVALID_SIZE = new GoogleDisk(type: "local-ssd", sizeGb: 500)
@@ -154,6 +157,36 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       0 * errors._
   }
 
+  @Unroll
+  void "pass validation with proper description inputs and multiple persistent disks"() {
+    setup:
+      def description = new BasicGoogleDeployDescription(application: APPLICATION,
+                                                         stack: STACK,
+                                                         targetSize: TARGET_SIZE,
+                                                         image: IMAGE,
+                                                         instanceType: INSTANCE_TYPE_NON_SHARED_CORE,
+                                                         disks: disks,
+                                                         regional: true,
+                                                         region: REGION,
+                                                         accountName: ACCOUNT_NAME)
+    def errors = Mock(Errors)
+
+    when:
+      validator.validate([], description, errors)
+
+    then:
+      0 * errors._
+
+    where:
+      disks << [
+        [DISK_PD_STANDARD],
+        [DISK_PD_STANDARD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE],
+        [DISK_PD_STANDARD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE, DISK_PD_STANDARD_WITH_SOURCE_IMAGE],
+        [DISK_PD_STANDARD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE, DISK_LOCAL_SSD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE],
+        [DISK_PD_STANDARD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE, DISK_LOCAL_SSD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE, DISK_LOCAL_SSD]
+      ]
+  }
+
   void "invalid targetSize fails validation"() {
     setup:
       def description = new BasicGoogleDeployDescription(targetSize: -1)
@@ -263,6 +296,70 @@ class BasicGoogleDeployDescriptionValidatorSpec extends Specification {
       1 * errors.rejectValue("disks",
                              "basicGoogleDeployDescription.disks.missingPersistentDisk",
                              "A persistent boot disk is required.")
+  }
+
+  void "source image specified directly on boot persistent disk fails validation"() {
+    setup:
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD_WITH_SOURCE_IMAGE]), errors)
+
+    then:
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk0.sourceImage.unexpected",
+                             _)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_LOCAL_SSD, DISK_PD_STANDARD_WITH_SOURCE_IMAGE]), errors)
+
+    then:
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk1.sourceImage.unexpected",
+                             _)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD_WITH_SOURCE_IMAGE, DISK_LOCAL_SSD]), errors)
+
+    then:
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk0.sourceImage.unexpected",
+                             _)
+  }
+
+  void "missing source image on non-boot persistent disk fails validation"() {
+    setup:
+      def errors = Mock(Errors)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD, DISK_PD_STANDARD_2]), errors)
+
+    then:
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk1.sourceImage.required",
+                             _)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD, DISK_PD_STANDARD_2, DISK_PD_STANDARD_2]), errors)
+
+    then:
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk1.sourceImage.required",
+                             _)
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk2.sourceImage.required",
+                             _)
+
+    when:
+      validator.validate([], new BasicGoogleDeployDescription(disks: [DISK_PD_STANDARD, DISK_PD_STANDARD_2, DISK_LOCAL_SSD, DISK_PD_STANDARD_2]), errors)
+
+    then:
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk1.sourceImage.required",
+                             _)
+      1 * errors.rejectValue("disks",
+                             "basicGoogleDeployDescription.disk3.sourceImage.required",
+                             _)
   }
 
   void "invalid local ssd settings fails validation"() {

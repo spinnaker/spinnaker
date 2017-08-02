@@ -16,12 +16,11 @@
 
 package com.netflix.spinnaker.clouddriver.google.deploy.handlers
 
-import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.api.services.compute.Compute
 import com.google.api.services.compute.model.*
-import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spectator.api.Registry
+import com.netflix.spinnaker.cats.cache.Cache
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
@@ -35,6 +34,7 @@ import com.netflix.spinnaker.clouddriver.google.deploy.GCEUtil
 import com.netflix.spinnaker.clouddriver.google.deploy.GoogleOperationPoller
 import com.netflix.spinnaker.clouddriver.google.deploy.SafeRetry
 import com.netflix.spinnaker.clouddriver.google.deploy.description.BasicGoogleDeployDescription
+import com.netflix.spinnaker.clouddriver.google.deploy.ops.GoogleUserDataProvider
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleHttpLoadBalancingPolicy
 import com.netflix.spinnaker.clouddriver.google.model.loadbalancing.GoogleLoadBalancerType
@@ -149,15 +149,6 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
       machineTypeName = GCEUtil.queryMachineType(description.instanceType, location, credentials, task, BASE_PHASE)
     }
 
-    def sourceImage = GCEUtil.queryImage(project,
-                                         description.image,
-                                         credentials,
-                                         compute,
-                                         task,
-                                         BASE_PHASE,
-                                         clouddriverUserAgentApplicationName,
-                                         googleConfigurationProperties.baseImageProjects,
-                                         this)
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
     def subnet =
       description.subnet ? GCEUtil.querySubnet(accountName, region, description.subnet, task, BASE_PHASE, googleSubnetProvider) : null
@@ -200,13 +191,15 @@ class BasicGoogleDeployHandler implements DeployHandler<BasicGoogleDeployDescrip
 
     task.updateStatus BASE_PHASE, "Composing server group $serverGroupName..."
 
-    def attachedDisks = GCEUtil.buildAttachedDisks(project,
+    def attachedDisks = GCEUtil.buildAttachedDisks(description,
                                                    null,
-                                                   sourceImage,
-                                                   description.disks,
                                                    false,
-                                                   description.instanceType,
-                                                   googleDeployDefaults)
+                                                   googleDeployDefaults,
+                                                   task,
+                                                   BASE_PHASE,
+                                                   clouddriverUserAgentApplicationName,
+                                                   googleConfigurationProperties.baseImageProjects,
+                                                   this)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network,
                                                          subnet,

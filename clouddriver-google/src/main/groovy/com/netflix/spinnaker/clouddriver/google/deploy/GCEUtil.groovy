@@ -574,13 +574,21 @@ class GCEUtil {
     return GCE_API_PREFIX + "$projectName/regions/$region/instanceGroups/$serverGroupName"
   }
 
-  static List<AttachedDisk> buildAttachedDisks(String projectName,
+  static List<AttachedDisk> buildAttachedDisks(BaseGoogleInstanceDescription description,
                                                String zone,
-                                               Image sourceImage,
-                                               List<GoogleDisk> disks,
                                                boolean useDiskTypeUrl,
-                                               String instanceType,
-                                               GoogleConfiguration.DeployDefaults deployDefaults) {
+                                               GoogleConfiguration.DeployDefaults deployDefaults,
+                                               Task task,
+                                               String phase,
+                                               String clouddriverUserAgentApplicationName,
+                                               List<String> baseImageProjects,
+                                               GoogleExecutorTraits executor) {
+    def credentials = description.credentials
+    def compute = credentials.compute
+    def project = credentials.project
+    def disks = description.disks
+    def instanceType = description.instanceType
+
     if (!disks) {
       disks = deployDefaults.determineInstanceTypeDisk(instanceType).disks
     }
@@ -591,14 +599,24 @@ class GCEUtil {
 
     def firstPersistentDisk = disks.find { it.persistent }
 
-    if (firstPersistentDisk && sourceImage.diskSizeGb > firstPersistentDisk.sizeGb) {
-      firstPersistentDisk.sizeGb = sourceImage.diskSizeGb
-    }
-
     return disks.collect { disk ->
-      def diskType = useDiskTypeUrl ? buildDiskTypeUrl(projectName, zone, disk.type) : disk.type
+      def diskType = useDiskTypeUrl ? buildDiskTypeUrl(project, zone, disk.type) : disk.type
+      def sourceImage = queryImage(project,
+                                   disk.is(firstPersistentDisk) ? description.image : disk.sourceImage,
+                                   credentials,
+                                   compute,
+                                   task,
+                                   phase,
+                                   clouddriverUserAgentApplicationName,
+                                   baseImageProjects,
+                                   executor)
+
+      if (sourceImage.diskSizeGb > disk.sizeGb) {
+        disk.sizeGb = sourceImage.diskSizeGb
+      }
+
       def attachedDiskInitializeParams =
-        new AttachedDiskInitializeParams(sourceImage: disk.is(firstPersistentDisk) ? sourceImage.selfLink : null,
+        new AttachedDiskInitializeParams(sourceImage: sourceImage.selfLink,
                                          diskSizeGb: disk.sizeGb,
                                          diskType: diskType)
 

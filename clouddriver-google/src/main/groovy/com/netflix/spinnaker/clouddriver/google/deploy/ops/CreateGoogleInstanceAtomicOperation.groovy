@@ -87,16 +87,6 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
       machineTypeName = GCEUtil.queryMachineType(description.instanceType, zone, credentials, task, BASE_PHASE)
     }
 
-    def sourceImage = GCEUtil.queryImage(project,
-                                         description.image,
-                                         credentials,
-                                         compute,
-                                         task,
-                                         BASE_PHASE,
-                                         clouddriverUserAgentApplicationName,
-                                         googleConfigurationProperties.baseImageProjects,
-                                         this)
-
     def network = GCEUtil.queryNetwork(accountName, description.network ?: DEFAULT_NETWORK_NAME, task, BASE_PHASE, googleNetworkProvider)
 
     def subnet =
@@ -104,13 +94,15 @@ class CreateGoogleInstanceAtomicOperation extends GoogleAtomicOperation<Deployme
 
     task.updateStatus BASE_PHASE, "Composing instance..."
 
-    def attachedDisks = GCEUtil.buildAttachedDisks(project,
+    def attachedDisks = GCEUtil.buildAttachedDisks(description,
                                                    zone,
-                                                   sourceImage,
-                                                   description.disks,
                                                    true,
-                                                   description.instanceType,
-                                                   googleDeployDefaults)
+                                                   googleDeployDefaults,
+                                                   task,
+                                                   BASE_PHASE,
+                                                   clouddriverUserAgentApplicationName,
+                                                   googleConfigurationProperties.baseImageProjects,
+                                                   this)
 
     def networkInterface = GCEUtil.buildNetworkInterface(network,
                                                          subnet,
