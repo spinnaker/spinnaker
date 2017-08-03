@@ -76,7 +76,7 @@ public class JinjaRenderer implements Renderer {
 
     jinja.getGlobalContext().registerFilter(new FriggaFilter());
     jinja.getGlobalContext().registerFilter(new JsonFilter(pipelineTemplateObjectMapper));
-    jinja.getGlobalContext().registerFilter(new Base64Filter());
+    jinja.getGlobalContext().registerFilter(new Base64Filter(this));
 
     log.info("PipelineTemplates: Using JinjaRenderer");
   }

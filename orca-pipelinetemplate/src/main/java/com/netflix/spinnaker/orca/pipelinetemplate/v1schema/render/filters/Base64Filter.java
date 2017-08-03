@@ -15,13 +15,29 @@
  */
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.filters;
 
+import com.hubspot.jinjava.interpret.Context;
 import com.hubspot.jinjava.interpret.InterpretException;
 import com.hubspot.jinjava.interpret.JinjavaInterpreter;
 import com.hubspot.jinjava.lib.filter.Filter;
+import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.model.PipelineTemplate;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.DefaultRenderContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderContext;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.RenderUtil;
+import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer;
+import com.netflix.spinnaker.orca.pipelinetemplate.validator.Errors;
 
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Base64Filter implements Filter {
+
+  private Renderer renderer;
+
+  public Base64Filter(Renderer renderer) {
+    this.renderer = renderer;
+  }
 
   @Override
   public Object filter(Object var, JinjavaInterpreter interpreter, String... args) {
@@ -31,7 +47,31 @@ public class Base64Filter implements Filter {
     if (args.length != 0) {
       throw new InterpretException("base64 does not accept any arguments");
     }
-    return new String(Base64.getEncoder().encode(var.toString().getBytes()));
+
+    Context context = interpreter.getContext();
+
+    RenderContext renderContext = new DefaultRenderContext(
+      (String) context.get("application"),
+      (PipelineTemplate) context.get("pipelineTemplate"),
+      (Map<String, Object>) context.get("trigger", new HashMap<>())
+    );
+    renderContext.setLocation("base64");
+    renderContext.getVariables().putAll(context);
+
+    Object value = var;
+    try {
+      value = RenderUtil.deepRender(renderer, value, renderContext);
+    } catch (InterpretException e) {
+      throw TemplateRenderException.fromError(
+        new Errors.Error()
+          .withMessage("Failed rendering base64 contents")
+          .withLocation(renderContext.getLocation())
+          .withDetail("source", value.toString()),
+        e
+      );
+    }
+
+    return new String(Base64.getEncoder().encode(value.toString().getBytes()));
   }
 
   @Override

@@ -25,28 +25,26 @@ import com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render.Renderer
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class FriggaFilterSpec extends Specification {
+class Base64FilterSpec extends Specification {
 
-  ObjectMapper objectMapper = new ObjectMapper()
-
-  Renderer renderer = new JinjaRenderer(objectMapper, Mock(Front50Service), [])
+  Renderer renderer = new JinjaRenderer(new ObjectMapper(), Mock(Front50Service), [])
 
   @Unroll
-  def "should filter frigga names"() {
+  def "should render variable before encode"() {
     given:
     RenderContext context = new DefaultRenderContext("myapp", Mock(PipelineTemplate), [:])
-    context.variables.put("myVar", input)
+    context.variables.put("name", "zed")
+    context.variables.put("message", message)
 
     when:
-    def result = renderer.render("{{ myVar|frigga('$name') }}", context)
+    def result = renderer.render("{{ message|base64 }}", context)
 
     then:
-    result == expectedResult
+    result == Base64.encoder.encodeToString(expectedResult.bytes)
 
     where:
-    input           | name      || expectedResult
-    'foo-test-v000' | 'app'     || 'foo'
-    'foo-test-v000' | 'cluster' || 'foo-test'
-    'foo-test-v000' | 'stack'   || 'test'
+    message             || expectedResult
+    'hello'             || 'hello'
+    'hello, {{ name }}' || 'hello, zed'
   }
 }
