@@ -312,7 +312,7 @@ class Refresher(object):
           self.pull_from_origin(repository)
           if not os.path.exists(repository_dir):
             return
-        
+
       branch = self.get_local_branch_name(name)
       if branch != 'master':
           sys.stderr.write('Skipping {name} because it is in branch={branch}.\n'
@@ -542,7 +542,7 @@ bash -c "(./start.sh >> '$LOG_DIR/{name}.log') 2>&1\
       parser.add_argument('--update_run_scripts', default=True,
                           action='store_true',
                           help='Update the run script for each component.')
-      parser.add_argument('--noupdate_run_scripts', 
+      parser.add_argument('--noupdate_run_scripts',
                           dest='update_run_scripts',
                           action='store_false')
 

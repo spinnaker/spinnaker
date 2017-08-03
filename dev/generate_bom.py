@@ -22,6 +22,7 @@ import yaml
 
 from annotate_source import Annotator
 from spinnaker.run import run_quick
+from spinnaker.run import check_run_and_monitor
 
 DEPENDENCIES = 'dependencies'
 SERVICES = 'services'
@@ -412,6 +413,7 @@ class BomGenerator(Annotator):
       version_bump = self.tag_head()
       self.__component_versions[comp] = version_bump
       self.delete_unwanted_tags()
+      self.checkout_branch_as_hash()
 
   def determine_and_tag_halyard(self):
     """This serves only to generate an rpm version file
@@ -424,6 +426,10 @@ class BomGenerator(Annotator):
     self.__halyard_version[comp] = version_bump
     self.delete_unwanted_tags()
     return version_bump
+
+  def checkout_branch_as_hash(self):
+    hash = check_run_and_monitor('git -C {path} rev-parse HEAD'.format(path=self.path), echo=True)
+    check_run_and_monitor('git -C {path} checkout {hash}'.format(path=self.path, hash=hash.stdout), echo=True)
 
   @classmethod
   def main(cls):
