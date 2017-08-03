@@ -49,7 +49,7 @@ export class NgReactInjector extends ReactInject {
   public InsightLayout: React.ComponentClass<IInsightLayoutProps>                     = angular2react('insightLayout', new InsightLayoutComponent(), this.$injectorProxy) as any;
   public InstanceList: React.ComponentClass<IInstanceListProps>                       = angular2react('instanceList', { bindings: instanceListBindings }, this.$injectorProxy) as any;
   public PipelineGraph: React.ComponentClass<IPipelineGraphProps>                     = angular2react('pipelineGraph', new PipelineGraphComponent(), this.$injectorProxy) as any;
-  public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                 = angular2react('runningTasks', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
+  public RunningTasksTag: React.ComponentClass<IRunningTasksTagProps>                 = angular2react('runningTasksTag', { bindings: runningTasksTagBindings }, this.$injectorProxy) as any;
   public Spinner: React.ComponentClass<ISpinnerProps>                                 = angular2react('spinnerWrapper', new SpinnerWrapperComponent(), this.$injectorProxy) as any;
   public TaskMonitorWrapper: React.ComponentClass<ITaskMonitorProps>                  = angular2react('taskMonitorWrapper', new TaskMonitorWrapperComponent(), this.$injectorProxy) as any;
 
