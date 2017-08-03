@@ -48,7 +48,7 @@ executionLog.redis.enabled: true
 
 1. Exercise the [Credentials Controller](http://localhost:8090/swagger-ui.html#!/credentials45controller/listUsingGET_1) endpoint to ensure that your credentials were properly configured.
 
-1. Modify the default parameters values provided by [Stackdriver Fetch Controller](http://localhost:8090/swagger-ui.html#!/stackdriver45fetch45controller/queryMetricsUsingPOST_1) to match an instance group and start/end times that make sense for your project.
+1. Modify the default parameters values provided by [Stackdriver Fetch Controller](http://localhost:8090/swagger-ui.html#!/stackdriver45fetch45controller/queryMetricsUsingPOST) to match an instance group and start/end times that make sense for your project.
 
 1. Exercise the endpoint and capture the UUID returned in the response.
 
