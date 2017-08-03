@@ -59,7 +59,7 @@ class DeleteDcosLoadBalancerAtomicOperation implements AtomicOperation<Void> {
     })
 
     dcosClient.deleteApp(existingLb.id)
-    deploymentMonitor.waitForAppDestroy(dcosClient, existingLb, null, task, BASE_PHASE)
+    deploymentMonitor.waitForAppDestroy(dcosClient, appId.toString(), null, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Successfully deleted load balancer $description.loadBalancerName."
   }

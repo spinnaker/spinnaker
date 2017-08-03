@@ -12,6 +12,7 @@ class DcosServerGroupSpec extends Specification {
   static final private String REGION = "region"
   static final private String GROUP = "group"
   static final private String MARATHON_APP = "/${ACCOUNT}/${GROUP}/${SERVER_GROUP_NAME}"
+  static final private String DCOS_URL = "https://test.com/"
 
   def setup() {
   }
@@ -24,7 +25,7 @@ class DcosServerGroupSpec extends Specification {
     lbApp.getLabels() >> ["HAPROXY_GROUP": "${ACCOUNT}_${goodLb},wrongaccount_${badLb}"]
 
     when:
-    @Subject def serverGroup = new DcosServerGroup(ACCOUNT, REGION, lbApp)
+    @Subject def serverGroup = new DcosServerGroup(ACCOUNT, REGION, DCOS_URL, lbApp)
 
     then:
     serverGroup.loadBalancers.size() == 1

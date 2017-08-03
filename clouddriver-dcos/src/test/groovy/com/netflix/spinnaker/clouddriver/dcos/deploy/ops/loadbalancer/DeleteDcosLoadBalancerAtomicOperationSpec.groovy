@@ -55,7 +55,7 @@ class DeleteDcosLoadBalancerAtomicOperationSpec extends BaseSpecification {
     then:
     1 * dcosClientMock.maybeApp("/${DEFAULT_ACCOUNT}/${LOAD_BALANCER_NAME}") >> Optional.of(appMock)
     1 * dcosClientMock.deleteApp(appMock.id)
-    1 * dcosDeploymentMonitorMock.waitForAppDestroy(dcosClientMock, appMock, null, taskMock, "DESTROY_LOAD_BALANCER")
+    1 * dcosDeploymentMonitorMock.waitForAppDestroy(dcosClientMock, appMock.id, null, taskMock, "DESTROY_LOAD_BALANCER")
   }
 
   void "DeleteDcosLoadBalancerAtomicOperation should throw an exception when the given load balancer does not exist"() {

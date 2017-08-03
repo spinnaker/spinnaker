@@ -49,6 +49,7 @@ class DcosServerGroup implements ServerGroup, Serializable {
   String region
   String account
   String dcosCluster
+  String clusterUrl
   String json
   String kind
   Double cpus
@@ -76,12 +77,13 @@ class DcosServerGroup implements ServerGroup, Serializable {
     this.account = account
   }
 
-  DcosServerGroup(String account, String cluster, App app) {
+  DcosServerGroup(String account, String cluster, String clusterUrl, App app) {
     this.app = app
     this.json = app.toString()
     def id = DcosSpinnakerAppId.parse(app.id, account).get()
     this.name = id.serverGroupName.group
     this.dcosCluster = cluster
+    this.clusterUrl = clusterUrl
     this.group = id.safeGroup
     this.region = this.group ? "${this.dcosCluster}_${this.group}".toString() : this.dcosCluster
     this.account = id.account
@@ -99,9 +101,7 @@ class DcosServerGroup implements ServerGroup, Serializable {
     this.deployDescription = AppToDeployDcosServerGroupDescriptionMapper.map(app, account, cluster)
 
     // TODO can't always assume the tasks are present in the App! Depends on API used to retrieve
-    this.instances = app.tasks?.collect({
-      new DcosInstance(it, account, cluster, app.deployments?.size() > 0)
-    }) as Set ?: []
+    this.instances = app.tasks?.collect({ new DcosInstance(it, account, cluster, clusterUrl, app.deployments?.size() > 0) }) as Set ?: []
   }
 
   void populateLoadBalancers(App app) {

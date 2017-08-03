@@ -22,17 +22,22 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.ResizeDcosServerGroupDescription
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.DcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import mesosphere.marathon.client.model.v2.App
 
 class ResizeDcosServerGroupAtomicOperation implements AtomicOperation<Void> {
   private static final String BASE_PHASE = "RESIZE"
 
-  final DcosClientProvider dcosClientProvider
-  final ResizeDcosServerGroupDescription description
+  private final DcosClientProvider dcosClientProvider
+  private final DcosDeploymentMonitor deploymentMonitor
+  private final ResizeDcosServerGroupDescription description
 
-  ResizeDcosServerGroupAtomicOperation(DcosClientProvider dcosClientProvider, ResizeDcosServerGroupDescription description) {
+  ResizeDcosServerGroupAtomicOperation(DcosClientProvider dcosClientProvider,
+                                       DcosDeploymentMonitor deploymentMonitor,
+                                       ResizeDcosServerGroupDescription description) {
     this.dcosClientProvider = dcosClientProvider
+    this.deploymentMonitor = deploymentMonitor
     this.description = description
   }
 
@@ -66,7 +71,12 @@ class ResizeDcosServerGroupAtomicOperation implements AtomicOperation<Void> {
 
     app.instances = description.targetSize
 
-    dcosClient.updateApp(appId.toString(), app, description.forceDeployment)
+    def result = dcosClient.updateApp(appId.toString(), app, description.forceDeployment)
+    def deploymentId = result.deploymentId
+
+    task.updateStatus BASE_PHASE, "Waiting for $appId to be resized..."
+
+    deploymentMonitor.waitForAppResize(dcosClient, appId.toString(), deploymentId, description.targetSize, null, task, BASE_PHASE)
 
     task.updateStatus BASE_PHASE, "Completed resize operation."
   }

@@ -22,6 +22,7 @@ import com.netflix.spinnaker.clouddriver.dcos.DcosOperation
 import com.netflix.spinnaker.clouddriver.dcos.deploy.converters.DcosAtomicOperationConverterHelper
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.DisableDcosServerGroupDescription
 import com.netflix.spinnaker.clouddriver.dcos.deploy.ops.servergroup.DisableDcosServerGroupAtomicOperation
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.DcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperations
 import com.netflix.spinnaker.clouddriver.security.AbstractAtomicOperationsCredentialsSupport
@@ -33,15 +34,18 @@ import org.springframework.stereotype.Component
 class DisableDcosServerGroupAtomicOperationConverter extends AbstractAtomicOperationsCredentialsSupport {
 
   private final DcosClientProvider dcosClientProvider
+  private final DcosDeploymentMonitor deploymentMonitor
 
   @Autowired
-  DisableDcosServerGroupAtomicOperationConverter(DcosClientProvider dcosClientProvider) {
+  DisableDcosServerGroupAtomicOperationConverter(DcosClientProvider dcosClientProvider,
+                                                 DcosDeploymentMonitor deploymentMonitor) {
     this.dcosClientProvider = dcosClientProvider
+    this.deploymentMonitor = deploymentMonitor
   }
 
   @Override
   AtomicOperation convertOperation(Map input) {
-    new DisableDcosServerGroupAtomicOperation(dcosClientProvider, convertDescription(input))
+    new DisableDcosServerGroupAtomicOperation(dcosClientProvider, deploymentMonitor, convertDescription(input))
   }
 
   @Override

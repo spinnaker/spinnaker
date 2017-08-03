@@ -17,10 +17,14 @@
 
 package com.netflix.spinnaker.clouddriver.dcos
 
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.mapper.DeployDcosServerGroupDescriptionToAppMapper
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.DcosDeploymentMonitor
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.PollingDcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.dcos.health.DcosHealthIndicator
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosCredentialsInitializer
 import com.netflix.spinnaker.clouddriver.helpers.OperationPoller
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -52,11 +56,11 @@ class DcosConfiguration {
   DcosHealthIndicator dcosHealthIndicator(AccountCredentialsProvider accountCredentialsProvider, DcosClientProvider dcosClientProvider) {
     new DcosHealthIndicator(accountCredentialsProvider, dcosClientProvider)
   }
-// TODO(willgorman): restore in future PRs
-//  @Bean
-//  DeployDcosServerGroupDescriptionToAppMapper deployDcosServerGroupDescriptionToAppMapper() {
-//    new DeployDcosServerGroupDescriptionToAppMapper()
-//  }
+
+  @Bean
+  DeployDcosServerGroupDescriptionToAppMapper deployDcosServerGroupDescriptionToAppMapper() {
+    new DeployDcosServerGroupDescriptionToAppMapper()
+  }
 
   @Bean
   OperationPoller dcosOperationPoller(DcosConfigurationProperties properties) {
@@ -65,11 +69,11 @@ class DcosConfiguration {
       properties.asyncOperationMaxPollingIntervalSeconds
     )
   }
-// TODO(willgorman): restore in future PRs
-//  @Bean
-//  DcosDeploymentMonitor dcosDeploymentMonitor(@Qualifier("dcosOperationPoller") OperationPoller operationPoller) {
-//    new PollingDcosDeploymentMonitor(operationPoller)
-//  }
+
+  @Bean
+  DcosDeploymentMonitor dcosDeploymentMonitor(@Qualifier("dcosOperationPoller") OperationPoller operationPoller) {
+    new PollingDcosDeploymentMonitor(operationPoller)
+  }
 }
 
 

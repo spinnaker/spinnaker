@@ -46,6 +46,7 @@ import static com.netflix.spinnaker.cats.agent.AgentDataType.Authority.INFORMATI
 class DcosServerGroupCachingAgent implements CachingAgent, AccountAware, OnDemandAgent {
   private final String accountName
   private final String clusterName
+  private final String clusterUrl
   private final DCOS dcosClient
   private final DcosCloudProvider dcosCloudProvider = new DcosCloudProvider()
   private final ObjectMapper objectMapper
@@ -68,6 +69,7 @@ class DcosServerGroupCachingAgent implements CachingAgent, AccountAware, OnDeman
                               Registry registry) {
     this.accountName = accountName
     this.clusterName = clusterName
+    this.clusterUrl = credentials.getCredentialsByCluster(clusterName).dcosUrl
     this.objectMapper = objectMapper
     this.dcosClient = clientProvider.getDcosClient(credentials, clusterName)
     this.metricsSupport = new OnDemandMetricsSupport(registry,
@@ -242,7 +244,7 @@ class DcosServerGroupCachingAgent implements CachingAgent, AccountAware, OnDeman
 
   private DcosServerGroup loadServerGroup(String dcosAppId) {
     App app = dcosClient.getApp(dcosAppId)?.app
-    app ? new DcosServerGroup(accountName, clusterName, app) : null
+    app ? new DcosServerGroup(accountName, clusterName, clusterUrl, app) : null
   }
 
   private List<DcosServerGroup> loadServerGroups() {
@@ -256,7 +258,7 @@ class DcosServerGroupCachingAgent implements CachingAgent, AccountAware, OnDeman
     response.get().apps.findAll {
       !it.labels?.containsKey("SPINNAKER_LOAD_BALANCER") && DcosSpinnakerAppId.parse(it.id, accountName).isPresent()
     }.collect {
-      new DcosServerGroup(accountName, clusterName, it)
+      new DcosServerGroup(accountName, clusterName, clusterUrl, it)
     }
   }
 

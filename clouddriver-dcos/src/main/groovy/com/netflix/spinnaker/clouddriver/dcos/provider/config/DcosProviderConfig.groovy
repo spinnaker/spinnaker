@@ -22,8 +22,13 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.netflix.spectator.api.Registry
 import com.netflix.spinnaker.cats.agent.Agent
 import com.netflix.spinnaker.cats.provider.ProviderSynchronizerTypeWrapper
+import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.provider.DcosProvider
+import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosInstanceCachingAgent
+import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosLoadBalancerCachingAgent
+import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosSecretsCachingAgent
+import com.netflix.spinnaker.clouddriver.dcos.provider.agent.DcosServerGroupCachingAgent
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosClusterCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
@@ -90,18 +95,17 @@ class DcosProviderConfig {
           // TODO We should try and enhance this at some point if DC/OS doesn't ever finer grained access controls on
           // secrets so that we aren't unnecessarily duplicating these agents since they are essentially storing the
           // exact same secrets for a single cluster
-          // TODO(willgorman): restore in future PRs
-//          newlyAddedAgents << new DcosSecretsCachingAgent(credentials.account, clusterCredentials.cluster,
-//                  credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper)
-//
-//          newlyAddedAgents << new DcosServerGroupCachingAgent(credentials.account, clusterCredentials.cluster,
-//                  credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
-//
-//          newlyAddedAgents << new DcosLoadBalancerCachingAgent(credentials.account, clusterCredentials.cluster,
-//                  credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
-//
-//          newlyAddedAgents << new DcosInstanceCachingAgent(credentials.account, clusterCredentials.cluster,
-//                  credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper)
+          newlyAddedAgents << new DcosSecretsCachingAgent(credentials.account, clusterCredentials.cluster,
+                                                          credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper)
+
+          newlyAddedAgents << new DcosServerGroupCachingAgent(credentials.account, clusterCredentials.cluster,
+                                                              credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
+
+          newlyAddedAgents << new DcosLoadBalancerCachingAgent(credentials.account, clusterCredentials.cluster,
+                                                               credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper, registry)
+
+          newlyAddedAgents << new DcosInstanceCachingAgent(credentials.account, clusterCredentials.cluster,
+                                                           credentials, new DcosClientProvider(accountCredentialsProvider), objectMapper)
         }
       }
     }

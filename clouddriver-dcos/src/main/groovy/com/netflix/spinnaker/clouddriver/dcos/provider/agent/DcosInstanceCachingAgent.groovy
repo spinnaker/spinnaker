@@ -39,6 +39,7 @@ class DcosInstanceCachingAgent implements CachingAgent, AccountAware {
 
   private final String accountName
   private final String clusterName
+  private final String clusterUrl
   private final DCOS dcosClient
   private final ObjectMapper objectMapper
 
@@ -53,6 +54,7 @@ class DcosInstanceCachingAgent implements CachingAgent, AccountAware {
                            ObjectMapper objectMapper) {
     this.accountName = accountName
     this.clusterName = clusterName
+    this.clusterUrl = credentials.getCredentialsByCluster(clusterName).dcosUrl
     this.objectMapper = objectMapper
     this.dcosClient = clientProvider.getDcosClient(credentials, clusterName)
   }
@@ -111,7 +113,7 @@ class DcosInstanceCachingAgent implements CachingAgent, AccountAware {
 
       cachedInstances[key].with {
         attributes.name = task.id
-        attributes.instance = new DcosInstance(task, accountName, clusterName, deploymentsActive)
+        attributes.instance = new DcosInstance(task, accountName, clusterName, clusterUrl, deploymentsActive)
       }
     }
 

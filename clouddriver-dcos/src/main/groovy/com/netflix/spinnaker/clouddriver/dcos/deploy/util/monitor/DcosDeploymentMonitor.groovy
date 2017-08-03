@@ -41,13 +41,26 @@ interface DcosDeploymentMonitor {
 
   /**
    * @param dcosClient a DCOS client instance (cannot be null).
-   * @param marathonApp The Marathon application to monitor (cannot be null).
+   * @param appId The Marathon application ID to monitor (cannot be null).
    * @param timeoutSeconds The timeout interval in seconds (may be null).
    * @param task The task to be updated (may be null).
    * @param basePhase The phase
    * @throws com.netflix.spinnaker.clouddriver.exceptions.OperationTimedOutException if the timeout interval elapses.
    */
-  void waitForAppDestroy(DCOS dcosClient, App marathonApp,
+  void waitForAppDestroy(DCOS dcosClient, String appId,
+                         Long timeoutSeconds, Task task, String basePhase)
+
+  /**
+   * @param dcosClient a DCOS client instance (cannot be null).
+   * @param appId The Marathon application ID to monitor (cannot be null).
+   * @param deploymentId The corresponding deployment id to monitor (cannot be null).
+   * @param target The target number of instances to check for (cannot be null).
+   * @param timeoutSeconds The timeout interval in seconds (may be null).
+   * @param task The task to be updated (may be null).
+   * @param basePhase The phase
+   * @throws com.netflix.spinnaker.clouddriver.exceptions.OperationTimedOutException if the timeout interval elapses.
+   */
+  void waitForAppResize(DCOS dcosClient, String appId, String deploymentId, int target,
                          Long timeoutSeconds, Task task, String basePhase)
 
 

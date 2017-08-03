@@ -3,6 +3,7 @@ package com.netflix.spinnaker.clouddriver.dcos.deploy.ops.servergroup
 import com.netflix.spinnaker.clouddriver.data.task.Task
 import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.PollingDcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.ResizeDcosServerGroupDescription
@@ -16,6 +17,7 @@ class ResizeDcosServerGroupAtomicOperationSpec extends BaseSpecification {
   private static final APPLICATION_NAME = 'api-test-v000'
 
   DCOS dcosClient = Mock(DCOS)
+  PollingDcosDeploymentMonitor deploymentMonitor = Mock(PollingDcosDeploymentMonitor)
 
   DcosAccountCredentials testCredentials = defaultCredentialsBuilder().build()
 
@@ -28,7 +30,7 @@ class ResizeDcosServerGroupAtomicOperationSpec extends BaseSpecification {
   )
 
   @Subject
-  AtomicOperation atomicOperation = new ResizeDcosServerGroupAtomicOperation(dcosClientProvider, description)
+  AtomicOperation atomicOperation = new ResizeDcosServerGroupAtomicOperation(dcosClientProvider, deploymentMonitor, description)
 
   def setup() {
     Task task = Mock(Task)

@@ -48,9 +48,7 @@ class CloneDcosServerGroupAtomicOperation implements AtomicOperation<DeploymentR
     task.updateStatus BASE_PHASE, "Initializing copy of server group for " +
       "${description.source.serverGroupName}..."
 
-    CloneDcosServerGroupDescription newDescription = cloneAndOverrideDescription()
-
-    DeployDcosServerGroupAtomicOperation deployer = new DeployDcosServerGroupAtomicOperation(dcosClientProvider, descriptionToAppMapper, newDescription)
+    DeployDcosServerGroupAtomicOperation deployer = new DeployDcosServerGroupAtomicOperation(dcosClientProvider, descriptionToAppMapper, description)
     DeploymentResult deploymentResult = deployer.operate(priorOutputs)
 
     task.updateStatus BASE_PHASE, "Finished copying server group for " +
@@ -61,14 +59,5 @@ class CloneDcosServerGroupAtomicOperation implements AtomicOperation<DeploymentR
       "New server group = ${deploymentResult.serverGroupNames[0]}."
 
     return deploymentResult
-  }
-
-  CloneDcosServerGroupDescription cloneAndOverrideDescription() {
-    CloneDcosServerGroupDescription newDescription = description.clone()
-
-    // Unset fields that can't be set for a new server group.
-    newDescription.version = null
-
-    return newDescription
   }
 }

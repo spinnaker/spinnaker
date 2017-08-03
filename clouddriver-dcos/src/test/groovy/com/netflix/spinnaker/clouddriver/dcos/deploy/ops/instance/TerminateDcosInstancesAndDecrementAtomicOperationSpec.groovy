@@ -24,42 +24,16 @@ class TerminateDcosInstancesAndDecrementAtomicOperationSpec extends BaseSpecific
         TaskRepository.threadLocalTask.set(task)
     }
 
-    void 'TerminateDcosInstancesAndDecrementAtomicOperation should terminate the tasks and scale the DCOS service successfully when given an appId and hostId.'() {
-        setup:
-            def description = new TerminateDcosInstancesAndDecrementDescription(credentials: testCredentials, dcosCluster: DEFAULT_REGION,
-                appId: "test/region/app-stack-detail-v000", hostId: "192.168.0.0", taskIds: [], force: true)
-            def atomicOperation = new TerminateDcosInstancesAndDecrementAtomicOperation(dcosClientProvider, description)
-        when:
-            atomicOperation.operate([])
-
-        then:
-            noExceptionThrown()
-            1 * dcosClient.deleteAppTasksAndScaleWithHost(_, _, _) >> new Result()
-    }
-
-    void 'TerminateDcosInstancesAndDecrementAtomicOperation should terminate the tasks and scale the DCOS service successfully when given an appId and taskId.'() {
+    void 'TerminateDcosInstancesAndDecrementAtomicOperation should terminate the tasks and scale the DCOS service successfully when given instanceIds.'() {
         setup:
         def description = new TerminateDcosInstancesAndDecrementDescription(credentials: testCredentials, dcosCluster: DEFAULT_REGION,
-                appId: "test/region/app-stack-detail-v000", hostId: null, taskIds: ["TASK ONE"], force: true)
+                instanceIds: ["TASK ONE"])
         def atomicOperation = new TerminateDcosInstancesAndDecrementAtomicOperation(dcosClientProvider, description)
         when:
         atomicOperation.operate([])
 
         then:
         noExceptionThrown()
-        1 * dcosClient.deleteAppTasksAndScaleWithTaskId(_, _, _) >> new Result()
-    }
-
-    void 'TerminateDcosInstancesAndDecrementAtomicOperation should terminate the tasks and scale the DCOS service successfully when given taskIds.'() {
-        setup:
-        def description = new TerminateDcosInstancesAndDecrementDescription(credentials: testCredentials, dcosCluster: DEFAULT_REGION,
-                appId: null, hostId: null, taskIds: ["TASK ONE"], force: true)
-        def atomicOperation = new TerminateDcosInstancesAndDecrementAtomicOperation(dcosClientProvider, description)
-        when:
-        atomicOperation.operate([])
-
-        then:
-        noExceptionThrown()
-        1 * dcosClient.deleteTaskAndScale(_, _) >> new GetTasksResponse()
+        1 * dcosClient.deleteTaskAndScale(false, _)
     }
 }

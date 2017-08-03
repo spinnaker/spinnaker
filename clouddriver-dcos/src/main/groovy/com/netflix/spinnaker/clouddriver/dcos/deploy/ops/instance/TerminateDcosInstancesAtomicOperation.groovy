@@ -60,33 +60,12 @@ class TerminateDcosInstancesAtomicOperation implements AtomicOperation<Void> {
 
     def dcosClient = dcosClientProvider.getDcosClient(description.credentials, description.dcosCluster)
 
-    if (description.appId) {
-      if (description.hostId) {
-        if (description.wipe) {
-          dcosClient.deleteAppTasksAndWipeWithHost(description.appId, description.hostId, description.force)
-        } else {
-          dcosClient.deleteAppTasksWithHost(description.appId, description.hostId, description.force)
-        }
-      } else if (description.taskIds) {
-        if (description.wipe) {
-          dcosClient.deleteAppTasksAndWipeWithTaskId(description.appId, description.taskIds.first(), description.force)
-        } else {
-          dcosClient.deleteAppTasksWithTaskId(description.appId, description.taskIds.first(), description.force)
-        }
-      }
-    } else {
-      def deleteTaskCriteria = new DeleteTaskCriteria().with {
-        ids = description.taskIds
-        it
-      }
-
-      if (description.wipe) {
-        dcosClient.deleteTaskAndWipe(description.force, deleteTaskCriteria)
-      } else {
-        dcosClient.deleteTask(description.force, deleteTaskCriteria)
-      }
+    def deleteTaskCriteria = new DeleteTaskCriteria().with {
+      ids = description.instanceIds
+      it
     }
 
+    dcosClient.deleteTask(false, deleteTaskCriteria)
 
     task.updateStatus BASE_PHASE, "Completed termination operation."
   }

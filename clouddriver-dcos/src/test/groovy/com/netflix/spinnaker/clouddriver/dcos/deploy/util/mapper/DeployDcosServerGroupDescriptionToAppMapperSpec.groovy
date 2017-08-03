@@ -18,7 +18,7 @@ class DeployDcosServerGroupDescriptionToAppMapperSpec extends Specification {
                 constraints: "something:GROUP_BY:other,test:GROUP_BY:other", fetch: [new DeployDcosServerGroupDescription.Fetchable(uri: "uri", executable: true, extract: true, cache: true, outputFile: "file")],
                 storeUrls: [ "someUrl" ], backoffSeconds: 1, backoffFactor: 1.15, maxLaunchDelaySeconds: 3600,
                 dependencies: ["some-other-service-v000"], labels: ["key": "value"],
-                residency: new DeployDcosServerGroupDescription.Residency(taskLostBehaviour: "idk", relaunchEscalationTimeoutSeconds: 0),
+                residency: new DeployDcosServerGroupDescription.Residency(taskLostBehavior: "idk", relaunchEscalationTimeoutSeconds: 0),
                 taskKillGracePeriodSeconds: 1, secrets: [ "secret": "this is super secret"], requirePorts: false,
                 acceptedResourceRoles: ["slave_public"],
                 dockerVolumes: [new DeployDcosServerGroupDescription.DockerVolume(containerPath: "path/to/container",
@@ -34,7 +34,7 @@ class DeployDcosServerGroupDescriptionToAppMapperSpec extends Specification {
                 docker: new DeployDcosServerGroupDescription.Docker(privileged: false, forcePullImage: true,
                         network: "BRIDGE",
                         image: new DeployDcosServerGroupDescription.Image(imageId: "some/image:latest"),
-                        parameters: ["param": "value"]),
+                        parameters: [new DeployDcosServerGroupDescription.Parameter(key: 'param', value: 'value')]),
                 readinessChecks: [new DeployDcosServerGroupDescription.ReadinessCheck(name: 'check', protocol: 'tcp',
                         portName: 'checkPort', path: '/meta/health', intervalSeconds: 30, timeoutSeconds: 270,
                         httpStatusCodesForReady: [200, 201], preserveLastResponse: false)],
@@ -105,7 +105,7 @@ class DeployDcosServerGroupDescriptionToAppMapperSpec extends Specification {
         app.version == null
 
         if (app.residency && description.residency) {
-            assert app.residency.taskLostBehaviour == description.residency.taskLostBehaviour
+            assert app.residency.taskLostBehavior == description.residency.taskLostBehavior
             assert app.residency.relaunchEscalationTimeoutSeconds == description.residency.relaunchEscalationTimeoutSeconds
         }
 
@@ -131,7 +131,7 @@ class DeployDcosServerGroupDescriptionToAppMapperSpec extends Specification {
         })
 
         app.container.docker.parameters.size() == description.docker.parameters.size()
-        [app.container.docker.parameters, description.docker.parameters.entrySet().asList()].transpose().forEach({ appParameter, descriptionParameter ->
+        [app.container.docker.parameters, description.docker.parameters.asList()].transpose().forEach({ appParameter, descriptionParameter ->
             assert appParameter.key == descriptionParameter.key
             assert appParameter.value == descriptionParameter.value
         })

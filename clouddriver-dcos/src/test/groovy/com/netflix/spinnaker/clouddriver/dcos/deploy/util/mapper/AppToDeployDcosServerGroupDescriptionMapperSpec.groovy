@@ -51,7 +51,7 @@ class AppToDeployDcosServerGroupDescriptionMapperSpec extends Specification {
     app.upgradeStrategy = new UpgradeStrategy(maximumOverCapacity: 0.5, minimumHealthCapacity: 0.5)
     app.labels = [lbl1: 'value1', lbl2: 'value2']
     app.acceptedResourceRoles = ['role1', 'role2']
-    app.residency = new Residency(taskLostBehaviour: 'relaunch', relaunchEscalationTimeoutSeconds: 10)
+    app.residency = new Residency(taskLostBehavior: 'relaunch', relaunchEscalationTimeoutSeconds: 10)
     app.taskKillGracePeriodSeconds = 300
     app.secrets = [secret0: [source: 'source1'], secret1: [source: 'source2']]
     app.requirePorts = true
@@ -88,7 +88,7 @@ class AppToDeployDcosServerGroupDescriptionMapperSpec extends Specification {
     desc.upgradeStrategy == new DeployDcosServerGroupDescription.UpgradeStrategy(maximumOverCapacity: 0.5, minimumHealthCapacity: 0.5)
     desc.labels == [lbl1: 'value1', lbl2: 'value2']
     desc.acceptedResourceRoles == ['role1', 'role2']
-    desc.residency == new DeployDcosServerGroupDescription.Residency(taskLostBehaviour: 'relaunch', relaunchEscalationTimeoutSeconds: 10)
+    desc.residency == new DeployDcosServerGroupDescription.Residency(taskLostBehavior: 'relaunch', relaunchEscalationTimeoutSeconds: 10)
     desc.taskKillGracePeriodSeconds == 300
     desc.secrets == [secret0: [source: 'source1'], secret1: [source: 'source2']]
     desc.requirePorts
@@ -193,7 +193,11 @@ class AppToDeployDcosServerGroupDescriptionMapperSpec extends Specification {
     desc.docker.privileged
     desc.docker.forcePullImage
     desc.docker.network == 'HOST'
-    desc.docker.parameters == [key1: 'value1', key2: 'value2']
+    [desc.docker.parameters, [new Parameter(key: 'key1', value: 'value1'), new Parameter(key: 'key2', value: 'value2')]].transpose().forEach({ appParameter, descriptionParameter ->
+      assert appParameter.key == descriptionParameter.key
+      assert appParameter.value == descriptionParameter.value
+    })
+
 
     desc.networkType == 'HOST'
   }

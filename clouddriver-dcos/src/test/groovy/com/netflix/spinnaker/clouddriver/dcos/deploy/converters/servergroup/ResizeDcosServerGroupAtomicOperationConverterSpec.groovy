@@ -2,6 +2,7 @@ package com.netflix.spinnaker.clouddriver.dcos.deploy.converters.servergroup
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.PollingDcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.deploy.BaseSpecification
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.ResizeDcosServerGroupDescription
@@ -15,6 +16,7 @@ import spock.lang.Subject
 class ResizeDcosServerGroupAtomicOperationConverterSpec extends BaseSpecification {
 
   DCOS dcosClient = Mock(DCOS)
+  PollingDcosDeploymentMonitor deploymentMonitor = Mock(PollingDcosDeploymentMonitor)
 
   DcosAccountCredentials testCredentials = defaultCredentialsBuilder().build()
 
@@ -27,7 +29,7 @@ class ResizeDcosServerGroupAtomicOperationConverterSpec extends BaseSpecificatio
   }
 
   @Subject
-  AbstractAtomicOperationsCredentialsSupport atomicOperationConverter = new ResizeDcosServerGroupAtomicOperationConverter(dcosClientProvider)
+  AbstractAtomicOperationsCredentialsSupport atomicOperationConverter = new ResizeDcosServerGroupAtomicOperationConverter(dcosClientProvider, deploymentMonitor)
 
   void 'convertDescription should return a valid ResizeDcosServerGroupDescription'() {
     given:

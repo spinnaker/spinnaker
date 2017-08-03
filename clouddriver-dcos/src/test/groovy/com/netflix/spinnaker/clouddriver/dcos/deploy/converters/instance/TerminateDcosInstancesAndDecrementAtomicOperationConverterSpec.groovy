@@ -35,11 +35,8 @@ class TerminateDcosInstancesAndDecrementAtomicOperationConverterSpec extends Bas
         atomicOperationConverter.objectMapper = new ObjectMapper()
         def input = [
                 account: "test",
-                cluster: "us-test-1",
-                appId: "test/dev/app-stack-detail-v000",
-                hostId: "192.168.0.0",
-                taskIds: ["TASK ONE"],
-                force: false
+                region: "default",
+                instanceIds: ["TASK ONE"]
         ]
 
         when:
@@ -57,11 +54,8 @@ class TerminateDcosInstancesAndDecrementAtomicOperationConverterSpec extends Bas
         atomicOperationConverter.objectMapper = new ObjectMapper()
         def input = [
                 account: "test",
-                cluster: "us-test-1",
-                appId: "test/dev/app-stack-detail-v000",
-                hostId: "192.168.0.0",
-                taskIds: ["TASK ONE"],
-                force: false
+                region: "default",
+                instanceIds: ["TASK ONE"]
         ]
 
         when:

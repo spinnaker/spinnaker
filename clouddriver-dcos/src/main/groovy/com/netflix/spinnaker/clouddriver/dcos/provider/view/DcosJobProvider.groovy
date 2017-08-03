@@ -22,7 +22,9 @@ import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.DcosCloudProvider
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerJobId
 import com.netflix.spinnaker.clouddriver.dcos.model.DcosJobStatus
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.model.JobProvider
+import com.netflix.spinnaker.clouddriver.security.AccountCredentialsProvider
 import mesosphere.dcos.client.DCOSException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -37,16 +39,27 @@ class DcosJobProvider implements JobProvider<DcosJobStatus> {
 
   private final DcosClientProvider dcosClientProvider
   private final ObjectMapper objectMapper
+  private final AccountCredentialsProvider credentialsProvider
 
   @Autowired
-  DcosJobProvider(DcosClientProvider dcosClientProvider, ObjectMapper objectMapper) {
+  DcosJobProvider(DcosClientProvider dcosClientProvider, ObjectMapper objectMapper, AccountCredentialsProvider credentialsProvider) {
     this.dcosClientProvider = dcosClientProvider
     this.objectMapper = objectMapper
+    this.credentialsProvider = credentialsProvider
   }
 
   @Override
   DcosJobStatus collectJob(String account, String location, String id) {
-    def dcosClient = dcosClientProvider.getDcosClient(account, location)
+    def credentials = credentialsProvider.getCredentials(account)
+
+    // Because of how the job endpoint within Clouddriver works (by looping through ALL providers for valid job
+    // statuses), we want to protect against non-DCOS credentials and return null so that we don't break the job
+    // endpoint by throwing an exception (which will return a 500 to the caller).
+    if (!(credentials instanceof DcosAccountCredentials)) {
+      return null
+    }
+
+    def dcosClient = dcosClientProvider.getDcosClient(credentials, location)
     def jobId = new DcosSpinnakerJobId(id)
     def jobResponse = dcosClient.getJob(jobId.jobName, ['activeRuns','history'])
 
@@ -55,9 +68,16 @@ class DcosJobProvider implements JobProvider<DcosJobStatus> {
 
   @Override
   Map<String, Object> getFileContents(String account, String location, String id, String fileName) {
-    // Note - location is secretly the Job ID within DC/OS, this is so we don't have to do any parsing of the id field
-    // give to this function but still have all the information we need to get a file if need be.
-    def dcosClient = dcosClientProvider.getDcosClient(account, location)
+    def credentials = credentialsProvider.getCredentials(account)
+
+    // Similar to above of how the job endpoint within Clouddriver works (by looping through ALL providers for a valid
+    // map), we want to protect against non-DCOS credentials and return an empty map so that we don't break the
+    // job endpoint by throwing an exception (which will return a 500 to the caller).
+    if (!(credentials instanceof DcosAccountCredentials)) {
+      return [:]
+    }
+
+    def dcosClient = dcosClientProvider.getDcosClient(credentials, location)
     def jobId = new DcosSpinnakerJobId(id)
     def taskName = jobId.mesosTaskName
     def masterState = dcosClient.getMasterState()

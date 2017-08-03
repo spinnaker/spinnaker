@@ -6,11 +6,12 @@ import com.netflix.spinnaker.cats.agent.DefaultCacheResult
 import com.netflix.spinnaker.cats.cache.CacheData
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
 import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerLbId
 import com.netflix.spinnaker.clouddriver.dcos.provider.MutableCacheData
-import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosClusterCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import mesosphere.dcos.client.DCOS
 import mesosphere.marathon.client.model.v2.App
@@ -29,8 +30,10 @@ class DcosServerGroupCachingAgentSpec extends Specification {
   static final private String MARATHON_APP = "/${ACCOUNT}/${GROUP}/${SERVER_GROUP}"
   static final private String TASK = "${MARATHON_APP}-some-task-id"
   static final private String LOAD_BALANCER = "/${ACCOUNT}/${APP}-frontend"
+  static final private String DCOS_URL = "https://test.com/"
 
   DcosAccountCredentials credentials
+  DcosClusterCredentials clusterCredentials
   AccountCredentialsRepository accountCredentialsRepository
 
   DcosServerGroupCachingAgent subject
@@ -52,6 +55,7 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     registryMock.timer(_, _) >> Mock(com.netflix.spectator.api.Timer)
     accountCredentialsRepository = Mock(AccountCredentialsRepository)
     credentials = Stub(DcosAccountCredentials)
+    clusterCredentials = Stub(DcosClusterCredentials)
     dcosClient = Mock(DCOS)
     providerCache = Mock(ProviderCache)
     objectMapper = new ObjectMapper()
@@ -59,6 +63,9 @@ class DcosServerGroupCachingAgentSpec extends Specification {
     clientProvider = Mock(DcosClientProvider) {
       getDcosClient(credentials, REGION) >> dcosClient
     }
+
+    credentials.getCredentialsByCluster(REGION) >> clusterCredentials
+    clusterCredentials.dcosUrl >> DCOS_URL
 
     appKey = Keys.getApplicationKey(APP)
     serverGroupKey = Keys.getServerGroupKey(DcosSpinnakerAppId.parseVerbose(MARATHON_APP, ACCOUNT).get(), REGION)

@@ -19,16 +19,17 @@ package com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup
 
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.AbstractDcosCredentialsDescription
 import com.netflix.spinnaker.clouddriver.deploy.DeployDescription
+import com.netflix.spinnaker.clouddriver.security.resources.ApplicationNameable
 import groovy.transform.AutoClone
 import groovy.transform.Canonical
 
 @AutoClone
-class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescription implements DeployDescription {
+class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescription implements DeployDescription, ApplicationNameable {
   String application
   String stack
   String freeFormDetails
   String cmd
-  List<String> args = new ArrayList<>()
+  List<String> args
   String dcosUser
   Map<String, Object> env = new HashMap<>()
   Integer desiredCapacity
@@ -91,8 +92,14 @@ class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescriptio
 
     String network
     boolean privileged
-    Map<String, String> parameters
+    List<Parameter> parameters
     boolean forcePullImage
+  }
+
+  @Canonical
+  static class Parameter {
+    String key
+    String value
   }
 
   @Canonical
@@ -174,7 +181,7 @@ class DeployDcosServerGroupDescription extends AbstractDcosCredentialsDescriptio
 
   @Canonical
   static class Residency {
-    String taskLostBehaviour
+    String taskLostBehavior
     Integer relaunchEscalationTimeoutSeconds
   }
 

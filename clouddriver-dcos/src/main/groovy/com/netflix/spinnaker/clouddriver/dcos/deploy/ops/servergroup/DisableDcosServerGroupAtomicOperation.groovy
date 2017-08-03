@@ -22,18 +22,25 @@ import com.netflix.spinnaker.clouddriver.data.task.TaskRepository
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.DisableDcosServerGroupDescription
 import com.netflix.spinnaker.clouddriver.dcos.deploy.description.servergroup.ResizeDcosServerGroupDescription
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.id.DcosSpinnakerAppId
+import com.netflix.spinnaker.clouddriver.dcos.deploy.util.monitor.DcosDeploymentMonitor
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation
+import mesosphere.marathon.client.model.v2.App
 
 class DisableDcosServerGroupAtomicOperation implements AtomicOperation<Void> {
 
   private static final String BASE_PHASE = "DISABLE"
 
-  final DcosClientProvider dcosClientProvider
-  final DisableDcosServerGroupDescription description
+  private final DcosClientProvider dcosClientProvider
+  private final DcosDeploymentMonitor deploymentMonitor
+  private final DisableDcosServerGroupDescription description
 
-  DisableDcosServerGroupAtomicOperation(DcosClientProvider dcosClientProvider, DisableDcosServerGroupDescription description) {
+  DisableDcosServerGroupAtomicOperation(DcosClientProvider dcosClientProvider,
+                                        DcosDeploymentMonitor deploymentMonitor,
+                                        DisableDcosServerGroupDescription description) {
     this.dcosClientProvider = dcosClientProvider
     this.description = description
+    this.deploymentMonitor = deploymentMonitor
   }
 
   private static Task getTask() {
@@ -60,7 +67,7 @@ class DisableDcosServerGroupAtomicOperation implements AtomicOperation<Void> {
       it
     }
 
-    def resizeOp = new ResizeDcosServerGroupAtomicOperation(dcosClientProvider, resizeDesc)
+    def resizeOp = new ResizeDcosServerGroupAtomicOperation(dcosClientProvider, deploymentMonitor, resizeDesc)
     resizeOp.operate([])
   }
 }

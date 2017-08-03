@@ -24,10 +24,10 @@ import mesosphere.marathon.client.model.v2.App
 
 class PollingDcosDeploymentMonitor implements DcosDeploymentMonitor {
 
-  private final OperationPoller operationPoller;
+  private final OperationPoller operationPoller
 
   PollingDcosDeploymentMonitor(final OperationPoller operationPoller) {
-    this.operationPoller = operationPoller;
+    this.operationPoller = operationPoller
   }
 
   @Override
@@ -48,10 +48,18 @@ class PollingDcosDeploymentMonitor implements DcosDeploymentMonitor {
   }
 
   @Override
-  void waitForAppDestroy(DCOS dcosClient, App marathonApp, Long timeoutSeconds, Task task, String basePhase) {
+  void waitForAppDestroy(DCOS dcosClient, String appId, Long timeoutSeconds, Task task, String basePhase) {
     operationPoller.waitForOperation(
-      { dcosClient.maybeApp(marathonApp.id) },
-      { Optional<App> retrievedApp -> !retrievedApp.isPresent() || retrievedApp.get().version != marathonApp.version },
-      timeoutSeconds, task, marathonApp.id, basePhase)
+            { dcosClient.maybeApp(appId) },
+            { Optional<App> retrievedApp -> !retrievedApp.isPresent() },
+            timeoutSeconds, task, appId, basePhase)
+  }
+
+  @Override
+  void waitForAppResize(DCOS dcosClient, String appId, String deploymentId, int target, Long timeoutSeconds, Task task, String basePhase) {
+    operationPoller.waitForOperation(
+            { dcosClient.maybeApp(appId) },
+            { Optional<App> retrievedApp -> retrievedApp.isPresent() && retrievedApp.get().tasks.size() == target && !retrievedApp.get().deployments.find {it.id == deploymentId } },
+            timeoutSeconds, task, appId, basePhase)
   }
 }

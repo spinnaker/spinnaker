@@ -46,24 +46,4 @@ class DcosClientProvider {
 
     return dcosClients.computeIfAbsent(compositeKey.toString(), { k -> DCOSClient.getInstance(credentials.dcosUrl, credentials.dcosConfig) })
   }
-
-  DCOS getDcosClient(String accountName, String clusterName) {
-    def compositeKey = DcosClientCompositeKey.buildFrom(accountName, clusterName).get()
-
-    return dcosClients.computeIfAbsent(compositeKey.toString(), { k ->
-      def credentials = credentialsProvider.getCredentials(accountName)
-
-      if (!(credentials instanceof DcosAccountCredentials)) {
-        throw new IllegalArgumentException("Account [${accountName}] is not a valid DC/OS account!")
-      }
-
-      def trueCredentials = credentials.getCredentials().getCredentialsByCluster(clusterName)
-
-      if (!trueCredentials) {
-        throw new IllegalArgumentException("Cluster [${clusterName}] is not a valid DC/OS cluster for the DC/OS account [${accountName}]!")
-      }
-
-      DCOSClient.getInstance(trueCredentials.dcosUrl, trueCredentials.dcosConfig)
-    })
-  }
 }

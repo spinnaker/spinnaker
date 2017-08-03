@@ -39,27 +39,8 @@ class TerminateDcosInstanceAndDecrementDescriptionValidator extends AbstractDcos
   @Override
   void validate(List priorDescriptions, TerminateDcosInstancesAndDecrementDescription description, Errors errors) {
     super.validate(priorDescriptions, description, errors)
-
-    if (description.appId) {
-      if (!description.hostId && !description.taskIds) {
-        errors.rejectValue "hostId|taskIds", "${descriptionName}.hostId|taskIds.empty"
-      }
-
-      if (description.hostId && description.taskIds) {
-        errors.rejectValue "hostId|taskIds", "${descriptionName}.hostId|taskIds.invalid"
-      }
-
-      if (description.taskIds && description.taskIds.size() != 1) {
-        errors.rejectValue "taskIds", "${descriptionName}.taskIds.invalid"
-      }
-
-      if (!DcosSpinnakerAppId.parseVerbose(description.appId, description.credentials.account).isPresent()) {
-        errors.rejectValue "appId", "${descriptionName}.appId.invalid"
-      }
-    } else {
-      if (!description.taskIds) {
-        errors.rejectValue "taskIds", "${descriptionName}.taskIds.empty"
-      }
+    if (!description.instanceIds) {
+      errors.rejectValue "instanceIds", "${descriptionName}.instanceIds.empty"
     }
   }
 }

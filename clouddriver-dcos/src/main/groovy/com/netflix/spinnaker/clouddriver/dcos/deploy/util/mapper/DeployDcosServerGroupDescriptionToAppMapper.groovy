@@ -34,7 +34,7 @@ class DeployDcosServerGroupDescriptionToAppMapper {
       gpus = description.gpus
 
       if (description.networkType == "USER" && emptyToNull(description.networkName)) {
-        ipAddress = new AppIpAddress().with {
+        ipAddress = new IpAddress().with {
           networkName = description.networkName
           it
         }
@@ -53,10 +53,10 @@ class DeployDcosServerGroupDescriptionToAppMapper {
             portMappings = parsePortMappings(resolvedAppName, description.serviceEndpoints)
           }
           privileged = description.docker.privileged
-          parameters = description.docker.parameters?.entrySet()?.collect({ entry ->
+          parameters = description.docker.parameters?.collect({ parameter ->
             new Parameter().with {
-              key = entry.key
-              value = entry.value
+              key = parameter.key
+              value = parameter.value
               it
             }
           }) as Collection<Parameter>
@@ -129,7 +129,7 @@ class DeployDcosServerGroupDescriptionToAppMapper {
       labels = description.labels ? description.labels : null
 
       residency = description.residency ? new Residency().with {
-        taskLostBehaviour = description.residency.taskLostBehaviour
+        taskLostBehavior = description.residency.taskLostBehavior
         relaunchEscalationTimeoutSeconds = description.residency.relaunchEscalationTimeoutSeconds
         it
       } : null

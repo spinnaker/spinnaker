@@ -3,9 +3,10 @@ package com.netflix.spinnaker.clouddriver.dcos.provider.agent
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.netflix.spinnaker.cats.provider.ProviderCache
 import com.netflix.spinnaker.clouddriver.dcos.DcosClientProvider
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
 import com.netflix.spinnaker.clouddriver.dcos.cache.Keys
 import com.netflix.spinnaker.clouddriver.dcos.model.DcosInstance
-import com.netflix.spinnaker.clouddriver.dcos.security.DcosAccountCredentials
+import com.netflix.spinnaker.clouddriver.dcos.security.DcosClusterCredentials
 import com.netflix.spinnaker.clouddriver.security.AccountCredentialsRepository
 import mesosphere.dcos.client.DCOS
 import mesosphere.marathon.client.model.v2.GetTasksResponse
@@ -18,9 +19,11 @@ class DcosInstanceCachingAgentSpec extends Specification {
   static final private String REGION = "default"
   static final private String CLUSTER = "${APP}-cluster"
   static final private String SERVER_GROUP = "${CLUSTER}-v000"
-  DcosAccountCredentials credentials
-  AccountCredentialsRepository accountCredentialsRepository
+  static final private String DCOS_URL = "https://test.com/"
 
+  DcosAccountCredentials credentials
+  DcosClusterCredentials clusterCredentials
+  AccountCredentialsRepository accountCredentialsRepository
   DcosInstanceCachingAgent subject
   private DcosClientProvider clientProvider
   private DCOS dcosClient
@@ -30,6 +33,7 @@ class DcosInstanceCachingAgentSpec extends Specification {
   def setup() {
     accountCredentialsRepository = Mock(AccountCredentialsRepository)
     credentials = Stub(DcosAccountCredentials)
+    clusterCredentials = Stub(DcosClusterCredentials)
     dcosClient = Mock(DCOS)
     providerCache = Mock(ProviderCache)
     objectMapper = new ObjectMapper()
@@ -37,6 +41,9 @@ class DcosInstanceCachingAgentSpec extends Specification {
     clientProvider = Mock(DcosClientProvider) {
       getDcosClient(credentials, REGION) >> dcosClient
     }
+
+    credentials.getCredentialsByCluster(REGION) >> clusterCredentials
+    clusterCredentials.dcosUrl >> DCOS_URL
 
     subject = new DcosInstanceCachingAgent(ACCOUNT, REGION, credentials, clientProvider, objectMapper)
   }
@@ -87,11 +94,11 @@ class DcosInstanceCachingAgentSpec extends Specification {
     def cacheData1 = result.cacheResults.instances.find { it.id == validInstance1Key }
     cacheData1 != null
     cacheData1.attributes.name == validTaskId1
-    cacheData1.attributes.instance == new DcosInstance(validTask1, ACCOUNT, REGION, false)
+    cacheData1.attributes.instance == new DcosInstance(validTask1, ACCOUNT, REGION, DCOS_URL, false)
 
     def cacheData2 = result.cacheResults.instances.find { it.id == validInstance2Key }
     cacheData2 != null
     cacheData2.attributes.name == validTaskId2
-    cacheData2.attributes.instance == new DcosInstance(validTask2, ACCOUNT, REGION, false)
+    cacheData2.attributes.instance == new DcosInstance(validTask2, ACCOUNT, REGION, DCOS_URL, false)
   }
 }
