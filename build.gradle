@@ -1,6 +1,7 @@
 import java.nio.file.Paths
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import org.redline_rpm.header.Flags
 
 buildscript {
   repositories {
@@ -100,5 +101,5 @@ buildRpm {
 }
 
 buildDeb {
-  requires('apache2')
+  requires('apache2', '2.4.26', Flags.GREATER | Flags.EQUAL)
 }
