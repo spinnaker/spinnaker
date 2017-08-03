@@ -11,6 +11,7 @@ import {
 } from '../actions/index';
 import {ICanaryState} from '../reducers/index';
 import {ICanaryMetricConfig} from 'kayenta/domain';
+import MetricConfigurerDelegator from './metricConfigurerDelegator';
 
 interface IEditMetricModalDispatchProps {
   rename: (event: any) => void;
@@ -42,6 +43,7 @@ function EditMetricModal({ metric, rename, confirm, cancel }: IEditMetricModalDi
           data-id={metric.id}
           onChange={rename}
         />
+        <MetricConfigurerDelegator/>
       </Modal.Body>
       <Modal.Footer>
         <button onClick={cancel}>Cancel</button>

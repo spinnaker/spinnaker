@@ -15,7 +15,7 @@ import {
   UPDATE_CONFIG_DESCRIPTION, EDIT_CONFIG_JSON_MODAL_OPEN,
   EDIT_CONFIG_JSON_MODAL_CLOSE,
   SET_CONFIG_JSON,
-  CONFIG_JSON_DESERIALIZATION_ERROR, REMOVE_METRIC
+  CONFIG_JSON_DESERIALIZATION_ERROR, REMOVE_METRIC, UPDATE_STACKDRIVER_METRIC_TYPE
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
@@ -127,6 +127,9 @@ function editingMetric(state: ICanaryMetricConfig = null, action: Action & any):
   switch (action.type) {
     case RENAME_METRIC:
       return Object.assign({}, state, { name: action.name });
+
+    case UPDATE_STACKDRIVER_METRIC_TYPE:
+      return Object.assign({}, state, { query: Object.assign({}, state.query, { metricType: action.metricType })});
 
     default:
       return state;

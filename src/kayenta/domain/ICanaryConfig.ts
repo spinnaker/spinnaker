@@ -22,6 +22,7 @@ export interface ICanaryMetricConfig {
 }
 
 export interface ICanaryMetricSetQueryConfig {
+  [key: string]: any;
   type: string;
 }
 
