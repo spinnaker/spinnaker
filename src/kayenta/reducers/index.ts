@@ -8,6 +8,7 @@ import {
   ADD_METRIC, SELECT_CONFIG, UPDATE_CONFIG_SUMMARIES,
   CONFIG_LOAD_ERROR, DISMISS_SAVE_CONFIG_ERROR, INITIALIZE, LOAD_CONFIG,
   RENAME_METRIC, SAVE_CONFIG_ERROR, SAVE_CONFIG_SAVING, SAVE_CONFIG_SAVED,
+  EDIT_METRIC_BEGIN, EDIT_METRIC_CONFIRM, EDIT_METRIC_CANCEL,
   DELETE_CONFIG_MODAL_OPEN,
   DELETE_CONFIG_MODAL_CLOSE, DELETE_CONFIG_DELETING, DELETE_CONFIG_COMPLETED,
   DELETE_CONFIG_ERROR, ADD_GROUP, SELECT_GROUP, UPDATE_CONFIG_NAME,
@@ -25,6 +26,7 @@ export interface ICanaryState {
   selectedConfig: ICanaryConfig;
   configLoadState: ConfigDetailLoadState;
   metricList: ICanaryMetricConfig[];
+  editingMetric: ICanaryMetricConfig;
   groupList: string[],
   selectedGroup: string,
   saveConfigState: SaveConfigState;
@@ -98,22 +100,6 @@ function configLoadState(state: ConfigDetailLoadState = ConfigDetailLoadState.Lo
   }
 }
 
-function reduceMetric(metric: ICanaryMetricConfig, action: Action & any): ICanaryMetricConfig {
-  if (metric.id === action.id) {
-    switch (action.type) {
-
-      case RENAME_METRIC:
-        return Object.assign({}, metric, { name: action.name });
-
-      default:
-        return metric;
-
-    }
-  } else {
-    return metric;
-  }
-}
-
 function idMetrics(metrics: ICanaryMetricConfig[]) {
   return metrics.map((metric, index) => Object.assign({}, metric, { id: '#' + index }));
 }
@@ -132,8 +118,15 @@ function metricList(state: ICanaryMetricConfig[] = [], action: Action & any): IC
     case REMOVE_METRIC:
       return idMetrics(state.filter(metric => metric.id !== action.id));
 
+    default:
+      return state;
+  }
+}
+
+function editingMetric(state: ICanaryMetricConfig = null, action: Action & any): ICanaryMetricConfig {
+  switch (action.type) {
     case RENAME_METRIC:
-      return state.map(metric => reduceMetric(metric, action));
+      return Object.assign({}, state, { name: action.name });
 
     default:
       return state;
@@ -307,12 +300,13 @@ function configJsonDeserializationError(state: string = null, action: Action & a
   }
 }
 
-export const rootReducer = combineReducers<ICanaryState>({
+const combinedReducer = combineReducers<ICanaryState>({
   application,
   configSummaries,
   selectedConfig,
   configLoadState,
   metricList,
+  editingMetric,
   saveConfigState,
   saveConfigErrorMessage,
   deleteConfigModalOpen,
@@ -324,3 +318,33 @@ export const rootReducer = combineReducers<ICanaryState>({
   configJson,
   configJsonDeserializationError,
 });
+
+// This reducer needs to be able to access both metricList and editingMetric so it won't fit the combineReducers paradigm.
+function editingMetricReducer(state: ICanaryState = null, action: Action & any): ICanaryState {
+  switch (action.type) {
+    case EDIT_METRIC_BEGIN:
+      return Object.assign({}, state, {
+        editingMetric: state.metricList.find(metric => metric.id === action.id)
+      });
+
+    case EDIT_METRIC_CONFIRM:
+      return Object.assign({}, state, {
+        metricList: state.metricList.map(metric => metric.id === state.editingMetric.id ? state.editingMetric : metric),
+        editingMetric: null
+      });
+
+    case EDIT_METRIC_CANCEL:
+      return Object.assign({}, state, {
+        editingMetric: null
+      });
+
+    default:
+      return state;
+  }
+}
+
+// First combine all simple reducers, then apply more complex ones as needed.
+export const rootReducer = function(state: ICanaryState, action: Action & any) {
+  const combined = combinedReducer(state, action);
+  return editingMetricReducer(combined, action);
+};
