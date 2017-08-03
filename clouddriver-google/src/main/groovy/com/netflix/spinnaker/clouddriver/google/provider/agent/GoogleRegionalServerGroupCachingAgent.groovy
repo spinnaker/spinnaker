@@ -484,6 +484,8 @@ class GoogleRegionalServerGroupCachingAgent extends AbstractGoogleCachingAgent i
       // assigning the same variable to itself, instead of to the "launchConfig" entry
       serverGroup.launchConfig.instanceTemplate = instanceTemplate
 
+      GoogleZonalServerGroupCachingAgent.sortWithBootDiskFirst(serverGroup)
+
       def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
         disk.boot
       }?.initializeParams?.sourceImage

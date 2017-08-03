@@ -512,6 +512,8 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
       // assigning the same variable to itself, instead of to the "launchConfig" entry
       serverGroup.launchConfig.instanceTemplate = instanceTemplate
 
+      sortWithBootDiskFirst(serverGroup)
+
       def sourceImageUrl = instanceTemplate?.properties?.disks?.find { disk ->
         disk.boot
       }?.initializeParams?.sourceImage
@@ -535,6 +537,25 @@ class GoogleZonalServerGroupCachingAgent extends AbstractGoogleCachingAgent impl
     }
     serverGroup.asg.get(GLOBAL_LOAD_BALANCER_NAMES).each { String loadBalancerName ->
       loadBalancerKeys << Keys.getLoadBalancerKey("global", accountName, loadBalancerName)
+    }
+  }
+
+  static void sortWithBootDiskFirst(GoogleServerGroup serverGroup) {
+    // Ensure that the boot disk is listed as the first persistent disk.
+    if (serverGroup.launchConfig.instanceTemplate?.properties?.disks) {
+      def persistentDisks = serverGroup.launchConfig.instanceTemplate.properties.disks.findAll { it.type == "PERSISTENT" }
+
+      if (persistentDisks && !persistentDisks.first().boot) {
+        def sortedDisks = []
+        def firstBootDisk = persistentDisks.find { it.boot }
+
+        if (firstBootDisk) {
+          sortedDisks << firstBootDisk
+        }
+
+        sortedDisks.addAll(serverGroup.launchConfig.instanceTemplate.properties.disks.findAll { !it.boot })
+        serverGroup.launchConfig.instanceTemplate.properties.disks = sortedDisks
+      }
     }
   }
 

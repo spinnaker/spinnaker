@@ -18,6 +18,7 @@ package com.netflix.spinnaker.clouddriver.google.provider.agent
 
 import com.netflix.spinnaker.clouddriver.google.model.GoogleServerGroup
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class GoogleServerGroupCachingAgentSpec extends Specification {
   private static final String BUILD_HOST = "http://some-jenkins-host:8080/"
@@ -76,5 +77,66 @@ class GoogleServerGroupCachingAgentSpec extends Specification {
           host: BUILD_HOST
         ]
       }
+  }
+
+  @Unroll
+  def "should sort disks so boot disk is first persistent disk"() {
+    setup:
+      def launchConfig = [instanceTemplate: [properties: [disks: disks]]]
+      GoogleServerGroup googleServerGroup = new GoogleServerGroup(launchConfig: launchConfig)
+
+    when:
+      GoogleZonalServerGroupCachingAgent.sortWithBootDiskFirst(googleServerGroup)
+
+    then:
+      googleServerGroup.launchConfig.instanceTemplate.properties.disks == sortedWithBootFirst
+
+    where:
+      disks                                                                                                                                                                                                       || sortedWithBootFirst
+      [[boot: true, type: 'PERSISTENT']]                                                                                                                                                                          || [[boot: true, type: 'PERSISTENT']]
+      [[boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2']]                                                                                           || [[boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: true, type: 'PERSISTENT', source: 'disk-url-2']]                                                                                           || [[boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-1']]
+      [[boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]                                  || [[boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]                                  || [[boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+
+      // Mix in a SCRATCH disk.
+      [[boot: true, type: 'PERSISTENT'], [boot: false, type: 'SCRATCH']]                                                                                                                                          || [[boot: true, type: 'PERSISTENT'], [boot: false, type: 'SCRATCH']]
+      [[boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH']]                                                           || [[boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH']]                                                           || [[boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'SCRATCH']]
+      [[boot: false, type: 'SCRATCH'], [boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]  || [[boot: false, type: 'SCRATCH'], [boot: true, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]  || [[boot: true, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'SCRATCH'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+
+      // Boot disk missing (really shouldn't happen, but want to ensure we don't disturb the results).
+      [[boot: false, type: 'PERSISTENT']]                                                                                                                                                                         || [[boot: false, type: 'PERSISTENT']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2']]                                                                                          || [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]                                 || [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+
+      // Mix in a SCRATCH disk and Boot disk missing.
+      [[boot: false, type: 'PERSISTENT'], [boot: false, type: 'SCRATCH']]                                                                                                                                         || [[boot: false, type: 'PERSISTENT'], [boot: false, type: 'SCRATCH']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH']]                                                          || [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH']]
+      [[boot: false, type: 'SCRATCH'], [boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']] || [[boot: false, type: 'SCRATCH'], [boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+      [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']] || [[boot: false, type: 'PERSISTENT', source: 'disk-url-1'], [boot: false, type: 'PERSISTENT', source: 'disk-url-2'], [boot: false, type: 'SCRATCH'], [boot: false, type: 'PERSISTENT', source: 'disk-url-3']]
+  }
+
+  @Unroll
+  def "malformed instance properties shouldn't break disk sorting logic"() {
+    setup:
+      def launchConfig = [instanceTemplate: instanceTemplate]
+      GoogleServerGroup googleServerGroup = new GoogleServerGroup(launchConfig: launchConfig)
+
+    when:
+      GoogleZonalServerGroupCachingAgent.sortWithBootDiskFirst(googleServerGroup)
+
+    then:
+      googleServerGroup.launchConfig.instanceTemplate == instanceTemplate
+
+    where:
+      instanceTemplate << [
+        null,
+        [properties: null],
+        [properties: [:]],
+        [properties: [disks: null]],
+        [properties: [disks: []]]
+      ]
   }
 }
