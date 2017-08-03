@@ -11,7 +11,7 @@ import { serverGroupSequenceFilter } from 'core/cluster/serverGroup.sequence.fil
 import { IInstance, IServerGroup } from 'core/domain';
 import { EntityNotifications } from 'core/entityTag/notifications/EntityNotifications';
 import { HealthCounts } from 'core/healthCounts';
-import { LoadBalancersTag } from 'core/loadBalancer/LoadBalancersTag';
+import { LoadBalancersTagWrapper } from 'core/loadBalancer';
 import { NamingService } from 'core/naming';
 import { NgReact, ReactInjector } from 'core/reactShims';
 import { Instances } from 'core/instance/Instances';
@@ -238,7 +238,7 @@ export class ServerGroup extends React.Component<IServerGroupProps, IServerGroup
                     />
                   )}
 
-                  {hasLoadBalancer && <LoadBalancersTag application={application} serverGroup={serverGroup}/>}
+                  {hasLoadBalancer && <LoadBalancersTagWrapper application={application} serverGroup={serverGroup}/>}
                 </div>
               </div>
             </div>
