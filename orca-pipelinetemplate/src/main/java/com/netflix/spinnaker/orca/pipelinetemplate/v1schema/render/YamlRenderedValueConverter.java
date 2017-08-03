@@ -16,6 +16,8 @@
 package com.netflix.spinnaker.orca.pipelinetemplate.v1schema.render;
 
 import com.netflix.spinnaker.orca.pipelinetemplate.exceptions.TemplateRenderException;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -23,6 +25,8 @@ import org.yaml.snakeyaml.composer.ComposerException;
 import org.yaml.snakeyaml.parser.ParserException;
 
 public class YamlRenderedValueConverter implements RenderedValueConverter {
+
+  private static final List<String> YAML_KEYWORDS = Arrays.asList("yes", "no", "on", "off");
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -34,7 +38,7 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   @Override
   public Object convertRenderedValue(String renderedValue) {
-    if (containsEL(renderedValue)) {
+    if (containsEL(renderedValue) || isYamlKeyword(renderedValue)) {
       return renderedValue;
     }
 
@@ -54,5 +58,9 @@ public class YamlRenderedValueConverter implements RenderedValueConverter {
 
   private static boolean containsEL(String renderedValue) {
     return renderedValue.trim().startsWith("${");
+  }
+
+  private static boolean isYamlKeyword(String renderedValue) {
+    return YAML_KEYWORDS.contains(renderedValue.toLowerCase());
   }
 }

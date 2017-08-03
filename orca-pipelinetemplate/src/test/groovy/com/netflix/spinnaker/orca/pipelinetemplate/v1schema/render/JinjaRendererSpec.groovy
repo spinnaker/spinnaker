@@ -56,6 +56,8 @@ class JinjaRendererSpec extends Specification {
     '1.1'             || Double       | 1.1
     'true'            || Boolean      | true
     '{{ stringVar }}' || String       | 'myStringValue'
+    'yes'             || String       | 'yes'
+    'on'              || String       | 'on'
     '''
 
 [
