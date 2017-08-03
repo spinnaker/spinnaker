@@ -20,8 +20,9 @@ fi
 ./release/$PLATFORM.sh
 
 if [ "$PLATFORM" = "docker" ]; then
-  IMAGE=halyard gcr.io/spinnaker-marketplace/halyard:$VERSION
-  docker tag $IMAGE
+  IMAGE=gcr.io/spinnaker-marketplace/halyard:$VERSION
+
+  docker tag halyard $IMAGE
   gcloud docker -- push $IMAGE
 else 
   BUCKET_PATH=gs://spinnaker-artifacts/halyard/$VERSION/$PLATFORM/halyard.tar.gz
