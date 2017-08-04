@@ -16,10 +16,6 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.time.Clock;
-import java.util.Map;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.AuthenticationDetails;
 import com.netflix.spinnaker.orca.pipeline.model.Orchestration;
@@ -27,6 +23,12 @@ import com.netflix.spinnaker.orca.pipeline.model.Stage;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.time.Clock;
+import java.util.Map;
+
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static java.lang.String.format;
 
@@ -59,7 +61,6 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
     }
     if (config.containsKey("description")) {
       orchestration.setDescription(getString(config, "description"));
-      orchestration.setDescription(getString(config, "description"));
     }
     orchestration.setExecutionEngine(v3);
 
@@ -78,6 +79,7 @@ public class OrchestrationLauncher extends ExecutionLauncher<Orchestration> {
 
     orchestration.setBuildTime(clock.millis());
     orchestration.setAuthentication(AuthenticationDetails.build().orElse(new AuthenticationDetails()));
+    orchestration.setOrigin((String) config.getOrDefault("origin", "unknown"));
 
     return orchestration;
   }

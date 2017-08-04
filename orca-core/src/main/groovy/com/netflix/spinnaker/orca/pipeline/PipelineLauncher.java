@@ -16,17 +16,18 @@
 
 package com.netflix.spinnaker.orca.pipeline;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine;
 import com.netflix.spinnaker.orca.pipeline.model.Pipeline;
 import com.netflix.spinnaker.orca.pipeline.persistence.ExecutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
@@ -62,6 +63,7 @@ public class PipelineLauncher extends ExecutionLauncher<Pipeline> {
       .withKeepWaitingPipelines(getBoolean(config, "keepWaitingPipelines"))
       .withNotifications((List<Map<String, Object>>) config.get("notifications"))
       .withExecutionEngine(getEnum(config, "executionEngine", ExecutionEngine.class))
+      .withOrigin(getString(config, "origin"))
       .build();
   }
 

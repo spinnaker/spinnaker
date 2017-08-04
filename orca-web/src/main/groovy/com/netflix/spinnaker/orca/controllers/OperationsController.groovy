@@ -217,6 +217,7 @@ class OperationsController {
   }
 
   private Map<String, String> startPipeline(Map config) {
+    injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
     log.info('requested pipeline: {}', json)
 
@@ -227,9 +228,16 @@ class OperationsController {
 
   private Map<String, String> startTask(Map config) {
     convertLinearToParallel(config)
+    injectPipelineOrigin(config)
     def json = objectMapper.writeValueAsString(config)
     log.info('requested task:{}', json)
     def pipeline = orchestrationLauncher.start(json)
     [ref: "/tasks/${pipeline.id}".toString()]
+  }
+
+  private void injectPipelineOrigin(Map pipeline) {
+    if (!pipeline.origin) {
+      pipeline.origin = AuthenticatedRequest.spinnakerUserOrigin.orElse('unknown')
+    }
   }
 }

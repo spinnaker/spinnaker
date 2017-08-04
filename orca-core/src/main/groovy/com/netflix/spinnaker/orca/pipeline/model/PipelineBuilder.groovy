@@ -135,4 +135,9 @@ class PipelineBuilder {
     pipeline.executionEngine = executionEngine ?: DEFAULT_EXECUTION_ENGINE
     return this
   }
+
+  PipelineBuilder withOrigin(String origin) {
+    pipeline.origin = origin
+    return this
+  }
 }

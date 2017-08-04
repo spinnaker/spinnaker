@@ -545,7 +545,8 @@ class JedisExecutionRepository implements ExecutionRepository {
       authentication      : mapper.writeValueAsString(execution.authentication),
       paused              : mapper.writeValueAsString(execution.paused),
       keepWaitingPipelines: String.valueOf(execution.keepWaitingPipelines),
-      executionEngine     : execution.executionEngine?.name() ?: DEFAULT_EXECUTION_ENGINE.name()
+      executionEngine     : execution.executionEngine?.name() ?: DEFAULT_EXECUTION_ENGINE.name(),
+      origin              : execution.origin?.toString()
     ]
     map.stageIndex = execution.stages.id.join(",")
     // TODO: remove this and only use the list
@@ -637,6 +638,7 @@ class JedisExecutionRepository implements ExecutionRepository {
       execution.authentication = mapper.readValue(map.authentication, Execution.AuthenticationDetails)
       execution.paused = map.paused ? mapper.readValue(map.paused, Execution.PausedDetails) : null
       execution.keepWaitingPipelines = Boolean.parseBoolean(map.keepWaitingPipelines)
+      execution.origin = map.origin
       try {
         execution.executionEngine = map.executionEngine == null ? DEFAULT_EXECUTION_ENGINE : Execution.ExecutionEngine.valueOf(map.executionEngine)
       } catch (IllegalArgumentException e) {

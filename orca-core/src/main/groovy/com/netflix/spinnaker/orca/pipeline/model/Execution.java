@@ -16,13 +16,20 @@
 
 package com.netflix.spinnaker.orca.pipeline.model;
 
-import java.io.Serializable;
-import java.util.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.netflix.spinnaker.orca.ExecutionStatus;
 import com.netflix.spinnaker.security.AuthenticatedRequest;
 import com.netflix.spinnaker.security.User;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import static com.netflix.spinnaker.orca.ExecutionStatus.NOT_STARTED;
 import static com.netflix.spinnaker.orca.pipeline.model.Execution.ExecutionEngine.v3;
 import static java.util.Arrays.asList;
@@ -53,6 +60,7 @@ public abstract class Execution<T extends Execution<T>> implements Serializable 
   AuthenticationDetails authentication;
   PausedDetails paused;
   ExecutionEngine executionEngine = DEFAULT_EXECUTION_ENGINE;
+  String origin;
 
   public Stage<T> namedStage(String type) {
     return stages
