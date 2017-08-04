@@ -54,6 +54,9 @@ module.exports = angular.module('spinnaker.serverGroup.configure.kubernetes.conf
           backingData.allImages = backingData.allImages.concat(command.viewState.contextImages);
         }
 
+        // If we search for *nginx* and *nginx:1.11.1*, we might get two copies of nginx:1.11.1.
+        backingData.allImages = _.uniqWith(backingData.allImages, _.isEqual);
+
         command.backingData = backingData;
 
         var accountMap = _.fromPairs(_.map(backingData.accounts, function(account) {
