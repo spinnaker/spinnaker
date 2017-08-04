@@ -1,0 +1,49 @@
+<ng-form name="optional" novalidate>
+  <div class="container-fluid form-horizontal" ng-controller="dcosServerGroupOptionalController as ctrl">
+    <div class="form-group">
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Executor
+          <help-field key="dcos.serverGroup.executor"></help-field>
+        </div>
+        <div class="col-md-7"><input type="text" class="form-control input-sm" name="executor" ng-model="command.executor" /></div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Fetch URIs
+          <help-field key="dcos.serverGroup.uris"></help-field>
+        </div>
+        <div class="col-md-7"><textarea class="form-control input-sm" name="fetch" ng-model="command.viewModel.fetch" ng-pattern='ctrl.fetchPattern'/></div>
+      </div>
+      <div class="form-group row slide-in" ng-if="optional.fetch.$error.pattern">
+        <div class="col-sm-9 col-sm-offset-2 error-message">
+          <span>Must contain a comma delimited list of valid URLs.</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Constraints
+          <help-field key="dcos.serverGroup.constraints"></help-field>
+        </div>
+        <div class="col-md-7"><input type="text" class="form-control input-sm" name="constraints" ng-model="command.constraints" /></div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          Accepted Resource Roles
+          <help-field key="dcos.serverGroup.acceptedResourceRoles"></help-field>
+        </div>
+        <div class="col-md-7"><input type="text" class="form-control input-sm" name="acceptedResourceRoles" ng-model="command.acceptedResourceRoles"
+          /></div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-md-3 sm-label-right">
+          User
+        </div>
+        <div class="col-md-7"><input type="text" class="form-control input-sm" name="user" ng-model="command.dcosUser" /></div>
+      </div>
+    </div>
+  </div>
+</ng-form>

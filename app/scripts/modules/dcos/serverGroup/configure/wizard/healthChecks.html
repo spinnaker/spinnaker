@@ -1,0 +1,141 @@
+<ng-form name="healthChecks" novalidate>
+  <div class="container-fluid form-horizontal" ng-controller="dcosServerGroupHealthChecksController as healthCheckController">
+    <h5 class="col-sm-12">
+      Perform health checks on running tasks to determine if they are operating as expected.
+    </h5>
+    <table class="table table-condensed packed">
+      <tbody>
+        <tr ng-repeat="healthCheck in command.healthChecks" ng-show="healthCheckController.isHealthChecksValid(command.healthChecks)">
+          <td>
+            <div class="form-group">
+              <div class="col-md-3 sm-label-right">
+                Protocol
+              </div>
+              <div class="col-md-3">
+                <ui-select name="protocolSelect" ng-model="healthCheck.protocol" class="form-control input-sm">
+                  <ui-select-match>{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="protocol in healthCheckController.healthCheckProtocols | filter: $select.search">
+                    <div ng-bind-html="protocol | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select>
+              </div>
+            </div>
+
+            <div ng-show="healthCheckController.isHttpProtocol(healthCheck)">
+              <div class="form-group">
+                <div class="col-md-3 sm-label-right">
+                  Path
+                </div>
+                <div class="col-md-9">
+                  <input type="text" class="form-control input-sm highlight-pristine" name="path" ng-model="healthCheck.path" ng-required="healthCheckController.isHttpProtocol(healthCheck)"/>
+                </div>
+              </div>
+              <div class="form-group row slide-in" ng-if="healthChecks.path.$error.required">
+                <div class="col-sm-9 col-sm-offset-2 error-message">
+                  <span>Path cannot be empty.</span>
+                </div>
+              </div>
+            </div>
+
+            <div ng-show="healthCheckController.isCommandProtocol(healthCheck)">
+              <div class="form-group">
+                <div class="col-md-3 sm-label-right">
+                  Command
+                </div>
+                <div class="col-md-9">
+                  <input type="text" class="form-control input-sm highlight-pristine" name="command" ng-model="healthCheck.command" ng-required="healthCheckController.isCommandProtocol(healthCheck)"/>
+                </div>
+              </div>
+              <div class="form-group row slide-in" ng-if="healthChecks.command.$error.required">
+                <div class="col-sm-9 col-sm-offset-2 error-message">
+                  <span>Command cannot be empty.</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-md-3 sm-label-right">
+                Grace Period
+                <help-field key="dcos.serverGroup.healthCheck.gracePeriodSeconds"></help-field>
+              </div>
+              <div class="col-md-3">
+                <input type="number" class="form-control input-sm" name="gracePeriodSeconds" ng-model="healthCheck.gracePeriodSeconds" min="0"
+                />
+              </div>
+              <div class="col-md-3 sm-label-right">
+                Interval
+                <help-field key="dcos.serverGroup.healthCheck.intervalSeconds"></help-field>
+              </div>
+              <div class="col-md-3">
+                <input type="number" class="form-control input-sm" name="intervalSeconds" ng-model="healthCheck.intervalSeconds" min="0"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-md-3 sm-label-right">
+                Timeout
+                <help-field key="dcos.serverGroup.healthCheck.timeoutSeconds"></help-field>
+              </div>
+              <div class="col-md-3">
+                <input type="number" class="form-control input-sm" name="timeoutSeconds" ng-model="healthCheck.timeoutSeconds" min="0" />
+              </div>
+              <div class="col-md-3 sm-label-right">
+                Maximum Consecutive Failures
+              </div>
+              <div class="col-md-3">
+                <input type="number" class="form-control input-sm" name="maxConsecutiveFailures" ng-model="healthCheck.maxConsecutiveFailures"
+                  min="0" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="col-md-3 sm-label-right">
+                Port Type
+              </div>
+              <div class="col-md-3">
+                <ui-select name="portTypeSelect" ng-model="healthCheck.portType" class="form-control input-sm">
+                  <ui-select-match>{{$select.selected}}</ui-select-match>
+                  <ui-select-choices repeat="portType in healthCheckController.healthCheckPortTypes | filter: $select.search">
+                    <div ng-bind-html="portType | highlight: $select.search"></div>
+                  </ui-select-choices>
+                </ui-select>
+              </div>
+              <div ng-show="healthCheckController.isHttpProtocol(healthCheck)">
+                <div class="col-md-3 sm-label-right">
+                  Port Index
+                </div>
+                <div class="col-md-3">
+                  <input type="number" class="form-control input-sm" name="portIndex" ng-model="healthCheck.portIndex" min="0" />
+                </div>
+              </div>
+              <div ng-show="healthCheckController.isTcpProtocol(healthCheck)">
+                <div class="col-md-3 sm-label-right">
+                  Port Number
+                </div>
+                <div class="col-md-3">
+                  <input type="number" class="form-control input-sm" name="port" ng-model="healthCheck.port" min="0" />
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-12 sm-label-right">
+              <a class="btn btn-link sm-label" ng-click="healthCheckController.removeHealthCheck($index)">
+                <span class="glyphicon glyphicon-trash"></span> Remove Health Check
+              </a>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="1">
+            <button class="add-new col-md-12" ng-click="healthCheckController.addHealthCheck()">
+              <span class="glyphicon glyphicon-plus-sign"></span> Add Health Check
+            </button>
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</ng-form>

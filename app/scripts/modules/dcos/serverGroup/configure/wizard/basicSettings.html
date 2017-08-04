@@ -1,0 +1,150 @@
+<ng-form name="basicSettings" novalidate>
+  <div class="container-fluid form-horizontal" ng-controller="dcosServerGroupBasicSettingsController as basicSettingsController">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        <b>Account</b>
+      </div>
+      <div class="col-md-7">
+        <account-select-field component="command" field="account" accounts="command.backingData.accounts" provider="'dcos'"></account-select-field>
+      </div>
+    </div>
+
+    <div class="col-md-12" ng-if="command.viewState.dirty.dcosCluster">
+      <div class="alert alert-warning">
+        <p><i class="fa fa-exclamation-triangle"></i>
+          The DC/OS cluster [{{command.viewState.dirty.dcosCluster}}] is not associated to the selected account and was removed.
+        </p>
+        <p class="text-right">
+          <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.dcosCluster = null">Okay</a>
+        </p>
+      </div>
+    </div>
+    
+    <cluster-select-field required 
+                          component="command"
+                          field="dcosCluster"
+                          account="command.account"
+                          provider="'dcos'"
+                          label-columns="3"
+                          clusters="command.backingData.filtered.dcosClusters">
+    </cluster-select-field>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Group
+        <help-field key="dcos.serverGroup.group"></help-field>
+      </div>
+      <div class="col-md-7"><input type="text" class="form-control input-sm" name="group" ng-pattern="basicSettingsController.regionPattern" ng-model="command.group"/></div>
+    </div>
+    <div class="form-group row slide-in" ng-if="basicSettings.region.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Region can only contain lowercase letters, numbers, dashes(-) and forward slashes(/).</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Stack
+        <help-field key="dcos.serverGroup.stack"></help-field>
+      </div>
+      <div class="col-md-7"><input type="text" class="form-control input-sm" ng-pattern="basicSettingsController.stackPattern" name="stack" ng-model="command.stack"
+        /></div>
+    </div>
+    <div class="form-group row slide-in" ng-if="basicSettings.stack.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Stack can only contain lowercase letters and numbers.</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Detail
+        <help-field key="dcos.serverGroup.freeFormDetails"></help-field>
+      </div>
+      <div class="col-md-7"><input type="text" class="form-control input-sm" ng-pattern="basicSettingsController.detailPattern" name="freeFormDetails"
+          ng-model="command.freeFormDetails" /></div>
+    </div>
+    <div class="form-group row slide-in" ng-if="basicSettings.freeFormDetails.$error.pattern">
+      <div class="col-sm-9 col-sm-offset-2 error-message">
+        <span>Detail can only contain lowercase letters, numbers, and dashes(-).</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        CPUs
+        <help-field key="dcos.serverGroup.cpus"></help-field>
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control input-sm" name="cpus" ng-model="command.cpus" min="0.01" required/>
+      </div>
+      <div class="col-md-3 sm-label-right">
+        GPUs
+        <help-field key="dcos.serverGroup.gpus"></help-field>
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control input-sm" name="gpus" ng-model="command.gpus" min="0" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Memory (MiB)
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control input-sm" name="mem" ng-model="command.mem" min="1" required/>
+      </div>
+      <div class="col-md-3 sm-label-right">
+        Disk (MiB)
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control input-sm" name="disk" ng-model="command.disk" min="0" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Instances
+      </div>
+      <div class="col-md-2">
+        <input type="number" class="form-control input-sm" name="instances" ng-model="command.desiredCapacity" min="1" />
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Command
+        <help-field key="dcos.serverGroup.cmd"></help-field>
+      </div>
+      <div class="col-md-7"><input type="text" class="form-control input-md" name="cmd" ng-model="command.cmd" /></div>
+    </div>
+    <div class="form-group" ng-if="!command.viewState.hideClusterNamePreview">
+      <br>
+      <div class="col-md-9 col-md-offset-2">
+        <div class="well-compact" ng-class="basicSettingsController.showPreviewAsWarning() ? 'alert alert-warning' : 'well'">
+          <h5 class="text-center">
+            <p>Your server group will be in the cluster:</p>
+            <p>
+              <strong>
+                {{basicSettingsController.getNamePreview()}}
+                <span ng-if="basicSettingsController.createsNewCluster()"> (new cluster)</span>
+              </strong>
+            </p>
+            <div ng-if="!basicSettingsController.createsNewCluster() && command.viewState.mode === 'create' && latestServerGroup">
+              <p>
+                There is already a server group in this cluster. Do you want to clone it?
+              </p>
+              <p>
+                Cloning copies the entire configuration from the selected server group, allowing you to modify whichever fields (e.g. image)
+                you need to change in the new server group.
+              </p>
+              <p>
+                To clone a server group, select "Clone" from the "Server Group Actions" menu in the details view of the server group.
+              </p>
+              <p>
+                <a href ng-click="basicSettingsController.navigateToLatestServerGroup()">
+                  Go to details for {{latestServerGroup.name}}
+                </a>
+              </p>
+            </div>
+          </h5>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-form>

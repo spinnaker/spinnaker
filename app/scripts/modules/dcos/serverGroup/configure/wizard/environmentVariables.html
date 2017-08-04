@@ -1,0 +1,82 @@
+<ng-form name="environmentVariables" novalidate>
+  <div class="container-fluid form-horizontal" ng-controller="dcosServerGroupEnvironmentVariablesController as environmentVariableController">
+    <div class="form-group">
+      <h5 class="col-sm-12">
+        Set variables for each task your service launches. You can also use variables to expose Secrets.
+        <a href="https://mesosphere.github.io/marathon/docs/task-environment-vars.html">
+              Learn more about variables.
+          </a>
+      </h5>
+      <div class="col-md-12" ng-if="command.viewState.dirty.secrets">
+        <div class="alert alert-warning">
+          <p><i class="fa fa-exclamation-triangle"></i>
+            The following secrets are not valid for the selected account and were removed:
+          </p>
+          <ul>
+            <li ng-repeat="removed in command.viewState.dirty.secrets">{{removed}}</li>
+          </ul>
+          <p class="text-right">
+            <a class="btn btn-sm btn-default dirty-flag-dismiss" href ng-click="command.viewState.dirty.secrets = null">Okay</a>
+          </p>
+        </div>
+      </div>
+      <table class="table table-condensed packed">
+        <tbody>
+          <tr ng-repeat="environmentVariable in command.viewModel.env">
+            <td>
+              <div class="form-group">
+                <div class="col-md-1 sm-label-right">
+                  Name
+                </div>
+                <div class="col-md-9">
+                  <input type="text" class="form-control input-sm highlight-pristine" name="varName_{{$index}}" ng-model="environmentVariable.name" validate-unique="environmentVariable.checkUnique" required/>
+                  <div class="error-message" ng-if="form.$error.validateUnique">Duplicate key</div>
+                  <div class="error-message" ng-if="environmentVariables['varName_' + $index].$error.required">Name is required</div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-md-1 sm-label-right">
+                  Value
+                </div>
+                <div class="col-md-9" ng-show="!environmentVariable.isSecret">
+                  <input type="text" class="form-control input-sm" name="varValue" ng-change="environmentVariableController.updateValue($index)"
+                    ng-model="environmentVariable.rawValue" />
+                </div>
+                <div class="col-md-9" ng-show="environmentVariable.isSecret">
+                  <ui-select name="secretSelect" ng-model="environmentVariable.rawValue" search-enabled="true" on-select="environmentVariableController.updateValue($index)" class="form-control input-sm highlight-pristine" ng-required="environmentVariable.isSecret">
+                    <ui-select-match title="{{$select.selected}}">{{$select.selected}}</ui-select-match>
+                    <ui-select-choices repeat="secret in command.backingData.filtered.secrets | filter: $select.search">
+                      <span ng-bind-html="secret | highlight: $select.search"></span>
+                    </ui-select-choices>
+                  </ui-select>
+                </div>
+                <div class="col-md-1 sm-label-right">
+                  Secret
+                </div>
+                <div class="col-md-1 checkbox-inline">
+                  <input type="checkbox" name="secretCheck"
+                        ng-model="environmentVariable.isSecret"
+                        ng-click="environmentVariableController.updateSecret($index, environmentVariable.isSecret)"/>
+                </div>
+              </div>
+              <div class="col-md-12 sm-label-right">
+                <a class="btn btn-link sm-label" ng-click="environmentVariableController.removeEnvironmentVariable($index)">
+                  <span class="glyphicon glyphicon-trash"></span> Remove Environment Variable
+                </a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="1">
+              <button class="add-new col-md-12" ng-click="environmentVariableController.addEnvironmentVariable()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Environment Variable
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</ng-form>

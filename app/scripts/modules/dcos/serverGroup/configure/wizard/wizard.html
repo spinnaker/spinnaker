@@ -1,0 +1,46 @@
+<form name="form" class="form-horizontal" novalidate>
+  <div ng-if="state.requiresTemplateSelection">
+    <ng-include src="pages.templateSelection"></ng-include>
+  </div>
+  <div ng-if="!state.requiresTemplateSelection">
+    <div ng-if="!state.loaded" style="height: 200px">
+      <h3 us-spinner="{radius:30, width:8, length: 16}"></h3>
+    </div>
+    <v2-modal-wizard ng-show="state.loaded" heading="{{title}}" task-monitor="taskMonitor" dismiss="$dismiss()">
+      <v2-wizard-page key="basic-settings" label="Basic Settings" mark-complete-on-view="false">
+        <ng-include src="pages.basicSettings"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="container-settings" label="Container Settings">
+        <ng-include src="pages.containerSettings"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="network" label="Network">
+        <ng-include src="pages.network"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="environment-variables" label="Environment Variables" mandatory="false">
+        <ng-include src="pages.environmentVariables"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="labels" label="Labels" mandatory="false">
+        <ng-include src="pages.labels"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="health-checks" label="Health Checks" mandatory="false">
+        <ng-include src="pages.healthChecks"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="volumes" label="Volumes">
+        <ng-include src="pages.volumes"></ng-include>
+      </v2-wizard-page>
+      <v2-wizard-page key="optional" label="Optional" mandatory="false">
+        <ng-include src="pages.optional"></ng-include>
+      </v2-wizard-page>
+    </v2-modal-wizard>
+    <div class="modal-footer">
+      <button ng-disabled="taskMonitor.submitting" class="btn btn-default btn-cancel" ng-click="ctrl.cancel()">Cancel
+      </button>
+      <submit-button ng-if="ctrl.showSubmitButton()"
+                     is-disabled="!ctrl.isValid() || taskMonitor.submitting"
+                     label="command.viewState.submitButtonLabel"
+                     submitting="taskMonitor.submitting"
+                     on-click="ctrl.clone()"
+                     is-new="true"></submit-button>
+    </div>
+  </div>
+</form>

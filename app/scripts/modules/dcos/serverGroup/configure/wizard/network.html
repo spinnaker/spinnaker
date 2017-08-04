@@ -1,0 +1,111 @@
+<ng-form name="networkSettings" novalidate>
+  <div class="container-fluid form-horizontal" ng-controller="dcosServerGroupNetworkController as networkController">
+    <h5>
+      Configure the networking for your service. We will automatically generate a Service Address to connect to for each of your
+      load balanced endpoints.
+      <a href="https://docs.mesosphere.com/1.8/usage/service-discovery/load-balancing-vips/virtual-ip-addresses/">
+                Read more about load balancing.
+            </a>
+    </h5>
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Network Type
+      </div>
+      <div class="col-md-4">
+        <ui-select name="typeSelect" ng-model="command.networkType" on-select="networkController.changeNetworkType()" search-enabled="true"
+          class="form-control input-sm">
+          <ui-select-match>{{$select.selected.name}}</ui-select-match>
+          <ui-select-choices repeat="networkType.type as networkType in networkController.networkTypes | filter: $select.search">
+            <span ng-bind-html="networkType.name | highlight: $select.search"></span>
+          </ui-select-choices>
+        </ui-select>
+      </div>
+    </div>
+    <div class="form-group" ng-show="networkController.isUserNetwork(command.networkType)">
+      <div class="col-md-3 sm-label-right">
+        Network Name
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control input-sm highlight-pristine" name="networkName" ng-model="command.networkName" ng-required="networkController.isUserNetwork(command.networkType)"
+        />
+      </div>
+    </div>
+    <hr/>
+    <div class="form-group">
+      <table class="table table-condensed packed">
+        <thead>
+          <tr>
+            <th style="width: 100%">Service Endpoints</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="serviceEndpoint in command.serviceEndpoints" ng-show="networkController.isServiceEndpointsValid(command.serviceEndpoints)">
+            <td>
+              <div class="form-group">
+                <div class="col-md-3 sm-label-right">
+                  Name
+                </div>
+                <div class="col-md-2">
+                  <input type="text" class="form-control input-sm" name="name" ng-model="serviceEndpoint.name" />
+                </div>
+                <div class="col-md-3 sm-label-right">
+                  Protocol
+                </div>
+
+                <div class="col-md-2">
+                  <ui-select name="protocolSelect" ng-model="serviceEndpoint.protocol" class="form-control input-sm">
+                    <ui-select-match>{{$select.selected}}</ui-select-match>
+                    <ui-select-choices repeat="protocol in networkController.serviceEndpointProtocols | filter: $select.search">
+                      <div ng-bind-html="protocol | highlight: $select.search"></div>
+                    </ui-select-choices>
+                  </ui-select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div ng-show="networkController.isHostNetwork(serviceEndpoint)" class="col-md-3 sm-label-right">
+                  LB Port
+                </div>
+                <div ng-show="!networkController.isHostNetwork(serviceEndpoint)" class="col-md-3 sm-label-right">
+                  Container Port
+                </div>
+                <div class="col-md-2">
+                  <input type="number" class="form-control input-sm highlight-pristine" name="port" ng-model="serviceEndpoint.port" min="0" ng-required="!networkController.isHostNetwork(serviceEndpoint) ||
+                                    serviceEndpoint.loadBalanced"/>
+                </div>
+                <div class="col-md-3 sm-label-right">
+                  Load Balanced
+                </div>
+                <div class="col-md-2 checkbox-inline">
+                  <input type="checkbox" name="loadBalanced" ng-model="serviceEndpoint.loadBalanced" />
+                </div>
+              </div>
+              <div class="form-group" ng-show="networkController.isUserNetwork(serviceEndpoint)">
+                <div class="col-md-3 sm-label-right">
+                  Expose endpoints on host network
+                </div>
+                <div class="col-md-2 checkbox-inline">
+                  <input type="checkbox" name="exposeToHost" ng-model="serviceEndpoint.exposeToHost" />
+                </div>
+              </div>
+              <div class="col-md-12 sm-label-right">
+                <a class="btn btn-link sm-label" ng-click="networkController.removeServiceEndpoint($index)">
+                  <span class="glyphicon glyphicon-trash"></span> Remove Service Endpoint
+                </a>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="1">
+              <button class="add-new col-md-12" ng-click="networkController.addServiceEndpoint()">
+                <span class="glyphicon glyphicon-plus-sign"></span> Add Service Endpoint
+              </button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+</ng-form>
