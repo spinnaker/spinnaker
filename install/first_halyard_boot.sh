@@ -319,6 +319,8 @@ while [ "$?" != "0" ]; do
 done
 set -e
 
+replace_startup_script
+
 enable_apis
 configure_docker
 configure_kubernetes
