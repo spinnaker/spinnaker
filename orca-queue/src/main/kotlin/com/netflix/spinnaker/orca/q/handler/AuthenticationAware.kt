@@ -17,6 +17,7 @@
 package com.netflix.spinnaker.orca.q.handler
 
 import com.netflix.spinnaker.orca.AuthenticatedStage
+import com.netflix.spinnaker.orca.ExecutionContext
 import com.netflix.spinnaker.orca.pipeline.model.Execution
 import com.netflix.spinnaker.orca.pipeline.model.Stage
 import com.netflix.spinnaker.orca.pipeline.util.StageNavigator
@@ -39,6 +40,15 @@ interface AuthenticationAware {
       allowedAccounts = getExecution().getAuthentication()?.allowedAccounts
     }
 
-    AuthenticatedRequest.propagate(block, false, currentUser).call()
+    try {
+      ExecutionContext.set(ExecutionContext(
+        getExecution().getApplication(),
+        getExecution().javaClass.simpleName.toLowerCase(),
+        getExecution().getId()
+      ))
+      AuthenticatedRequest.propagate(block, false, currentUser).call()
+    } finally {
+      ExecutionContext.clear()
+    }
   }
 }

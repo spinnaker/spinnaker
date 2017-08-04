@@ -25,12 +25,19 @@ class CloudDriverConfigurationProperties {
   @Canonical
   static class BaseUrl {
     String baseUrl
+    int priority = 1
+    Map<String, Object> config
+  }
+
+  static class MultiBaseUrl {
+    String baseUrl
+    List<BaseUrl> baseUrls
   }
 
   @Canonical
   static class CloudDriver {
     String baseUrl;
-    BaseUrl readonly;
+    MultiBaseUrl readonly;
   }
 
   BaseUrl mort
@@ -42,7 +49,17 @@ class CloudDriverConfigurationProperties {
     clouddriver?.baseUrl ?: kato?.baseUrl ?: oort?.baseUrl ?: mort?.baseUrl
   }
 
-  String getCloudDriverReadOnlyBaseUrl() {
-    clouddriver?.readonly?.baseUrl ?: getCloudDriverBaseUrl()
+  List<BaseUrl> getCloudDriverReadOnlyBaseUrls() {
+    if (clouddriver?.readonly?.baseUrl) {
+      return [
+        new BaseUrl(baseUrl: clouddriver.readonly.baseUrl)
+      ]
+    } else if (clouddriver?.readonly?.baseUrls) {
+      return clouddriver.readonly.baseUrls
+    }
+
+    return [
+      new BaseUrl(baseUrl: getCloudDriverBaseUrl())
+    ]
   }
 }
