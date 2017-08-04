@@ -28,7 +28,11 @@
     Organization
   </div>
   <div ng-class="$ctrl.fieldClass">
+    <input class="form-control input-sm"
+           ng-if="$ctrl.organization.includes('${')"
+           ng-model="$ctrl.organization"/>
     <ui-select ng-model="$ctrl.organization"
+               ng-if="!$ctrl.organization.includes('${')"
                ng-disabled="$ctrl.viewState.imagesRefreshing"
                ng-change="$ctrl.updateRepositoryList()" class="form-control input-sm">
       <ui-select-match placeholder="No organization">{{$ctrl.organization}}</ui-select-match>
@@ -43,7 +47,11 @@
     Image
   </div>
   <div ng-class="$ctrl.fieldClass">
+    <input class="form-control input-sm"
+           ng-if="$ctrl.repository.includes('${')"
+           ng-model="$ctrl.repository"/>
     <ui-select ng-model="$ctrl.repository"
+               ng-if="!$ctrl.repository.includes('${')"
                ng-disabled="$ctrl.viewState.imagesRefreshing"
                ng-change="$ctrl.updateTag()"
                class="form-control input-sm"
@@ -73,7 +81,11 @@
     Tag
   </div>
   <div ng-class="$ctrl.fieldClass">
+    <input class="form-control input-sm"
+           ng-if="$ctrl.tag.includes('${')"
+           ng-model="$ctrl.tag"/>
     <ui-select ng-model="$ctrl.tag"
+               ng-if="!$ctrl.tag.includes('${')"
                ng-disabled="$ctrl.viewState.imagesRefreshing || !$ctrl.repository"
                ng-change="$ctrl.updateTag()"
                class="form-control input-sm"

@@ -61,7 +61,7 @@ export class DockerImageAndTagSelectorController implements IController {
         }
       }
       this.organizations = this.accountMap[this.showRegistry ? this.account : this.registry] || [];
-      if (!this.organizations.includes(this.organization)) {
+      if (!this.organizations.includes(this.organization) && this.organization && !this.organization.includes('${')) {
         this.organization = null;
       }
 
@@ -73,7 +73,7 @@ export class DockerImageAndTagSelectorController implements IController {
     if (this.organizationMap) {
       const key = `${this.showRegistry ? this.account : this.registry}/${this.organization || '' }`;
       this.repositories = this.organizationMap[key] || [];
-      if (!this.repositories.includes(this.repository)) {
+      if (!this.repositories.includes(this.repository) && this.repository && !this.repository.includes('${')) {
         this.repository = null;
       }
 
@@ -90,7 +90,7 @@ export class DockerImageAndTagSelectorController implements IController {
       if (this.repositoryMap) {
         const key = this.repository;
         this.tags = this.repositoryMap[key] || [];
-        if (!this.tags.includes(this.tag) && this.tag) {
+        if (!this.tags.includes(this.tag) && this.tag && !this.tag.includes('${')) {
           this.tag = null;
         }
       }
