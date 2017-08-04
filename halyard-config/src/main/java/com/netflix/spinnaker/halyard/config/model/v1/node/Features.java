@@ -43,6 +43,7 @@ public class Features extends Node {
   private boolean chaos;
   private boolean entityTags;
   private boolean jobs;
+  @ValidForSpinnakerVersion(lowerBound = "1.2.0") private Boolean pipelineTemplates;
 
   public boolean isAuth(DeploymentConfiguration deploymentConfiguration) {
     return deploymentConfiguration.getSecurity().getAuthn().isEnabled();

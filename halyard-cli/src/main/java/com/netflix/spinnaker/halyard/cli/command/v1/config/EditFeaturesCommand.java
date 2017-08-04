@@ -48,6 +48,13 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
       arity = 1
   )
   private Boolean jobs = null;
+  
+  @Parameter(
+      names = "--pipeline-templates",
+      description = "Enable pipeline template support. Read more at https://github.com/spinnaker/dcd-spec.",
+      arity = 1
+  )
+  private Boolean pipelineTemplates = null;
 
   @Override
   protected void executeThis() {
@@ -62,6 +69,7 @@ public class EditFeaturesCommand extends AbstractConfigCommand {
 
     features.setChaos(chaos != null ? chaos : features.isChaos());
     features.setJobs(jobs != null ? jobs : features.isJobs());
+    features.setPipelineTemplates((pipelineTemplates == null || !pipelineTemplates) ? null : true);
 
     if (originalHash == features.hashCode()) {
       AnsiUi.failure("No changes supplied.");

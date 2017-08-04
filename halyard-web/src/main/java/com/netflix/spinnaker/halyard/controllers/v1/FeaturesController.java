@@ -65,8 +65,13 @@ public class FeaturesController {
     UpdateRequestBuilder builder = new UpdateRequestBuilder();
 
     builder.setUpdate(() -> featuresService.setFeatures(deploymentName, features));
+    builder.setSeverity(severity);
 
     Supplier<ProblemSet> doValidate = ProblemSet::new;
+    
+    if (validate) {
+      doValidate = () -> featuresService.validateFeatures(deploymentName);
+    }
 
     builder.setValidate(doValidate);
     builder.setRevert(() -> halconfigParser.undoChanges());

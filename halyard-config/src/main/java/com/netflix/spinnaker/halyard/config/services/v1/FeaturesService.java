@@ -19,6 +19,7 @@ package com.netflix.spinnaker.halyard.config.services.v1;
 import com.netflix.spinnaker.halyard.config.model.v1.node.DeploymentConfiguration;
 import com.netflix.spinnaker.halyard.config.model.v1.node.Features;
 import com.netflix.spinnaker.halyard.config.model.v1.node.NodeFilter;
+import com.netflix.spinnaker.halyard.core.problem.v1.ProblemSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +32,9 @@ public class FeaturesService {
 
   @Autowired
   private DeploymentService deploymentService;
+  
+  @Autowired
+  private ValidateService validateService;
 
   public Features getFeatures(String deploymentName) {
     NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
@@ -52,5 +56,10 @@ public class FeaturesService {
   public void setFeatures(String deploymentName, Features newFeatures) {
     DeploymentConfiguration deploymentConfiguration = deploymentService.getDeploymentConfiguration(deploymentName);
     deploymentConfiguration.setFeatures(newFeatures);
+  }
+  
+  public ProblemSet validateFeatures(String deploymentName) {
+    NodeFilter filter = new NodeFilter().setDeployment(deploymentName).setFeatures();
+    return validateService.validateMatchingFilter(filter);
   }
 }

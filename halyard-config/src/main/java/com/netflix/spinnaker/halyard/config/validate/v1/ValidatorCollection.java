@@ -50,7 +50,7 @@ public class ValidatorCollection {
     psBuilder.setNode(node);
     int validatorRuns = 0;
     for (Validator validator : validators) {
-      validatorRuns += runMatchingValidators(psBuilder, validator, node, node.getClass());
+      validatorRuns += runMatchingValidators(psBuilder, validator, node, node.getClass()) ? 1 : 0;
     }
 
     return validatorRuns;
@@ -66,26 +66,24 @@ public class ValidatorCollection {
    * @param node is the subject of validation.
    * @param c is some super(inclusive) class of node.
    *
-   * @return # of validators run (for logging purposes).
+   * @return true iff the validator ran on the node (for logging purposes).
    */
-  private int runMatchingValidators(ConfigProblemSetBuilder psBuilder, Validator validator, Node node, Class c) {
-    int result = 0;
-
-    if (c == Node.class) {
-      return result;
+  private boolean runMatchingValidators(ConfigProblemSetBuilder psBuilder, Validator validator, Node node, Class c) {
+    if (c == Object.class) {
+      return false;
     }
 
     try {
       Method m = validator.getClass().getMethod("validate", ConfigProblemSetBuilder.class, c);
       DaemonTaskHandler.message("Validating " + node.getNodeName() + " with " + validator.getClass().getSimpleName());
       m.invoke(validator, psBuilder, node);
-      result = 1;
-    } catch (NoSuchMethodException e) {
+      return true;
+    } catch (InvocationTargetException | NoSuchMethodException e) {
       // Do nothing, odds are most validators don't validate every class.
-    } catch (InvocationTargetException | IllegalAccessException e) {
+    } catch (IllegalAccessException e) {
       throw new RuntimeException("Failed to invoke validate() on \"" + validator.getClass().getSimpleName() + "\" for node \"" + c.getSimpleName(), e);
     }
 
-    return runMatchingValidators(psBuilder, validator, node, c.getSuperclass()) + result;
+    return runMatchingValidators(psBuilder, validator, node, c.getSuperclass());
   }
 }
