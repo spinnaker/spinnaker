@@ -54,7 +54,20 @@ export interface IALBListener {
   defaultActions: IListenerAction[];
   port: number;
   protocol: string;
+  rules: IListenerRule[];
   sslPolicy?: string;
+}
+
+export interface IListenerRule {
+  actions: IListenerAction[];
+  default?: boolean;
+  conditions: IListenerRuleCondition[];
+  priority: number | 'default';
+}
+
+export interface IListenerRuleCondition {
+  field: 'path-pattern' | 'host-header';
+  values: string[];
 }
 
 export interface ITargetGroupAttributes {
@@ -135,14 +148,7 @@ export interface IAmazonApplicationLoadBalancerUpsertCommand extends IAmazonLoad
     port: number;
     sslPolicy?: string;
     defaultActions: IListenerAction[];
-    rules?: {
-      actions: IListenerAction[];
-      priority: number;
-      ruleConditions: {
-        field: 'path-pattern' | 'host-header';
-        values: string[];
-      }[];
-    }[];
+    rules?: IListenerRule[];
   }[];
   targetGroups: {
     name: string;

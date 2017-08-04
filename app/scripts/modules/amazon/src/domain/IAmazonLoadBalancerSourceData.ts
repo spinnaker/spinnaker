@@ -1,5 +1,7 @@
 import { ILoadBalancerSourceData } from '@spinnaker/core';
 
+import { IListenerRule } from './IAmazonLoadBalancer';
+
 export interface IAmazonContainerServerGroupSourceData {
   detachedInstances: string[];
   isDisabled: boolean;
@@ -114,6 +116,7 @@ export interface IApplicationLoadBalancerListenerSourceData {
   loadBalancerName: string;
   port: number;
   protocol: 'HTTP' | 'HTTPS';
+  rules: IListenerRule[];
   sslPolicy?: string;
 }
 

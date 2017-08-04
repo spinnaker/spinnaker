@@ -144,16 +144,21 @@
       <dl>
         <dt>Load Balancer &rarr; Target</dt>
         <dd ng-repeat="listener in ctrl.listeners">
-          {{listener.in}}
-          &rarr;
-          <a ui-sref="^.targetGroupDetails({region: listener.target.region,
-                                      loadBalancerName: ctrl.loadBalancer.name,
-                                      accountId: listener.target.account,
-                                      name: listener.target.name,
-                                      vpcId: listener.target.vpcId,
-                                      provider: 'aws'})">
-            {{listener.target.name}}
-          </a>
+          <div class="listener-targets">
+            {{listener.in}} &rarr;
+          </div>
+          <div class="listener-targets">
+            <div ng-repeat="target in listener.targets">
+              <a ui-sref="^.targetGroupDetails({region: target.region,
+                            loadBalancerName: ctrl.loadBalancer.name,
+                            accountId: target.account,
+                            name: target.name,
+                            vpcId: target.vpcId,
+                            provider: 'aws'})">
+                {{target.name}}
+              </a>
+            </div>
+          </div>
         </dd>
       </dl>
     </collapsible-section>

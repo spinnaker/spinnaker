@@ -249,11 +249,24 @@ export class AwsLoadBalancerTransformer {
             action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
           });
 
+          // Remove the default rule because it already exists in defaultActions
+          listener.rules = (listener.rules || []).filter((l) => !l.default);
+          listener.rules.forEach((rule) => {
+            (rule.actions || []).forEach((action) => {
+              action.targetGroupName = action.targetGroupName.replace(`${applicationName}-`, '');
+            });
+            rule.conditions = rule.conditions || [];
+          });
+
+          // Sort listener.rules by priority.
+          listener.rules.sort((a, b) => (a.priority as number) - (b.priority as number));
+
           return {
             protocol: listener.protocol,
             port: listener.port,
             defaultActions: listener.defaultActions,
             certificates: certificates,
+            rules: listener.rules || [],
             sslPolicy: listener.sslPolicy
           };
         });
@@ -372,7 +385,8 @@ export class AwsLoadBalancerTransformer {
               type: 'forward',
               targetGroupName: defaultTargetGroupName
             }
-          ]
+          ],
+          rules: [],
         }
       ]
     };

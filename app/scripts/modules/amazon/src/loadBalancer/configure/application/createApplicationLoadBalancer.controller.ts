@@ -27,7 +27,8 @@ import { IALBListener,
   IALBListenerCertificate,
   IAmazonApplicationLoadBalancer,
   IAmazonApplicationLoadBalancerUpsertCommand,
-  IAmazonLoadBalancer
+  IAmazonLoadBalancer,
+  IListenerRule
 } from 'amazon/domain';
 import { AMAZON_CERTIFICATE_READ_SERVICE, AmazonCertificateReader } from 'amazon/certificates/amazon.certificate.read.service';
 import { AWS_LOAD_BALANCER_TRANSFORMER, AwsLoadBalancerTransformer } from 'amazon/loadBalancer/loadBalancer.transformer';
@@ -40,6 +41,12 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
     securityGroups: require('../common/securityGroups.html'),
     listeners: require('./listeners.html'),
     targetGroups: require('./targetGroups.html'),
+  };
+
+  protected ruleSortOptions = {
+    axis: 'y',
+    delay: 150,
+    handle: '.glyphicon-resize-vertical',
   };
 
   public existingLoadBalancerNames: string[];
@@ -128,8 +135,40 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
           type: 'forward',
           targetGroupName: null
         }
-      ]
+      ],
+      rules: [],
     });
+  }
+
+  public addRule(listener: IALBListener): void {
+    const newRule: IListenerRule = {
+      priority: null,
+      actions: [{
+        type: 'forward',
+        targetGroupName: undefined
+      }],
+      conditions: [{
+        field: 'path-pattern',
+        values: ['']
+      }],
+    };
+
+    listener.rules.push(newRule);
+  }
+
+  public removeRule(listener: IALBListener, index: number): void {
+    listener.rules.splice(index, 1);
+  }
+
+  public addCondition(rule: IListenerRule): void {
+    if (rule.conditions.length === 1) {
+      const field = rule.conditions[0].field === 'path-pattern' ? 'host-header' : 'path-pattern';
+      rule.conditions.push({ field, values: [''] });
+    }
+  }
+
+  public removeCondition(rule: IListenerRule, index: number) {
+    rule.conditions.splice(index, 1);
   }
 
   public listenerProtocolChanged(listener: IALBListener): void {
@@ -227,9 +266,21 @@ class CreateApplicationLoadBalancerCtrl extends CreateAmazonLoadBalancerCtrl {
     });
   }
 
+  private manageRules(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
+    command.listeners.forEach((listener) => {
+      listener.rules.forEach((rule, index) => {
+        // Set the priority in array order, starting with 1
+        rule.priority = index + 1;
+        // Remove conditions that have no value
+        rule.conditions = rule.conditions.filter((condition) => condition.values[0].length > 0);
+      });
+    });
+  }
+
   protected formatCommand(command: IAmazonApplicationLoadBalancerUpsertCommand): void {
     this.setAvailabilityZones(command);
     this.manageTargetGroupNames(command, true);
+    this.manageRules(command);
   }
 }
 

@@ -34,6 +34,25 @@ const helpContents: {[key: string]: string} = {
   'aws.loadBalancer.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'aws.loadBalancer.targetGroups': 'Add a target group if you want to associate this with an Application Load Balancer (ALB)',
   'aws.loadBalancer.loadBalancers': 'And a load balancer directly if you created a Classic Load Balancer (a classic load balancer does not have target groups)',
+  'aws.loadBalancer.ruleCondition.host':
+    `<p>You can specify a single host name (for example, <em>my.example.com</em>). A host name is case insensitive, can be up to 128 characters in length, and can contain any of the following characters. Note that you can include up to three wildcard characters.</p>
+      <ul>
+        <li>A-Z, a-z, 0-9</li>
+        <li>- .</li>
+        <li>* (matches 0 or more characters)</li>
+        <li>? (matches exactly 1 character)</li>
+      </ul>
+     <p>Note that <strong>*.example.com</strong> will match <strong>test.example.com</strong> but won't match <strong>example.com</strong>.</p>`,
+  'aws.loadBalancer.ruleCondition.path':
+    `<p>You can specify a single path pattern (for example, <em>/img/*</em>). A path pattern is case sensitive, can be up to 128 characters in length, and can contain any of the following characters. Note that you can include up to three wildcard characters.</p>
+      <ul>
+        <li>A-Z, a-z, 0-9</li>
+        <li>_ - . $ / ~ " ' @ : +</li>
+        <li>& (using &amp;amp;)</li>
+        <li>* (matches 0 or more characters)</li>
+        <li>? (matches exactly 1 character)</li>
+      </ul>
+      <p>Note that the path pattern is used to route requests but does not alter them. For example, if a rule has a path pattern of <em>/img/*</em>, the rule would forward a request for <em>/img/picture.jpg</em> to the specified target group as a request for <em>/img/picture.jpg</em>.</p>`,
   'aws.serverGroup.stack': '(Optional) <b>Stack</b> is one of the core naming components of a cluster, used to create vertical stacks of dependent services for integration testing.',
   'aws.serverGroup.detail': '(Optional) <b>Detail</b> is a string of free-form alphanumeric characters and hyphens to describe any other variables.',
   'aws.serverGroup.imageName': '(Required) <b>Image</b> is the deployable Amazon Machine Image. Images are restricted to the account and region selected.',

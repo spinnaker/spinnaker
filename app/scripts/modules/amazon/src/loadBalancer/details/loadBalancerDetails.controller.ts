@@ -1,7 +1,7 @@
 import { IController, IPromise, IQService, IScope, module } from 'angular';
 import { IModalService } from 'angular-ui-bootstrap';
 import { StateService } from '@uirouter/angularjs';
-import { cloneDeep, head, get, sortBy } from 'lodash';
+import { cloneDeep, head, get, sortBy, uniq } from 'lodash';
 
 import {
   Application,
@@ -40,7 +40,7 @@ export interface ILoadBalancerFromStateParams {
 export class AwsLoadBalancerDetailsController implements IController {
   public application: Application;
   public elbProtocol: string;
-  public listeners: {in: string, target: ITargetGroup}[];
+  public listeners: {in: string, targets: ITargetGroup[]}[];
   private loadBalancerFromParams: ILoadBalancerFromStateParams;
   public loadBalancer: IAmazonLoadBalancer;
   public securityGroups: ISecurityGroup[];
@@ -153,11 +153,15 @@ export class AwsLoadBalancerDetailsController implements IController {
 
               this.listeners = [];
               elb.listeners.forEach((listener) => {
-                listener.defaultActions.forEach((action) => {
-                  const targetGroup = (this.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups.find((tg) => tg.name === action.targetGroupName) || { name: action.targetGroupName } as ITargetGroup;
-                  this.listeners.push({ in: `${listener.protocol}:${listener.port}`, target: targetGroup });
-                })
-              })
+                const inPort = `${listener.protocol}:${listener.port}`;
+                const targets = uniq(listener.rules.map((rule) => {
+                  const name = rule.actions[0].targetGroupName;
+                  // TODO: Support target groups outside of this application...
+                  return (this.loadBalancer as IAmazonApplicationLoadBalancer).targetGroups.find((tg) => tg.name === name) || { name } as ITargetGroup;
+                }));
+
+                this.listeners.push({ in: inPort, targets });
+              });
             }
 
             if (elb.ipAddressType === 'dualstack') {

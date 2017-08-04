@@ -5,9 +5,6 @@
   > div {
     border: 1px solid @lighter_grey;
   }
-  .glyphicon-trash {
-      padding: 0 8px;
-  }
   .wizard-pod-row {
     display: flex;
     padding: 5px;
@@ -19,6 +16,9 @@
     }
 
     &.header {
+      .glyphicon-trash {
+        padding: 0 8px;
+      }
       .wizard-pod-row-title {
         font-weight: 800;
       }
@@ -86,6 +86,37 @@
     }
     .wizard-pod-rule-action {
       display: inline-block;
+    }
+  }
+
+  .listener-rule {
+    .handle {
+       cursor: move;
+       width: 10px;
+       padding: 0;
+    }
+    .listener-rule-condition {
+      display: flex;
+      label {
+        white-space: nowrap;
+      }
+      a.help-field {
+        >span {
+          top: 4px;
+          padding: 0 2px;
+        }
+      }
+      .remove-condition {
+        min-width: 15px;
+        padding-top: 4px;
+      }
+    }
+    .add-new-container {
+      display: flex;
+      .add-new {
+        padding: 2px;
+        margin-bottom: 0;
+      }
     }
   }
 }
