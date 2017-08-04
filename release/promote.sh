@@ -15,8 +15,8 @@ if [ -z "$SOURCE_VERSION" ] || [ -z "$TARGET_VERSION" ] || [ -z "$PLATFORM" ]; t
 fi
 
 if [ "$PLATFORM" = "docker" ]; then
-  SOURCE_IMAGE=halyard gcr.io/spinnaker-marketplace/halyard:$SOURCE_VERSION
-  TARGET_IMAGE=halyard gcr.io/spinnaker-marketplace/halyard:$TARGET_VERSION
+  SOURCE_IMAGE=gcr.io/spinnaker-marketplace/halyard:$SOURCE_VERSION
+  TARGET_IMAGE=gcr.io/spinnaker-marketplace/halyard:$TARGET_VERSION
 
   docker pull $SOURCE_IMAGE
   docker tag $SOURCE_IMAGE $TARGET_IMAGE
