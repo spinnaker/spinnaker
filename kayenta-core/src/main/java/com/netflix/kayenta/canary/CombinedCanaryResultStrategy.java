@@ -16,15 +16,11 @@
 
 package com.netflix.kayenta.canary;
 
-import com.netflix.kayenta.canary.results.CanaryJudgeResult;
-import com.netflix.kayenta.metrics.MetricSetPair;
-
-import java.util.List;
-
-public interface CanaryJudge {
-  String getName();
-  CanaryJudgeResult judge(CanaryConfig canaryConfig,
-                          CombinedCanaryResultStrategy combinedCanaryResultStrategy,
-                          CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
-                          List<MetricSetPair> metricSetPairList);
+/**
+ * Used to instruct a canary judge how to roll up a score if multiple scores are received for a single canary run.
+ * For example, a run where each region generates its own score.
+ */
+public enum CombinedCanaryResultStrategy {
+  AVERAGE,
+  LOWEST
 }

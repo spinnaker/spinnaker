@@ -19,7 +19,7 @@ package com.netflix.kayenta.judge.netflix
 import java.util
 
 import com.netflix.kayenta.canary.results.CanaryJudgeResult
-import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig, CanaryJudge}
+import com.netflix.kayenta.canary.{CanaryClassifierThresholdsConfig, CanaryConfig, CanaryJudge, CombinedCanaryResultStrategy}
 import com.netflix.kayenta.metrics.MetricSetPair
 
 class NetflixJudge extends CanaryJudge {
@@ -27,7 +27,7 @@ class NetflixJudge extends CanaryJudge {
     "netflixJudge-v1.0"
   }
 
-  override def judge(canaryConfig: CanaryConfig, orchestratorScoreThresholds: CanaryClassifierThresholdsConfig, metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
+  override def judge(canaryConfig: CanaryConfig, combinedCanaryResultStrategy: CombinedCanaryResultStrategy, orchestratorScoreThresholds: CanaryClassifierThresholdsConfig, metricSetPairList: util.List[MetricSetPair]): CanaryJudgeResult = {
     val result = CanaryJudgeResult.builder().build()
     result
   }

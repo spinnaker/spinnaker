@@ -24,6 +24,7 @@ import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
 import com.netflix.kayenta.canary.CanaryServiceConfig;
+import com.netflix.kayenta.canary.CombinedCanaryResultStrategy;
 import com.netflix.kayenta.security.AccountCredentials;
 import com.netflix.kayenta.security.AccountCredentialsRepository;
 import com.netflix.kayenta.security.CredentialsHelper;
@@ -97,6 +98,8 @@ public class CanaryController {
                                // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
                                @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
                                @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams,
+                               @ApiParam(value = "Used to instruct a canary judge how to roll up a score if multiple scores are received for a single canary run.",
+                                         defaultValue = "AVERAGE") @RequestParam CombinedCanaryResultStrategy combinedCanaryResultStrategy,
                                @RequestParam(required = false) String scoreThresholdPass,
                                @RequestParam(required = false) String scoreThresholdMarginal) {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
@@ -193,6 +196,7 @@ public class CanaryController {
           .put("user", "[anonymous]")
           .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
+          .put("combinedCanaryResultStrategy", combinedCanaryResultStrategy)
           .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .build());
 
