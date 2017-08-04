@@ -60,6 +60,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     Instant endTimeInstant
     String step = canaryConfig.step ?: "60"
     Map<String, String> extendedScopeParams = canaryConfig.get("extendedScopeParams") ?: [:]
+    Map<String, String> scoreThresholds = canaryConfig.get("scoreThresholds")
     String lifetimeHours = canaryConfig.lifetimeHours
     long lifetimeMinutes
     long beginCanaryAnalysisAfterMins = (canaryConfig.beginCanaryAnalysisAfterMins ?: "0").toLong()
@@ -108,7 +109,8 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
         controlScope: controlScope,
         experimentScope: experimentScope,
         step: step,
-        extendedScopeParams: extendedScopeParams
+        extendedScopeParams: extendedScopeParams,
+        scoreThresholds: scoreThresholds
       ]
 
       if (!endTimeIso) {

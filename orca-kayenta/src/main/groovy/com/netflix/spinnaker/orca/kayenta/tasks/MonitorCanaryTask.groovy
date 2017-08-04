@@ -46,6 +46,9 @@ class MonitorCanaryTask implements RetryableTask {
     Pipeline canaryPipelineExecution = kayentaService.getPipelineExecution(canaryPipelineExecutionId)
 
     if (canaryPipelineExecution.status == ExecutionStatus.SUCCEEDED) {
+      // TODO(duftler): Consider score in context of specified thresholds.
+      Map<String, String> scoreThresholds = context.get("scoreThresholds")
+
       return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
                                                         canaryScore: canaryPipelineExecution.namedStage("canaryJudge").context.result.score.score])
     }

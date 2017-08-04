@@ -48,6 +48,7 @@ class RunCanaryTask implements Task {
     String endTimeIso = (String)context.get("endTimeIso")
     String step = (String)context.get("step")
     Map<String, String> extendedScopeParams = (Map<String, String>)context.get("extendedScopeParams")
+    Map<String, String> scoreThresholds = (Map<String, String>)context.get("scoreThresholds")
     Response response = kayentaService.create(metricsAccountName,
                                               storageAccountName,
                                               canaryConfigId,
@@ -56,7 +57,9 @@ class RunCanaryTask implements Task {
                                               startTimeIso,
                                               endTimeIso,
                                               step,
-                                              extendedScopeParams)
+                                              extendedScopeParams,
+                                              scoreThresholds?.pass,
+                                              scoreThresholds?.marginal)
     String canaryPipelineExecutionId = new String(((TypedByteArray)response.getBody()).getBytes())
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineExecutionId: canaryPipelineExecutionId])

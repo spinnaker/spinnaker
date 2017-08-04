@@ -31,7 +31,9 @@ interface KayentaService {
                   @Query("startTimeIso") String startTimeIso,
                   @Query("endTimeIso") String endTimeIso,
                   @Query("step") String step,
-                  @Body Map<String, String> extendedScopeParams)
+                  @Body Map<String, String> extendedScopeParams,
+                  @Query("scoreThresholdPass") String scoreThresholdPass,
+                  @Query("scoreThresholdMarginal") String scoreThresholdMarginal)
 
   @GET("/pipelines/{executionId}")
   Pipeline getPipelineExecution(@Path("executionId") String executionId)
