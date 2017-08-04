@@ -1,0 +1,33 @@
+<div ng-controller="dcosScaleDownClusterStageCtrl as scaleDownClusterStageCtrl" class="form-horizontal">
+  <div ng-if="!pipeline.strategy">
+
+    <account-region-cluster-selector
+      application="application"
+      component="stage"
+      accounts="accounts" >
+    </account-region-cluster-selector>
+
+  </div>
+  <stage-config-field label="Scale Down Options">
+    <div class="form-inline">
+      <p>Keep the
+      <input type="number" min="0" required ng-model="stage.remainingFullSizeServerGroups"
+             class="form-control input-sm" style="width: 50px" />
+      <select class="form-control input-sm"
+              ng-model="stage.preferLargerOverNewer" style="width: 100px">
+        <option value="true">largest</option>
+        <option value="false">newest</option>
+      </select>
+      {{scaleDownClusterStageCtrl.pluralize('server group', stage.remainingFullSizeServerGroups)}} at current size.</p>
+      <p>The remaining server groups will be scaled down to zero instances.</p>
+    </div>
+  </stage-config-field>
+  <div class="form-group">
+    <div class="col-md-offset-3 col-md-6 checkbox">
+      <label>
+        <input type="checkbox" ng-model="stage.allowScaleDownActive"/>
+        Allow scale down of active server groups
+      </label>
+    </div>
+  </div>
+</div>

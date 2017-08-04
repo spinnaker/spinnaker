@@ -1,0 +1,58 @@
+<div ng-controller="dcosRunJobStageCtrl as ctrl">
+
+  <stage-config-field label="Account">
+    <account-select-field component="stage"
+                          field="account"
+                          provider="'dcos'"
+                          accounts="backingData.accounts"
+                          on-change="ctrl.accountChanged()">
+    </account-select-field>
+  </stage-config-field>
+
+  <stage-config-field label="Region" help-key="dcos.region">
+    <cluster-select-field component="stage"
+                          field="region"
+                          hide-label="true"
+                          field-columns="12"
+                          account="stage.account"
+                          clusters="stage.dcosClusters">
+    </cluster-select-field>
+  </stage-config-field>
+
+  <stage-config-field label="General">
+    <dcos-general general="ctrl.stage.general">
+    </dcos-general>
+  </stage-config-field>
+
+  <!--TODO Add back when scheduled jobs are supported better by Spinnaker-->
+  <!--<stage-config-field label="Schedule">-->
+    <!--<dcos-schedule schedule="ctrl.stage.schedule">-->
+    <!--</dcos-schedule>-->
+  <!--</stage-config-field>-->
+
+  <stage-config-field label="Docker Container">
+    <docker-image-and-tag-selector
+            specify-tag-by-regex="false"
+            account="ctrl.stage.docker.image.account"
+            organization="ctrl.stage.docker.image.organization"
+            registry="ctrl.stage.docker.image.registry"
+            repository="ctrl.stage.docker.image.repository"
+            tag="ctrl.stage.docker.image.tag"
+            show-registry="true"
+            on-change="ctrl.onChange"></docker-image-and-tag-selector>
+  </stage-config-field>
+
+  <stage-config-field label="Labels">
+    <dcos-labels labels="ctrl.stage.labels">
+    </dcos-labels>
+  </stage-config-field>
+
+  <div class="container-fluid form-horizontal">
+    <div class="form-group">
+      <div class="col-md-3 sm-label-right">
+        Property File
+      </div>
+      <div class="col-md-7"><input type="text" class="form-control input-sm" name="propertyFile" ng-model="ctrl.stage.propertyFile"/></div>
+    </div>
+  </div>
+</div>

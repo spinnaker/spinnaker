@@ -1,0 +1,30 @@
+<div ng-controller="dcosFindAmiStageController as findAmiController" class="form-horizontal">
+
+  <account-region-cluster-selector
+          application="application"
+          component="stage"
+          accounts="accounts"
+          show-all-regions="true">
+  </account-region-cluster-selector>
+
+  <stage-config-field label="Server Group Selection">
+    <ui-select ng-model="stage.selectionStrategy" class="form-control input-sm">
+      <ui-select-match placeholder="None">{{$select.selected.label}}</ui-select-match>
+      <ui-select-choices repeat="strategy.val as strategy in selectionStrategies | filter: $select.search">
+        <strong ng-bind-html="strategy.label | highlight: $select.search"></strong>
+        <div ng-bind-html="strategy.description"></div>
+      </ui-select-choices>
+    </ui-select>
+  </stage-config-field>
+  <stage-config-field label="Server Group Filters">
+    <label class="checkbox-inline">
+      <input type="checkbox"
+             ng-model="stage.onlyEnabled"/>
+      Only consider enabled Server Groups
+    </label>
+  </stage-config-field>
+  <stage-config-field help-key="pipeline.config.findAmi.imageNamePattern" label="Image Name Pattern">
+    <input type="text" class="form-control input-sm"
+           ng-model="stage.imageNamePattern"/>
+  </stage-config-field>
+</div>

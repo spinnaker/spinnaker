@@ -1,0 +1,28 @@
+<div class="container-fluid form-horizontal">
+  <div class="form-group">
+    <div class="col-md-7"><input type="checkbox" name="enabled" ng-model="$ctrl.schedule.enabled"/></div>
+    <div class="col-md-3 sm-label-right">
+      Run on a schedule
+    </div>
+  </div>
+  <div class="form-group" ng-show="$ctrl.schedule.enabled">
+    <div class="col-md-3 sm-label-right">
+      CRON Schedule
+    </div>
+    <div class="col-md-7"><input type="text" class="form-control input-sm" name="cron" ng-model="$ctrl.schedule.cron"/></div>
+  </div>
+  <div class="form-group" ng-show="$ctrl.schedule.enabled">
+    <div class="col-md-3 sm-label-right">
+      Time Zone
+    </div>
+    <div class="col-md-7"><input type="text" class="form-control input-sm" name="timezone" ng-model="$ctrl.schedule.timezone"/></div>
+  </div>
+  <div class="form-group" ng-show="$ctrl.schedule.enabled">
+    <div class="col-md-3 sm-label-right">
+      Starting Deadline
+    </div>
+    <div class="col-md-2">
+      <input type="number" class="form-control input-sm" name="startingDeadlineSeconds" ng-model="$ctrl.schedule.startingDeadlineSeconds" min="0"/>
+    </div>
+  </div>
+</div>

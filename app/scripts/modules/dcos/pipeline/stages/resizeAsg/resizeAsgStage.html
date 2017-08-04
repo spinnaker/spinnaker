@@ -1,0 +1,92 @@
+<div ng-controller="dcosResizeAsgStageCtrl as resizeAsgStageCtrl">
+  <div ng-if="!pipeline.strategy">
+    <div ng-if="!viewState.accountsLoaded">
+      <h4 class="text-center">
+        <span us-spinner="{radius:20, width:6, length: 12}"></span>
+      </h4>
+    </div>
+    <div ng-if="viewState.accountsLoaded">
+
+      <account-region-cluster-selector
+        application="application"
+        component="stage"
+        accounts="accounts" >
+      </account-region-cluster-selector>
+
+    </div>
+  </div>
+  <stage-config-field label="Target">
+    <target-select model="stage" options="resizeTargets"></target-select>
+  </stage-config-field>
+  <stage-config-field label="Action" help-key="pipeline.config.resizeAsg.action">
+    <select class="form-control input-sm"
+            required
+            ng-model="stage.action"
+            ng-change="resizeAsgStageCtrl.updateResizeType()"
+            ng-options="a.val as a.label for a in scaleActions">
+      <option>Select an action...</option>
+    </select>
+  </stage-config-field>
+  <div ng-if="stage.action !== 'scale_exact'">
+    <stage-config-field label="{{stage.action === 'scale_to_cluster' ? 'Additional Capacity' : 'Type'}}">
+      <select class="form-control input-sm"
+              required
+              ng-model="stage.resizeType"
+              ng-change="resizeAsgStageCtrl.updateResizeType()"
+              ng-options="t.val as t.label for t in resizeTypes">
+        <option>Select an action...</option>
+      </select>
+    </stage-config-field>
+    <div class="form-group" ng-if="stage.resizeType === 'pct'">
+      <div class="col-md-9 col-md-offset-3">
+        <label class="col-md-2 sm-label-right" style="margin-left:0;padding-left:0">Resize Percentage</label>
+
+        <div class="col-md-2">
+          <input type="number" min="0" ng-model="stage.scalePct" class="form-control input-sm"/>
+        </div>
+      </div>
+      <div class="col-md-9 col-md-offset-3">
+        <em class="subinput-note">This is the percentage by which the target server group's capacity will be
+          increased</em>
+      </div>
+    </div>
+    <div class="form-group" ng-if="stage.resizeType === 'incr'">
+      <div class="col-md-9 col-md-offset-3">
+        <label class="col-md-2 sm-label-right" style="margin-left:0;padding-left:0">Resize-by Amount</label>
+
+        <div class="col-md-2">
+          <input type="number" min="0" ng-model="stage.scaleNum" class="form-control input-sm"/>
+        </div>
+      </div>
+
+      <div class="col-md-9 col-md-offset-3">
+        <em class="subinput-note">This is the exact amount by which the target server group's capacity will be
+          increased</em>
+      </div>
+    </div>
+  </div>
+  <div class="form-group" ng-if="stage.action === 'scale_exact'">
+    <div class="col-md-9 col-md-offset-3 small">
+      <div class="col-md-9">
+        <div class="col-md-3">Desired</div>
+      </div>
+    </div>
+    <div class="col-md-9 col-md-offset-3">
+      <label class="col-md-2 sm-label-right small" style="margin-left:0;padding-left:0">Match Capacity</label>
+
+      <div class="col-md-9">
+        <div class="col-md-3">
+          <input type="number" ng-model="stage.capacity.desired" class="form-control input-sm"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-9 col-md-offset-3">
+      <em class="subinput-note">This is the exact amount to which the target server group will be scaled</em>
+    </div>
+  </div>
+  <stage-platform-health-override application="application"
+                                  stage="stage"
+                                  platform-health-type="'Dcos'">
+  </stage-platform-health-override>
+</div>
