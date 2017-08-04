@@ -36,8 +36,6 @@ be run periodically to reap old, unreferenced images.
 
 
 RELEASED_VERSION_MATCHER = re.compile('^[0-9]+\.[0-9]+\.[0-9]+\.yml$')
-LATEST_UNVALIDATED_MATCHER = re.compile('.*-latest-unvalidated\.yml$')
-BUILT_VERSION_MATCHER = re.compile('.*-[0-9]+\-[0-9]+\-[0-9]+\-[0-9]+\.yml$')
 
 SERVICES = [
   'clouddriver',
@@ -57,14 +55,12 @@ PUBLISHED_TAG_KEY = 'published'
 def __partition_boms(gcs_client, bucket_name):
   def __bom_to_tag(bom_blob):
     name = os.path.basename(bom_blob.name)
-    return (RELEASED_VERSION_MATCHER.match(name)
-            or LATEST_UNVALIDATED_MATCHER.match(name))
+    return RELEASED_VERSION_MATCHER.match(name)
 
   def __bom_to_version(bom_blob):
     return os.path.basename(bom_blob.name).replace('.yml', '')
 
   bucket = gcs_client.get_bucket(bucket_name)
-  # Get all BOM blobs but remove 'bom/' directory.
   all_bom_blobs = [b for b in bucket.list_blobs(prefix='bom') if b.name.endswith('.yml')]
   bom_contents_by_name = {__bom_to_version(b): b.download_as_string() for b in all_bom_blobs}
 
@@ -101,7 +97,7 @@ def __tag_images(versions_to_tag, project, account, project_images, bom_contents
 
 
 def __write_image_delete_script(possible_versions_to_delete, days_before, project,
-                                 account, project_images, bom_contents_by_name):
+                                account, project_images, bom_contents_by_name):
   images_to_delete = set([])
   print 'Calculating images for {} versions to delete.'.format(len(possible_versions_to_delete))
   for bom_version in possible_versions_to_delete:
@@ -170,8 +166,8 @@ def __delete_unused_bom_images(options):
   __tag_images(versions_to_tag, project, service_account, project_images,
                bom_contents_by_name)
   __write_image_delete_script(possible_versions_to_delete, options.days_before, project,
-                               service_account, project_images,
-                               bom_contents_by_name)
+                              service_account, project_images,
+                              bom_contents_by_name)
 
 
 def init_argument_parser(parser):
