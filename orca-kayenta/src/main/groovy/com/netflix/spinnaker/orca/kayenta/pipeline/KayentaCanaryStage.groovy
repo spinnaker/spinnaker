@@ -58,8 +58,10 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
     Instant startTimeInstant = Instant.parse(startTimeIso)
     String endTimeIso = canaryConfig.endTimeIso
     Instant endTimeInstant
+    // TODO(duftler): Externalize these default values.
     String step = canaryConfig.step ?: "60"
     Map<String, String> extendedScopeParams = canaryConfig.get("extendedScopeParams") ?: [:]
+    String combinedCanaryResultStrategy = canaryConfig.get("combinedCanaryResultStrategy") ?: "AVERAGE"
     Map<String, String> scoreThresholds = canaryConfig.get("scoreThresholds")
     String lifetimeHours = canaryConfig.lifetimeHours
     long lifetimeMinutes
@@ -110,6 +112,7 @@ class KayentaCanaryStage implements StageDefinitionBuilder {
         experimentScope: experimentScope,
         step: step,
         extendedScopeParams: extendedScopeParams,
+        combinedCanaryResultStrategy: combinedCanaryResultStrategy,
         scoreThresholds: scoreThresholds
       ]
 

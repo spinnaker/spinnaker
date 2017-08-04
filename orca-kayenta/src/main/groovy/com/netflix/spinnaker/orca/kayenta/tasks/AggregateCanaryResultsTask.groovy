@@ -38,6 +38,9 @@ class AggregateCanaryResultsTask implements Task {
     // Took this value from mine.
     Double overallScore = -99
 
+    // TODO(duftler): This is wrong. The combinedCanaryResultStrategy is not supposed to be used to combine overall
+    // canary run scores. Remove this logic once we decide how we should actually combine them. Will probably end up
+    // taking the latest score.
     if (runCanaryScores) {
       if (combinedCanaryResultStrategy == "AVERAGE") {
         overallScore = runCanaryScores.sum() / runCanaryScores.size()
