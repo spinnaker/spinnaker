@@ -16,17 +16,19 @@
 
 package com.netflix.spinnaker.security;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.Callable;
 import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+
 public class AuthenticatedRequest {
   public static final String SPINNAKER_USER = "X-SPINNAKER-USER";
   public static final String SPINNAKER_ACCOUNTS = "X-SPINNAKER-ACCOUNTS";
+  public static final String SPINNAKER_USER_ORIGIN = "X-SPINNAKER-USER-ORIGIN";
 
   public static <V> Callable<V> propagate(Callable<V> closure) {
     return propagate(closure, true, principal());
@@ -49,6 +51,7 @@ public class AuthenticatedRequest {
       return () -> {
         MDC.remove(SPINNAKER_USER);
         MDC.remove(SPINNAKER_ACCOUNTS);
+        MDC.remove(SPINNAKER_USER_ORIGIN);
         return closure.call();
       };
     }
@@ -88,6 +91,7 @@ public class AuthenticatedRequest {
     Map<String, Optional<String>> headers = new HashMap<>();
     headers.put(SPINNAKER_USER, getSpinnakerUser());
     headers.put(SPINNAKER_ACCOUNTS, getSpinnakerAccounts());
+    headers.put(SPINNAKER_USER_ORIGIN, getSpinnakerUserOrigin());
     return headers;
   }
 
@@ -127,5 +131,9 @@ public class AuthenticatedRequest {
       .ofNullable(SecurityContextHolder.getContext().getAuthentication())
       .map(Authentication::getPrincipal)
       .orElse(null);
+  }
+
+  public static Optional<String> getSpinnakerUserOrigin() {
+    return Optional.ofNullable(MDC.get(SPINNAKER_USER_ORIGIN));
   }
 }

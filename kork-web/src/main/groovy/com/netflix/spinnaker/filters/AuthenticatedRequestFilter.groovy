@@ -51,9 +51,11 @@ class AuthenticatedRequestFilter implements Filter {
   private static final String RFC822_NAME_ID = "1"
 
   private final boolean extractSpinnakerHeaders
+  private final boolean extractSpinnakerUserOriginHeader
 
-  public AuthenticatedRequestFilter(boolean extractSpinnakerHeaders = false) {
+  public AuthenticatedRequestFilter(boolean extractSpinnakerHeaders = false, boolean extractSpinnakerUserOriginHeader = false) {
     this.extractSpinnakerHeaders = extractSpinnakerHeaders
+    this.extractSpinnakerUserOriginHeader = extractSpinnakerUserOriginHeader
   }
 
   @Override
@@ -63,6 +65,7 @@ class AuthenticatedRequestFilter implements Filter {
   void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
     def spinnakerUser = null
     def spinnakerAccounts = null
+    def spinnakerUserOrigin = null
 
     try {
       if (request.isSecure()) {
@@ -95,6 +98,10 @@ class AuthenticatedRequestFilter implements Filter {
       def httpServletRequest = (HttpServletRequest) request
       spinnakerUser = spinnakerUser ?: httpServletRequest.getHeader(SPINNAKER_USER)
       spinnakerAccounts = spinnakerAccounts ?: httpServletRequest.getHeader(SPINNAKER_ACCOUNTS)
+      spinnakerUserOrigin = httpServletRequest.getHeader(SPINNAKER_USER_ORIGIN)
+    }
+    if (extractSpinnakerUserOriginHeader) {
+      spinnakerUserOrigin = "deck".equalsIgnoreCase(((HttpServletRequest) request).getHeader("X-RateLimit-App")) ? "deck" : "api"
     }
 
     try {
@@ -103,6 +110,9 @@ class AuthenticatedRequestFilter implements Filter {
       }
       if (spinnakerAccounts) {
         MDC.put(SPINNAKER_ACCOUNTS, spinnakerAccounts)
+      }
+      if (spinnakerUserOrigin) {
+        MDC.put(SPINNAKER_USER_ORIGIN, spinnakerUserOrigin)
       }
 
       chain.doFilter(request, response)

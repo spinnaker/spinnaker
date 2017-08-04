@@ -6,3 +6,8 @@ build/
 *.iws
 /out/
 
+.classpath
+.vscode
+.settings
+.project
+bin
