@@ -16,14 +16,27 @@
 
 package com.netflix.kayenta.canary;
 
-import com.netflix.kayenta.canary.results.CanaryJudgeResult;
-import com.netflix.kayenta.metrics.MetricSetPair;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
-import java.util.List;
+import javax.validation.constraints.NotNull;
 
-public interface CanaryJudge {
-  String getName();
-  CanaryJudgeResult judge(CanaryConfig canaryConfig,
-                          CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
-                          List<MetricSetPair> metricSetPairList);
+@Builder
+@ToString
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class CanaryClassifierThresholdsConfig {
+
+  @NotNull
+  @Getter
+  private Double pass;
+
+  @NotNull
+  @Getter
+  private Double marginal;
 }

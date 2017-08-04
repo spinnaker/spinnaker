@@ -16,6 +16,8 @@
 
 package com.netflix.kayenta.canary.orca;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryJudge;
 import com.netflix.kayenta.canary.CanaryMetricConfig;
@@ -51,6 +53,9 @@ public class CanaryJudgeTask implements RetryableTask {
   @Autowired
   List<CanaryJudge> canaryJudges;
 
+  @Autowired
+  ObjectMapper objectMapper;
+
   @Override
   public long getBackoffPeriod() {
     // TODO(duftler): Externalize this configuration.
@@ -72,6 +77,9 @@ public class CanaryJudgeTask implements RetryableTask {
                                                                               accountCredentialsRepository);
     String canaryConfigId = (String)context.get("canaryConfigId");
     String metricSetPairListId = (String)context.get("metricSetPairListId");
+    Map<String, String> orchestratorScoreThresholdsMap = (Map<String, String>)context.get("orchestratorScoreThresholds");
+    CanaryClassifierThresholdsConfig orchestratorScoreThresholds = objectMapper.convertValue(orchestratorScoreThresholdsMap,
+                                                                                             CanaryClassifierThresholdsConfig.class);
     StorageService storageService =
       storageServiceRepository
         .getOne(resolvedAccountName)
@@ -106,7 +114,7 @@ public class CanaryJudgeTask implements RetryableTask {
       canaryJudge = canaryJudges.get(0);
     }
 
-    CanaryJudgeResult result = canaryJudge.judge(canaryConfig, metricSetPairList);
+    CanaryJudgeResult result = canaryJudge.judge(canaryConfig, orchestratorScoreThresholds, metricSetPairList);
     Map<String, CanaryJudgeResult> outputs = Collections.singletonMap("result", result);
 
     return new TaskResult(ExecutionStatus.SUCCEEDED, outputs);

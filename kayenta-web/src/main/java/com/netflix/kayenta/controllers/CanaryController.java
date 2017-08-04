@@ -19,6 +19,7 @@ package com.netflix.kayenta.controllers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.netflix.kayenta.canary.CanaryClassifierThresholdsConfig;
 import com.netflix.kayenta.canary.CanaryConfig;
 import com.netflix.kayenta.canary.CanaryScope;
 import com.netflix.kayenta.canary.CanaryScopeFactory;
@@ -95,7 +96,9 @@ public class CanaryController {
                                @ApiParam(defaultValue = "2017-07-02T15:27:00Z") @RequestParam String endTimeIso,
                                // TODO(duftler): Normalize this somehow. Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.
                                @ApiParam(value = "Stackdriver expects a number in seconds and Atlas expects a duration like PT10S.", defaultValue = "3600") @RequestParam String step,
-                               @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams) {
+                               @ApiParam(value = "Atlas requires \"type\" to be set to application, cluster or node.") @RequestBody(required = false) Map<String, String> extendedScopeParams,
+                               @RequestParam(required = false) String scoreThresholdPass,
+                               @RequestParam(required = false) String scoreThresholdMarginal) {
     String resolvedMetricsAccountName = CredentialsHelper.resolveAccountByNameOrType(metricsAccountName,
                                                                                      AccountCredentials.Type.METRICS_STORE,
                                                                                      accountCredentialsRepository);
@@ -168,6 +171,20 @@ public class CanaryController {
           .put("experimentMetricSetListIds", "${ #stage('Fetch Experiment from " + serviceType + "')['context']['metricSetListIds']}")
           .build());
 
+    CanaryClassifierThresholdsConfig orchestratorScoreThresholds;
+
+    if (scoreThresholdPass != null && scoreThresholdMarginal != null) {
+      orchestratorScoreThresholds =
+        CanaryClassifierThresholdsConfig
+          .builder()
+          .pass(Double.parseDouble(scoreThresholdPass))
+          .marginal(Double.parseDouble(scoreThresholdMarginal))
+          .build();
+    } else {
+      // The score thresholds were not explicitly passed in from the orchestrator (i.e. Spinnaker), so just use the canary config values.
+      orchestratorScoreThresholds = canaryConfig.getClassifier().getScoreThresholds();
+    }
+
     Map<String, Object> canaryJudgeContext =
       Maps.newHashMap(
         new ImmutableMap.Builder<String, Object>()
@@ -176,6 +193,7 @@ public class CanaryController {
           .put("user", "[anonymous]")
           .put("canaryConfigId", canaryConfigId)
           .put("metricSetPairListId", "${ #stage('Mix Control and Experiment Results')['context']['metricSetPairListId']}")
+          .put("orchestratorScoreThresholds", orchestratorScoreThresholds)
           .build());
 
     Pipeline pipeline =

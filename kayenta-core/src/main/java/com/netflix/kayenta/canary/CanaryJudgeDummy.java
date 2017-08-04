@@ -36,7 +36,9 @@ public class CanaryJudgeDummy implements CanaryJudge {
   }
 
   @Override
-  public CanaryJudgeResult judge(CanaryConfig canaryConfig, List<MetricSetPair> metricSetPairList) {
+  public CanaryJudgeResult judge(CanaryConfig canaryConfig,
+                                 CanaryClassifierThresholdsConfig orchestratorScoreThresholds,
+                                 List<MetricSetPair> metricSetPairList) {
     // TODO: "You're the judge; so judge!"
 
     CanaryJudgeScore score = CanaryJudgeScore.builder().score(random.nextDouble() * 100).build();

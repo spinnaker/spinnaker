@@ -43,19 +43,3 @@ public class CanaryClassifierConfig {
   @Getter
   private CanaryClassifierThresholdsConfig scoreThresholds;
 }
-
-@Builder
-@ToString
-@NoArgsConstructor
-@AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class CanaryClassifierThresholdsConfig {
-
-  @NotNull
-  @Getter
-  private Double pass;
-
-  @NotNull
-  @Getter
-  private Double marginal;
-}
