@@ -106,7 +106,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
     if (configuration.getConcurrentExecutions() != null) {
       applyConcurrentExecutions(pipeline, configuration.getConcurrentExecutions());
     }
-    if (!configuration.getTriggers().isEmpty()) {
+    if (configuration.getTriggers() != null && !configuration.getTriggers().isEmpty()) {
       pipeline.put(
         "triggers",
         TemplateMerge.mergeNamedContent(
@@ -115,7 +115,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
         )
       );
     }
-    if (!configuration.getParameters().isEmpty()) {
+    if (configuration.getParameters() != null && !configuration.getParameters().isEmpty()) {
       pipeline.put(
         "parameterConfig",
         TemplateMerge.mergeNamedContent(
@@ -124,7 +124,7 @@ public class TemplatedPipelineModelMutator implements PipelineModelMutator {
         )
       );
     }
-    if (!configuration.getNotifications().isEmpty()) {
+    if (configuration.getNotifications() != null && !configuration.getNotifications().isEmpty()) {
       pipeline.put(
         "notifications",
         TemplateMerge.mergeNamedContent(
