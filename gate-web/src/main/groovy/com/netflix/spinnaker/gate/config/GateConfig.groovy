@@ -261,10 +261,12 @@ class GateConfig extends RedisHttpSessionConfiguration {
   /**
    * This AuthenticatedRequestFilter pulls the email and accounts out of the Spring
    * security context in order to enabling forwarding them to downstream components.
+   *
+   * Additionally forwards request origin metadata (deck vs api).
    */
   @Bean
   FilterRegistrationBean authenticatedRequestFilter() {
-    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false))
+    def frb = new FilterRegistrationBean(new AuthenticatedRequestFilter(false, true))
     frb.order = Ordered.LOWEST_PRECEDENCE
     return frb
   }
