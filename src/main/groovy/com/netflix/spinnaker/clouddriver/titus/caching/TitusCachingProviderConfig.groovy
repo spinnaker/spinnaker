@@ -45,9 +45,7 @@ class TitusCachingProviderConfig {
 
   @Bean
   @DependsOn('netflixTitusCredentials')
-  TitusCachingProvider titusCachingProvider(TitusCloudProvider titusCloudProvider,
-                                            Registry registry,
-                                            AccountCredentialsRepository accountCredentialsRepository,
+  TitusCachingProvider titusCachingProvider(AccountCredentialsRepository accountCredentialsRepository,
                                             TitusClientProvider titusClientProvider,
                                             ObjectMapper objectMapper,
                                             Provider<AwsLookupUtil> awsLookupUtilProvider
@@ -58,7 +56,7 @@ class TitusCachingProviderConfig {
     } as Collection<NetflixTitusCredentials>
     allAccounts.each { NetflixTitusCredentials account ->
       account.regions.each { region ->
-        agents << new TitusClusterCachingAgent(titusCloudProvider, titusClientProvider, account, region.name, objectMapper, registry, awsLookupUtilProvider, pollIntervalMillis, timeOutMilis)
+        agents << new TitusClusterCachingAgent(titusClientProvider, account, region.name, objectMapper, awsLookupUtilProvider, pollIntervalMillis, timeOutMilis)
       }
     }
     new TitusCachingProvider(agents)
