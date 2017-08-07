@@ -59,6 +59,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
     hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'r3', 'm3', 'm4', 't2']
   ]
 
+  // http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSOptimized.html
+  private static final DEFAULT_EBS_OPTIMIZED_FAMILIES = [
+    'c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'p2', 'r4', 'x1'
+  ]
+
   private static Task getTask() {
     TaskRepository.threadLocalTask.get()
   }
@@ -272,7 +277,7 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
         kernelId: description.kernelId,
         ramdiskId: description.ramdiskId,
         instanceMonitoring: description.instanceMonitoring,
-        ebsOptimized: description.ebsOptimized,
+        ebsOptimized: description.ebsOptimized == null ? getDefaultEbsOptimizedFlag(description.instanceType) : description.ebsOptimized,
         regionScopedProvider: regionScopedProvider,
         base64UserData: description.base64UserData,
         legacyUdf: description.legacyUdf,
@@ -480,6 +485,11 @@ class BasicAmazonDeployHandler implements DeployHandler<BasicAmazonDeployDescrip
       throw new IllegalArgumentException("Instance type ${instanceType} does not support " +
           "virtualization type ${ami.virtualizationType}. Please select a different image or instance type.")
     }
+  }
+
+  private static boolean getDefaultEbsOptimizedFlag(String instanceType) {
+    String family = instanceType?.contains('.') ? instanceType.split("\\.")[0] : ''
+    return DEFAULT_EBS_OPTIMIZED_FAMILIES.contains(family)
   }
 
   /**

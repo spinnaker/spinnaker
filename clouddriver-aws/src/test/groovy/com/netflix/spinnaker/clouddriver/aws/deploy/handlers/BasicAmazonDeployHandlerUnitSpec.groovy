@@ -717,6 +717,18 @@ class BasicAmazonDeployHandlerUnitSpec extends Specification {
     null        | null                     | "{{application}}IamRole" || "{{application}}IamRole"
   }
 
+  @Unroll
+  void "should assign default EBS optimized flag if unset"() {
+    expect:
+    BasicAmazonDeployHandler.getDefaultEbsOptimizedFlag(instanceType) == expectedFlag
+
+    where:
+    instanceType  || expectedFlag
+    'invalid'     || false
+    'm3.medium'   || false
+    'm4.large'    || true
+  }
+
   private Collection<AmazonBlockDevice> bD(String instanceType) {
     return blockDeviceConfig.getBlockDevicesForInstanceType(instanceType)
   }
