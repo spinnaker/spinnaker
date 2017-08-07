@@ -1,25 +1,25 @@
-import { module, IQService } from 'angular';
+import { module } from 'angular';
 
 import {
   APPLICATION_DATA_SOURCE_REGISTRY,
   ApplicationDataSourceRegistry, DataSourceConfig, Application
 } from '@spinnaker/core';
 
-import { getCanaryConfigSummaries } from './service/canaryConfig.service';
-import { ICanaryConfigSummary } from './domain/index';
+import { getCanaryConfigSummaries, listJudges } from './service/canaryConfig.service';
+import { ICanaryConfigSummary, IJudge } from './domain/index';
 import { canaryStore } from './canary';
-import { UPDATE_CONFIG_SUMMARIES } from './actions/index';
+import { UPDATE_CONFIG_SUMMARIES, UPDATE_JUDGES } from './actions/index';
 
 export const CANARY_DATA_SOURCE = 'spinnaker.kayenta.canary.dataSource';
 module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
-  .run(($q: IQService, applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
+  .run((applicationDataSourceRegistry: ApplicationDataSourceRegistry) => {
     const loadCanaryConfigs = () => getCanaryConfigSummaries();
 
     const configsLoaded = (_application: Application, summaries: ICanaryConfigSummary[]) => {
-      return $q.resolve(summaries);
+      return Promise.resolve(summaries);
     };
 
-    const afterLoad = (application: Application) => {
+    const afterConfigsLoad = (application: Application) => {
       canaryStore.dispatch({
         type: UPDATE_CONFIG_SUMMARIES,
         configSummaries: application.getDataSource('canaryConfigs').data,
@@ -31,12 +31,34 @@ module(CANARY_DATA_SOURCE, [APPLICATION_DATA_SOURCE_REGISTRY])
       primary: true,
       loader: loadCanaryConfigs,
       onLoad: configsLoaded,
-      afterLoad: afterLoad,
+      afterLoad: afterConfigsLoad,
       description: 'Canary analysis configuration and reporting',
       key: 'canaryConfigs',
       sref: '.canary.default',
       title: 'Canary',
       label: 'Canary',
       icon: 'bar-chart'
+    }));
+
+    const loadCanaryJudges = () => listJudges();
+
+    const judgesLoaded = (_application: Application, judges: IJudge[]) => {
+      return Promise.resolve(judges);
+    };
+
+    const afterJudgesLoad = (application: Application) => {
+      canaryStore.dispatch({
+        type: UPDATE_JUDGES,
+        judges: application.getDataSource('canaryJudges').data,
+      });
+    };
+
+    applicationDataSourceRegistry.registerDataSource(new DataSourceConfig({
+      key: 'canaryJudges',
+      loader: loadCanaryJudges,
+      onLoad: judgesLoaded,
+      afterLoad: afterJudgesLoad,
+      lazy: false,
+      visible: false,
     }));
   });

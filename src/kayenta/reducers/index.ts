@@ -1,4 +1,4 @@
-import { get } from 'lodash';
+import { get, has } from 'lodash';
 import { combineReducers, Action } from 'redux';
 import { Application } from '@spinnaker/core';
 import { ICanaryConfig, ICanaryMetricConfig } from '../domain/ICanaryConfig';
@@ -15,10 +15,13 @@ import {
   UPDATE_CONFIG_DESCRIPTION, EDIT_CONFIG_JSON_MODAL_OPEN,
   EDIT_CONFIG_JSON_MODAL_CLOSE,
   SET_CONFIG_JSON,
-  CONFIG_JSON_DESERIALIZATION_ERROR, REMOVE_METRIC, UPDATE_STACKDRIVER_METRIC_TYPE
+  CONFIG_JSON_DESERIALIZATION_ERROR, REMOVE_METRIC,
+  UPDATE_STACKDRIVER_METRIC_TYPE, UPDATE_JUDGES, SELECT_JUDGE
 } from '../actions/index';
 import { SaveConfigState } from '../edit/save';
 import { DeleteConfigState } from '../edit/deleteModal';
+import { IJudge } from '../domain/IJudge';
+import { CanarySettings } from '../canary.settings';
 
 export interface ICanaryState {
   application: Application;
@@ -37,6 +40,11 @@ export interface ICanaryState {
   editConfigJsonModalOpen: boolean;
   configJson: string;
   configJsonDeserializationError: string;
+  judges: IJudge[];
+  // For now at least, the judge lives on a config's first metric. Since the user might
+  // select a judge before picking a first metric (or delete the first metric),
+  // we hide this by placing the selected judge on the canary state.
+  selectedJudge: IJudge;
 }
 
 function application(state: Application = null, action: Action & any): Application {
@@ -303,6 +311,26 @@ function configJsonDeserializationError(state: string = null, action: Action & a
   }
 }
 
+function judges(state: IJudge[] = null, action: Action & any): IJudge[] {
+  switch (action.type) {
+    case UPDATE_JUDGES:
+      return action.judges;
+
+    default:
+      return state;
+  }
+}
+
+function selectedJudge(state: IJudge = null, action: Action & any): IJudge {
+  switch (action.type) {
+    case SELECT_JUDGE:
+      return action.judge;
+
+    default:
+      return state;
+  }
+}
+
 const combinedReducer = combineReducers<ICanaryState>({
   application,
   configSummaries,
@@ -320,6 +348,8 @@ const combinedReducer = combineReducers<ICanaryState>({
   editConfigJsonModalOpen,
   configJson,
   configJsonDeserializationError,
+  judges,
+  selectedJudge,
 });
 
 // This reducer needs to be able to access both metricList and editingMetric so it won't fit the combineReducers paradigm.
@@ -346,8 +376,25 @@ function editingMetricReducer(state: ICanaryState = null, action: Action & any):
   }
 }
 
+function selectedJudgeReducer(state: ICanaryState = null, action: Action & any): ICanaryState {
+  switch (action.type) {
+    case SELECT_CONFIG:
+      if (has(state.selectedConfig, 'metrics[0].analysisConfigurations.canary.judge')) {
+        state.selectedJudge = { name: get(state.selectedConfig, 'metrics[0].analysisConfigurations.canary.judge') };
+      } else {
+        state.selectedJudge = { name: CanarySettings.judge };
+      }
+      return state;
+
+    default:
+      return state;
+  }
+}
+
 // First combine all simple reducers, then apply more complex ones as needed.
 export const rootReducer = function(state: ICanaryState, action: Action & any) {
-  const combined = combinedReducer(state, action);
-  return editingMetricReducer(combined, action);
+  let combined = combinedReducer(state, action);
+  combined = editingMetricReducer(combined, action);
+  combined = selectedJudgeReducer(combined, action);
+  return combined;
 };

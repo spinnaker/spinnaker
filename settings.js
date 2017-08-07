@@ -67,6 +67,7 @@ window.spinnakerSettings = {
     liveCalls: liveCallsEnabled,
     metricsAccountName: 'my-google-account',
     storageAccountName: 'my-google-account',
+    judge: 'dredd-v1.0',
   },
   feature: {
     entityTags: entityTagsEnabled,
