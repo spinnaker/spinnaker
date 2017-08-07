@@ -6,9 +6,9 @@
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/@spinnaker/amazon/-/amazon-0.0.5.tgz#0121bf83ef28e68ee938ccae5e66c996420a675d"
 
-"@spinnaker/core@0.0.33":
-  version "0.0.33"
-  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.33.tgz#01367d4514cd3daacd835c0877c6b497d3ab17a9"
+"@spinnaker/core@0.0.46":
+  version "0.0.46"
+  resolved "https://registry.yarnpkg.com/@spinnaker/core/-/core-0.0.46.tgz#401977eb7816ead05ffabadc717dce34af941f56"
 
 "@spinnaker/google@^0.0.1":
   version "0.0.1"
@@ -344,17 +344,17 @@
     "@types/tapable" "*"
     "@types/uglify-js" "*"
 
+"@uirouter/angularjs@1.0.5-SNAPSHOT.20170711":
+  version "1.0.5-SNAPSHOT.20170711"
+  resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.5-SNAPSHOT.20170711.tgz#6cb059062cc0c2aada6b85b820b9ef6c85eee878"
+  dependencies:
+    "@uirouter/core" "^5.0.5"
+
 "@uirouter/angularjs@^1.0.4":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@uirouter/angularjs/-/angularjs-1.0.4.tgz#c89efe2d071573d92c2fd486e35a22effc8dc017"
   dependencies:
     "@uirouter/core" "5.0.3"
-
-"@uirouter/angularjs@git://github.com/angular-ui/ui-router#SNAPSHOT-20170629":
-  version "1.0.5"
-  resolved "git://github.com/angular-ui/ui-router#2c4ccc2b5f544afffa86bd9e4ac182b6907589e1"
-  dependencies:
-    "@uirouter/core" "^5.0.5"
 
 "@uirouter/core@5.0.1":
   version "5.0.1"
@@ -364,21 +364,21 @@
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.3.tgz#e2b5b1e45190e20c67ba4e15c013de5d4e0ccab3"
 
-"@uirouter/core@=5.0.5", "@uirouter/core@^5.0.5":
+"@uirouter/core@5.0.5", "@uirouter/core@^5.0.5":
   version "5.0.5"
   resolved "https://registry.yarnpkg.com/@uirouter/core/-/core-5.0.5.tgz#4fafae8b89e1bee321b0ed32e69ab66547c055c6"
 
-"@uirouter/react-hybrid@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.5.tgz#4c325e0076e5cc5c837cfd664403b6c6f4149968"
+"@uirouter/react-hybrid@0.0.12":
+  version "0.0.12"
+  resolved "https://registry.yarnpkg.com/@uirouter/react-hybrid/-/react-hybrid-0.0.12.tgz#c090c3415a551b28a17dbc4b44d6ef38f9f038bf"
   dependencies:
-    "@uirouter/angularjs" "git://github.com/angular-ui/ui-router#SNAPSHOT-20170629"
-    "@uirouter/core" "=5.0.5"
-    "@uirouter/react" "git://github.com/ui-router/react#SNAPSHOT-20170629"
+    "@uirouter/angularjs" "1.0.5-SNAPSHOT.20170711"
+    "@uirouter/core" "5.0.5"
+    "@uirouter/react" "0.5.1-SNAPSHOT.20170711"
 
-"@uirouter/react@git://github.com/ui-router/react#SNAPSHOT-20170629":
-  version "0.5.0"
-  resolved "git://github.com/ui-router/react#d2f723f88ccd3e7615f5c3893e00b21b4d15c681"
+"@uirouter/react@0.5.1-SNAPSHOT.20170711":
+  version "0.5.1-SNAPSHOT.20170711"
+  resolved "https://registry.yarnpkg.com/@uirouter/react/-/react-0.5.1-SNAPSHOT.20170711.tgz#fabfceaa52de5083043f50dbad138cdbf447e92e"
   dependencies:
     "@uirouter/core" "^5.0.5"
     classnames "^2.2.5"

@@ -11,12 +11,13 @@ import Footer from './footer';
 export default function CanaryConfigEdit() {
   const List = <ConfigList/>;
   // TODO: need to break these down by groups
-  const Detail = <UIView name="detail"/>;
+  const noWrap = { wrap: false };
+  const Detail = <UIView {...noWrap} name="detail"/>;
   return (
     <div>
       <ListDetail list={List} detail={Detail}/>
       <Footer>
-        <UIView name="footer"/>
+        <UIView {...noWrap} name="footer"/>
       </Footer>
     </div>
   );
