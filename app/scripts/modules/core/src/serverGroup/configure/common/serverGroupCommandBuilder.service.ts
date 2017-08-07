@@ -113,6 +113,7 @@ export interface IServerGroupCommand extends IServerGroupCommandResult {
   regionChanged: () => IServerGroupCommandResult;
   credentialsChanged: () => IServerGroupCommandResult;
   imageChanged: () => IServerGroupCommandResult;
+  instanceTypeChanged: () => void;
 }
 
 export class ServerGroupCommandBuilderService {

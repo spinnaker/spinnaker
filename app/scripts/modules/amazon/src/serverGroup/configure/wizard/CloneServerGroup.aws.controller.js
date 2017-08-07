@@ -133,6 +133,7 @@ module.exports = angular.module('spinnaker.amazon.cloneServerGroup.controller', 
       $scope.$watch('command.virtualizationType', createResultProcessor($scope.command.imageChanged));
       $scope.$watch('command.stack', $scope.command.clusterChanged);
       $scope.$watch('command.freeFormDetails', $scope.command.clusterChanged);
+      $scope.$watch('command.instanceType', $scope.command.instanceTypeChanged);
 
       // if any additional watches have been configured, add them
       serverGroupCommandRegistry.getCommandOverrides('aws').forEach((override) => {

@@ -2,15 +2,9 @@
 # yarn lockfile v1
 
 
-"@types/angular-mocks@1.5.10":
+"@types/angular-mocks@1.5.10", "@types/angular-mocks@^1.5.9":
   version "1.5.10"
   resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.10.tgz#bb3728bfc156a3bc35dfbfcc2d332e175284fba6"
-  dependencies:
-    "@types/angular" "*"
-
-"@types/angular-mocks@^1.5.9":
-  version "1.5.9"
-  resolved "https://registry.yarnpkg.com/@types/angular-mocks/-/angular-mocks-1.5.9.tgz#4d91bb71a5cfb000d02b02133bc98c20f57101fd"
   dependencies:
     "@types/angular" "*"
 

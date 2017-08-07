@@ -258,6 +258,7 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
       paravirtual: ['c1', 'c3', 'hi1', 'hs1', 'm1', 'm2', 'm3', 't1'],
       hvm: ['c3', 'c4', 'd2', 'i2', 'g2', 'm3', 'm4', 'p2', 'r3', 't2', 'x1'],
       vpcOnly: ['c4', 'm4', 't2', 'x1'],
+      ebsOptimized: ['c4', 'd2', 'f1', 'g3', 'i3', 'm4', 'p2', 'r4', 'x1'],
     };
 
     function filterInstanceTypes(instanceTypes, virtualizationType, vpcOnly) {
@@ -277,11 +278,20 @@ module.exports = angular.module('spinnaker.amazon.instanceType.service', [
       });
     }
 
+    function isEbsOptimized(instanceType) {
+      if (!instanceType) {
+        return false;
+      }
+      let [family] = instanceType.split('.');
+      return families.ebsOptimized.includes(family);
+    }
+
     return {
-      getCategories: getCategories,
-      getAvailableTypesForRegions: getAvailableTypesForRegions,
-      getAllTypesByRegion: getAllTypesByRegion,
-      filterInstanceTypes: filterInstanceTypes,
+      getCategories,
+      getAvailableTypesForRegions,
+      getAllTypesByRegion,
+      filterInstanceTypes,
+      isEbsOptimized,
     };
   }
 );

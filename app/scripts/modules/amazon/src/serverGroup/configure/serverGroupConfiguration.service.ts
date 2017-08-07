@@ -586,6 +586,10 @@ export class AwsServerGroupConfigurationService {
 
       command.imageChanged = (): IServerGroupCommandResult => this.configureInstanceTypes(command);
 
+      command.instanceTypeChanged = (): void => {
+        command.ebsOptimized = this.awsInstanceTypeService.isEbsOptimized(command.instanceType);
+      };
+
       this.applyOverrides('attachEventHandlers', command);
     }
 
