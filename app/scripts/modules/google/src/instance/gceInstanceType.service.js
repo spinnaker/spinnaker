@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { ACCOUNT_SERVICE } from '@spinnaker/core';
 
 module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_SERVICE])
-  .factory('gceInstanceTypeService', function ($http, $q, accountService) {
+  .factory('gceInstanceTypeService', function ($http, $q, $log, accountService) {
 
     var cachedResult = null;
 
@@ -239,44 +239,51 @@ module.exports = angular.module('spinnaker.gce.instanceType.service', [ACCOUNT_S
               let diskDefaults = instanceTypeDisks
                 .find(instanceTypeDisk => instanceTypeDisk.instanceType === instanceType.name);
               if (diskDefaults) {
-                let localSSDCount = 0, persistentDiskType, persistentDiskSizeGb;
-                diskDefaults.disks.forEach(disk => {
+                const disks = diskDefaults.disks.map(disk => {
                   switch (disk.type) {
                     case 'PD_SSD':
-                      persistentDiskType = 'pd-ssd';
-                      persistentDiskSizeGb = disk.sizeGb;
-                      break;
+                      return {
+                        type: 'pd-ssd',
+                        sizeGb: disk.sizeGb,
+                      };
                     case 'PD_STANDARD':
-                      persistentDiskType = 'pd-standard';
-                      persistentDiskSizeGb = disk.sizeGb;
-                      break;
+                      return {
+                        type: 'pd-standard',
+                        sizeGb: disk.sizeGb,
+                      };
                     case 'LOCAL_SSD':
-                      localSSDCount++;
-                      break;
+                      return {
+                        type: 'local-ssd',
+                        sizeGb: 375,
+                      };
                     default:
-                      break;
+                      $log.warn(`Disk type '${disk.type}' not supported.`);
+                      return null;
                   }
+                }).filter(disk => !!disk);
 
-                  let size, count;
-                  if (family.storageType === 'SSD') {
-                    size = 375;
-                    count = localSSDCount;
-                  } else {
-                    size = persistentDiskSizeGb;
-                    count = 1;
+                let size = 0, count = 0;
+                if (diskDefaults.supportsLocalSSD) {
+                  count = disks.filter(disk => disk.type === 'local-ssd').length;
+                  size = 375;
+                } else {
+                  // TODO(dpeach): This will render the disk defaults incorrectly for f1-micro and g1-small instance types
+                  // if the disk defaults set in Clouddriver have different sizes. Fixing it will require updating
+                  // the core instance type selector.
+                  // This logic will render the count of the largest disk.
+                  const persistentDisks = disks.filter(disk => disk.type.startsWith('pd-'));
+                  if (persistentDisks.length) {
+                    size = persistentDisks.reduce((maxSizeGb, disk) => Math.max(maxSizeGb, disk.sizeGb), 0);
+                    count = persistentDisks.filter(disk => disk.sizeGb === size).length;
                   }
+                }
 
-                  instanceType.storage = {
-                    localSSDSupported: diskDefaults.supportsLocalSSD,
-                    size,
-                    count,
-                    defaultSettings: {
-                      persistentDiskType,
-                      persistentDiskSizeGb,
-                      localSSDCount,
-                    },
-                  };
-                });
+                instanceType.storage = {
+                  localSSDSupported: diskDefaults.supportsLocalSSD,
+                  size: size,
+                  count: count,
+                  defaultSettings: { disks },
+                };
               }
             });
           });

@@ -196,12 +196,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
       return function(instanceTypeDetails) {
         if ($scope.command.viewState.initialized) {
           if (instanceTypeDetails && instanceTypeDetails.storage && instanceTypeDetails.storage.defaultSettings) {
-            let defaultSettings = instanceTypeDetails.storage.defaultSettings;
-
-            $scope.command.persistentDiskType = defaultSettings.persistentDiskType;
-            $scope.command.persistentDiskSizeGb = defaultSettings.persistentDiskSizeGb;
-            $scope.command.localSSDCount = defaultSettings.localSSDCount;
-
+            $scope.command.disks = instanceTypeDetails.storage.defaultSettings.disks;
             delete $scope.command.viewState.overriddenStorageDescription;
           }
         } else {
@@ -224,22 +219,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     this.showSubmitButton = function () {
       return v2modalWizardService.allPagesVisited();
     };
-
-    function generateDiskDescriptors() {
-      let persistentDiskDescriptor = {
-        type: $scope.command.persistentDiskType,
-        sizeGb: $scope.command.persistentDiskSizeGb
-      };
-      let localSSDDiskDescriptor = {
-        type: 'local-ssd',
-        sizeGb: 375
-      };
-
-      $scope.command.disks = Array($scope.command.localSSDCount + 1);
-      $scope.command.disks[0] = persistentDiskDescriptor;
-
-      _.fill($scope.command.disks, localSSDDiskDescriptor, 1);
-    }
 
     function buildLoadBalancerMetadata(loadBalancerNames, loadBalancerIndex, backendServices) {
       let metadata = {};
@@ -309,8 +288,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.cloneServer
     }
 
     this.submit = function () {
-      generateDiskDescriptors();
-
       // We use this list of load balancer names when 'Enabling' a server group.
       var loadBalancerMetadata = buildLoadBalancerMetadata(
         $scope.command.loadBalancers,

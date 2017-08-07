@@ -72,73 +72,94 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
     }
 
     function populateDisksFromExisting(disks, command) {
-      let localSSDDisks = _.filter(disks, disk => {
-        return disk.initializeParams.diskType === 'local-ssd';
+      disks = disks.map((disk, index) => {
+        if (index === 0) {
+          return {
+            type: disk.initializeParams.diskType,
+            sizeGb: disk.initializeParams.diskSizeGb,
+          };
+        } else {
+          return {
+            type: disk.initializeParams.diskType,
+            sizeGb: disk.initializeParams.diskSizeGb,
+            sourceImage: _.last(_.get(disk, 'initializeParams.sourceImage', '').split('/')) || null,
+          };
+        }
       });
+      const localSSDDisks = disks.filter(disk => disk.type === 'local-ssd');
+      const persistentDisks = disks.filter(disk => disk.type.startsWith('pd-'));
 
-      command.localSSDCount = _.size(localSSDDisks);
-
-      let persistentDisk = _.find(disks, disk => {
-        return disk.initializeParams.diskType.startsWith('pd-');
-      });
-
-      if (persistentDisk) {
-        command.persistentDiskType = persistentDisk.initializeParams.diskType;
-        command.persistentDiskSizeGb = persistentDisk.initializeParams.diskSizeGb;
-
+      if (persistentDisks.length) {
+        command.disks = persistentDisks.concat(localSSDDisks);
         return instanceTypeService
           .getInstanceTypeDetails(command.selectedProvider, _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType)
-          .then(function(instanceTypeDetails) {
-          command.viewState.instanceTypeDetails = instanceTypeDetails;
-
-          calculateOverriddenStorageDescription(instanceTypeDetails, command);
-        });
+          .then(instanceTypeDetails => {
+            command.viewState.instanceTypeDetails = instanceTypeDetails;
+            calculateOverriddenStorageDescription(instanceTypeDetails, command);
+          });
       } else {
-        command.persistentDiskType = 'pd-ssd';
-        command.persistentDiskSizeGb = 10;
-
+        command.disks = [{type: 'pd-ssd', sizeGb: 10}].concat(localSSDDisks);
         return $q.when(null);
       }
     }
 
-    function populateDisksFromPipeline(disks, command) {
-      let localSSDDisks = _.filter(disks, disk => {
-        return disk.type === 'local-ssd';
-      });
+    function populateDisksFromPipeline(command) {
+      const persistentDisks = getPersistentDisks(command);
+      const localSSDDisks = getLocalSSDDisks(command);
 
-      command.localSSDCount = _.size(localSSDDisks);
-
-      let persistentDisk = _.find(disks, disk => {
-        return disk.type.startsWith('pd-');
-      });
-
-      if (persistentDisk) {
-        command.persistentDiskType = persistentDisk.type;
-        command.persistentDiskSizeGb = persistentDisk.sizeGb;
-
+      if (persistentDisks.length) {
+        command.disks = persistentDisks.concat(localSSDDisks);
         return instanceTypeService
           .getInstanceTypeDetails(command.selectedProvider, _.startsWith(command.instanceType, 'custom') ? 'buildCustom' : command.instanceType)
-          .then(function(instanceTypeDetails) {
-          command.viewState.instanceTypeDetails = instanceTypeDetails;
-
-          calculateOverriddenStorageDescription(instanceTypeDetails, command);
-        });
+          .then(instanceTypeDetails => {
+            command.viewState.instanceTypeDetails = instanceTypeDetails;
+            calculateOverriddenStorageDescription(instanceTypeDetails, command);
+          });
       } else {
-        command.persistentDiskType = 'pd-ssd';
-        command.persistentDiskSizeGb = 10;
-
+        command.disks = [{type: 'pd-ssd', sizeGb: 10}].concat(localSSDDisks);
         return $q.when(null);
       }
+    }
+
+    function getLocalSSDDisks(command) {
+      return (command.disks || []).filter(disk => disk.type === 'local-ssd');
+    }
+
+    function getPersistentDisks(command) {
+      return (command.disks || []).filter(disk => disk.type.startsWith('pd-'));
+    }
+
+    function calculatePersistentDiskOverriddenStorageDescription(command) {
+      const persistentDisks = getPersistentDisks(command);
+
+      const diskCountBySizeGb = new Map();
+      persistentDisks.forEach(disk => {
+        if (diskCountBySizeGb.has(disk.sizeGb)) {
+          diskCountBySizeGb.set(disk.sizeGb, diskCountBySizeGb.get(disk.sizeGb) + 1);
+        } else {
+          diskCountBySizeGb.set(disk.sizeGb, 1);
+        }
+      });
+
+      return Array.from(diskCountBySizeGb)
+        .sort(([sizeA], [sizeB]) => sizeB - sizeA)
+        .map(([sizeGb, count]) => count + '×' + sizeGb)
+        .join(', ');
     }
 
     function calculateOverriddenStorageDescription(instanceTypeDetails, command) {
       if (instanceTypeDetails.storage.localSSDSupported) {
-        if (command.localSSDCount !== instanceTypeDetails.storage.count) {
-          command.viewState.overriddenStorageDescription = command.localSSDCount + '×375';
+        if (getLocalSSDDisks(command).length !== instanceTypeDetails.storage.count) {
+          command.viewState.overriddenStorageDescription = getLocalSSDDisks(command).length + '×375';
         }
       } else {
-        if (command.persistentDiskSizeGb !== instanceTypeDetails.storage.size) {
-          command.viewState.overriddenStorageDescription = '1×' + command.persistentDiskSizeGb;
+        const persistentDisks = getPersistentDisks(command);
+        const overrideStorageDescription =
+          persistentDisks.some(disk => disk.sizeGb !== instanceTypeDetails.storage.size) ||
+          persistentDisks.length !== instanceTypeDetails.storage.count;
+
+        if (overrideStorageDescription) {
+          command.viewState.overriddenStorageDescription = calculatePersistentDiskOverriddenStorageDescription(command);
         }
       }
     }
@@ -283,9 +304,10 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
         },
         backendServiceMetadata: [],
         minCpuPlatform: '(Automatic)',
-        persistentDiskType: 'pd-ssd',
-        persistentDiskSizeGb: 10,
-        localSSDCount: 1,
+        disks: [
+          { type: 'pd-ssd', sizeGb: 10 },
+          { type: 'local-ssd', sizeGb: 375 },
+        ],
         instanceMetadata: {},
         tags: [],
         labels: {},
@@ -453,7 +475,7 @@ module.exports = angular.module('spinnaker.gce.serverGroupCommandBuilder.service
 
         var extendedCommand = angular.extend({}, command, pipelineCluster, viewOverrides);
 
-        return populateDisksFromPipeline(extendedCommand.disks, extendedCommand).then(function() {
+        return populateDisksFromPipeline(extendedCommand).then(function() {
           var instanceMetadata = extendedCommand.instanceMetadata;
           extendedCommand.loadBalancers = extractLoadBalancersFromMetadata(instanceMetadata);
           extendedCommand.backendServiceMetadata = instanceMetadata['backend-service-names']

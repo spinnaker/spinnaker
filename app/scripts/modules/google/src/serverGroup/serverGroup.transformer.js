@@ -40,9 +40,6 @@ module.exports = angular.module('spinnaker.gce.serverGroup.transformer', [GCE_HT
       delete command.backingData;
       delete command.selectedProvider;
       delete command.implicitSecurityGroups;
-      delete command.persistentDiskType;
-      delete command.persistentDiskSizeGb;
-      delete command.localSSDCount;
       delete command.enableTraffic;
       delete command.providerType;
       delete command.enableAutoHealing;

@@ -149,7 +149,7 @@
         <dt>Minimum CPU Platform</dt>
         <dd>{{ctrl.serverGroup.launchConfig.minCpuPlatform || '(Automatic)'}}</dd>
         <dt ng-repeat-start="diskDescription in ctrl.serverGroup.diskDescriptions">Disk{{diskDescription.countSuffix}}</dt>
-        <dd ng-repeat-end>{{diskDescription.finalLabel}}</dd>
+        <dd ng-repeat-end>{{diskDescription.finalLabel}}<help-field content="{{diskDescription.helpField}}"></help-field></dd>
         <dt ng-if="ctrl.serverGroup.serviceAccountEmail">Service Account</dt>
         <dd ng-if="ctrl.serverGroup.serviceAccountEmail">{{ctrl.serverGroup.serviceAccountEmail}}</dd>
         <dt ng-if="ctrl.serverGroup.authScopes">Auth Scopes</dt>

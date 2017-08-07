@@ -29,6 +29,10 @@ module.exports = angular
       gceTagManager.updateSelectedTags();
     };
 
+    this.setDisks = (disks) => {
+      this.command.disks = disks;
+    };
+
     this.inferSelectedSecurityGroupFromTag = gceTagManager.inferSelectedSecurityGroupFromTag;
     this.showToolTip = gceTagManager.showToolTip;
     this.getToolTipContent = gceTagManager.getToolTipContent;

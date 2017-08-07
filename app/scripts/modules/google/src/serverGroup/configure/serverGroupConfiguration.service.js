@@ -84,6 +84,7 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
         subnets: subnetReader.listSubnetsByProvider('gce'),
         loadBalancers: loadBalancerReader.listLoadBalancers('gce'),
         packageImages: imageLoader,
+        allImages: loadAllImages(),
         instanceTypes: gceInstanceTypeService.getAllTypesByRegion(),
         persistentDiskTypes: $q.when(angular.copy(persistentDiskTypes)),
         authScopes: $q.when(angular.copy(authScopes)),
@@ -141,6 +142,14 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
       return gceImageReader.findImages({
         provider: provider,
         q: application.name.replace(/_/g, '[_\\-]') + '*',
+      });
+    }
+
+    // Used to populate the image selection dropdowns in the persistent disk configurer.
+    function loadAllImages() {
+      return gceImageReader.findImages({
+        provider: 'gce',
+        q: '*',
       });
     }
 
@@ -284,9 +293,6 @@ module.exports = angular.module('spinnaker.serverGroup.configure.gce.configurati
 
     function configureImages(command) {
       var result = { dirty: {} };
-      if (command.viewState.disableImageSelection) {
-        return result;
-      }
       if (command.credentials !== command.viewState.lastImageAccount) {
         command.viewState.lastImageAccount = command.credentials;
         var filteredImages = extractFilteredImages(command);
