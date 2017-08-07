@@ -1,5 +1,5 @@
 import { IComponentController, module } from 'angular';
-import { isString } from 'lodash';
+import { isString, get } from 'lodash';
 
 import {
   ACCOUNT_SERVICE, CLOUD_PROVIDER_REGISTRY,
@@ -7,7 +7,11 @@ import {
 } from '@spinnaker/core';
 
 import { CanarySettings } from 'kayenta/canary.settings';
-import { getCanaryConfigSummaries } from 'kayenta/service/canaryConfig.service';
+import {
+  getCanaryConfigById,
+  getCanaryConfigSummaries
+} from 'kayenta/service/canaryConfig.service';
+import { ICanaryConfig } from 'kayenta/domain/ICanaryConfig';
 
 interface IKayentaStage {
   canaryConfig: IKayentaStageCanaryConfig;
@@ -23,13 +27,22 @@ interface IKayentaStageCanaryConfig {
   lifetimeHours: string;
   lookbackMins?: string;
   metricsAccountName: string;
+  scoreThresholds: {
+    pass: number;
+    marginal: number;
+  };
   storageAccountName: string;
 }
 
 class CanaryStage implements IComponentController {
 
-  public state = { useLookback: false };
+  public state = {
+    useLookback: false,
+    summariesLoading: false,
+    detailsLoading: false
+  };
   public canaryConfigNames: string[] = [];
+  public selectedCanaryConfigDetails: ICanaryConfig;
 
   constructor(public stage: IKayentaStage) {
     'ngInject';
@@ -40,6 +53,10 @@ class CanaryStage implements IComponentController {
     if (!this.state.useLookback) {
       delete this.stage.canaryConfig.lookbackMins;
     }
+  }
+
+  public onCanaryConfigSelect(): void {
+    this.loadCanaryConfigDetails();
   }
 
   public isExpression(val: number | string): boolean {
@@ -62,9 +79,47 @@ class CanaryStage implements IComponentController {
     this.loadCanaryConfigNames();
   }
 
+  private loadCanaryConfigDetails(): void {
+    if (!this.stage.canaryConfig.canaryConfigId) {
+      return;
+    }
+
+    this.state.detailsLoading = true;
+    getCanaryConfigById(this.stage.canaryConfig.canaryConfigId).then(configDetails => {
+      this.state.detailsLoading = false;
+      this.selectedCanaryConfigDetails = configDetails;
+      this.overrideScoreThresholds();
+    }).catch(() => {
+      this.state.detailsLoading = false;
+    });
+  }
+
+  private overrideScoreThresholds(): void {
+    if (!this.selectedCanaryConfigDetails) {
+      return;
+    }
+
+    if (!this.stage.canaryConfig.scoreThresholds) {
+      this.stage.canaryConfig.scoreThresholds = { marginal: null, pass: null };
+    }
+
+    this.stage.canaryConfig.scoreThresholds.marginal = get(
+      this.selectedCanaryConfigDetails, 'classifier.scoreThresholds.marginal',
+      this.stage.canaryConfig.scoreThresholds.marginal
+    );
+    this.stage.canaryConfig.scoreThresholds.pass = get(
+      this.selectedCanaryConfigDetails, 'classifier.scoreThresholds.pass',
+      this.stage.canaryConfig.scoreThresholds.pass
+    );
+  }
+
   private loadCanaryConfigNames(): void {
+    this.state.summariesLoading = true;
     getCanaryConfigSummaries().then(summaries => {
+      this.state.summariesLoading = false;
       this.canaryConfigNames = summaries.map(summary => summary.name);
+    }).catch(() => {
+      this.state.summariesLoading = false;
     });
   }
 }
