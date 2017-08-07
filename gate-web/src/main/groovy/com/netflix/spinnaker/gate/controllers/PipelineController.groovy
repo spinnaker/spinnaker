@@ -119,9 +119,13 @@ class PipelineController {
     ]
 
     def result = taskService.createAndWaitForCompletion(operation)
+    String resultStatus = result.get("status")
 
-    if ("TERMINAL".equalsIgnoreCase((String) result.get("status"))) {
+    if ("TERMINAL".equalsIgnoreCase(resultStatus)) {
       throw new PipelineException("Pipeline save operation failed with terminal status: ${result.get("id", "unknown task id")}")
+    }
+    if (!"SUCCEEDED".equalsIgnoreCase(resultStatus)) {
+      throw new PipelineException("Pipeline save operation did not succeed: ${result.get("id", "unknown task id")} (status: ${resultStatus})")
     }
 
     return front50Service.getPipelineConfigsForApplication((String) pipeline.get("application"))?.find { id == (String) it.get("id") }

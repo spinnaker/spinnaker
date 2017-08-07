@@ -20,11 +20,13 @@ import com.netflix.spinnaker.gate.services.commands.HystrixFactory
 import com.netflix.spinnaker.gate.services.internal.ClouddriverServiceSelector
 import com.netflix.spinnaker.gate.services.internal.OrcaService
 import groovy.transform.CompileStatic
+import groovy.util.logging.Log4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @CompileStatic
 @Service
+@Log4j
 class TaskService {
   private static final String GROUP = "tasks"
 
@@ -77,25 +79,30 @@ class TaskService {
     } execute()
   }
 
-  Map createAndWaitForCompletion(Map body, int maxPolls = 20, int intervalMs = 500) {
+  Map createAndWaitForCompletion(Map body, int maxPolls = 32, int intervalMs = 1000) {
+    log.info("Creating and waiting for completion: ${body}")
+
     Map createResult = create(body)
     if (!createResult.get("ref")) {
+      log.warn("No ref field found in create result, returning entire result: ${createResult}")
       return createResult
     }
 
     String taskId = ((String) createResult.get("ref")).split('/')[2]
+    log.info("Create succeeded; polling task for completion: ${taskId}")
 
+    Map task = [ id: taskId ]
     int i = 0
     while (i < maxPolls) {
       i++
       sleep(intervalMs)
 
-      Map task = getTask(taskId)
+      task = getTask(taskId)
       if (['SUCCEEDED', 'TERMINAL'].contains((String) task.get("status"))) {
         return task
       }
     }
-    return null
+    return task
   }
 
   /**
