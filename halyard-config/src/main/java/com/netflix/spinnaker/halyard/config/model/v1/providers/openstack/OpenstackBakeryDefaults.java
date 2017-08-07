@@ -31,6 +31,7 @@ public class OpenstackBakeryDefaults extends BakeryDefaults<OpenstackBaseImage> 
     }
 
     private String authUrl;
+    private String domainName;
     private String networkId;
     private String floatingIpPool;
     private String securityGroups;

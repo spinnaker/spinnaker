@@ -98,6 +98,7 @@ public class OpenstackEditBakeryDefaultsCommand extends AbstractEditBakeryDefaul
     @Override
     protected BakeryDefaults editBakeryDefaults(OpenstackBakeryDefaults bakeryDefaults) {
         bakeryDefaults.setAuthUrl(isSet(authUrl) ? authUrl : bakeryDefaults.getAuthUrl());
+        bakeryDefaults.setDomainName(isSet(domainName) ? domainName : bakeryDefaults.getDomainName());
         bakeryDefaults.setNetworkId(isSet(networkId) ? networkId : bakeryDefaults.getNetworkId());
         bakeryDefaults.setFloatingIpPool(isSet(floatingIpPool) ? floatingIpPool : bakeryDefaults.getFloatingIpPool());
         bakeryDefaults.setSecurityGroups(isSet(securityGroups) ? securityGroups : bakeryDefaults.getSecurityGroups());
