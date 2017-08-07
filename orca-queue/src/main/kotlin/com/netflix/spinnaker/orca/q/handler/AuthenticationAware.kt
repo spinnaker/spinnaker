@@ -44,7 +44,8 @@ interface AuthenticationAware {
       ExecutionContext.set(ExecutionContext(
         getExecution().getApplication(),
         getExecution().javaClass.simpleName.toLowerCase(),
-        getExecution().getId()
+        getExecution().getId(),
+        getExecution().getOrigin()
       ))
       AuthenticatedRequest.propagate(block, false, currentUser).call()
     } finally {

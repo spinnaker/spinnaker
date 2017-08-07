@@ -16,6 +16,7 @@
 
 package com.netflix.spinnaker.orca.clouddriver.config
 
+import com.netflix.spinnaker.orca.clouddriver.InstanceService
 import com.netflix.spinnaker.orca.clouddriver.KatoService
 import com.netflix.spinnaker.orca.clouddriver.MortService
 import com.netflix.spinnaker.orca.clouddriver.OortService
@@ -33,6 +34,9 @@ class SelectableServiceSpec extends Specification {
   @Shared
   def katoService = Mock(KatoService)
 
+  @Shared
+  def instanceService = Mock(InstanceService)
+
   @Unroll
   def "should lookup service by application or executionType"() {
     given:
@@ -40,6 +44,7 @@ class SelectableServiceSpec extends Specification {
       [
         new ByApplicationServiceSelector(mortService, 10, ["applicationPattern": ".*spindemo.*"]),
         new ByExecutionTypeServiceSelector(oortService, 5, ["executionTypes": [0: "orchestration"]]),
+        new ByOriginServiceSelector(instanceService, 20, ["origin": "deck"]),
         new DefaultServiceSelector(katoService, 1, [:])
       ]
     )
@@ -51,11 +56,12 @@ class SelectableServiceSpec extends Specification {
     service == expectedService
 
     where:
-    criteria                                                        || expectedService
-    new SelectableService.Criteria(null, null)                      || katoService      // the default service selector
-    new SelectableService.Criteria("spindemo", "orchestration")     || mortService
-    new SelectableService.Criteria("1-spindemo-1", "orchestration") || mortService
-    new SelectableService.Criteria("spintest", "orchestration")     || oortService
-    new SelectableService.Criteria("spintest", "pipeline")          || katoService
+    criteria                                                               || expectedService
+    new SelectableService.Criteria(null, null, null)                       || katoService      // the default service selector
+    new SelectableService.Criteria("spindemo", "orchestration", "api")     || mortService
+    new SelectableService.Criteria("1-spindemo-1", "orchestration", "api") || mortService
+    new SelectableService.Criteria("spindemo", "orchestration", "deck")    || instanceService  // by origin selector is higher priority
+    new SelectableService.Criteria("spintest", "orchestration", "api")     || oortService
+    new SelectableService.Criteria("spintest", "pipeline", "api")          || katoService
   }
 }

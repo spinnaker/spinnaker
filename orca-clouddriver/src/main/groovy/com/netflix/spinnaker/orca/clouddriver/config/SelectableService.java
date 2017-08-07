@@ -43,17 +43,20 @@ public class SelectableService {
     private final String application;
     private final String executionType;
     private final String executionId;
+    private final String origin;
 
-    public Criteria(String application, String executionType) {
-      this(application, executionType, null);
+    public Criteria(String application, String executionType, String origin) {
+      this(application, executionType, null, origin);
     }
 
     public Criteria(String application,
                     String executionType,
-                    String executionId) {
+                    String executionId,
+                    String origin) {
       this.application = application;
       this.executionType = executionType;
       this.executionId = executionId;
+      this.origin = origin;
     }
 
     public String getApplication() {
@@ -66,6 +69,10 @@ public class SelectableService {
 
     public String getExecutionId() {
       return executionId;
+    }
+
+    public String getOrigin() {
+      return origin;
     }
   }
 }

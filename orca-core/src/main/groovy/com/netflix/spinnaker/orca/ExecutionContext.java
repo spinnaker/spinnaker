@@ -22,11 +22,13 @@ public class ExecutionContext {
   private final String application;
   private final String executionType;
   private final String executionId;
+  private final String origin;
 
-  public ExecutionContext(String application, String executionType, String executionId) {
+  public ExecutionContext(String application, String executionType, String executionId, String origin) {
     this.application = application;
     this.executionType = executionType;
     this.executionId = executionId;
+    this.origin = origin;
   }
 
   public static void set(ExecutionContext executionContext) {
@@ -52,4 +54,6 @@ public class ExecutionContext {
   public String getExecutionId() {
     return executionId;
   }
+
+  public String getOrigin() { return origin; }
 }
