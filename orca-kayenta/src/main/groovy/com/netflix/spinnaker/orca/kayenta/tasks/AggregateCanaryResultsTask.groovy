@@ -49,6 +49,7 @@ class AggregateCanaryResultsTask implements Task {
       }
     }
 
+    // TODO(duftler): Consider score in context of specified thresholds.
     return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryScores: runCanaryScores, overallScore: overallScore])
   }
 }

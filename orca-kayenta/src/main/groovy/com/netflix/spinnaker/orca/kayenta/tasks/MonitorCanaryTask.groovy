@@ -46,11 +46,27 @@ class MonitorCanaryTask implements RetryableTask {
     Pipeline canaryPipelineExecution = kayentaService.getPipelineExecution(canaryPipelineExecutionId)
 
     if (canaryPipelineExecution.status == ExecutionStatus.SUCCEEDED) {
-      // TODO(duftler): Consider score in context of specified thresholds.
       Map<String, String> scoreThresholds = context.get("scoreThresholds")
+      double canaryScore = canaryPipelineExecution.namedStage("canaryJudge").context.result.score.score
 
-      return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
-                                                        canaryScore: canaryPipelineExecution.namedStage("canaryJudge").context.result.score.score])
+      if (scoreThresholds?.marginal == null && scoreThresholds?.pass == null) {
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          canaryScore: canaryScore,
+                                                          canaryScoreMessage: "No score thresholds were specified."])
+      } else if (scoreThresholds?.marginal == null) {
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          canaryScore: canaryScore,
+                                                          canaryScoreMessage: "No marginal score threshold was specified."])
+      } else if (canaryScore <= scoreThresholds.marginal.toDouble()) {
+        return new TaskResult(ExecutionStatus.TERMINAL, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                         canaryScore         : canaryScore,
+                                                         canaryScoreMessage  : "Canary score is not above the marginal score threshold."])
+      } else {
+        // TODO(duftler): Not sure yet what the behavior is supposed to be if the score is at or above the pass threshold.
+        // Do we still continue with all the remaining canary runs, or just declare success now and short-circuit the parent stage?
+        return new TaskResult(ExecutionStatus.SUCCEEDED, [canaryPipelineStatus: ExecutionStatus.SUCCEEDED,
+                                                          canaryScore: canaryScore])
+      }
     }
 
     if (canaryPipelineExecution.status.halt) {
