@@ -3,7 +3,7 @@ The following users are ex-employees but still own applications. We could not id
 #foreach($event in $notification.additionalContext.events)
 $event.user.name<$event.user.email> owns...
 #foreach($application in $event.applications)
-- $application.name in $application.accounts
+- $application.name
 #end
 
 #end
