@@ -35,7 +35,7 @@ export interface ICanaryServiceConfig {
 
 export interface ICanaryClassifierConfig {
   groupWeights: {[key: string]: number};
-  scoreThreshold: ICanaryClassifierThresholdsConfig;
+  scoreThresholds: ICanaryClassifierThresholdsConfig;
 }
 
 export interface ICanaryClassifierThresholdsConfig {

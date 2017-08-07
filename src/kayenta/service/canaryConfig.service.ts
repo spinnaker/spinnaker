@@ -70,7 +70,7 @@ export function buildNewConfig(): ICanaryConfig {
     services: {} as {[key: string]: ICanaryServiceConfig},
     classifier: {
       groupWeights: {} as {[key: string]: number},
-      scoreThreshold: {
+      scoreThresholds: {
         pass: 75,
         marginal: 50,
       }
